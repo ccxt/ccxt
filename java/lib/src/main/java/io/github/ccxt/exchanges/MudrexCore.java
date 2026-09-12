@@ -248,7 +248,7 @@ public class MudrexCore extends MudrexApi
         String base = this.safeString(apiUrls, api);
         if (Helpers.isTrue(Helpers.isEqual(base, null)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " unknown API namespace: "), api)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " unknown API namespace: "), api)) ;
         }
         Object url = Helpers.add(Helpers.add(base, "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
@@ -335,7 +335,7 @@ public class MudrexCore extends MudrexApi
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errCode, Helpers.add(Helpers.add(this.id, " "), text));
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), text, Helpers.add(Helpers.add(this.id, " "), text));
             Object msg = Helpers.add(Helpers.add(this.id, " "), text);
-            Object low = ((String)text).toLowerCase();
+            Object low = text.toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(code, 401)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "auth"), 0))))
             {
                 throw new AuthenticationError((String)msg) ;
@@ -421,7 +421,7 @@ public class MudrexCore extends MudrexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(startTime, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing startTime")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchOHLCV() missing startTime")) ;
             }
             Object endTime = Helpers.add(startTime, Helpers.multiply(duration, requestLimit));
             Long until = this.safeInteger(parameters, "until");
@@ -473,7 +473,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarkOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -498,7 +498,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -676,7 +676,7 @@ public class MudrexCore extends MudrexApi
     {
         String ms = this.safeString(asset, "symbol");
         Object base = ms;
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(ms, null)) && Helpers.isTrue(((String)ms).endsWith(((String)"USDT")))))
+        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(ms, null)) && Helpers.isTrue(ms.endsWith(((String)"USDT")))))
         {
             base = Helpers.slice(ms, 0, Helpers.opNeg(4));
         }
@@ -785,14 +785,14 @@ public class MudrexCore extends MudrexApi
                 }
                 response = (this.privateGetFuturesFunds(this.extend(request, parameters))).join();
             }
-            Object currency = requested;
+            String currency = requested;
             if (Helpers.isTrue(Helpers.isEqual(currency, null)))
             {
                 currency = "USDT";
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchBalance() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchBalance() returned empty response")) ;
             }
             Helpers.addElementToObject(response, "currency", currency);
             return this.parseBalance(response);
@@ -833,7 +833,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -881,7 +881,7 @@ public class MudrexCore extends MudrexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -946,7 +946,7 @@ public class MudrexCore extends MudrexApi
                 String positionId = this.safeString2(parameters, "positionId", "position_id");
                 if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
                 }
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossPrice", "takeProfitPrice", "positionId", "position_id")));
                 final Object finalPositionId = positionId;
@@ -970,7 +970,7 @@ public class MudrexCore extends MudrexApi
             Long lev = this.safeInteger(parameters, "leverage", 1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "market"))) && Helpers.isTrue((Helpers.isEqual(price, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;
             }
             final Object finalPrice = price;
             final Object finalSide = side;
@@ -1028,7 +1028,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1087,7 +1087,7 @@ public class MudrexCore extends MudrexApi
         String oms = this.safeString(order, "symbol");
         market = this.safeMarket(oms, market);
         String oid = this.safeString2(order, "order_id", "id");
-        String rawSide = (String)this.safeStringUpper(order, "order_type");
+        String rawSide = this.safeStringUpper(order, "order_type");
         String side = null;
         if (Helpers.isTrue(Helpers.isEqual(rawSide, "LONG")))
         {
@@ -1099,10 +1099,10 @@ public class MudrexCore extends MudrexApi
         // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
         Boolean isRiskOrder = Helpers.isTrue((Helpers.isEqual(rawSide, "STOPLOSS"))) || Helpers.isTrue((Helpers.isEqual(rawSide, "TAKEPROFIT")));
         String priceString = this.safeString2(order, "price", "order_price");
-        Object orderPrice = priceString;
-        Object triggerPrice = null;
-        Object stopLossPrice = null;
-        Object takeProfitPrice = null;
+        String orderPrice = priceString;
+        String triggerPrice = null;
+        String stopLossPrice = null;
+        String takeProfitPrice = null;
         if (Helpers.isTrue(isRiskOrder))
         {
             triggerPrice = priceString;
@@ -1115,7 +1115,7 @@ public class MudrexCore extends MudrexApi
                 takeProfitPrice = priceString;
             }
         }
-        String trig = (String)this.safeStringUpper(order, "trigger_type");
+        String trig = this.safeStringUpper(order, "trigger_type");
         String typ = null;
         if (Helpers.isTrue(Helpers.isEqual(trig, "MARKET")))
         {
@@ -1474,9 +1474,9 @@ public class MudrexCore extends MudrexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         market = this.safeMarket(null, market);
         String ms = this.safeString(position, "symbol");
-        String symbol = (String) this.safeSymbol(ms, market);
+        String symbol = this.safeSymbol(ms, market);
         // open positions use "order_type", closed positions (history) use "position_type"
-        String rawSide = (String)this.safeStringUpper2(position, "order_type", "position_type");
+        String rawSide = this.safeStringUpper2(position, "order_type", "position_type");
         String side = null;
         if (Helpers.isTrue(Helpers.isEqual(rawSide, "LONG")))
         {
@@ -1577,7 +1577,7 @@ public class MudrexCore extends MudrexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
             {
-                throw new OrderNotFound((String)Helpers.add(this.id, " closePosition() could not resolve position_id")) ;
+                throw new OrderNotFound(Helpers.add(this.id, " closePosition() could not resolve position_id")) ;
             }
             final Object finalPositionId = positionId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1585,7 +1585,7 @@ public class MudrexCore extends MudrexApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
             {
-                String orderType = (String)this.safeStringUpper(parameters, "order_type", "LIMIT");
+                String orderType = this.safeStringUpper(parameters, "order_type", "LIMIT");
                 Helpers.addElementToObject(request, "order_type", orderType);
                 Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
                 String lp = this.safeString(parameters, "limit_price");
@@ -1615,7 +1615,7 @@ public class MudrexCore extends MudrexApi
      * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1641,7 +1641,7 @@ public class MudrexCore extends MudrexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
             {
-                throw new OrderNotFound((String)Helpers.add(this.id, " addMargin() could not resolve position_id")) ;
+                throw new OrderNotFound(Helpers.add(this.id, " addMargin() could not resolve position_id")) ;
             }
             final Object finalPositionId = positionId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1665,7 +1665,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1829,7 +1829,7 @@ public class MudrexCore extends MudrexApi
         Object symbol = Helpers.GetValue(market, "symbol");
         Long ts = this.parse8601(this.safeString(trade, "created_at"));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
-        String side = (String)this.safeStringLower(trade, "order_type");
+        String side = this.safeStringLower(trade, "order_type");
         String tradeSide = null;
         if (Helpers.isTrue(Helpers.isEqual(side, "long")))
         {
@@ -1838,7 +1838,7 @@ public class MudrexCore extends MudrexApi
         {
             tradeSide = "sell";
         }
-        String trig = (String)this.safeStringUpper(trade, "trigger_type");
+        String trig = this.safeStringUpper(trade, "trigger_type");
         String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(trig, "MARKET")))
         {
@@ -1893,7 +1893,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code2, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code2, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

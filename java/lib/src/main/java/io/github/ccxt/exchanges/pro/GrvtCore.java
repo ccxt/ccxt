@@ -110,13 +110,13 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             put( "v1.position", "handlePosition");
             put( "v1.order", "handleOrder");
         }};
-        Object methodName = this.safeString(message, "method");
+        String methodName = this.safeString(message, "method");
         if (Helpers.isTrue(Helpers.isEqual(methodName, "subscribe")))
         {
             // return from confirmation
             return;
         }
-        Object channel = this.safeString(message, "stream");
+        String channel = this.safeString(message, "stream");
         Object method = this.safeValue(methods, channel);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
@@ -161,7 +161,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -199,7 +199,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers requires a symbols argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTickers requires a symbols argument")) ;
             }
             Object channel = null;
             java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
@@ -320,9 +320,9 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //    }
         //
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
-        Object selector = this.safeString(message, "selector", "");
+        String selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
-        Object marketId = this.safeString(parts, 0);
+        String marketId = this.safeString(parts, 0);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object ticker = this.parseWsTicker(data, market);
@@ -348,7 +348,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -405,7 +405,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeValue(trades, 0);
-                Object tradeSymbol = this.safeString(first, "symbol");
+                String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -438,9 +438,9 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //    }
         //
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
-        Object selector = this.safeString(message, "selector", "");
+        String selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
-        Object marketId = this.safeString(parts, 0);
+        String marketId = this.safeString(parts, 0);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
@@ -473,7 +473,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -522,11 +522,11 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
-                Object symbolString = this.safeString(data, 0);
+                String symbolString = this.safeString(data, 0);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbolString);
                 Object marketId = Helpers.GetValue(market, "id");
-                Object unfiedTimeframe = this.safeString(data, 1, "1");
-                Object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+                String unfiedTimeframe = this.safeString(data, 1, "1");
+                String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
                 ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(Helpers.add(marketId, "@"), timeframeId), "-TRADE"));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv::", Helpers.GetValue(market, "symbol")), "::"), unfiedTimeframe));
             }
@@ -571,15 +571,15 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //    }
         //
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
-        Object selector = this.safeString(message, "selector", "");
+        String selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
-        Object marketId = this.safeString(parts, 0);
+        String marketId = this.safeString(parts, 0);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object secondPart = this.safeString(parts, 1, "");
-        Object timeframeId = Helpers.replace((String)secondPart, (String)"-TRADE", (String)"");
+        String secondPart = this.safeString(parts, 1, "");
+        Object timeframeId = Helpers.replace(secondPart, (String)"-TRADE", (String)"");
         Object timeframe = this.findTimeframe(timeframeId);
-        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
+        String messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
@@ -611,7 +611,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -658,7 +658,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -722,9 +722,9 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //    }
         //
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
-        Object selector = this.safeString(message, "selector", "");
+        String selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
-        Object marketId = this.safeString(parts, 0);
+        String marketId = this.safeString(parts, 0);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Long timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
@@ -734,7 +734,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Long sequenceNumber = this.safeInteger(message, "sequence_number", 0);
-        Object stream = this.safeString(message, "stream");
+        String stream = this.safeString(message, "stream");
         Boolean isSnapshotChannel = Helpers.isEqual(stream, "v1.book.s");
         Boolean isSnapshotMessage = Helpers.isLessThanOrEqual(sequenceNumber, 0);
         if (Helpers.isTrue(Helpers.isTrue(isSnapshotChannel) || Helpers.isTrue(isSnapshotMessage)))
@@ -759,7 +759,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         // unconditional assignment is correct for every language.
         Helpers.addElementToObject(orderbook, "symbol", symbol);
         Helpers.addElementToObject(orderbook, "nonce", sequenceNumber);
-        String messageHash = (String) Helpers.add("orderbook::", symbol);
+        String messageHash = Helpers.add("orderbook::", symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
@@ -773,14 +773,14 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             this.checkRequiredCredentials();
             (this.signIn()).join();
             Object wsOptions = this.safeDict(this.options, "ws", new java.util.HashMap<String, Object>() {{}});
-            Object authenticated = this.safeString(wsOptions, "token");
+            String authenticated = this.safeString(wsOptions, "token");
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
-                Object accountId = this.safeString(this.options, "AuthAccountId");
-                Object cookieValue = this.safeString(this.options, "AuthCookieValue");
+                String accountId = this.safeString(this.options, "AuthAccountId");
+                String cookieValue = this.safeString(this.options, "AuthCookieValue");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(cookieValue, null)) || Helpers.isTrue(Helpers.isEqual(accountId, null))))
                 {
-                    throw new AuthenticationError((String)Helpers.add(this.id, " : at first, you need to authenticate with exchange using signIn() method.")) ;
+                    throw new AuthenticationError(Helpers.add(this.id, " : at first, you need to authenticate with exchange using signIn() method.")) ;
                 }
                 final Object finalCookieValue = cookieValue;
                 final Object finalAccountId = accountId;
@@ -828,7 +828,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object subAccountId = this.getSubAccountId(parameters);
+            String subAccountId = this.getSubAccountId(parameters);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -935,7 +935,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             {
                 (this.loadMarkets()).join();
             }
-            Object subAccountId = this.getSubAccountId(parameters);
+            String subAccountId = this.getSubAccountId(parameters);
             symbols = this.marketSymbols(symbols);
             Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1003,7 +1003,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         }
         Object data = this.safeDict(message, "feed");
         Object position = this.parseWsPosition(data);
-        Object symbol = this.safeString(position, "symbol");
+        String symbol = this.safeString(position, "symbol");
         Helpers.callDynamically(this.positions, "append", new Object[]{position});
         java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         ((java.util.List<Object>)newPositions).add(position);
@@ -1043,7 +1043,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object subAccountId = this.getSubAccountId(parameters);
+            String subAccountId = this.getSubAccountId(parameters);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
@@ -1169,16 +1169,16 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //    }
         //
         Object error = this.safeDict(response, "error");
-        Object errorCode = this.safeString(error, "code");
+        String errorCode = this.safeString(error, "code");
         if (Helpers.isTrue(!Helpers.isEqual(errorCode, null)))
         {
             Object body = this.json(response);
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            Object message = this.safeString(error, "message");
+            String message = this.safeString(error, "message");
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), body)) ;
         }
         return false;
     }

@@ -489,7 +489,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList(portfolioId, parameters));
                 }
             }
-            throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
+            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
         });
 
     }
@@ -514,7 +514,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                     // find default network
                     if (Helpers.isTrue(this.isEmpty(networks)))
                     {
-                        throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createDepositAddress network not found for currency "), currencyCode), " please specify networkId in params")) ;
+                        throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " createDepositAddress network not found for currency "), currencyCode), " please specify networkId in params")) ;
                     }
                     Object defaultNetwork = this.findDefaultNetwork(networks);
                     networkId = Helpers.GetValue(defaultNetwork, "id");
@@ -639,7 +639,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 Helpers.addElementToObject(request, "start", this.iso8601(since));
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a since argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV() requires a since argument")) ;
             }
             Long unitl = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(unitl, null)))
@@ -707,7 +707,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -888,7 +888,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Long datetime = this.safeInteger(income, "created_at");
         Long timestamp = this.parse8601(datetime);
         String currencyId = this.safeString(income, "asset");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
@@ -988,7 +988,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Long datetime = this.safeInteger(transfer, "created_at");
         Long timestamp = this.parse8601(datetime);
         String currencyId = this.safeString(transfer, "asset");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Object fromPorfolio = this.safeDict(transfer, "from_portfolio", new java.util.HashMap<String, Object>() {{}});
         String fromId = this.safeString(fromPorfolio, "id");
         Object toPorfolio = this.safeDict(transfer, "to_portfolio", new java.util.HashMap<String, Object>() {{}});
@@ -1029,7 +1029,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
      * @param {string} [params.network] unified network code to identify the blockchain network
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1182,7 +1182,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         //
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         String currencyId = this.safeString(network, "asset_name");
-        String currencyCode = (String) this.safeCurrencyCode(currencyId);
+        String currencyCode = this.safeCurrencyCode(currencyId);
         String networkId = this.safeString(network, "network_arn_id");
         String networkIdForCode = this.safeStringN(network, new java.util.ArrayList<Object>(java.util.Arrays.asList("network_name", "display_name", "network_arn_id")), "");
         return this.safeNetwork(new java.util.HashMap<String, Object>() {{
@@ -1218,7 +1218,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> setMargin(Object symbol2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> setMargin(String symbol2, Object amount, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1230,7 +1230,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMargin() only allows setting margin to full portfolio")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMargin() only allows setting margin to full portfolio")) ;
             }
             final Object finalPortfolio = portfolio;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1813,7 +1813,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Boolean isSpot = (Helpers.isEqual(typeId, "SPOT"));
         Object fees = this.fees;
         Object symbol = Helpers.add(Helpers.add(baseId, "/"), quoteId);
-        Object settleId = null;
+        String settleId = null;
         if (!Helpers.isTrue(isSpot))
         {
             settleId = quoteId;
@@ -1823,7 +1823,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Object isInverse = ((Helpers.isTrue(isSpot))) ? null : (!Helpers.isEqual(settleId, quoteId));
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
         final Object finalMarketId = marketId;
         final Object finalSymbol = symbol;
@@ -1930,7 +1930,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         //    }
         //
         String id = this.safeString(currency, "asset_name");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         String statusId = this.safeString(currency, "status");
         final Object finalStatusId = statusId;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -1981,7 +1981,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 Object instrument = Helpers.GetValue(rows, i);
                 String marketId = this.safeString(instrument, "symbol");
-                String symbol = (String) this.safeSymbol(marketId);
+                String symbol = this.safeSymbol(marketId);
                 Object quote = this.safeDict(instrument, "quote", new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(tickers, symbol, this.parseTicker(quote, this.safeMarket(marketId)));
             }
@@ -1999,7 +1999,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2140,7 +2140,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         {
             Object rawBalance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(rawBalance, "asset_name");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(rawBalance, "quantity"));
             Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "hold"));
@@ -2164,7 +2164,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2240,7 +2240,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             clientOrderId = Helpers.slice(clientOrderId, 0, 17);
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalClientOrderId = clientOrderId;
             final Object finalSide = side;
@@ -2266,7 +2266,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a price parameter for a limit order types")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires a price parameter for a limit order types")) ;
                 }
                 Helpers.addElementToObject(request, "price", price);
             }
@@ -2285,7 +2285,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(tif, null)) && Helpers.isTrue(!Helpers.isEqual(tif, "IOC"))))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() market orders must have tif set to \"IOC\"")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() market orders must have tif set to \"IOC\"")) ;
                 }
                 tif = "IOC";
             } else
@@ -2541,7 +2541,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
      * @param {string} params.clientOrderId client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2581,7 +2581,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             String clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " editOrder() requires a clientOrderId parameter")) ;
+                throw new BadRequest(Helpers.add(this.id, " editOrder() requires a clientOrderId parameter")) ;
             }
             Helpers.addElementToObject(request, "client_order_id", clientOrderId);
             java.util.Map<String, Object> order = (this.v1PrivatePutOrdersId(this.extend(request, parameters))).join();
@@ -2717,7 +2717,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchOpenOrders() maximum limit is 100")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchOpenOrders() maximum limit is 100")) ;
                 }
                 Helpers.addElementToObject(request, "result_limit", limit);
             }
@@ -2819,7 +2819,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.")) ;
                 }
                 Helpers.addElementToObject(request, "result_limit", limit);
             }
@@ -2896,7 +2896,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
      * @param {string} [params.nonce] a unique integer representing the withdrawal request
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

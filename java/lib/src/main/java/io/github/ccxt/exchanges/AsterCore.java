@@ -1181,7 +1181,7 @@ public class AsterCore extends AsterApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "asset");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "code", code );
@@ -1349,13 +1349,13 @@ public class AsterCore extends AsterApi
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseAsset");
         String quoteId = this.safeString(market, "quoteAsset");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Boolean active = Helpers.isEqual(this.safeString(market, "status"), "TRADING");
         Object spot = null;
         Object symbol = null;
         Object settle = null;
-        Object settleId = null;
+        String settleId = null;
         Object swap = null;
         Object linear = null;
         Object inverse = null;
@@ -1655,12 +1655,12 @@ public class AsterCore extends AsterApi
         String marketType = ((Helpers.isTrue((Helpers.inOp(trade, "positionSide"))))) ? "swap" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         String currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
-        String currencyCode = (String) this.safeCurrencyCode(currencyId);
+        String currencyCode = this.safeCurrencyCode(currencyId);
         String amountString = this.safeString2(trade, "qty", "q");
         String priceString = this.safeString2(trade, "price", "p");
         String costString = this.safeString2(trade, "quoteQty", "baseQty");
         Long timestamp = (Long) this.safeInteger2(trade, "time", "T");
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         Object isMaker = this.safeBool(trade, "maker");
         String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
@@ -1717,7 +1717,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2020,7 +2020,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2195,7 +2195,7 @@ public class AsterCore extends AsterApi
             //
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchLastPrices() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchLastPrices() returned empty response")) ;
             }
             java.util.List<Object> rows = this.toArray(response);
             java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2359,7 +2359,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2367,7 +2367,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRate() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRate() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2602,7 +2602,7 @@ public class AsterCore extends AsterApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString2(balance, "free", "availableBalance"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -2634,7 +2634,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             marginMode = ((String)marginMode).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "CROSS")))
@@ -2643,7 +2643,7 @@ public class AsterCore extends AsterApi
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "ISOLATED"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "CROSSED")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " marginMode must be either isolated or cross")) ;
+                throw new BadRequest(Helpers.add(this.id, " marginMode must be either isolated or cross")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -2728,7 +2728,7 @@ public class AsterCore extends AsterApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "symbol");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -2749,7 +2749,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2869,10 +2869,10 @@ public class AsterCore extends AsterApi
         String defaultType = ((Helpers.isTrue((!Helpers.isEqual(positionSide, null))))) ? "swap" : "spot";
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, null, defaultType);
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "time");
-        String statusId = (String)this.safeStringUpper(order, "status");
-        String rawType = (String)this.safeStringUpper(order, "type");
+        String statusId = this.safeStringUpper(order, "status");
+        String rawType = this.safeStringUpper(order, "type");
         String stopPriceString = this.safeString(order, "stopPrice");
         Object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         final Object finalMarket = market;
@@ -2924,7 +2924,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -2993,7 +2993,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3002,7 +3002,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3084,7 +3084,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3181,7 +3181,7 @@ public class AsterCore extends AsterApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(this.options, "fetchOpenOrders"), "warnIfNoSymbol"), true)))
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
                 }
             } else
             {
@@ -3334,7 +3334,7 @@ public class AsterCore extends AsterApi
             Object orderSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(orders), 5)))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createOrders() order list max 5 orders")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " createOrders() order list max 5 orders")) ;
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -3354,7 +3354,7 @@ public class AsterCore extends AsterApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "batchOrders", ordersRequests );
@@ -3401,11 +3401,11 @@ public class AsterCore extends AsterApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         /**
          * @method
@@ -3444,7 +3444,7 @@ public class AsterCore extends AsterApi
         Boolean isStopLoss = Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)) || Helpers.isTrue(!Helpers.isEqual(trailingDelta, null));
         Boolean isTakeProfit = !Helpers.isEqual(takeProfitPrice, null);
         Object uppercaseType = initialUppercaseType;
-        Object stopPrice = null;
+        String stopPrice = null;
         if (Helpers.isTrue(isTrailingPercentOrder))
         {
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
@@ -3564,7 +3564,7 @@ public class AsterCore extends AsterApi
         {
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
             }
             String pricePrecision = this.safeString(Helpers.GetValue(market, "precision"), "price");
             Boolean isPricePrecisionAvailable = (!Helpers.isEqual(pricePrecision, null));
@@ -3580,7 +3580,7 @@ public class AsterCore extends AsterApi
         {
             if (Helpers.isTrue(Helpers.isEqual(stopPrice, null)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a stopPrice extra param for a "), type), " order")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a stopPrice extra param for a "), type), " order")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(stopPrice, null)))
             {
@@ -3623,7 +3623,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3674,7 +3674,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3727,7 +3727,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3774,11 +3774,11 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 125)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " leverage should be between 1 and 125")) ;
+                throw new BadRequest(Helpers.add(this.id, " leverage should be between 1 and 125")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3867,8 +3867,8 @@ public class AsterCore extends AsterApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "symbol");
-        String marginMode = (String)this.safeStringLower(leverage, "marginType");
-        String side = (String)this.safeStringLower(leverage, "positionSide");
+        String marginMode = this.safeStringLower(leverage, "marginType");
+        String side = this.safeStringLower(leverage, "positionSide");
         Object longLeverage = null;
         Object shortLeverage = null;
         Long leverageValue = this.safeInteger(leverage, "leverage");
@@ -3997,7 +3997,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 4, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -4085,7 +4085,7 @@ public class AsterCore extends AsterApi
         }};
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount2, Object addOrReduce, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object addOrReduce, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4127,7 +4127,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4148,7 +4148,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4264,7 +4264,7 @@ public class AsterCore extends AsterApi
             direction = "in";
         }
         String currencyId = this.safeString(item, "asset");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Long timestamp = this.safeInteger(item, "time");
         String type = this.safeString(item, "incomeType");
@@ -4494,14 +4494,14 @@ public class AsterCore extends AsterApi
             timestamp = null;
         }
         Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
-        Object maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
+        String maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
         if (Helpers.isTrue(Helpers.isEqual(maintenanceMarginString, null)))
         {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
             maintenanceMarginString = this.safeString(position, "maintMargin");
         }
         Object maintenanceMargin = this.parseNumber(maintenanceMarginString);
-        Object initialMarginString = null;
+        String initialMarginString = null;
         String initialMarginPercentageString = null;
         String leverageString = this.safeString(position, "leverage");
         if (Helpers.isTrue(!Helpers.isEqual(leverageString, null)))
@@ -4587,7 +4587,7 @@ public class AsterCore extends AsterApi
             {
                 if (!Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositionsRisk() requires an array argument for symbols")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositionsRisk() requires an array argument for symbols")) ;
                 }
             }
             (this.loadMarketsAndSignIn()).join();
@@ -4670,7 +4670,7 @@ public class AsterCore extends AsterApi
                 return (this.fetchAccountPositions(symbols, parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
             }
         });
 
@@ -4686,7 +4686,7 @@ public class AsterCore extends AsterApi
         {
             Object entry = Helpers.GetValue(assets, i);
             String currencyId = this.safeString(entry, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             String crossWalletBalance = this.safeString(entry, "crossWalletBalance");
             String crossUnPnl = this.safeString(entry, "crossUnPnl");
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -4740,7 +4740,7 @@ public class AsterCore extends AsterApi
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
             if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseAccountPosition() missing leverage")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseAccountPosition() missing leverage")) ;
             }
             Object rational = this.isRoundNumber(Helpers.mod(1000, leverage));
             if (!Helpers.isTrue(rational))
@@ -4794,8 +4794,8 @@ public class AsterCore extends AsterApi
             isolated = !Helpers.isTrue(Precise.stringEq(isolatedMarginRaw, "0"));
         }
         String marginMode = null;
-        Object collateralString = null;
-        Object walletBalance = null;
+        String collateralString = null;
+        String walletBalance = null;
         if (Helpers.isTrue(isolated))
         {
             marginMode = "isolated";
@@ -4876,7 +4876,7 @@ public class AsterCore extends AsterApi
             String truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
             if (Helpers.isTrue(Helpers.isEqual(truncatedLiquidationPrice, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " method() missing truncatedLiquidationPrice")) ;
+                throw new ExchangeError(Helpers.add(this.id, " method() missing truncatedLiquidationPrice")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(truncatedLiquidationPrice, 0), "-")))
             {
@@ -4945,7 +4945,7 @@ public class AsterCore extends AsterApi
             {
                 if (!Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() requires an array argument for symbols")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositions() requires an array argument for symbols")) ;
                 }
             }
             (this.loadMarketsAndSignIn()).join();
@@ -5005,7 +5005,7 @@ public class AsterCore extends AsterApi
                 {
                     Object entry = Helpers.GetValue(entries, i);
                     String marketId = this.safeString(entry, "symbol");
-                    String symbol = (String) this.safeSymbol(marketId, null, null, "contract");
+                    String symbol = this.safeSymbol(marketId, null, null, "contract");
                     Object brackets = this.safeList(entry, "brackets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(brackets)); j++)
@@ -5098,7 +5098,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5120,7 +5120,7 @@ public class AsterCore extends AsterApi
             Long chainId = this.safeInteger(parameters, "chainId");
             // TODO: check how ARBI signature would work
             Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-            String network = (String)this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(parameters, "network");
             network = this.safeString(networks, network, network);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(chainId, null))) && Helpers.isTrue((!Helpers.isEqual(network, null)))))
             {
@@ -5129,13 +5129,13 @@ public class AsterCore extends AsterApi
             }
             if (Helpers.isTrue(Helpers.isEqual(chainId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw require chainId or network parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " withdraw require chainId or network parameter")) ;
             }
             Helpers.addElementToObject(request, "chainId", chainId);
             String fee = this.safeString(parameters, "fee");
             if (Helpers.isTrue(Helpers.isEqual(fee, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw require fee parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " withdraw require fee parameter")) ;
             }
             Helpers.addElementToObject(request, "fee", fee);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("chainId", "network", "fee")));
@@ -5193,7 +5193,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
@@ -5227,7 +5227,7 @@ public class AsterCore extends AsterApi
             }
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
             }
             Object defaultClientTranId = this.numberToString(this.milliseconds());
             String clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
@@ -5281,7 +5281,7 @@ public class AsterCore extends AsterApi
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
-        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), v);
+        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0))), Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))), v);
     }
 
     public Object sign(Object path, Object... optionalArgs)
@@ -5317,7 +5317,7 @@ public class AsterCore extends AsterApi
             String signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (Helpers.isTrue(Helpers.isEqual(signerAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " requires signerAddress in options when use v3 api")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " requires signerAddress in options when use v3 api")) ;
             }
             java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
                 put( "name", "AsterSignTransaction" );
@@ -5367,7 +5367,7 @@ public class AsterCore extends AsterApi
     put( "type", "uint256" );
 }})) );
                 }};
-                ((java.util.Map<String,Object>)finalParams).remove((String)"signer"); // signer is not needed for approveBuilder endpoint
+                ((java.util.Map<String,Object>)finalParams).remove("signer"); // signer is not needed for approveBuilder endpoint
                 paramString = this.encodeValuesWithJson(finalParams);
                 paramsToEncode = this.capitalizeKeys(finalParams);
             } else
@@ -5462,13 +5462,13 @@ public class AsterCore extends AsterApi
             {
                 if (Helpers.isTrue(!Helpers.isTrue(this.isEmptyString(this.apiKey)) || !Helpers.isTrue(this.isEmptyString(this.secret))))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
+                    throw new NotSupported(Helpers.add(this.id, "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
                 }
                 return false;
             }
             if (Helpers.isTrue(Helpers.isGreaterThan(((String)this.privateKey).length(), 66)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
+                throw new NotSupported(Helpers.add(this.id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
             }
             (this.initializeClient(parameters)).join();
             return true;
@@ -5535,7 +5535,7 @@ public class AsterCore extends AsterApi
                     Long codeRes = this.safeInteger(authResponse, "code");
                     if (Helpers.isTrue(!Helpers.isEqual(codeRes, 200)))
                     {
-                        throw new ExchangeError((String)Helpers.add("Builder authorization failed, ", this.json(authResponse))) ;
+                        throw new ExchangeError(Helpers.add("Builder authorization failed, ", this.json(authResponse))) ;
                     }
                 } catch(Exception e)
                 {

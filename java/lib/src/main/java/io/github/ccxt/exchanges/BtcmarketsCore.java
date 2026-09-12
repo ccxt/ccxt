@@ -565,7 +565,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         }
         Object cryptoPaymentDetail = this.safeDict(transaction, "paymentDetail", new java.util.HashMap<String, Object>() {{}});
         String txid = this.safeString(cryptoPaymentDetail, "txId");
-        Object address = this.safeString(cryptoPaymentDetail, "address");
+        String address = this.safeString(cryptoPaymentDetail, "address");
         Object tag = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
@@ -573,7 +573,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             Object numParts = Helpers.getArrayLength(addressParts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
-                address = Helpers.GetValue(addressParts, 0);
+                address = (String) Helpers.GetValue(addressParts, 0);
                 tag = Helpers.GetValue(addressParts, 1);
             }
         }
@@ -584,7 +584,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         String fee = this.safeString(transaction, "fee");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         String currencyId = this.safeString(transaction, "assetName");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         String amount = this.safeString(transaction, "amount");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fee, null))) && Helpers.isTrue((!Helpers.isEqual(fee, "")))))
         {
@@ -662,8 +662,8 @@ public class BtcmarketsCore extends BtcmarketsApi
         String baseId = this.safeString(market, "baseAssetName");
         String quoteId = this.safeString(market, "quoteAssetName");
         String id = this.safeString(market, "marketId");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object fees = this.safeValue(this.safeDict(this.options, "fees", new java.util.HashMap<String, Object>() {{}}), quote, this.fees);
         Object pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
@@ -766,7 +766,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "assetName");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
@@ -981,7 +981,7 @@ public class BtcmarketsCore extends BtcmarketsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1016,7 +1016,7 @@ public class BtcmarketsCore extends BtcmarketsApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker2(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker2(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1091,7 +1091,7 @@ public class BtcmarketsCore extends BtcmarketsApi
                 put( "currency", feeCurrencyCode );
             }};
         }
-        String takerOrMaker = (String)this.safeStringLower(trade, "liquidityType");
+        String takerOrMaker = this.safeStringLower(trade, "liquidityType");
         final Object finalMarket = market;
         final Object finalSide = side;
         final Object finalFee = fee;
@@ -1123,7 +1123,7 @@ public class BtcmarketsCore extends BtcmarketsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1213,7 +1213,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), "order")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), "order")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
@@ -1225,7 +1225,7 @@ public class BtcmarketsCore extends BtcmarketsApi
                 parameters = this.omit(parameters, "triggerPrice");
                 if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter for a "), type), "order")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter for a "), type), "order")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -1355,7 +1355,7 @@ public class BtcmarketsCore extends BtcmarketsApi
 
     }
 
-    public Object calculateFee(Object symbol, Object type, Object side, Object amount, Object price, Object... optionalArgs)
+    public Object calculateFee(String symbol, Object type, Object side, Object amount, Object price, Object... optionalArgs)
     {
         /**
         * @method
@@ -1452,7 +1452,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         {
             side = "sell";
         }
-        String type = (String)this.safeStringLower(order, "type");
+        String type = this.safeStringLower(order, "type");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "amount");
         String remaining = this.safeString(order, "openAmount");
@@ -1703,7 +1703,7 @@ public class BtcmarketsCore extends BtcmarketsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code2, Object amount, Object address2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code2, Object amount, Object address2, Object... optionalArgs)
     {
         final Object code3 = code2;
         final Object address3 = address2;

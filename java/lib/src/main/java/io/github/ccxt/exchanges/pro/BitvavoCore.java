@@ -149,7 +149,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -212,13 +212,13 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //     }
         //
         this.handleBidAsk(client, message);
-        Object eventVar = this.safeString(message, "event");
+        String eventVar = this.safeString(message, "event");
         Object tickers = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
         {
             Object data = Helpers.GetValue(tickers, i);
-            Object marketId = this.safeString(data, "market");
+            String marketId = this.safeString(data, "market");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
             Object messageHash = Helpers.add(Helpers.add(eventVar, "@"), marketId);
             Object ticker = this.parseTicker(data, market);
@@ -279,9 +279,9 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
     public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "market");
+        String marketId = this.safeString(ticker, "market");
         market = this.safeMarket(marketId, null, "-");
-        Object symbol = this.safeString(market, "symbol");
+        String symbol = this.safeString(market, "symbol");
         Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -305,7 +305,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -341,7 +341,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //         "side": "buy"
         //     }
         //
-        Object marketId = this.safeString(message, "market");
+        String marketId = this.safeString(message, "market");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         String name = "trades";
@@ -405,7 +405,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeValue(trades, 0);
-                Object tradeSymbol = this.safeString(first, "symbol");
+                String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -422,7 +422,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public java.util.concurrent.CompletableFuture<Object> unWatchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -487,7 +487,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -504,7 +504,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             symbol = Helpers.GetValue(market, "symbol");
             String name = "candles";
             Object marketId = Helpers.GetValue(market, "id");
-            Object interval = this.safeString(this.timeframes, timeframe, timeframe);
+            String interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object messageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(name, "@"), marketId), "_"), interval);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -539,7 +539,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //
         Object response = this.safeValue(message, "response");
         java.util.List<Object> ohlcv = this.parseOHLCVs(response, null, null);
-        Object messageHash = this.safeString(message, "requestId");
+        String messageHash = this.safeString(message, "requestId");
         client.resolve(ohlcv, messageHash);
     }
 
@@ -563,10 +563,10 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //     }
         //
         String name = "candles";
-        Object marketId = this.safeString(message, "market");
+        String marketId = this.safeString(message, "market");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object interval = this.safeString(message, "interval");
+        String interval = this.safeString(message, "interval");
         // use a reverse lookup in a static map instead
         Object timeframe = this.findTimeframe(interval);
         Object messageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(name, "@"), marketId), "_"), interval);
@@ -621,7 +621,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbolAndTimeframe, 0));
                 Object timeframeString = Helpers.GetValue(symbolAndTimeframe, 1);
-                Object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+                String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!Helpers.isTrue((Helpers.inOp(marketIdsByInterval, interval))))
                 {
                     Helpers.addElementToObject(marketIdsByInterval, interval, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -672,7 +672,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public java.util.concurrent.CompletableFuture<Object> unWatchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -711,7 +711,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbolAndTimeframe, 0));
                 Object timeframeString = Helpers.GetValue(symbolAndTimeframe, 1);
-                Object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+                String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!Helpers.isTrue((Helpers.inOp(marketIdsByInterval, interval))))
                 {
                     Helpers.addElementToObject(marketIdsByInterval, interval, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -752,7 +752,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -967,8 +967,8 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //         "asks": []
         //     }
         //
-        Object eventVar = this.safeString(message, "event");
-        Object marketId = this.safeString(message, "market");
+        String eventVar = this.safeString(message, "event");
+        String marketId = this.safeString(message, "market");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add(Helpers.add(eventVar, "@"), Helpers.GetValue(market, "id"));
@@ -982,7 +982,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
-            Object flagKey = Helpers.add("watchingOrderBookSnapshot@", marketId);
+            String flagKey = Helpers.add("watchingOrderBookSnapshot@", marketId);
             Object watchingOrderBookSnapshot = this.safeValue(subscription, flagKey);
             if (Helpers.isTrue(Helpers.isEqual(watchingOrderBookSnapshot, null)))
             {
@@ -1009,8 +1009,8 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = this.safeValue(subscription, "params");
             // multi-symbol watches share one subscription object without a marketId,
             // in that case the buffered delta message identifies the market
-            Object marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
-            String snapshotSymbol = (String) this.safeSymbol(marketId, null, "-");
+            String marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
+            String snapshotSymbol = this.safeSymbol(marketId, null, "-");
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, snapshotSymbol))))
             {
                 // this snapshot fetch was scheduled before an unsubscribe removed the
@@ -1057,8 +1057,8 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         {
             return;
         }
-        Object marketId = this.safeString(response, "market");
-        String symbol = (String) this.safeSymbol(marketId, null, "-");
+        String marketId = this.safeString(response, "market");
+        String symbol = this.safeSymbol(marketId, null, "-");
         String name = "book";
         Object messageHash = Helpers.add(Helpers.add(name, "@"), marketId);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
@@ -1091,13 +1091,13 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
 
     public void handleOrderBookSubscription(Client client, Object message, Object subscription)
     {
-        Object symbol = this.safeString(subscription, "symbol");
+        String symbol = this.safeString(subscription, "symbol");
         Long limit = this.safeInteger(subscription, "limit");
-        if (Helpers.isTrue(Helpers.inOp(this.orderbooks, ((String)symbol))))
+        if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
             ((java.util.Map<String,Object>)this.orderbooks).remove((String)((String)symbol));
         }
-        Helpers.addElementToObject(this.orderbooks, ((String)symbol), this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
+        Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
     }
 
     public void handleOrderBookSubscriptions(Client client, Object message, Object marketIds)
@@ -1105,8 +1105,8 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         String name = "book";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
-            Object marketId = this.safeString(marketIds, i);
-            String symbol = (String) this.safeSymbol(marketId, null, "-");
+            String marketId = this.safeString(marketIds, i);
+            String symbol = this.safeSymbol(marketId, null, "-");
             Object messageHash = Helpers.add(Helpers.add(name, "@"), marketId);
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
             {
@@ -1171,12 +1171,12 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             {
                 continue;
             }
-            if (!Helpers.isTrue(((String)key).startsWith(((String)"unsubscribe:"))))
+            if (!Helpers.isTrue(((String)key).startsWith("unsubscribe:")))
             {
                 continue;
             }
             Object subscription = Helpers.GetValue(client.subscriptions, key);
-            Object subHash = Helpers.replace((String)key, (String)"unsubscribe:", (String)"");
+            Object subHash = Helpers.replace(((String)key), "unsubscribe:", "");
             this.cleanCache(subscription);
             this.cleanUnsubscription(client, subHash, key);
             // bitvavo resolves-and-deletes the data futures on every message, so at
@@ -1212,7 +1212,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1224,7 +1224,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object marketId = Helpers.GetValue(market, "id");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String name = "account";
-            String messageHash = (String) Helpers.add("order:", symbol);
+            String messageHash = Helpers.add("order:", symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -1263,7 +1263,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1275,7 +1275,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object marketId = Helpers.GetValue(market, "id");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String name = "account";
-            String messageHash = (String) Helpers.add("myTrades:", symbol);
+            String messageHash = Helpers.add("myTrades:", symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -1317,7 +1317,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrderWs(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1349,7 +1349,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrderWs(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1378,7 +1378,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrderWs(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> cancelOrderWs(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1427,7 +1427,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
             }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1458,7 +1458,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         // let messageHash = this.buildMessageHash (action, { 'market': marketId });
         // client.resolve (orders, messageHash);
         // messageHash = this.buildMessageHash (action, message);
-        Object messageHash = this.safeString(message, "requestId");
+        String messageHash = this.safeString(message, "requestId");
         client.resolve(orders, messageHash);
     }
 
@@ -1472,7 +1472,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderWs(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderWs(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1481,7 +1481,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1520,7 +1520,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrdersWs() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrdersWs() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1616,7 +1616,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTradesWs() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTradesWs() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1658,7 +1658,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         // const marketId = this.safeString (firstRawTrade, 'market');
         java.util.List<Object> trades = this.parseTrades((java.util.List<Object>)(response), null, null);
         // const messageHash = this.buildMessageHash (action, { 'market': marketId });
-        Object messageHash = this.safeString(message, "requestId");
+        String messageHash = this.safeString(message, "requestId");
         client.resolve(trades, messageHash);
     }
 
@@ -1673,7 +1673,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdrawWs(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdrawWs(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1709,7 +1709,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
-        Object messageHash = this.safeString(message, "requestId");
+        String messageHash = this.safeString(message, "requestId");
         Object response = this.safeValue(message, "response");
         Object withdraw = this.parseTransaction(response);
         client.resolve(withdraw, messageHash);
@@ -1767,7 +1767,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
         Object response = this.safeList(message, "response");
-        Object messageHash = this.safeString(message, "requestId");
+        String messageHash = this.safeString(message, "requestId");
         java.util.List<Object> withdrawals = this.parseTransactions((java.util.List<Object>)(response), null, null, null, new java.util.HashMap<String, Object>() {{
             put( "type", "withdrawal" );
         }});
@@ -1786,7 +1786,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOHLCVWs(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOHLCVWs(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1860,7 +1860,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         java.util.List<Object> deposits = this.parseTransactions(response, null, null, null, new java.util.HashMap<String, Object>() {{
             put( "type", "deposit" );
         }});
-        Object messageHash = this.safeString(message, "requestId");
+        String messageHash = this.safeString(message, "requestId");
         client.resolve(deposits, messageHash);
     }
 
@@ -1952,7 +1952,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //        ]
         //    }
         //
-        Object messageHash = this.safeString(message, "requestId");
+        String messageHash = this.safeString(message, "requestId");
         Object response = this.safeValue(message, "response");
         Object currencies = this.parseCurrencies(response);
         client.resolve(currencies, messageHash);
@@ -1972,7 +1972,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //        }
         //    }
         //
-        Object messageHash = this.safeString(message, "requestId");
+        String messageHash = this.safeString(message, "requestId");
         Object response = this.safeValue(message, "response");
         Object fees = this.parseTradingFees(response);
         client.resolve(fees, messageHash);
@@ -2016,7 +2016,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //        ]
         //    }
         //
-        Object messageHash = this.safeString(message, "requestId");
+        String messageHash = this.safeString(message, "requestId");
         Object response = this.safeValue(message, "response", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object balance = this.parseBalance(response);
         client.resolve(balance, messageHash);
@@ -2054,7 +2054,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //
         Object response = this.safeValue(message, "response", new java.util.HashMap<String, Object>() {{}});
         Object order = this.parseOrder(response);
-        Object messageHash = this.safeString(message, "requestId");
+        String messageHash = this.safeString(message, "requestId");
         client.resolve(order, messageHash);
     }
 
@@ -2081,7 +2081,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //
         Object response = this.safeValue(message, "response", new java.util.HashMap<String, Object>() {{}});
         Object markets = this.parseMarkets(response);
-        Object messageHash = this.safeString(message, "requestId");
+        String messageHash = this.safeString(message, "requestId");
         client.resolve(markets, messageHash);
     }
 
@@ -2107,17 +2107,17 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
     public Object actionAndMarketMessageHash(Object action, Object... optionalArgs)
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object symbol = this.safeString(parameters, "market", "");
+        String symbol = this.safeString(parameters, "market", "");
         return Helpers.add(action, symbol);
     }
 
     public Object actionAndOrderIdMessageHash(Object action, Object... optionalArgs)
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object orderId = this.safeString(parameters, "orderId");
+        String orderId = this.safeString(parameters, "orderId");
         if (Helpers.isTrue(Helpers.isEqual(orderId, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " privateUpdateOrderMessageHash requires a orderId parameter")) ;
+            throw new ExchangeError(Helpers.add(this.id, " privateUpdateOrderMessageHash requires a orderId parameter")) ;
         }
         return Helpers.add(action, orderId);
     }
@@ -2145,10 +2145,10 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //         "postOnly": false
         //     }
         //
-        Object marketId = this.safeString(message, "market");
+        String marketId = this.safeString(message, "market");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("order:", symbol);
+        String messageHash = Helpers.add("order:", symbol);
         Object order = this.parseOrder(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -2177,10 +2177,10 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //         "feeCurrency": "EUR"
         //     }
         //
-        Object marketId = this.safeString(message, "market");
+        String marketId = this.safeString(message, "market");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("myTrades:", symbol);
+        String messageHash = Helpers.add("myTrades:", symbol);
         Object trade = this.parseTrade(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
@@ -2228,7 +2228,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {
@@ -2260,7 +2260,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //         "authenticated": true
         //     }
         //
-        String messageHash = (String) "authenticated";
+        String messageHash = "authenticated";
         Object authenticated = this.safeBool(message, "authenticated", false);
         if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {
@@ -2273,7 +2273,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             // allows further authentication attempts
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
     }
@@ -2295,11 +2295,11 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //        error: 'You do not have sufficient balance to complete this operation.'
         //    }
         //
-        Object error = this.safeString(message, "error");
+        String error = this.safeString(message, "error");
         Object code = this.safeInteger(error, "errorCode");
-        Object action = this.safeString(message, "action");
+        String action = this.safeString(message, "action");
         Object buildMessage = this.buildMessageHash(action, message);
-        Object messageHash = this.safeString(message, "requestId", buildMessage);
+        String messageHash = this.safeString(message, "requestId", buildMessage);
         Boolean rejected = false;
         try
         {
@@ -2362,7 +2362,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //         "authenticated": true
         //     }
         //
-        Object error = this.safeString(message, "error");
+        String error = this.safeString(message, "error");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
             this.handleErrorMessage(client, message);
@@ -2395,11 +2395,11 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             put( "getCandles", "handleFetchOHLCV");
             put( "getMarkets", "handleMarkets");
         }};
-        Object eventVar = this.safeString(message, "event");
+        String eventVar = this.safeString(message, "event");
         Object method = this.safeValue(methods, eventVar);
         if (Helpers.isTrue(Helpers.isEqual(method, null)))
         {
-            Object action = this.safeString(message, "action");
+            String action = this.safeString(message, "action");
             method = this.safeValue(methods, action);
             if (Helpers.isTrue(!Helpers.isEqual(method, null)))
             {

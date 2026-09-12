@@ -430,7 +430,7 @@ public class CexCore extends CexApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "currency");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Boolean isFiat = (Helpers.isEqual(this.safeBool(rawCurrency, "fiat"), true));
         String type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
         Object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
@@ -540,9 +540,9 @@ public class CexCore extends CexApi
     public Object parseMarket(Object market)
     {
         String baseId = this.safeString(market, "base");
-        String base = (String) this.safeCurrencyCode(baseId);
+        String base = this.safeCurrencyCode(baseId);
         String quoteId = this.safeString(market, "quote");
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object id = Helpers.add(Helpers.add(base, "-"), quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
@@ -639,7 +639,7 @@ public class CexCore extends CexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -717,7 +717,7 @@ public class CexCore extends CexApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "id");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -753,7 +753,7 @@ public class CexCore extends CexApi
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -922,7 +922,7 @@ public class CexCore extends CexApi
             parameters = ((java.util.List<Object>) dataTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(dataType, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -953,10 +953,10 @@ public class CexCore extends CexApi
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(since, null)) && Helpers.isTrue(!Helpers.isEqual(until, null))) && Helpers.isTrue(!Helpers.isEqual(limit, null))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV does not support fetching candles with both a limit and since/until")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV does not support fetching candles with both a limit and since/until")) ;
             } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(since, null)) || Helpers.isTrue(!Helpers.isEqual(until, null)))) && Helpers.isTrue(Helpers.isEqual(limit, null))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV requires a limit parameter when fetching candles with since or until")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV requires a limit parameter when fetching candles with since or until")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -1198,7 +1198,7 @@ public class CexCore extends CexApi
         {
             Object key = Helpers.GetValue(keys, i);
             Object balance = this.safeDict(response, key, new java.util.HashMap<String, Object>() {{}});
-            String code = (String) this.safeCurrencyCode(key);
+            String code = this.safeCurrencyCode(key);
             java.util.Map<String, Object> account = new java.util.HashMap<String, Object>() {{
                 put( "used", CexCore.this.safeString(balance, "balanceOnHold") );
                 put( "total", CexCore.this.safeString(balance, "balance") );
@@ -1376,7 +1376,7 @@ public class CexCore extends CexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1406,7 +1406,7 @@ public class CexCore extends CexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrder(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1491,7 +1491,7 @@ public class CexCore extends CexApi
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
             String currencyId = this.safeString(order, "feeCurrency");
-            String feeCode = (String) this.safeCurrencyCode(currencyId);
+            String feeCode = this.safeCurrencyCode(currencyId);
             Helpers.addElementToObject(fee, "currency", feeCode);
             Helpers.addElementToObject(fee, "cost", feeAmount);
         }
@@ -1556,7 +1556,7 @@ public class CexCore extends CexApi
             parameters = ((java.util.List<Object>) accountIdparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(accountId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1565,7 +1565,7 @@ public class CexCore extends CexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalAccountId = accountId;
             final Object finalType = type;
@@ -1820,7 +1820,7 @@ public class CexCore extends CexApi
         }
         String currencyId = this.safeString(item, "currency");
         currency = this.safeCurrency(currencyId, currency);
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String timestampString = this.safeString(item, "timestamp");
         Long timestamp = this.parse8601(timestampString);
         String type = this.safeString(item, "type");
@@ -1932,7 +1932,7 @@ public class CexCore extends CexApi
         String currencyId = this.safeString(transaction, "currency");
         String direction = this.safeString(transaction, "direction");
         String type = ((Helpers.isTrue((Helpers.isEqual(direction, "withdraw"))))) ? "withdrawal" : "deposit";
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String updatedAt = this.safeString(transaction, "updatedAt");
         Long timestamp = this.parse8601(updatedAt);
         return new java.util.HashMap<String, Object>() {{
@@ -1984,7 +1984,7 @@ public class CexCore extends CexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
@@ -2011,7 +2011,7 @@ public class CexCore extends CexApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transferBetweenMainAndSubAccount(Object code, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transferBetweenMainAndSubAccount(String code, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2058,7 +2058,7 @@ public class CexCore extends CexApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transferBetweenSubAccounts(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transferBetweenSubAccounts(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2116,7 +2116,7 @@ public class CexCore extends CexApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "currency");
-        String currencyCode = (String) this.safeCurrencyCode(currencyId, currency);
+        String currencyCode = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", CexCore.this.safeString2(transfer, "transactionId", "clientTxId") );
@@ -2140,7 +2140,7 @@ public class CexCore extends CexApi
      * @param {string} [params.accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2152,7 +2152,7 @@ public class CexCore extends CexApi
             parameters = ((java.util.List<Object>) accountIdparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(accountId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2264,14 +2264,14 @@ public class CexCore extends CexApi
         {
             if (Helpers.isTrue(Helpers.isEqual(body, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " returned empty response")) ;
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(body, 0), "{")))
             {
                 Object fixedVar = this.fixStringifiedJsonMembers(body);
                 response = this.parseJson(fixedVar);
             } else
             {
-                throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " returned unparsed response: "), body)) ;
+                throw new NullResponse(Helpers.add(Helpers.add(this.id, " returned unparsed response: "), body)) ;
             }
         }
         String error = this.safeString(response, "error");
@@ -2290,7 +2290,7 @@ public class CexCore extends CexApi
             if (Helpers.isTrue(!Helpers.isEqual(rejectReason, null)))
             {
                 this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), rejectReason, rejectReason);
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " createOrder() "), rejectReason)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " createOrder() "), rejectReason)) ;
             }
         }
         return null;

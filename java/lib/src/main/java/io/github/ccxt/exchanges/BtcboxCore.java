@@ -289,8 +289,8 @@ public class BtcboxCore extends BtcboxApi
                 Object symbolParts = Helpers.split(marketId, "_");
                 String baseCurr = this.safeString(symbolParts, 0, "");
                 String quote = this.safeString(symbolParts, 1, "");
-                Object quoteId = ((String)quote).toLowerCase();
-                Object id = ((String)baseCurr).toLowerCase();
+                Object quoteId = quote.toLowerCase();
+                Object id = baseCurr.toLowerCase();
                 Object res = this.safeDict(response1, marketId, new java.util.HashMap<String, Object>() {{}});
                 Object symbol = Helpers.add(Helpers.add(baseCurr, "/"), quote);
                 Object fee = ((Helpers.isTrue((Helpers.isEqual(id, "BTC"))))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
@@ -359,9 +359,9 @@ public class BtcboxCore extends BtcboxApi
     public Object parseMarket(Object market)
     {
         String baseId = this.safeString(market, "base");
-        String base = (String) this.safeCurrencyCode(baseId);
+        String base = this.safeCurrencyCode(baseId);
         String quoteId = this.safeString(market, "quote");
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
@@ -501,7 +501,7 @@ public class BtcboxCore extends BtcboxApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -536,7 +536,7 @@ public class BtcboxCore extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -634,7 +634,7 @@ public class BtcboxCore extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1075,7 +1075,7 @@ public class BtcboxCore extends BtcboxApi
                 response = this.strip(response);
                 if (!Helpers.isTrue(this.isJsonEncodedObject(response)))
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), response)) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), response)) ;
                 }
                 response = Helpers.parseJson(response);
             }

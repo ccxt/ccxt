@@ -372,8 +372,8 @@ public class BtcturkCore extends BtcturkApi
         String id = this.safeString(entry, "name");
         String baseId = this.safeString(entry, "numerator");
         String quoteId = this.safeString(entry, "denominator");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object filters = this.safeList(entry, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object minPrice = null;
         Object maxPrice = null;
@@ -464,7 +464,7 @@ public class BtcturkCore extends BtcturkApi
         {
             Object entry = Helpers.GetValue(data, i);
             String currencyId = this.safeString(entry, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
             Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
@@ -649,7 +649,7 @@ public class BtcturkCore extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -702,7 +702,7 @@ public class BtcturkCore extends BtcturkApi
         String priceString = this.safeString(trade, "price");
         String amountString = Precise.stringAbs(this.safeString(trade, "amount"));
         String marketId = this.safeString(trade, "pair");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String side = this.safeString2(trade, "side", "orderType");
         Object fee = null;
         String feeAmountString = this.safeString(trade, "fee");
@@ -744,7 +744,7 @@ public class BtcturkCore extends BtcturkApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -856,7 +856,7 @@ public class BtcturkCore extends BtcturkApi
                 limit = Helpers.mathMin(limit, 11000); // max 11000 candles diapason can be covered
                 if (Helpers.isTrue(Helpers.isEqual(timeframe, "1y")))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
                 }
                 int seconds = this.parseTimeframe(timeframe);
                 Object limitSeconds = Helpers.multiply(seconds, (Helpers.subtract(limit, 1)));
@@ -1183,7 +1183,7 @@ public class BtcturkCore extends BtcturkApi
         String amount = Precise.stringAbs(amountString);
         String remaining = this.safeString(order, "leftAmount");
         String marketId = this.safeString(order, "pairSymbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String side = this.safeString(order, "type");
         String type = this.safeString(order, "method");
         String clientOrderId = this.safeString(order, "orderClientId");
@@ -1286,7 +1286,7 @@ public class BtcturkCore extends BtcturkApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         if (Helpers.isTrue(Helpers.isEqual(this.id, "btctrader")))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " is an abstract base API for BTCExchange, BTCTurk")) ;
+            throw new ExchangeError(Helpers.add(this.id, " is an abstract base API for BTCExchange, BTCTurk")) ;
         }
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), path);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
@@ -1332,7 +1332,7 @@ public class BtcturkCore extends BtcturkApi
         this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, Helpers.add(Helpers.add(this.id, " "), output));
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(errorCode, "0"))) && Helpers.isTrue((!Helpers.isEqual(errorCode, "SUCCESS")))))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), output)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), output)) ;
         }
         return null;
     }

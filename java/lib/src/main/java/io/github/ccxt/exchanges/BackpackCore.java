@@ -705,14 +705,14 @@ public class BackpackCore extends BackpackApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "symbol");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Object networks = this.safeList(rawCurrency, "tokens", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> parsedNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
         {
             Object network = Helpers.GetValue(networks, j);
             String networkId = this.safeString(network, "blockchain");
-            String networkIdLowerCase = (String)this.safeStringLower(network, "blockchain");
+            String networkIdLowerCase = this.safeStringLower(network, "blockchain");
             Object networkCode = this.networkIdToCode(networkIdLowerCase, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -893,8 +893,8 @@ public class BackpackCore extends BackpackApi
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseSymbol");
         String quoteId = this.safeString(market, "quoteSymbol");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object filters = this.safeDict(market, "filters", new java.util.HashMap<String, Object>() {{}});
         Object priceFilter = this.safeDict(filters, "price", new java.util.HashMap<String, Object>() {{}});
@@ -910,7 +910,7 @@ public class BackpackCore extends BackpackApi
         Object linear = null;
         Object inverse = null;
         Object settle = null;
-        Object settleId = null;
+        String settleId = null;
         Object contractSize = null;
         if (Helpers.isTrue(Helpers.isEqual(typeOfMarket, "spot")))
         {
@@ -1034,7 +1034,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1075,7 +1075,7 @@ public class BackpackCore extends BackpackApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String open = this.safeString(ticker, "firstPrice");
         String last = this.safeString(ticker, "lastPrice");
         String high = this.safeString(ticker, "high");
@@ -1161,7 +1161,7 @@ public class BackpackCore extends BackpackApi
             Long microseconds = this.safeInteger(response, "timestamp");
             if (Helpers.isTrue(Helpers.isEqual(microseconds, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchOrderBook() missing microseconds")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchOrderBook() missing microseconds")) ;
             }
             Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
@@ -1269,7 +1269,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1282,7 +1282,7 @@ public class BackpackCore extends BackpackApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchFundingRate() symbol does not support market "), symbol)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchFundingRate() symbol does not support market "), symbol)) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1308,7 +1308,7 @@ public class BackpackCore extends BackpackApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTimestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
@@ -1341,7 +1341,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1354,7 +1354,7 @@ public class BackpackCore extends BackpackApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchOpenInterest() symbol does not support market "), symbol)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchOpenInterest() symbol does not support market "), symbol)) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1412,7 +1412,7 @@ public class BackpackCore extends BackpackApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1470,7 +1470,7 @@ public class BackpackCore extends BackpackApi
      * @param {int} [params.offset] the number of trades to skip, default is 0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1621,7 +1621,7 @@ public class BackpackCore extends BackpackApi
             String datetime = this.safeString(trade, "timestamp");
             timestamp = this.parse8601(datetime);
         }
-        String feeSymbol = (String) this.safeCurrencyCode(this.safeString(trade, "feeSymbol"));
+        String feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeSymbol"));
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
             final Object finalFeeAmount = feeAmount;
@@ -1677,7 +1677,7 @@ public class BackpackCore extends BackpackApi
             String status = this.safeString(response, "status");
             if (Helpers.isTrue(Helpers.isEqual(status, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchStatus() missing status")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchStatus() missing status")) ;
             }
             final Object finalStatus = status;
             return new java.util.HashMap<String, Object>() {{
@@ -1754,7 +1754,7 @@ public class BackpackCore extends BackpackApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balanceKeys)); i++)
         {
             Object id = Helpers.GetValue(balanceKeys, i);
-            String code = (String) this.safeCurrencyCode(id);
+            String code = this.safeCurrencyCode(id);
             Object balance = Helpers.GetValue(response, id);
             Object account = this.account();
             String locked = this.safeString(balance, "locked");
@@ -1889,7 +1889,7 @@ public class BackpackCore extends BackpackApi
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1916,7 +1916,7 @@ public class BackpackCore extends BackpackApi
             Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " withdraw() requires a network parameter")) ;
+                throw new BadRequest(Helpers.add(this.id, " withdraw() requires a network parameter")) ;
             }
             Helpers.addElementToObject(request, "blockchain", networkId);
             java.util.Map<String, Object> response = (this.privatePostWapiV1CapitalWithdrawals(this.extend(request, query))).join();
@@ -2004,10 +2004,10 @@ public class BackpackCore extends BackpackApi
         String id = this.safeString(transaction, "id");
         String txid = this.safeString(transaction, "transactionHash");
         String coin = this.safeString(transaction, "symbol");
-        String code = (String) this.safeCurrencyCode(coin, currency);
+        String code = this.safeCurrencyCode(coin, currency);
         Long timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
         Double amount = this.safeNumber(transaction, "quantity");
-        String networkId = (String)this.safeStringLower2(transaction, "source", "blockchain");
+        String networkId = this.safeStringLower2(transaction, "source", "blockchain");
         Object network = this.networkIdToCode(networkId, code);
         String addressTo = this.safeString(transaction, "toAddress");
         String addressFrom = this.safeString(transaction, "fromAddress");
@@ -2073,7 +2073,7 @@ public class BackpackCore extends BackpackApi
      * @param {string} [params.networkCode] the network to fetch the deposit address (mandatory)
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2089,7 +2089,7 @@ public class BackpackCore extends BackpackApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             final Object finalNetworkCode = networkCode;
@@ -2217,11 +2217,11 @@ public class BackpackCore extends BackpackApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         final Object finalSide = side;
@@ -2377,7 +2377,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2390,7 +2390,7 @@ public class BackpackCore extends BackpackApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2426,7 +2426,7 @@ public class BackpackCore extends BackpackApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2461,7 +2461,7 @@ public class BackpackCore extends BackpackApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2617,8 +2617,8 @@ public class BackpackCore extends BackpackApi
         }
         String id = this.safeString(order, "id");
         String clientOrderId = this.safeString(order, "clientId");
-        String symbol = (String) this.safeSymbol(this.safeString(order, "symbol"), market);
-        String type = (String)this.safeStringLower(order, "orderType");
+        String symbol = this.safeSymbol(this.safeString(order, "symbol"), market);
+        String type = this.safeStringLower(order, "orderType");
         String timeInForce = this.safeString(order, "timeInForce");
         String side = this.parseOrderSide(this.safeString(order, "side"));
         String amount = this.safeString2(order, "quantity", "triggerQuantity");
@@ -2864,7 +2864,7 @@ public class BackpackCore extends BackpackApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Double amount = this.safeNumber(income, "quantity");
         String id = this.safeString(income, "userId");
         Long timestamp = this.parse8601(this.safeString(income, "intervalEndTimestamp"));

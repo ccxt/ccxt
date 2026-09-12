@@ -818,8 +818,8 @@ public class BtseCore extends BtseApi
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseCurrency");
         String quoteId = this.safeString(market, "quoteCurrency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         String maxAmountString = this.safeString(market, "maxOrderSize");
         String minAmountString = this.safeString(market, "minOrderSize");
@@ -829,7 +829,7 @@ public class BtseCore extends BtseApi
         Object active = this.safeBool(market, "active");
         String type = "spot";
         Object expiry = null;
-        Object contractSize = null;
+        String contractSize = null;
         if (!Helpers.isTrue(isSpot))
         {
             symbol = Helpers.add(symbol, Helpers.add(":", quote));
@@ -1100,13 +1100,13 @@ public class BtseCore extends BtseApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRateHistory() supports contract markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchFundingRateHistory() supports contract markets only")) ;
             }
             Object period = null;
             java.util.List<Object> periodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "period");
@@ -1274,7 +1274,7 @@ public class BtseCore extends BtseApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(inUse)); j++)
                 {
                     Object usedRow = Helpers.GetValue(inUse, j);
-                    String usedCode = (String) this.safeCurrencyCode(this.safeString(usedRow, "currency"));
+                    String usedCode = this.safeCurrencyCode(this.safeString(usedRow, "currency"));
                     if (Helpers.isTrue(Helpers.isEqual(usedCode, null)))
                     {
                         continue;
@@ -1284,7 +1284,7 @@ public class BtseCore extends BtseApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(assets)); j++)
                 {
                     Object assetRow = Helpers.GetValue(assets, j);
-                    String code = (String) this.safeCurrencyCode(this.safeString(assetRow, "currency"));
+                    String code = this.safeCurrencyCode(this.safeString(assetRow, "currency"));
                     if (Helpers.isTrue(Helpers.isEqual(code, null)))
                     {
                         continue;
@@ -1296,7 +1296,7 @@ public class BtseCore extends BtseApi
             {
                 // unified wallet row: {"asset": "BTC", "totalAmount": "100.0", "availableAmount": "100.0"}
                 // legacy spot wallet row: {"available": 520.52, "currency": "USD", "total": 5566.5566}
-                String code = (String) this.safeCurrencyCode(this.safeString2(row, "asset", "currency"));
+                String code = this.safeCurrencyCode(this.safeString2(row, "asset", "currency"));
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {
                     continue;
@@ -1438,7 +1438,7 @@ public class BtseCore extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1448,7 +1448,7 @@ public class BtseCore extends BtseApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
             Object result = (this.fetchLeverageTiers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(result, symbol);
@@ -1492,7 +1492,7 @@ public class BtseCore extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1607,7 +1607,7 @@ public class BtseCore extends BtseApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1617,7 +1617,7 @@ public class BtseCore extends BtseApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchOpenInterest() symbol does not support market "), symbol)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchOpenInterest() symbol does not support market "), symbol)) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1698,7 +1698,7 @@ public class BtseCore extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1708,7 +1708,7 @@ public class BtseCore extends BtseApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRate() symbol does not support spot markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchFundingRate() symbol does not support spot markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1840,7 +1840,7 @@ public class BtseCore extends BtseApi
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch, applied client-side to the most recent trades window
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1959,7 +1959,7 @@ public class BtseCore extends BtseApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument for spot markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument for spot markets")) ;
                 }
                 //
                 //     {
@@ -2061,7 +2061,7 @@ public class BtseCore extends BtseApi
      * @param {string} [params.type] 'spot' or 'swap' or 'future', default is 'spot'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id2, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2076,7 +2076,7 @@ public class BtseCore extends BtseApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(id, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrderTrades() requires an id argument or a clientOrderId parameter")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrderTrades() requires an id argument or a clientOrderId parameter")) ;
                 } else
                 {
                     final Object finalId = id;
@@ -2316,7 +2316,7 @@ public class BtseCore extends BtseApi
             {
                 Helpers.addElementToObject(request, "postOnly", true);
             }
-            Object timeInForce = this.handleTimeInForce(parameters);
+            String timeInForce = this.handleTimeInForce(parameters);
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
             {
                 Helpers.addElementToObject(request, "timeInForce", timeInForce);
@@ -2332,7 +2332,7 @@ public class BtseCore extends BtseApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for "), type), " orders")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for "), type), " orders")) ;
                 }
             }
             // market and trailing buys are denominated in the quote currency while
@@ -2355,7 +2355,7 @@ public class BtseCore extends BtseApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(price, null)))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
                         Object amountString = this.numberToString(amount);
@@ -2415,7 +2415,7 @@ public class BtseCore extends BtseApi
                 {
                     Helpers.addElementToObject(request, "orderType", "CONDITIONAL");
                     Object triggerOrderType = null;
-                    Object triggerPriceToSend = null;
+                    String triggerPriceToSend = null;
                     if (Helpers.isTrue(isStopLossOrder))
                     {
                         triggerOrderType = "STOP_LOSS";
@@ -2564,7 +2564,7 @@ public class BtseCore extends BtseApi
                 {
                     if (Helpers.isTrue(hedged))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " createOrder() cannot use isolated margin with hedged positions")) ;
+                        throw new BadRequest(Helpers.add(this.id, " createOrder() cannot use isolated margin with hedged positions")) ;
                     }
                     Helpers.addElementToObject(request, "positionMode", "ISOLATED");
                 } else if (Helpers.isTrue(hedged))
@@ -2583,7 +2583,7 @@ public class BtseCore extends BtseApi
             {
                 Helpers.addElementToObject(request, "postOnly", true);
             }
-            Object timeInForce = this.handleTimeInForce(parameters);
+            String timeInForce = this.handleTimeInForce(parameters);
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
             {
                 Helpers.addElementToObject(request, "timeInForce", timeInForce);
@@ -2599,7 +2599,7 @@ public class BtseCore extends BtseApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for "), type), " orders")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for "), type), " orders")) ;
                 }
             }
             // here we handling with attached take profit and stop loss orders
@@ -2669,7 +2669,7 @@ public class BtseCore extends BtseApi
                     // the futures conditional variant has no trigger direction field,
                     // it takes a plain trigger price with an optional limit price
                     Helpers.addElementToObject(request, "orderType", "CONDITIONAL");
-                    Object triggerPriceToSend = triggerPrice;
+                    String triggerPriceToSend = triggerPrice;
                     if (Helpers.isTrue(Helpers.isEqual(triggerPriceToSend, null)))
                     {
                         triggerPriceToSend = takeProfitPrice;
@@ -2774,7 +2774,7 @@ public class BtseCore extends BtseApi
      * @param {bool} [params.includeCancelled] *contract markets only* if true, cancelled orders are included in the lookup
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(Object id2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(String id2, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2790,7 +2790,7 @@ public class BtseCore extends BtseApi
                 parameters = this.omit(parameters, "clientOrderId");
             } else if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrder() requires an id argument or a clientOrderId parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrder() requires an id argument or a clientOrderId parameter")) ;
             } else
             {
                 Helpers.addElementToObject(request, "orderId", id);
@@ -2844,7 +2844,7 @@ public class BtseCore extends BtseApi
      * @param {bool} [params.slide] *contract markets only* if true and only the price is amended, the price slides to the best available price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id2, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id2, String symbol, Object type, Object side, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2862,7 +2862,7 @@ public class BtseCore extends BtseApi
                 parameters = this.omit(parameters, "clientOrderId");
             } else if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an id argument or a clientOrderId parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an id argument or a clientOrderId parameter")) ;
             } else
             {
                 Helpers.addElementToObject(request, "orderId", id);
@@ -2884,7 +2884,7 @@ public class BtseCore extends BtseApi
             Object isSlide = this.safeBool(parameters, "slide", false);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(amount, null))) && Helpers.isTrue((Helpers.isEqual(price, null)))) && Helpers.isTrue((Helpers.isEqual(triggerPrice, null)))) && Helpers.isTrue((!Helpers.isEqual(isSlide, true)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
@@ -2900,7 +2900,7 @@ public class BtseCore extends BtseApi
                 {
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amount, null))) || Helpers.isTrue((!Helpers.isEqual(price, null)))))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " editOrder() can not amend the trigger price together with the price or the amount on contract markets")) ;
+                        throw new BadRequest(Helpers.add(this.id, " editOrder() can not amend the trigger price together with the price or the amount on contract markets")) ;
                     }
                     Helpers.addElementToObject(request, "amendType", "TRIGGER_PRICE");
                 } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amount, null))) && Helpers.isTrue((!Helpers.isEqual(price, null)))))
@@ -2942,7 +2942,7 @@ public class BtseCore extends BtseApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -2954,7 +2954,7 @@ public class BtseCore extends BtseApi
                 parameters = this.omit(parameters, "clientOrderId");
             } else if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires an id argument or a clientOrderId parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires an id argument or a clientOrderId parameter")) ;
             } else
             {
                 Helpers.addElementToObject(request, "orderId", id);
@@ -3030,7 +3030,7 @@ public class BtseCore extends BtseApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(market, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument for contract markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument for contract markets")) ;
                 }
                 // the unified futures api has no cancel all endpoint, the legacy
                 // endpoint cancels every order for the symbol when no order id is
@@ -3404,7 +3404,7 @@ public class BtseCore extends BtseApi
                 Helpers.addElementToObject(request, "asset", Helpers.GetValue(currency, "id"));
             } else if (Helpers.isTrue(Helpers.isEqual(walletType, "SPOT")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a code argument for the spot wallet history")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a code argument for the spot wallet history")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -3591,7 +3591,7 @@ public class BtseCore extends BtseApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString2(transaction, "currency", "asset");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = (Long) this.safeInteger2(transaction, "timestamp", "transactionTime");
         String networkId = this.safeString2(transaction, "currencyNetwork", "cryptoNetwork");
         return new java.util.HashMap<String, Object>() {{
@@ -3680,7 +3680,7 @@ public class BtseCore extends BtseApi
                 Helpers.addElementToObject(request, "asset", Helpers.GetValue(currency, "id"));
             } else if (Helpers.isTrue(Helpers.isEqual(walletType, "SPOT")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLedger() requires a code argument for the spot wallet history")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchLedger() requires a code argument for the spot wallet history")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -3729,7 +3729,7 @@ public class BtseCore extends BtseApi
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString2(item, "currency", "asset");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = (Long) this.safeInteger2(item, "timestamp", "transactionTime");
         String type = this.safeString(item, "type");
         return new java.util.HashMap<String, Object>() {{
@@ -3831,7 +3831,7 @@ public class BtseCore extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3981,7 +3981,7 @@ public class BtseCore extends BtseApi
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(position, "timestamp");
         String marginType = this.safeString(position, "marginType");
-        String side = (String)this.safeStringLower2(position, "positionDirection", "side");
+        String side = this.safeStringLower2(position, "positionDirection", "side");
         String positionMode = this.safeString(position, "positionMode");
         Boolean hedged = Helpers.isTrue((Helpers.isEqual(positionMode, "HEDGE"))) || Helpers.isTrue((Helpers.isEqual(positionMode, "ISOLATED")));
         Object takeProfitOrder = this.safeDict(position, "takeProfitOrder", new java.util.HashMap<String, Object>() {{}});
@@ -4059,7 +4059,7 @@ public class BtseCore extends BtseApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositionMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositionMode() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -4110,7 +4110,7 @@ public class BtseCore extends BtseApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setPositionMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setPositionMode() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -4133,7 +4133,7 @@ public class BtseCore extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4164,7 +4164,7 @@ public class BtseCore extends BtseApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(marginMode, "symbol");
         market = this.safeMarket(marketId, market);
-        String positionMode = (String)this.safeStringLower(marginMode, "marginMode");
+        String positionMode = this.safeStringLower(marginMode, "marginMode");
         String marginModeValue = "cross";
         if (Helpers.isTrue(Helpers.isEqual(positionMode, "isolated")))
         {
@@ -4205,7 +4205,7 @@ public class BtseCore extends BtseApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -4213,21 +4213,21 @@ public class BtseCore extends BtseApi
             String positionMode = "ONE_WAY";
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "cross"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be either cross or isolated")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMarginMode() marginMode argument should be either cross or isolated")) ;
             }
             Object hedged = this.safeBool(parameters, "hedged");
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
             {
                 if (!Helpers.isTrue((Helpers.inOp(parameters, "hedged"))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a hedged parameter for cross margin mode")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a hedged parameter for cross margin mode")) ;
                 } else if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
                 {
                     positionMode = "HEDGE";
                 }
             } else if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(parameters, "hedged"))) && Helpers.isTrue((!Helpers.isEqual(hedged, true)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() hedged parameter cannot be false for isolated margin mode")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMarginMode() hedged parameter cannot be false for isolated margin mode")) ;
             } else
             {
                 positionMode = "ISOLATED";
@@ -4269,7 +4269,7 @@ public class BtseCore extends BtseApi
             String positionId = this.safeString(parameters, "positionId");
             if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " closePosition() requires a positionId parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " closePosition() requires a positionId parameter")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", BtseCore.this.futuresRequestId(market) );
@@ -4285,7 +4285,7 @@ public class BtseCore extends BtseApi
                 String price = this.safeString(parameters, "price");
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " closePosition() requires a price parameter for limit orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " closePosition() requires a price parameter for limit orders")) ;
                 }
                 Helpers.addElementToObject(request, "orderPrice", this.priceToPrecision(symbol, price));
                 parameters = this.omit(parameters, "price");
@@ -4310,7 +4310,7 @@ public class BtseCore extends BtseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4398,7 +4398,7 @@ public class BtseCore extends BtseApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -4523,7 +4523,7 @@ public class BtseCore extends BtseApi
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        Boolean isBodyDelete = Helpers.isTrue((Helpers.isEqual(method, "DELETE"))) && Helpers.isTrue((Helpers.isEqual(((String)path).startsWith(((String)"futures/api/v3/")), true)));
+        Boolean isBodyDelete = Helpers.isTrue((Helpers.isEqual(method, "DELETE"))) && Helpers.isTrue((Helpers.isEqual(((String)path).startsWith("futures/api/v3/"), true)));
         Object queryString = "";
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE"))))) && !Helpers.isTrue(isBodyDelete)))
         {
@@ -4550,7 +4550,7 @@ public class BtseCore extends BtseApi
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             Object signPath = null;
-            if (Helpers.isTrue(Helpers.isEqual(((String)path).startsWith(((String)"public-api/")), true)))
+            if (Helpers.isTrue(Helpers.isEqual(((String)path).startsWith("public-api/"), true)))
             {
                 signPath = Helpers.add("/", path);
             } else
@@ -4589,9 +4589,9 @@ public class BtseCore extends BtseApi
 
     public Object cleanPath(Object path)
     {
-        Object result = Helpers.replace((String)path, (String)"spot", (String)"");
-        result = Helpers.replace((String)result, (String)"futures", (String)"");
-        result = Helpers.replace((String)result, (String)"otc", (String)"");
+        Object result = Helpers.replace(((String)path), "spot", "");
+        result = Helpers.replace(((String)result), "futures", "");
+        result = Helpers.replace(((String)result), "otc", "");
         return result;
     }
 

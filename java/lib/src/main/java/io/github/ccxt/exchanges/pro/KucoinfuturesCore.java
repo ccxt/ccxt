@@ -82,7 +82,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount2, Object... optionalArgs)
     {
         final Object toAccount3 = toAccount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -98,7 +98,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
                 put( "currency", KucoinfuturesCore.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
-            Object toAccountString = this.parseTransferType(toAccount);
+            String toAccountString = this.parseTransferType(toAccount);
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(toAccountString, "TRADE")) || Helpers.isTrue(Helpers.isEqual(toAccountString, "MAIN"))))
             {
@@ -110,7 +110,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
                 response = (this.futuresPrivatePostTransferIn(this.extend(request, parameters))).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
+                throw new BadRequest(Helpers.add(this.id, " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
             }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             final Object finalToAccount = toAccount;
@@ -129,6 +129,6 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
             put( "spot", "TRADE" );
             put( "funding", "MAIN" );
         }};
-        return (String) this.safeStringUpper(transferTypes, transferType, transferType);
+        return this.safeStringUpper(transferTypes, transferType, transferType);
     }
 }

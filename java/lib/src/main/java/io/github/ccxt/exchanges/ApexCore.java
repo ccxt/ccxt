@@ -602,7 +602,7 @@ public class ApexCore extends ApexApi
             Object chains = this.safeList(multiChain, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Helpers.addElementToObject(this.options, "_temp_currencies_chains", chains);
             Object result = this.parseCurrencies(rows);
-            ((java.util.Map<String,Object>)this.options).remove((String)"_temp_currencies_chains");
+            ((java.util.Map<String,Object>)this.options).remove("_temp_currencies_chains");
             return result;
         });
 
@@ -611,7 +611,7 @@ public class ApexCore extends ApexApi
     public Object parseCurrency(Object currency)
     {
         String currencyId = this.safeString(currency, "token");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         String name = this.safeString(currency, "displayName");
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = Helpers.GetValue(this.options, "_temp_currencies_chains");
@@ -771,9 +771,9 @@ public class ApexCore extends ApexApi
         String quoteId = this.safeString(market, "l2PairId");
         String baseId = this.safeString(market, "baseTokenId");
         String quote = this.safeString(market, "settleAssetId");
-        String base = (String) this.safeCurrencyCode(baseId);
+        String base = this.safeCurrencyCode(baseId);
         String settleId = this.safeString(market, "settleAssetId");
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(baseId, "/"), quote), ":"), settle);
         Object expiry = 0;
         Object takerFee = this.parseNumber("0.0002");
@@ -858,7 +858,7 @@ public class ApexCore extends ApexApi
         Long timestamp = this.milliseconds();
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String last = this.safeString(ticker, "lastPrice");
         String percentage = this.safeString(ticker, "price24hPcnt");
         String quoteVolume = this.safeString(ticker, "turnover24h");
@@ -900,7 +900,7 @@ public class ApexCore extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1098,7 +1098,7 @@ public class ApexCore extends ApexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1167,7 +1167,7 @@ public class ApexCore extends ApexApi
         Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "T", "createdAt")));
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "v", "size");
-        String side = (String)this.safeStringLower2(trade, "S", "side");
+        String side = this.safeStringLower2(trade, "S", "side");
         String type = this.safeString(trade, "type");
         String fee = this.safeString(trade, "fee");
         final Object finalMarket = market;
@@ -1197,7 +1197,7 @@ public class ApexCore extends ApexApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1243,7 +1243,7 @@ public class ApexCore extends ApexApi
         Long timestamp = this.milliseconds();
         String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "openInterestAmount", ApexCore.this.safeString(interest, "openInterest") );
@@ -1278,7 +1278,7 @@ public class ApexCore extends ApexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1409,7 +1409,7 @@ public class ApexCore extends ApexApi
         String amount = this.safeString(order, "size");
         String orderType = this.safeString(order, "type");
         String status = this.safeString(order, "status");
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         Object remaining = this.omitZero(this.safeString(order, "remainingSize"));
         Long lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
@@ -1542,12 +1542,12 @@ public class ApexCore extends ApexApi
         return symbol;
     }
 
-    public Object getSeeds()
+    public String getSeeds()
     {
         String seeds = this.safeString(this.options, "seeds");
         if (Helpers.isTrue(Helpers.isEqual(seeds, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX")) ;
         }
         return seeds;
     }
@@ -1603,7 +1603,7 @@ public class ApexCore extends ApexApi
             Object orderType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             Object orderSide = ((String)side).toUpperCase();
             Object orderSize = this.amountToPrecision(symbol, amount);
@@ -1617,7 +1617,7 @@ public class ApexCore extends ApexApi
             String maker = this.safeString(fees, "maker", "0.0002");
             Object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"))), TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
             Long timeNow = this.milliseconds();
-            Object triggerPrice = this.safeString(parameters, "triggerPrice");
+            String triggerPrice = this.safeString(parameters, "triggerPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
             String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
@@ -1632,9 +1632,9 @@ public class ApexCore extends ApexApi
             Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
             if (Helpers.isTrue(Helpers.isTrue(isMarket) && Helpers.isTrue((Helpers.isEqual(price, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;
             }
-            String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+            String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             Object postOnly = this.isPostOnly(isMarket, null, parameters);
             if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
             {
@@ -1716,7 +1716,7 @@ public class ApexCore extends ApexApi
      * @param {string} [params.transferId] UUID, which is unique across the platform
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount2, Object fromAccount2, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount2, Object fromAccount2, Object toAccount, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         final Object fromAccount3 = fromAccount2;
@@ -1745,12 +1745,12 @@ public class ApexCore extends ApexApi
             String zkAccountId = this.safeString(spotAccount, "zkAccountId", "");
             String subAccountId = this.safeString(spotAccount, "defaultSubAccountId", "0");
             Object subAccounts = this.safeList(spotAccount, "subAccounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object nonce = "0";
+            String nonce = "0";
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(subAccounts), 0)))
             {
                 nonce = this.safeString(Helpers.GetValue(subAccounts, 0), "nonce", "0");
             }
-            Object finalNonce = nonce; // java req
+            String finalNonce = nonce; // java req
             String ethAddress = this.safeString(accountData, "ethereumAddress", "");
             String accountId = this.safeString(accountData, "id", "");
             Object currency = new java.util.HashMap<String, Object>() {{}};
@@ -2103,7 +2103,7 @@ public class ApexCore extends ApexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2300,7 +2300,7 @@ public class ApexCore extends ApexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2369,7 +2369,7 @@ public class ApexCore extends ApexApi
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String side = (String)this.safeStringLower(position, "side");
+        String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
         Long timestamp = this.safeInteger(position, "updatedTime");
         Object leverage = 20;

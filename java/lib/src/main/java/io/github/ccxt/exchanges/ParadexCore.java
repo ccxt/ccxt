@@ -904,10 +904,10 @@ public class ParadexCore extends ParadexApi
         String marketId = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quote_currency");
         String baseId = this.safeString(market, "base_currency");
-        String quote = (String) this.safeCurrencyCode(quoteId);
-        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
         String settleId = this.safeString(market, "settlement_currency");
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Long expiry = this.safeInteger(market, "expiry_at");
         String optionType = this.safeString(market, "option_type");
@@ -1031,7 +1031,7 @@ public class ParadexCore extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1039,7 +1039,7 @@ public class ParadexCore extends ParadexApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTradingFee() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTradingFee() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1287,7 +1287,7 @@ public class ParadexCore extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1439,7 +1439,7 @@ public class ParadexCore extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1454,7 +1454,7 @@ public class ParadexCore extends ParadexApi
             Object rate = this.safeDict(rates, Helpers.GetValue(market, "symbol"));
             if (Helpers.isTrue(Helpers.isEqual(rate, null)))
             {
-                throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchFundingRate() could not find a funding rate for "), symbol)) ;
+                throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchFundingRate() could not find a funding rate for "), symbol)) ;
             }
             return rate;
         });
@@ -1593,7 +1593,7 @@ public class ParadexCore extends ParadexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1696,12 +1696,12 @@ public class ParadexCore extends ParadexApi
         Long timestamp = this.safeInteger(trade, "created_at");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "size");
-        String side = (String)this.safeStringLower(trade, "side");
-        String liability = (String)this.safeStringLower(trade, "liquidity", "taker");
+        String side = this.safeStringLower(trade, "side");
+        String liability = this.safeStringLower(trade, "liquidity", "taker");
         Boolean isTaker = Helpers.isEqual(liability, "taker");
         String takerOrMaker = ((Helpers.isTrue((isTaker)))) ? "taker" : "maker";
         String currencyId = this.safeString(trade, "fee_currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -1733,7 +1733,7 @@ public class ParadexCore extends ParadexApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1746,7 +1746,7 @@ public class ParadexCore extends ParadexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
@@ -1825,7 +1825,7 @@ public class ParadexCore extends ParadexApi
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
-        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), v);
+        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0))), Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))), v);
     }
 
     public Object signMessage(Object message, Object privateKey)
@@ -1976,7 +1976,7 @@ public class ParadexCore extends ParadexApi
                 Long cachedExpires = this.safeInteger(this.options, "expires");
                 if (Helpers.isTrue(Helpers.isEqual(cachedExpires, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " authenticateRest() missing cachedExpires")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " authenticateRest() missing cachedExpires")) ;
                 }
                 if (Helpers.isTrue(Helpers.isLessThan(now, cachedExpires)))
                 {
@@ -2085,7 +2085,7 @@ public class ParadexCore extends ParadexApi
                 status = "canceled";
             }
         }
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         Object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         Object remaining = this.omitZero(this.safeString(order, "remaining_size"));
         Object triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
@@ -2163,7 +2163,7 @@ public class ParadexCore extends ParadexApi
             put( "STOP_LIMIT", "limit" );
             put( "STOP_MARKET", "market" );
         }};
-        return (String) this.safeStringLower(types, type, type);
+        return this.safeStringLower(types, type, type);
     }
 
     public String scaleNumber(Object num)
@@ -2177,11 +2177,11 @@ public class ParadexCore extends ParadexApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
@@ -2201,7 +2201,7 @@ public class ParadexCore extends ParadexApi
         Boolean isTakeProfitOrder = (!Helpers.isEqual(takeProfitPrice, null));
         Boolean isStopLossOrder = (!Helpers.isEqual(stopLossPrice, null));
         Boolean isStopOrder = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue(isTakeProfitOrder)) || Helpers.isTrue(isStopLossOrder);
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
         if (!Helpers.isTrue(isMarket))
         {
@@ -2292,7 +2292,7 @@ public class ParadexCore extends ParadexApi
             String orderType = this.safeString(request, "type");
             if (Helpers.isTrue(Helpers.isEqual(orderType, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " signOrderRequest() missing orderType")) ;
+                throw new ExchangeError(Helpers.add(this.id, " signOrderRequest() missing orderType")) ;
             }
             Boolean isMarket = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "MARKET"), 0));
             final Object finalNow = now;
@@ -2437,7 +2437,7 @@ public class ParadexCore extends ParadexApi
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2447,11 +2447,11 @@ public class ParadexCore extends ParadexApi
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(amount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an amount argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a price argument")) ;
             }
             (this.authenticateRest()).join();
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2650,7 +2650,7 @@ public class ParadexCore extends ParadexApi
             Boolean hasClientOrderIds = Helpers.isTrue((!Helpers.isEqual(clientOrderIds, null))) && Helpers.isTrue((Helpers.isArray(clientOrderIds)));
             if (Helpers.isTrue(!Helpers.isTrue(hasOrderIds) && !Helpers.isTrue(hasClientOrderIds)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(hasOrderIds))
@@ -2737,7 +2737,7 @@ public class ParadexCore extends ParadexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             (this.authenticateRest()).join();
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -3047,7 +3047,7 @@ public class ParadexCore extends ParadexApi
         {
             Object balance = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "size"));
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -3253,7 +3253,7 @@ public class ParadexCore extends ParadexApi
         String marketId = this.safeString(position, "market");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String side = (String)this.safeStringLower(position, "side");
+        String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
         if (Helpers.isTrue(!Helpers.isEqual(side, "long")))
         {
@@ -3640,7 +3640,7 @@ public class ParadexCore extends ParadexApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "token");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(transfer, "created_at");
         String kind = this.safeString(transfer, "kind");
         String fromAccount = null;
@@ -3693,7 +3693,7 @@ public class ParadexCore extends ParadexApi
         String address = this.safeString(transaction, "account");
         String txid = this.safeString(transaction, "txn_hash");
         String currencyId = this.safeString(transaction, "token");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(transaction, "created_at");
         Long updated = this.safeInteger(transaction, "last_updated_at");
         String type = this.safeString(transaction, "kind");
@@ -3745,7 +3745,7 @@ public class ParadexCore extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3784,7 +3784,7 @@ public class ParadexCore extends ParadexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(rawMarginMode, "market");
         market = this.safeMarket(marketId, market);
-        String marginMode = (String)this.safeStringLower(rawMarginMode, "margin_type");
+        String marginMode = this.safeStringLower(rawMarginMode, "margin_type");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", rawMarginMode );
@@ -3842,7 +3842,7 @@ public class ParadexCore extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3881,7 +3881,7 @@ public class ParadexCore extends ParadexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "market");
         market = this.safeMarket(marketId, market);
-        String marginMode = (String)this.safeStringLower(leverage, "margin_type");
+        String marginMode = this.safeStringLower(leverage, "margin_type");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
@@ -3892,7 +3892,7 @@ public class ParadexCore extends ParadexApi
         }};
     }
 
-    public Object encodeMarginMode(Object mode)
+    public String encodeMarginMode(Object mode)
     {
         java.util.Map<String, Object> modes = new java.util.HashMap<String, Object>() {{
             put( "cross", "CROSS" );
@@ -3950,7 +3950,7 @@ public class ParadexCore extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4159,7 +4159,7 @@ public class ParadexCore extends ParadexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
             }
             (this.authenticateRest()).join();
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4268,7 +4268,7 @@ public class ParadexCore extends ParadexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4348,7 +4348,7 @@ public class ParadexCore extends ParadexApi
         if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(path, "v2/"), 0)))
         {
             version = "v2";
-            path = Helpers.replace((String)path, (String)"v2/", (String)"");
+            path = Helpers.replace(((String)path), "v2/", "");
         }
         Object url = Helpers.add(Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), ((String)version))), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));

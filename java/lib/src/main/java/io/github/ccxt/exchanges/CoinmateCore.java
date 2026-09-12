@@ -519,8 +519,8 @@ public class CoinmateCore extends CoinmateApi
                 String id = this.safeString(market, "name");
                 String baseId = this.safeString(market, "firstCurrency");
                 String quoteId = this.safeString(market, "secondCurrency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -666,7 +666,7 @@ public class CoinmateCore extends CoinmateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -907,7 +907,7 @@ public class CoinmateCore extends CoinmateApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "amountCurrency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", CoinmateCore.this.safeString2(transaction, "transactionId", "id") );
@@ -953,7 +953,7 @@ public class CoinmateCore extends CoinmateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -975,7 +975,7 @@ public class CoinmateCore extends CoinmateApi
             if (Helpers.isTrue(Helpers.isEqual(method, null)))
             {
                 Object allowedCurrencies = Helpers.objectKeys(methods);
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() only allows withdrawing the following currencies: "), String.join((String)", ", (java.util.List<String>)allowedCurrencies))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() only allows withdrawing the following currencies: "), String.join(", ", (java.util.List<String>)allowedCurrencies))) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "amount", CoinmateCore.this.currencyToPrecision(code, amount) );
@@ -1016,7 +1016,7 @@ public class CoinmateCore extends CoinmateApi
                 response = (this.privatePostSolWithdrawal(requestParams)).join();
             } else
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw() does not support the "), method), " method")) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw() does not support the "), method), " method")) ;
             }
             //
             //     {
@@ -1126,8 +1126,8 @@ public class CoinmateCore extends CoinmateApi
         market = this.safeMarket(marketId, market, "_");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
-        String side = (String)this.safeStringLower2(trade, "type", "tradeType");
-        String type = (String)this.safeStringLower(trade, "orderType");
+        String side = this.safeStringLower2(trade, "type", "tradeType");
+        String type = this.safeStringLower(trade, "orderType");
         String orderId = this.safeString(trade, "orderId");
         String id = this.safeString(trade, "transactionId");
         Long timestamp = (Long) this.safeInteger2(trade, "timestamp", "createdTimestamp");
@@ -1175,7 +1175,7 @@ public class CoinmateCore extends CoinmateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1224,7 +1224,7 @@ public class CoinmateCore extends CoinmateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1315,7 +1315,7 @@ public class CoinmateCore extends CoinmateApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1411,7 +1411,7 @@ public class CoinmateCore extends CoinmateApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "id");
         Long timestamp = this.safeInteger(order, "timestamp");
-        String side = (String)this.safeStringLower(order, "type");
+        String side = this.safeStringLower(order, "type");
         String priceString = this.safeString(order, "price");
         String amountString = this.safeString(order, "originalAmount");
         String remainingString = this.safeString2(order, "remainingAmount", "amount");
@@ -1419,7 +1419,7 @@ public class CoinmateCore extends CoinmateApi
         String type = this.parseOrderType(this.safeString(order, "orderTradeType"));
         String averageString = this.safeString(order, "avgPrice");
         String marketId = this.safeString(order, "currencyPair");
-        String symbol = (String) this.safeSymbol(marketId, market, "_");
+        String symbol = this.safeSymbol(marketId, market, "_");
         String clientOrderId = this.safeString(order, "clientOrderId");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1512,7 +1512,7 @@ public class CoinmateCore extends CoinmateApi
                 response = (this.privatePostSellLimit(requestParams)).join();
             } else
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " createOrder() does not support order type "), type)) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " createOrder() does not support order type "), type)) ;
             }
             String id = this.safeString(response, "data");
             final Object finalResponse = response;

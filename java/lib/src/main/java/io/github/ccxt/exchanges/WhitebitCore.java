@@ -799,8 +799,8 @@ public class WhitebitCore extends WhitebitApi
         String baseId = this.safeString(market, "stock");
         String quoteId = this.safeString(market, "money");
         quoteId = ((Helpers.isTrue((Helpers.isEqual(quoteId, "PERP"))))) ? "USDT" : quoteId;
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object active = this.safeValue(market, "tradesEnabled");
         Object isCollateral = this.safeValue(market, "isCollateral");
         String typeId = this.safeString(market, "type");
@@ -984,7 +984,7 @@ public class WhitebitCore extends WhitebitApi
     {
         // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
         String id = this.safeString(rawCurrency, "_coin_id");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Boolean hasProvider = (Helpers.inOp(rawCurrency, "providers"));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object rawNetworks = this.safeDict(rawCurrency, "networks", new java.util.HashMap<String, Object>() {{}});
@@ -1108,7 +1108,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Object currency = Helpers.GetValue(currenciesIds, i);
                 Object data = this.safeDict(response, currency, new java.util.HashMap<String, Object>() {{}});
-                String code = (String) this.safeCurrencyCode(currency);
+                String code = this.safeCurrencyCode(currency);
                 Object withdraw = this.safeValue(data, "withdraw", new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
@@ -1252,7 +1252,7 @@ public class WhitebitCore extends WhitebitApi
             Object splitEntry = Helpers.split(entry, " ");
             Object currencyId = Helpers.GetValue(splitEntry, 0);
             Object feeInfo = Helpers.GetValue(response, entry);
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
             {
                 Object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
@@ -1261,7 +1261,7 @@ public class WhitebitCore extends WhitebitApi
                     Helpers.addElementToObject(depositWithdrawFees, code, this.depositWithdrawFee(new java.util.HashMap<String, Object>() {{}}));
                 }
                 Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "info"), entry, feeInfo);
-                Object networkId = this.safeString(splitEntry, 1);
+                String networkId = this.safeString(splitEntry, 1);
                 Object withdraw = this.safeValue(feeInfo, "withdraw");
                 Object deposit = this.safeValue(feeInfo, "deposit");
                 Double withdrawFee = this.safeNumber(withdraw, "fixed");
@@ -1278,7 +1278,7 @@ public class WhitebitCore extends WhitebitApi
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
                 {
-                    Object networkLength = ((String)networkId).length();
+                    Object networkLength = networkId.length();
                     networkId = Helpers.slice(networkId, 1, Helpers.subtract(networkLength, 1));
                     Object networkCode = this.networkIdToCode(networkId, code);
                     if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
@@ -1437,7 +1437,7 @@ public class WhitebitCore extends WhitebitApi
             Object markets = this.markets;
             if (Helpers.isTrue(Helpers.isEqual(markets, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
+                throw new ExchangeError(Helpers.add(this.id, " markets not loaded")) ;
             }
             Object marketIds = Helpers.objectKeys(markets);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
@@ -1689,7 +1689,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1941,7 +1941,7 @@ public class WhitebitCore extends WhitebitApi
                     }
                 }
             }
-            throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " fetchOrder() order not found: "), id)) ;
+            throw new OrderNotFound(Helpers.add(Helpers.add(this.id, " fetchOrder() order not found: "), id)) ;
         });
 
     }
@@ -2152,7 +2152,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2515,7 +2515,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2539,7 +2539,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2600,7 +2600,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(side, "buy"))) || Helpers.isTrue((!Helpers.isEqual(type, "market")))))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() cost is only supported for market buy orders")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() cost is only supported for market buy orders")) ;
                 }
                 Helpers.addElementToObject(request, "amount", this.costToPrecision(symbol, cost));
             } else
@@ -2625,20 +2625,20 @@ public class WhitebitCore extends WhitebitApi
             Boolean isMarketOrder = Helpers.isEqual(type, "market");
             Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "activation_price")));
             Boolean isStopOrder = (!Helpers.isEqual(triggerPrice, null));
-            String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+            String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeInForce, null))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "GTC")))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "IOC")))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "PO")))))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support timeInForce "), timeInForce), ", only GTC, IOC and PO are allowed")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support timeInForce "), timeInForce), ", only GTC, IOC and PO are allowed")) ;
             }
             Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
             Boolean ioc = (Helpers.isEqual(timeInForce, "IOC"));
             if (Helpers.isTrue(Helpers.isTrue(isStopOrder) && Helpers.isTrue((Helpers.isTrue(postOnly) || Helpers.isTrue(ioc)))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue(ioc) && !Helpers.isTrue(isLimitOrder)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() timeInForce IOC is only supported for limit orders")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() timeInForce IOC is only supported for limit orders")) ;
             }
             java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
@@ -2653,7 +2653,7 @@ public class WhitebitCore extends WhitebitApi
             }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, null)) && Helpers.isTrue(!Helpers.isEqual(marginMode, "cross"))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() is only available for cross margin")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() is only available for cross margin")) ;
             }
             parameters = this.omit(query, new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly", "triggerPrice", "stopPrice", "timeInForce")));
             Boolean useCollateralEndpoint = Helpers.isTrue(!Helpers.isEqual(marginMode, null)) || Helpers.isTrue(Helpers.isEqual(marketType, "swap"));
@@ -2727,7 +2727,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type2, Object side2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type2, Object side2, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -2792,7 +2792,7 @@ public class WhitebitCore extends WhitebitApi
             Boolean hasModifiableParam = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amount, null))) || Helpers.isTrue((!Helpers.isEqual(price, null)))) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))) || Helpers.isTrue((!Helpers.isEqual(total, null)));
             if (!Helpers.isTrue(hasModifiableParam))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total")));
             java.util.Map<String, Object> response = (this.v4PrivatePostOrderModify(this.extend(request, parameters))).join();
@@ -2820,7 +2820,7 @@ public class WhitebitCore extends WhitebitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2908,7 +2908,7 @@ public class WhitebitCore extends WhitebitApi
                 ((java.util.List<Object>)requestType).add("futures");
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrders() does not support "), type), " type")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrders() does not support "), type), " type")) ;
             }
             Helpers.addElementToObject(request, "type", requestType);
             java.util.List<Object> response = (this.v4PrivatePostOrderCancelAll(this.extend(request, parameters))).join();
@@ -2986,13 +2986,13 @@ public class WhitebitCore extends WhitebitApi
             String symbol = this.safeString(parameters, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrdersAfter() requires a symbol argument in params")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrdersAfter() requires a symbol argument in params")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             parameters = this.omit(parameters, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+                throw new ExchangeError(Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
             }
             Boolean isBiggerThanZero = (Helpers.isGreaterThan(timeout, 0));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3026,7 +3026,7 @@ public class WhitebitCore extends WhitebitApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balanceKeys)); i++)
         {
             Object id = Helpers.GetValue(balanceKeys, i);
-            String code = (String) this.safeCurrencyCode(id);
+            String code = this.safeCurrencyCode(id);
             Object balance = Helpers.GetValue(response, id);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(balance, null)) && Helpers.isTrue(this.isDictionary(balance))))
             {
@@ -3334,7 +3334,7 @@ public class WhitebitCore extends WhitebitApi
         {
             remaining = null;
         }
-        Object amount = this.safeString(order, "amount");
+        String amount = this.safeString(order, "amount");
         String cost = this.safeString(order, "dealMoney");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "buy"))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "market"))) || Helpers.isTrue((Helpers.isEqual(type, "stop market")))))))
         {
@@ -3404,7 +3404,7 @@ public class WhitebitCore extends WhitebitApi
             put( "PARTIALLY_FILLED", "open" );
             put( "FILLED", "closed" );
         }};
-        return (String) this.safeStringLower(statuses, ((String)status), status);
+        return this.safeStringLower(statuses, ((String)status), status);
     }
 
     /**
@@ -3419,7 +3419,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3630,7 +3630,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3650,19 +3650,19 @@ public class WhitebitCore extends WhitebitApi
                 String provider = this.safeString(parameters, "provider");
                 if (Helpers.isTrue(Helpers.isEqual(provider, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires a provider when the ticker is fiat")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() requires a provider when the ticker is fiat")) ;
                 }
                 Helpers.addElementToObject(request, "provider", provider);
                 Double amount = this.safeNumber(parameters, "amount");
                 if (Helpers.isTrue(Helpers.isEqual(amount, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires an amount when the ticker is fiat")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() requires an amount when the ticker is fiat")) ;
                 }
                 Helpers.addElementToObject(request, "amount", amount);
                 Object uniqueId = this.safeValue(parameters, "uniqueId");
                 if (Helpers.isTrue(Helpers.isEqual(uniqueId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires an uniqueId when the ticker is fiat")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() requires an uniqueId when the ticker is fiat")) ;
                 }
                 response = (this.v4PrivatePostMainAccountFiatDepositUrl(this.extend(request, parameters))).join();
             } else
@@ -3723,7 +3723,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {string} [params.type] address type, available for specific currencies
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3860,11 +3860,11 @@ public class WhitebitCore extends WhitebitApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " setLeverage() does not allow to set per symbol")) ;
+                throw new NotSupported(Helpers.add(this.id, " setLeverage() does not allow to set per symbol")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 20)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setLeverage() leverage should be between 1 and 20")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() leverage should be between 1 and 20")) ;
             }
             final Object finalLeverage = leverage;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3887,7 +3887,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3948,7 +3948,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3980,7 +3980,7 @@ public class WhitebitCore extends WhitebitApi
                 Object provider = this.safeValue(parameters, "provider");
                 if (Helpers.isTrue(Helpers.isEqual(provider, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a provider when the ticker is fiat")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " withdraw() requires a provider when the ticker is fiat")) ;
                 }
                 Helpers.addElementToObject(request, "provider", provider);
             }
@@ -4101,7 +4101,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDeposit(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDeposit(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4341,7 +4341,7 @@ public class WhitebitCore extends WhitebitApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "market");
-        String symbol = (String) this.safeSymbol(marketId, market, "_");
+        String symbol = this.safeSymbol(marketId, market, "_");
         Object timestamp = this.safeTimestamp(info, "modifyDate");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
@@ -4365,7 +4365,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4490,7 +4490,7 @@ public class WhitebitCore extends WhitebitApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "ticker_id");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Double markPrice = this.safeNumber(contract, "markPrice");
         Double indexPrice = this.safeNumber(contract, "indexPrice");
         Double interestRate = this.safeNumber(contract, "interestRate");
@@ -4544,7 +4544,7 @@ public class WhitebitCore extends WhitebitApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -4779,7 +4779,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createConvertTrade(Object id, Object fromCode, Object toCode, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createConvertTrade(String id, Object fromCode, Object toCode, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4929,9 +4929,9 @@ public class WhitebitCore extends WhitebitApi
         String toPath = this.safeString(first, "to");
         Object timestamp = this.safeTimestamp2(conversion, "date", "expireAt");
         String fromCoin = this.safeString(conversion, "from", fromPath);
-        String fromCode = (String) this.safeCurrencyCode(fromCoin, fromCurrency);
+        String fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
         String toCoin = this.safeString(conversion, "to", toPath);
-        String toCode = (String) this.safeCurrencyCode(toCoin, toCurrency);
+        String toCode = this.safeCurrencyCode(toCoin, toCurrency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
@@ -4958,7 +4958,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {int} [params.positionId] the id of the requested position
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionHistory(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchPositionHistory(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5225,7 +5225,7 @@ public class WhitebitCore extends WhitebitApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             Integer maxLimit = 100;
             Object paginate = false;
@@ -5355,11 +5355,11 @@ public class WhitebitCore extends WhitebitApi
     {
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(code, 418))) || Helpers.isTrue((Helpers.isEqual(code, 429)))))
         {
-            throw new DDoSProtection((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " "), reason), " "), body)) ;
+            throw new DDoSProtection(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " "), reason), " "), body)) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(code, 404)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " endpoint not found")) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " endpoint not found")) ;
         }
         if (Helpers.isTrue(!Helpers.isEqual(response, null)))
         {

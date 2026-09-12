@@ -676,7 +676,7 @@ public class BittradeCore extends BittradeApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
+                throw new ExchangeError(Helpers.add(this.id, " markets not loaded")) ;
             }
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -775,7 +775,7 @@ public class BittradeCore extends BittradeApi
                 response = (this.publicGetCommonSymbols(parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() does not support the "), method), " method")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() does not support the "), method), " method")) ;
             }
             //
             //    {
@@ -813,7 +813,7 @@ public class BittradeCore extends BittradeApi
             Object numMarkets = Helpers.getArrayLength(markets);
             if (Helpers.isTrue(Helpers.isLessThan(numMarkets, 1)))
             {
-                throw new NetworkError((String)Helpers.add(Helpers.add(this.id, " fetchMarkets() returned empty response: "), this.json(markets))) ;
+                throw new NetworkError(Helpers.add(Helpers.add(this.id, " fetchMarkets() returned empty response: "), this.json(markets))) ;
             }
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
@@ -821,8 +821,8 @@ public class BittradeCore extends BittradeApi
                 Object market = Helpers.GetValue(markets, i);
                 String baseId = this.safeString(market, "base-currency");
                 String quoteId = this.safeString(market, "quote-currency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 String state = this.safeString(market, "state");
                 String leverageRatio = this.safeString(market, "leverage-ratio", "1");
                 String superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
@@ -830,11 +830,11 @@ public class BittradeCore extends BittradeApi
                 Object fee = ((Helpers.isTrue((Helpers.isEqual(base, "OMG"))))) ? this.parseNumber("0") : this.parseNumber("0.002");
                 if (Helpers.isTrue(Helpers.isEqual(baseId, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchMarkets() missing baseId")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchMarkets() missing baseId")) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(quoteId, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchMarkets() missing quoteId")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchMarkets() missing quoteId")) ;
                 }
     final Object finalBaseId = baseId;
                 final Object finalQuoteId = quoteId;
@@ -935,12 +935,12 @@ public class BittradeCore extends BittradeApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Long timestamp = this.safeInteger(ticker, "ts");
-        Object bid = null;
-        Object bidVolume = null;
-        Object ask = null;
-        Object askVolume = null;
+        String bid = null;
+        String bidVolume = null;
+        String ask = null;
+        String askVolume = null;
         if (Helpers.isTrue(Helpers.inOp(ticker, "bid")))
         {
             if (Helpers.isTrue(Helpers.isArray(Helpers.GetValue(ticker, "bid"))))
@@ -1048,7 +1048,7 @@ public class BittradeCore extends BittradeApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(response, "tick"), null))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(response, "tick"), null)))))
                 {
-                    throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned empty response: "), this.json(response))) ;
+                    throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned empty response: "), this.json(response))) ;
                 }
                 Object tick = this.safeValue(response, "tick");
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
@@ -1056,7 +1056,7 @@ public class BittradeCore extends BittradeApi
                 Helpers.addElementToObject(result, "nonce", this.safeInteger(tick, "version"));
                 return result;
             }
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned unrecognized response: "), this.json(response))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned unrecognized response: "), this.json(response))) ;
         });
 
     }
@@ -1069,7 +1069,7 @@ public class BittradeCore extends BittradeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1189,31 +1189,31 @@ public class BittradeCore extends BittradeApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Long timestamp = (Long) this.safeInteger2(trade, "ts", "created-at");
         String order = this.safeString(trade, "order-id");
-        Object side = this.safeString(trade, "direction");
-        Object type = this.safeString(trade, "type");
+        String side = this.safeString(trade, "direction");
+        String type = this.safeString(trade, "type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
             Object typeParts = Helpers.split(type, "-");
-            side = Helpers.GetValue(typeParts, 0);
-            type = Helpers.GetValue(typeParts, 1);
+            side = (String) Helpers.GetValue(typeParts, 0);
+            type = (String) Helpers.GetValue(typeParts, 1);
         }
         String takerOrMaker = this.safeString(trade, "role");
         String price = this.safeString(trade, "price");
         String amount = this.safeString2(trade, "filled-amount", "amount");
         String cost = Precise.stringMul(price, amount);
         Object fee = null;
-        Object feeCost = this.safeString(trade, "filled-fees");
-        String feeCurrency = (String) this.safeCurrencyCode(this.safeString(trade, "fee-currency"));
+        String feeCost = this.safeString(trade, "filled-fees");
+        String feeCurrency = this.safeCurrencyCode(this.safeString(trade, "fee-currency"));
         String filledPoints = this.safeString(trade, "filled-points");
         if (Helpers.isTrue(!Helpers.isEqual(filledPoints, null)))
         {
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(feeCost, null))) || Helpers.isTrue((Precise.stringEq(feeCost, "0.0")))))
             {
                 feeCost = filledPoints;
-                feeCurrency = (String) this.safeCurrencyCode(this.safeString(trade, "fee-deduct-currency"));
+                feeCurrency = this.safeCurrencyCode(this.safeString(trade, "fee-deduct-currency"));
             }
         }
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -1258,7 +1258,7 @@ public class BittradeCore extends BittradeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1336,7 +1336,7 @@ public class BittradeCore extends BittradeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1557,7 +1557,7 @@ public class BittradeCore extends BittradeApi
     public Object parseCurrency(Object currency)
     {
         Object id = this.safeValue(currency, "name");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object depositEnabled = this.safeValue(currency, "deposit-enabled");
         Object withdrawEnabled = this.safeValue(currency, "withdraw-enabled");
         Object countryDisabled = this.safeValue(currency, "country-disabled");
@@ -1607,7 +1607,7 @@ public class BittradeCore extends BittradeApi
         {
             Object balance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(result, code)))))
             {
@@ -1618,7 +1618,7 @@ public class BittradeCore extends BittradeApi
             }
             if (Helpers.isTrue(Helpers.isEqual(account, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseBalance() could not resolve account")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseBalance() could not resolve account")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(balance, "type"), "trade")))
             {
@@ -1626,7 +1626,7 @@ public class BittradeCore extends BittradeApi
             }
             if (Helpers.isTrue(Helpers.isEqual(account, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseBalance() could not resolve account")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseBalance() could not resolve account")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(balance, "type"), "frozen")))
             {
@@ -1668,7 +1668,7 @@ public class BittradeCore extends BittradeApi
                 response = (this.privateGetAccountAccountsIdBalance(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() does not support the "), method), " method")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() does not support the "), method), " method")) ;
             }
             return this.parseBalance(response);
         });
@@ -1822,7 +1822,7 @@ public class BittradeCore extends BittradeApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrdersV1() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrdersV1() requires a symbol argument")) ;
             }
             return (this.fetchOrdersByStates("pre-submitted,submitted,partial-filled", symbol, since, limit, parameters)).join();
         });
@@ -2040,7 +2040,7 @@ public class BittradeCore extends BittradeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2053,7 +2053,7 @@ public class BittradeCore extends BittradeApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
@@ -2122,7 +2122,7 @@ public class BittradeCore extends BittradeApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(price, null)))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
                         // despite that cost = amount * price is in quote currency and should have quote precision
@@ -2155,7 +2155,7 @@ public class BittradeCore extends BittradeApi
                 response = (this.privatePostOrderOrdersPlace(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support the "), method), " method")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support the "), method), " method")) ;
             }
             String id = this.safeString(response, "data");
             final Object finalResponse = response;
@@ -2408,7 +2408,7 @@ public class BittradeCore extends BittradeApi
         String tag = this.safeString(depositAddress, "addressTag");
         String currencyId = this.safeString(depositAddress, "currency");
         currency = this.safeCurrency(currencyId, currency);
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String networkId = this.safeString(depositAddress, "chain");
         Object networks = this.safeValue(currency, "networks", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> networksById = this.indexBy(networks, "id");
@@ -2574,7 +2574,7 @@ public class BittradeCore extends BittradeApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(transaction, "created-at");
-        String code = (String) this.safeCurrencyCode(this.safeString(transaction, "currency"));
+        String code = this.safeCurrencyCode(this.safeString(transaction, "currency"));
         String type = this.safeString(transaction, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "withdraw")))
         {
@@ -2648,7 +2648,7 @@ public class BittradeCore extends BittradeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2674,7 +2674,7 @@ public class BittradeCore extends BittradeApi
                 Helpers.addElementToObject(request, "addr-tag", tag); // only for XRP?
             }
             Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-            Object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
+            String network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
@@ -2739,7 +2739,7 @@ public class BittradeCore extends BittradeApi
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(method, this.hostname, url, auth));
             // eslint-disable-next-line quotes
-            Object payload = String.join((String)"\n", (java.util.List<String>)content);
+            Object payload = String.join("\n", (java.util.List<String>)content);
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             auth = Helpers.add(auth, Helpers.add("&", this.urlencode(new java.util.HashMap<String, Object>() {{
     put( "Signature", signature );

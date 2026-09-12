@@ -1205,8 +1205,8 @@ public class BitstampCore extends BitstampApi
                 var baseIdquoteIdVariable = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")));
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Object settleId = null;
                 String marketTypeRaw = this.safeString(market, "market_type");
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -1426,12 +1426,12 @@ public class BitstampCore extends BitstampApi
             var baseIdquoteIdVariable = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")));
             var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
             var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-            String base = (String) this.safeCurrencyCode(baseId);
-            String quote = (String) this.safeCurrencyCode(quoteId);
+            String base = this.safeCurrencyCode(baseId);
+            String quote = this.safeCurrencyCode(quoteId);
             String description = this.safeString(market, "description");
             if (Helpers.isTrue(Helpers.isEqual(description, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseCurrencies() missing description")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseCurrencies() missing description")) ;
             }
             var baseDescriptionquoteDescriptionVariable = Helpers.split(description, " / ");
             var baseDescription = ((java.util.List<Object>) baseDescriptionquoteDescriptionVariable).get(0);
@@ -1439,7 +1439,7 @@ public class BitstampCore extends BitstampApi
             String minimumOrder = this.safeString(market, "minimum_order_value");
             if (Helpers.isTrue(Helpers.isEqual(minimumOrder, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseCurrencies() missing minimumOrder")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseCurrencies() missing minimumOrder")) ;
             }
             Object parts = Helpers.split(minimumOrder, " ");
             String cost = (String) Helpers.GetValue(parts, 0);
@@ -1502,7 +1502,7 @@ public class BitstampCore extends BitstampApi
             Long microtimestamp = this.safeInteger(response, "microtimestamp");
             if (Helpers.isTrue(Helpers.isEqual(microtimestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchOrderBook() missing microtimestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchOrderBook() missing microtimestamp")) ;
             }
             Long timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
             Object orderbook = this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
@@ -1532,7 +1532,7 @@ public class BitstampCore extends BitstampApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "pair");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
@@ -1571,7 +1571,7 @@ public class BitstampCore extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1663,7 +1663,7 @@ public class BitstampCore extends BitstampApi
         //         "eur": 0.0
         //     }
         //
-        String currencyId = (String)this.safeStringLower(transaction, "currency");
+        String currencyId = this.safeStringLower(transaction, "currency");
         if (Helpers.isTrue(!Helpers.isEqual(currencyId, null)))
         {
             return currencyId;
@@ -1692,7 +1692,7 @@ public class BitstampCore extends BitstampApi
         Object numCurrencyIds = Helpers.getArrayLength(currencyIds);
         if (Helpers.isTrue(Helpers.isGreaterThan(numCurrencyIds, 2)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " getMarketFromTrade() too many keys: "), this.json(currencyIds)), " in the trade: "), this.json(trade))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " getMarketFromTrade() too many keys: "), this.json(currencyIds)), " in the trade: "), this.json(trade))) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(numCurrencyIds, 2)))
         {
@@ -1753,8 +1753,8 @@ public class BitstampCore extends BitstampApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(trade, "id", "tid");
-        Object symbol = null;
-        Object side = null;
+        String symbol = null;
+        String side = null;
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         String orderId = this.safeString(trade, "order_id");
@@ -1787,8 +1787,8 @@ public class BitstampCore extends BitstampApi
         amountString = this.safeString(trade, this.safeString(market, "baseId"), amountString);
         costString = this.safeString(trade, this.safeString(market, "quoteId"), costString);
         // this endpoint is not aligned with "markets" endpoint
-        String baseIdLower = (String)this.safeStringLower(market, "baseId");
-        String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
+        String baseIdLower = this.safeStringLower(market, "baseId");
+        String quoteIdLower = this.safeStringLower(market, "quoteId");
         Object dashedIdLower = Helpers.add(Helpers.add(baseIdLower, "_"), quoteIdLower);
         if (Helpers.isTrue(Helpers.isEqual(priceString, null)))
         {
@@ -1895,7 +1895,7 @@ public class BitstampCore extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2042,7 +2042,7 @@ public class BitstampCore extends BitstampApi
         {
             Object currencyBalance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(currencyBalance, "currency");
-            String currencyCode = (String) this.safeCurrencyCode(currencyId);
+            String currencyCode = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(currencyBalance, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(currencyBalance, "reserved"));
@@ -2099,7 +2099,7 @@ public class BitstampCore extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2257,7 +2257,7 @@ public class BitstampCore extends BitstampApi
         {
             Object id = Helpers.GetValue(ids, i);
             Object fees = this.safeValue(response, i, new java.util.HashMap<String, Object>() {{}});
-            String code = (String) this.safeCurrencyCode(id);
+            String code = this.safeCurrencyCode(id);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(codes, null))) && !Helpers.isTrue(this.inArray(code, codes))))
             {
                 continue;
@@ -2439,7 +2439,7 @@ public class BitstampCore extends BitstampApi
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2578,7 +2578,7 @@ public class BitstampCore extends BitstampApi
         return this.safeString(statuses, status, status);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderStatus(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderStatus(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2978,10 +2978,10 @@ public class BitstampCore extends BitstampApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.parse8601(this.safeString(transaction, "datetime"));
         Object currencyId = this.getCurrencyIdFromTransaction(transaction);
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String feeCost = this.safeString(transaction, "fee");
         Object feeCurrency = null;
-        Object amount = null;
+        String amount = null;
         if (Helpers.isTrue(Helpers.inOp(transaction, "amount")))
         {
             amount = this.safeString(transaction, "amount");
@@ -3022,7 +3022,7 @@ public class BitstampCore extends BitstampApi
             type = "withdrawal";
         }
         Object tag = null;
-        Object address = this.safeString(transaction, "address");
+        String address = this.safeString(transaction, "address");
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
             // dt (destination tag) is embedded into the address field
@@ -3030,7 +3030,7 @@ public class BitstampCore extends BitstampApi
             Object numParts = Helpers.getArrayLength(addressParts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
-                address = Helpers.GetValue(addressParts, 0);
+                address = (String) Helpers.GetValue(addressParts, 0);
                 tag = Helpers.GetValue(addressParts, 1);
             }
         }
@@ -3171,8 +3171,8 @@ public class BitstampCore extends BitstampApi
         }
         // there is no timestamp from fetchOrder
         Long timestamp = this.parse8601(this.safeString(order, "datetime"));
-        String marketId = (String)this.safeStringLower(order, "currency_pair");
-        String symbol = (String) this.safeSymbol(marketId, market, "/");
+        String marketId = this.safeStringLower(order, "currency_pair");
+        String symbol = this.safeSymbol(marketId, market, "/");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String amount = this.safeString(order, "amount");
         Object transactions = this.safeValue(order, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -3253,7 +3253,7 @@ public class BitstampCore extends BitstampApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(Helpers.GetValue(keys, i), "_"), 0)))
                 {
-                    Object marketId = Helpers.replace((String)Helpers.GetValue(keys, i), (String)"_", (String)"");
+                    Object marketId = Helpers.replace(((String)Helpers.GetValue(keys, i)), "_", "");
                     market = this.safeMarket(marketId, market);
                 }
             }
@@ -3369,7 +3369,7 @@ public class BitstampCore extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3510,7 +3510,7 @@ public class BitstampCore extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3518,7 +3518,7 @@ public class BitstampCore extends BitstampApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(this.isFiat(code)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fiat fetchDepositAddress() for "), code), " is not supported!")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fiat fetchDepositAddress() for "), code), " is not supported!")) ;
             }
             Object name = this.getCurrencyName(code);
             // the per-currency implicit methods (privatePostBtcAddress etc.) all route
@@ -3551,7 +3551,7 @@ public class BitstampCore extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code2, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3618,7 +3618,7 @@ public class BitstampCore extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
@@ -3646,7 +3646,7 @@ public class BitstampCore extends BitstampApi
                 response = (this.privatePostTransferToMain(this.extend(request, parameters))).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " transfer() only supports from or to main")) ;
+                throw new BadRequest(Helpers.add(this.id, " transfer() only supports from or to main")) ;
             }
             //
             //    { status: 'ok' }
@@ -3669,7 +3669,7 @@ public class BitstampCore extends BitstampApi
         String status = this.safeString(transfer, "status");
         if (Helpers.isTrue(Helpers.isEqual(currency, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseTransfer() could not resolve currency")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseTransfer() could not resolve currency")) ;
         }
         final Object finalCurrency = currency;
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -3753,7 +3753,7 @@ public class BitstampCore extends BitstampApi
                 }
             }
             Object authBody = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(body, null)) && Helpers.isTrue(!Helpers.isEqual(body, "")))))) ? body : "";
-            Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(xAuth, method), Helpers.replace((String)url, (String)"https://", (String)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
+            Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(xAuth, method), Helpers.replace(((String)url), "https://", "")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Helpers.addElementToObject(headers, "X-Auth-Signature", signature);
         }
@@ -3819,7 +3819,7 @@ public class BitstampCore extends BitstampApi
             String code = this.safeString(response, "code");
             if (Helpers.isTrue(Helpers.isEqual(code, "API0005")))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " invalid signature, use the uid for the main account if you have subaccounts")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " invalid signature, use the uid for the main account if you have subaccounts")) ;
             }
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(errors)); i++)

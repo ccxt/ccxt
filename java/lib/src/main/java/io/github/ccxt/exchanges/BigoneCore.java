@@ -591,7 +591,7 @@ public class BigoneCore extends BigoneApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         String name = this.safeString(rawCurrency, "name");
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(rawCurrency, "binding_gateways", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -756,8 +756,8 @@ public class BigoneCore extends BigoneApi
                 Object quoteAsset = this.safeDict(market, "quote_asset", new java.util.HashMap<String, Object>() {{}});
                 String baseId = this.safeString(baseAsset, "symbol");
                 String quoteId = this.safeString(quoteAsset, "symbol");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", BigoneCore.this.safeString(market, "name") );
@@ -818,9 +818,9 @@ public class BigoneCore extends BigoneApi
                 String quoteId = this.safeString(market, "quoteCurrency");
                 String settleId = this.safeString(market, "settleCurrency");
                 String marketId = this.safeString(market, "symbol");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String settle = (String) this.safeCurrencyCode(settleId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String settle = this.safeCurrencyCode(settleId);
                 Object inverse = this.safeBool(market, "isInverse");
     final Object finalBase = base;
                 final Object finalInverse = inverse;
@@ -929,7 +929,7 @@ public class BigoneCore extends BigoneApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "asset_pair_name"))))) ? "spot" : "swap";
         String marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, "-", marketType);
+        String symbol = this.safeSymbol(marketId, market, "-", marketType);
         String close = this.safeString2(ticker, "close", "latestPrice");
         Object bid = this.safeDict(ticker, "bid", new java.util.HashMap<String, Object>() {{}});
         Object ask = this.safeDict(ticker, "ask", new java.util.HashMap<String, Object>() {{}});
@@ -968,7 +968,7 @@ public class BigoneCore extends BigoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1055,7 +1055,7 @@ public class BigoneCore extends BigoneApi
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
                     Object ids = this.marketIds(symbols);
-                    Helpers.addElementToObject(request, "pair_names", String.join((String)",", (java.util.List<String>)ids));
+                    Helpers.addElementToObject(request, "pair_names", String.join(",", (java.util.List<String>)ids));
                 }
                 java.util.Map<String, Object> response = (this.publicGetAssetPairsTickers(this.extend(request, parameters))).join();
                 //
@@ -1123,7 +1123,7 @@ public class BigoneCore extends BigoneApi
             Long timestamp = this.safeInteger(data, "Timestamp");
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
             return this.parseToInt(Helpers.divide(timestamp, 1000000));
         });
@@ -1321,7 +1321,7 @@ public class BigoneCore extends BigoneApi
         }
         String makerOrderId = this.safeString(trade, "maker_order_id");
         String takerOrderId = this.safeString(trade, "taker_order_id");
-        Object orderId = null;
+        String orderId = null;
         if (Helpers.isTrue(!Helpers.isEqual(makerOrderId, null)))
         {
             orderId = makerOrderId;
@@ -1436,7 +1436,7 @@ public class BigoneCore extends BigoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1451,7 +1451,7 @@ public class BigoneCore extends BigoneApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTrades () can only fetch trades for spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTrades () can only fetch trades for spot markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset_pair_name", Helpers.GetValue(market, "id") );
@@ -1529,7 +1529,7 @@ public class BigoneCore extends BigoneApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
             }
             Long until = this.safeInteger(parameters, "until");
             Boolean untilIsDefined = (!Helpers.isEqual(until, null));
@@ -1603,7 +1603,7 @@ public class BigoneCore extends BigoneApi
         {
             Object balance = Helpers.GetValue(balances, i);
             String symbol = this.safeString(balance, "asset_symbol");
-            String code = (String) this.safeCurrencyCode(symbol);
+            String code = this.safeCurrencyCode(symbol);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked_balance"));
@@ -1694,7 +1694,7 @@ public class BigoneCore extends BigoneApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "id");
         String marketId = this.safeString(order, "asset_pair_name");
-        String symbol = (String) this.safeSymbol(marketId, market, "-");
+        String symbol = this.safeSymbol(marketId, market, "-");
         Long timestamp = this.parse8601(this.safeString(order, "created_at"));
         String side = this.safeString(order, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "BID")))
@@ -1717,9 +1717,9 @@ public class BigoneCore extends BigoneApi
         }
         String type = this.parseType(this.safeString(order, "type"));
         String price = this.safeString(order, "price");
-        Object amount = null;
-        Object filled = null;
-        Object cost = null;
+        String amount = null;
+        String filled = null;
+        String cost = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "market")) && Helpers.isTrue(Helpers.isEqual(side, "buy"))))
         {
             cost = this.safeString(order, "filled_amount");
@@ -1770,7 +1770,7 @@ public class BigoneCore extends BigoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1783,7 +1783,7 @@ public class BigoneCore extends BigoneApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
@@ -1869,7 +1869,7 @@ public class BigoneCore extends BigoneApi
                     {
                         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isEqual(cost, null)))))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
                             Object amountString = this.numberToString(amount);
@@ -2087,7 +2087,7 @@ public class BigoneCore extends BigoneApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2150,7 +2150,7 @@ public class BigoneCore extends BigoneApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2339,7 +2339,7 @@ public class BigoneCore extends BigoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2378,7 +2378,7 @@ public class BigoneCore extends BigoneApi
             Object dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isLessThan(dataLength, 1)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() returned empty address response")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchDepositAddress() returned empty address response")) ;
             }
             java.util.Map<String, Object> chainsIndexedById = this.indexBy(data, "chain");
             Object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
@@ -2464,7 +2464,7 @@ public class BigoneCore extends BigoneApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "asset_symbol");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         String id = this.safeString(transaction, "id");
         Double amount = this.safeNumber(transaction, "amount");
         String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
@@ -2637,7 +2637,7 @@ public class BigoneCore extends BigoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2724,7 +2724,7 @@ public class BigoneCore extends BigoneApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

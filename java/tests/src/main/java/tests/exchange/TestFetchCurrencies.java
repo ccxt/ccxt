@@ -49,7 +49,7 @@ public class TestFetchCurrencies extends BaseTest {
                     numInactiveCurrencies = Helpers.add(numInactiveCurrencies, 1);
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
-                Object code = exchange.safeString(currency, "code");
+                String code = exchange.safeString(currency, "code");
                 Object withdraw = exchange.safeBool(currency, "withdraw");
                 Object deposit = exchange.safeBool(currency, "deposit");
                 Object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);

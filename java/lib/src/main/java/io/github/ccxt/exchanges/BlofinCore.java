@@ -744,7 +744,7 @@ public class BlofinCore extends BlofinApi
     public Object parseMarket(Object market)
     {
         String id = this.safeString(market, "instId");
-        String type = (String)this.safeStringLower(market, "instType");
+        String type = this.safeStringLower(market, "instType");
         Boolean spot = (Helpers.isEqual(type, "spot"));
         Boolean future = (Helpers.isEqual(type, "future"));
         Boolean swap = (Helpers.isEqual(type, "swap"));
@@ -753,9 +753,9 @@ public class BlofinCore extends BlofinApi
         String baseId = this.safeString(market, "baseCurrency");
         String quoteId = this.safeString(market, "quoteCurrency");
         String settleId = this.safeString(market, "settleCurrency", quoteId);
-        String settle = (String) this.safeCurrencyCode(settleId);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String settle = this.safeCurrencyCode(settleId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         if (Helpers.isTrue(swap))
         {
@@ -924,7 +924,7 @@ public class BlofinCore extends BlofinApi
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
         Object spot = this.safeBool(market, "spot", false);
-        Object quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCurrency24h") : null;
+        String quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCurrency24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
         String low = this.safeString(ticker, "low24h");
@@ -963,7 +963,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -995,7 +995,7 @@ public class BlofinCore extends BlofinApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrice(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrice(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1180,7 +1180,7 @@ public class BlofinCore extends BlofinApi
      * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1325,7 +1325,7 @@ public class BlofinCore extends BlofinApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1389,7 +1389,7 @@ public class BlofinCore extends BlofinApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "instId");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Long fundingTime = this.safeInteger(contract, "fundingTime");
         // > The current interest is 0.
         return new java.util.HashMap<String, Object>() {{
@@ -1423,7 +1423,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1436,7 +1436,7 @@ public class BlofinCore extends BlofinApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchFundingRate() is only valid for swap markets")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchFundingRate() is only valid for swap markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
@@ -1633,11 +1633,11 @@ public class BlofinCore extends BlofinApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         final Object finalSide = side;
@@ -1797,7 +1797,7 @@ public class BlofinCore extends BlofinApi
         }
         String marketId = this.safeString(order, "instId");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market, "-");
+        String symbol = this.safeSymbol(marketId, market, "-");
         String filled = this.safeString(order, "filledSize");
         String price = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("px", "price", "orderPrice")));
         String average = this.safeString(order, "averagePrice");
@@ -1817,14 +1817,14 @@ public class BlofinCore extends BlofinApi
         {
             String feeCostSigned = Precise.stringAbs(feeCostString);
             String feeCurrencyId = this.safeString(order, "feeCcy", "USDT");
-            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", BlofinCore.this.parseNumber(feeCostSigned) );
                 put( "currency", feeCurrencyCode );
             }};
         }
         String clientOrderId = this.safeString(order, "clientOrderId");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(((String)clientOrderId).length(), 1)))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(clientOrderId.length(), 1)))))
         {
             clientOrderId = null; // fix empty clientOrderId string
         }
@@ -1985,7 +1985,7 @@ public class BlofinCore extends BlofinApi
         String marginMode = this.safeString(parameters, "marginMode", "cross"); // cross or isolated
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, "cross")) && Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated"))))
         {
-            throw new BadRequest((String)Helpers.add(this.id, " createTpslOrder() requires a marginMode parameter that must be either cross or isolated")) ;
+            throw new BadRequest(Helpers.add(this.id, " createTpslOrder() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -2000,7 +2000,7 @@ public class BlofinCore extends BlofinApi
                 String slLimitPrice = this.safeString(parameters, "stopLossLimitPrice");
                 if (Helpers.isTrue(Helpers.isEqual(slLimitPrice, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market")) ;
                 }
                 Helpers.addElementToObject(request, "slOrderPrice", this.priceToPrecision(symbol, slLimitPrice));
                 parameters = this.omit(parameters, "stopLossLimitPrice");
@@ -2017,7 +2017,7 @@ public class BlofinCore extends BlofinApi
                 String tpLimitPrice = this.safeString(parameters, "takeProfitLimitPrice");
                 if (Helpers.isTrue(Helpers.isEqual(tpLimitPrice, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market")) ;
                 }
                 Helpers.addElementToObject(request, "tpOrderPrice", this.priceToPrecision(symbol, tpLimitPrice));
                 parameters = this.omit(parameters, "takeProfitLimitPrice");
@@ -2050,7 +2050,7 @@ public class BlofinCore extends BlofinApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2514,12 +2514,12 @@ public class BlofinCore extends BlofinApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String type = null;
-        Object id = null;
+        String id = null;
         String status = null;
         String withdrawalId = this.safeString(transaction, "withdrawId");
         String depositId = this.safeString(transaction, "depositId");
         String addressTo = this.safeString(transaction, "address");
-        Object address = addressTo;
+        String address = addressTo;
         String tagTo = this.safeString(transaction, "tag");
         if (Helpers.isTrue(!Helpers.isEqual(withdrawalId, null)))
         {
@@ -2533,12 +2533,12 @@ public class BlofinCore extends BlofinApi
             status = this.parseTransactionDepositStatus(this.safeString(transaction, "state"));
         }
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Double amount = this.safeNumber(transaction, "amount");
         String txid = this.safeString(transaction, "txId");
         Long timestamp = this.safeInteger(transaction, "ts");
         String feeCurrencyId = this.safeString(transaction, "feeCurrency");
-        String feeCode = (String) this.safeCurrencyCode(feeCurrencyId);
+        String feeCode = this.safeCurrencyCode(feeCurrencyId);
         Double feeCost = this.safeNumber(transaction, "fee");
         final Object finalId = id;
         final Object finalStatus = status;
@@ -2616,7 +2616,7 @@ public class BlofinCore extends BlofinApi
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Long timestamp = this.safeInteger(item, "ts");
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
@@ -2677,7 +2677,7 @@ public class BlofinCore extends BlofinApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2766,7 +2766,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2839,7 +2839,7 @@ public class BlofinCore extends BlofinApi
             Object position = this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isEqual(position, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchPosition() returned empty position")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchPosition() returned empty position")) ;
             }
             return this.parsePosition(position, market);
         });
@@ -3046,12 +3046,12 @@ public class BlofinCore extends BlofinApi
         }
         Object notional = this.parseNumber(notionalString);
         String marginMode = this.safeString(position, "marginMode");
-        Object initialMarginString = null;
+        String initialMarginString = null;
         String entryPriceString = this.safeString2(position, "averagePrice", "openAveragePrice");
         String unrealizedPnlString = this.safeString(position, "unrealizedPnl");
         String leverageString = this.safeString(position, "leverage");
         Object initialMarginPercentage = null;
-        Object collateralString = null;
+        String collateralString = null;
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
         {
             initialMarginString = this.safeString(position, "initialMargin");
@@ -3140,7 +3140,7 @@ public class BlofinCore extends BlofinApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLeverages() requires a symbols argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchLeverages() requires a symbols argument")) ;
             }
             Object marginMode = null;
             java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchLeverages", parameters);
@@ -3152,7 +3152,7 @@ public class BlofinCore extends BlofinApi
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "cross"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             symbols = this.marketSymbols(symbols);
             Object symbolsList = symbols;
@@ -3205,7 +3205,7 @@ public class BlofinCore extends BlofinApi
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3225,7 +3225,7 @@ public class BlofinCore extends BlofinApi
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "cross"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalMarginMode = marginMode;
@@ -3286,13 +3286,13 @@ public class BlofinCore extends BlofinApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 125)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setLeverage() leverage should be between 1 and 125")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() leverage should be between 1 and 125")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3305,7 +3305,7 @@ public class BlofinCore extends BlofinApi
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "cross"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             final Object finalLeverage = leverage;
             final Object finalMarginMode = marginMode;
@@ -3448,7 +3448,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

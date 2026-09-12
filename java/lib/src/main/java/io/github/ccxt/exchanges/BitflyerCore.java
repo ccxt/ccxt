@@ -388,7 +388,7 @@ public class BitflyerCore extends BitflyerApi
             {
                 Object market = Helpers.GetValue(markets, i);
                 String id = this.safeString(market, "product_code");
-                Object currencies = Helpers.split(((String)id), "_");
+                Object currencies = Helpers.split(id, "_");
                 String marketType = this.safeString(market, "market_type");
                 Boolean swap = (Helpers.isEqual(marketType, "FX"));
                 Boolean future = (Helpers.isEqual(marketType, "Futures"));
@@ -415,25 +415,25 @@ public class BitflyerCore extends BitflyerApi
                         // no alias:
                         // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                         // TODO this will break if there are products with 4 chars
-                        baseId = Helpers.slice(((String)id), 0, 3);
-                        quoteId = Helpers.slice(((String)id), 3, 6);
+                        baseId = Helpers.slice(id, 0, 3);
+                        quoteId = Helpers.slice(id, 3, 6);
                         // last 9 chars are expiry date
-                        Object expiryDate = Helpers.slice(((String)id), Helpers.opNeg(9), null);
+                        Object expiryDate = Helpers.slice(id, Helpers.opNeg(9), null);
                         expiry = this.parseExpiryDate(expiryDate);
                     } else
                     {
                         Object splitAlias = Helpers.split(alias, "_");
                         String currencyIds = this.safeString(splitAlias, 0);
-                        baseId = Helpers.slice(((String)currencyIds), 0, Helpers.opNeg(3));
-                        quoteId = Helpers.slice(((String)currencyIds), Helpers.opNeg(3), null);
-                        Object splitId = Helpers.split(((String)id), ((String)currencyIds));
+                        baseId = Helpers.slice(currencyIds, 0, Helpers.opNeg(3));
+                        quoteId = Helpers.slice(currencyIds, Helpers.opNeg(3), null);
+                        Object splitId = Helpers.split(id, currencyIds);
                         String expiryDate = this.safeString(splitId, 1);
                         expiry = this.parseExpiryDate(expiryDate);
                     }
                     type = "future";
                 }
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object taker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker");
                 Object maker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker");
@@ -525,7 +525,7 @@ public class BitflyerCore extends BitflyerApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency_code");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
@@ -614,7 +614,7 @@ public class BitflyerCore extends BitflyerApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         String last = this.safeString(ticker, "ltp");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -650,7 +650,7 @@ public class BitflyerCore extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -699,10 +699,10 @@ public class BitflyerCore extends BitflyerApi
         //      },
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(((String)side).length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(side.length(), 1)))
             {
                 side = null;
             }
@@ -756,7 +756,7 @@ public class BitflyerCore extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -804,7 +804,7 @@ public class BitflyerCore extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -898,7 +898,7 @@ public class BitflyerCore extends BitflyerApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -941,10 +941,10 @@ public class BitflyerCore extends BitflyerApi
         String filled = this.safeString(order, "executed_size");
         String remaining = this.safeString(order, "outstanding_size");
         String status = this.parseOrderStatus(this.safeString(order, "child_order_state"));
-        String type = (String)this.safeStringLower(order, "child_order_type");
-        String side = (String)this.safeStringLower(order, "side");
+        String type = this.safeStringLower(order, "child_order_type");
+        String side = this.safeStringLower(order, "side");
         String marketId = this.safeString(order, "product_code");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Object fee = null;
         Double feeCost = this.safeNumber(order, "total_commission");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -1005,7 +1005,7 @@ public class BitflyerCore extends BitflyerApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1102,7 +1102,7 @@ public class BitflyerCore extends BitflyerApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             Object orders = (this.fetchOrders(symbol)).join();
             java.util.Map<String, Object> ordersById = this.indexBy(orders, "id");
@@ -1110,7 +1110,7 @@ public class BitflyerCore extends BitflyerApi
             {
                 return Helpers.GetValue(ordersById, id);
             }
-            throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " No order found with id "), id)) ;
+            throw new OrderNotFound(Helpers.add(Helpers.add(this.id, " No order found with id "), id)) ;
         });
 
     }
@@ -1137,7 +1137,7 @@ public class BitflyerCore extends BitflyerApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1189,7 +1189,7 @@ public class BitflyerCore extends BitflyerApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() requires a `symbols` argument, exactly one symbol in an array")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositions() requires a `symbols` argument, exactly one symbol in an array")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1235,7 +1235,7 @@ public class BitflyerCore extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code2, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1249,7 +1249,7 @@ public class BitflyerCore extends BitflyerApi
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(code, "JPY")) && Helpers.isTrue(!Helpers.isEqual(code, "USD"))) && Helpers.isTrue(!Helpers.isEqual(code, "EUR"))))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " allows withdrawing JPY, USD, EUR only, "), code), " is not supported")) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " allows withdrawing JPY, USD, EUR only, "), code), " is not supported")) ;
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1436,7 +1436,7 @@ public class BitflyerCore extends BitflyerApi
         String id = this.safeString2(transaction, "id", "message_id");
         String address = this.safeString(transaction, "address");
         String currencyId = this.safeString(transaction, "currency_code");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString(transaction, "event_date"));
         Double amount = this.safeNumber(transaction, "amount");
         String txId = this.safeString(transaction, "tx_hash");
@@ -1495,7 +1495,7 @@ public class BitflyerCore extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1581,7 +1581,7 @@ public class BitflyerCore extends BitflyerApi
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(nonce, method, request));
-            Object auth = String.join((String)"", (java.util.List<String>)content);
+            Object auth = String.join("", (java.util.List<String>)content);
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))

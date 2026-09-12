@@ -384,8 +384,8 @@ public class BitbankCore extends BitbankApi
         String id = this.safeString(entry, "name");
         String baseId = this.safeString(entry, "base_asset");
         String quoteId = this.safeString(entry, "quote_asset");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -443,7 +443,7 @@ public class BitbankCore extends BitbankApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -479,7 +479,7 @@ public class BitbankCore extends BitbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -597,7 +597,7 @@ public class BitbankCore extends BitbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -789,7 +789,7 @@ public class BitbankCore extends BitbankApi
         {
             Object balance = Helpers.GetValue(assets, i);
             String currencyId = this.safeString(balance, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "free_amount"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked_amount"));
@@ -884,8 +884,8 @@ public class BitbankCore extends BitbankApi
         String remaining = this.safeString(order, "remaining_amount");
         String average = this.safeString(order, "average_price");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
-        String type = (String)this.safeStringLower(order, "type");
-        String side = (String)this.safeStringLower(order, "side");
+        String type = this.safeStringLower(order, "type");
+        String side = this.safeStringLower(order, "side");
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1166,7 +1166,7 @@ public class BitbankCore extends BitbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1209,7 +1209,7 @@ public class BitbankCore extends BitbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1221,7 +1221,7 @@ public class BitbankCore extends BitbankApi
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             if (!Helpers.isTrue((Helpers.inOp(parameters, "uuid"))))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " uuid is required for withdrawal")) ;
+                throw new ExchangeError(Helpers.add(this.id, " uuid is required for withdrawal")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1460,7 +1460,7 @@ public class BitbankCore extends BitbankApi
             String code = this.safeString(data, "code");
             String message = this.safeString(errorMessages, code, "Error");
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, message);
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
         }
         return null;
     }

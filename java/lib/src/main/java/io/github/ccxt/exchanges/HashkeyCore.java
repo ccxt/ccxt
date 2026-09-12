@@ -1153,15 +1153,15 @@ public class HashkeyCore extends HashkeyApi
         //
         String marketId = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quoteAsset");
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String quote = this.safeCurrencyCode(quoteId);
         String settleId = this.safeString(market, "marginToken");
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         String baseId = this.safeString(market, "baseAsset");
         String marketType = "spot";
         Boolean isSpot = true;
         Boolean isSwap = false;
         Object suffix = "";
-        Object parts = Helpers.split(((String)marketId), "-");
+        Object parts = Helpers.split(marketId, "-");
         String secondPart = this.safeString(parts, 1);
         if (Helpers.isTrue(Helpers.isEqual(secondPart, "PERPETUAL")))
         {
@@ -1171,7 +1171,7 @@ public class HashkeyCore extends HashkeyApi
             baseId = this.safeString(market, "underlying");
             suffix = Helpers.add(suffix, Helpers.add(":", settleId));
         }
-        String base = (String) this.safeCurrencyCode(baseId);
+        String base = this.safeCurrencyCode(baseId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), suffix);
         String status = this.safeString(market, "status");
         Boolean active = Helpers.isEqual(status, "TRADING");
@@ -1348,7 +1348,7 @@ public class HashkeyCore extends HashkeyApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "coinId");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Object networks = this.safeList(rawCurrency, "chainTypes");
         java.util.Map<String, Object> parsedNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
@@ -1470,7 +1470,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1586,7 +1586,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
                 }
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 if (Helpers.isTrue(!Helpers.isEqual(accountId, null)))
@@ -1599,7 +1599,7 @@ public class HashkeyCore extends HashkeyApi
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
             return this.parseTrades(response, market, since, limit);
         });
@@ -1665,7 +1665,7 @@ public class HashkeyCore extends HashkeyApi
         Long timestamp = (Long) this.safeInteger2(trade, "t", "time");
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        String side = (String)this.safeStringLower(trade, "side"); // swap trades have side param
+        String side = this.safeStringLower(trade, "side"); // swap trades have side param
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             side = this.safeString(Helpers.split(side, "_"), 0);
@@ -1764,7 +1764,7 @@ public class HashkeyCore extends HashkeyApi
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            timeframe = ((String)this.safeString(this.timeframes, timeframe, timeframe));
+            timeframe = this.safeString(this.timeframes, timeframe, timeframe);
             final Object finalTimeframe = timeframe;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1837,7 +1837,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2073,7 +2073,7 @@ public class HashkeyCore extends HashkeyApi
                 return this.parseBalance(response);
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
         });
 
@@ -2105,7 +2105,7 @@ public class HashkeyCore extends HashkeyApi
         {
             Object balanceEntry = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(balanceEntry, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balanceEntry, "total"));
             Helpers.addElementToObject(account, "free", this.safeString(balanceEntry, "free"));
@@ -2131,7 +2131,7 @@ public class HashkeyCore extends HashkeyApi
         //     }
         //
         String currencyId = this.safeString(balance, "asset");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
         String positionMargin = this.safeString(balance, "positionMargin");
@@ -2157,7 +2157,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2397,7 +2397,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2506,7 +2506,7 @@ public class HashkeyCore extends HashkeyApi
         }
         String txid = this.safeString(transaction, "txId");
         String coin = this.safeString(transaction, "coin");
-        String code = (String) this.safeCurrencyCode(coin, currency);
+        String code = this.safeCurrencyCode(coin, currency);
         Long timestamp = this.safeInteger(transaction, "time");
         Double amount = this.safeNumber(transaction, "quantity");
         Double feeCost = this.safeNumber(transaction, "fee");
@@ -2578,7 +2578,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {string} [params.remark] a note for the transfer
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2749,7 +2749,7 @@ public class HashkeyCore extends HashkeyApi
             String methodName = "fetchLedger";
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a since argument")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a since argument")) ;
             }
             Object until = null;
             java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
@@ -2757,7 +2757,7 @@ public class HashkeyCore extends HashkeyApi
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(until, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires an until argument")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires an until argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2846,12 +2846,12 @@ public class HashkeyCore extends HashkeyApi
         Long timestamp = this.safeInteger(item, "created");
         Object type = this.parseLedgerEntryType(this.safeString(item, "flowTypeValue"));
         String currencyId = this.safeString(item, "coin");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amountString = this.safeString(item, "change");
         Object amount = this.parseNumber(amountString);
         String direction = "in";
-        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)amountString), "-"), 0)))
+        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountString, "-"), 0)))
         {
             direction = "out";
         }
@@ -2920,7 +2920,7 @@ public class HashkeyCore extends HashkeyApi
                 return (this.createSwapOrder(symbol, type, side, amount, price, parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
             }
         });
 
@@ -2935,7 +2935,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2948,7 +2948,7 @@ public class HashkeyCore extends HashkeyApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() is supported for spot markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() is supported for spot markets only")) ;
             }
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
@@ -2989,7 +2989,7 @@ public class HashkeyCore extends HashkeyApi
             String triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " trigger orders are not supported for spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " trigger orders are not supported for spot markets")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3000,7 +3000,7 @@ public class HashkeyCore extends HashkeyApi
             String cost = this.safeString(parameters, "cost");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isTrue(isMarketBuy))) && Helpers.isTrue((!Helpers.isEqual(cost, null)))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() supports cost parameter for spot market buy orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() supports cost parameter for spot market buy orders only")) ;
             }
             Object request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
             java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
@@ -3027,11 +3027,11 @@ public class HashkeyCore extends HashkeyApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
@@ -3042,7 +3042,7 @@ public class HashkeyCore extends HashkeyApi
             return this.createSwapOrderRequest(symbol, type, side, amount, price, parameters);
         } else
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), "createOrderRequest() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), "createOrderRequest() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
         }
     }
 
@@ -3052,11 +3052,11 @@ public class HashkeyCore extends HashkeyApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         /**
          * @method
@@ -3310,7 +3310,7 @@ public class HashkeyCore extends HashkeyApi
                 response = (this.privatePostApiV1FuturesBatchOrders(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), "createOrderRequest() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), "createOrderRequest() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
             }
             Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> responseOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -3392,7 +3392,7 @@ public class HashkeyCore extends HashkeyApi
                 response = (this.privateDeleteApiV1FuturesOrder(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
             return this.parseOrder(response);
         });
@@ -3421,7 +3421,7 @@ public class HashkeyCore extends HashkeyApi
             String methodName = "cancelAllOrders";
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3445,7 +3445,7 @@ public class HashkeyCore extends HashkeyApi
                 response = (this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
             }
             Object order = this.safeOrder(response);
             Helpers.addElementToObject(order, "info", response);
@@ -3479,7 +3479,7 @@ public class HashkeyCore extends HashkeyApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object orderIds = String.join((String)",", (java.util.List<String>)ids);
+            Object orderIds = String.join(",", (java.util.List<String>)ids);
             Helpers.addElementToObject(request, "ids", orderIds);
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -3499,7 +3499,7 @@ public class HashkeyCore extends HashkeyApi
                 response = (this.privateDeleteApiV1FuturesCancelOrderByIds(request)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
             Object order = this.safeOrder(response);
             Helpers.addElementToObject(order, "info", response);
@@ -3576,7 +3576,7 @@ public class HashkeyCore extends HashkeyApi
                 response = (this.privateGetApiV1FuturesOrder(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
             return this.parseOrder(response);
         });
@@ -3639,7 +3639,7 @@ public class HashkeyCore extends HashkeyApi
                 return (this.fetchOpenSwapOrders(symbol, since, limit, parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
         });
 
@@ -3739,7 +3739,7 @@ public class HashkeyCore extends HashkeyApi
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument for swap market orders")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument for swap market orders")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3860,7 +3860,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
                 }
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 Object isTrigger = false;
@@ -3884,7 +3884,7 @@ public class HashkeyCore extends HashkeyApi
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
             return this.parseOrders(response, market, since, limit);
         });
@@ -3899,7 +3899,7 @@ public class HashkeyCore extends HashkeyApi
         String paramsType = this.safeString(parameters, "type");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(paramsType, null))) && Helpers.isTrue((!Helpers.isEqual(paramsType, "spot")))) && Helpers.isTrue((!Helpers.isEqual(paramsType, "swap")))))
         {
-            throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), " () type parameter can not be \""), paramsType), "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")) ;
+            throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), " () type parameter can not be \""), paramsType), "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")) ;
         }
     }
 
@@ -4089,17 +4089,17 @@ public class HashkeyCore extends HashkeyApi
             put( "side", finalSide );
             put( "price", finalPrice );
             put( "average", average );
-            put( "amount", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(order, "origQty"))) );
+            put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "origQty")) );
             put( "filled", HashkeyCore.this.safeString(order, "executedQty") );
             put( "remaining", null );
-            put( "triggerPrice", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(order, "stopPrice"))) );
+            put( "triggerPrice", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "stopPrice")) );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
-            put( "cost", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty"))) );
+            put( "cost", HashkeyCore.this.omitZero(HashkeyCore.this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")) );
             put( "trades", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", HashkeyCore.this.safeCurrencyCode(finalFeeCurrncyId) );
-                put( "amount", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(order, "feeAmount"))) );
+                put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "feeAmount")) );
             }} );
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );
@@ -4177,7 +4177,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4305,7 +4305,7 @@ public class HashkeyCore extends HashkeyApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -4368,13 +4368,13 @@ public class HashkeyCore extends HashkeyApi
             String methodName = "fetchPositions";
             if (Helpers.isTrue((Helpers.isEqual(symbols, null))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument with one single market symbol")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument with one single market symbol")) ;
             } else
             {
                 Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(!Helpers.isEqual(symbolsLength, 1)))
                 {
-                    throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is supported for a symbol argument with one single market symbol only")) ;
+                    throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is supported for a symbol argument with one single market symbol only")) ;
                 }
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4416,7 +4416,7 @@ public class HashkeyCore extends HashkeyApi
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() supports swap markets only")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() supports swap markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4495,7 +4495,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4528,7 +4528,7 @@ public class HashkeyCore extends HashkeyApi
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marginMode = (String)this.safeStringLower(leverage, "marginType");
+        String marginMode = this.safeStringLower(leverage, "marginType");
         Double leverageValue = this.safeNumber(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
@@ -4558,7 +4558,7 @@ public class HashkeyCore extends HashkeyApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4601,7 +4601,7 @@ public class HashkeyCore extends HashkeyApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4614,12 +4614,12 @@ public class HashkeyCore extends HashkeyApi
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "CROSS"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "ISOLATED")))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports swap markets only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setMarginMode() supports swap markets only")) ;
             }
             final Object finalMarginMode = marginMode;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -4642,7 +4642,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {string} params.side position side, either 'long' or 'short'
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4664,7 +4664,7 @@ public class HashkeyCore extends HashkeyApi
      * @param {string} params.side position side, either 'long' or 'short'
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4675,7 +4675,7 @@ public class HashkeyCore extends HashkeyApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount, Object type2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type2, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4688,7 +4688,7 @@ public class HashkeyCore extends HashkeyApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " modifyMarginHelper() supports swap markets only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " modifyMarginHelper() supports swap markets only")) ;
             }
             String side = null;
             java.util.List<Object> sideparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "side");
@@ -4696,12 +4696,12 @@ public class HashkeyCore extends HashkeyApi
             parameters = ((java.util.List<Object>) sideparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
             }
-            side = ((String)side).toUpperCase();
+            side = side.toUpperCase();
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(side, "LONG"))) && Helpers.isTrue((!Helpers.isEqual(side, "SHORT")))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), "Margin() params[\"side\"] must be either long or short")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), "Margin() params[\"side\"] must be either long or short")) ;
             }
             Object amountString = this.numberToString(amount);
             if (Helpers.isTrue(Helpers.isEqual(type, "reduce")))
@@ -4899,7 +4899,7 @@ final Object finalI = i;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4924,7 +4924,7 @@ final Object finalI = i;
                 return this.parseTradingFee(response, market);
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
             }
         });
 
@@ -5097,7 +5097,7 @@ final Object finalI = i;
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object result = this.urlencode(parameters);
-        result = Helpers.replace((String)result, (String)"%2C", (String)",");
+        result = Helpers.replace(((String)result), "%2C", ",");
         return result;
     }
 

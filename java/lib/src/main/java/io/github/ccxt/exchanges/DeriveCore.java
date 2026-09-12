@@ -846,7 +846,7 @@ public class DeriveCore extends DeriveApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "name", null );
@@ -1010,8 +1010,8 @@ public class DeriveCore extends DeriveApi
         Object inverse = null;
         String baseId = this.safeString(market, "base_currency");
         String quoteId = this.safeString(market, "quote_currency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         String marketId = this.safeString(market, "instrument_name");
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         String settleId = null;
@@ -1019,7 +1019,7 @@ public class DeriveCore extends DeriveApi
         Object expiry = null;
         Object strike = null;
         String optionType = null;
-        Object optionLetter = null;
+        String optionLetter = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "erc20")))
         {
             spot = true;
@@ -1134,7 +1134,7 @@ public class DeriveCore extends DeriveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1275,7 +1275,7 @@ public class DeriveCore extends DeriveApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "instrument_name");
         Object timestamp = this.safeIntegerOmitZero(ticker, "timestamp");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Object stats = this.safeDict(ticker, "stats");
         String change = this.safeString(stats, "percent_change");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -1316,7 +1316,7 @@ public class DeriveCore extends DeriveApi
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1453,7 +1453,7 @@ public class DeriveCore extends DeriveApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "instrument_name");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Long timestamp = this.safeInteger(trade, "timestamp");
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "currency", "USDC" );
@@ -1558,7 +1558,7 @@ public class DeriveCore extends DeriveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1645,7 +1645,7 @@ public class DeriveCore extends DeriveApi
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
-        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), v);
+        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0))), Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))), v);
     }
 
     public Object signMessage(Object message, Object privateKey)
@@ -1693,7 +1693,7 @@ public class DeriveCore extends DeriveApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument")) ;
             }
             Object subaccountId = null;
             java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("createOrder", parameters);
@@ -1701,7 +1701,7 @@ public class DeriveCore extends DeriveApi
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             Object test = this.safeBool(parameters, "test", false);
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-            String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+            String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
@@ -1719,11 +1719,11 @@ public class DeriveCore extends DeriveApi
             parameters = ((java.util.List<Object>) maxFeeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(maxFee, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a max_fee argument in params")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a max_fee argument in params")) ;
             }
             Object maxFeeString = this.numberToString(maxFee);
             Object amountString = this.numberToString(amount);
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy))), keccak(), "binary");
+            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(((String)this.amountToPrecision(symbol, amountString)))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, orderSideIsBuy))), keccak(), "binary");
             Object deriveWalletAddress = null;
             java.util.List<Object> deriveWalletAddressparametersVariable = (java.util.List<Object>) this.handleDeriveWalletAddress("createOrder", parameters);
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
@@ -1749,7 +1749,7 @@ public class DeriveCore extends DeriveApi
                 Helpers.addElementToObject(request, "reduce_only", reduceOnly);
                 if (Helpers.isTrue(Helpers.isTrue(reduceOnly) && Helpers.isTrue((Helpers.isEqual(postOnly, true)))))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " cannot use reduce only with post only time in force")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " cannot use reduce only with post only time in force")) ;
                 }
             }
             if (Helpers.isTrue(!Helpers.isEqual(postOnly, null)))
@@ -1885,7 +1885,7 @@ public class DeriveCore extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1903,7 +1903,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-            String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+            String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
@@ -1914,10 +1914,10 @@ public class DeriveCore extends DeriveApi
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             String TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
-            Object priceString = ((String)this.numberToString(price));
+            Object priceString = this.numberToString(price);
             String maxFeeString = this.safeString(parameters, "max_fee", "0");
             Object amountString = this.numberToString(amount);
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy))), keccak(), "binary");
+            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(((String)this.amountToPrecision(symbol, amountString)))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, orderSideIsBuy))), keccak(), "binary");
             Object deriveWalletAddress = null;
             java.util.List<Object> deriveWalletAddressparametersVariable = (java.util.List<Object>) this.handleDeriveWalletAddress("editOrder", parameters);
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
@@ -1943,7 +1943,7 @@ public class DeriveCore extends DeriveApi
                 Helpers.addElementToObject(request, "reduce_only", reduceOnly);
                 if (Helpers.isTrue(Helpers.isTrue(reduceOnly) && Helpers.isTrue((Helpers.isEqual(postOnly, true)))))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " cannot use reduce only with post only time in force")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " cannot use reduce only with post only time in force")) ;
                 }
             }
             if (Helpers.isTrue(!Helpers.isEqual(postOnly, null)))
@@ -2064,7 +2064,7 @@ public class DeriveCore extends DeriveApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2547,7 +2547,7 @@ public class DeriveCore extends DeriveApi
         String amount = this.safeString(order, "desired_amount");
         String filled = this.safeString(order, "filled_amount");
         String fee = this.safeString(order, "order_fee");
-        String orderType = (String)this.safeStringLower(order, "order_type");
+        String orderType = this.safeStringLower(order, "order_type");
         Object isBid = this.safeBool(order, "is_bid");
         String side = this.safeString(order, "direction");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
@@ -2561,9 +2561,9 @@ public class DeriveCore extends DeriveApi
             }
         }
         String triggerType = this.safeString(order, "trigger_type");
-        Object stopLossPrice = null;
-        Object takeProfitPrice = null;
-        Object triggerPrice = null;
+        String stopLossPrice = null;
+        String takeProfitPrice = null;
+        String triggerPrice = null;
         if (Helpers.isTrue(!Helpers.isEqual(triggerType, null)))
         {
             triggerPrice = this.safeString(order, "trigger_price");
@@ -2628,7 +2628,7 @@ public class DeriveCore extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3094,9 +3094,9 @@ public class DeriveCore extends DeriveApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "instrument_name");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String rate = this.safeString(income, "funding");
-        String code = (String) this.safeCurrencyCode("USDC");
+        String code = this.safeCurrencyCode("USDC");
         Long timestamp = this.safeInteger(income, "timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
@@ -3203,7 +3203,7 @@ public class DeriveCore extends DeriveApi
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(collaterals)); j++)
             {
                 Object balance = Helpers.GetValue(collaterals, j);
-                String code = (String) this.safeCurrencyCode(this.safeString(balance, "currency"));
+                String code = this.safeCurrencyCode(this.safeString(balance, "currency"));
                 Object account = this.safeDict(result, code);
                 if (Helpers.isTrue(Helpers.isEqual(account, null)))
                 {
@@ -3422,7 +3422,7 @@ public class DeriveCore extends DeriveApi
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(optionsWallet, parameters));
         }
-        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
+        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
 
     public Object handleDeriveWalletAddress(Object methodName, Object parameters)
@@ -3441,7 +3441,7 @@ public class DeriveCore extends DeriveApi
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(optionsWallet, parameters));
         }
-        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")) ;
+        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")) ;
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -724,7 +724,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
     {
         String id = this.safeString(rawCurrency, "id");
         String name = this.safeString(rawCurrency, "name");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object details = this.safeDict(rawCurrency, "details", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object supportedNetworks = this.safeList(rawCurrency, "supported_networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -850,14 +850,14 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 Object market = Helpers.GetValue(rawMarkets, i);
                 String id = this.safeString(market, "id");
-                var baseIdquoteIdVariable = Helpers.split(((String)id), "-");
+                var baseIdquoteIdVariable = Helpers.split(id, "-");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
                 // const baseId = this.safeString (market, 'base_currency');
                 // const quoteId = this.safeString (market, 'quote_currency');
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 String status = this.safeString(market, "status");
     final Object finalBase = base;
                 final Object finalStatus = status;
@@ -991,7 +991,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "hold"));
@@ -1117,13 +1117,13 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = null;
-        Object bid = null;
-        Object ask = null;
-        Object last = null;
-        Object high = null;
-        Object low = null;
-        Object open = null;
-        Object volume = null;
+        String bid = null;
+        String ask = null;
+        String last = null;
+        String high = null;
+        String low = null;
+        String open = null;
+        String volume = null;
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
         if (Helpers.isTrue(Helpers.isArray(ticker)))
         {
@@ -1241,7 +1241,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1320,10 +1320,10 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Long timestamp = this.parse8601(this.safeString2(trade, "time", "created_at"));
         String marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market, "-");
-        Object feeRate = null;
+        String feeRate = null;
         String takerOrMaker = null;
-        Object cost = null;
-        String feeCurrencyId = (String)this.safeStringLower(market, "quoteId");
+        String cost = null;
+        String feeCurrencyId = this.safeStringLower(market, "quoteId");
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrencyId, null)))
         {
             Object costField = Helpers.add(feeCurrencyId, "_value");
@@ -1401,7 +1401,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             Object paginate = false;
             java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
@@ -1450,7 +1450,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1809,7 +1809,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2171,7 +2171,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2209,7 +2209,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() error: "), this.json(response))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() error: "), this.json(response))) ;
             }
             return this.parseTransaction(response, currency);
         });
@@ -2273,11 +2273,11 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Object before = this.parseNumber(beforeString);
         Long timestamp = this.parse8601(this.safeValue(item, "created_at"));
         Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        String code = (String) this.safeCurrencyCode(null, currency);
+        String code = this.safeCurrencyCode(null, currency);
         Object details = this.safeValue(item, "details", new java.util.HashMap<String, Object>() {{}});
-        Object account = null;
-        Object referenceAccount = null;
-        Object referenceId = null;
+        String account = null;
+        String referenceAccount = null;
+        String referenceId = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "transfer")))
         {
             account = this.safeString(details, "from");
@@ -2336,7 +2336,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLedger() requires a code param")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchLedger() requires a code param")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2348,7 +2348,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object account = this.safeValue(accountsByCurrencyCode, code);
             if (Helpers.isTrue(Helpers.isEqual(account, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchLedger() could not find account id for "), code)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchLedger() could not find account id for "), code)) ;
             }
             final Object finalAccount = account;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2417,7 +2417,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                     Object account = this.safeValue(accountsByCurrencyCode, code);
                     if (Helpers.isTrue(Helpers.isEqual(account, null)))
                     {
-                        throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchDepositsWithdrawals() could not find account id for "), code)) ;
+                        throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchDepositsWithdrawals() could not find account id for "), code)) ;
                     }
                     id = Helpers.GetValue(account, "id");
                 }
@@ -2624,7 +2624,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Object details = this.safeValue(transaction, "details", new java.util.HashMap<String, Object>() {{}});
         Long timestamp = this.parse8601(this.safeString(transaction, "created_at"));
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Object amount = this.safeNumber(transaction, "amount");
         String type = this.safeString(transaction, "type");
         String address = this.safeString(details, "crypto_address");
@@ -2686,7 +2686,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2708,7 +2708,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object account = this.safeValue(Helpers.GetValue(this.options, "coinbaseAccountsByCurrencyId"), currencyId);
             if (Helpers.isTrue(Helpers.isEqual(account, null)))
             {
-                throw new InvalidAddress((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " createDepositAddress() could not find currency code "), code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")) ;
+                throw new InvalidAddress(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " createDepositAddress() could not find currency code "), code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")) ;
             }
             final Object finalAccount = account;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2765,7 +2765,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 secret = this.base64ToBinary(this.secret);
             } catch(Exception e)
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " sign() invalid base64 secret")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " sign() invalid base64 secret")) ;
             }
             Object signature = this.hmac(this.encode(what), secret, sha256(), "base64");
             final Object finalNonce = nonce;
@@ -2800,7 +2800,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
                 throw new ExchangeError((String)feedback) ;
             }
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), body)) ;
         }
         return null;
     }
@@ -2821,7 +2821,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 if (Helpers.isTrue(Helpers.inOp(response, "message")))
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
                 }
             }
             return response;

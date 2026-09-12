@@ -894,7 +894,7 @@ public class CryptocomCore extends CryptocomApi
     public Object parseCurrency(Object currency)
     {
         String id = this.safeString(currency, "_coin_id");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(currency, "network_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
@@ -1059,11 +1059,11 @@ public class CryptocomCore extends CryptocomApi
                 Boolean option = Helpers.isEqual(inst_type, "WARRANT");
                 String baseId = this.safeString(market, "base_ccy");
                 String quoteId = this.safeString(market, "quote_ccy");
-                Object settleId = ((Helpers.isTrue(spot))) ? null : quoteId;
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String settleId = ((Helpers.isTrue(spot))) ? null : quoteId;
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Object settle = ((Helpers.isTrue(spot))) ? null : this.safeCurrencyCode(settleId);
-                String optionType = (String)this.safeStringLower(market, "put_call");
+                String optionType = this.safeStringLower(market, "put_call");
                 String strike = this.safeString(market, "strike");
                 Object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
                 Object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
@@ -1188,7 +1188,7 @@ public class CryptocomCore extends CryptocomApi
                     Object symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
                     }
                     symbol = Helpers.GetValue(symbols, 0);
                 } else
@@ -1239,7 +1239,7 @@ public class CryptocomCore extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1371,7 +1371,7 @@ public class CryptocomCore extends CryptocomApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1601,7 +1601,7 @@ public class CryptocomCore extends CryptocomApi
         {
             Object balance = Helpers.GetValue(positionBalances, i);
             String currencyId = this.safeString(balance, "instrument_name");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "quantity"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "reserved_qty"));
@@ -1755,11 +1755,11 @@ public class CryptocomCore extends CryptocomApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object uppercaseType = ((String)type).toUpperCase();
@@ -1790,7 +1790,7 @@ public class CryptocomCore extends CryptocomApi
         {
             Helpers.addElementToObject(request, "spot_margin", "SPOT");
         }
-        String timeInForce = (String)this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
+        String timeInForce = this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
         if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTC")))
@@ -2038,17 +2038,17 @@ public class CryptocomCore extends CryptocomApi
 
     }
 
-    public Object createAdvancedOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createAdvancedOrderRequest(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
@@ -2067,7 +2067,7 @@ public class CryptocomCore extends CryptocomApi
         }
         String broker = this.safeString(this.options, "broker", "CCXT");
         Helpers.addElementToObject(request, "broker_id", broker);
-        String timeInForce = (String)this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
+        String timeInForce = this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
         if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTC")))
@@ -2181,7 +2181,7 @@ public class CryptocomCore extends CryptocomApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                 } else
                 {
                     Object amountString = this.numberToString(amount);
@@ -2217,7 +2217,7 @@ public class CryptocomCore extends CryptocomApi
      * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2250,7 +2250,7 @@ public class CryptocomCore extends CryptocomApi
             String originalClientOrderId = this.safeString2(parameters, "orig_client_oid", "clientOrderId");
             if (Helpers.isTrue(Helpers.isEqual(originalClientOrderId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an id argument or orig_client_oid parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an id argument or orig_client_oid parameter")) ;
             } else
             {
                 Helpers.addElementToObject(request, "orig_client_oid", originalClientOrderId);
@@ -2259,7 +2259,7 @@ public class CryptocomCore extends CryptocomApi
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(amount, null))) || Helpers.isTrue((Helpers.isEqual(price, null)))))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
         }
         Helpers.addElementToObject(request, "new_quantity", this.amountToPrecision(symbol, amount));
         Helpers.addElementToObject(request, "new_price", this.priceToPrecision(symbol, price));
@@ -2368,7 +2368,7 @@ public class CryptocomCore extends CryptocomApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2424,7 +2424,7 @@ public class CryptocomCore extends CryptocomApi
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 java.util.Map<String, Object> orderItem = new java.util.HashMap<String, Object>() {{
                     put( "instrument_name", Helpers.GetValue(market, "id") );
-                    put( "order_id", String.valueOf(((String)id)) );
+                    put( "order_id", String.valueOf(id) );
                 }};
                 ((java.util.List<Object>)orderRequests).add(orderItem);
             }
@@ -2638,7 +2638,7 @@ public class CryptocomCore extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2742,7 +2742,7 @@ public class CryptocomCore extends CryptocomApi
             Object addressesLength = Helpers.getArrayLength(addresses);
             if (Helpers.isTrue(Helpers.isEqual(addressesLength, 0)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddressesByNetwork() generating address...")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchDepositAddressesByNetwork() generating address...")) ;
             }
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, addressesLength); i++)
@@ -2750,7 +2750,7 @@ public class CryptocomCore extends CryptocomApi
                 Object value = this.safeDict(addresses, i);
                 String addressString = this.safeString(value, "address");
                 String currencyId = this.safeString(value, "currency");
-                String responseCode = (String) this.safeCurrencyCode(currencyId);
+                String responseCode = this.safeCurrencyCode(currencyId);
                 var addresstagVariable = this.parseAddress(addressString);
                 var address = ((java.util.List<Object>) addresstagVariable).get(0);
                 var tag = ((java.util.List<Object>) addresstagVariable).get(1);
@@ -2783,19 +2783,19 @@ public class CryptocomCore extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            String network = (String)this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
             Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             Object depositAddresses = depositAddressesRaw;
-            if (Helpers.isTrue(Helpers.inOp(depositAddresses, ((String)network))))
+            if (Helpers.isTrue(Helpers.inOp(depositAddresses, network)))
             {
-                return Helpers.GetValue(depositAddresses, ((String)network));
+                return Helpers.GetValue(depositAddresses, network);
             }
             Object keys = Helpers.objectKeys(depositAddresses);
             return Helpers.GetValue(depositAddresses, Helpers.GetValue(keys, 0));
@@ -3185,7 +3185,7 @@ public class CryptocomCore extends CryptocomApi
         }
         Long created = this.safeInteger(order, "create_time");
         String marketId = this.safeString(order, "instrument_name");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Object execInst = this.safeValue(order, "exec_inst");
         Object postOnly = null;
         if (Helpers.isTrue(!Helpers.isEqual(execInst, null)))
@@ -3318,7 +3318,7 @@ public class CryptocomCore extends CryptocomApi
         var address = ((java.util.List<Object>) addresstagVariable).get(0);
         var tag = ((java.util.List<Object>) addresstagVariable).get(1);
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(transaction, "create_time");
         Double feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;
@@ -3378,7 +3378,7 @@ public class CryptocomCore extends CryptocomApi
         {
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, "cross")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " only cross margin is supported")) ;
+                throw new NotSupported(Helpers.add(this.id, " only cross margin is supported")) ;
             }
         } else
         {
@@ -3589,7 +3589,7 @@ public class CryptocomCore extends CryptocomApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(item, "event_timestamp_ms");
         String currencyId = this.safeString(item, "instrument_name");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amount = this.safeString(item, "transaction_qty");
         String direction = null;
@@ -3867,7 +3867,7 @@ public class CryptocomCore extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3880,7 +3880,7 @@ public class CryptocomCore extends CryptocomApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
@@ -3975,7 +3975,7 @@ public class CryptocomCore extends CryptocomApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3992,7 +3992,7 @@ public class CryptocomCore extends CryptocomApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
@@ -4135,7 +4135,7 @@ public class CryptocomCore extends CryptocomApi
                     Object symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
                     symbol = Helpers.GetValue(symbols, 0);
                 } else
@@ -4201,7 +4201,7 @@ public class CryptocomCore extends CryptocomApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "instrument_name");
         market = this.safeMarket(marketId, market, null, "contract");
-        String symbol = (String) this.safeSymbol(marketId, market, null, "contract");
+        String symbol = this.safeSymbol(marketId, market, null, "contract");
         Long timestamp = this.safeInteger(position, "update_timestamp_ms");
         String amount = this.safeString(position, "quantity");
         final Object finalMarket = market;
@@ -4312,7 +4312,7 @@ public class CryptocomCore extends CryptocomApi
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "type", "MARKET" );
             }};
-            String type = (String)this.safeStringUpper(parameters, "type");
+            String type = this.safeStringUpper(parameters, "type");
             String price = this.safeString(parameters, "price");
             if (Helpers.isTrue(!Helpers.isEqual(type, null)))
             {
@@ -4349,7 +4349,7 @@ public class CryptocomCore extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4470,7 +4470,7 @@ public class CryptocomCore extends CryptocomApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "instrument_name");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -4490,7 +4490,7 @@ public class CryptocomCore extends CryptocomApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         String type = this.safeString(api, 0);
         String access = this.safeString(api, 1);
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), ((String)type)), "/"), path);
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type), "/"), path);
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {
@@ -4526,7 +4526,7 @@ public class CryptocomCore extends CryptocomApi
             {
                 String paramsString = "{}";
                 String arrayString = "[]";
-                body = Helpers.replace((String)body, (String)arrayString, (String)paramsString);
+                body = Helpers.replace(((String)body), arrayString, paramsString);
             }
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
@@ -4550,7 +4550,7 @@ public class CryptocomCore extends CryptocomApi
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), body)) ;
         }
         return null;
     }

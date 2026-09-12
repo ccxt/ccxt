@@ -2033,15 +2033,15 @@ public class GateCore extends GateApi
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
         Object marketIdBase = Helpers.split(symbol, "_");
-        Object base = null;
-        Object expiry = this.safeString(optionParts, 1);
+        String base = null;
+        String expiry = this.safeString(optionParts, 1);
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
             base = this.safeString(symbolBase, 0);
         } else
         {
             base = this.safeString(marketIdBase, 0);
-            expiry = Helpers.slice(((String)expiry), 2, 8); // convert 20230728 to 230728
+            expiry = Helpers.slice(expiry, 2, 8); // convert 20230728 to 230728
         }
         String strike = this.safeString(optionParts, 2);
         String optionType = this.safeString(optionParts, 3);
@@ -2222,11 +2222,11 @@ public class GateCore extends GateApi
                 String id = this.safeString(spotMarket, "id");
                 Object marginMarket = this.safeValue(marginMarkets, id);
                 java.util.Map<String, Object> market = this.deepExtend(marginMarket, spotMarket);
-                var baseIdquoteIdVariable = Helpers.split(((String)id), "_");
+                var baseIdquoteIdVariable = Helpers.split(id, "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 String takerPercent = this.safeString(market, "fee");
                 String makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
                 Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "amount_precision")));
@@ -2464,13 +2464,13 @@ public class GateCore extends GateApi
         //    }
         //
         String id = this.safeString(market, "name");
-        Object parts = Helpers.split(((String)id), "_");
+        Object parts = Helpers.split(id, "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String date = this.safeString(parts, 2);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String settle = this.safeCurrencyCode(settleId);
         Object expiry = this.safeTimestamp(market, "expire_time");
         Object symbol = "";
         String marketType = "swap";
@@ -2614,8 +2614,8 @@ public class GateCore extends GateApi
                     Object parts = Helpers.split(((String)underlying), "_");
                     String baseId = this.safeString(parts, 0);
                     String quoteId = this.safeString(parts, 1);
-                    String base = (String) this.safeCurrencyCode(baseId);
-                    String quote = (String) this.safeCurrencyCode(quoteId);
+                    String base = this.safeCurrencyCode(baseId);
+                    String quote = this.safeCurrencyCode(quoteId);
                     Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                     Object expiry = this.safeTimestamp(market, "expiration_time");
                     String strike = this.safeString(market, "strike_price");
@@ -2762,7 +2762,7 @@ public class GateCore extends GateApi
             if (Helpers.isTrue(Helpers.isTrue(swap) || Helpers.isTrue(future)))
             {
                 String defaultSettle = ((Helpers.isTrue(swap))) ? "usdt" : "btc";
-                Object settle = this.safeStringLower(parameters, "settle", defaultSettle);
+                String settle = this.safeStringLower(parameters, "settle", defaultSettle);
                 parameters = this.omit(parameters, "settle");
                 Helpers.addElementToObject(request, "settle", settle);
             }
@@ -2793,7 +2793,7 @@ public class GateCore extends GateApi
         {
             if (Helpers.isTrue(Helpers.isEqual(market, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " spotOrderPrepareRequest() requires a market argument for non-trigger orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " spotOrderPrepareRequest() requires a market argument for non-trigger orders")) ;
             }
             Helpers.addElementToObject(request, "account", marginMode);
             Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id")); // Should always be set for non-trigger
@@ -2847,8 +2847,8 @@ public class GateCore extends GateApi
          * @param {object} [params] Request params
          * @returns The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gates api docs
          */
-        String defaultMarginMode = (String)this.safeStringLower2(this.options, "defaultMarginMode", "marginMode", "spot"); // 'margin' is isolated margin on gate's api
-        Object marginMode = this.safeStringLower2(parameters, "marginMode", "account", defaultMarginMode);
+        String defaultMarginMode = this.safeStringLower2(this.options, "defaultMarginMode", "marginMode", "spot"); // 'margin' is isolated margin on gate's api
+        String marginMode = this.safeStringLower2(parameters, "marginMode", "account", defaultMarginMode);
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "account")));
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
         {
@@ -2869,7 +2869,7 @@ public class GateCore extends GateApi
             }
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross_margin")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " getMarginMode() does not support trigger orders for cross margin")) ;
+                throw new BadRequest(Helpers.add(this.id, " getMarginMode() does not support trigger orders for cross margin")) ;
             }
         }
         Object isUnifiedAccount = false;
@@ -2958,7 +2958,7 @@ public class GateCore extends GateApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         String type = ((Helpers.isTrue(this.isLeveragedCurrency(currencyId)))) ? "leveraged" : "crypto";
         Object chains = this.safeList(rawCurrency, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -3017,7 +3017,7 @@ public class GateCore extends GateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3030,7 +3030,7 @@ public class GateCore extends GateApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
             var requestqueryVariable = this.prepareRequest(market, null, parameters);
             var request = ((java.util.List<Object>) requestqueryVariable).get(0);
@@ -3211,7 +3211,7 @@ public class GateCore extends GateApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "name");
-        String symbol = (String) this.safeSymbol(marketId, market, "_", "swap");
+        String symbol = this.safeSymbol(marketId, market, "_", "swap");
         Double markPrice = this.safeNumber(contract, "mark_price");
         Double indexPrice = this.safeNumber(contract, "index_price");
         Double interestRate = this.safeNumber(contract, "interest_rate");
@@ -3253,7 +3253,7 @@ public class GateCore extends GateApi
         return this.safeString(intervals, interval, interval);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchNetworkDepositAddress(Object code2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchNetworkDepositAddress(String code2, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3293,7 +3293,7 @@ public class GateCore extends GateApi
                 String address = this.safeString(entry, "address");
                 String tag = this.safeString(entry, "payment_id");
                 final Object finalCode = code;
-                Helpers.addElementToObject(result, ((String)network), new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(result, network, new java.util.HashMap<String, Object>() {{
         put( "info", entry );
         put( "code", finalCode );
         put( "currency", finalCode );
@@ -3350,7 +3350,7 @@ public class GateCore extends GateApi
      * @param {string} [params.network] unified network code (not used directly by gate.com but used by ccxt to filter the response)
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3389,8 +3389,8 @@ public class GateCore extends GateApi
         String code = this.safeString(currency, "code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", ((String)code) );
-            put( "address", ((String)address) );
+            put( "currency", code );
+            put( "address", address );
             put( "tag", GateCore.this.safeString(depositAddress, "payment_id") );
             put( "network", GateCore.this.networkIdToCode(GateCore.this.safeString(depositAddress, "chain"), code) );
         }};
@@ -3405,7 +3405,7 @@ public class GateCore extends GateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3689,7 +3689,7 @@ public class GateCore extends GateApi
             {
                 Object chainKey = Helpers.GetValue(chainKeys, i);
                 String currencyId = this.safeString(fee, "currency");
-                String code = (String) this.safeCurrencyCode(currencyId, currency);
+                String code = this.safeCurrencyCode(currencyId, currency);
                 Object networkCode = this.networkIdToCode(chainKey, code);
                 if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
                 {
@@ -3767,7 +3767,7 @@ public class GateCore extends GateApi
                 response = (this.privateDeliveryGetSettleAccountBook(this.extend(request, requestParams))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingHistory() only support swap & future market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingHistory() only support swap & future market type")) ;
             }
             //
             //    [
@@ -3889,7 +3889,7 @@ public class GateCore extends GateApi
                 response = (this.publicOptionsGetOrderBook(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrderBook() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrderBook() not support this market type")) ;
             }
             //
             // spot
@@ -3958,7 +3958,7 @@ public class GateCore extends GateApi
             Object timestamp = this.safeInteger(response, "current");
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " method() missing timestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " method() missing timestamp")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
@@ -3986,7 +3986,7 @@ public class GateCore extends GateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4018,7 +4018,7 @@ public class GateCore extends GateApi
                 response = (this.publicOptionsGetTickers(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTicker() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTicker() not support this market type")) ;
             }
             Object ticker = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
@@ -4038,7 +4038,7 @@ public class GateCore extends GateApi
             }
             if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchTicker() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchTicker() returned empty response")) ;
             }
             return this.parseTicker(ticker, market);
         });
@@ -4118,7 +4118,7 @@ public class GateCore extends GateApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("currency_pair", "contract", "name")));
         String marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "mark_price"))))) ? "contract" : "spot";
-        String symbol = (String) this.safeSymbol(marketId, market, "_", marketType);
+        String symbol = this.safeSymbol(marketId, market, "_", marketType);
         String last = this.safeString2(ticker, "last", "last_price");
         String ask = this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("lowest_ask", "a", "ask1_price")));
         String bid = this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("highest_bid", "b", "bid1_price")));
@@ -4217,12 +4217,12 @@ public class GateCore extends GateApi
             {
                 this.checkRequiredArgument("fetchTickers", symbols, "symbols");
                 String marketId = this.safeString(market, "id");
-                Object optionParts = Helpers.split(((String)marketId), "-");
+                Object optionParts = Helpers.split(marketId, "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 response = (this.publicOptionsGetTickers(this.extend(request, requestParams))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTickers() not support this market type, provide symbols or set params[\"defaultType\"] to one from spot/margin/swap/future/option")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTickers() not support this market type, provide symbols or set params[\"defaultType\"] to one from spot/margin/swap/future/option")) ;
             }
             return this.parseTickers(response, symbols);
         });
@@ -4308,7 +4308,7 @@ public class GateCore extends GateApi
                     response = (this.privateMarginGetCrossAccounts(this.extend(request, requestQuery))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchBalance() not support this marginMode")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchBalance() not support this marginMode")) ;
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(type, "funding")))
             {
@@ -4324,7 +4324,7 @@ public class GateCore extends GateApi
                 response = (this.privateOptionsGetAccounts(this.extend(request, requestQuery))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchBalance() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchBalance() not support this market type")) ;
             }
             Boolean contract = (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) || Helpers.isTrue((Helpers.isEqual(type, "future")))) || Helpers.isTrue((Helpers.isEqual(type, "option"))));
             if (Helpers.isTrue(contract))
@@ -4724,7 +4724,7 @@ public class GateCore extends GateApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4741,7 +4741,7 @@ public class GateCore extends GateApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             var requestparametersVariable = this.prepareRequest(market, null, parameters);
@@ -4841,7 +4841,7 @@ public class GateCore extends GateApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4915,7 +4915,7 @@ public class GateCore extends GateApi
                 response = (this.publicOptionsGetTrades(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTrades() not support this market type.")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTrades() not support this market type.")) ;
             }
             //
             // spot
@@ -4977,7 +4977,7 @@ public class GateCore extends GateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4988,7 +4988,7 @@ public class GateCore extends GateApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5125,7 +5125,7 @@ public class GateCore extends GateApi
                 response = (this.privateOptionsGetMyTrades(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchMyTrades() not support this market type.")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchMyTrades() not support this market type.")) ;
             }
             //
             // spot
@@ -5302,11 +5302,11 @@ public class GateCore extends GateApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(trade, "id", "trade_id");
         Object timestamp = null;
-        Object msString = this.safeString(trade, "create_time_ms");
+        String msString = this.safeString(trade, "create_time_ms");
         if (Helpers.isTrue(!Helpers.isEqual(msString, null)))
         {
             msString = Precise.stringMul(msString, "1000");
-            msString = Helpers.slice(((String)msString), 0, 13);
+            msString = Helpers.slice(msString, 0, 13);
             timestamp = this.parseToInt(msString);
         } else
         {
@@ -5328,7 +5328,7 @@ public class GateCore extends GateApi
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
             String feeCurrencyId = this.safeString(trade, "fee_currency");
-            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             if (Helpers.isTrue(Helpers.isEqual(feeCurrencyCode, null)))
             {
                 feeCurrencyCode = this.safeString(market, "settle");
@@ -5510,7 +5510,7 @@ final Object finalPointFee = pointFee;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5670,9 +5670,9 @@ final Object finalPointFee = pointFee;
         {
             amountString = Precise.stringSub(amountString, feeCostString);
         }
-        String networkId = (String)this.safeStringUpper(transaction, "chain");
+        String networkId = this.safeStringUpper(transaction, "chain");
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         String txid = this.safeString(transaction, "txid");
         String rawStatus = this.safeString(transaction, "status");
         String status = this.parseTransactionStatus(rawStatus);
@@ -5876,17 +5876,17 @@ final Object finalPointFee = pointFee;
         Object ordersLength = Helpers.getArrayLength(orders);
         if (Helpers.isTrue(Helpers.isEqual(ordersLength, 0)))
         {
-            throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires at least one order")) ;
+            throw new BadRequest(Helpers.add(this.id, " createOrders() requires at least one order")) ;
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(ordersLength, 10)))
         {
-            throw new BadRequest((String)Helpers.add(this.id, " createOrders() accepts a maximum of 10 orders at a time")) ;
+            throw new BadRequest(Helpers.add(this.id, " createOrders() accepts a maximum of 10 orders at a time")) ;
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
             Object rawOrder = Helpers.GetValue(orders, i);
             String marketId = this.safeString(rawOrder, "symbol");
-            ((java.util.List<Object>)orderSymbols).add(((String)marketId));
+            ((java.util.List<Object>)orderSymbols).add(marketId);
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
             Object amount = this.safeValue(rawOrder, "amount");
@@ -5896,7 +5896,7 @@ final Object finalPointFee = pointFee;
             Object triggerValue = this.safeValueN(orderParams, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")));
             if (Helpers.isTrue(!Helpers.isEqual(triggerValue, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)")) ;
             }
             Helpers.addElementToObject(extendedParams, "textIsRequired", true); // the exchange requires a text parameter for each order here
             Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
@@ -5906,7 +5906,7 @@ final Object finalPointFee = pointFee;
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "option"), true)))))
         {
-            throw new NotSupported((String)Helpers.add(this.id, " createOrders() does not support futures or options markets")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrders() does not support futures or options markets")) ;
         }
         return ordersRequests;
     }
@@ -5954,11 +5954,11 @@ final Object finalPointFee = pointFee;
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object contract = Helpers.GetValue(market, "contract");
@@ -5971,15 +5971,15 @@ final Object finalPointFee = pointFee;
         Boolean isTpsl = Helpers.isTrue(isStopLossOrder) || Helpers.isTrue(isTakeProfitOrder);
         if (Helpers.isTrue(Helpers.isTrue(isStopLossOrder) && Helpers.isTrue(isTakeProfitOrder)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")) ;
+            throw new ExchangeError(Helpers.add(this.id, " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")) ;
         }
         Object reduceOnly = this.safeValue(parameters, "reduceOnly");
-        String exchangeSpecificTimeInForce = (String)this.safeStringLowerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "tif", "time_in_force")));
+        String exchangeSpecificTimeInForce = this.safeStringLowerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "tif", "time_in_force")));
         Boolean postOnly = null;
         java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(exchangeSpecificTimeInForce, "poc"), parameters);
         postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-        Object timeInForce = this.handleTimeInForce(parameters);
+        String timeInForce = this.handleTimeInForce(parameters);
         if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             timeInForce = "poc";
@@ -5992,13 +5992,13 @@ final Object finalPointFee = pointFee;
         Boolean isMarketOrder = (Helpers.isEqual(type, "market"));
         if (Helpers.isTrue(Helpers.isTrue(isLimitOrder) && Helpers.isTrue(Helpers.isEqual(price, null))))
         {
-            throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder () requires a price argument for "), type), " orders")) ;
+            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder () requires a price argument for "), type), " orders")) ;
         }
         if (Helpers.isTrue(isMarketOrder))
         {
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(timeInForce, "poc"))) || Helpers.isTrue((Helpers.isEqual(timeInForce, "gtc")))))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " createOrder () timeInForce for market order can only be \"FOK\" or \"IOC\"")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createOrder () timeInForce for market order can only be \"FOK\" or \"IOC\"")) ;
             } else
             {
                 if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
@@ -6089,7 +6089,7 @@ final Object finalPointFee = pointFee;
                     {
                         if (Helpers.isTrue(Helpers.isEqual(price, null)))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                         } else
                         {
                             Object amountString = this.numberToString(amount);
@@ -6122,9 +6122,9 @@ final Object finalPointFee = pointFee;
                 //     prefixed with t-
                 //     no longer than 28 bytes without t- prefix
                 //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
-                if (Helpers.isTrue(Helpers.isGreaterThan(((String)clientOrderId).length(), 28)))
+                if (Helpers.isTrue(Helpers.isGreaterThan(clientOrderId.length(), 28)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " createOrder () clientOrderId or text param must be up to 28 characters")) ;
+                    throw new BadRequest(Helpers.add(this.id, " createOrder () clientOrderId or text param must be up to 28 characters")) ;
                 }
                 parameters = this.omit(parameters, "textIsRequired");
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(clientOrderId, 0), "t")))
@@ -6144,7 +6144,7 @@ final Object finalPointFee = pointFee;
         {
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() conditional option orders are not supported")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() conditional option orders are not supported")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(contract, true)))
             {
@@ -6182,7 +6182,7 @@ final Object finalPointFee = pointFee;
                     Long priceType = this.safeInteger(parameters, "price_type", 0);
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isLessThan(priceType, 0)) || Helpers.isTrue(Helpers.isGreaterThan(priceType, 2))))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")) ;
+                        throw new BadRequest(Helpers.add(this.id, " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")) ;
                     }
                     parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("price_type")));
                     final Object finalPriceType = priceType;
@@ -6280,7 +6280,7 @@ final Object finalPointFee = pointFee;
      * @param {bool} [params.unifiedAccount] set to true for creating a unified account order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6294,7 +6294,7 @@ final Object finalPointFee = pointFee;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "createMarketBuyOrderRequiresPrice", false );
@@ -6328,7 +6328,7 @@ final Object finalPointFee = pointFee;
         {
             if (!Helpers.isTrue(isLimitOrder))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), type), " orders for "), marketType), " markets")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), type), " orders for "), marketType), " markets")) ;
             }
         }
         final Object finalAccount = account;
@@ -6380,7 +6380,7 @@ final Object finalPointFee = pointFee;
      * @param {bool} [params.unifiedAccount] set to true for editing an order in a unified account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6672,7 +6672,7 @@ final Object finalPointFee = pointFee;
         Object trigger = this.safeValue(order, "trigger", new java.util.HashMap<String, Object>() {{}});
         String contract = this.safeString(put, "contract");
         String type = this.safeString(put, "type");
-        Object timeInForce = this.safeStringUpper2(put, "time_in_force", "tif");
+        String timeInForce = this.safeStringUpper2(put, "time_in_force", "tif");
         String amount = this.safeString2(put, "amount", "size");
         String side = this.safeString(put, "side");
         String price = this.safeString(put, "price");
@@ -6687,8 +6687,8 @@ final Object finalPointFee = pointFee;
         amount = this.safeString2(order, "amount", "size", amount);
         side = this.safeString(order, "side", side);
         price = this.safeString(order, "price", price);
-        Object remainingString = this.safeString(order, "left");
-        Object cost = this.safeString(order, "filled_total");
+        String remainingString = this.safeString(order, "left");
+        String cost = this.safeString(order, "filled_total");
         Double triggerPrice = this.safeNumber(trigger, "price");
         Object average = this.safeNumber2(order, "avg_deal_price", "fill_price");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isEqual(triggerPrice, 0)))))
@@ -6709,11 +6709,11 @@ final Object finalPointFee = pointFee;
             timestampStr = this.safeString2(order, "create_time", "ctime");
             if (Helpers.isTrue(!Helpers.isEqual(timestampStr, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(((String)timestampStr).length(), 10)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(timestampStr, "."), 0))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(timestampStr.length(), 10)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(timestampStr, "."), 0))))
                 {
                     // ts in seconds, multiply to ms
                     timestampStr = Precise.stringMul(timestampStr, "1000");
-                } else if (Helpers.isTrue(Helpers.isEqual(((String)timestampStr).length(), 16)))
+                } else if (Helpers.isTrue(Helpers.isEqual(timestampStr.length(), 16)))
                 {
                     // ts in microseconds, divide to ms
                     timestampStr = Precise.stringDiv(timestampStr, "1000");
@@ -6726,11 +6726,11 @@ final Object finalPointFee = pointFee;
             lastTradeTimestampStr = this.safeString2(order, "update_time", "finish_time");
             if (Helpers.isTrue(!Helpers.isEqual(lastTradeTimestampStr, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(((String)lastTradeTimestampStr).length(), 10)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(lastTradeTimestampStr, "."), 0))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(lastTradeTimestampStr.length(), 10)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(lastTradeTimestampStr, "."), 0))))
                 {
                     // ts in seconds, multiply to ms
                     lastTradeTimestampStr = Precise.stringMul(lastTradeTimestampStr, "1000");
-                } else if (Helpers.isTrue(Helpers.isEqual(((String)lastTradeTimestampStr).length(), 16)))
+                } else if (Helpers.isTrue(Helpers.isEqual(lastTradeTimestampStr.length(), 16)))
                 {
                     // ts in microseconds, divide to ms
                     lastTradeTimestampStr = Precise.stringDiv(lastTradeTimestampStr, "1000");
@@ -6743,7 +6743,7 @@ final Object finalPointFee = pointFee;
             marketType = "spot";
         }
         String exchangeSymbol = this.safeString2(order, "currency_pair", "market", contract);
-        String symbol = (String) this.safeSymbol(exchangeSymbol, market, "_", marketType);
+        String symbol = this.safeSymbol(exchangeSymbol, market, "_", marketType);
         java.util.List<Object> fees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         String gtFee = this.safeString(order, "gt_fee");
         if (Helpers.isTrue(!Helpers.isEqual(gtFee, null)))
@@ -6955,7 +6955,7 @@ final Object finalRebate = rebate;
                 response = (this.privateOptionsGetOrdersOrderId(this.extend(request, requestParams))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrder() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrder() not support this market type")) ;
             }
             return this.parseOrder(response, market);
         });
@@ -7209,7 +7209,7 @@ final Object finalRebate = rebate;
                 response = (this.privateOptionsGetOrders(this.extend(request, requestParams))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrders() not support this market type")) ;
             }
             //
             // spot open orders
@@ -7448,7 +7448,7 @@ final Object finalRebate = rebate;
                 response = (this.privateOptionsDeleteOrdersOrderId(this.extend(request, requestParams))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelOrder() not support this market type")) ;
             }
             //
             // spot
@@ -7567,14 +7567,14 @@ final Object finalRebate = rebate;
             }
             Object type = null;
             Object defaultSettle = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? "usdt" : Helpers.GetValue(market, "settle");
-            Object settle = this.safeStringLower(parameters, "settle", defaultSettle);
+            String settle = this.safeStringLower(parameters, "settle", defaultSettle);
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (Helpers.isEqual(type, "spot"));
             if (Helpers.isTrue(Helpers.isTrue(isSpot) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders requires a symbol argument for spot markets")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders requires a symbol argument for spot markets")) ;
             }
             if (Helpers.isTrue(isSpot))
             {
@@ -7635,7 +7635,7 @@ final Object finalRebate = rebate;
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " cancelOrdersForSymbols() supports only spot markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " cancelOrdersForSymbols() supports only spot markets")) ;
                 }
                 String id = this.safeString(order, "id");
                 java.util.Map<String, Object> orderItem = new java.util.HashMap<String, Object>() {{
@@ -7728,7 +7728,7 @@ final Object finalRebate = rebate;
                 response = (this.privateOptionsDeleteOrders(this.extend(request, requestParams))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() not support this market type")) ;
             }
             //
             //    [
@@ -7776,7 +7776,7 @@ final Object finalRebate = rebate;
      * @param {string} [params.symbol] Unified market symbol *required for type == margin*
      * @returns A [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7815,7 +7815,7 @@ final Object finalRebate = rebate;
                 String symbol = this.safeString2(parameters, "symbol", "currency_pair");
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer requires params[\"symbol\"] for isolated margin transfers")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " transfer requires params[\"symbol\"] for isolated margin transfers")) ;
                 }
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
@@ -7887,13 +7887,13 @@ final Object finalRebate = rebate;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 0))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 100)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setLeverage() leverage should be between 1 and 100")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() leverage should be between 1 and 100")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -7929,7 +7929,7 @@ final Object finalRebate = rebate;
                 response = (this.privateDeliveryPostSettlePositionsContractLeverage(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " setLeverage() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " setLeverage() not support this market type")) ;
             }
             //
             //     {
@@ -8077,7 +8077,7 @@ final Object finalRebate = rebate;
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
         String unrealisedPnl = this.safeString(position, "unrealised_pnl");
-        Object collateral = marginBalance;
+        String collateral = marginBalance;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginBalance, null))) && Helpers.isTrue((!Helpers.isEqual(unrealisedPnl, null)))))
         {
             collateral = Precise.stringAdd(marginBalance, unrealisedPnl);
@@ -8148,7 +8148,7 @@ final Object finalRebate = rebate;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchPosition() supports contract markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchPosition() supports contract markets only")) ;
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             var requestparametersVariable = this.prepareRequest(market, Helpers.GetValue(market, "type"), parameters);
@@ -8224,7 +8224,7 @@ final Object finalRebate = rebate;
             //
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchPosition() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchPosition() returned empty response")) ;
             }
             return this.parsePosition(response, market);
         });
@@ -8279,7 +8279,7 @@ final Object finalRebate = rebate;
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
                     String marketId = this.safeString(market, "id");
-                    Object optionParts = Helpers.split(((String)marketId), "-");
+                    Object optionParts = Helpers.split(marketId, "-");
                     Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 }
             } else
@@ -8398,7 +8398,7 @@ final Object finalRebate = rebate;
             var requestParams = ((java.util.List<Object>) requestrequestParamsVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "future")) && Helpers.isTrue(!Helpers.isEqual(type, "swap"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchLeverageTiers only supports swap and future")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchLeverageTiers only supports swap and future")) ;
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
@@ -8409,7 +8409,7 @@ final Object finalRebate = rebate;
                 response = (this.publicDeliveryGetSettleContracts(this.extend(request, requestParams))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchLeverageTiers() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchLeverageTiers() not support this market type")) ;
             }
             //
             // Perpetual swap
@@ -8518,7 +8518,7 @@ final Object finalRebate = rebate;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8537,7 +8537,7 @@ final Object finalRebate = rebate;
             var requestParams = ((java.util.List<Object>) requestrequestParamsVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "future")) && Helpers.isTrue(!Helpers.isEqual(type, "swap"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchMarketLeverageTiers only supports swap and future")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchMarketLeverageTiers only supports swap and future")) ;
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
@@ -8572,7 +8572,7 @@ final Object finalRebate = rebate;
         String riskLimitStep = this.safeString(info, "risk_limit_step"); // '1000000',
         String riskLimitMax = this.safeString(info, "risk_limit_max"); // '16000000',
         String initialMarginUnit = Precise.stringDiv("1", leverageMax);
-        Object maintenanceMarginRate = maintenanceMarginUnit;
+        String maintenanceMarginRate = maintenanceMarginUnit;
         String initialMarginRatio = initialMarginUnit;
         Object floor = "0";
         java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -8594,7 +8594,7 @@ final Object finalFloor = floor;
             }});
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, maintenanceMarginUnit);
             initialMarginRatio = Precise.stringAdd(initialMarginRatio, initialMarginUnit);
-            floor = ((String)cap);
+            floor = cap;
         }
         return tiers;
     }
@@ -8653,7 +8653,7 @@ final Object finalI = i;
      * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(Object symbol, Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8693,7 +8693,7 @@ final Object finalI = i;
      * @param {boolean} [params.unifiedAccount] set to true for repaying in the unified account
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8741,7 +8741,7 @@ final Object finalI = i;
      * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(Object symbol, Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8796,7 +8796,7 @@ final Object finalI = i;
      * @param {boolean} [params.unifiedAccount] default true (set to false to use deprecated privateMarginPostCrossLoans method)
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9010,7 +9010,7 @@ final Object finalI = i;
         Object type = Helpers.GetValue(api, 1); // spot, margin, future, delivery
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean containsSettle = Helpers.isGreaterThan(Helpers.getIndexOf(path, "settle"), Helpers.opNeg(1));
-        if (Helpers.isTrue(Helpers.isTrue(containsSettle) && Helpers.isTrue((Helpers.isEqual(((String)path).endsWith(((String)"batch_cancel_orders")), true)))))
+        if (Helpers.isTrue(Helpers.isTrue(containsSettle) && Helpers.isTrue((Helpers.isEqual(((String)path).endsWith("batch_cancel_orders"), true)))))
         {
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
@@ -9045,7 +9045,7 @@ final Object finalI = i;
         Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), authentication), type);
         if (Helpers.isTrue(Helpers.isEqual(url, null)))
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet for the "), type), " market type.")) ;
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet for the "), type), " market type.")) ;
         }
         url = Helpers.add(url, entirePath);
         if (Helpers.isTrue(Helpers.isEqual(authentication, "public")))
@@ -9063,7 +9063,7 @@ final Object finalI = i;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "futures"))) || Helpers.isTrue((Helpers.isEqual(type, "delivery"))))) && Helpers.isTrue(Helpers.isEqual(method, "POST"))))
             {
                 Object pathParts = Helpers.split(path, "/");
-                Object secondPart = ((String)this.safeString(pathParts, 1, ""));
+                Object secondPart = this.safeString(pathParts, 1, "");
                 requiresURLEncoding = Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secondPart, "dual"), 0))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secondPart, "positions"), 0)));
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))) || Helpers.isTrue(requiresURLEncoding)) || Helpers.isTrue((Helpers.isEqual(method, "PATCH")))))
@@ -9076,7 +9076,7 @@ final Object finalI = i;
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(queryString, "currencies="), 0)) && Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(queryString, "%2C"), 0))))
                     {
-                        queryString = Helpers.replaceAll((String)queryString, (String)"%2C", (String)",");
+                        queryString = Helpers.replaceAll(((String)queryString), "%2C", ",");
                     }
                     url = Helpers.add(url, Helpers.add("?", queryString));
                 }
@@ -9103,7 +9103,7 @@ final Object finalI = i;
             Object signaturePath = Helpers.add(Helpers.add("/api/", this.version), entirePath);
             Object payloadArray = new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)method).toUpperCase(), signaturePath, rawQueryString, bodySignature, timestampString));
             // eslint-disable-next-line quotes
-            Object payload = String.join((String)"\n", (java.util.List<String>)payloadArray);
+            Object payload = String.join("\n", (java.util.List<String>)payloadArray);
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "KEY", GateCore.this.apiKey );
@@ -9124,7 +9124,7 @@ final Object finalI = i;
         }};
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9148,7 +9148,7 @@ final Object finalI = i;
                 response = (this.privateDeliveryPostSettlePositionsContractMargin(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " modifyMarginHelper() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " modifyMarginHelper() not support this market type")) ;
             }
             return this.parseMarginModification(response, market);
         });
@@ -9214,7 +9214,7 @@ final Object finalI = i;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9236,7 +9236,7 @@ final Object finalI = i;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9260,7 +9260,7 @@ final Object finalI = i;
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9284,7 +9284,7 @@ final Object finalI = i;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports swap markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterest() supports swap markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contract", Helpers.GetValue(market, "id") );
@@ -9349,7 +9349,7 @@ final Object finalI = i;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(interest, "time");
         return new java.util.HashMap<String, Object>() {{
-            put( "symbol", ((String)GateCore.this.safeString(market, "symbol")) );
+            put( "symbol", GateCore.this.safeString(market, "symbol") );
             put( "openInterestAmount", GateCore.this.safeNumber(interest, "open_interest") );
             put( "openInterestValue", GateCore.this.safeNumber(interest, "open_interest_usd") );
             put( "timestamp", timestamp );
@@ -9380,7 +9380,7 @@ final Object finalI = i;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchSettlementHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchSettlementHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -9393,7 +9393,7 @@ final Object finalI = i;
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "option")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchSettlementHistory() supports option markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchSettlementHistory() supports option markets only")) ;
             }
             Object marketId = Helpers.GetValue(market, "id");
             Object optionParts = Helpers.split(((String)marketId), "-");
@@ -9467,7 +9467,7 @@ final Object finalI = i;
             Boolean isFuture = Helpers.isEqual(type, "future");
             if (Helpers.isTrue(!Helpers.isTrue(isOption) && !Helpers.isTrue(isFuture)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchMySettlementHistory() supports option and future markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchMySettlementHistory() supports option and future markets only")) ;
             }
             var requestqueryVariable = this.prepareRequest(market, type, parameters);
             var request = ((java.util.List<Object>) requestqueryVariable).get(0);
@@ -9506,7 +9506,7 @@ final Object finalI = i;
                     String underlying = this.safeString(parameters, "underlying");
                     if (Helpers.isTrue(Helpers.isEqual(underlying, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params")) ;
                     }
                 } else
                 {
@@ -9688,7 +9688,7 @@ final Object finalI = i;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) || Helpers.isTrue((Helpers.isEqual(type, "future")))))
             {
                 String defaultSettle = ((Helpers.isTrue((Helpers.isEqual(type, "swap"))))) ? "usdt" : "btc";
-                Object settle = this.safeStringLower(parameters, "settle", defaultSettle);
+                String settle = this.safeStringLower(parameters, "settle", defaultSettle);
                 parameters = this.omit(parameters, "settle");
                 Helpers.addElementToObject(request, "settle", settle);
             }
@@ -9838,12 +9838,12 @@ final Object finalI = i;
         String type = this.safeString(item, "type");
         String rawTimestamp = this.safeString(item, "time");
         Object timestamp = null;
-        if (Helpers.isTrue(Helpers.isGreaterThan(((String)((String)rawTimestamp)).length(), 10)))
+        if (Helpers.isTrue(Helpers.isGreaterThan(rawTimestamp.length(), 10)))
         {
-            timestamp = Helpers.parseInt(((String)rawTimestamp));
+            timestamp = Helpers.parseInt(rawTimestamp);
         } else
         {
-            timestamp = Helpers.multiply(Helpers.parseInt(((String)rawTimestamp)), 1000);
+            timestamp = Helpers.multiply(Helpers.parseInt(rawTimestamp), 1000);
         }
         String balanceString = this.safeString(item, "balance");
         String changeString = this.safeString(item, "change");
@@ -9973,7 +9973,7 @@ final Object finalI = i;
             }
             if (Helpers.isTrue(!Helpers.isEqual(marketType, "option")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchUnderlyingAssets() supports option markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchUnderlyingAssets() supports option markets only")) ;
             }
             java.util.List<Object> response = (this.publicOptionsGetUnderlyings(parameters)).join();
             //
@@ -10012,7 +10012,7 @@ final Object finalI = i;
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10027,7 +10027,7 @@ final Object finalI = i;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchLiquidations() supports swap markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchLiquidations() supports swap markets only")) ;
             }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "settle", Helpers.GetValue(market, "settleId") );
@@ -10086,7 +10086,7 @@ final Object finalI = i;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyLiquidations() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyLiquidations() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -10121,7 +10121,7 @@ final Object finalI = i;
                 response = (this.privateOptionsGetPositionClose(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMyLiquidations() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMyLiquidations() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
             //
             // swap and future
@@ -10219,7 +10219,7 @@ final Object finalI = i;
         }
         // --- derive side ---
         // 1) options payload has explicit 'side': 'long' | 'short'
-        String optPos = (String)this.safeStringLower(liquidation, "side");
+        String optPos = this.safeStringLower(liquidation, "side");
         String side = null;
         if (Helpers.isTrue(Helpers.isEqual(optPos, "long")))
         {
@@ -10265,7 +10265,7 @@ final Object finalI = i;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10312,7 +10312,7 @@ final Object finalI = i;
                     return this.parseGreeks(entry, market);
                 }
             }
-            throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchGreeks() could not find greeks for "), symbol)) ;
+            throw new NullResponse(Helpers.add(Helpers.add(this.id, " fetchGreeks() could not find greeks for "), symbol)) ;
         });
 
     }
@@ -10341,10 +10341,10 @@ final Object finalI = i;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(greeks, "name");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseGreeks() could not resolve market")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseGreeks() could not resolve market")) ;
         }
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
@@ -10413,7 +10413,7 @@ final Object finalI = i;
      * @param {boolean} [params.unified] default false, set to true for fetching the unified accounts leverage
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10448,7 +10448,7 @@ final Object finalI = i;
                 response = (this.privateUnifiedGetAccounts(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() does not support "), this.safeString(market, "type")), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() does not support "), this.safeString(market, "type")), " markets")) ;
             }
             return this.parseLeverage(response, market);
         });
@@ -10517,7 +10517,7 @@ final Object finalI = i;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOption(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOption(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10588,7 +10588,7 @@ final Object finalI = i;
      * @param {int} [params.expiration] unix timestamp of the expiration time
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10790,7 +10790,7 @@ final Object finalI = i;
                 response = (this.privateDeliveryGetSettlePositionClose(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " fetchPositionsHistory() does not support markets of type "), marketType)) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, " fetchPositionsHistory() does not support markets of type "), marketType)) ;
             }
             //
             //    [

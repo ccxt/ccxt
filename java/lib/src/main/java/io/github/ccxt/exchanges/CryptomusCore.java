@@ -403,13 +403,13 @@ public class CryptomusCore extends CryptomusApi
         String marketId = this.safeString(market, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
         Object parts = Helpers.split(marketId, "_");
         String baseId = (String) Helpers.GetValue(parts, 0);
         String quoteId = (String) Helpers.GetValue(parts, 1);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object fees = this.safeDict(this.fees, "trading");
         final Object finalMarketId = marketId;
         final Object finalBase = base;
@@ -514,7 +514,7 @@ public class CryptomusCore extends CryptomusApi
     public Object parseCurrency(Object rawCurrency)
     {
         // currency here is array of networks
-        Object id = null; // all entries have same id, as they were grouped by
+        String id = null; // all entries have same id, as they were grouped by
         Object code = null;
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawCurrency)); i++)
@@ -711,7 +711,7 @@ public class CryptomusCore extends CryptomusApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -840,7 +840,7 @@ public class CryptomusCore extends CryptomusApi
         {
             Object balanceEntry = Helpers.GetValue(balance, i);
             String currencyId = this.safeString(balanceEntry, "ticker");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balanceEntry, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(balanceEntry, "held"));
@@ -914,7 +914,7 @@ public class CryptomusCore extends CryptomusApi
                     {
                         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isEqual(cost, null)))))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")) ;
                         } else if (Helpers.isTrue(Helpers.isEqual(cost, null)))
                         {
                             cost = Precise.stringMul(amountToString, priceToString);
@@ -933,14 +933,14 @@ public class CryptomusCore extends CryptomusApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price parameter for a "), type), " order")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price parameter for a "), type), " order")) ;
                 }
                 Helpers.addElementToObject(request, "quantity", amountToString);
                 Helpers.addElementToObject(request, "price", price);
                 response = (this.privatePostV2UserApiExchangeOrders(this.extend(request, parameters))).join();
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a type parameter (limit or market)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a type parameter (limit or market)")) ;
             }
             //
             //     {

@@ -1342,7 +1342,7 @@ public class BingxCore extends BingxApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "coin");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         String name = this.safeString(rawCurrency, "name");
         Object networkList = this.safeList(rawCurrency, "networkList");
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
@@ -1509,13 +1509,13 @@ public class BingxCore extends BingxApi
 
     public Object parseMarket(Object market)
     {
-        Object id = ((String)this.safeString(market, "symbol"));
+        Object id = this.safeString(market, "symbol");
         Object symbolParts = Helpers.split(id, "-");
         String baseId = (String) Helpers.GetValue(symbolParts, 0);
         String quoteId = (String) Helpers.GetValue(symbolParts, 1);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
-        Object currency = this.safeString(market, "currency");
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String currency = this.safeString(market, "currency");
         Object checkIsInverse = false;
         Object checkIsLinear = true;
         Object inverseContractSize = this.safeNumber(market, "minTickSize");
@@ -1526,7 +1526,7 @@ public class BingxCore extends BingxApi
             checkIsInverse = true;
             checkIsLinear = false;
         }
-        String settle = (String) this.safeCurrencyCode(currency);
+        String settle = this.safeCurrencyCode(currency);
         Object pricePrecision = this.safeNumber(market, "tickSize");
         if (Helpers.isTrue(Helpers.isEqual(pricePrecision, null)))
         {
@@ -1867,7 +1867,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1882,7 +1882,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTrades() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTrades() is not supported for inverse swap markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -2066,7 +2066,7 @@ public class BingxCore extends BingxApi
         String cost = this.safeString(trade, "quoteQty");
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         String currencyId = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("currency", "N", "commissionAsset")));
-        String currencyCode = (String) this.safeCurrencyCode(currencyId);
+        String currencyCode = this.safeCurrencyCode(currencyId);
         Object m = this.safeBool(trade, "m");
         String marketId = this.safeString2(trade, "s", "symbol");
         Object isBuyerMaker = this.safeBoolN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("buyerMaker", "isBuyerMaker", "maker")));
@@ -2076,7 +2076,7 @@ public class BingxCore extends BingxApi
         {
             takeOrMaker = ((Helpers.isTrue(isMakerSide))) ? "maker" : "taker";
         }
-        String side = (String)this.safeStringLower2(trade, "side", "S");
+        String side = this.safeStringLower2(trade, "side", "S");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isBuyerMaker, null))) || Helpers.isTrue((!Helpers.isEqual(m, null)))))
@@ -2276,7 +2276,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2430,7 +2430,7 @@ public class BingxCore extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2439,7 +2439,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
             }
             Object paginate = false;
             java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
@@ -2542,7 +2542,7 @@ public class BingxCore extends BingxApi
             Object isInverse = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? (Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)) : (Helpers.isEqual(subType, "inverse"));
             if (Helpers.isTrue(isInverse))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingHistory() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingHistory() is not supported for inverse swap markets")) ;
             }
             Object paginate = false;
             java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
@@ -2634,7 +2634,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2720,7 +2720,7 @@ public class BingxCore extends BingxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = (Long) this.safeInteger2(interest, "time", "timestamp");
         String id = this.safeString(interest, "symbol");
-        String symbol = (String) this.safeSymbol(id, market, "-", "swap");
+        String symbol = this.safeSymbol(id, market, "-", "swap");
         Object openInterest = this.safeNumber(interest, "openInterest");
         Object inverse = this.safeBool(market, "inverse", false);
         Boolean isInverse = (Helpers.isEqual(inverse, true));
@@ -2749,7 +2749,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2916,7 +2916,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrice(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrice(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3094,10 +3094,10 @@ public class BingxCore extends BingxApi
         String close = this.safeString(ticker, "lastPrice");
         String quoteVolume = this.safeString(ticker, "quoteVolume");
         String baseVolume = this.safeString(ticker, "volume");
-        Object percentage = this.safeString(ticker, "priceChangePercent");
+        String percentage = this.safeString(ticker, "priceChangePercent");
         if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
         {
-            percentage = Helpers.replace((String)percentage, (String)"%", (String)"");
+            percentage = Helpers.replace(percentage, (String)"%", (String)"");
         }
         String change = this.safeString(ticker, "priceChange");
         Long ts = this.safeInteger(ticker, "closeTime");
@@ -3295,7 +3295,7 @@ public class BingxCore extends BingxApi
                 {
                     break;
                 }
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString2(balance, "availableMargin", "availableBalance"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "usedMargin"));
@@ -3311,7 +3311,7 @@ public class BingxCore extends BingxApi
             {
                 Object balance = Helpers.GetValue(spotBalances, i);
                 String currencyId = this.safeString(balance, "asset");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "free"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -3336,7 +3336,7 @@ public class BingxCore extends BingxApi
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionHistory(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchPositionHistory(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3369,7 +3369,7 @@ public class BingxCore extends BingxApi
                 response = (this.swapV1PrivateGetTradePositionHistory(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchPositionHistory() is not supported for inverse swap positions")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchPositionHistory() is not supported for inverse swap positions")) ;
             }
             //
             //     {
@@ -3492,7 +3492,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchPosition() supports swap markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchPosition() supports swap markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3597,8 +3597,8 @@ public class BingxCore extends BingxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = ((String)this.safeString(position, "symbol", ""));
-        marketId = Helpers.replace((String)marketId, (String)"/", (String)"-"); // standard return different format
+        Object marketId = this.safeString(position, "symbol", "");
+        marketId = Helpers.replace(((String)marketId), "/", "-"); // standard return different format
         Object isolated = this.safeBool(position, "isolated");
         String marginMode = null;
         if (Helpers.isTrue(!Helpers.isEqual(isolated, null)))
@@ -3650,7 +3650,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3671,7 +3671,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3692,7 +3692,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3710,11 +3710,11 @@ public class BingxCore extends BingxApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         /**
          * @method
@@ -3748,7 +3748,7 @@ public class BingxCore extends BingxApi
         Boolean isTwapOrder = Helpers.isEqual(type, "TWAP");
         if (Helpers.isTrue(Helpers.isTrue(isTwapOrder) && Helpers.isTrue(isSpot)))
         {
-            throw new BadSymbol((String)Helpers.add(this.id, " createOrder() twap order supports swap contracts only")) ;
+            throw new BadSymbol(Helpers.add(this.id, " createOrder() twap order supports swap contracts only")) ;
         }
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -3762,7 +3762,7 @@ public class BingxCore extends BingxApi
         {
             Helpers.addElementToObject(request, exchangeClientOrderId, clientOrderId);
         }
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarketOrder, Helpers.isEqual(timeInForce, "PostOnly"), parameters);
         postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
@@ -3803,7 +3803,7 @@ public class BingxCore extends BingxApi
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isMarketOrder) && Helpers.isTrue((Helpers.isEqual(side, "buy")))) && Helpers.isTrue(Helpers.isEqual(this.safeString(request, "quoteOrderQty"), null))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders")) ;
                 }
                 Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 if (Helpers.isTrue(Helpers.isEqual(type, "LIMIT")))
@@ -3815,7 +3815,7 @@ public class BingxCore extends BingxApi
                 }
             } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null)))))
             {
-                Object stopTakePrice = ((Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))))) ? stopLossPrice : takeProfitPrice;
+                String stopTakePrice = ((Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))))) ? stopLossPrice : takeProfitPrice;
                 if (Helpers.isTrue(Helpers.isEqual(type, "LIMIT")))
                 {
                     Helpers.addElementToObject(request, "type", "TAKE_STOP_LIMIT");
@@ -4216,7 +4216,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrders() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrders() is not supported for inverse swap markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
@@ -4224,7 +4224,7 @@ public class BingxCore extends BingxApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 5)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrders() can not create more than 5 orders at once for swap markets")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrders() can not create more than 5 orders at once for swap markets")) ;
                 }
                 Helpers.addElementToObject(request, "batchOrders", this.json(ordersRequests));
                 response = (this.swapV2PrivatePostTradeBatchOrders(request)).join();
@@ -4623,10 +4623,10 @@ public class BingxCore extends BingxApi
         {
             market = this.safeMarket(marketId, null, null, marketType);
         }
-        String side = (String)this.safeStringLower2(order, "side", "S");
+        String side = this.safeStringLower2(order, "side", "S");
         Long timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "transactTime", "E", "createdTime")));
         Long lastTradeTimestamp = (Long) this.safeInteger2(order, "updateTime", "T");
-        String statusId = (String)this.safeStringUpperN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "X", "orderStatus")));
+        String statusId = this.safeStringUpperN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "X", "orderStatus")));
         Object feeCurrencyCode = this.safeString2(order, "feeAsset", "N");
         String feeCost = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee", "commission", "n")));
         if (Helpers.isTrue((Helpers.isEqual(feeCurrencyCode, null))))
@@ -4784,7 +4784,7 @@ public class BingxCore extends BingxApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
                 }
                 market = this.market(symbol);
                 final Object finalMarket = market;
@@ -4981,7 +4981,7 @@ public class BingxCore extends BingxApi
                 }
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrders is only supported for spot and swap markets.")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelAllOrders is only supported for spot and swap markets.")) ;
             }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.safeList2(data, "success", "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -5011,7 +5011,7 @@ public class BingxCore extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5044,7 +5044,7 @@ public class BingxCore extends BingxApi
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 String spotReqKey = ((Helpers.isTrue(areClientOrderIds))) ? "clientOrderIDs" : "orderIds";
-                Helpers.addElementToObject(request, spotReqKey, String.join((String)",", (java.util.List<String>)parsedIds));
+                Helpers.addElementToObject(request, spotReqKey, String.join(",", (java.util.List<String>)parsedIds));
                 response = (this.spotV1PrivatePostTradeCancelOrders(this.extend(request, parameters))).join();
             } else
             {
@@ -5102,7 +5102,7 @@ public class BingxCore extends BingxApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) && Helpers.isTrue((Helpers.isEqual(subType, "inverse")))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrdersAfter() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelAllOrdersAfter() is not supported for inverse swap markets")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
@@ -5112,7 +5112,7 @@ public class BingxCore extends BingxApi
                 response = (this.swapV2PrivatePostTradeCancelAllAfter(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrdersAfter() is not supported for "), type), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrdersAfter() is not supported for "), type), " markets")) ;
             }
             //
             //     {
@@ -5169,7 +5169,7 @@ public class BingxCore extends BingxApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
                 }
                 market = this.market(symbol);
                 final Object finalMarket = market;
@@ -5246,7 +5246,7 @@ public class BingxCore extends BingxApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "swap")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() is only supported for swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrders() is only supported for swap markets")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -5698,7 +5698,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5815,7 +5815,7 @@ public class BingxCore extends BingxApi
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(transferId, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(fromId, null))) || Helpers.isTrue((Helpers.isEqual(toId, null)))))))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchTransfers() requires params[\"transferId\"] or both params[\"fromAccount\"] and params[\"toAccount\"]")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchTransfers() requires params[\"transferId\"] or both params[\"fromAccount\"] and params[\"toAccount\"]")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(fromAccount, null)))
             {
@@ -5875,7 +5875,7 @@ public class BingxCore extends BingxApi
         String tranId = this.safeString(transfer, "transferId");
         Long timestamp = this.safeInteger(transfer, "timestamp");
         String currencyId = this.safeString(transfer, "asset");
-        String currencyCode = (String) this.safeCurrencyCode(currencyId, currency);
+        String currencyCode = this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transfer, "status");
         Object accountsById = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
         String fromId = this.safeString(transfer, "fromAccount");
@@ -5967,7 +5967,7 @@ public class BingxCore extends BingxApi
      * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6020,7 +6020,7 @@ public class BingxCore extends BingxApi
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
-            Boolean isPrefixed = Helpers.isTrue(((String)address).startsWith(((String)"0x"))) || Helpers.isTrue(((String)address).startsWith(((String)"0X")));
+            Boolean isPrefixed = Helpers.isTrue(address.startsWith(((String)"0x"))) || Helpers.isTrue(address.startsWith(((String)"0X")));
             java.util.List<Object> evmNetworks = new java.util.ArrayList<Object>(java.util.Arrays.asList("BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"));
             if (Helpers.isTrue(!Helpers.isTrue(isPrefixed) && Helpers.isTrue(this.inArray(networkCode, evmNetworks))))
             {
@@ -6223,7 +6223,7 @@ public class BingxCore extends BingxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object data = this.safeValue(transaction, "data");
-        Object dataId = ((Helpers.isTrue((Helpers.isEqual(data, null))))) ? null : this.safeString(data, "id");
+        String dataId = ((Helpers.isTrue((Helpers.isEqual(data, null))))) ? null : this.safeString(data, "id");
         String id = this.safeString(transaction, "id", dataId);
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "addressTag");
@@ -6241,7 +6241,7 @@ public class BingxCore extends BingxApi
         {
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
-                code = Helpers.replace((String)code, (String)network, (String)"");
+                code = Helpers.replace(((String)code), network, "");
             }
         }
         String rawType = this.safeString(transaction, "transferType");
@@ -6319,7 +6319,7 @@ public class BingxCore extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6328,7 +6328,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
             }
             marginMode = ((String)marginMode).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "CROSS")))
@@ -6337,7 +6337,7 @@ public class BingxCore extends BingxApi
             }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, "ISOLATED")) && Helpers.isTrue(!Helpers.isEqual(marginMode, "CROSSED"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
             }
             final Object finalMarginMode = marginMode;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -6359,7 +6359,7 @@ public class BingxCore extends BingxApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6373,7 +6373,7 @@ public class BingxCore extends BingxApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6397,7 +6397,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> setMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> setMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6406,11 +6406,11 @@ public class BingxCore extends BingxApi
             Long type = this.safeInteger(parameters, "type"); // 1 increase margin 2 decrease margin
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")) ;
             }
             if (!Helpers.isTrue(this.inArray(type, new java.util.ArrayList<Object>(java.util.Arrays.asList(1, 2)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6474,7 +6474,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6564,9 +6564,9 @@ public class BingxCore extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
-            String side = (String)this.safeStringUpper(parameters, "side");
+            String side = this.safeStringUpper(parameters, "side");
             this.checkRequiredArgument("setLeverage", side, "side", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT", "BOTH")));
             parameters = this.omit(parameters, "side");
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -6617,7 +6617,7 @@ public class BingxCore extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6636,7 +6636,7 @@ public class BingxCore extends BingxApi
                 String orderId = this.safeString(parameters, "orderId");
                 if (Helpers.isTrue(Helpers.isEqual(orderId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires an orderId argument for inverse swap trades")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires an orderId argument for inverse swap trades")) ;
                 }
                 response = (this.cswapV1PrivateGetTradeAllFillOrders(this.extend(request, parameters))).join();
                 fills = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -6673,7 +6673,7 @@ public class BingxCore extends BingxApi
                     fills = this.safeList(data, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 } else
                 {
-                    String tradingUnit = (String)this.safeStringUpper(parameters, "tradingUnit", "CONT");
+                    String tradingUnit = this.safeStringUpper(parameters, "tradingUnit", "CONT");
                     parameters = this.omit(parameters, "tradingUnit");
                     Helpers.addElementToObject(request, "tradingUnit", tradingUnit);
                     response = (this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, parameters))).join();
@@ -6783,7 +6783,7 @@ public class BingxCore extends BingxApi
      * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6819,7 +6819,7 @@ public class BingxCore extends BingxApi
                 put( "amount", BingxCore.this.currencyToPrecision(code, amount) );
                 put( "walletType", finalWalletType );
             }};
-            String network = (String)this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(parameters, "network");
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
                 Helpers.addElementToObject(request, "network", this.networkCodeToId(network, Helpers.GetValue(currency, "code")));
@@ -7071,7 +7071,7 @@ public class BingxCore extends BingxApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " closePosition() with a positionId is only supported for linear swap markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " closePosition() with a positionId is only supported for linear swap markets")) ;
                 }
                 response = (this.swapV1PrivatePostTradeClosePosition(this.extend(request, parameters))).join();
             } else
@@ -7123,7 +7123,7 @@ public class BingxCore extends BingxApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "margin")))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " closePositions () cannot be used for "), marketType), " markets")) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " closePositions () cannot be used for "), marketType), " markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "recvWindow", recvWindow );
@@ -7180,7 +7180,7 @@ public class BingxCore extends BingxApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subType, "inverse"))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchPositionMode() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchPositionMode() is not supported for inverse swap markets")) ;
             }
             java.util.Map<String, Object> response = (this.swapV1PrivateGetPositionSideDual(parameters)).join();
             //
@@ -7233,7 +7233,7 @@ public class BingxCore extends BingxApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subType, "inverse"))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " setPositionMode() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " setPositionMode() is not supported for inverse swap markets")) ;
             }
             String dualSidePosition = null;
             if (Helpers.isTrue(hedged))
@@ -7291,7 +7291,7 @@ public class BingxCore extends BingxApi
      * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7335,7 +7335,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7371,7 +7371,7 @@ public class BingxCore extends BingxApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(marginMode, "symbol");
-        String marginType = (String)this.safeStringLower(marginMode, "marginType");
+        String marginType = this.safeStringLower(marginMode, "marginType");
         marginType = ((Helpers.isTrue((Helpers.isEqual(marginType, "crossed"))))) ? "cross" : marginType;
         final Object finalMarginType = marginType;
         return new java.util.HashMap<String, Object>() {{
@@ -7392,7 +7392,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7545,7 +7545,7 @@ public class BingxCore extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7558,11 +7558,11 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchMarketLeverageTiers() supports swap markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchMarketLeverageTiers() supports swap markets only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchMarketLeverageTiers() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchMarketLeverageTiers() is not supported for inverse swap markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -7610,7 +7610,7 @@ public class BingxCore extends BingxApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
         {
             Object tier = this.safeDict(info, i);
-            Object tierString = ((String)this.safeString(tier, "tier"));
+            Object tierString = this.safeString(tier, "tier");
             Object tierParts = Helpers.split(tierString, " ");
             String marketId = this.safeString(tier, "symbol");
             market = this.safeMarket(marketId, market, null, "swap");
@@ -7643,7 +7643,7 @@ final Object finalMarket = market;
         String url = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type));
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isSandbox, true))) && Helpers.isTrue(Helpers.isEqual(url, null))))
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), type), " endpoints")) ;
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), type), " endpoints")) ;
         }
         path = this.implodeParams(path, parameters);
         Boolean versionIsTransfer = (Helpers.isEqual(version, "transfer"));
@@ -7750,7 +7750,7 @@ final Object finalMarket = market;
         //    }
         //
         String code = this.safeString(response, "code");
-        Object message = this.safeString(response, "msg");
+        String message = this.safeString(response, "msg");
         String transferErrorMsg = this.safeString(response, "transferErrorMsg"); // handling with errors from transfer endpoint
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(transferErrorMsg, null))) || Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue(!Helpers.isEqual(code, "0"))))))
         {

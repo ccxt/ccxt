@@ -190,7 +190,7 @@ public class TestMarket extends BaseTest {
             // if not spot, any of the below should be true
             Assert(Helpers.isTrue((Helpers.isEqual(contract, true))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(future, true))) || Helpers.isTrue((Helpers.isEqual(swap, true)))) || Helpers.isTrue((Helpers.isEqual(option, true)))) || Helpers.isTrue((Helpers.isEqual(isIndex, true))))), Helpers.add("for non-spot markets, any of (future/swap/option/index) should be set", logText));
         }
-        Object contractSize = exchange.safeString(market, "contractSize");
+        String contractSize = exchange.safeString(market, "contractSize");
         // contract fields
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(contract, true))) && !Helpers.isTrue(isInactiveMarket)))
         {
@@ -300,7 +300,7 @@ public class TestMarket extends BaseTest {
                 // max >= 0
                 TestSharedMethods.AssertGreater(exchange, skippedProperties, method, limitEntry, "max", "0");
                 // max >= min
-                Object minString = exchange.safeString(limitEntry, "min");
+                String minString = exchange.safeString(limitEntry, "min");
                 if (Helpers.isTrue(!Helpers.isEqual(minString, null)))
                 {
                     TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "max", minString);

@@ -655,22 +655,22 @@ public class AlpacaCore extends AlpacaApi
             String timestamp = this.safeString(response, "timestamp");
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
             Object localTime = Helpers.slice(timestamp, 0, 23);
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
-            Object jetlagStrStart = Helpers.subtract(((String)timestamp).length(), 6);
+            Object jetlagStrStart = Helpers.subtract(timestamp.length(), 6);
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
-            Object jetlagStrEnd = Helpers.subtract(((String)timestamp).length(), 3);
+            Object jetlagStrEnd = Helpers.subtract(timestamp.length(), 3);
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
             Object jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
             Object iso = Helpers.subtract(this.parseToInt(this.parse8601(localTime)), Helpers.multiply(Helpers.multiply(this.parseToNumeric(jetlag), 3600), 1000));
@@ -750,14 +750,14 @@ public class AlpacaCore extends AlpacaApi
         String marketId = this.safeString(asset, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
         Object parts = Helpers.split(marketId, "/");
         String assetClass = this.safeString(asset, "class");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         // Us equity markets do not include quote in symbol.
         // We can safely coerce us_equity quote to USD
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(quote, null)) && Helpers.isTrue(Helpers.isEqual(assetClass, "us_equity"))))
@@ -846,7 +846,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -918,7 +918,7 @@ public class AlpacaCore extends AlpacaApi
                 symbolTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbolTrade));
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
             }
             Object symbolTradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbolTrades, null)))
@@ -1151,7 +1151,7 @@ public class AlpacaCore extends AlpacaApi
                 ohlcvs = new java.util.ArrayList<Object>(java.util.Arrays.asList(bar));
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
             }
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
@@ -1188,7 +1188,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1236,7 +1236,7 @@ public class AlpacaCore extends AlpacaApi
             String loc = this.safeString(parameters, "loc", "us");
             Object ids = this.marketIds(symbols);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbols", String.join((String)",", (java.util.List<String>)ids) );
+                put( "symbols", String.join(",", (java.util.List<String>)ids) );
                 put( "loc", loc );
             }};
             parameters = this.omit(parameters, "loc");
@@ -1335,12 +1335,12 @@ public class AlpacaCore extends AlpacaApi
 
     }
 
-    public Object generateClientOrderId(Object parameters)
+    public String generateClientOrderId(Object parameters)
     {
         String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         Object uuid = this.uuid();
         Object parts = Helpers.split(uuid, "-");
-        Object random_id = String.join((String)"", (java.util.List<String>)parts);
+        Object random_id = String.join("", (java.util.List<String>)parts);
         Object defaultClientId = this.implodeParams(clientOrderIdprefix, new java.util.HashMap<String, Object>() {{
             put( "id", random_id );
         }});
@@ -1359,7 +1359,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1387,7 +1387,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1415,7 +1415,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1475,7 +1475,7 @@ public class AlpacaCore extends AlpacaApi
                     newType = "stop_limit";
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support stop orders for "), type), " orders, only stop_limit orders are supported")) ;
+                    throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support stop orders for "), type), " orders, only stop_limit orders are supported")) ;
                 }
                 Helpers.addElementToObject(request, "stop_price", this.priceToPrecision(symbol, triggerPrice));
                 Helpers.addElementToObject(request, "type", newType);
@@ -1810,7 +1810,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2085,7 +2085,7 @@ public class AlpacaCore extends AlpacaApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(trade, "S", "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String datetime = this.safeString2(trade, "t", "transaction_time");
         Long timestamp = this.parse8601(datetime);
         String alpacaSide = this.safeString(trade, "tks");
@@ -2126,7 +2126,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2190,7 +2190,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address2, Object... optionalArgs)
     {
         final Object address3 = address2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2451,18 +2451,18 @@ public class AlpacaCore extends AlpacaApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String activityType = this.safeString(transaction, "activity_type");
-        Object txid = null;
+        String txid = null;
         Object timestamp = null;
-        Object datetime = null;
-        Object network = null;
-        Object address = null;
-        Object addressTo = null;
-        Object addressFrom = null;
+        String datetime = null;
+        String network = null;
+        String address = null;
+        String addressTo = null;
+        String addressFrom = null;
         String type = null;
         Object amount = null;
         Object code = null;
         String status = null;
-        Object comment = null;
+        String comment = null;
         Object intern = null;
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(activityType, null)))
@@ -2652,7 +2652,7 @@ public class AlpacaCore extends AlpacaApi
         }};
         Object account = this.account();
         String currencyId = this.safeString(response, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Helpers.addElementToObject(account, "free", this.safeString(response, "cash"));
         Helpers.addElementToObject(account, "total", this.safeString(response, "equity"));
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))

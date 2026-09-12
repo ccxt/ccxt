@@ -718,7 +718,7 @@ public class GeminiCore extends GeminiApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, 0);
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         String fiatFlag = this.safeString(rawCurrency, 7);
         Boolean isFiat = Helpers.isTrue((!Helpers.isEqual(fiatFlag, null))) && Helpers.isTrue((!Helpers.isEqual(fiatFlag, "")));
         String type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
@@ -846,22 +846,22 @@ public class GeminiCore extends GeminiApi
                 //         '<td>0.01 USD', // quote currency price increment
                 //         '</tr>'
                 //     ]
-                Object marketId = Helpers.replace((String)Helpers.GetValue(cells, 0), (String)"<td>", (String)"");
-                marketId = Helpers.replace((String)marketId, (String)"*", (String)"");
+                Object marketId = Helpers.replace(((String)Helpers.GetValue(cells, 0)), "<td>", "");
+                marketId = Helpers.replace(((String)marketId), "*", "");
                 // const base = this.safeCurrencyCode (baseId);
-                Object minAmountString = Helpers.replace((String)Helpers.GetValue(cells, 1), (String)"<td>", (String)"");
+                Object minAmountString = Helpers.replace(((String)Helpers.GetValue(cells, 1)), "<td>", "");
                 Object minAmountParts = Helpers.split(minAmountString, " ");
                 Double minAmount = this.safeNumber(minAmountParts, 0);
-                Object amountPrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 2), (String)"<td>", (String)"");
+                Object amountPrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 2)), "<td>", "");
                 Object amountPrecisionParts = Helpers.split(amountPrecisionString, " ");
                 Object idLength = Helpers.subtract(Helpers.getArrayLength(marketId), 0);
                 Object startingIndex = Helpers.subtract(idLength, 3);
-                Object pricePrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 3), (String)"<td>", (String)"");
+                Object pricePrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 3)), "<td>", "");
                 Object pricePrecisionParts = Helpers.split(pricePrecisionString, " ");
-                Object quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
-                Object baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace((String)marketId, (String)quoteId, (String)""));
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
+                String baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace(((String)marketId), quoteId, ""));
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
     final Object finalMarketId = marketId;
                 final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -1115,7 +1115,7 @@ public class GeminiCore extends GeminiApi
             }
             Object marketIdUpper = ((String)((String)marketId)).toUpperCase();
             Boolean isPerp = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketIdUpper, "PERP"), 0));
-            Object marketIdWithoutPerp = Helpers.replace((String)marketIdUpper, (String)"PERP", (String)"");
+            Object marketIdWithoutPerp = Helpers.replace(((String)marketIdUpper), "PERP", "");
             Object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new java.util.HashMap<String, Object>() {{}});
             Object lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
             if (Helpers.isTrue(Helpers.inOp(conflictingMarkets, lowerCaseId)))
@@ -1147,9 +1147,9 @@ public class GeminiCore extends GeminiApi
                 }
             }
         }
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         if (Helpers.isTrue(!Helpers.isEqual(settleId, null)))
         {
@@ -1262,7 +1262,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTickerV1(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTickerV1(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1294,7 +1294,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTickerV2(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTickerV2(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1327,7 +1327,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTickerV1AndV2(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTickerV1AndV2(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1362,7 +1362,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1424,7 +1424,7 @@ public class GeminiCore extends GeminiApi
         Object volume = this.safeValue(ticker, "volume", new java.util.HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(volume, "timestamp");
         Object symbol = null;
-        String marketId = (String)this.safeStringLower(ticker, "pair");
+        String marketId = this.safeStringLower(ticker, "pair");
         market = this.safeMarket(marketId, market);
         Object baseId = null;
         Object quoteId = null;
@@ -1432,7 +1432,7 @@ public class GeminiCore extends GeminiApi
         Object quote = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isEqual(market, null)))))
         {
-            Object idLength = Helpers.subtract(((String)marketId).length(), 0);
+            Object idLength = Helpers.subtract(marketId.length(), 0);
             if (Helpers.isTrue(Helpers.isEqual(idLength, 7)))
             {
                 baseId = Helpers.slice(marketId, 0, 4);
@@ -1565,15 +1565,15 @@ public class GeminiCore extends GeminiApi
         String id = this.safeString(trade, "tid");
         String orderId = this.safeString(trade, "order_id");
         String feeCurrencyId = this.safeString(trade, "fee_currency");
-        String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
+        String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "cost", GeminiCore.this.safeString(trade, "fee_amount") );
             put( "currency", feeCurrencyCode );
         }};
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
-        String side = (String)this.safeStringLower(trade, "type");
-        String symbol = (String) this.safeSymbol(null, market);
+        String side = this.safeStringLower(trade, "type");
+        String symbol = this.safeSymbol(null, market);
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "order", orderId );
@@ -1602,7 +1602,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1654,7 +1654,7 @@ public class GeminiCore extends GeminiApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
@@ -1891,9 +1891,9 @@ public class GeminiCore extends GeminiApi
         }
         Object fee = null;
         String marketId = this.safeString(order, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String id = this.safeString(order, "order_id");
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         String clientOrderId = this.safeString(order, "client_order_id");
         Object optionsArray = this.safeValue(order, "options", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String option = this.safeString(optionsArray, 0);
@@ -2081,9 +2081,9 @@ public class GeminiCore extends GeminiApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createOrder() allows limit orders only")) ;
             }
-            Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+            String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_order_id")));
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
@@ -2107,7 +2107,7 @@ public class GeminiCore extends GeminiApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stop_price", "stopPrice", "type")));
             if (Helpers.isTrue(Helpers.isEqual(type, "stopLimit")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter or a stop_price parameter for "), type), " orders")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter or a stop_price parameter for "), type), " orders")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
@@ -2249,7 +2249,7 @@ public class GeminiCore extends GeminiApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2285,7 +2285,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2333,7 +2333,7 @@ public class GeminiCore extends GeminiApi
             String result = this.safeString(response, "result");
             if (Helpers.isTrue(Helpers.isEqual(result, "error")))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() failed: "), this.json(response))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() failed: "), this.json(response))) ;
             }
             return this.parseTransaction(response, currency);
         });
@@ -2412,9 +2412,9 @@ public class GeminiCore extends GeminiApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(transaction, "timestampms");
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String address = this.safeString(transaction, "destination");
-        String type = (String)this.safeStringLower(transaction, "type");
+        String type = this.safeStringLower(transaction, "type");
         // if status field is available, then it's complete
         String statusRaw = this.safeString(transaction, "status");
         Object fee = null;
@@ -2472,7 +2472,7 @@ public class GeminiCore extends GeminiApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String address = this.safeString(depositAddress, "address");
-        String code = (String) this.safeCurrencyCode(null, currency);
+        String code = this.safeCurrencyCode(null, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "currency", code );
             put( "network", null );
@@ -2492,7 +2492,7 @@ public class GeminiCore extends GeminiApi
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2540,7 +2540,7 @@ public class GeminiCore extends GeminiApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
             }
             Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2575,7 +2575,7 @@ public class GeminiCore extends GeminiApi
             String apiKey = this.apiKey;
             if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(apiKey, "account"), 0)))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
             }
             Object nonce = String.valueOf(this.nonce());
             Object finalUrl = url;
@@ -2658,7 +2658,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2744,7 +2744,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

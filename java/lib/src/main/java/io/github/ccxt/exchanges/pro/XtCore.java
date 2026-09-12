@@ -95,13 +95,13 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 url = Helpers.add(url, "/private");
             }
             Client client = this.client(url);
-            Object token = this.safeString(client.subscriptions, "token");
+            String token = this.safeString(client.subscriptions, "token");
             if (Helpers.isTrue(Helpers.isEqual(token, null)))
             {
                 // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
                 // concurrent callers each minted their own token, last write won, and the losers
                 // carried an orphaned token into name + '@' + listenKey so their streams went dead
-                String messageHash = (String) Helpers.add("authenticate:", tradeType);
+                String messageHash = Helpers.add("authenticate:", tradeType);
                 if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
                     // a flight is already in progress - wake when the leader
@@ -114,7 +114,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
                 try
                 {
-                    Object listenKey = null;
+                    String listenKey = null;
                     if (Helpers.isTrue(isContract))
                     {
                         java.util.Map<String, Object> response = (this.privateLinearGetFutureUserV1UserListenKey()).join();
@@ -146,7 +146,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                     }
                     if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
                     {
-                        throw new AuthenticationError((String)Helpers.add(this.id, " getListenKey() received an empty listen key")) ;
+                        throw new AuthenticationError(Helpers.add(this.id, " getListenKey() received an empty listen key")) ;
                     }
                     Helpers.addElementToObject(client.subscriptions, "token", listenKey);
                     client.resolve(listenKey, messageHash);
@@ -264,7 +264,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object messageHash = Helpers.add(Helpers.add(name, "::"), tradeType);
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                messageHash = Helpers.add(Helpers.add(messageHash, "::"), String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add(Helpers.add(messageHash, "::"), String.join(",", (java.util.List<String>)symbols));
             }
             java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             Object tail = access;
@@ -375,7 +375,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -387,8 +387,8 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             }
             Object market = this.market(symbol);
             Object options = this.safeDict(this.options, "watchTicker");
-            Object defaultMethod = this.safeString(options, "method", "ticker");
-            Object method = this.safeString(parameters, "method", defaultMethod);
+            String defaultMethod = this.safeString(options, "method", "ticker");
+            String method = this.safeString(parameters, "method", defaultMethod);
             Object name = Helpers.add(Helpers.add(method, "@"), Helpers.GetValue(market, "id"));
             return (this.subscribe(name, "public", "watchTicker", market, null, parameters)).join();
         });
@@ -406,7 +406,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> unWatchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -419,9 +419,9 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object market = this.market(symbol);
             Object options = this.safeDict(this.options, "unWatchTicker");
             Object defaultMethod = this.safeString(options, "method", "ticker");
-            Object method = this.safeString(parameters, "method", defaultMethod);
+            String method = this.safeString(parameters, "method", defaultMethod);
             Object name = Helpers.add(Helpers.add(method, "@"), Helpers.GetValue(market, "id"));
-            String messageHash = (String) Helpers.add("unsubscribe::", name);
+            String messageHash = Helpers.add("unsubscribe::", name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, market, null, parameters)).join();
         });
 
@@ -450,7 +450,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object options = this.safeDict(this.options, "watchTickers");
-            Object defaultMethod = this.safeString(options, "method", "tickers");
+            String defaultMethod = this.safeString(options, "method", "tickers");
             Object name = this.safeString(parameters, "method", defaultMethod);
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
@@ -490,13 +490,13 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object options = this.safeDict(this.options, "unWatchTickers");
-            Object defaultMethod = this.safeString(options, "method", "tickers");
+            String defaultMethod = this.safeString(options, "method", "tickers");
             Object name = this.safeString(parameters, "method", defaultMethod);
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
             }
-            String messageHash = (String) Helpers.add("unsubscribe::", name);
+            String messageHash = Helpers.add("unsubscribe::", name);
             Object tickers = (this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", null, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -520,7 +520,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -556,7 +556,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> unWatchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -569,7 +569,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             }
             Object market = this.market(symbol);
             Object name = Helpers.add(Helpers.add(Helpers.add("kline@", Helpers.GetValue(market, "id")), ","), timeframe);
-            String messageHash = (String) Helpers.add("unsubscribe::", name);
+            String messageHash = Helpers.add("unsubscribe::", name);
             java.util.List<Object> symbolsAndTimeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"), timeframe))));
             return (this.unSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters, new java.util.HashMap<String, Object>() {{
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
@@ -590,7 +590,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -624,7 +624,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> unWatchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -636,7 +636,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             }
             Object market = this.market(symbol);
             Object name = Helpers.add("trade@", Helpers.GetValue(market, "id"));
-            String messageHash = (String) Helpers.add("unsubscribe::", name);
+            String messageHash = Helpers.add("unsubscribe::", name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchTrades", "trades", market, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -656,7 +656,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -668,7 +668,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object levels = this.safeString(parameters, "levels");
+            String levels = this.safeString(parameters, "levels");
             parameters = this.omit(parameters, "levels");
             Object name = Helpers.add("depth_update@", Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(!Helpers.isEqual(levels, null)))
@@ -705,14 +705,14 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object levels = this.safeString(parameters, "levels");
+            String levels = this.safeString(parameters, "levels");
             parameters = this.omit(parameters, "levels");
             Object name = Helpers.add("depth_update@", Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(!Helpers.isEqual(levels, null)))
             {
                 name = Helpers.add(Helpers.add(Helpers.add("depth@", Helpers.GetValue(market, "id")), ","), levels);
             }
-            String messageHash = (String) Helpers.add("unsubscribe::", name);
+            String messageHash = Helpers.add("unsubscribe::", name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -880,7 +880,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -893,7 +893,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object market = this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchFundingRate() supports swap contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchFundingRate() supports swap contracts only")) ;
             }
             Object name = Helpers.add("fund_rate@", Helpers.GetValue(market, "id"));
             return (this.subscribe(name, "public", "watchFundingRate", market, null, parameters)).join();
@@ -910,7 +910,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> unWatchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> unWatchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -923,10 +923,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object market = this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
             }
             Object name = Helpers.add("fund_rate@", Helpers.GetValue(market, "id"));
-            String messageHash = (String) Helpers.add("unsubscribe::", name);
+            String messageHash = Helpers.add("unsubscribe::", name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, null, parameters)).join();
         });
 
@@ -946,7 +946,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //     }
         //
         Object data = this.safeDict(message, "data");
-        Object marketId = this.safeString(data, "s");
+        String marketId = this.safeString(data, "s");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             final Object finalMarketId = marketId;
@@ -960,7 +960,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Helpers.addElementToObject(fundingRate, "datetime", this.iso8601(timestamp));
             Object symbol = Helpers.GetValue(fundingRate, "symbol");
             Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
-            Object eventVar = this.safeString(message, "event");
+            String eventVar = this.safeString(message, "event");
             Object messageHash = Helpers.add(eventVar, "::contract");
             client.resolve(fundingRate, messageHash);
         }
@@ -976,10 +976,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot");
         if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
-            String messageHash = (String) "fetchPositionsSnapshot";
+            String messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         }
@@ -1133,10 +1133,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //    }
         //
         Object data = this.safeDict(message, "data");
-        Object marketId = this.safeString(data, "s");
+        String marketId = this.safeString(data, "s");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
-            Object cv = this.safeString(data, "cv");
+            String cv = this.safeString(data, "cv");
             Boolean isSpot = !Helpers.isEqual(cv, null);
             Object ticker = this.parseTicker(data);
             Object symbol = Helpers.GetValue(ticker, "symbol");
@@ -1144,7 +1144,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             {
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
             }
-            Object eventVar = this.safeString(message, "event");
+            String eventVar = this.safeString(message, "event");
             String messageHashTail = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
             Object messageHash = Helpers.add(Helpers.add(eventVar, "::"), messageHashTail);
             client.resolve(ticker, messageHash);
@@ -1223,7 +1223,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object firstTicker = this.safeDict(data, 0);
-        Object spotTest = this.safeString2(firstTicker, "cv", "aq");
+        String spotTest = this.safeString2(firstTicker, "cv", "aq");
         String tradeType = ((Helpers.isTrue((!Helpers.isEqual(spotTest, null))))) ? "spot" : "contract";
         java.util.List<Object> newTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -1297,10 +1297,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //    }
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(data, "s");
+        String marketId = this.safeString(data, "s");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
-            Object timeframe = this.safeString(data, "i", "");
+            String timeframe = this.safeString(data, "i", "");
             String tradeType = ((Helpers.isTrue((Helpers.inOp(data, "q"))))) ? "spot" : "contract";
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object symbol = Helpers.GetValue(market, "symbol");
@@ -1314,7 +1314,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
-            Object eventVar = this.safeString(message, "event");
+            String eventVar = this.safeString(message, "event");
             Object messageHash = Helpers.add(Helpers.add(eventVar, "::"), tradeType);
             client.resolve(stored, messageHash);
         }
@@ -1354,15 +1354,15 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //    }
         //
         Object data = this.safeDict(message, "data");
-        String marketId = (String)this.safeStringLower(data, "s");
+        String marketId = this.safeStringLower(data, "s");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             Object trade = this.parseTrade(data);
-            Object i = this.safeString(data, "i");
+            String i = this.safeString(data, "i");
             String tradeType = ((Helpers.isTrue((!Helpers.isEqual(i, null))))) ? "spot" : "contract";
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object symbol = Helpers.GetValue(market, "symbol");
-            Object eventVar = this.safeString(message, "event");
+            String eventVar = this.safeString(message, "event");
             Object tradesArray = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
             {
@@ -1439,10 +1439,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //    }
         //
         Object data = this.safeDict(message, "data");
-        Object marketId = this.safeString(data, "s");
+        String marketId = this.safeString(data, "s");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
-            Object eventVar = this.safeString(message, "event", "");
+            String eventVar = this.safeString(message, "event", "");
             Object splitEvent = Helpers.split(eventVar, ",");
             eventVar = this.safeString(splitEvent, 0, "");
             String tradeType = "spot";
@@ -1540,10 +1540,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(trade, "s");
+        String marketId = this.safeString(trade, "s");
         String tradeType = ((Helpers.isTrue((Helpers.inOp(trade, "symbol"))))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, tradeType);
-        Object timestamp = this.safeString(trade, "t");
+        String timestamp = this.safeString(trade, "t");
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -1611,7 +1611,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString2(order, "s", "symbol");
+        String marketId = this.safeString2(order, "s", "symbol");
         String tradeType = ((Helpers.isTrue((Helpers.inOp(order, "symbol"))))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, tradeType);
         Long timestamp = (Long) this.safeInteger2(order, "ct", "createTime");
@@ -1698,7 +1698,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             this.orders = orders;
         }
         Object order = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString2(order, "s", "symbol");
+        String marketId = this.safeString2(order, "s", "symbol");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             String tradeType = ((Helpers.isTrue((Helpers.inOp(order, "symbol"))))) ? "contract" : "spot";
@@ -1747,8 +1747,8 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //    }
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object currencyId = this.safeString2(data, "c", "coin");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String currencyId = this.safeString2(data, "c", "coin");
+        String code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(data, "availableBalance"));
         Helpers.addElementToObject(account, "used", this.safeString(data, "f"));
@@ -1820,13 +1820,13 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
 
     public void handleMessage(Client client, Object message)
     {
-        Object eventVar = this.safeString(message, "event");
+        String eventVar = this.safeString(message, "event");
         if (Helpers.isTrue(Helpers.isEqual(eventVar, "pong")))
         {
             client.onPong();
         } else if (Helpers.isTrue(!Helpers.isEqual(eventVar, null)))
         {
-            Object topic = this.safeString(message, "topic");
+            String topic = this.safeString(message, "topic");
             java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "kline", "handleOHLCV");
                 put( "depth", "handleOrderBook");
@@ -1885,7 +1885,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //         sessionId: '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
         //     }
         //
-        Object id = this.safeString(message, "id");
+        String id = this.safeString(message, "id");
         java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object unsubscribe = false;
         if (Helpers.isTrue(!Helpers.isEqual(id, null)))
@@ -1922,7 +1922,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //        "msg": "token expire"
         //    }
         //
-        Object msg = this.safeString(message, "msg");
+        String msg = this.safeString(message, "msg");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(msg, "invalid_listen_key"))) || Helpers.isTrue((Helpers.isEqual(msg, "token expire")))))
         {
             Helpers.addElementToObject(client.subscriptions, "token", null);

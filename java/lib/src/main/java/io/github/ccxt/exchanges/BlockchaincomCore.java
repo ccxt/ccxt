@@ -361,8 +361,8 @@ public class BlockchaincomCore extends BlockchaincomApi
                 Object market = this.safeValue(markets, marketId);
                 String baseId = this.safeString(market, "base_currency");
                 String quoteId = this.safeString(market, "counter_currency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Double numericId = this.safeNumber(market, "id");
                 Object active = null;
                 String marketState = this.safeString(market, "status");
@@ -515,7 +515,7 @@ public class BlockchaincomCore extends BlockchaincomApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchL2OrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchL2OrderBook(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -552,7 +552,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, "-");
+        String symbol = this.safeSymbol(marketId, market, "-");
         String last = this.safeString(ticker, "last_trade_price");
         String baseVolume = this.safeString(ticker, "volume_24h");
         String open = this.safeString(ticker, "price_24h");
@@ -589,7 +589,7 @@ public class BlockchaincomCore extends BlockchaincomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -670,14 +670,14 @@ public class BlockchaincomCore extends BlockchaincomApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String clientOrderId = this.safeString(order, "clOrdId");
-        String type = (String)this.safeStringLower(order, "ordType");
+        String type = this.safeStringLower(order, "ordType");
         String statusId = this.safeString(order, "ordStatus");
         String state = this.parseOrderState(statusId);
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         String marketId = this.safeString(order, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, "-");
+        String symbol = this.safeSymbol(marketId, market, "-");
         String exchangeOrderId = this.safeString(order, "exOrdId");
-        Object price = ((Helpers.isTrue((!Helpers.isEqual(type, "market"))))) ? this.safeString(order, "price") : null;
+        String price = ((Helpers.isTrue((!Helpers.isEqual(type, "market"))))) ? this.safeString(order, "price") : null;
         Double average = this.safeNumber(order, "avgPx");
         Long timestamp = this.safeInteger(order, "timestamp");
         String datetime = this.iso8601(timestamp);
@@ -734,12 +734,12 @@ public class BlockchaincomCore extends BlockchaincomApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String orderType = this.safeString(parameters, "ordType", type);
-            Object uppercaseOrderType = ((String)orderType).toUpperCase();
+            Object uppercaseOrderType = orderType.toUpperCase();
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("ordType", "clientOrderId", "clOrdId")));
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalUppercaseOrderType = uppercaseOrderType;
             final Object finalSide = side;
@@ -756,7 +756,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a stopPx or triggerPrice param for a "), uppercaseOrderType), " order")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a stopPx or triggerPrice param for a "), uppercaseOrderType), " order")) ;
                 }
             }
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
@@ -1031,7 +1031,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String orderId = this.safeString(trade, "exOrdId");
         String tradeId = this.safeString(trade, "tradeId");
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         String marketId = this.safeString(trade, "symbol");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
@@ -1118,7 +1118,7 @@ public class BlockchaincomCore extends BlockchaincomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1134,8 +1134,8 @@ public class BlockchaincomCore extends BlockchaincomApi
             }};
             java.util.Map<String, Object> response = (this.privatePostDepositsCurrency(this.extend(request, parameters))).join();
             String rawAddress = this.safeString(response, "address");
-            Object tag = null;
-            Object address = null;
+            String tag = null;
+            String address = null;
             if (Helpers.isTrue(!Helpers.isEqual(rawAddress, null)))
             {
                 Object addressParts = Helpers.split(rawAddress, ";");
@@ -1197,11 +1197,11 @@ public class BlockchaincomCore extends BlockchaincomApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String type = null;
-        Object id = null;
+        String id = null;
         Double amount = this.safeNumber(transaction, "amount");
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String state = this.safeString(transaction, "state");
         if (Helpers.isTrue(Helpers.inOp(transaction, "depositId")))
         {
@@ -1263,7 +1263,7 @@ public class BlockchaincomCore extends BlockchaincomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1348,7 +1348,7 @@ public class BlockchaincomCore extends BlockchaincomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawal(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawal(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1418,7 +1418,7 @@ public class BlockchaincomCore extends BlockchaincomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDeposit(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDeposit(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1481,7 +1481,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             Object balances = this.safeValue(response, accountName);
             if (Helpers.isTrue(Helpers.isEqual(balances, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() could not find the \""), accountName), "\" account")) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() could not find the \""), accountName), "\" account")) ;
             }
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -1609,7 +1609,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         {
             if (Helpers.isTrue(Helpers.isEqual(text, "Insufficient Balance")))
             {
-                throw new InsufficientFunds((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+                throw new InsufficientFunds(Helpers.add(Helpers.add(this.id, " "), body)) ;
             }
         }
         String errorCode = this.safeString(response, "status");

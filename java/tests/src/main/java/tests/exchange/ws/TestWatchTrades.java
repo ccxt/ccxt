@@ -11,7 +11,7 @@ import tests.exchange.*;
 
 
 public class TestWatchTrades extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testWatchTrades(Exchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testWatchTrades(Exchange exchange, Object skippedProperties, String symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

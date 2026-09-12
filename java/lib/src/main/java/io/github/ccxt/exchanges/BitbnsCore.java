@@ -392,8 +392,8 @@ public class BitbnsCore extends BitbnsApi
                 String id = this.safeString(market, "id");
                 String baseId = this.safeString(market, "base");
                 String quoteId = this.safeString(market, "quote");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Object marketPrecision = this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}});
                 Object marketLimits = this.safeDict(market, "limits", new java.util.HashMap<String, Object>() {{}});
                 Object amountLimits = this.safeDict(marketLimits, "amount", new java.util.HashMap<String, Object>() {{}});
@@ -548,7 +548,7 @@ public class BitbnsCore extends BitbnsApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String marketId = this.safeString(ticker, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -657,7 +657,7 @@ public class BitbnsCore extends BitbnsApi
                 {
                     currencyId = "INR";
                 }
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     Helpers.addElementToObject(result, code, account);
@@ -766,7 +766,7 @@ public class BitbnsCore extends BitbnsApi
             side = "sell";
         }
         String data = this.safeString(order, "data");
-        Object status = this.safeString(order, "status");
+        String status = this.safeString(order, "status");
         if (Helpers.isTrue(Helpers.isEqual(data, "Successfully cancelled the order")))
         {
             status = "cancelled";
@@ -843,7 +843,7 @@ public class BitbnsCore extends BitbnsApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate")));
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalSide = side;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -914,7 +914,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -958,7 +958,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -972,7 +972,7 @@ public class BitbnsCore extends BitbnsApi
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOrder cannot fetch stop orders")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOrder cannot fetch stop orders")) ;
             }
             java.util.Map<String, Object> response = (this.v1PostOrderStatusSymbol(this.extend(request, parameters))).join();
             //
@@ -1031,7 +1031,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1115,7 +1115,7 @@ public class BitbnsCore extends BitbnsApi
         timestamp = (Long) this.safeInteger(trade, "timestamp", timestamp);
         String priceString = this.safeString2(trade, "rate", "price");
         String amountString = this.safeString(trade, "amount");
-        String side = (String)this.safeStringLower(trade, "type");
+        String side = this.safeStringLower(trade, "type");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(side, "buy"), 0)))
@@ -1127,7 +1127,7 @@ public class BitbnsCore extends BitbnsApi
             }
         }
         String factor = this.safeString(trade, "factor");
-        Object costString = null;
+        String costString = null;
         if (Helpers.isTrue(!Helpers.isEqual(factor, null)))
         {
             amountString = Precise.stringDiv(amountString, factor);
@@ -1191,7 +1191,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1264,7 +1264,7 @@ public class BitbnsCore extends BitbnsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1274,7 +1274,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1319,7 +1319,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDeposits() requires a currency code argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDeposits() requires a currency code argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1381,7 +1381,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchWithdrawals() requires a currency code argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchWithdrawals() requires a currency code argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1450,7 +1450,7 @@ public class BitbnsCore extends BitbnsApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "unit");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString2(transaction, "date", "timestamp"));
         String type = this.safeString(transaction, "type");
         String expTime = this.safeString(transaction, "expTime", "");
@@ -1513,7 +1513,7 @@ public class BitbnsCore extends BitbnsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1568,7 +1568,7 @@ public class BitbnsCore extends BitbnsApi
         Object urls = this.urls;
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(urls, "api"), api))))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
         }
         if (Helpers.isTrue(!Helpers.isEqual(api, "www")))
         {

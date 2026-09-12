@@ -888,8 +888,8 @@ public class PacificaCore extends PacificaApi
         String instrumentType = this.safeString(market, "instrument_type");
         Boolean isSpot = (Helpers.isEqual(instrumentType, "spot"));
         Boolean isSwap = !Helpers.isTrue(isSpot);
-        Object quoteId = "USDC";
-        Object settleId = null;
+        String quoteId = "USDC";
+        String settleId = null;
         String type = "spot";
         Object linear = null;
         Object inverse = null;
@@ -900,7 +900,7 @@ public class PacificaCore extends PacificaApi
         Object isolatedMargin = null;
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing id")) ;
         }
         if (Helpers.isTrue(isSpot))
         {
@@ -920,9 +920,9 @@ public class PacificaCore extends PacificaApi
             crossMargin = !Helpers.isEqual(isolatedOnly, true);
             isolatedMargin = true;
         }
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         if (Helpers.isTrue(isSwap))
         {
@@ -1081,7 +1081,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1124,7 +1124,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object parseLeverageFromSetting(Object symbol, Object setting)
+    public Object parseLeverageFromSetting(String symbol, Object setting)
     {
         // {
         //   "WLFI/USDC:USDC": {
@@ -1250,7 +1250,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1300,7 +1300,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object parseMarginModeFromSetting(Object symbol, Object setting)
+    public Object parseMarginModeFromSetting(String symbol, Object setting)
     {
         // {
         //       "symbol": "WLFI",
@@ -1516,11 +1516,11 @@ public class PacificaCore extends PacificaApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a \"since\" argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV() requires a \"since\" argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a \"symbol\" argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV() requires a \"symbol\" argument")) ;
             }
             Integer defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1623,7 +1623,7 @@ public class PacificaCore extends PacificaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1937,11 +1937,11 @@ public class PacificaCore extends PacificaApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         /**
          * @method
@@ -1979,7 +1979,7 @@ public class PacificaCore extends PacificaApi
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        String tifRaw = (String)this.safeStringUpper(parameters, "timeInForce");
+        String tifRaw = this.safeStringUpper(parameters, "timeInForce");
         Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
         Boolean isTakeProfitOrder = (!Helpers.isEqual(takeProfitPrice, null));
         Boolean isStopLossOrder = (!Helpers.isEqual(stopLossPrice, null));
@@ -2111,7 +2111,7 @@ public class PacificaCore extends PacificaApi
         {
             if (Helpers.isTrue(Helpers.isGreaterThan(lenActions, maxLen)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " batchOrdersRequest() too many orders to create/cancel. Limit is "), maxLen)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " batchOrdersRequest() too many orders to create/cancel. Limit is "), maxLen)) ;
             }
         }
         return new java.util.HashMap<String, Object>() {{
@@ -2138,7 +2138,7 @@ public class PacificaCore extends PacificaApi
             Object priceNumber = this.parseNumber(price);
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " createOrders() supports only type = \"limit\"! Your value type="), type)) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, " createOrders() supports only type = \"limit\"! Your value type="), type)) ;
             }
             Object requestList = this.createOrderRequest(symbol, type, side, amountNumber, priceNumber, orderParams);
             java.util.Map<String, Object> action = new java.util.HashMap<String, Object>() {{
@@ -2245,7 +2245,7 @@ public class PacificaCore extends PacificaApi
             (this.initializeClient()).join();
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a \"symbol\" argument!")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a \"symbol\" argument!")) ;
             }
             Object request = this.cancelOrdersRequest(ids, symbol, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiryWindow", "clientOrderIds")));
@@ -2422,7 +2422,7 @@ public class PacificaCore extends PacificaApi
             (this.initializeClient()).join();
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             Object request = this.cancelOrderRequest(id, symbol, parameters);
             Object isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
@@ -2501,7 +2501,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2541,15 +2541,15 @@ public class PacificaCore extends PacificaApi
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(amount, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an amount!")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount!")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(price, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a price")) ;
         }
         String operationType = "edit_order";
         String clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2562,7 +2562,7 @@ public class PacificaCore extends PacificaApi
         }};
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isEqual(id, null)))))
         {
-            throw new ArgumentsRequired((String)Helpers.add("this.id", "editOrder() requires either \"id\" or \"clientOrderId\"")) ;
+            throw new ArgumentsRequired(Helpers.add("this.id", "editOrder() requires either \"id\" or \"clientOrderId\"")) ;
         }
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
@@ -2603,7 +2603,7 @@ public class PacificaCore extends PacificaApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object paginate = false;
@@ -3464,7 +3464,7 @@ public class PacificaCore extends PacificaApi
             String operationType = "update_margin_mode";
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3508,7 +3508,7 @@ public class PacificaCore extends PacificaApi
             String operationType = "update_leverage";
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3543,7 +3543,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3579,7 +3579,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3650,7 +3650,7 @@ public class PacificaCore extends PacificaApi
         //
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -3697,7 +3697,7 @@ public class PacificaCore extends PacificaApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3983,7 +3983,7 @@ public class PacificaCore extends PacificaApi
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         String amount = this.safeString(income, "amount");
-        String code = (String) this.safeCurrencyCode("USDC");
+        String code = this.safeCurrencyCode("USDC");
         Double rate = this.safeNumber(income, "rate");
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
@@ -4010,7 +4010,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4113,7 +4113,7 @@ public class PacificaCore extends PacificaApi
             parameters = ((java.util.List<Object>) originAddressparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(originAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(agentAddress, null)))
             {
@@ -4129,11 +4129,11 @@ public class PacificaCore extends PacificaApi
             parameters = ((java.util.List<Object>) subAccountPrivateKeyparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(subAccountAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createSubAccount() requires a \"subAccountAddress\"!")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createSubAccount() requires a \"subAccountAddress\"!")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(subAccountPrivateKey, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
             }
             Long timestamp = this.milliseconds();
             Object expiryWindow = null;
@@ -4302,7 +4302,7 @@ public class PacificaCore extends PacificaApi
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(address1, parameters));
         }
-        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
+        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -4423,11 +4423,11 @@ public class PacificaCore extends PacificaApi
         }
     }
 
-    public Object prepareMessage(Object header, Object payload)
+    public String prepareMessage(Object header, Object payload)
     {
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(header, "type"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(header, "timestamp"), null))) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(header, "expiry_window"), null))))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " prepareMessage() requires type, timestamp, expiry_window in header")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " prepareMessage() requires type, timestamp, expiry_window in header")) ;
         }
         java.util.Map<String, Object> data = this.extend(header, new java.util.HashMap<String, Object>() {{
             put( "data", payload );
@@ -4438,7 +4438,7 @@ public class PacificaCore extends PacificaApi
 
     public Object signMessage(Object header, Object payload, Object privateKey)
     {
-        Object message = this.prepareMessage(header, payload);
+        String message = this.prepareMessage(header, payload);
         Object messageBytes = this.encode(message);
         Object secretBytes = this.base58ToBinary(privateKey);
         Object seed = this.arraySlice(secretBytes, 0, 32);
@@ -4453,7 +4453,7 @@ public class PacificaCore extends PacificaApi
         this.checkRequiredCredentials(); // check credentials every post action
         if (Helpers.isTrue(Helpers.isEqual(operationType, "undefined")))
         {
-            throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " action: "), operationType), " postActionRequest() requires \"operationType\"")) ;
+            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " action: "), operationType), " postActionRequest() requires \"operationType\"")) ;
         }
         if (!Helpers.isTrue(this.isSandboxModeEnabled))
         {
@@ -4496,7 +4496,7 @@ public class PacificaCore extends PacificaApi
         parameters = ((java.util.List<Object>) originAddressparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(originAddress, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " action: "), operationType), " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
+            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " action: "), operationType), " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
         }
         Helpers.addElementToObject(finalHeaders, "account", originAddress);
         if (Helpers.isTrue(!Helpers.isEqual(agentAddress, null)))

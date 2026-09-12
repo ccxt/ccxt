@@ -17,6 +17,7 @@ import Transpiler from "ast-transpiler";
 import * as fs from 'fs';
 import { fileURLToPath } from 'node:url';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
+import { JAVA_STRING_PARAM_POSITIONS } from './java-local-types.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
@@ -331,9 +332,19 @@ function genDelegateCall(methodName: string, allParams: ParamInfo[], castToObjec
         // For WS: cast all args to (Object) and coalesce null params to empty map.
         // This is needed because Helpers.getArg returns null for explicit null args
         // instead of the default value, causing NPE in extend() calls.
-        const args = allParams.map(p => {
-            if (p.name === 'params') return `(Object) (${p.name} != null ? ${p.name} : new java.util.HashMap<String, Object>())`;
-            return `(Object) ${p.name}`;
+        //
+        // SS-05 exception: arguments at parameter positions the transpiler retyped to
+        // `String` (JAVA_STRING_PARAM_POSITIONS) must NOT be cast — an `(Object)` cast
+        // would no longer bind the instrumented String-parameter method (and keeping the
+        // cast while the parameter moved would silently fall through to the BaseExchange
+        // NotImplemented override).  The uncast String argument still binds the venue's
+        // WS implementation: it is the most specific applicable overload for that
+        // position.
+        const retyped = JAVA_STRING_PARAM_POSITIONS[methodName] ?? [];
+        const args = allParams.map((p, k) => {
+            const cast = retyped.includes(k) ? '' : '(Object) ';
+            if (p.name === 'params') return `${cast}(${p.name} != null ? ${p.name} : new java.util.HashMap<String, Object>())`;
+            return `${cast}${p.name}`;
         }).join(', ');
         return `super.${methodName}(${args})`;
     }

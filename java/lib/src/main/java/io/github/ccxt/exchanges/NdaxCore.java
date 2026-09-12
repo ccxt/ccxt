@@ -660,7 +660,7 @@ public class NdaxCore extends NdaxApi
             this.checkRequiredCredentials();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(this.login, null)) || Helpers.isTrue(Helpers.isEqual(this.password, null))))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " signIn() requires exchange.login, exchange.password")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " signIn() requires exchange.login, exchange.password")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "grant_type", "client_credentials" );
@@ -686,7 +686,7 @@ public class NdaxCore extends NdaxApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(this.twofa, null)))
                 {
-                    throw new AuthenticationError((String)Helpers.add(this.id, " signIn() requires exchange.twofa credentials")) ;
+                    throw new AuthenticationError(Helpers.add(this.id, " signIn() requires exchange.twofa credentials")) ;
                 }
                 Helpers.addElementToObject(this.options, "pending2faToken", pending2faToken);
                 request = new java.util.HashMap<String, Object>() {{
@@ -755,7 +755,7 @@ public class NdaxCore extends NdaxApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "ProductId");
-        String code = (String) this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
+        String code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
         String ProductType = this.safeString(rawCurrency, "ProductType");
         String type = ((Helpers.isTrue((Helpers.isEqual(ProductType, "NationalCurrency"))))) ? "fiat" : "crypto";
         if (Helpers.isTrue(Helpers.isEqual(ProductType, "Unknown")))
@@ -866,8 +866,8 @@ public class NdaxCore extends NdaxApi
         // const lowercaseId = this.safeStringLower (market, 'symbol');
         String baseId = this.safeString(market, "Product1");
         String quoteId = this.safeString(market, "Product2");
-        String base = (String) this.safeCurrencyCode(this.safeString(market, "Product1Symbol"));
-        String quote = (String) this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
+        String base = this.safeCurrencyCode(this.safeString(market, "Product1Symbol"));
+        String quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
         String sessionStatus = this.safeString(market, "SessionStatus");
         Object isDisable = this.safeValue(market, "IsDisable");
         Boolean sessionRunning = (Helpers.isEqual(sessionStatus, "Running"));
@@ -1094,7 +1094,7 @@ public class NdaxCore extends NdaxApi
             marketId = this.safeString(ticker, "trading_pairs");
         }
         market = this.safeMarket(marketId, market, "_");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String last = this.safeString2(ticker, "LastTradedPx", "last_price");
         String percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
         String change = this.safeString(ticker, "Rolling24HrPxChange");
@@ -1177,7 +1177,7 @@ public class NdaxCore extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1429,14 +1429,14 @@ public class NdaxCore extends NdaxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object priceString = null;
-        Object amountString = null;
-        Object costString = null;
+        String priceString = null;
+        String amountString = null;
+        String costString = null;
         Object timestamp = null;
-        Object id = null;
-        Object marketId = null;
+        String id = null;
+        String marketId = null;
         Object side = null;
-        Object orderId = null;
+        String orderId = null;
         Object takerOrMaker = null;
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{}};
         Object type = null;
@@ -1466,7 +1466,7 @@ public class NdaxCore extends NdaxApi
             if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
             {
                 String feeCurrencyId = this.safeString(trade, "FeeProductId");
-                String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
+                String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
                 final Object finalFeeCostString = feeCostString;
                 fee = new java.util.HashMap<String, Object>() {{
                     put( "cost", finalFeeCostString );
@@ -1474,7 +1474,7 @@ public class NdaxCore extends NdaxApi
                 }};
             }
         }
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         final Object finalId = id;
         final Object finalTimestamp = timestamp;
         final Object finalOrderId = orderId;
@@ -1512,7 +1512,7 @@ public class NdaxCore extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1563,7 +1563,7 @@ public class NdaxCore extends NdaxApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.login, null))) || Helpers.isTrue((Helpers.isEqual(this.login, "")))))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " fetchAccounts() requires exchange.login email credential")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " fetchAccounts() requires exchange.login email credential")) ;
             }
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             this.checkRequiredCredentials();
@@ -1605,7 +1605,7 @@ public class NdaxCore extends NdaxApi
             String currencyId = this.safeString(balance, "ProductId");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(currencyId, null))) && Helpers.isTrue((!Helpers.isEqual(this.currencies_by_id, null)))) && Helpers.isTrue((Helpers.inOp(this.currencies_by_id, currencyId)))))
             {
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "total", this.safeString(balance, "Amount"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "Hold"));
@@ -1730,7 +1730,7 @@ public class NdaxCore extends NdaxApi
         currency = this.safeCurrency(currencyId, currency);
         String credit = this.safeString(item, "CR");
         String debit = this.safeString(item, "DR");
-        Object amount = null;
+        String amount = null;
         String direction = null;
         if (Helpers.isTrue(Precise.stringLt(credit, "0")))
         {
@@ -2059,7 +2059,7 @@ public class NdaxCore extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side2, Object... optionalArgs)
     {
         final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2619,7 +2619,7 @@ public class NdaxCore extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2712,7 +2712,7 @@ public class NdaxCore extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2800,7 +2800,7 @@ public class NdaxCore extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3067,9 +3067,9 @@ public class NdaxCore extends NdaxApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object id = null;
+        String id = null;
         String currencyId = this.safeString(transaction, "ProductId");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String type = null;
         if (Helpers.isTrue(Helpers.inOp(transaction, "DepositId")))
         {
@@ -3139,7 +3139,7 @@ public class NdaxCore extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3153,11 +3153,11 @@ public class NdaxCore extends NdaxApi
             String sessionToken = this.safeString(this.options, "sessionToken");
             if (Helpers.isTrue(Helpers.isEqual(sessionToken, null)))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " call signIn() method to obtain a session token")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " call signIn() method to obtain a session token")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.twofa, null)))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " withdraw() requires exchange.twofa credentials")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " withdraw() requires exchange.twofa credentials")) ;
             }
             this.checkAddress(address);
             Long omsId = this.safeInteger(this.options, "omsId", 1);
@@ -3192,7 +3192,7 @@ public class NdaxCore extends NdaxApi
             Object firstTemplateType = this.safeValue(templateTypes, 0);
             if (Helpers.isTrue(Helpers.isEqual(firstTemplateType, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() could not find a withdraw template type for "), Helpers.GetValue(currency, "code"))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() could not find a withdraw template type for "), Helpers.GetValue(currency, "code"))) ;
             }
             String templateName = this.safeString(firstTemplateType, "TemplateName");
             final Object finalFirstTemplateType = firstTemplateType;
@@ -3215,7 +3215,7 @@ public class NdaxCore extends NdaxApi
             String template = this.safeString(withdrawTemplateResponse, "Template");
             if (Helpers.isTrue(Helpers.isEqual(template, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() could not find a withdraw template for "), Helpers.GetValue(currency, "code"))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() could not find a withdraw template for "), Helpers.GetValue(currency, "code"))) ;
             }
             Object withdrawTemplate = Helpers.parseJson(template);
             Helpers.addElementToObject(withdrawTemplate, "ExternalAddress", address);
@@ -3334,7 +3334,7 @@ public class NdaxCore extends NdaxApi
     {
         if (Helpers.isTrue(Helpers.isEqual(code, 404)))
         {
-            throw new AuthenticationError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+            throw new AuthenticationError(Helpers.add(Helpers.add(this.id, " "), body)) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {

@@ -153,7 +153,7 @@ public class TestMain extends BaseTest
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(possibleMethodNames)); j++)
                     {
                         Object methodName = Helpers.GetValue(possibleMethodNames, j);
-                        methodName = Helpers.replace((String)methodName, (String)"()", (String)"");
+                        methodName = Helpers.replace(((String)methodName), "()", "");
                         if (Helpers.isTrue(Helpers.isEqual(testFileName, methodName)))
                         {
                             ((java.util.List<Object>)this.onlySpecificTests).add(testFileName);
@@ -658,7 +658,7 @@ public class TestMain extends BaseTest
             String testPrefixString = ((Helpers.isTrue(isPublicTest))) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(failedMethods), 0)))
             {
-                Object errorsString = String.join((String)", ", (java.util.List<String>)failedMethods);
+                Object errorsString = String.join(", ", (java.util.List<String>)failedMethods);
                 dump("[TEST_FAILURE]", exchange.id, testPrefixString, Helpers.add("Failed methods : ", errorsString));
             }
             if (Helpers.isTrue(this.info))
@@ -690,8 +690,8 @@ public class TestMain extends BaseTest
     public Object getTestSymbol(BaseExchange exchange, Object isSpot, Object symbols)
     {
         Object symbol = null;
-        Object preferredSpotSymbol = exchange.safeString(this.skippedSettingsForExchange, "preferredSpotSymbol");
-        Object preferredSwapSymbol = exchange.safeString(this.skippedSettingsForExchange, "preferredSwapSymbol");
+        String preferredSpotSymbol = exchange.safeString(this.skippedSettingsForExchange, "preferredSpotSymbol");
+        String preferredSwapSymbol = exchange.safeString(this.skippedSettingsForExchange, "preferredSwapSymbol");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isSpot, true))) && Helpers.isTrue((!Helpers.isEqual(preferredSpotSymbol, null)))) && Helpers.isTrue((!Helpers.isEqual(preferredSpotSymbol, "")))))
         {
             return preferredSpotSymbol;
@@ -855,7 +855,7 @@ public class TestMain extends BaseTest
             // works around a venue-specific quirk), so never rank around it
             Object isSpot = exchange.safeBool(defaultMarket, "spot", false);
             String preferredKey = ((Helpers.isTrue((Helpers.isEqual(isSpot, true))))) ? "preferredSpotSymbol" : "preferredSwapSymbol";
-            Object preferredSymbol = exchange.safeString(this.skippedSettingsForExchange, preferredKey);
+            String preferredSymbol = exchange.safeString(this.skippedSettingsForExchange, preferredKey);
             if (Helpers.isTrue(!Helpers.isEqual(preferredSymbol, null)))
             {
                 return defaultSymbols;
@@ -879,9 +879,9 @@ public class TestMain extends BaseTest
             {
                 return defaultSymbols;
             }
-            Object marketType = exchange.safeString(defaultMarket, "type");
-            Object quote = exchange.safeString(defaultMarket, "quote");
-            Object settle = exchange.safeString(defaultMarket, "settle");
+            String marketType = exchange.safeString(defaultMarket, "type");
+            String quote = exchange.safeString(defaultMarket, "quote");
+            String settle = exchange.safeString(defaultMarket, "settle");
             java.util.List<Object> candidates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object tickerSymbols = Helpers.objectKeys(tickers);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickerSymbols)); i++)
@@ -961,7 +961,7 @@ public class TestMain extends BaseTest
                     Object primarySymbol = this.getValidSymbol(exchange, true);
                     if (Helpers.isTrue(!Helpers.isEqual(primarySymbol, null)))
                     {
-                        Object secondarySymbol = Helpers.replace((String)primarySymbol, (String)"BTC", (String)"ETH"); // this should work any exchange
+                        Object secondarySymbol = Helpers.replace(((String)primarySymbol), "BTC", "ETH"); // this should work any exchange
                         spotSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol, secondarySymbol));
                     }
                 }
@@ -975,7 +975,7 @@ public class TestMain extends BaseTest
                     // tests rather than crashing on `undefined.replace(...)`.
                     if (Helpers.isTrue(!Helpers.isEqual(primarySymbol, null)))
                     {
-                        Object secondarySymbol = Helpers.replaceAll((String)primarySymbol, (String)"BTC", (String)"ETH"); // this should work any exchange
+                        Object secondarySymbol = Helpers.replaceAll(((String)primarySymbol), "BTC", "ETH"); // this should work any exchange
                         swapSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol, secondarySymbol));
                     }
                 }
@@ -1053,7 +1053,7 @@ public class TestMain extends BaseTest
             // then fetchEvents for an event id and run every method by that outcome handle
             // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
             // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
-            Object outcomeSymbol = exchange.safeString(this.skippedSettingsForExchange, "preferredPredictionOutcome");
+            String outcomeSymbol = exchange.safeString(this.skippedSettingsForExchange, "preferredPredictionOutcome");
             if (Helpers.isTrue(!Helpers.isEqual(outcomeSymbol, null)))
             {
                 // validate the pin against the live listing - venues can rotate ids/handles
@@ -1140,9 +1140,9 @@ public class TestMain extends BaseTest
                         // separators as spaces) so the scoped contract holds even without a pin
                         Object handleParts = Helpers.split(outcomeSymbol, ":");
                         String marketPart = (String) Helpers.GetValue(handleParts, 0);
-                        Object lowerPart = ((String)marketPart).toLowerCase();
-                        Object dedashed = Helpers.replaceAll((String)lowerPart, (String)"-", (String)" ");
-                        eventQuery = Helpers.replaceAll((String)dedashed, (String)"_", (String)" ");
+                        Object lowerPart = marketPart.toLowerCase();
+                        Object dedashed = Helpers.replaceAll(((String)lowerPart), "-", " ");
+                        eventQuery = Helpers.replaceAll(((String)dedashed), "_", " ");
                     }
                     java.util.Map<String, Object> eventParams = new java.util.HashMap<String, Object>() {{}};
                     if (Helpers.isTrue(!Helpers.isEqual(eventQuery, null)))
@@ -1382,12 +1382,12 @@ public class TestMain extends BaseTest
             // any override's notional (amount * price) MUST stay well under the 25 USD live-test cap
             Object price = exchange.parseToNumeric("0.02");
             Object amount = exchange.parseToNumeric("5");
-            Object fundedPrice = exchange.safeString(this.skippedSettingsForExchange, "fundedPrice");
+            String fundedPrice = exchange.safeString(this.skippedSettingsForExchange, "fundedPrice");
             if (Helpers.isTrue(!Helpers.isEqual(fundedPrice, null)))
             {
                 price = exchange.parseToNumeric(fundedPrice);
             }
-            Object fundedAmount = exchange.safeString(this.skippedSettingsForExchange, "fundedAmount");
+            String fundedAmount = exchange.safeString(this.skippedSettingsForExchange, "fundedAmount");
             if (Helpers.isTrue(!Helpers.isEqual(fundedAmount, null)))
             {
                 amount = exchange.parseToNumeric(fundedAmount);
@@ -1405,7 +1405,7 @@ public class TestMain extends BaseTest
                 Assert(Helpers.isEqual(exchange.isDictionary(order), true), Helpers.add("createOrder did not return an order structure for ", exchange.id));
                 placedId = exchange.safeString(order, "id");
                 Assert(!Helpers.isEqual(placedId, null), Helpers.add("createOrder returned no order id for ", exchange.id));
-                Object returnedOutcome = exchange.safeString(order, "outcome");
+                String returnedOutcome = exchange.safeString(order, "outcome");
                 Assert(Helpers.isTrue((Helpers.isEqual(returnedOutcome, null))) || Helpers.isTrue((Helpers.isEqual(returnedOutcome, outcome))), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("createOrder outcome \"", exchange.json(returnedOutcome)), "\" should match requested \""), outcome), "\" for "), exchange.id));
             } catch(Exception e)
             {
@@ -1772,7 +1772,7 @@ public class TestMain extends BaseTest
             {
                 continue;
             }
-            Object exchangeName = Helpers.replace((String)file, (String)".json", (String)"");
+            Object exchangeName = Helpers.replace(((String)file), ".json", "");
             Object content = ioFileRead(Helpers.add(folder, file));
             Helpers.addElementToObject(result, exchangeName, content);
         }
@@ -1822,7 +1822,7 @@ public class TestMain extends BaseTest
             }
             String key = (String) Helpers.GetValue(keyValue, 0);
             Object value = Helpers.GetValue(keyValue, 1);
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue((Helpers.isTrue((((String)value).startsWith(((String)"[")))) || Helpers.isTrue((((String)value).startsWith(((String)"{"))))))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue((Helpers.isTrue((((String)value).startsWith("["))) || Helpers.isTrue((((String)value).startsWith("{")))))))
             {
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value);
@@ -1939,7 +1939,7 @@ public class TestMain extends BaseTest
             }
         }
         // if needed convert stringified jsons to objects
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(((storedOutput instanceof String))) && Helpers.isTrue(((newOutput instanceof String)))) && Helpers.isTrue(((String)storedOutput).startsWith(((String)"{")))) && Helpers.isTrue(((String)newOutput).startsWith(((String)"{")))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(((storedOutput instanceof String))) && Helpers.isTrue(((newOutput instanceof String)))) && Helpers.isTrue(((String)storedOutput).startsWith("{"))) && Helpers.isTrue(((String)newOutput).startsWith("{"))))
         {
             storedOutput = jsonParse(storedOutput);
             newOutput = jsonParse(newOutput);
@@ -2194,7 +2194,7 @@ public class TestMain extends BaseTest
             newOutput = this.urlencodedToDict(newOutput);
         } else if (Helpers.isTrue(Helpers.isEqual(type, "both")))
         {
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(((String)storedOutput).startsWith(((String)"{")), true))) || Helpers.isTrue((Helpers.isEqual(((String)storedOutput).startsWith(((String)"[")), true)))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(((String)storedOutput).startsWith("{"), true))) || Helpers.isTrue((Helpers.isEqual(((String)storedOutput).startsWith("["), true)))))
             {
                 storedOutput = jsonParse(storedOutput);
                 newOutput = jsonParse(newOutput);
@@ -2444,7 +2444,7 @@ public class TestMain extends BaseTest
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object url = exchange.safeString(data, "url");
+            String url = exchange.safeString(data, "url");
             setupWsMockTransport(exchange, url);
             Object httpResponse = exchange.safeValue(data, "httpResponse");
             if (Helpers.isTrue(!Helpers.isEqual(httpResponse, null)))
@@ -2526,27 +2526,27 @@ public class TestMain extends BaseTest
                     {
                         continue;
                     }
-                    Object disabledString = exchange.safeString(result, "disabled", "");
+                    String disabledString = exchange.safeString(result, "disabled", "");
                     if (Helpers.isTrue(!Helpers.isEqual(disabledString, "")))
                     {
                         continue;
                     }
-                    Object isDisabledCSharp = exchange.safeString(result, "disabledCS");
+                    String isDisabledCSharp = exchange.safeString(result, "disabledCS");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledCSharp, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "C#")))))
                     {
                         continue;
                     }
-                    Object isDisabledGo = exchange.safeString(result, "disabledGO");
+                    String isDisabledGo = exchange.safeString(result, "disabledGO");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledGo, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "GO")))))
                     {
                         continue;
                     }
-                    Object isDisabledJava = exchange.safeString(result, "disabledJava");
+                    String isDisabledJava = exchange.safeString(result, "disabledJava");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledJava, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "java")))))
                     {
                         continue;
                     }
-                    Object isDisabledPhp = exchange.safeString(result, "disabledPHP");
+                    String isDisabledPhp = exchange.safeString(result, "disabledPHP");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledPhp, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "PHP")))))
                     {
                         continue;
@@ -2713,29 +2713,29 @@ public class TestMain extends BaseTest
             BaseExchange exchange = this.initOfflineExchange(exchangeName);
             Object globalOptions = exchange.safeDict(exchangeData, "options", new java.util.HashMap<String, Object>() {{}});
             // read apiKey/secret from the test file
-            Object apiKey = exchange.safeString(exchangeData, "apiKey");
+            String apiKey = exchange.safeString(exchangeData, "apiKey");
             if (!Helpers.isTrue(exchange.isEmptyString(apiKey)))
             {
                 // c# to string requirement
-                exchange.apiKey = String.valueOf(((String)apiKey));
+                exchange.apiKey = String.valueOf(apiKey);
             }
-            Object secret = exchange.safeString(exchangeData, "secret");
+            String secret = exchange.safeString(exchangeData, "secret");
             if (!Helpers.isTrue(exchange.isEmptyString(secret)))
             {
                 // c# to string requirement
-                exchange.secret = String.valueOf(((String)secret));
+                exchange.secret = String.valueOf(secret);
             }
-            Object privateKey = exchange.safeString(exchangeData, "privateKey");
+            String privateKey = exchange.safeString(exchangeData, "privateKey");
             if (!Helpers.isTrue(exchange.isEmptyString(privateKey)))
             {
                 // c# to string requirement
-                exchange.privateKey = String.valueOf(((String)privateKey));
+                exchange.privateKey = String.valueOf(privateKey);
             }
-            Object walletAddress = exchange.safeString(exchangeData, "walletAddress");
+            String walletAddress = exchange.safeString(exchangeData, "walletAddress");
             if (!Helpers.isTrue(exchange.isEmptyString(walletAddress)))
             {
                 // c# to string requirement
-                exchange.walletAddress = String.valueOf(((String)walletAddress));
+                exchange.walletAddress = String.valueOf(walletAddress);
             }
             Object accounts = exchange.safeList(exchangeData, "accounts");
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(accounts, null)) && Helpers.isTrue(!Helpers.isEqual(accounts, null))))
@@ -2767,7 +2767,7 @@ public class TestMain extends BaseTest
                     {
                         continue;
                     }
-                    Object disabledString = exchange.safeString(result, "disabled", "");
+                    String disabledString = exchange.safeString(result, "disabled", "");
                     if (Helpers.isTrue(!Helpers.isEqual(disabledString, "")))
                     {
                         continue;
@@ -2792,7 +2792,7 @@ public class TestMain extends BaseTest
                     {
                         continue;
                     }
-                    Object type = exchange.safeString(exchangeData, "outputType");
+                    String type = exchange.safeString(exchangeData, "outputType");
                     Object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     (this.testRequestStatically(exchange, method, result, type, skipKeys)).join();
                     // reset options
@@ -2816,29 +2816,29 @@ public class TestMain extends BaseTest
             Object testName = Helpers.getArg(optionalArgs, 0, null);
             BaseExchange exchange = this.initOfflineExchange(exchangeName);
             // read apiKey/secret from the test file
-            Object apiKey = exchange.safeString(exchangeData, "apiKey");
+            String apiKey = exchange.safeString(exchangeData, "apiKey");
             if (!Helpers.isTrue(exchange.isEmptyString(apiKey)))
             {
                 // c# to string requirement
-                exchange.apiKey = String.valueOf(((String)apiKey));
+                exchange.apiKey = String.valueOf(apiKey);
             }
-            Object secret = exchange.safeString(exchangeData, "secret");
+            String secret = exchange.safeString(exchangeData, "secret");
             if (!Helpers.isTrue(exchange.isEmptyString(secret)))
             {
                 // c# to string requirement
-                exchange.secret = String.valueOf(((String)secret));
+                exchange.secret = String.valueOf(secret);
             }
-            Object privateKey = exchange.safeString(exchangeData, "privateKey");
+            String privateKey = exchange.safeString(exchangeData, "privateKey");
             if (!Helpers.isTrue(exchange.isEmptyString(privateKey)))
             {
                 // c# to string requirement
-                exchange.privateKey = String.valueOf(((String)privateKey));
+                exchange.privateKey = String.valueOf(privateKey);
             }
-            Object walletAddress = exchange.safeString(exchangeData, "walletAddress");
+            String walletAddress = exchange.safeString(exchangeData, "walletAddress");
             if (!Helpers.isTrue(exchange.isEmptyString(walletAddress)))
             {
                 // c# to string requirement
-                exchange.walletAddress = String.valueOf(((String)walletAddress));
+                exchange.walletAddress = String.valueOf(walletAddress);
             }
             Object methods = exchange.safeValue(exchangeData, "methods", new java.util.HashMap<String, Object>() {{}});
             Object options = exchange.safeValue(exchangeData, "options", new java.util.HashMap<String, Object>() {{}});
@@ -3173,7 +3173,7 @@ public class TestMain extends BaseTest
             Assert(Helpers.isEqual(((String)clientOrderIdSwap).startsWith(((String)swapIdString)), true), Helpers.add(Helpers.add(Helpers.add("binance - swap clientOrderId: ", clientOrderIdSwap), " does not start with swapId"), swapIdString));
             // inverse swap
             Object clientOrderIdInverse = Helpers.GetValue(swapInverseOrderRequest, "newClientOrderId");
-            Assert(Helpers.isEqual(((String)clientOrderIdInverse).startsWith(((String)inverseSwapId)), true), Helpers.add(Helpers.add(Helpers.add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId));
+            Assert(Helpers.isEqual(((String)clientOrderIdInverse).startsWith(inverseSwapId), true), Helpers.add(Helpers.add(Helpers.add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId));
             // linear swap conditional order
             Object swapAlgoOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
@@ -4065,7 +4065,7 @@ public class TestMain extends BaseTest
                 request = jsonParse(exchange.last_request_body);
             }
             Object clientOrderId = Helpers.GetValue(request, "newClientOrderId");
-            Assert(Helpers.isEqual(((String)clientOrderId).startsWith(((String)id)), true), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for spot order does not start with id: "), id));
+            Assert(Helpers.isEqual(((String)clientOrderId).startsWith(id), true), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for spot order does not start with id: "), id));
             try
             {
                 (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
@@ -4074,7 +4074,7 @@ public class TestMain extends BaseTest
                 request = jsonParse(exchange.last_request_body);
             }
             clientOrderId = Helpers.GetValue(request, "newClientOrderId");
-            Assert(Helpers.isEqual(((String)clientOrderId).startsWith(((String)id)), true), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for swap order does not start with id: "), id));
+            Assert(Helpers.isEqual(((String)clientOrderId).startsWith(id), true), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for swap order does not start with id: "), id));
             return null;
         });
 

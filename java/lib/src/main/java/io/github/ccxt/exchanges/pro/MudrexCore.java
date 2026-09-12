@@ -64,7 +64,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
      */
     public void setBrokerHeaders()
     {
-        Object brokerId = this.safeString(this.options, "broker");
+        String brokerId = this.safeString(this.options, "broker");
         if (Helpers.isTrue(Helpers.isEqual(brokerId, null)))
         {
             return;
@@ -78,7 +78,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
         Helpers.addElementToObject(this.options, "ws", wsOptions);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -90,7 +90,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = (String) Helpers.add("ticker:", symbol);
+            String messageHash = Helpers.add("ticker:", symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             this.setBrokerHeaders();
             Object baseIdString = ((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "baseId"), null))))) ? Helpers.GetValue(market, "baseId") : "";
@@ -154,7 +154,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -169,12 +169,12 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object priceType = this.safeString(parameters, "price");
+            String priceType = this.safeString(parameters, "price");
             parameters = this.omit(parameters, "price");
-            Object interval = this.safeString(this.timeframes, timeframe, timeframe);
+            String interval = this.safeString(this.timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(interval, "1s")) && Helpers.isTrue(!Helpers.isEqual(interval, "1m"))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchOHLCV() supports 1s and 1m timeframes only")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchOHLCV() supports 1s and 1m timeframes only")) ;
             }
             String prefix = "kline";
             if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))
@@ -215,7 +215,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             this.handleErrorMessage(client, message);
             return;
         }
-        Object stream = this.safeString(message, "stream");
+        String stream = this.safeString(message, "stream");
         if (Helpers.isTrue(!Helpers.isEqual(stream, null)))
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(stream, "kline"), 0)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(stream, "markKline"), 0))))
@@ -231,8 +231,8 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
     public void handleErrorMessage(Client client, Object message)
     {
         Object error = this.safeDict(message, "error", new java.util.HashMap<String, Object>() {{}});
-        Object code = this.safeString(error, "code");
-        Object msg = this.safeString(error, "msg");
+        String code = this.safeString(error, "code");
+        String msg = this.safeString(error, "msg");
         Object feedback = Helpers.add(Helpers.add(this.id, " "), msg);
         if (Helpers.isTrue(Helpers.isEqual(code, "429")))
         {
@@ -243,7 +243,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
 
     public void handleOHLCV(Client client, Object message)
     {
-        Object stream = this.safeString(message, "stream");
+        String stream = this.safeString(message, "stream");
         if (Helpers.isTrue(Helpers.isEqual(stream, null)))
         {
             return;
@@ -252,12 +252,12 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
         String interval = (String) Helpers.GetValue(parts, 1);
         Object tf = this.findTimeframe(interval);
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object s = this.safeString(data, "s");
+        String s = this.safeString(data, "s");
         if (Helpers.isTrue(Helpers.isEqual(s, null)))
         {
             return;
         }
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(((String)s).toUpperCase());
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(s.toUpperCase());
         Object symbol = Helpers.GetValue(market, "symbol");
         java.util.List<Object> parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
@@ -272,7 +272,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             }
         }
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
-        Object messageHash = stream;
+        String messageHash = stream;
         client.resolve(stored, messageHash);
     }
 
@@ -282,12 +282,12 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object t = Helpers.GetValue(data, i);
-            Object s = this.safeString(t, "s");
+            String s = this.safeString(t, "s");
             if (Helpers.isTrue(Helpers.isEqual(s, null)))
             {
                 continue;
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(((String)s).toUpperCase());
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(s.toUpperCase());
             Object symbol = Helpers.GetValue(market, "symbol");
             Long timestamp = this.milliseconds();
             Double last = this.safeNumber(t, "p");
@@ -300,7 +300,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
                 put( "info", t );
             }});
             Helpers.addElementToObject(this.tickers, symbol, result);
-            String messageHash = (String) Helpers.add("ticker:", symbol);
+            String messageHash = Helpers.add("ticker:", symbol);
             client.resolve(result, messageHash);
             client.resolve(result, "tickers");
         }

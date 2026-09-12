@@ -609,7 +609,7 @@ public class CoinspotCore extends CoinspotApi
                 {
                     Object currencyId = Helpers.GetValue(currencyIds, j);
                     Object balance = Helpers.GetValue(currencies, currencyId);
-                    String code = (String) this.safeCurrencyCode(currencyId);
+                    String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
                     if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -624,7 +624,7 @@ public class CoinspotCore extends CoinspotApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
             {
                 Object currencyId = Helpers.GetValue(currencyIds, i);
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "total", this.safeString(balances, currencyId));
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -727,7 +727,7 @@ public class CoinspotCore extends CoinspotApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -762,7 +762,7 @@ public class CoinspotCore extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -774,8 +774,8 @@ public class CoinspotCore extends CoinspotApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> response = (this.publicGetLatest(parameters)).join();
-            Object id = this.safeString(market, "id", "");
-            id = ((String)id).toLowerCase();
+            String id = this.safeString(market, "id", "");
+            id = id.toLowerCase();
             Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
             //
             //     {
@@ -863,7 +863,7 @@ public class CoinspotCore extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1000,14 +1000,14 @@ public class CoinspotCore extends CoinspotApi
         //     }
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = null;
-        Object priceString = null;
+        String priceString = null;
         Object fee = null;
         String audTotal = this.safeString(trade, "audtotal");
         String costString = this.safeString(trade, "total", audTotal);
         String side = this.safeString(trade, "side");
         String amountString = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "market");
-        String symbol = (String) this.safeSymbol(marketId, market, "/");
+        String symbol = this.safeSymbol(marketId, market, "/");
         Long solddate = this.safeInteger(trade, "solddate");
         if (Helpers.isTrue(!Helpers.isEqual(solddate, null)))
         {
@@ -1076,12 +1076,12 @@ public class CoinspotCore extends CoinspotApi
             }
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             Object sideUpper = ((String)side).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createOrder() allows limit orders only")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1098,7 +1098,7 @@ public class CoinspotCore extends CoinspotApi
                 response = (this.privatePostMySell(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder only support buy/sell side")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder only support buy/sell side")) ;
             }
             //
             // status - ok, error
@@ -1132,7 +1132,7 @@ public class CoinspotCore extends CoinspotApi
             String side = this.safeString(parameters, "side");
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(side, "buy")) && Helpers.isTrue(!Helpers.isEqual(side, "sell"))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
             }
             parameters = this.omit(parameters, "side");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{

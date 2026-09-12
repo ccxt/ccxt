@@ -217,7 +217,7 @@ public class OpinionCore extends OpinionApi
                         {
                             ((java.util.List<Object>)flatMarkets).add(Helpers.GetValue(childMarkets, ci));
                         }
-                        Object eventKey = this.safeString(eventVar, "event");
+                        String eventKey = this.safeString(eventVar, "event");
                         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventKey, null))) && Helpers.isTrue((!Helpers.isEqual(eventKey, "")))) && !Helpers.isTrue((Helpers.inOp(seenEvents, eventKey)))))
                         {
                             Helpers.addElementToObject(seenEvents, eventKey, true);
@@ -311,18 +311,18 @@ public class OpinionCore extends OpinionApi
         //     "yesTokenId": "107063188116504514729209026208703521982564071792212276771696073817845504321279"
         // }
         Object eventSlug = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(raw, "marketId");
-        Object slug = this.safeString(raw, "slug");
+        String marketId = this.safeString(raw, "marketId");
+        String slug = this.safeString(raw, "slug");
         Object effectiveEventSlug = eventSlug;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventSlug, null))) && Helpers.isTrue((!Helpers.isEqual(slug, null)))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(slug, eventSlug), 0)))))
         {
             effectiveEventSlug = null;
         }
         Object marketSymbol = this.slugToMarketSymbol(effectiveEventSlug, slug);
-        Object statusEnum = this.safeString(raw, "statusEnum");
+        String statusEnum = this.safeString(raw, "statusEnum");
         Boolean active = (Helpers.isEqual(statusEnum, "Activated"));
         Boolean resolved = (Helpers.isEqual(statusEnum, "Resolved"));
-        Object resultTokenId = this.safeString(raw, "resultTokenId");
+        String resultTokenId = this.safeString(raw, "resultTokenId");
         Boolean hasResult = Helpers.isTrue(Helpers.isTrue(resolved) && Helpers.isTrue((!Helpers.isEqual(resultTokenId, null)))) && Helpers.isTrue((!Helpers.isEqual(resultTokenId, "")));
         java.util.List<Object> outcomeLabels = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeString(raw, "yesLabel", "YES"), this.safeString(raw, "noLabel", "NO")));
         java.util.List<Object> outcomeTokenIds = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeString(raw, "yesTokenId"), this.safeString(raw, "noTokenId")));
@@ -450,8 +450,8 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.requireEventQuery(parameters);
             Object queries = this.parseSearchQueries(parameters);
-            Object eventId = this.safeString(parameters, "eventId");
-            Object slug = this.safeString(parameters, "slug");
+            String eventId = this.safeString(parameters, "eventId");
+            String slug = this.safeString(parameters, "slug");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventId, null))) || Helpers.isTrue((!Helpers.isEqual(slug, null)))))
             {
                 Object singleRest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("eventId", "slug", "query", "queries", "tags", "status", "sort", "searchIn", "limit")));
@@ -559,7 +559,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvent(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchEvent(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -685,9 +685,9 @@ final Object finalTokenId = tokenId;
         //     "yesLabel": "",
         //     "yesTokenId": ""
         // }
-        Object eventId = this.safeString(rawEvent, "marketId");
-        Object slug = this.safeString(rawEvent, "slug");
-        Object title = this.safeString(rawEvent, "marketTitle");
+        String eventId = this.safeString(rawEvent, "marketId");
+        String slug = this.safeString(rawEvent, "slug");
+        String title = this.safeString(rawEvent, "marketTitle");
         String eventHandle = ((Helpers.isTrue((!Helpers.isEqual(title, null))))) ? this.shortenSlug(title) : this.shortenSlug(slug);
         Object rawChildren = this.safeList(rawEvent, "childMarkets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object rawChildrenLength = Helpers.getArrayLength(rawChildren);
@@ -696,7 +696,7 @@ final Object finalTokenId = tokenId;
         {
             ((java.util.List<Object>)marketsList).add(this.parseOpinionMarket(Helpers.GetValue(rawChildren, i), slug));
         }
-        Object statusEnum = this.safeString(rawEvent, "statusEnum");
+        String statusEnum = this.safeString(rawEvent, "statusEnum");
         Boolean active = (Helpers.isEqual(statusEnum, "Activated"));
         Boolean resolved = (Helpers.isEqual(statusEnum, "Resolved"));
         Object end = null;
@@ -738,7 +738,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -843,7 +843,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
             }
             (this.loadOutcomes(outcomes)).join();
             Object outcomesLength = Helpers.getArrayLength(outcomes);
@@ -872,7 +872,7 @@ final Object finalTokenId = tokenId;
                     put( "book", bookResponse );
                 }};
                 Object ticker = this.parsePredictionTicker(response, ((Object)outcomeObj));
-                Object symbolKey = this.safeString(ticker, "outcome");
+                String symbolKey = this.safeString(ticker, "outcome");
                 if (Helpers.isTrue(!Helpers.isEqual(symbolKey, null)))
                 {
                     Helpers.addElementToObject(result, symbolKey, ticker);
@@ -953,11 +953,11 @@ final Object finalTokenId = tokenId;
             if (!Helpers.isTrue((Helpers.inOp(this.timeframes, timeframe))))
             {
                 Object supportedKeys = Helpers.objectKeys(this.timeframes);
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe), ", supported timeframes are "), String.join((String)", ", (java.util.List<String>)supportedKeys))) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe), ", supported timeframes are "), String.join(", ", (java.util.List<String>)supportedKeys))) ;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = ((String)Helpers.GetValue(outcomeObj, "outcomeId"));
-            Object interval = this.safeString(this.timeframes, timeframe);
+            String interval = this.safeString(this.timeframes, timeframe);
             Object response = (this.opinionPublicGetTokenPriceHistory(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "token_id", tokenId );
                 put( "interval", interval );
@@ -1027,7 +1027,7 @@ final Object finalTokenId = tokenId;
             Object quoteTokenAddress = quoteTokenAddress3;
             if (Helpers.isTrue(Helpers.isEqual(quoteTokenAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " loadQuoteToken() requires a quoteTokenAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " loadQuoteToken() requires a quoteTokenAddress")) ;
             }
             Object cacheKey = ((String)quoteTokenAddress).toLowerCase();
             Object cached = this.safeDict(this.options, "quoteTokens", new java.util.HashMap<String, Object>() {{}});
@@ -1044,7 +1044,7 @@ final Object finalTokenId = tokenId;
             for (var i = 0; Helpers.isLessThan(i, listLength); i++)
             {
                 Object entry = Helpers.GetValue(list, i);
-                String address = (String)this.safeStringLower(entry, "quoteTokenAddress");
+                String address = this.safeStringLower(entry, "quoteTokenAddress");
                 if (Helpers.isTrue(!Helpers.isEqual(address, null)))
                 {
                     Helpers.addElementToObject(quoteTokens, address, entry);
@@ -1054,7 +1054,7 @@ final Object finalTokenId = tokenId;
             Object quoteToken = this.safeDict(quoteTokens, cacheKey);
             if (Helpers.isTrue(Helpers.isEqual(quoteToken, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " loadQuoteToken() could not find quote token "), quoteTokenAddress)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " loadQuoteToken() could not find quote token "), quoteTokenAddress)) ;
             }
             return quoteToken;
         });
@@ -1073,7 +1073,7 @@ final Object finalTokenId = tokenId;
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object cached = this.safeString(this.options, "multiSignAddress");
+            String cached = this.safeString(this.options, "multiSignAddress");
             if (Helpers.isTrue(!Helpers.isEqual(cached, null)))
             {
                 return cached;
@@ -1081,7 +1081,7 @@ final Object finalTokenId = tokenId;
             Object response = (this.opinionPrivateGetUserAuth(new java.util.HashMap<String, Object>() {{}})).join();
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object walletUsers = this.safeDict(result, "walletUsers", new java.util.HashMap<String, Object>() {{}});
-            Object multiSignAddress = this.safeString(walletUsers, "56", this.walletAddress);
+            String multiSignAddress = this.safeString(walletUsers, "56", this.walletAddress);
             Helpers.addElementToObject(this.options, "multiSignAddress", multiSignAddress);
             return multiSignAddress;
         });
@@ -1158,13 +1158,13 @@ final Object finalTokenId = tokenId;
         }
         Object priceStr = this.decimalToPrecision(this.numberToString(price), ROUND, 6, DECIMAL_PLACES);
         Object priceParts = Helpers.split(priceStr, ".");
-        Object priceInt = this.safeString(priceParts, 0, "0");
-        Object priceFrac = this.safeString(priceParts, 1, "");
+        String priceInt = this.safeString(priceParts, 0, "0");
+        String priceFrac = this.safeString(priceParts, 1, "");
         String priceDenom = "1000000";
-        String priceNum = Precise.stringAdd(Precise.stringMul(priceInt, priceDenom), Helpers.padEnd((String)priceFrac, ((Number)6).intValue(), ((String)"0").charAt(0)));
+        String priceNum = Precise.stringAdd(Precise.stringMul(priceInt, priceDenom), Helpers.padEnd(priceFrac, ((Number)6).intValue(), ((String)"0").charAt(0)));
         if (Helpers.isTrue(Helpers.isEqual(priceNum, "0")))
         {
-            throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " createOrder() invalid price "), priceStr)) ;
+            throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " createOrder() invalid price "), priceStr)) ;
         }
         Object makerRaw = amountStr;
         if (Helpers.isTrue(Helpers.isEqual(side, "BUY")))
@@ -1224,11 +1224,11 @@ final Object finalTokenId = tokenId;
             {
                 if (!Helpers.isTrue(isMarket))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price for limit orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price for limit orders")) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(sideStr, "SELL")))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price for market sell orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price for market sell orders")) ;
                 }
             }
             Object marketOrderPrice = "0";
@@ -1238,13 +1238,13 @@ final Object finalTokenId = tokenId;
             }
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
             Long topicId = this.safeInteger(info, "marketId");
-            Object quoteTokenAddress = this.safeString(info, "quoteToken");
+            String quoteTokenAddress = this.safeString(info, "quoteToken");
             Object quoteToken = (this.loadQuoteToken(quoteTokenAddress)).join();
-            Object exchangeAddress = this.safeString(quoteToken, "ctfExchangeAddress", "");
+            String exchangeAddress = this.safeString(quoteToken, "ctfExchangeAddress", "");
             Long decimals = this.safeInteger(quoteToken, "decimal", 18);
             Object amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals);
-            Object makerAmount = this.safeString(amounts, "makerAmount");
-            Object takerAmount = this.safeString(amounts, "takerAmount");
+            String makerAmount = this.safeString(amounts, "makerAmount");
+            String takerAmount = this.safeString(amounts, "takerAmount");
             Object sideInt = ((Helpers.isTrue((Helpers.isEqual(sideStr, "BUY"))))) ? 0 : 1;
             Object salt = this.numberToString(this.milliseconds());
             Object postOnly = this.safeBool(parameters, "postOnly", false);
@@ -1397,12 +1397,12 @@ final Object finalTokenId = tokenId;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, "orderId");
+        String id = this.safeString(order, "orderId");
         Object marketAny = ((Object)market);
-        Object statusEnum = this.safeString(order, "statusEnum");
-        Object status = this.parseOrderStatus(statusEnum);
-        String sideEnum = (String)this.safeStringLower(order, "sideEnum");
-        String tradingMethodEnum = (String)this.safeStringLower(order, "tradingMethodEnum");
+        String statusEnum = this.safeString(order, "statusEnum");
+        String status = this.parseOrderStatus(statusEnum);
+        String sideEnum = this.safeStringLower(order, "sideEnum");
+        String tradingMethodEnum = this.safeStringLower(order, "tradingMethodEnum");
         Object timestamp = this.safeTimestamp(order, "createdAt");
         return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1577,7 +1577,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a walletAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a walletAddress")) ;
             }
             (this.loadApiKey()).join();
             Object outcomeObj = null;
@@ -1597,7 +1597,7 @@ final Object finalTokenId = tokenId;
             for (var i = 0; Helpers.isLessThan(i, tradesLength); i++)
             {
                 Object trade = Helpers.GetValue(trades, i);
-                Object tokenId = this.safeString(trade, "tokenId");
+                String tokenId = this.safeString(trade, "tokenId");
                 Long marketId = this.safeInteger(trade, "marketId");
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tokenId, null))) && Helpers.isTrue((!Helpers.isEqual(marketId, null)))))
                 {
@@ -1627,7 +1627,7 @@ final Object finalTokenId = tokenId;
             Object marketId = marketId3;
             if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " loadTradeMarket() requires a marketId")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " loadTradeMarket() requires a marketId")) ;
             }
             String cacheKey = "tradeMarketsById";
             Object cached = this.safeDict(this.options, cacheKey, new java.util.HashMap<String, Object>() {{}});
@@ -1646,13 +1646,13 @@ final Object finalTokenId = tokenId;
             Object market = this.parseOpinionMarket(data);
             if (Helpers.isTrue(Helpers.isEqual(market, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " loadTradeMarket() could not parse market "), idStr)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " loadTradeMarket() could not parse market "), idStr)) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 this.markets = this.createSafeDictionary();
             }
-            Object marketHandle = this.safeString(market, "market", "");
+            String marketHandle = this.safeString(market, "market", "");
             Helpers.addElementToObject(this.markets, marketHandle, market);
             this.indexMarketOutcomes(market);
             Helpers.addElementToObject(cached, idStr, market);
@@ -1674,10 +1674,10 @@ final Object finalTokenId = tokenId;
     public Object parsePredictionTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object tokenId = this.safeString(trade, "tokenId");
+        String tokenId = this.safeString(trade, "tokenId");
         Object outcomeObj = this.safeOutcome(tokenId, ((Object)market));
         Object timestamp = this.safeTimestamp(trade, "createdAt");
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         return this.safePredictionTrade(new java.util.HashMap<String, Object>() {{
             put( "id", OpinionCore.this.safeString(trade, "txHash") );
             put( "timestamp", timestamp );
@@ -1721,7 +1721,7 @@ final Object finalTokenId = tokenId;
             for (var i = 0; Helpers.isLessThan(i, rawBalancesLength); i++)
             {
                 Object rawBalance = Helpers.GetValue(rawBalances, i);
-                Object quoteTokenAddress = this.safeString(rawBalance, "quoteToken");
+                String quoteTokenAddress = this.safeString(rawBalance, "quoteToken");
                 Object quoteToken = (this.loadQuoteToken(quoteTokenAddress)).join();
                 Helpers.addElementToObject(rawBalance, "symbol", this.safeString(quoteToken, "symbol", "USDT"));
             }
@@ -1749,7 +1749,7 @@ final Object finalTokenId = tokenId;
         for (var i = 0; Helpers.isLessThan(i, balancesLength); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
-            Object code = this.safeString(balance, "symbol", "USDT");
+            String code = this.safeString(balance, "symbol", "USDT");
             Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
     put( "free", OpinionCore.this.safeNumber(balance, "availableBalance") );
     put( "used", OpinionCore.this.safeNumber(balance, "frozenBalance") );
@@ -1777,7 +1777,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() requires a walletAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositions() requires a walletAddress")) ;
             }
             (this.loadApiKey()).join();
             Object outcomesLength = 0;
@@ -1803,7 +1803,7 @@ final Object finalTokenId = tokenId;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomesList)); i++)
             {
                 Object outcomeObj = this.outcome(Helpers.GetValue(outcomesList, i));
-                Object tokenId = this.safeString(outcomeObj, "outcomeId");
+                String tokenId = this.safeString(outcomeObj, "outcomeId");
                 if (Helpers.isTrue(!Helpers.isEqual(tokenId, null)))
                 {
                     Helpers.addElementToObject(wantedTokenIds, tokenId, true);
@@ -1814,7 +1814,7 @@ final Object finalTokenId = tokenId;
             {
                 Object position = Helpers.GetValue(parsed, i);
                 Object info = this.safeDict(position, "info", new java.util.HashMap<String, Object>() {{}});
-                Object tokenId = this.safeString(info, "tokenId");
+                String tokenId = this.safeString(info, "tokenId");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tokenId, null))) && Helpers.isTrue((Helpers.inOp(wantedTokenIds, tokenId)))))
                 {
                     ((java.util.List<Object>)filtered).add(position);
@@ -1837,9 +1837,9 @@ final Object finalTokenId = tokenId;
     public Object parsePredictionPosition(Object position, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object tokenId = this.safeString(position, "tokenId");
+        String tokenId = this.safeString(position, "tokenId");
         Object outcomeObj = this.safeOutcome(tokenId, ((Object)market));
-        String outcomeSideEnum = (String)this.safeStringLower(position, "outcomeSideEnum");
+        String outcomeSideEnum = this.safeStringLower(position, "outcomeSideEnum");
         return this.safePredictionPosition(new java.util.HashMap<String, Object>() {{
             put( "contracts", OpinionCore.this.safeNumber(position, "sharesOwned") );
             put( "side", outcomeSideEnum );
@@ -1864,8 +1864,8 @@ final Object finalTokenId = tokenId;
         // assign before padStart so the PHP str_pad regex matches
         Object rRaw = Helpers.GetValue(signature, "r");
         Object sRaw = Helpers.GetValue(signature, "s");
-        Object r = Helpers.padStart((String)rRaw, ((Number)64).intValue(), ((String)"0").charAt(0));
-        Object s = Helpers.padStart((String)sRaw, ((Number)64).intValue(), ((String)"0").charAt(0));
+        Object r = Helpers.padStart(((String)rRaw), ((Number)64).intValue(), "0".charAt(0));
+        Object s = Helpers.padStart(((String)sRaw), ((Number)64).intValue(), "0".charAt(0));
         return new java.util.HashMap<String, Object>() {{
             put( "r", Helpers.add("0x", r) );
             put( "s", Helpers.add("0x", s) );
@@ -1997,14 +1997,14 @@ final Object finalTokenId = tokenId;
             {
                 return this.apiKey;
             }
-            Object optionsKey = this.safeString(this.options, "apiKey");
+            String optionsKey = this.safeString(this.options, "apiKey");
             if (Helpers.isTrue(!Helpers.isEqual(optionsKey, null)))
             {
                 return optionsKey;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.walletAddress, null))) || Helpers.isTrue((Helpers.isEqual(this.privateKey, null)))))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " private endpoints require an apiKey, or a walletAddress and privateKey to self-issue one")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " private endpoints require an apiKey, or a walletAddress and privateKey to self-issue one")) ;
             }
             Object creds = null;
             try
@@ -2050,9 +2050,9 @@ final Object finalTokenId = tokenId;
         Object apiKey = ((Helpers.isTrue((hasDirectApiKey)))) ? this.apiKey : this.safeString(this.options, "apiKey");
         if (Helpers.isTrue(Helpers.isEqual(apiKey, null)))
         {
-            throw new AuthenticationError((String)Helpers.add(this.id, " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
+            throw new AuthenticationError(Helpers.add(this.id, " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
         }
-        Object wsUrl = this.safeString(Helpers.GetValue(this.urls, "api"), "ws", "");
+        String wsUrl = this.safeString(Helpers.GetValue(this.urls, "api"), "ws", "");
         return Helpers.add(Helpers.add(wsUrl, "?apikey="), apiKey);
     }
 
@@ -2097,7 +2097,7 @@ final Object finalTokenId = tokenId;
     {
         // every data payload carries its channel name in msgType; frames without one -
         // subscribe acks and heartbeat echoes - carry nothing to route
-        Object msgType = this.safeString(message, "msgType");
+        String msgType = this.safeString(message, "msgType");
         if (Helpers.isTrue(Helpers.isEqual(msgType, null)))
         {
             return;
@@ -2161,7 +2161,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2173,7 +2173,7 @@ final Object finalTokenId = tokenId;
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
             String channel = "market.depth.diff";
-            Object messageHash = Helpers.add("orderbook::", sym);
+            String messageHash = Helpers.add("orderbook::", sym);
             (this.loadApiKey()).join();
             Object url = this.opinionWsUrl();
             Client client = this.client(url);
@@ -2201,7 +2201,7 @@ final Object finalTokenId = tokenId;
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> seedOrderBook(Object outcome, Object sym, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> seedOrderBook(String outcome, Object sym, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2230,9 +2230,9 @@ final Object finalTokenId = tokenId;
         //         "msgType": "market.depth.diff"
         //     }
         //
-        Object tokenId = this.safeString(message, "tokenId");
+        String tokenId = this.safeString(message, "tokenId");
         Object outcomeObj = this.safeDict(this.outcomes_by_id, tokenId);
-        Object sym = this.safeString(outcomeObj, "outcome");
+        String sym = this.safeString(outcomeObj, "outcome");
         if (Helpers.isTrue(Helpers.isEqual(sym, null)))
         {
             return;
@@ -2243,7 +2243,7 @@ final Object finalTokenId = tokenId;
             return;
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, sym);
-        Object sideStr = this.safeString(message, "side");
+        String sideStr = this.safeString(message, "side");
         Object bookSide = ((Helpers.isTrue((Helpers.isEqual(sideStr, "bids"))))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
         Double price = this.safeNumber(message, "price");
         Double size = this.safeNumber(message, "size");
@@ -2263,7 +2263,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTicker(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2273,7 +2273,7 @@ final Object finalTokenId = tokenId;
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
-            Object messageHash = Helpers.add("ticker::", sym);
+            String messageHash = Helpers.add("ticker::", sym);
             return (this.subscribeOpinionChannel(messageHash, "market.last.price", marketId)).join();
         });
 
@@ -2290,9 +2290,9 @@ final Object finalTokenId = tokenId;
         //         "msgType": "market.last.price"
         //     }
         //
-        Object tokenId = this.safeString(message, "tokenId");
+        String tokenId = this.safeString(message, "tokenId");
         Object outcomeObj = this.safeDict(this.outcomes_by_id, tokenId);
-        Object sym = this.safeString(outcomeObj, "outcome");
+        String sym = this.safeString(outcomeObj, "outcome");
         if (Helpers.isTrue(Helpers.isEqual(sym, null)))
         {
             return;
@@ -2326,7 +2326,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTrades(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2338,7 +2338,7 @@ final Object finalTokenId = tokenId;
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
-            Object messageHash = Helpers.add("trades::", sym);
+            String messageHash = Helpers.add("trades::", sym);
             Object trades = (this.subscribeOpinionChannel(messageHash, "market.last.trade", marketId)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         });
@@ -2359,9 +2359,9 @@ final Object finalTokenId = tokenId;
         //         "msgType": "market.last.trade"
         //     }
         //
-        Object tokenId = this.safeString(message, "tokenId");
+        String tokenId = this.safeString(message, "tokenId");
         Object outcomeObj = this.safeDict(this.outcomes_by_id, tokenId);
-        Object sym = this.safeString(outcomeObj, "outcome");
+        String sym = this.safeString(outcomeObj, "outcome");
         if (Helpers.isTrue(Helpers.isEqual(sym, null)))
         {
             return;
@@ -2422,7 +2422,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires an outcome (the order update channel is per-market)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrders() requires an outcome (the order update channel is per-market)")) ;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
@@ -2556,7 +2556,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires an outcome (the trade record channel is per-market)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchMyTrades() requires an outcome (the trade record channel is per-market)")) ;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
@@ -2595,7 +2595,7 @@ final Object finalTokenId = tokenId;
         Long marketId = this.safeInteger(message, "marketId");
         Long outcomeSide = this.safeInteger(message, "outcomeSide");
         Object outcomeObj = this.opinionOutcomeByMarketIdSide(marketId, outcomeSide);
-        Object sym = this.safeString(outcomeObj, "outcome");
+        String sym = this.safeString(outcomeObj, "outcome");
         Object timestamp = this.safeTimestamp(message, "createdAt");
         Object trade = this.safePredictionTrade(new java.util.HashMap<String, Object>() {{
             put( "id", OpinionCore.this.safeString(message, "tradeNo") );
@@ -2637,7 +2637,7 @@ final Object finalTokenId = tokenId;
         Long errno = this.safeInteger(response, "errno");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(errno, null))) && Helpers.isTrue((!Helpers.isEqual(errno, 0)))))
         {
-            Object errmsg = this.safeString(response, "errmsg", "");
+            String errmsg = this.safeString(response, "errmsg", "");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), this.numberToString(errno), feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), errmsg, feedback);
@@ -2669,7 +2669,7 @@ final Object finalTokenId = tokenId;
         Object apiGroup = ((Helpers.isTrue((api instanceof String)))) ? api : Helpers.GetValue(api, 0);
         Object access = ((Helpers.isTrue((api instanceof String)))) ? "public" : Helpers.GetValue(api, 1);
         Object baseUrls = Helpers.GetValue(this.urls, "api");
-        Object baseUrl = this.safeString(baseUrls, apiGroup, ((String)Helpers.GetValue(baseUrls, "opinion")));
+        String baseUrl = this.safeString(baseUrls, apiGroup, ((String)Helpers.GetValue(baseUrls, "opinion")));
         Object url = Helpers.add(Helpers.add(baseUrl, "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object existingHeaders = ((Helpers.isTrue((!Helpers.isEqual(headers, null))))) ? headers : new java.util.HashMap<String, Object>() {{}};
@@ -2684,14 +2684,14 @@ final Object finalTokenId = tokenId;
                 // wallet-signature scheme: no apiKey involved, the signature itself is the credential
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.walletAddress, null))) || Helpers.isTrue((Helpers.isEqual(this.privateKey, null)))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " requires a walletAddress and privateKey")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " requires a walletAddress and privateKey")) ;
                 }
                 java.util.Map<String, Object> actionByMethod = new java.util.HashMap<String, Object>() {{
                     put( "POST", "create" );
                     put( "GET", "get" );
                     put( "DELETE", "delete" );
                 }};
-                Object action = this.safeString(actionByMethod, method, "get");
+                String action = this.safeString(actionByMethod, method, "get");
                 Object timestamp = this.numberToString(this.seconds());
                 Helpers.addElementToObject(headers, "OPINION_ADDRESS", this.walletAddress);
                 Helpers.addElementToObject(headers, "OPINION_SIGNATURE", this.signApiKeyAuth(this.walletAddress, action, timestamp));
@@ -2704,7 +2704,7 @@ final Object finalTokenId = tokenId;
                 Object apiKey = ((Helpers.isTrue((hasDirectApiKey)))) ? this.apiKey : this.safeString(this.options, "apiKey");
                 if (Helpers.isTrue(Helpers.isEqual(apiKey, null)))
                 {
-                    throw new AuthenticationError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
+                    throw new AuthenticationError(Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
                 }
                 Helpers.addElementToObject(headers, "apikey", apiKey);
             }

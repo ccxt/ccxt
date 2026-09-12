@@ -450,11 +450,11 @@ public class NadoCore extends NadoApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() supports limit orders only")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " createOrder() supports limit orders only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument")) ;
             }
             Long productId = this.parseToInt(Helpers.GetValue(market, "id"));
             Object priceString = this.priceToPrecision(symbol, price);
@@ -502,7 +502,7 @@ public class NadoCore extends NadoApi
                 Helpers.addElementToObject(placeOrder, "spot_leverage", spotLeverage);
             }
             Boolean isBuy = (Helpers.isEqual(side, "buy"));
-            Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+            String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             String stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
             String takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
             Boolean isStopLossOrder = !Helpers.isEqual(stopLossTriggerPrice, null);
@@ -546,7 +546,7 @@ public class NadoCore extends NadoApi
                 }};
                 Helpers.addElementToObject(placeOrder, "trigger", trigger);
             }
-            Object appendix = this.safeString(parameters, "appendix");
+            String appendix = this.safeString(parameters, "appendix");
             if (Helpers.isTrue(Helpers.isEqual(appendix, null)))
             {
                 appendix = this.createOrderAppendix(isTriggerOrder, parameters);
@@ -590,7 +590,7 @@ public class NadoCore extends NadoApi
      * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -649,20 +649,20 @@ public class NadoCore extends NadoApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " editOrder() supports limit orders only")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " editOrder() supports limit orders only")) ;
             }
             String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice")));
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead")) ;
+                throw new NotSupported(Helpers.add(this.id, " editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(amount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an amount argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a price argument")) ;
             }
             Long productId = this.parseToInt(Helpers.GetValue(market, "id"));
             Object priceString = this.priceToPrecision(symbol, price);
@@ -688,7 +688,7 @@ public class NadoCore extends NadoApi
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             String cancelNonce = this.createOrderNonce(recvWindow);
             String orderNonce = Precise.stringAdd(cancelNonce, "1");
-            Object appendix = this.safeString(parameters, "appendix");
+            String appendix = this.safeString(parameters, "appendix");
             if (Helpers.isTrue(Helpers.isEqual(appendix, null)))
             {
                 appendix = this.createOrderAppendix(false, parameters);
@@ -720,7 +720,7 @@ public class NadoCore extends NadoApi
             String endpointAddress = this.safeString(contracts, "endpoint_addr");
             if (Helpers.isTrue(Helpers.isEqual(endpointAddress, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " editOrder() requires endpoint_addr from contracts query")) ;
+                throw new ExchangeError(Helpers.add(this.id, " editOrder() requires endpoint_addr from contracts query")) ;
             }
             Object cancelSignature = this.signCancellation(cancelTx, chainId, endpointAddress);
             Object orderSignature = this.signOrder(order, productId, chainId);
@@ -870,7 +870,7 @@ public class NadoCore extends NadoApi
             String endpointAddress = this.safeString(contracts, "endpoint_addr");
             if (Helpers.isTrue(Helpers.isEqual(endpointAddress, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrders() requires endpoint_addr from contracts query")) ;
+                throw new ExchangeError(Helpers.add(this.id, " cancelAllOrders() requires endpoint_addr from contracts query")) ;
             }
             Object signature = this.signCancellationProducts(tx, chainId, endpointAddress);
             Long requestId = this.safeInteger(parameters, "id");
@@ -915,7 +915,7 @@ public class NadoCore extends NadoApi
             this.checkRequiredCredentials();
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -989,7 +989,7 @@ public class NadoCore extends NadoApi
             String endpointAddress = this.safeString(contracts, "endpoint_addr");
             if (Helpers.isTrue(Helpers.isEqual(endpointAddress, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " cancelOrders() requires endpoint_addr from contracts query")) ;
+                throw new ExchangeError(Helpers.add(this.id, " cancelOrders() requires endpoint_addr from contracts query")) ;
             }
             Object signature = this.signCancellation(tx, chainId, endpointAddress);
             Long requestId = this.safeInteger(parameters, "id");
@@ -1038,7 +1038,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -1112,7 +1112,7 @@ public class NadoCore extends NadoApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             if (Helpers.isTrue(!Helpers.isEqual(trigger, true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrders only support trigger")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrders only support trigger")) ;
             }
             Object recvWindow = null;
             java.util.List<Object> recvWindowparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "recvWindow", 5000);
@@ -1199,7 +1199,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires walletAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires walletAddress")) ;
             }
             (this.loadMarkets()).join();
             Object subaccount = null;
@@ -1216,7 +1216,7 @@ public class NadoCore extends NadoApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1287,7 +1287,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchClosedOrders() requires walletAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchClosedOrders() requires walletAddress")) ;
             }
             (this.loadMarkets()).join();
             Object market = null;
@@ -1442,7 +1442,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires walletAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires walletAddress")) ;
             }
             (this.loadMarkets()).join();
             Object market = null;
@@ -1535,7 +1535,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchBalance() requires walletAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchBalance() requires walletAddress")) ;
             }
             (this.loadMarkets()).join();
             Object subaccount = null;
@@ -1638,7 +1638,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires walletAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires walletAddress")) ;
             }
             (this.loadMarkets()).join();
             Object currency = null;
@@ -1750,7 +1750,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() requires walletAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositions() requires walletAddress")) ;
             }
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
@@ -1945,7 +1945,7 @@ public class NadoCore extends NadoApi
             {
                 Object rawAsset = Helpers.GetValue(assets, i);
                 String assetSymbol = this.safeString(rawAsset, "symbol");
-                String assetCode = (String) this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
+                String assetCode = this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
                 if (Helpers.isTrue(Helpers.isEqual(assetCode, null)))
                 {
                     continue;
@@ -1974,7 +1974,7 @@ public class NadoCore extends NadoApi
                 Object pair = this.safeDict(pairsById, id, new java.util.HashMap<String, Object>() {{}});
                 Object asset = this.safeDict(assetsById, id, new java.util.HashMap<String, Object>() {{}});
                 String rawType = this.safeString(market, "type");
-                Object type = ((Helpers.isTrue((Helpers.isEqual(rawType, "perp"))))) ? "swap" : rawType;
+                String type = ((Helpers.isTrue((Helpers.isEqual(rawType, "perp"))))) ? "swap" : rawType;
                 Boolean contract = (Helpers.isEqual(type, "swap"));
                 String tickerId = this.safeString2(pair, "ticker_id", "tickerId");
                 if (Helpers.isTrue(Helpers.isEqual(tickerId, null)))
@@ -1983,13 +1983,13 @@ public class NadoCore extends NadoApi
                 }
                 String rawBaseId = this.safeString(market, "symbol");
                 String rawQuoteId = this.safeString(pair, "quote", "USDT0");
-                String base = (String) this.safeCurrencyCode(this.removeMarketSuffix(rawBaseId));
-                String quote = (String) this.safeCurrencyCode(rawQuoteId);
+                String base = this.safeCurrencyCode(this.removeMarketSuffix(rawBaseId));
+                String quote = this.safeCurrencyCode(rawQuoteId);
                 Object baseAsset = this.safeDict(assetsByCode, base, asset);
                 Object quoteAsset = this.safeDict(assetsByCode, quote);
                 String baseId = this.safeString(baseAsset, "product_id", rawBaseId);
                 String quoteId = this.safeString(quoteAsset, "product_id", rawQuoteId);
-                Object settleId = ((Helpers.isTrue(contract))) ? quoteId : null;
+                String settleId = ((Helpers.isTrue(contract))) ? quoteId : null;
                 String settle = ((Helpers.isTrue(contract))) ? quote : null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 if (Helpers.isTrue(contract))
@@ -2163,7 +2163,7 @@ public class NadoCore extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2176,7 +2176,7 @@ public class NadoCore extends NadoApi
             Object ticker = this.safeDict(tickers, symbol);
             if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
             {
-                throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchTicker() ticker not found for "), symbol)) ;
+                throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchTicker() ticker not found for "), symbol)) ;
             }
             return ticker;
         });
@@ -2193,7 +2193,7 @@ public class NadoCore extends NadoApi
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2203,7 +2203,7 @@ public class NadoCore extends NadoApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
             String tickerId = this.safeString(Helpers.GetValue(market, "info"), "ticker_id");
             java.util.Map<String, Object> response = (this.archiveV2PublicGetContracts(parameters)).join();
@@ -2259,17 +2259,17 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires walletAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingHistory() requires walletAddress")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
             }
             Object subaccount = null;
             java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "subaccount", "default");
@@ -2379,7 +2379,7 @@ public class NadoCore extends NadoApi
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2389,7 +2389,7 @@ public class NadoCore extends NadoApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
             }
             String tickerId = this.safeString(Helpers.GetValue(market, "info"), "ticker_id");
             java.util.Map<String, Object> response = (this.archiveV2PublicGetContracts(parameters)).join();
@@ -2536,7 +2536,7 @@ public class NadoCore extends NadoApi
      * @param {int} [params.max_trade_id] max trade id to include in the result for pagination
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2948,7 +2948,7 @@ public class NadoCore extends NadoApi
         Object canWithdraw = this.safeBool(rawCurrency, "can_withdraw", false);
         String id = this.safeString(rawCurrency, "product_id");
         String currencyId = this.safeString(rawCurrency, "symbol");
-        String code = (String) this.safeCurrencyCode(this.removeMarketSuffix(currencyId));
+        String code = this.safeCurrencyCode(this.removeMarketSuffix(currencyId));
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "name", NadoCore.this.safeString(rawCurrency, "name") );
@@ -2999,7 +2999,7 @@ public class NadoCore extends NadoApi
         {
             Object rawBalance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(rawBalance, "product_id");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isEqual(code, "0")))
             {
                 code = "USDT0";
@@ -3053,7 +3053,7 @@ public class NadoCore extends NadoApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "product_id");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Object timestamp = this.safeTimestamp(transaction, "timestamp");
         Object preBalance = this.safeDict(transaction, "pre_balance", new java.util.HashMap<String, Object>() {{}});
         Object postBalance = this.safeDict(transaction, "post_balance", new java.util.HashMap<String, Object>() {{}});
@@ -3257,7 +3257,7 @@ public class NadoCore extends NadoApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = null;
+        String id = null;
         Object timestamp = null;
         String timeInForce = null;
         Object postOnly = null;
@@ -3271,7 +3271,7 @@ public class NadoCore extends NadoApi
         Object fee = null;
         Object lastTradeTimestamp = null;
         Object lastUpdateTimestamp = null;
-        Object status = null;
+        String status = null;
         String cancelOrderDigest = this.safeString(order, "digest");
         String archiveFilled = this.safeString(order, "base_filled");
         if (Helpers.isTrue(!Helpers.isEqual(archiveFilled, null)))
@@ -3438,7 +3438,7 @@ public class NadoCore extends NadoApi
     {
         if (Helpers.isTrue(Helpers.isEqual(value, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " convertToX18() requires a value")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " convertToX18() requires a value")) ;
         }
         return Precise.stringDiv(Precise.stringMul(value, "1000000000000000000"), "1", 0);
     }
@@ -3463,7 +3463,7 @@ public class NadoCore extends NadoApi
         return Precise.stringAdd(highBits, this.numberToString(entropy));
     }
 
-    public Object createOrderAppendix(Object isTriggerOrder, Object... optionalArgs)
+    public String createOrderAppendix(Object isTriggerOrder, Object... optionalArgs)
     {
         // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
@@ -3471,7 +3471,7 @@ public class NadoCore extends NadoApi
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Object postOnly = this.isPostOnly(false, null, parameters);
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Integer orderType = 0;
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "IOC")))
         {
@@ -3484,7 +3484,7 @@ public class NadoCore extends NadoApi
             orderType = 3;
         } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeInForce, null))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "GTC")))))
         {
-            throw new BadRequest((String)Helpers.add(this.id, " createOrder() only supports timeInForce values GTC, IOC, FOK, or PO")) ;
+            throw new BadRequest(Helpers.add(this.id, " createOrder() only supports timeInForce values GTC, IOC, FOK, or PO")) ;
         }
         String appendix = "1"; // version
         if (Helpers.isTrue(!Helpers.isEqual(orderType, 0)))
@@ -3515,7 +3515,7 @@ public class NadoCore extends NadoApi
         Object subaccount = Helpers.getArg(optionalArgs, 0, "default");
         if (Helpers.isTrue(Helpers.isEqual(walletAddress, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createSubaccount() requires walletAddress")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createSubaccount() requires walletAddress")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(subaccount, null)))
         {
@@ -3524,12 +3524,12 @@ public class NadoCore extends NadoApi
         Object address = ((String)this.remove0xPrefix(walletAddress)).toLowerCase();
         if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(address), 40)))
         {
-            throw new BadRequest((String)Helpers.add(this.id, " createOrder() requires a 20-byte walletAddress")) ;
+            throw new BadRequest(Helpers.add(this.id, " createOrder() requires a 20-byte walletAddress")) ;
         }
         Object encoded = this.remove0xPrefix(this.stringToBase16(subaccount));
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(encoded), 24)))
         {
-            throw new BadRequest((String)Helpers.add(this.id, " createOrder() subaccount must fit in 12 bytes")) ;
+            throw new BadRequest(Helpers.add(this.id, " createOrder() subaccount must fit in 12 bytes")) ;
         }
         return Helpers.add(Helpers.add("0x", address), this.padHex(encoded, 24, false));
     }
@@ -3566,7 +3566,7 @@ public class NadoCore extends NadoApi
         Object left = Helpers.getArg(optionalArgs, 0, true);
         if (Helpers.isTrue(Helpers.isEqual(length, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " padHex() requires length")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " padHex() requires length")) ;
         }
         Object zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
         Object padded = ((Helpers.isTrue(left))) ? (Helpers.add(zeros, value)) : (Helpers.add(value, zeros));
@@ -3691,7 +3691,7 @@ public class NadoCore extends NadoApi
     {
         if (Helpers.isTrue(Helpers.isEqual(privateKey, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " signHash() requires privateKey")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " signHash() requires privateKey")) ;
         }
         Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
@@ -3700,13 +3700,13 @@ public class NadoCore extends NadoApi
         return Helpers.add(Helpers.add(Helpers.add("0x", this.padHex(r, 64)), this.padHex(s, 64)), v);
     }
 
-    public Object removeMarketSuffix(Object marketId)
+    public Object removeMarketSuffix(String marketId)
     {
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
             return null;
         }
-        if (Helpers.isTrue(((String)marketId).endsWith(((String)"-PERP"))))
+        if (Helpers.isTrue(((String)marketId).endsWith("-PERP")))
         {
             return Helpers.slice(marketId, 0, Helpers.opNeg(5));
         }

@@ -555,13 +555,13 @@ public class LatokenCore extends LatokenApi
                 Object quoteCurrencyInfo = this.safeDict(quoteCurrency, "info");
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(baseCurrencyInfo, null)) && Helpers.isTrue(!Helpers.isEqual(quoteCurrencyInfo, null))))
                 {
-                    String base = (String) this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
-                    String quote = (String) this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
+                    String base = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
+                    String quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
                     {
                         continue;
                     }
-                    Object lowercaseQuote = ((String)quote).toLowerCase();
+                    Object lowercaseQuote = quote.toLowerCase();
                     Object capitalizedQuote = this.capitalize(lowercaseQuote);
                     String status = this.safeString(market, "status");
     final Object finalBase = base;
@@ -678,7 +678,7 @@ public class LatokenCore extends LatokenApi
     {
         String id = this.safeString(currency, "id");
         String tag = this.safeString(currency, "tag");
-        String code = (String) this.safeCurrencyCode(tag);
+        String code = this.safeCurrencyCode(tag);
         String currencyType = this.safeString(currency, "type");
         Boolean isCrypto = (Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_IEO")));
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -774,7 +774,7 @@ public class LatokenCore extends LatokenApi
                         maxTimestamp = Helpers.mathMax(maxTimestamp, timestamp);
                     }
                 }
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "blocked"));
@@ -935,7 +935,7 @@ public class LatokenCore extends LatokenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1084,8 +1084,8 @@ public class LatokenCore extends LatokenApi
         String takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         String baseId = this.safeString(trade, "baseCurrency");
         String quoteId = this.safeString(trade, "quoteCurrency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets, null))) && Helpers.isTrue((Helpers.inOp(this.markets, symbol)))))
         {
@@ -1134,7 +1134,7 @@ public class LatokenCore extends LatokenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1178,7 +1178,7 @@ public class LatokenCore extends LatokenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1196,13 +1196,13 @@ public class LatokenCore extends LatokenApi
                 return (this.fetchPublicTradingFee(symbol, parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " not support this method")) ;
+                throw new NotSupported(Helpers.add(this.id, " not support this method")) ;
             }
         });
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPublicTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchPublicTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1238,7 +1238,7 @@ public class LatokenCore extends LatokenApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPrivateTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchPrivateTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1418,8 +1418,8 @@ public class LatokenCore extends LatokenApi
         Long timestamp = this.safeInteger(order, "timestamp");
         String baseId = this.safeString(order, "baseCurrency");
         String quoteId = this.safeString(order, "quoteCurrency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && Helpers.isTrue((!Helpers.isEqual(quote, null)))))
         {
@@ -1508,7 +1508,7 @@ public class LatokenCore extends LatokenApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1738,7 +1738,7 @@ public class LatokenCore extends LatokenApi
             Object uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalSide = side;
             final Object finalUppercaseType = uppercaseType;
@@ -1986,7 +1986,7 @@ public class LatokenCore extends LatokenApi
         String id = this.safeString(transaction, "id");
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Double amount = this.safeNumber(transaction, "amount");
         String addressFrom = this.safeString(transaction, "senderAddress");
@@ -2128,7 +2128,7 @@ public class LatokenCore extends LatokenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

@@ -2103,7 +2103,7 @@ public class KucoinCore extends KucoinApi
             {
                 String defaultType = this.safeString(this.options, "defaultType", "spot");
                 String defaultTradeType = ((Helpers.isTrue((Helpers.isEqual(defaultType, "spot"))))) ? "SPOT" : "FUTURES";
-                Object tradeType = this.safeStringUpper(parameters, "tradeType", defaultTradeType);
+                String tradeType = this.safeStringUpper(parameters, "tradeType", defaultTradeType);
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "tradeType", tradeType );
                 }};
@@ -2278,8 +2278,8 @@ public class KucoinCore extends KucoinApi
                 var baseIdquoteIdVariable = Helpers.split(id, "-");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
                 Object ticker = this.safeDict(tickersById, id, new java.util.HashMap<String, Object>() {{}});
                 String makerFeeRate = this.safeString(ticker, "makerFeeRate");
@@ -2442,9 +2442,9 @@ public class KucoinCore extends KucoinApi
                 String baseId = this.safeString(market, "baseCurrency");
                 String quoteId = this.safeString(market, "quoteCurrency");
                 String settleId = this.safeString(market, "settleCurrency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String settle = (String) this.safeCurrencyCode(settleId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String settle = this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
                 String type = "swap";
                 if (Helpers.isTrue(future))
@@ -2635,9 +2635,9 @@ public class KucoinCore extends KucoinApi
                 String baseId = this.safeString(market, "baseCurrency");
                 String quoteId = this.safeString(market, "quoteCurrency");
                 String settleId = this.safeString(market, "settlementCurrency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String settle = (String) this.safeCurrencyCode(settleId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String settle = this.safeCurrencyCode(settleId);
                 String hasMargin = this.safeString(market, "marginMode");
                 Object isMarginable = ((Helpers.isTrue((Helpers.isEqual(hasMargin, "1"))))) ? true : false;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -2877,7 +2877,7 @@ public class KucoinCore extends KucoinApi
     {
         Object entry = currency;
         String id = this.safeString(entry, "currency");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList2(entry, "chains", "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object chainsLength = Helpers.getArrayLength(chains);
@@ -3009,8 +3009,8 @@ public class KucoinCore extends KucoinApi
                 Object account = Helpers.GetValue(data, i);
                 String accountId = this.safeString(account, "id");
                 String currencyId = this.safeString(account, "currency");
-                String code = (String) this.safeCurrencyCode(currencyId);
-                String type = (String)this.safeStringLower2(account, "type", "accountType"); // main or trade or unified
+                String code = this.safeCurrencyCode(currencyId);
+                String type = this.safeStringLower2(account, "type", "accountType"); // main or trade or unified
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", accountId );
                     put( "type", type );
@@ -3033,7 +3033,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTransactionFee(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTransactionFee(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3082,7 +3082,7 @@ public class KucoinCore extends KucoinApi
      * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3233,7 +3233,7 @@ public class KucoinCore extends KucoinApi
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
             Object keys = Helpers.objectKeys(accountsByType);
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " isFuturesMethod() type must be one of "), String.join((String)", ", (java.util.List<String>)keys))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " isFuturesMethod() type must be one of "), String.join(", ", (java.util.List<String>)keys))) ;
         }
         parameters = this.omit(parameters, "type");
         return Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "contract"))) || Helpers.isTrue((Helpers.isEqual(type, "future")))) || Helpers.isTrue((Helpers.isEqual(type, "futures")));  // * (type === 'futures') deprecated, use (type === 'future')
@@ -3730,7 +3730,7 @@ public class KucoinCore extends KucoinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3856,7 +3856,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrice(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrice(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3901,7 +3901,7 @@ public class KucoinCore extends KucoinApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String timestampString = this.safeString(ohlcv, 0);
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(timestampString, null)) && Helpers.isTrue(Helpers.isLessThanOrEqual(((String)timestampString).length(), 10))))
+        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(timestampString, null)) && Helpers.isTrue(Helpers.isLessThanOrEqual(timestampString.length(), 10))))
         {
             // kucoin spot and uta return seconds timestamps
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5)));
@@ -4049,7 +4049,7 @@ public class KucoinCore extends KucoinApi
                 String suffix = this.safeString(priceTypes, priceType);
                 if (Helpers.isTrue(Helpers.isEqual(suffix, null)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\"")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\"")) ;
                 }
                 Helpers.addElementToObject(request, "symbol", Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "-"), suffix));
             }
@@ -4245,7 +4245,7 @@ public class KucoinCore extends KucoinApi
      * @param {string} [params.network] the blockchain network name
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4302,7 +4302,7 @@ public class KucoinCore extends KucoinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4356,7 +4356,7 @@ public class KucoinCore extends KucoinApi
             Object data = this.safeValue(response, "data");
             if (Helpers.isTrue(Helpers.isEqual(data, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again")) ;
             }
             return this.parseDepositAddress(data, currency);
         });
@@ -4372,7 +4372,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchContractDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchContractDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4419,11 +4419,11 @@ public class KucoinCore extends KucoinApi
     public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
+        String address = this.safeString(depositAddress, "address");
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
-            address = Helpers.replace((String)address, (String)"bitcoincash:", (String)"");
+            address = Helpers.replace(address, (String)"bitcoincash:", (String)"");
         }
         Object code = null;
         if (Helpers.isTrue(!Helpers.isEqual(currency, null)))
@@ -4605,7 +4605,7 @@ public class KucoinCore extends KucoinApi
             {
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(level, 2)) && Helpers.isTrue(!Helpers.isEqual(level, null))))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchOrderBook() can only return level 2")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchOrderBook() can only return level 2")) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(limit, null)))
                 {
@@ -4639,7 +4639,7 @@ public class KucoinCore extends KucoinApi
                     response = (this.futuresPublicGetLevel2Depth100(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchOrderBook() limit argument must be 20 or 100")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchOrderBook() limit argument must be 20 or 100")) ;
                 }
             } else if (Helpers.isTrue(!Helpers.isTrue(isAuthenticated) || Helpers.isTrue(!Helpers.isEqual(limit, null))))
             {
@@ -4653,7 +4653,7 @@ public class KucoinCore extends KucoinApi
                             Helpers.addElementToObject(request, "limit", limit);
                         } else
                         {
-                            throw new ExchangeError((String)Helpers.add(this.id, " fetchOrderBook() limit argument must be 20 or 100")) ;
+                            throw new ExchangeError(Helpers.add(this.id, " fetchOrderBook() limit argument must be 20 or 100")) ;
                         }
                     }
                     Helpers.addElementToObject(request, "limit", ((Helpers.isTrue((!Helpers.isEqual(limit, null))))) ? limit : 100);
@@ -4720,7 +4720,7 @@ public class KucoinCore extends KucoinApi
         Boolean isTakeProfit = !Helpers.isEqual(takeProfitPrice, null);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(isStopLoss) && Helpers.isTrue(isTakeProfit))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null)))))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue(isTakeProfit)))))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice")) ;
+            throw new ExchangeError(Helpers.add(this.id, " createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice")) ;
         }
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(triggerPrice, stopLossPrice, takeProfitPrice));
     }
@@ -4777,7 +4777,7 @@ public class KucoinCore extends KucoinApi
                 return (this.createContractOrder(symbol, type, side, amount, price, parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " createOrder() does not support market "), Helpers.GetValue(market, "type"))) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, " createOrder() does not support market "), Helpers.GetValue(market, "type"))) ;
             }
         });
 
@@ -4927,11 +4927,11 @@ public class KucoinCore extends KucoinApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         // required param, cannot be used twice
@@ -4998,7 +4998,7 @@ public class KucoinCore extends KucoinApi
             }
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrder does not support isolated margin for stop orders")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrder does not support isolated margin for stop orders")) ;
             } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
             {
                 Helpers.addElementToObject(request, "tradeType", Helpers.GetValue(Helpers.GetValue(this.options, "marginModes"), marginMode));
@@ -5027,7 +5027,7 @@ public class KucoinCore extends KucoinApi
         Object result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "info"), "quoteIncrement"), this.precisionMode, this.paddingMode);
         if (Helpers.isTrue(Helpers.isEqual(result, "0")))
         {
-            throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " amount of "), Helpers.GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount")))) ;
+            throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " amount of "), Helpers.GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount")))) ;
         }
         return result;
     }
@@ -5119,11 +5119,11 @@ public class KucoinCore extends KucoinApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         // required param, cannot be used twice
@@ -5138,7 +5138,7 @@ public class KucoinCore extends KucoinApi
             put( "type", finalType );
             put( "leverage", 1 );
         }};
-        String marginModeUpper = (String)this.safeStringUpper(parameters, "marginMode");
+        String marginModeUpper = this.safeStringUpper(parameters, "marginMode");
         if (Helpers.isTrue(!Helpers.isEqual(marginModeUpper, null)))
         {
             parameters = this.omit(parameters, "marginMode");
@@ -5153,11 +5153,11 @@ public class KucoinCore extends KucoinApi
         {
             if (Helpers.isTrue(Helpers.isEqual(amount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " requires an amount argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " requires an amount argument")) ;
             }
             if (Helpers.isTrue(Helpers.isLessThan(amount, 1)))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() minimum contract order amount is 1")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " createOrder() minimum contract order amount is 1")) ;
             }
             Object sizeString = this.amountToPrecision(symbol, amount);
             if (Helpers.isTrue(!Helpers.isEqual(sizeString, null)))
@@ -5189,7 +5189,7 @@ public class KucoinCore extends KucoinApi
             Helpers.addElementToObject(request, "stopPriceType", triggerPriceTypeValue);
         } else if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)))
         {
-            Object priceType = triggerPriceTypeValue;
+            String priceType = triggerPriceTypeValue;
             if (Helpers.isTrue(hasStopLoss))
             {
                 String slPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
@@ -5220,12 +5220,12 @@ public class KucoinCore extends KucoinApi
             Helpers.addElementToObject(request, "stopPriceType", triggerPriceTypeValue);
         }
         Object uppercaseType = ((String)type).toUpperCase();
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "LIMIT")))
         {
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument for limit orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument for limit orders")) ;
             } else
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
@@ -5246,7 +5246,7 @@ public class KucoinCore extends KucoinApi
         Object hidden = this.safeValue(parameters, "hidden");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(postOnly, true))) && Helpers.isTrue((!Helpers.isEqual(hidden, null)))))
         {
-            throw new BadRequest((String)Helpers.add(this.id, " createOrder() does not support the postOnly parameter together with a hidden parameter")) ;
+            throw new BadRequest(Helpers.add(this.id, " createOrder() does not support the postOnly parameter together with a hidden parameter")) ;
         }
         Object iceberg = this.safeValue(parameters, "iceberg");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(iceberg, null))) && Helpers.isTrue((!Helpers.isEqual(iceberg, false)))))
@@ -5254,7 +5254,7 @@ public class KucoinCore extends KucoinApi
             Object visibleSize = this.safeValue(parameters, "visibleSize");
             if (Helpers.isTrue(Helpers.isEqual(visibleSize, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a visibleSize parameter for iceberg orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a visibleSize parameter for iceberg orders")) ;
             }
         }
         Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
@@ -5355,12 +5355,12 @@ public class KucoinCore extends KucoinApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
         }
         Object isSpot = Helpers.GetValue(market, "spot");
         Object isContract = Helpers.GetValue(market, "contract");
@@ -5404,7 +5404,7 @@ public class KucoinCore extends KucoinApi
                 Helpers.addElementToObject(request, "size", this.marketOrderAmountToPrecision(symbol, cost));
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() with cost is supported for spot market orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() with cost is supported for spot market orders only")) ;
             }
         } else
         {
@@ -5426,7 +5426,7 @@ public class KucoinCore extends KucoinApi
         java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarketOrder, false, parameters);
         postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-        Object timeInForce = this.handleTimeInForce(parameters);
+        String timeInForce = this.handleTimeInForce(parameters);
         if (Helpers.isTrue((!Helpers.isEqual(timeInForce, null))))
         {
             parameters = this.omit(parameters, "timeInForce");
@@ -5487,7 +5487,7 @@ public class KucoinCore extends KucoinApi
             String triggerDirection = this.safeString(parameters, "triggerDirection");
             if (Helpers.isTrue(Helpers.isEqual(triggerDirection, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice")) ;
             }
             Helpers.addElementToObject(request, "triggerDirection", ((Helpers.isTrue((Helpers.isEqual(triggerDirection, "ascending"))))) ? "UP" : "DOWN");
             Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -5495,7 +5495,7 @@ public class KucoinCore extends KucoinApi
         {
             if (Helpers.isTrue(!Helpers.isEqual(isContract, true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() stopLoss and takeProfit parameters are only supported for contract orders")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() stopLoss and takeProfit parameters are only supported for contract orders")) ;
             }
             if (Helpers.isTrue(hasStopLoss))
             {
@@ -5549,7 +5549,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5578,7 +5578,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5604,7 +5604,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5648,7 +5648,7 @@ public class KucoinCore extends KucoinApi
                 String symbol = this.safeString(order, "symbol");
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
                 }
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
@@ -5661,7 +5661,7 @@ public class KucoinCore extends KucoinApi
             }
             if (Helpers.isTrue(Helpers.isTrue(isSpot) && Helpers.isTrue(isContract)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires all orders to be either spot or contract")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrders() requires all orders to be either spot or contract")) ;
             } else if (Helpers.isTrue(isSpot))
             {
                 return (this.createSpotOrders(orders, parameters)).join();
@@ -5670,7 +5670,7 @@ public class KucoinCore extends KucoinApi
                 return (this.createContractOrders(orders, parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrders() does not support the markets of the orders provided")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrders() does not support the markets of the orders provided")) ;
             }
         });
 
@@ -5700,14 +5700,14 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object symbol = null;
+            String symbol = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
@@ -5716,13 +5716,13 @@ public class KucoinCore extends KucoinApi
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(symbol, marketId)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
                     }
                 }
                 String type = this.safeString(rawOrder, "type");
                 if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " createOrders() only supports limit orders")) ;
+                    throw new BadRequest(Helpers.add(this.id, " createOrders() only supports limit orders")) ;
                 }
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
@@ -5733,7 +5733,7 @@ public class KucoinCore extends KucoinApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires at least one order with a symbol")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires at least one order with a symbol")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -5822,7 +5822,7 @@ public class KucoinCore extends KucoinApi
                 String symbol = this.safeString(rawOrder, "symbol");
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
                 }
                 String type = this.safeString(rawOrder, "type", "");
                 String side = this.safeString(rawOrder, "side");
@@ -5875,7 +5875,7 @@ public class KucoinCore extends KucoinApi
      * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6044,7 +6044,7 @@ public class KucoinCore extends KucoinApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol parameter for hf orders")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol parameter for hf orders")) ;
                     }
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
@@ -6181,7 +6181,7 @@ public class KucoinCore extends KucoinApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument when cancelling by clientOrderId")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument when cancelling by clientOrderId")) ;
                 }
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
@@ -6232,7 +6232,7 @@ public class KucoinCore extends KucoinApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument for uta endpoint")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument for uta endpoint")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6248,7 +6248,7 @@ public class KucoinCore extends KucoinApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(id, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires an id argument or clientOrderId parameter")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires an id argument or clientOrderId parameter")) ;
                 }
                 Helpers.addElementToObject(request, "orderId", id);
             }
@@ -6391,14 +6391,14 @@ public class KucoinCore extends KucoinApi
                 Helpers.addElementToObject(request, "symbol", this.marketId(symbol));
             } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(trigger, true))) && Helpers.isTrue(isMarginOrders)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument for margin non-trigger orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument for margin non-trigger orders")) ;
             }
             if (Helpers.isTrue(isMarginOrders))
             {
                 Helpers.addElementToObject(request, "tradeType", Helpers.GetValue(Helpers.GetValue(this.options, "marginModes"), marginMode));
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")) && Helpers.isTrue((Helpers.isEqual(trigger, true)))))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrders does not support isolated margin for stop orders")) ;
+                    throw new BadRequest(Helpers.add(this.id, " cancelAllOrders does not support isolated margin for stop orders")) ;
                 }
             }
             Object response = null;
@@ -6510,7 +6510,7 @@ public class KucoinCore extends KucoinApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument for uta endpoint")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument for uta endpoint")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6687,7 +6687,7 @@ public class KucoinCore extends KucoinApi
             parameters = ((java.util.List<Object>) hfparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(hf, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrdersByStatus() requires a symbol parameter for hf orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrdersByStatus() requires a symbol parameter for hf orders")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "till", "until")));
             java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
@@ -6825,7 +6825,7 @@ public class KucoinCore extends KucoinApi
                 Helpers.addElementToObject(request, "status", status);
             } else if (Helpers.isTrue(!Helpers.isEqual(status, "active")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOrdersByStatus() can only fetch untriggered stop orders")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOrdersByStatus() can only fetch untriggered stop orders")) ;
             }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -6970,7 +6970,7 @@ public class KucoinCore extends KucoinApi
             Boolean isContract = Helpers.isTrue((!Helpers.isEqual(marketType, "spot"))) && Helpers.isTrue((!Helpers.isEqual(marketType, "margin")));
             if (Helpers.isTrue(!Helpers.isTrue(isContract) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint")) ;
             }
             Object marginMode = null;
             java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
@@ -7200,7 +7200,7 @@ public class KucoinCore extends KucoinApi
             }
             if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires an id argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires an id argument")) ;
             }
             Object uta = (this.isUTAEnabled()).join();
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrder", "uta", uta);
@@ -7288,7 +7288,7 @@ public class KucoinCore extends KucoinApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol parameter for hf and margin orders")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol parameter for hf and margin orders")) ;
                     }
                     Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 }
@@ -7328,7 +7328,7 @@ public class KucoinCore extends KucoinApi
                 // https://github.com/ccxt/ccxt/issues/7234
                 if (Helpers.isTrue(Helpers.isEqual(id, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " fetchOrder() requires an order id")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " fetchOrder() requires an order id")) ;
                 }
                 Helpers.addElementToObject(request, "orderId", id);
                 if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
@@ -7395,7 +7395,7 @@ public class KucoinCore extends KucoinApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(id, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires an order id argument or clientOrderId in params")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires an order id argument or clientOrderId in params")) ;
                 }
                 Helpers.addElementToObject(request, "orderId", id);
                 response = (this.futuresPrivateGetOrdersOrderId(this.extend(request, parameters))).join();
@@ -7472,7 +7472,7 @@ public class KucoinCore extends KucoinApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument for uta orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument for uta orders")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
@@ -7484,7 +7484,7 @@ public class KucoinCore extends KucoinApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(id, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires an id argument or clientOrderId parameter")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires an id argument or clientOrderId parameter")) ;
                 }
                 Helpers.addElementToObject(request, "orderId", id);
             }
@@ -7573,7 +7573,7 @@ public class KucoinCore extends KucoinApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(tradeType, "ISOLATED")))
                     {
-                        throw new NotSupported((String)Helpers.add(this.id, " spot isolated margin is not supported for unified accountMode")) ;
+                        throw new NotSupported(Helpers.add(this.id, " spot isolated margin is not supported for unified accountMode")) ;
                     } else
                     {
                         tradeType = "MARGIN";
@@ -7685,7 +7685,7 @@ public class KucoinCore extends KucoinApi
         // omitZero is called in safeOrder2
         String side = this.safeString(order, "side");
         String feeCurrencyId = this.safeString(order, "feeCurrency");
-        String feeCurrency = (String) this.safeCurrencyCode(feeCurrencyId);
+        String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         Double feeCost = this.safeNumber(order, "fee");
         String amount = this.safeString(order, "size");
         String filled = this.safeString(order, "filledSize");
@@ -8004,7 +8004,7 @@ public class KucoinCore extends KucoinApi
         Object timestamp = this.safeIntegerProduct2(order, "orderTime", "ts", 0.000001);
         Long lastUpdateTimestamp = this.safeIntegerProduct(order, "updatedTime", 0.000001);
         String rawTimeInForce = this.safeString(order, "timeInForce");
-        Object amount = null;
+        String amount = null;
         Object cost = null;
         String sizeUnit = this.safeString(order, "sizeUnit");
         String size = this.safeString(order, "size");
@@ -8106,7 +8106,7 @@ public class KucoinCore extends KucoinApi
      * @param {boolean} [params.uta] set to true if fetching trades from uta endpoint, default is false.
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8238,7 +8238,7 @@ public class KucoinCore extends KucoinApi
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(hf, true))) && Helpers.isTrue(Helpers.isEqual(symbol, null))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol parameter for hf or margin orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol parameter for hf or margin orders")) ;
             }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -8289,7 +8289,7 @@ public class KucoinCore extends KucoinApi
                 response = (this.privateGetLimitFills(this.extend(request, parameters))).join();
             } else
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchMyTradesMethod() invalid method")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchMyTradesMethod() invalid method")) ;
             }
             //
             //     {
@@ -8502,7 +8502,7 @@ public class KucoinCore extends KucoinApi
                 isContract = Helpers.GetValue(market, "contract");
             } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(marketType, "spot"))) || Helpers.isTrue((Helpers.isEqual(marketType, "margin")))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol parameter for uta spot or margin trades")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol parameter for uta spot or margin trades")) ;
             } else
             {
                 isContract = true;
@@ -8584,7 +8584,7 @@ public class KucoinCore extends KucoinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9082,7 +9082,7 @@ public class KucoinCore extends KucoinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9191,7 +9191,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9319,10 +9319,10 @@ public class KucoinCore extends KucoinApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object address = this.safeString(transaction, "address");
+        String code = this.safeCurrencyCode(currencyId, currency);
+        String address = this.safeString(transaction, "address");
         String amount = this.safeString(transaction, "amount");
-        Object txid = this.safeString(transaction, "walletTxId");
+        String txid = this.safeString(transaction, "walletTxId");
         if (Helpers.isTrue(!Helpers.isEqual(txid, null)))
         {
             Object txidParts = Helpers.split(txid, "@");
@@ -9333,11 +9333,11 @@ public class KucoinCore extends KucoinApi
                 {
                     if (Helpers.isTrue(Helpers.isGreaterThan(((String)Helpers.GetValue(txidParts, 1)).length(), 1)))
                     {
-                        address = Helpers.GetValue(txidParts, 1);
+                        address = (String) Helpers.GetValue(txidParts, 1);
                     }
                 }
             }
-            txid = Helpers.GetValue(txidParts, 0);
+            txid = (String) Helpers.GetValue(txidParts, 0);
         }
         String type = ((Helpers.isTrue((Helpers.isEqual(txid, null))))) ? "withdrawal" : "deposit";
         String rawStatus = this.safeString(transaction, "status");
@@ -9993,8 +9993,8 @@ public class KucoinCore extends KucoinApi
                     Object entry = Helpers.GetValue(assets, i);
                     Object base = this.safeDict(entry, "baseAsset", new java.util.HashMap<String, Object>() {{}});
                     Object quote = this.safeDict(entry, "quoteAsset", new java.util.HashMap<String, Object>() {{}});
-                    String baseCode = (String) this.safeCurrencyCode(this.safeString(base, "currency"));
-                    String quoteCode = (String) this.safeCurrencyCode(this.safeString(quote, "currency"));
+                    String baseCode = this.safeCurrencyCode(this.safeString(base, "currency"));
+                    String quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
                     if (Helpers.isTrue(!Helpers.isEqual(baseCode, null)))
                     {
                         result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
@@ -10012,7 +10012,7 @@ public class KucoinCore extends KucoinApi
                 {
                     Object balance = Helpers.GetValue(accounts, i);
                     String currencyId = this.safeString(balance, "currency");
-                    String codeInner = (String) this.safeCurrencyCode(currencyId);
+                    String codeInner = this.safeCurrencyCode(currencyId);
                     if (Helpers.isTrue(!Helpers.isEqual(codeInner, null)))
                     {
                         Helpers.addElementToObject(result, codeInner, this.parseBalanceHelper(balance));
@@ -10028,7 +10028,7 @@ public class KucoinCore extends KucoinApi
                     if (Helpers.isTrue(Helpers.isEqual(balanceType, type)))
                     {
                         String currencyId = this.safeString(balance, "currency");
-                        String codeInner2 = (String) this.safeCurrencyCode(currencyId);
+                        String codeInner2 = this.safeCurrencyCode(currencyId);
                         Object account = this.account();
                         Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
                         Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
@@ -10071,7 +10071,7 @@ public class KucoinCore extends KucoinApi
             String code = this.safeString(parameters, "code", defaultCode);
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchContractBalance() requires a code parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchContractBalance() requires a code parameter")) ;
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -10100,7 +10100,7 @@ public class KucoinCore extends KucoinApi
             }};
             Object data = this.safeValue(response, "data");
             String currencyId = this.safeString(data, "currency");
-            String currencyCode = (String) this.safeCurrencyCode(currencyId, currency);
+            String currencyCode = this.safeCurrencyCode(currencyId, currency);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(data, "availableBalance"));
             Helpers.addElementToObject(account, "total", this.safeString(data, "accountEquity"));
@@ -10148,7 +10148,7 @@ public class KucoinCore extends KucoinApi
                 requestedType = marginMode;
             }
             Object utaAccountsByType = this.safeDict(this.options, "utaAccountsByType", new java.util.HashMap<String, Object>() {{}});
-            Object type = null;
+            String type = null;
             type = this.safeString(utaAccountsByType, requestedType, requestedType);
             Boolean isIsolated = (Helpers.isEqual(type, "ISOLATED"));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
@@ -10244,7 +10244,7 @@ public class KucoinCore extends KucoinApi
                     {
                         Object currencyEntry = this.safeDict(currencies, j, new java.util.HashMap<String, Object>() {{}});
                         String currencyId = this.safeString(currencyEntry, "currency");
-                        String currencyCode = (String) this.safeCurrencyCode(currencyId);
+                        String currencyCode = this.safeCurrencyCode(currencyId);
                         if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
                         {
                             result = this.mergeBalanceAccount(result, currencyCode, this.parseBalanceHelper(currencyEntry));
@@ -10259,7 +10259,7 @@ public class KucoinCore extends KucoinApi
                 {
                     Object currencyEntry = this.safeDict(currencies, i, new java.util.HashMap<String, Object>() {{}});
                     String currencyId = this.safeString(currencyEntry, "currency");
-                    String currencyCode = (String) this.safeCurrencyCode(currencyId);
+                    String currencyCode = this.safeCurrencyCode(currencyId);
                     if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
                     {
                         Helpers.addElementToObject(result, currencyCode, this.parseBalanceHelper(currencyEntry));
@@ -10286,7 +10286,7 @@ public class KucoinCore extends KucoinApi
      * Check transferClassic() and transferUta() for more details on params
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10324,7 +10324,7 @@ public class KucoinCore extends KucoinApi
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transferUta(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transferUta(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10356,7 +10356,7 @@ public class KucoinCore extends KucoinApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(toUserId, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "toUid", toUserId);
@@ -10365,7 +10365,7 @@ public class KucoinCore extends KucoinApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(fromUserId, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "fromUid", fromUserId);
@@ -10437,7 +10437,7 @@ public class KucoinCore extends KucoinApi
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transferClassic(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transferClassic(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10461,13 +10461,13 @@ public class KucoinCore extends KucoinApi
             {
                 if (!Helpers.isTrue((Helpers.inOp(parameters, "toUserId"))))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " transfer() requires a toUserId param for PARENT_TO_SUB transfers")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " transfer() requires a toUserId param for PARENT_TO_SUB transfers")) ;
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(transferType, "SUB_TO_PARENT")))
             {
                 if (!Helpers.isTrue((Helpers.inOp(parameters, "fromUserId"))))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " transfer() requires a fromUserId param for SUB_TO_PARENT transfers")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " transfer() requires a fromUserId param for SUB_TO_PARENT transfers")) ;
                 }
             }
             if (!Helpers.isTrue((Helpers.inOp(parameters, "clientOid"))))
@@ -10608,7 +10608,7 @@ public class KucoinCore extends KucoinApi
         if (Helpers.isTrue(isLedgerEntry))
         {
             // Ledger entry format: uses accountType + direction
-            String accountType = (String)this.safeStringLower(transfer, "accountType");
+            String accountType = this.safeStringLower(transfer, "accountType");
             String direction = this.safeString(transfer, "direction");
             if (Helpers.isTrue(Helpers.isEqual(direction, "out")))
             {
@@ -10624,8 +10624,8 @@ public class KucoinCore extends KucoinApi
             accountToRaw = this.safeStringLower(transfer, "recAccountType");
         }
         Object accountsByType = this.safeDict(this.options, "accountsByType");
-        Object accountFrom = ((Helpers.isTrue((Helpers.isEqual(accountFromRaw, null))))) ? null : this.safeString(accountsByType, accountFromRaw, accountFromRaw);
-        Object accountTo = ((Helpers.isTrue((Helpers.isEqual(accountToRaw, null))))) ? null : this.safeString(accountsByType, accountToRaw, accountToRaw);
+        String accountFrom = ((Helpers.isTrue((Helpers.isEqual(accountFromRaw, null))))) ? null : this.safeString(accountsByType, accountFromRaw, accountFromRaw);
+        String accountTo = ((Helpers.isTrue((Helpers.isEqual(accountToRaw, null))))) ? null : this.safeString(accountsByType, accountToRaw, accountToRaw);
         return new java.util.HashMap<String, Object>() {{
             put( "id", KucoinCore.this.safeStringN(transfer, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "applyId", "orderId"))) );
             put( "currency", KucoinCore.this.safeCurrencyCode(currencyId, currency) );
@@ -10768,7 +10768,7 @@ public class KucoinCore extends KucoinApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(item, "id");
         String currencyId = this.safeString(item, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amount = this.safeString(item, "amount");
         Object balanceAfter = this.safeNumberOmitZero(item, "balance");
@@ -10803,7 +10803,7 @@ public class KucoinCore extends KucoinApi
         //
         //     "{\"symbol\":\"ETH-USDT\",\"orderId\":\"617adcd1eb3fa20001dd29a1\",\"tradeId\":\"617adcd12e113d2b91222ff9\"}"
         //
-        Object referenceId = null;
+        String referenceId = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(context, null)) && Helpers.isTrue(!Helpers.isEqual(context, ""))))
         {
             try
@@ -10926,7 +10926,7 @@ public class KucoinCore extends KucoinApi
             {
                 accountsByType = this.safeDict(this.options, "utaAccountsByType");
             }
-            Object type = null;
+            String type = null;
             type = this.safeString(accountsByType, requestedType, requestedType);
             Integer maxLimit = 500; // for spot non-uta and margin
             if (Helpers.isTrue(Helpers.isEqual(hf, true)))
@@ -11330,7 +11330,7 @@ public class KucoinCore extends KucoinApi
         Object isolatedBase = this.safeDict(info, "baseAsset", new java.util.HashMap<String, Object>() {{}});
         Object amountBorrowed = null;
         Object interest = null;
-        Object currencyId = null;
+        String currencyId = null;
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
         {
             amountBorrowed = this.safeNumber(isolatedBase, "liabilityPrincipal");
@@ -11443,7 +11443,7 @@ public class KucoinCore extends KucoinApi
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBorrowRateHistory(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchBorrowRateHistory(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11518,7 +11518,7 @@ public class KucoinCore extends KucoinApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object item = Helpers.GetValue(response, i);
-            String code = (String) this.safeCurrencyCode(this.safeString(item, "currency"));
+            String code = this.safeCurrencyCode(this.safeString(item, "currency"));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(codes, null)) || Helpers.isTrue(this.inArray(code, codes))))))
             {
                 if (!Helpers.isTrue((Helpers.inOp(borrowRateHistories, code))))
@@ -11548,7 +11548,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11593,7 +11593,7 @@ public class KucoinCore extends KucoinApi
      * @param {string} [params.timeInForce] either IOC or FOK
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11640,7 +11640,7 @@ public class KucoinCore extends KucoinApi
      * @param {string} [params.timeInForce] either IOC or FOK
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(Object symbol, Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11688,7 +11688,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoints
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11733,7 +11733,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoints
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(Object symbol, Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11846,7 +11846,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11858,7 +11858,7 @@ public class KucoinCore extends KucoinApi
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, "cross")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchLeverage() currently supports only params[\"marginMode\"] = \"cross\"")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchLeverage() currently supports only params[\"marginMode\"] = \"cross\"")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -11867,7 +11867,7 @@ public class KucoinCore extends KucoinApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchLeverage() supports contract markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchLeverage() supports contract markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -11928,7 +11928,7 @@ public class KucoinCore extends KucoinApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage requires a symbol argument for contract markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage requires a symbol argument for contract markets")) ;
                 }
                 market = this.market(symbol);
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
@@ -11952,7 +11952,7 @@ public class KucoinCore extends KucoinApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " unified trading account does not support isolated margin")) ;
+                    throw new NotSupported(Helpers.add(this.id, " unified trading account does not support isolated margin")) ;
                 }
                 Helpers.addElementToObject(request, "accountMode", "unified");
                 Object code = null;
@@ -11961,7 +11961,7 @@ public class KucoinCore extends KucoinApi
                 parameters = ((java.util.List<Object>) codeparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage requires a currency code in the params[\"code\"] for unified trading account")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage requires a currency code in the params[\"code\"] for unified trading account")) ;
                 }
                 Helpers.addElementToObject(request, "currency", this.currencyId(code));
                 response = (this.utaPrivatePostAccountModeAccountModifyLeverageMarginCross(this.extend(request, parameters))).join();
@@ -11969,11 +11969,11 @@ public class KucoinCore extends KucoinApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage requires a marginMode parameter")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage requires a marginMode parameter")) ;
                 }
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")) && Helpers.isTrue(Helpers.isEqual(symbol, null))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage requires a symbol parameter for isolated margin")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage requires a symbol parameter for isolated margin")) ;
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -12008,7 +12008,7 @@ public class KucoinCore extends KucoinApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             Object marginMode = null;
             java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams(symbol, parameters);
@@ -12016,7 +12016,7 @@ public class KucoinCore extends KucoinApi
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "cross")))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " setLeverage() currently supports only params[\"marginMode\"] = \"cross\" for contracts")) ;
+                throw new NotSupported(Helpers.add(this.id, " setLeverage() currently supports only params[\"marginMode\"] = \"cross\" for contracts")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -12070,7 +12070,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingInterval(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingInterval(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12092,7 +12092,7 @@ public class KucoinCore extends KucoinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12247,7 +12247,7 @@ public class KucoinCore extends KucoinApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -12385,7 +12385,7 @@ public class KucoinCore extends KucoinApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             } else if (!Helpers.isTrue(uta))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -12912,8 +12912,8 @@ public class KucoinCore extends KucoinApi
             timestamp = this.safeIntegerProduct(position, "creationTime", 0.000001);
         }
         String size = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("currentQty", "size", "maxSize", "closeSize")));
-        String side = (String)this.safeStringLower(position, "side");
-        String type = (String)this.safeStringLower(position, "type");
+        String side = this.safeStringLower(position, "side");
+        String type = this.safeStringLower(position, "type");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(!Helpers.isEqual(size, null)))
@@ -12943,7 +12943,7 @@ public class KucoinCore extends KucoinApi
         String unrealisedPnl = this.safeString2(position, "unrealisedPnl", "unrealizedPnL");
         Object crossMode = this.safeValue(position, "crossMode");
         // currently crossMode is always set to false and only isolated positions are supported
-        String marginMode = (String)this.safeStringLower(position, "marginMode");
+        String marginMode = this.safeStringLower(position, "marginMode");
         if (Helpers.isTrue(!Helpers.isEqual(crossMode, null)))
         {
             marginMode = ((Helpers.isTrue((Helpers.isEqual(crossMode, true))))) ? "cross" : "isolated";
@@ -13038,7 +13038,7 @@ public class KucoinCore extends KucoinApi
                 }
             } else if (Helpers.isTrue(uta))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument for uta endpoint")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument for uta endpoint")) ;
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object clientOrderIds = this.safeList2(parameters, "clientOrderIds", "clientOids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -13049,7 +13049,7 @@ public class KucoinCore extends KucoinApi
                 useClientorderId = true;
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument when cancelling by clientOrderIds")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument when cancelling by clientOrderIds")) ;
                 }
     final Object finalMarket = market;
                 final Object finalI = i;
@@ -13137,7 +13137,7 @@ public class KucoinCore extends KucoinApi
      * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13224,7 +13224,7 @@ public class KucoinCore extends KucoinApi
      * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13345,7 +13345,7 @@ public class KucoinCore extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13407,7 +13407,7 @@ public class KucoinCore extends KucoinApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new java.util.ArrayList<Object>(java.util.Arrays.asList("cross", "isolated")));
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -13417,7 +13417,7 @@ public class KucoinCore extends KucoinApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " setMarginMode() supports contract markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " setMarginMode() supports contract markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -13567,7 +13567,7 @@ public class KucoinCore extends KucoinApi
      * @param {boolean} [params.uta] set to true to fetch leverage tiers for unified trading account instead of futures account (default is false)
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13580,7 +13580,7 @@ public class KucoinCore extends KucoinApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
             Object uta = false;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMarketLeverageTiers", "uta", uta);
@@ -13694,7 +13694,7 @@ final Object finalMarket = market;
             }
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLeverageTiers() requires a symbols argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchLeverageTiers() requires a symbols argument")) ;
             }
             symbols = this.marketSymbols(symbols, "swap", false, true);
             Object marginMode = "cross";
@@ -13704,7 +13704,7 @@ final Object finalMarket = market;
             marginMode = ((String)marginMode).toUpperCase();
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, "CROSS")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchLeverageTiers() supports cross margin only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchLeverageTiers() supports cross margin only")) ;
             }
             Object marketIds = this.marketIds(symbols);
             final Object finalMarginMode = marginMode;
@@ -13713,7 +13713,7 @@ final Object finalMarket = market;
                 put( "marginMode", finalMarginMode );
                 put( "data", "RISK_LIMIT" );
                 put( "accountType", "UNIFIED" );
-                put( "symbol", String.join((String)",", (java.util.List<String>)marketIds) );
+                put( "symbol", String.join(",", (java.util.List<String>)marketIds) );
             }};
             java.util.Map<String, Object> response = (this.utaGetMarketPositionTiers(this.extend(request, parameters))).join();
             //
@@ -13792,7 +13792,7 @@ final Object finalMarket = market;
                     // the endpoint does not accept more than 10 symbols at a time
                     // if user provided more than 10 symbols, we will fetch all symbols
                     Object marketIds = this.marketIds(symbols);
-                    Helpers.addElementToObject(request, "symbol", String.join((String)",", (java.util.List<String>)marketIds));
+                    Helpers.addElementToObject(request, "symbol", String.join(",", (java.util.List<String>)marketIds));
                 }
             }
             java.util.Map<String, Object> response = (this.utaGetMarketOpenInterest(this.extend(request, parameters))).join();
@@ -13851,7 +13851,7 @@ final Object finalMarket = market;
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13877,7 +13877,7 @@ final Object finalMarket = market;
             String interval = this.safeString(timeframes, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(interval, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterestHistory() invalid timeframe, supported are 5m, 15m, 30m, 1h, 4h, 1d")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterestHistory() invalid timeframe, supported are 5m, 15m, 30m, 1h, 4h, 1d")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {

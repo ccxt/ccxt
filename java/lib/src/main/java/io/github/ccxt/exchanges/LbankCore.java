@@ -590,7 +590,7 @@ public class LbankCore extends LbankApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(Helpers.GetValue(rawCurrency, 0), "assetCode"); // first member is guaranteed
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object networksRaw = rawCurrency;
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networksRaw)); j++)
@@ -703,11 +703,11 @@ public class LbankCore extends LbankApi
             {
                 Object market = Helpers.GetValue(data, i);
                 String marketId = this.safeString(market, "symbol");
-                Object parts = Helpers.split(((String)marketId), "_");
+                Object parts = Helpers.split(marketId, "_");
                 String baseId = (String) Helpers.GetValue(parts, 0);
                 String quoteId = (String) Helpers.GetValue(parts, 1);
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -811,10 +811,10 @@ public class LbankCore extends LbankApi
                 String marketId = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseCurrency");
                 String settleId = this.safeString(market, "clearCurrency");
-                Object quoteId = settleId;
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String settle = (String) this.safeCurrencyCode(settleId);
+                String quoteId = settleId;
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String settle = this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -912,7 +912,7 @@ public class LbankCore extends LbankApi
             timestamp = this.safeTimestamp(ticker, "lastTime");
         }
         String marketId = this.safeString(ticker, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Object tickerData = this.safeValue(ticker, "ticker", new java.util.HashMap<String, Object>() {{}});
         market = this.safeMarket(marketId, market);
         Object data = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? ticker : tickerData;
@@ -950,7 +950,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1285,12 +1285,12 @@ public class LbankCore extends LbankApi
             id = this.safeString(trade, "txUuid");
         }
         String order = this.safeString(trade, "orderUuid");
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Object fee = null;
         String feeCost = this.safeString(trade, "tradeFee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
-            Object feeCurr = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? this.safeString(market, "base") : this.safeString(market, "quote");
+            String feeCurr = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? this.safeString(market, "base") : this.safeString(market, "quote");
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1336,7 +1336,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1584,7 +1584,7 @@ public class LbankCore extends LbankApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
             {
                 Object currencyId = Helpers.GetValue(currencies, i);
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "used", this.safeString(used, currencyId));
                 Helpers.addElementToObject(account, "free", this.safeString(free, currencyId));
@@ -1603,7 +1603,7 @@ public class LbankCore extends LbankApi
             {
                 Object item = Helpers.GetValue(balances, i);
                 String currencyId = this.safeString(item, "asset");
-                String codeInner = (String) this.safeCurrencyCode(currencyId);
+                String codeInner = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(item, "free"));
                 Helpers.addElementToObject(account, "used", this.safeString(item, "locked"));
@@ -1622,7 +1622,7 @@ public class LbankCore extends LbankApi
             {
                 Object item = Helpers.GetValue(data, i);
                 String currencyId = this.safeString(item, "coin");
-                String codeInner = (String) this.safeCurrencyCode(currencyId);
+                String codeInner = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(item, "usableAmt"));
                 Helpers.addElementToObject(account, "used", this.safeString(item, "freezeAmt"));
@@ -1655,7 +1655,7 @@ public class LbankCore extends LbankApi
         // }
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Double markPrice = this.safeNumber(ticker, "markedPrice");
         Double indexPrice = this.safeNumber(ticker, "underlyingPrice");
         Double fundingRate = this.safeNumber(ticker, "fundingRate");
@@ -1697,7 +1697,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1836,7 +1836,7 @@ public class LbankCore extends LbankApi
             Object balanceResult = this.parseBalance(balanceResponse);
             if (Helpers.isTrue(Helpers.isEqual(balanceResult, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchBalance() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchBalance() returned empty response")) ;
             }
             return balanceResult;
         });
@@ -1854,7 +1854,7 @@ public class LbankCore extends LbankApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "symbol");
-        String symbol = (String) this.safeSymbol(marketId);
+        String symbol = this.safeSymbol(marketId);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -1874,7 +1874,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1933,7 +1933,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1946,7 +1946,7 @@ public class LbankCore extends LbankApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
@@ -1984,7 +1984,7 @@ public class LbankCore extends LbankApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "custom_id", "clientOrderId");
             Object postOnly = this.safeBool(parameters, "postOnly", false);
-            String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+            String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("custom_id", "clientOrderId", "timeInForce", "postOnly")));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1994,7 +1994,7 @@ public class LbankCore extends LbankApi
             Boolean maker = (Helpers.isTrue((Helpers.isEqual(postOnly, true))) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO"))));
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "market"))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(ioc) || Helpers.isTrue(fok)) || Helpers.isTrue(maker)))))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
@@ -2034,7 +2034,7 @@ public class LbankCore extends LbankApi
                     {
                         if (Helpers.isTrue(Helpers.isEqual(price, null)))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
                             Object amountString = this.numberToString(amount);
@@ -2199,7 +2199,7 @@ public class LbankCore extends LbankApi
         Boolean postOnly = false;
         String type = "limit";
         String rawType = this.safeString2(order, "type", "tradeType"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        Object parts = Helpers.split(((String)rawType), "_");
+        Object parts = Helpers.split(rawType, "_");
         String side = this.safeString(parts, 0);
         String typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (Helpers.isTrue(Helpers.isEqual(typePart, "market")))
@@ -2221,7 +2221,7 @@ public class LbankCore extends LbankApi
         }
         String price = this.safeString(order, "price");
         String costString = this.safeString(order, "cummulativeQuoteQty");
-        Object amountString = null;
+        String amountString = null;
         if (Helpers.isTrue(!Helpers.isEqual(rawType, "buy_market")))
         {
             amountString = this.safeString2(order, "origQty", "amount");
@@ -2303,7 +2303,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2352,7 +2352,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2391,7 +2391,7 @@ public class LbankCore extends LbankApi
                 return this.parseOrder(Helpers.GetValue(result, 0));
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOrder() can only fetch one order at a time")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOrder() can only fetch one order at a time")) ;
             }
         });
 
@@ -2419,7 +2419,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2491,7 +2491,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2565,7 +2565,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2636,7 +2636,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2691,7 +2691,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2728,9 +2728,9 @@ public class LbankCore extends LbankApi
     public Object getNetworkCodeForCurrency(Object currencyCode, Object parameters)
     {
         Object defaultNetworks = this.safeValue(this.options, "defaultNetworks");
-        String defaultNetwork = (String)this.safeStringUpper(defaultNetworks, currencyCode);
+        String defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
         Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-        Object network = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+        String network = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         return network;
     }
@@ -2745,7 +2745,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2772,7 +2772,7 @@ public class LbankCore extends LbankApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddressDefault(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddressDefault(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2820,7 +2820,7 @@ public class LbankCore extends LbankApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddressSupplement(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddressSupplement(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2836,7 +2836,7 @@ public class LbankCore extends LbankApi
                 put( "coin", Helpers.GetValue(currency, "id") );
             }};
             Object networks = this.safeValue(this.options, "networks");
-            String network = (String)this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(parameters, "network");
             network = this.safeString(networks, network, network);
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
@@ -2882,7 +2882,7 @@ public class LbankCore extends LbankApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2912,7 +2912,7 @@ public class LbankCore extends LbankApi
             {
                 Helpers.addElementToObject(request, "memo", tag);
             }
-            String network = (String)this.safeStringUpper2(parameters, "network", "networkName");
+            String network = this.safeStringUpper2(parameters, "network", "networkName");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network", "networkName")));
             Object networks = this.safeValue(this.options, "networks");
             String networkId = this.safeString(networks, network, network);
@@ -3005,8 +3005,8 @@ public class LbankCore extends LbankApi
         String txid = this.safeString(transaction, "txId");
         Long timestamp = (Long) this.safeInteger2(transaction, "insertTime", "applyTime");
         String address = this.safeString(transaction, "address");
-        Object addressFrom = null;
-        Object addressTo = null;
+        String addressFrom = null;
+        String addressTo = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "deposit")))
         {
             addressFrom = address;
@@ -3016,7 +3016,7 @@ public class LbankCore extends LbankApi
         }
         Double amount = this.safeNumber(transaction, "amount");
         String currencyId = this.safeString2(transaction, "coin", "coid");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"), type);
         Object fee = null;
         Double feeCost = this.safeNumber(transaction, "fee");
@@ -3288,7 +3288,7 @@ public class LbankCore extends LbankApi
             {
                 Object entry = Helpers.GetValue(result, i);
                 String currencyId = this.safeString(entry, "coin");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object networkList = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
@@ -3371,7 +3371,7 @@ public class LbankCore extends LbankApi
                 if (Helpers.isTrue(Helpers.isEqual(canWithdraw, "true")))
                 {
                     String currencyId = this.safeString(item, "assetCode");
-                    String codeInner = (String) this.safeCurrencyCode(currencyId);
+                    String codeInner = this.safeCurrencyCode(currencyId);
                     Object network = this.networkIdToCode(this.safeString(item, "chain"), codeInner);
                     if (Helpers.isTrue(Helpers.isEqual(network, null)))
                     {
@@ -3564,7 +3564,7 @@ public class LbankCore extends LbankApi
             if (Helpers.isTrue(Helpers.isEqual(canWithdraw, true)))
             {
                 String currencyId = this.safeString(fee, "assetCode");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(codes, null)) || Helpers.isTrue(this.inArray(code, codes))))))
                 {
                     Double withdrawFee = this.safeNumber(fee, "fee");
@@ -3707,7 +3707,7 @@ public class LbankCore extends LbankApi
                 put( "api_key", LbankCore.this.apiKey );
             }}, query);
             String signatureMethod = null;
-            if (Helpers.isTrue(Helpers.isGreaterThan(((String)this.secret).length(), 32)))
+            if (Helpers.isTrue(Helpers.isGreaterThan(this.secret.length(), 32)))
             {
                 signatureMethod = "RSA";
             } else
@@ -3786,7 +3786,7 @@ public class LbankCore extends LbankApi
     {
         if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
-            throw new NullResponse((String)Helpers.add(this.id, " parseBalance() returned empty response")) ;
+            throw new NullResponse(Helpers.add(this.id, " parseBalance() returned empty response")) ;
         }
         Object success = this.safeValue(response, "result");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, "false"))) || Helpers.isTrue((Helpers.isEqual(success, null)))) || Helpers.isTrue((Helpers.isEqual(success, null)))) || Helpers.isTrue((Helpers.isEqual(success, false)))))

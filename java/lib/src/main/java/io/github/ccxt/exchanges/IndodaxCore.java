@@ -429,8 +429,8 @@ public class IndodaxCore extends IndodaxApi
                 String id = this.safeString(market, "id");
                 String baseId = this.safeString(market, "traded_currency");
                 String quoteId = this.safeString(market, "base_currency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Long isMaintenance = this.safeInteger(market, "is_maintenance");
                 Boolean inMaintenance = Helpers.isTrue((!Helpers.isEqual(isMaintenance, null))) && Helpers.isTrue((!Helpers.isEqual(isMaintenance, 0)));
     final Object finalBase = base;
@@ -507,7 +507,7 @@ public class IndodaxCore extends IndodaxApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(free, currencyId));
             Helpers.addElementToObject(account, "used", this.safeString(used, currencyId));
@@ -619,7 +619,7 @@ public class IndodaxCore extends IndodaxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "server_time");
         String baseVolume = Helpers.add("vol_", this.safeStringLower(market, "baseId"));
         String quoteVolume = Helpers.add("vol_", this.safeStringLower(market, "quoteId"));
@@ -657,7 +657,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -736,7 +736,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 Object key = Helpers.GetValue(keys, i);
                 Object rawTicker = Helpers.GetValue(tickers, key);
-                Object marketId = Helpers.replace((String)key, (String)"_", (String)"");
+                Object marketId = Helpers.replace(((String)key), "_", "");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object parsed = this.parseTicker(rawTicker, market);
                 Helpers.addElementToObject(parsedTickers, marketId, parsed);
@@ -778,7 +778,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -942,11 +942,11 @@ public class IndodaxCore extends IndodaxApi
         }
         String status = this.parseOrderStatus(this.safeString(order, "status", "open"));
         Object symbol = null;
-        Object cost = null;
+        String cost = null;
         String price = this.safeString(order, "price");
-        Object amount = null;
-        Object remaining = null;
-        Object filled = null;
+        String amount = null;
+        String remaining = null;
+        String filled = null;
         String marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
@@ -1022,7 +1022,7 @@ public class IndodaxCore extends IndodaxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1126,7 +1126,7 @@ public class IndodaxCore extends IndodaxApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1195,7 +1195,7 @@ public class IndodaxCore extends IndodaxApi
                     {
                         if (Helpers.isTrue(Helpers.isEqual(price, null)))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")) ;
                         }
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
@@ -1220,7 +1220,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
                 }
                 Helpers.addElementToObject(request, "price", price);
             }
@@ -1258,12 +1258,12 @@ public class IndodaxCore extends IndodaxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             Object side = this.safeValue(parameters, "side");
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires an extra \"side\" param")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires an extra \"side\" param")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1311,7 +1311,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTransactionFee(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTransactionFee(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1356,7 +1356,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1521,7 +1521,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1733,7 +1733,7 @@ public class IndodaxCore extends IndodaxApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(addressKeys)); i++)
             {
                 Object marketId = Helpers.GetValue(addressKeys, i);
-                String code = (String) this.safeCurrencyCode(marketId);
+                String code = this.safeCurrencyCode(marketId);
                 String address = this.safeString(addresses, marketId);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(address, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
                 {
@@ -1744,14 +1744,14 @@ public class IndodaxCore extends IndodaxApi
                         String networkId = this.safeString(networks, marketId);
                         if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
                         {
-                            throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddresses() missing networkId")) ;
+                            throw new ExchangeError(Helpers.add(this.id, " fetchDepositAddresses() missing networkId")) ;
                         }
                         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(networkId, ","), 0)))
                         {
                             network = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
                             {
-                                throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddresses() missing networkId")) ;
+                                throw new ExchangeError(Helpers.add(this.id, " fetchDepositAddresses() missing networkId")) ;
                             }
                             Object networkIds = Helpers.split(networkId, ",");
                             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
@@ -1863,7 +1863,7 @@ public class IndodaxCore extends IndodaxApi
             // { success: 1, return: { orders: [] }}
             if (!Helpers.isTrue((Helpers.inOp(response, "return"))))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, ": malformed response: "), this.json(response))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, ": malformed response: "), this.json(response))) ;
             } else
             {
                 return null;

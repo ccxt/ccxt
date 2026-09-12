@@ -533,7 +533,7 @@ public class CoincheckCore extends CoincheckApi
         String price = this.safeString(order, "rate");
         Object status = null;
         String marketId = this.safeString(order, "pair");
-        String symbol = (String) this.safeSymbol(marketId, market, "_");
+        String symbol = this.safeSymbol(marketId, market, "_");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
@@ -604,7 +604,7 @@ public class CoincheckCore extends CoincheckApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -640,7 +640,7 @@ public class CoincheckCore extends CoincheckApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -648,7 +648,7 @@ public class CoincheckCore extends CoincheckApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(symbol, "BTC/JPY")))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchTicker() supports BTC/JPY only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchTicker() supports BTC/JPY only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -717,11 +717,11 @@ public class CoincheckCore extends CoincheckApi
         Object quoteId = Helpers.GetValue(market, "quoteId");
         Object symbol = Helpers.GetValue(market, "symbol");
         String takerOrMaker = null;
-        Object amountString = null;
-        Object costString = null;
-        Object side = null;
+        String amountString = null;
+        String costString = null;
+        String side = null;
         Object fee = null;
-        Object orderId = null;
+        String orderId = null;
         if (Helpers.isTrue(Helpers.inOp(trade, "liquidity")))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.safeString(trade, "liquidity"), "T")))
@@ -838,7 +838,7 @@ public class CoincheckCore extends CoincheckApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -981,7 +981,7 @@ public class CoincheckCore extends CoincheckApi
                     parameters = this.omit(parameters, "cost");
                     if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")) ;
                     }
                     Helpers.addElementToObject(request, "market_buy_amount", cost);
                 }
@@ -1211,7 +1211,7 @@ public class CoincheckCore extends CoincheckApi
         String address = this.safeString(transaction, "address");
         Double amount = this.safeNumber(transaction, "amount");
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Long updated = this.parse8601(this.safeString(transaction, "confirmed_at"));
         Object fee = null;
@@ -1326,7 +1326,7 @@ public class CoincheckCore extends CoincheckApi
             Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), body, feedback);
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
         }
         return null;
     }

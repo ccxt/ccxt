@@ -42,9 +42,9 @@ public class TestBalance extends BaseTest {
             Assert(Helpers.inOp(Helpers.GetValue(entry, "total"), code), Helpers.add(Helpers.add(Helpers.add("code ", code), " not in total"), logText));
             Assert(Helpers.inOp(Helpers.GetValue(entry, "free"), code), Helpers.add(Helpers.add(Helpers.add("code ", code), " not in free"), logText));
             Assert(Helpers.inOp(Helpers.GetValue(entry, "used"), code), Helpers.add(Helpers.add(Helpers.add("code ", code), " not in used"), logText));
-            Object total = exchange.safeString(Helpers.GetValue(entry, "total"), code);
-            Object free = exchange.safeString(Helpers.GetValue(entry, "free"), code);
-            Object used = exchange.safeString(Helpers.GetValue(entry, "used"), code);
+            String total = exchange.safeString(Helpers.GetValue(entry, "total"), code);
+            String free = exchange.safeString(Helpers.GetValue(entry, "free"), code);
+            String used = exchange.safeString(Helpers.GetValue(entry, "used"), code);
             Assert(!Helpers.isEqual(total, null), Helpers.add("total is undefined", logText));
             Assert(!Helpers.isEqual(free, null), Helpers.add("free is undefined", logText));
             Assert(!Helpers.isEqual(used, null), Helpers.add("used is undefined", logText));

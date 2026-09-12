@@ -452,12 +452,12 @@ public class IndependentreserveCore extends IndependentreserveApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(baseCurrencyIds)); i++)
             {
                 Object baseId = Helpers.GetValue(baseCurrencyIds, i);
-                String base = (String) this.safeCurrencyCode(baseId);
+                String base = this.safeCurrencyCode(baseId);
                 Double minAmount = this.safeNumber(limits, baseId);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(quoteCurrencyIds)); j++)
                 {
                     Object quoteId = Helpers.GetValue(quoteCurrencyIds, j);
-                    String quote = (String) this.safeCurrencyCode(quoteId);
+                    String quote = this.safeCurrencyCode(quoteId);
                     Object id = Helpers.add(Helpers.add(baseId, "/"), quoteId);
     final Object finalBase = base;
                     final Object finalBaseId = baseId;
@@ -526,7 +526,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "CurrencyCode");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "AvailableBalance"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "TotalBalance"));
@@ -652,7 +652,7 @@ public class IndependentreserveCore extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1027,7 +1027,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         {
             marketId = Helpers.add(Helpers.add(baseId, "/"), quoteId);
         }
-        String symbol = (String) this.safeSymbol(marketId, market, "/");
+        String symbol = this.safeSymbol(marketId, market, "/");
         String side = this.safeString(trade, "OrderType");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
@@ -1067,7 +1067,7 @@ public class IndependentreserveCore extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1125,7 +1125,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             {
                 Object fee = Helpers.GetValue(rows, i);
                 String currencyId = this.safeString(fee, "CurrencyCode");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Double tradingFee = this.safeNumber(fee, "Fee");
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
@@ -1263,7 +1263,7 @@ public class IndependentreserveCore extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1328,7 +1328,7 @@ public class IndependentreserveCore extends IndependentreserveApi
      * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1358,7 +1358,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " withdraw () does not accept params[\"networkCode\"]")) ;
+                throw new BadRequest(Helpers.add(this.id, " withdraw () does not accept params[\"networkCode\"]")) ;
             }
             java.util.Map<String, Object> response = (this.privatePostWithdrawDigitalCurrency(this.extend(request, parameters))).join();
             //
@@ -1409,7 +1409,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         String datetime = this.safeString(transaction, "CreatedTimestampUtc");
         String address = this.safeString(destination, "Address");
         String tag = this.safeString(destination, "Tag");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", IndependentreserveCore.this.safeString(transaction, "TransactionGuid") );
@@ -1464,7 +1464,7 @@ public class IndependentreserveCore extends IndependentreserveApi
                 Object value = String.valueOf(Helpers.GetValue(parameters, key));
                 ((java.util.List<Object>)auth).add(Helpers.add(Helpers.add(key, "="), value));
             }
-            Object message = String.join((String)",", (java.util.List<String>)auth);
+            Object message = String.join(",", (java.util.List<String>)auth);
             Object signature = this.hmac(this.encode(message), this.encode(this.secret), sha256());
             java.util.Map<String, Object> query = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(query, "apiKey", this.apiKey);
