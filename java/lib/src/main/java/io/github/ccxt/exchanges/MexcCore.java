@@ -7292,7 +7292,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a leverage parameter")) ;
             }
-            String direction = (String)this.safeStringLower2(parameters, "direction", "positionId");
+            String direction = this.safeStringLower2(parameters, "direction", "positionId");
             final Object finalLeverage = leverage;
             final Object finalMarginModeLower = marginModeLower;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{

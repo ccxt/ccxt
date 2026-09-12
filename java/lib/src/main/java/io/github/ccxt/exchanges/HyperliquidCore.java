@@ -2769,8 +2769,8 @@ public class HyperliquidCore extends HyperliquidApi
             String marketId = this.safeString(rawOrder, "symbol");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
-            String type = (String)this.safeStringUpper(rawOrder, "type");
-            String side = (String)this.safeStringUpper(rawOrder, "side");
+            String type = this.safeStringUpper(rawOrder, "type");
+            String side = this.safeStringUpper(rawOrder, "side");
             String amount = this.safeString(rawOrder, "amount");
             String price = this.safeString(rawOrder, "price");
             Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
@@ -2847,7 +2847,7 @@ public class HyperliquidCore extends HyperliquidApi
         }};
         if (Helpers.isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
         {
-            String wallet = (String)this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+            String wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
             // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
             Object feeInt = this.safeInteger(this.options, "feeInt", 10);
             if (!Helpers.isTrue(this.safeBool(this.options, "builderFee", true)))
@@ -3312,9 +3312,9 @@ final Object finalClientOrderId = clientOrderId;
             String marketId = this.safeString(rawOrder, "symbol");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
-            String type = (String)this.safeStringUpper(rawOrder, "type");
+            String type = this.safeStringUpper(rawOrder, "type");
             Boolean isMarket = (Helpers.isEqual(type, "MARKET"));
-            String side = (String)this.safeStringUpper(rawOrder, "side");
+            String side = this.safeStringUpper(rawOrder, "side");
             Boolean isBuy = (Helpers.isEqual(side, "BUY"));
             String amount = this.safeString(rawOrder, "amount");
             String price = this.safeString(rawOrder, "price");
@@ -4179,7 +4179,7 @@ final Object finalClientOrderId = clientOrderId;
         }
         String totalAmount = this.safeString2(entry, "origSz", "totalSz");
         String remaining = this.safeString(entry, "sz");
-        String tif = (String)this.safeStringUpper(entry, "tif");
+        String tif = this.safeStringUpper(entry, "tif");
         Object postOnly = null;
         if (Helpers.isTrue(!Helpers.isEqual(tif, null)))
         {

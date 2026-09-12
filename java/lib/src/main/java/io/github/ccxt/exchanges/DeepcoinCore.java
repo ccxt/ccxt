@@ -678,7 +678,7 @@ public class DeepcoinCore extends DeepcoinApi
         //     }
         //
         String id = this.safeString(market, "instId");
-        String type = (String)this.safeStringLower(market, "instType");
+        String type = this.safeStringLower(market, "instType");
         Boolean spot = (Helpers.isEqual(type, "spot"));
         Boolean swap = (Helpers.isEqual(type, "swap"));
         String baseId = this.safeString(market, "baseCcy");

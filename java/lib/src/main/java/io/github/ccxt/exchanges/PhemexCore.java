@@ -1080,7 +1080,7 @@ public class PhemexCore extends PhemexApi
         //         "leverage":5
         //     },
         //
-        String type = (String)this.safeStringLower(market, "type");
+        String type = this.safeStringLower(market, "type");
         String id = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quoteCurrency");
         String baseId = this.safeString(market, "baseCurrency");
@@ -1366,7 +1366,7 @@ public class PhemexCore extends PhemexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(products)); i++)
             {
                 Object market = Helpers.GetValue(products, i);
-                String type = (String)this.safeStringLower(market, "type");
+                String type = this.safeStringLower(market, "type");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "perpetual"))) || Helpers.isTrue((Helpers.isEqual(type, "perpetualv2")))) || Helpers.isTrue((Helpers.isEqual(type, "perpetualpilot")))))
                 {
                     String id = this.safeString(market, "symbol");
@@ -2337,7 +2337,7 @@ public class PhemexCore extends PhemexApi
             orderId = this.safeString(trade, "orderID");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"))))
             {
-                String sideId = (String)this.safeStringLower(trade, "side");
+                String sideId = this.safeStringLower(trade, "side");
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sideId, "buy"))) || Helpers.isTrue((Helpers.isEqual(sideId, "sell")))))
                 {
                     side = sideId;
@@ -2881,7 +2881,7 @@ public class PhemexCore extends PhemexApi
         Object cost = this.fromEr(this.safeString2(order, "cumQuoteValueEv", "quoteQtyEv"), market);
         Object average = this.fromEp(this.safeString(order, "avgPriceEp"), market);
         String status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         String type = this.parseOrderType(this.safeString(order, "ordType"));
         Object timestamp = this.safeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001);
         Object fee = null;
@@ -4252,9 +4252,9 @@ public class PhemexCore extends PhemexApi
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             Object defaultNetworks = this.safeDict(this.options, "defaultNetworks");
-            String defaultNetwork = (String)this.safeStringUpper(defaultNetworks, code);
+            String defaultNetwork = this.safeStringUpper(defaultNetworks, code);
             Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-            Object network = this.safeStringUpper2(parameters, "network", "chainName", defaultNetwork);
+            String network = this.safeStringUpper2(parameters, "network", "chainName", defaultNetwork);
             network = this.safeString(networks, network, network);
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
             {
@@ -4506,7 +4506,7 @@ public class PhemexCore extends PhemexApi
         Object code = Helpers.GetValue(currency, "code");
         String networkId = this.safeString(transaction, "chainName");
         Long timestamp = this.safeIntegerN(transaction, new java.util.ArrayList<Object>(java.util.Arrays.asList("createdAt", "submitedAt", "submittedAt")));
-        String type = (String)this.safeStringLower(transaction, "type");
+        String type = this.safeStringLower(transaction, "type");
         Object feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, "feeEv"), this.safeValue(currency, "valueScale")));
         if (Helpers.isTrue(Helpers.isEqual(feeCost, null)))
         {

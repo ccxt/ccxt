@@ -1696,8 +1696,8 @@ public class ParadexCore extends ParadexApi
         Long timestamp = this.safeInteger(trade, "created_at");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "size");
-        String side = (String)this.safeStringLower(trade, "side");
-        String liability = (String)this.safeStringLower(trade, "liquidity", "taker");
+        String side = this.safeStringLower(trade, "side");
+        String liability = this.safeStringLower(trade, "liquidity", "taker");
         Boolean isTaker = Helpers.isEqual(liability, "taker");
         String takerOrMaker = ((Helpers.isTrue((isTaker)))) ? "taker" : "maker";
         String currencyId = this.safeString(trade, "fee_currency");
@@ -2085,7 +2085,7 @@ public class ParadexCore extends ParadexApi
                 status = "canceled";
             }
         }
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         Object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         Object remaining = this.omitZero(this.safeString(order, "remaining_size"));
         Object triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
@@ -2163,7 +2163,7 @@ public class ParadexCore extends ParadexApi
             put( "STOP_LIMIT", "limit" );
             put( "STOP_MARKET", "market" );
         }};
-        return (String) this.safeStringLower(types, type, type);
+        return this.safeStringLower(types, type, type);
     }
 
     public String scaleNumber(Object num)
@@ -2201,7 +2201,7 @@ public class ParadexCore extends ParadexApi
         Boolean isTakeProfitOrder = (!Helpers.isEqual(takeProfitPrice, null));
         Boolean isStopLossOrder = (!Helpers.isEqual(stopLossPrice, null));
         Boolean isStopOrder = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue(isTakeProfitOrder)) || Helpers.isTrue(isStopLossOrder);
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
         if (!Helpers.isTrue(isMarket))
         {
@@ -3253,7 +3253,7 @@ public class ParadexCore extends ParadexApi
         String marketId = this.safeString(position, "market");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String side = (String)this.safeStringLower(position, "side");
+        String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
         if (Helpers.isTrue(!Helpers.isEqual(side, "long")))
         {
@@ -3784,7 +3784,7 @@ public class ParadexCore extends ParadexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(rawMarginMode, "market");
         market = this.safeMarket(marketId, market);
-        String marginMode = (String)this.safeStringLower(rawMarginMode, "margin_type");
+        String marginMode = this.safeStringLower(rawMarginMode, "margin_type");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", rawMarginMode );
@@ -3881,7 +3881,7 @@ public class ParadexCore extends ParadexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "market");
         market = this.safeMarket(marketId, market);
-        String marginMode = (String)this.safeStringLower(leverage, "margin_type");
+        String marginMode = this.safeStringLower(leverage, "margin_type");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );

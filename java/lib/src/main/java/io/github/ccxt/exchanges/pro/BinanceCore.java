@@ -1503,8 +1503,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     Object symbol = Helpers.GetValue(symbols, i);
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                     ((java.util.List<Object>)messageHashes).add(Helpers.add("trade::", symbol));
-                    String baseIdLower = (String)this.safeStringLower(market, "baseId", "");
-                    String quoteIdLower = (String)this.safeStringLower(market, "quoteId", "");
+                    String baseIdLower = this.safeStringLower(market, "baseId", "");
+                    String quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
                     if (!Helpers.isTrue((Helpers.inOp(seenUnderlyings, underlying))))
                     {
@@ -1610,8 +1610,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                     ((java.util.List<Object>)subMessageHashes).add(Helpers.add("trade::", symbol));
                     ((java.util.List<Object>)messageHashes).add(Helpers.add("unsubscribe:trade:", symbol));
-                    String baseIdLower = (String)this.safeStringLower(market, "baseId", "");
-                    String quoteIdLower = (String)this.safeStringLower(market, "quoteId", "");
+                    String baseIdLower = this.safeStringLower(market, "baseId", "");
+                    String quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
                     if (!Helpers.isTrue((Helpers.inOp(seenUnderlyings, underlying))))
                     {
@@ -1840,7 +1840,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         String fallbackType = ((Helpers.isTrue((Helpers.inOp(trade, "ps"))))) ? "contract" : "spot";
         Object marketType = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "type") : fallbackType;
         String symbol = (String) this.safeSymbol(marketId, market, null, marketType);
-        String side = (String)this.safeStringLower(trade, "S");
+        String side = this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         Object orderId = this.safeString(trade, "i");
         if (Helpers.isTrue(Helpers.inOp(trade, "m")))
@@ -1863,7 +1863,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 put( "currency", feeCurrencyCode );
             }};
         }
-        String type = (String)this.safeStringLower(trade, "o");
+        String type = this.safeStringLower(trade, "o");
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalSide = side;
         final Object finalPrice = price;
@@ -2914,8 +2914,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     if (Helpers.isTrue(isOptionMarkPrice))
                     {
                         // subscribe per underlying, not per contract
-                        String baseIdLower = (String)this.safeStringLower(market, "baseId", "");
-                        String quoteIdLower = (String)this.safeStringLower(market, "quoteId", "");
+                        String baseIdLower = this.safeStringLower(market, "baseId", "");
+                        String quoteIdLower = this.safeStringLower(market, "quoteId", "");
                         Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
                         if (!Helpers.isTrue((Helpers.inOp(seenUnderlyings, underlying))))
                         {
@@ -2929,8 +2929,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         Object marketId = this.safeString(market, "id", "");
                         Object parts = Helpers.split(marketId, "-");
                         Object expiryDate = this.safeString(parts, 1);
-                        String baseIdLower = (String)this.safeStringLower(market, "baseId", "");
-                        String quoteIdLower = (String)this.safeStringLower(market, "quoteId", "");
+                        String baseIdLower = this.safeStringLower(market, "baseId", "");
+                        String quoteIdLower = this.safeStringLower(market, "quoteId", "");
                         Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
                         Object subscriptionArg = Helpers.add(Helpers.add(underlying, "@optionTicker@"), expiryDate);
                         if (!Helpers.isTrue((Helpers.inOp(seenUnderlyings, subscriptionArg))))
@@ -2948,7 +2948,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 if (Helpers.isTrue(Helpers.isEqual(marketType, "option")))
                 {
-                    String underlying = (String)this.safeStringLower(parameters, "underlying");
+                    String underlying = this.safeStringLower(parameters, "underlying");
                     if (Helpers.isTrue(Helpers.isEqual(underlying, null)))
                     {
                         throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires either symbols or params[\"underlying\"] for eOptions")) ;
@@ -5570,7 +5570,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object stockQuote = this.safeString(order, "q", "USDC");
             Object stockSymbol = this.getStockUnifiedSymbol(stockBaseSymbol, stockQuote);
-            String stockRawStatus = (String)this.safeStringLower(order, "s");
+            String stockRawStatus = this.safeStringLower(order, "s");
             java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
                 put( "accepted", "open" );
                 put( "new", "open" );
@@ -6263,7 +6263,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object marketId = this.safeString(position, "s");
         Object contracts = this.safeString(position, "pa");
         String contractsAbs = Precise.stringAbs(this.safeString(position, "pa"));
-        String positionSide = (String)this.safeStringLower(position, "ps");
+        String positionSide = this.safeStringLower(position, "ps");
         Boolean hedged = true;
         if (Helpers.isTrue(Helpers.isEqual(positionSide, "both")))
         {

@@ -2005,7 +2005,7 @@ public class LunoCore extends LunoApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        String currencyId = (String)this.safeStringUpper(depositAddress, "currency");
+        String currencyId = this.safeStringUpper(depositAddress, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );

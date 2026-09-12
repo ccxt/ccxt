@@ -564,8 +564,8 @@ public class CoinoneCore extends CoinoneApi
             {
                 Object entry = this.safeValue(tickers, i);
                 String id = this.safeString(entry, "id");
-                String baseId = (String)this.safeStringUpper(entry, "target_currency");
-                String quoteId = (String)this.safeStringUpper(entry, "quote_currency");
+                String baseId = this.safeStringUpper(entry, "target_currency");
+                String quoteId = this.safeStringUpper(entry, "quote_currency");
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
     final Object finalBase = base;
@@ -1265,10 +1265,10 @@ public class CoinoneCore extends CoinoneApi
         {
             timestamp = this.safeInteger2(order, "ordered_at", "updated_at"); // v2.1 sends milliseconds
         }
-        String side = (String)this.safeStringLower2(order, "type", "side");
+        String side = this.safeStringLower2(order, "type", "side");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "limit"))) || Helpers.isTrue((Helpers.isEqual(side, "market")))) || Helpers.isTrue((Helpers.isEqual(side, "stop_limit")))))
         {
-            side = (String)this.safeStringLower(order, "side"); // in v2.1 rows the type field carries the order type, the side lives in side
+            side = this.safeStringLower(order, "side"); // in v2.1 rows the type field carries the order type, the side lives in side
         }
         if (Helpers.isTrue(Helpers.isEqual(side, "ask")))
         {

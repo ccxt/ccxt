@@ -1323,7 +1323,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Object feeRate = null;
         String takerOrMaker = null;
         Object cost = null;
-        String feeCurrencyId = (String)this.safeStringLower(market, "quoteId");
+        String feeCurrencyId = this.safeStringLower(market, "quoteId");
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrencyId, null)))
         {
             Object costField = Helpers.add(feeCurrencyId, "_value");

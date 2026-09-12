@@ -1079,27 +1079,27 @@ public class BaseExchange {
         return SafeMethods.safeIntegerProductN(obj, (List<Object>)keys, multiplier, defaultValue);
     }
 
-    public Object safeStringUpper(Object obj, Object key, Object... defaultValue) {
+    public String safeStringUpper(Object obj, Object key, Object... defaultValue) {
         return SafeMethods.safeStringUpper(obj, key, defaultValue);
     }
 
-    public Object safeStringUpper2(Object obj, Object key1, Object key2, Object... defaultValue) {
+    public String safeStringUpper2(Object obj, Object key1, Object key2, Object... defaultValue) {
         return SafeMethods.safeStringUpper2(obj, key1, key2, defaultValue);
     }
 
-    public Object safeStringUpperN(Object obj, Object keys, Object... defaultValue) {
+    public String safeStringUpperN(Object obj, Object keys, Object... defaultValue) {
         return SafeMethods.safeStringUpperN(obj, keys, defaultValue);
     }
 
-    public Object safeStringLower(Object obj, Object key, Object... defaultValue) {
+    public String safeStringLower(Object obj, Object key, Object... defaultValue) {
         return SafeMethods.safeStringLower(obj, key, defaultValue);
     }
 
-    public Object safeStringLower2(Object obj, Object key1, Object key2, Object... defaultValue) {
+    public String safeStringLower2(Object obj, Object key1, Object key2, Object... defaultValue) {
         return SafeMethods.safeStringLower2(obj, key1, key2, defaultValue);
     }
 
-    public Object safeStringLowerN(Object obj, Object keys, Object... defaultValue) {
+    public String safeStringLowerN(Object obj, Object keys, Object... defaultValue) {
         return SafeMethods.safeStringLowerN(obj, keys, defaultValue);
     }
 
@@ -11007,7 +11007,7 @@ public Object describe()
         * @returns {boolean} true if a post only order, false otherwise
         */
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Object postOnly = this.safeBool2(parameters, "postOnly", "post_only", false);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         Boolean ioc = Helpers.isEqual(timeInForce, "IOC");
@@ -11050,7 +11050,7 @@ public Object describe()
         * @returns {Array}
         */
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Object postOnly = this.safeBool(parameters, "postOnly", false);
         Boolean ioc = Helpers.isEqual(timeInForce, "IOC");
         Boolean fok = Helpers.isEqual(timeInForce, "FOK");
@@ -11343,7 +11343,7 @@ public Object describe()
         * @returns {string} returns the exchange specific value for timeInForce
         */
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce"); // supported values GTC, IOC, PO
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce"); // supported values GTC, IOC, PO
         if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
         {
             String exchangeValue = this.safeString(Helpers.GetValue(this.options, "timeInForce"), timeInForce);

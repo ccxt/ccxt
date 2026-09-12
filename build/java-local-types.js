@@ -39,15 +39,19 @@
 //   * a `this.<listed name>(...)` or `super.<listed name>(...)` call (fixpoint), which
 //     after this retype returns the same type.
 //
-// Four names (JAVA_STRING_RETURN_METHODS_CASE_CAST) additionally carry a small number of
-// `this.safeStringUpper/Lower (...)` return sites. The C# campaign's equivalent retype
-// (`csharp-local-types.js` CSHARP_STRING_RETURN_METHODS) was cast-free because the C#
-// base declares the case family `string?`; the Java base declares it `Object`
-// (BaseExchange.safeStringUpper/Lower*), so those ~5 sites get the same `(String)`
-// checkcast the local-typing side already uses for this family — a checkcast on a
-// String/null is free. The value on the default-taken path is the caller's raw argument
-// (same corner the C# `string?` retype accepts); every generated caller passes a
-// string-ish value.
+// SS-01 closed the gap for the four names that also carried a small number of
+// `this.safeStringUpper/Lower (...)` return sites (parseOrderStatus, parseOrderType,
+// parseTimeInForce, parseTransferType): the hand-written Java producers
+// (SafeMethods.safeStringUpper/Lower*, BaseExchange.safeStringUpper/Lower*) are declared
+// `String` now and drop a non-String default through `optString` — the same rule
+// SafeStringTyped already applies — so those return sites are plain String-declared
+// calls. All four names moved into JAVA_STRING_RETURN_METHODS and the per-name
+// `(String)` checkcast table (JAVA_STRING_RETURN_METHODS_CASE_CAST) is gone. The C#
+// campaign's equivalent retype (csharp-local-types.js CSHARP_STRING_RETURN_METHODS) had
+// declared the family `string?` from the start; this slice brings Java to the same
+// shape. The value on the default-taken path is the caller's String argument, or null
+// when the caller passed none/non-String; the generated callers are censused in the
+// SS-01 report (every one passes a string-ish value).
 //
 // The decision is per NAME, so a base virtual and every override always print the same
 // return type (Java requires invariant/covariant compatible returns). Names whose census
@@ -93,11 +97,13 @@
 //
 // A later plain `x = this.<accessor>(...)` write on an already-narrowed local keeps the
 // declaration only while the value is a same-family box, and gets the same checkcast:
-// safeInteger / safeInteger2 / safeIntegerN -> (Long), safeSymbol / safeCurrencyCode and
-// the safeStringUpper/Lower family -> (String). safeTimestamp / safeTimestamp2 are
-// deliberately NOT admitted anywhere: SafeMethods.safeTimestampN hands the caller's
-// default back untouched (`if (result == null) return defaultValue;`), so its box is not
-// always a Long and a `(Long)` cast could throw where the old Object write could not.
+// safeInteger / safeInteger2 / safeIntegerN -> (Long), safeSymbol / safeCurrencyCode ->
+// (String). The safeStringUpper/Lower family (SS-01: declared `String` in the
+// hand-written base now) and the safeString family need no cast at all. safeTimestamp /
+// safeTimestamp2 are deliberately NOT admitted anywhere: SafeMethods.safeTimestampN
+// hands the caller's default back untouched (`if (result == null) return defaultValue;`),
+// so its box is not always a Long and a `(Long)` cast could throw where the old Object
+// write could not.
 //
 // CAST FAMILIES — declared `Object` in the hand-written/generated base but the runtime
 // box is the named type or null on every path:
@@ -185,21 +191,27 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
     'parseDepositStatus', 'parseFundingInterval', 'parseLedgerDirection',
     'parseLedgerEntryDirection', 'parseLedgerEntryStatus', 'parseLedgerStatus', 'parseLedgerType',
     'parseMarginModeType', 'parseMarginStatus', 'parseMarginType', 'parseMarketType',
-    'parseOrderSide', 'parseOrderState', 'parseOrderTimeInForce', 'parseOrderTimeInForceInteger',
-    'parseOrderTypeByMarket', 'parseOrderTypeInteger', 'parseStatus', 'parseTakerOrMaker',
+    'parseOrderSide', 'parseOrderState', 'parseOrderStatus', 'parseOrderTimeInForce',
+    'parseOrderTimeInForceInteger', 'parseOrderType', 'parseOrderTypeByMarket',
+    'parseOrderTypeInteger', 'parseStatus', 'parseTakerOrMaker',
+    'parseTimeInForce',
     'parseTradeSide', 'parseTradeType', 'parseTradingOrderStatus', 'parseTransactionDepositStatus',
     'parseTransactionState', 'parseTransactionStatus', 'parseTransactionType',
-    'parseTransactionWithdrawalStatus', 'parseTransferStatus', 'parseType', 'parseUnits',
+    'parseTransactionWithdrawalStatus', 'parseTransferStatus', 'parseTransferType', 'parseType', 'parseUnits',
     'parseValueToPricision', 'parseWithdrawalStatus', 'parseWsOrderSide', 'parseWsOrderStatus',
     'parseWsOrderType', 'parseWsPositionSide', 'parseWsTimeInForce', 'scaleNumber', 'shortenSlug',
     'signCancelAll', 'signClobOrder', 'signOrderbookTypedData', 'symbol', 'tokenIdToSymbol',
     'typeToTradeType', 'walletAddressFromKeys', 'walletAddressOrUndefined',
 ]);
 
-// listed names that additionally carry `this.safeStringUpper/Lower (...)` return sites
-export const JAVA_STRING_RETURN_METHODS_CASE_CAST = new Set ([
-    'parseOrderStatus', 'parseOrderType', 'parseTimeInForce', 'parseTransferType',
-]);
+// listed names that additionally carry `this.safeStringUpper/Lower (...)` return sites:
+// SS-01 retyped the hand-written SafeMethods.safeStringUpper/Lower* producers to `String`
+// (a non-String default is dropped through `optString`, exactly like SafeStringTyped), so
+// those return sites are plain String-declared calls and their names (parseOrderStatus,
+// parseOrderType, parseTimeInForce, parseTransferType) moved into
+// JAVA_STRING_RETURN_METHODS above — no `(String)` checkcast is emitted for the family
+// anywhere any more. The table this comment used to head (JAVA_STRING_RETURN_METHODS_CASE_CAST)
+// is empty and removed; see the SS-01 report for the census.
 
 // every name proved list-returning by the tree census (see the header)
 export const JAVA_LIST_RETURN_METHODS = new Set ([
@@ -211,7 +223,7 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
 
 // one name in both tables is a hard bug: the fixed per-name return type would differ
 for (const name of JAVA_LIST_RETURN_METHODS) {
-    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+    if (JAVA_STRING_RETURN_METHODS.has (name)) {
         throw new Error ('java-local-types: ' + name + ' listed as both string and list returning');
     }
 }
@@ -716,7 +728,7 @@ function isProvablyStringExpression (printer, node, selfName, narrowed) {
             if (SAFE_STRING_ACCESSORS.has (name) || name === 'iso8601') {
                 return true; // hand-written BaseExchange declarations, `public String`
             }
-            if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+            if (JAVA_STRING_RETURN_METHODS.has (name)) {
                 return resolvesToMethodNamed (printer, node, name);
             }
             return isBaseDeclaration (printer, node) && baseMethodReturnsString (printer, node, name);
@@ -1100,7 +1112,7 @@ function javaMethodReturnType (printer, node, own) {
         return undefined;
     }
     const name = node.name.escapedText;
-    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+    if (JAVA_STRING_RETURN_METHODS.has (name)) {
         return 'String';
     }
     if (JAVA_LIST_RETURN_METHODS.has (name)) {
@@ -1117,17 +1129,9 @@ function returnCastFor (printer, node, methodName) {
     if (expression === undefined) {
         return undefined;
     }
-    if (JAVA_STRING_RETURN_METHODS_CASE_CAST.has (methodName)) {
-        if (isThisCall (expression)) {
-            const call = expression.expression.name.escapedText;
-            if (call === 'safeStringUpper' || call === 'safeStringLower'
-                || call === 'safeStringUpper2' || call === 'safeStringLower2'
-                || call === 'safeStringUpperN' || call === 'safeStringLowerN') {
-                return '(String)';
-            }
-        }
-        return undefined;
-    }
+    // SS-01: the safeStringUpper/Lower family no longer needs a cast here — the
+    // hand-written producers are declared `String` now, so a `return
+    // this.safeStringUpper(...)` site is a plain String-declared call.
     if (JAVA_LIST_RETURN_METHODS.has (methodName)) {
         if (isThisCall (expression) && expression.expression.name.escapedText === 'arraySlice') {
             return '(' + JAVA_ARRAY_TYPE + ')';
@@ -1250,7 +1254,7 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         return receiverMethodLocalType (initializer);
     }
     const name = initializer.expression.name.escapedText;
-    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+    if (JAVA_STRING_RETURN_METHODS.has (name)) {
         // the signature hook retypes real method declarations by name; a field of the
         // same name would print an untyped call and could not hold a String result
         return resolvesToMethodNamed (printer, initializer, name) ? { type: 'String' } : undefined;
@@ -1330,7 +1334,7 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 if (name === 'parse8601') {
                     return false;
                 }
-                if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+                if (JAVA_STRING_RETURN_METHODS.has (name)) {
                     return true;
                 }
                 if (name === 'iso8601') {
@@ -2969,7 +2973,7 @@ export function installJavaLocalTypes (transpiler) {
             return printed;
         }
         const methodName = method.name.escapedText;
-        if (!JAVA_STRING_RETURN_METHODS_CASE_CAST.has (methodName) && !JAVA_LIST_RETURN_METHODS.has (methodName)) {
+        if (!JAVA_LIST_RETURN_METHODS.has (methodName)) {
             return printed;
         }
         const cast = returnCastFor (printer, node, methodName);
@@ -3073,11 +3077,10 @@ export function installJavaLocalTypes (transpiler) {
         const accessor = LOCAL_THIS_RETURN_TYPES[call];
         const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType)
             || (javaType === JAVA_STRUCTURE_TYPE && STRUCTURE_THIS_RETURN_TYPES[call] !== undefined)
-            || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'))
-            || (javaType === 'String' && (JAVA_STRING_RETURN_METHODS_CASE_CAST.has (call)
-                || call === 'safeStringUpper' || call === 'safeStringLower'
-                || call === 'safeStringUpper2' || call === 'safeStringLower2'
-                || call === 'safeStringUpperN' || call === 'safeStringLowerN'));
+            || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'));
+        // SS-01: the safeStringUpper/Lower family dropped out of this list — those calls
+        // are declared `String` in the hand-written base now, so a write to a String local
+        // needs no checkcast (same as the safeString family, which was never listed here).
         const cast = !needsCast ? ''
             : (javaType === 'String' ? '(String)'
                 : javaType === JAVA_STRUCTURE_TYPE ? '(' + JAVA_STRUCTURE_TYPE + ')' : '(Long)');
@@ -3314,7 +3317,7 @@ function dataflowTypeTokenCollides (index, javaType) {
 // hand-written String-returning base methods.
 function dataflowThisCallType (printer, node) {
     const name = node.expression.name.escapedText;
-    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+    if (JAVA_STRING_RETURN_METHODS.has (name)) {
         return resolvesToMethodNamed (printer, node, name) ? JAVA_DATAFLOW_STRING : undefined;
     }
     if (JAVA_LIST_RETURN_METHODS.has (name)) {

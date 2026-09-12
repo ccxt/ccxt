@@ -3591,7 +3591,7 @@ public class HtxCore extends HtxApi
             side = Helpers.GetValue(typeParts, 0);
             type = Helpers.GetValue(typeParts, 1);
         }
-        String takerOrMaker = (String)this.safeStringLower(trade, "role");
+        String takerOrMaker = this.safeStringLower(trade, "role");
         String priceString = this.safeString2(trade, "price", "trade_price");
         String amountString = this.safeString2(trade, "filled-amount", "amount");
         amountString = this.safeString(trade, "trade_volume", amountString);
@@ -6718,7 +6718,7 @@ public class HtxCore extends HtxApi
         Boolean isLinear = (Helpers.isEqual(subType, "linear"));
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         Object hedged = this.safeBool(parameters, "hedged", false);
-        String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force", "gtc");
+        String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force", "gtc");
         if (Helpers.isTrue(isLinear))
         {
             Object marginMode = null;

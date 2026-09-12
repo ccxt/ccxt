@@ -1445,7 +1445,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object taker = this.safeDict(trade, "takerOrder", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(taker, null)))
             {
-                side = (String)this.safeStringLower(taker, "direction");
+                side = this.safeStringLower(taker, "direction");
                 takerOrMaker = "taker";
             }
         }
@@ -2877,7 +2877,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         {
             id = this.safeString2(details, "orderId", "uid");
         }
-        String type = (String)this.safeStringLower2(details, "type", "orderType");
+        String type = this.safeStringLower2(details, "type", "orderType");
         String timeInForce = "gtc";
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "ioc")) || Helpers.isTrue(Helpers.isEqual(this.parseOrderType(type), "market"))))
         {

@@ -2161,12 +2161,12 @@ final Object finalClobTokenId = clobTokenId;
         }
         Double price = this.safeNumber(trade, "price");
         Double amount = this.safeNumber(trade, "size");
-        String rawSide = (String)this.safeStringLower(trade, "side");
+        String rawSide = this.safeStringLower(trade, "side");
         Object side = ((Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(rawSide, "buy")) || Helpers.isTrue(Helpers.isEqual(rawSide, "sell")))))) ? rawSide : null;
         Object assetId = this.safeString2(trade, "asset", "asset_id");
         Object mkt = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? market : this.safeOutcome(assetId);
         Object outcome = this.safeOutcomeSymbol(null, mkt);
-        String rawTakerOrMaker = (String)this.safeStringLower(trade, "trader_side");
+        String rawTakerOrMaker = this.safeStringLower(trade, "trader_side");
         Object takerOrMaker = ((Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(rawTakerOrMaker, "taker")) || Helpers.isTrue(Helpers.isEqual(rawTakerOrMaker, "maker")))))) ? rawTakerOrMaker : null;
         Object feeRateBps = this.safeString(trade, "fee_rate_bps");
         Object fee = null;
@@ -2494,7 +2494,7 @@ final Object finalClobTokenId = clobTokenId;
         Object mkt = this.safeOutcome(tokenId, market);
         // REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
         Object status = this.parseOrderStatus(this.safeString2(order, "status", "type"));
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         Double price = this.safeNumber(order, "price");
         Double amount = this.safeNumber(order, "original_size");
         Double filled = this.safeNumber(order, "size_matched", 0);
@@ -2549,7 +2549,7 @@ final Object finalClobTokenId = clobTokenId;
         }};
         // the REST data endpoints return upper-case statuses (LIVE, MATCHED, CANCELLED) while the
         // user websocket sends lower-case lifecycle types — lower-case before the lookup so both map
-        String normalized = (String)this.safeStringLower(new java.util.HashMap<String, Object>() {{
+        String normalized = this.safeStringLower(new java.util.HashMap<String, Object>() {{
             put( "status", status );
         }}, "status");
         return this.safeString(statuses, normalized, normalized);
@@ -2689,11 +2689,11 @@ final Object finalClobTokenId = clobTokenId;
         Boolean isMarket = (Helpers.isEqual(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
         // native override: params.orderType (GTC, GTD, FOK or FAK)
-        String orderTypeStr = (String)this.safeStringUpper(parameters, "orderType");
+        String orderTypeStr = this.safeStringUpper(parameters, "orderType");
         if (Helpers.isTrue(Helpers.isEqual(orderTypeStr, null)))
         {
             // otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
-            String unifiedTif = (String)this.safeStringUpper(parameters, "timeInForce");
+            String unifiedTif = this.safeStringUpper(parameters, "timeInForce");
             if (Helpers.isTrue(Helpers.isEqual(unifiedTif, "GTC")))
             {
                 orderTypeStr = "GTC";
@@ -2754,7 +2754,7 @@ final Object finalClobTokenId = clobTokenId;
         // upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is
         // false the fee bytes stay zeroed, so orders are attributed for statistics only and
         // the user is not charged; a full 32-byte builder code is passed through unchanged
-        String builderRaw = (String)this.safeStringLower2(parameters, "builder", "builderCode", this.safeStringLower(this.options, "builder"));
+        String builderRaw = this.safeStringLower2(parameters, "builder", "builderCode", this.safeStringLower(this.options, "builder"));
         String builderBytes32 = bytes32Zero;
         if (Helpers.isTrue(!Helpers.isEqual(builderRaw, null)))
         {

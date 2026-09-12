@@ -2782,7 +2782,7 @@ public class OkxCore extends OkxApi
         //         state: "preopen",
         //
         String id = this.safeString(market, "instId", "");
-        String type = (String)this.safeStringLower(market, "instType");
+        String type = this.safeStringLower(market, "instType");
         if (Helpers.isTrue(Helpers.isEqual(type, "futures")))
         {
             type = "future";
@@ -7729,7 +7729,7 @@ public class OkxCore extends OkxApi
             Object entry = Helpers.GetValue(leverage, i);
             marginMode = this.safeStringLower(entry, "mgnMode");
             marketId = this.safeString(entry, "instId");
-            String positionSide = (String)this.safeStringLower(entry, "posSide");
+            String positionSide = this.safeStringLower(entry, "posSide");
             if (Helpers.isTrue(Helpers.isEqual(positionSide, "long")))
             {
                 longLeverage = this.safeInteger(entry, "lever");
@@ -11657,7 +11657,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             String marginMode = this.safeString(parameters, "marginMode");
-            String instType = (String)this.safeStringUpper(parameters, "instType");
+            String instType = this.safeStringUpper(parameters, "instType");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "marginMode", "instType")));
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {

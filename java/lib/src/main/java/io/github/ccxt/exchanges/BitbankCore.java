@@ -884,8 +884,8 @@ public class BitbankCore extends BitbankApi
         String remaining = this.safeString(order, "remaining_amount");
         String average = this.safeString(order, "average_price");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
-        String type = (String)this.safeStringLower(order, "type");
-        String side = (String)this.safeStringLower(order, "side");
+        String type = this.safeStringLower(order, "type");
+        String side = this.safeStringLower(order, "side");
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );

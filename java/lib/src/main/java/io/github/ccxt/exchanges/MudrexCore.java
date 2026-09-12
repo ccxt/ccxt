@@ -1087,7 +1087,7 @@ public class MudrexCore extends MudrexApi
         String oms = this.safeString(order, "symbol");
         market = this.safeMarket(oms, market);
         String oid = this.safeString2(order, "order_id", "id");
-        String rawSide = (String)this.safeStringUpper(order, "order_type");
+        String rawSide = this.safeStringUpper(order, "order_type");
         String side = null;
         if (Helpers.isTrue(Helpers.isEqual(rawSide, "LONG")))
         {
@@ -1115,7 +1115,7 @@ public class MudrexCore extends MudrexApi
                 takeProfitPrice = priceString;
             }
         }
-        String trig = (String)this.safeStringUpper(order, "trigger_type");
+        String trig = this.safeStringUpper(order, "trigger_type");
         String typ = null;
         if (Helpers.isTrue(Helpers.isEqual(trig, "MARKET")))
         {
@@ -1476,7 +1476,7 @@ public class MudrexCore extends MudrexApi
         String ms = this.safeString(position, "symbol");
         String symbol = (String) this.safeSymbol(ms, market);
         // open positions use "order_type", closed positions (history) use "position_type"
-        String rawSide = (String)this.safeStringUpper2(position, "order_type", "position_type");
+        String rawSide = this.safeStringUpper2(position, "order_type", "position_type");
         String side = null;
         if (Helpers.isTrue(Helpers.isEqual(rawSide, "LONG")))
         {
@@ -1585,7 +1585,7 @@ public class MudrexCore extends MudrexApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
             {
-                String orderType = (String)this.safeStringUpper(parameters, "order_type", "LIMIT");
+                String orderType = this.safeStringUpper(parameters, "order_type", "LIMIT");
                 Helpers.addElementToObject(request, "order_type", orderType);
                 Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
                 String lp = this.safeString(parameters, "limit_price");
@@ -1829,7 +1829,7 @@ public class MudrexCore extends MudrexApi
         Object symbol = Helpers.GetValue(market, "symbol");
         Long ts = this.parse8601(this.safeString(trade, "created_at"));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
-        String side = (String)this.safeStringLower(trade, "order_type");
+        String side = this.safeStringLower(trade, "order_type");
         String tradeSide = null;
         if (Helpers.isTrue(Helpers.isEqual(side, "long")))
         {
@@ -1838,7 +1838,7 @@ public class MudrexCore extends MudrexApi
         {
             tradeSide = "sell";
         }
-        String trig = (String)this.safeStringUpper(trade, "trigger_type");
+        String trig = this.safeStringUpper(trade, "trigger_type");
         String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(trig, "MARKET")))
         {

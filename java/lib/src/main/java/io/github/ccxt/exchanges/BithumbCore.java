@@ -810,7 +810,7 @@ public class BithumbCore extends BithumbApi
                 Object code = Helpers.GetValue(codes, i);
                 Object account = this.account();
                 java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-                String lowerCurrencyId = (String)this.safeStringLower(currency, "id");
+                String lowerCurrencyId = this.safeStringLower(currency, "id");
                 Helpers.addElementToObject(account, "total", this.safeString(balances, Helpers.add("total_", lowerCurrencyId)));
                 Helpers.addElementToObject(account, "used", this.safeString(balances, Helpers.add("in_use_", lowerCurrencyId)));
                 Helpers.addElementToObject(account, "free", this.safeString(balances, Helpers.add("available_", lowerCurrencyId)));
@@ -1711,7 +1711,7 @@ public class BithumbCore extends BithumbApi
             timestamp = Helpers.subtract(timestamp, Helpers.multiply(9, 3600000)); // they report UTC + 9 hours, server in Korean timezone
         }
         Object type = null;
-        String side = (String)this.safeStringLower2(trade, "ask_bid", "type");
+        String side = this.safeStringLower2(trade, "ask_bid", "type");
         if (Helpers.isTrue(Helpers.isEqual(side, "bid")))
         {
             side = "buy";
@@ -2634,7 +2634,7 @@ public class BithumbCore extends BithumbApi
             }};
         }
         Object postOnly = null;
-        String timeInForce = (String)this.safeStringUpper(order, "time_in_force");
+        String timeInForce = this.safeStringUpper(order, "time_in_force");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "POST_ONLY")))
         {
             timeInForce = "PO";

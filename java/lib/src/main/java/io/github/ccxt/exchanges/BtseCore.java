@@ -3981,7 +3981,7 @@ public class BtseCore extends BtseApi
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(position, "timestamp");
         String marginType = this.safeString(position, "marginType");
-        String side = (String)this.safeStringLower2(position, "positionDirection", "side");
+        String side = this.safeStringLower2(position, "positionDirection", "side");
         String positionMode = this.safeString(position, "positionMode");
         Boolean hedged = Helpers.isTrue((Helpers.isEqual(positionMode, "HEDGE"))) || Helpers.isTrue((Helpers.isEqual(positionMode, "ISOLATED")));
         Object takeProfitOrder = this.safeDict(position, "takeProfitOrder", new java.util.HashMap<String, Object>() {{}});
@@ -4164,7 +4164,7 @@ public class BtseCore extends BtseApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(marginMode, "symbol");
         market = this.safeMarket(marketId, market);
-        String positionMode = (String)this.safeStringLower(marginMode, "marginMode");
+        String positionMode = this.safeStringLower(marginMode, "marginMode");
         String marginModeValue = "cross";
         if (Helpers.isTrue(Helpers.isEqual(positionMode, "isolated")))
         {

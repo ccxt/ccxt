@@ -908,7 +908,7 @@ public class BitfinexCore extends BitfinexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object pairObj = Helpers.GetValue(markets, i);
-                String id = (String)this.safeStringUpper(pairObj, 0);
+                String id = this.safeStringUpper(pairObj, 0);
                 Object market = this.safeValue(pairObj, 1, new java.util.HashMap<String, Object>() {{}});
                 Boolean spot = true;
                 String type = null;
@@ -1298,7 +1298,7 @@ public class BitfinexCore extends BitfinexApi
                     Helpers.addElementToObject(account, "debt", interest);
                 }
                 String type = this.safeString(balance, 0);
-                String currencyId = (String)this.safeStringLower(balance, 1, "");
+                String currencyId = this.safeStringLower(balance, 1, "");
                 Object start = Helpers.subtract(((String)((String)currencyId)).length(), 2);
                 Boolean isDerivativeCode = Helpers.isEqual(Helpers.slice(((String)currencyId), start, null), "f0");
                 // this will only filter the derivative codes if the requestedType is 'derivatives'
@@ -3926,7 +3926,7 @@ public class BitfinexCore extends BitfinexApi
         if (Helpers.isTrue(!Helpers.isEqual(description, null)))
         {
             Object parts = Helpers.split(description, " @ ");
-            String first = (String)this.safeStringLower(parts, 0);
+            String first = this.safeStringLower(parts, 0);
             type = this.parseLedgerEntryType(first);
         }
         final Object finalType = type;

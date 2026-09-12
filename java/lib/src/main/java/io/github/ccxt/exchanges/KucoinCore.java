@@ -2103,7 +2103,7 @@ public class KucoinCore extends KucoinApi
             {
                 String defaultType = this.safeString(this.options, "defaultType", "spot");
                 String defaultTradeType = ((Helpers.isTrue((Helpers.isEqual(defaultType, "spot"))))) ? "SPOT" : "FUTURES";
-                Object tradeType = this.safeStringUpper(parameters, "tradeType", defaultTradeType);
+                String tradeType = this.safeStringUpper(parameters, "tradeType", defaultTradeType);
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "tradeType", tradeType );
                 }};
@@ -3010,7 +3010,7 @@ public class KucoinCore extends KucoinApi
                 String accountId = this.safeString(account, "id");
                 String currencyId = this.safeString(account, "currency");
                 String code = (String) this.safeCurrencyCode(currencyId);
-                String type = (String)this.safeStringLower2(account, "type", "accountType"); // main or trade or unified
+                String type = this.safeStringLower2(account, "type", "accountType"); // main or trade or unified
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", accountId );
                     put( "type", type );
@@ -5138,7 +5138,7 @@ public class KucoinCore extends KucoinApi
             put( "type", finalType );
             put( "leverage", 1 );
         }};
-        String marginModeUpper = (String)this.safeStringUpper(parameters, "marginMode");
+        String marginModeUpper = this.safeStringUpper(parameters, "marginMode");
         if (Helpers.isTrue(!Helpers.isEqual(marginModeUpper, null)))
         {
             parameters = this.omit(parameters, "marginMode");
@@ -5220,7 +5220,7 @@ public class KucoinCore extends KucoinApi
             Helpers.addElementToObject(request, "stopPriceType", triggerPriceTypeValue);
         }
         Object uppercaseType = ((String)type).toUpperCase();
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "LIMIT")))
         {
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
@@ -10608,7 +10608,7 @@ public class KucoinCore extends KucoinApi
         if (Helpers.isTrue(isLedgerEntry))
         {
             // Ledger entry format: uses accountType + direction
-            String accountType = (String)this.safeStringLower(transfer, "accountType");
+            String accountType = this.safeStringLower(transfer, "accountType");
             String direction = this.safeString(transfer, "direction");
             if (Helpers.isTrue(Helpers.isEqual(direction, "out")))
             {
@@ -12912,8 +12912,8 @@ public class KucoinCore extends KucoinApi
             timestamp = this.safeIntegerProduct(position, "creationTime", 0.000001);
         }
         String size = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("currentQty", "size", "maxSize", "closeSize")));
-        String side = (String)this.safeStringLower(position, "side");
-        String type = (String)this.safeStringLower(position, "type");
+        String side = this.safeStringLower(position, "side");
+        String type = this.safeStringLower(position, "type");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(!Helpers.isEqual(size, null)))
@@ -12943,7 +12943,7 @@ public class KucoinCore extends KucoinApi
         String unrealisedPnl = this.safeString2(position, "unrealisedPnl", "unrealizedPnL");
         Object crossMode = this.safeValue(position, "crossMode");
         // currently crossMode is always set to false and only isolated positions are supported
-        String marginMode = (String)this.safeStringLower(position, "marginMode");
+        String marginMode = this.safeStringLower(position, "marginMode");
         if (Helpers.isTrue(!Helpers.isEqual(crossMode, null)))
         {
             marginMode = ((Helpers.isTrue((Helpers.isEqual(crossMode, true))))) ? "cross" : "isolated";

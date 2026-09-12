@@ -2762,7 +2762,7 @@ public class GateCore extends GateApi
             if (Helpers.isTrue(Helpers.isTrue(swap) || Helpers.isTrue(future)))
             {
                 String defaultSettle = ((Helpers.isTrue(swap))) ? "usdt" : "btc";
-                Object settle = this.safeStringLower(parameters, "settle", defaultSettle);
+                String settle = this.safeStringLower(parameters, "settle", defaultSettle);
                 parameters = this.omit(parameters, "settle");
                 Helpers.addElementToObject(request, "settle", settle);
             }
@@ -2847,8 +2847,8 @@ public class GateCore extends GateApi
          * @param {object} [params] Request params
          * @returns The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gates api docs
          */
-        String defaultMarginMode = (String)this.safeStringLower2(this.options, "defaultMarginMode", "marginMode", "spot"); // 'margin' is isolated margin on gate's api
-        Object marginMode = this.safeStringLower2(parameters, "marginMode", "account", defaultMarginMode);
+        String defaultMarginMode = this.safeStringLower2(this.options, "defaultMarginMode", "marginMode", "spot"); // 'margin' is isolated margin on gate's api
+        String marginMode = this.safeStringLower2(parameters, "marginMode", "account", defaultMarginMode);
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "account")));
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
         {
@@ -5670,7 +5670,7 @@ final Object finalPointFee = pointFee;
         {
             amountString = Precise.stringSub(amountString, feeCostString);
         }
-        String networkId = (String)this.safeStringUpper(transaction, "chain");
+        String networkId = this.safeStringUpper(transaction, "chain");
         String currencyId = this.safeString(transaction, "currency");
         String code = (String) this.safeCurrencyCode(currencyId);
         String txid = this.safeString(transaction, "txid");
@@ -5974,7 +5974,7 @@ final Object finalPointFee = pointFee;
             throw new ExchangeError((String)Helpers.add(this.id, " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")) ;
         }
         Object reduceOnly = this.safeValue(parameters, "reduceOnly");
-        String exchangeSpecificTimeInForce = (String)this.safeStringLowerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "tif", "time_in_force")));
+        String exchangeSpecificTimeInForce = this.safeStringLowerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "tif", "time_in_force")));
         Boolean postOnly = null;
         java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(exchangeSpecificTimeInForce, "poc"), parameters);
         postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
@@ -6672,7 +6672,7 @@ final Object finalPointFee = pointFee;
         Object trigger = this.safeValue(order, "trigger", new java.util.HashMap<String, Object>() {{}});
         String contract = this.safeString(put, "contract");
         String type = this.safeString(put, "type");
-        Object timeInForce = this.safeStringUpper2(put, "time_in_force", "tif");
+        String timeInForce = this.safeStringUpper2(put, "time_in_force", "tif");
         String amount = this.safeString2(put, "amount", "size");
         String side = this.safeString(put, "side");
         String price = this.safeString(put, "price");
@@ -7567,7 +7567,7 @@ final Object finalRebate = rebate;
             }
             Object type = null;
             Object defaultSettle = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? "usdt" : Helpers.GetValue(market, "settle");
-            Object settle = this.safeStringLower(parameters, "settle", defaultSettle);
+            String settle = this.safeStringLower(parameters, "settle", defaultSettle);
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -9688,7 +9688,7 @@ final Object finalI = i;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) || Helpers.isTrue((Helpers.isEqual(type, "future")))))
             {
                 String defaultSettle = ((Helpers.isTrue((Helpers.isEqual(type, "swap"))))) ? "usdt" : "btc";
-                Object settle = this.safeStringLower(parameters, "settle", defaultSettle);
+                String settle = this.safeStringLower(parameters, "settle", defaultSettle);
                 parameters = this.omit(parameters, "settle");
                 Helpers.addElementToObject(request, "settle", settle);
             }
@@ -10219,7 +10219,7 @@ final Object finalI = i;
         }
         // --- derive side ---
         // 1) options payload has explicit 'side': 'long' | 'short'
-        String optPos = (String)this.safeStringLower(liquidation, "side");
+        String optPos = this.safeStringLower(liquidation, "side");
         String side = null;
         if (Helpers.isTrue(Helpers.isEqual(optPos, "long")))
         {

@@ -1590,7 +1590,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object marketId = this.safeString(position, "s");
         Object contracts = this.safeString(position, "pa");
         String contractsAbs = Precise.stringAbs(contracts);
-        String positionSide = (String)this.safeStringLower(position, "ps");
+        String positionSide = this.safeStringLower(position, "ps");
         Boolean hedged = true;
         if (Helpers.isTrue(Helpers.isEqual(positionSide, "both")))
         {

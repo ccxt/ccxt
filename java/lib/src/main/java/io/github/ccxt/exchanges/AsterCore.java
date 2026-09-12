@@ -1660,7 +1660,7 @@ public class AsterCore extends AsterApi
         String priceString = this.safeString2(trade, "price", "p");
         String costString = this.safeString2(trade, "quoteQty", "baseQty");
         Long timestamp = (Long) this.safeInteger2(trade, "time", "T");
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         Object isMaker = this.safeBool(trade, "maker");
         String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
@@ -2869,10 +2869,10 @@ public class AsterCore extends AsterApi
         String defaultType = ((Helpers.isTrue((!Helpers.isEqual(positionSide, null))))) ? "swap" : "spot";
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, null, defaultType);
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "time");
-        String statusId = (String)this.safeStringUpper(order, "status");
-        String rawType = (String)this.safeStringUpper(order, "type");
+        String statusId = this.safeStringUpper(order, "status");
+        String rawType = this.safeStringUpper(order, "type");
         String stopPriceString = this.safeString(order, "stopPrice");
         Object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         final Object finalMarket = market;
@@ -3867,8 +3867,8 @@ public class AsterCore extends AsterApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "symbol");
-        String marginMode = (String)this.safeStringLower(leverage, "marginType");
-        String side = (String)this.safeStringLower(leverage, "positionSide");
+        String marginMode = this.safeStringLower(leverage, "marginType");
+        String side = this.safeStringLower(leverage, "positionSide");
         Object longLeverage = null;
         Object shortLeverage = null;
         Long leverageValue = this.safeInteger(leverage, "leverage");
@@ -5120,7 +5120,7 @@ public class AsterCore extends AsterApi
             Long chainId = this.safeInteger(parameters, "chainId");
             // TODO: check how ARBI signature would work
             Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-            String network = (String)this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(parameters, "network");
             network = this.safeString(networks, network, network);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(chainId, null))) && Helpers.isTrue((!Helpers.isEqual(network, null)))))
             {

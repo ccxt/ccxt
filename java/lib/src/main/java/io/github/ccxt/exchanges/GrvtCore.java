@@ -2587,7 +2587,7 @@ public class GrvtCore extends GrvtApi
                 put( "post_only", false );
                 put( "reduce_only", isReduceOnly );
             }};
-            String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce", "GOOD_TILL_TIME");
+            String timeInForce = this.safeStringUpper(parameters, "timeInForce", "GOOD_TILL_TIME");
             Object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
             if (Helpers.isTrue(postOnly))
             {
@@ -2668,7 +2668,7 @@ public class GrvtCore extends GrvtApi
                     }
                 }
                 // trigger by
-                String triggerPriceType = (String)this.safeStringUpper(parameters, "triggerPriceType", "LAST");
+                String triggerPriceType = this.safeStringUpper(parameters, "triggerPriceType", "LAST");
                 final Object finalSelectedType = selectedType;
                 final Object finalSelectedPrice = selectedPrice;
                 final Object finalParameters = parameters;
@@ -3147,7 +3147,7 @@ public class GrvtCore extends GrvtApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "instrument");
         Double leverageValue = this.safeNumber(leverage, "leverage");
-        String marginType = (String)this.safeStringLower(leverage, "margin_type");
+        String marginType = this.safeStringLower(leverage, "margin_type");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", GrvtCore.this.safeSymbol(marketId, market) );
@@ -3778,7 +3778,7 @@ public class GrvtCore extends GrvtApi
             put( "ALL_OR_NONE", "ALL_OR_NONE" );
             put( "RETAIL_PRICE_IMPROVEMENT", "RETAIL_PRICE_IMPROVEMENT" );
         }};
-        return (String) this.safeStringUpper(types, type, type);
+        return this.safeStringUpper(types, type, type);
     }
 
     public Object timeInForceToInt(Object timeInForce)

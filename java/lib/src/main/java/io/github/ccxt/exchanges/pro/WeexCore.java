@@ -1537,7 +1537,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         }
         java.util.Map<String, Object> marketResolved = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         market = marketResolved;
-        String side = (String)this.safeStringLower(trade, "orderSide");
+        String side = this.safeStringLower(trade, "orderSide");
         Object fee = null;
         Object commission = this.safeString(trade, "fillFee");
         if (Helpers.isTrue(!Helpers.isEqual(commission, null)))
@@ -1857,7 +1857,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         }
         java.util.Map<String, Object> marketResolved = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         market = marketResolved;
-        String side = (String)this.safeStringLower(order, "orderSide");
+        String side = this.safeStringLower(order, "orderSide");
         Object fee = null;
         Object commission = this.safeString(order, "cumFillFee");
         if (Helpers.isTrue(!Helpers.isEqual(commission, null)))
@@ -1881,7 +1881,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 put( "currency", finalFeeCurrency );
             }};
         }
-        String rawStatus = (String)this.safeStringLower(order, "status");
+        String rawStatus = this.safeStringLower(order, "status");
         Object rawType = this.safeString(order, "type");
         Object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
         Object stopLossPrice = null;

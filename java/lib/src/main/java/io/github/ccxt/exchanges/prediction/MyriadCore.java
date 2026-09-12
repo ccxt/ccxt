@@ -1039,7 +1039,7 @@ public class MyriadCore extends MyriadApi
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
             Object defaultModel = this.safeString(info, "tradingModel", "amm");
-            Object tradingModel = this.safeStringLower(parameters, "tradingModel", defaultModel);
+            String tradingModel = this.safeStringLower(parameters, "tradingModel", defaultModel);
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("tradingModel")));
             if (Helpers.isTrue(Helpers.isEqual(tradingModel, "ob")))
             {
@@ -1176,7 +1176,7 @@ public class MyriadCore extends MyriadApi
         Object sideInt = ((Helpers.isTrue((Helpers.isEqual(sideStr, "buy"))))) ? 0 : 1;
         Boolean isMarket = (Helpers.isEqual(typeStr, "market"));
         String defaultTif = ((Helpers.isTrue(isMarket))) ? "FOK" : "GTC";
-        Object timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTif);
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTif);
         Object priceValue = price;
         if (Helpers.isTrue(Helpers.isEqual(priceValue, null)))
         {
@@ -1662,10 +1662,10 @@ public class MyriadCore extends MyriadApi
         Object amount = ((Helpers.isTrue((Helpers.isEqual(amountWei, null))))) ? null : this.parseNumber(Precise.stringDiv(amountWei, "1000000000000000000"));
         Object price = ((Helpers.isTrue((Helpers.isEqual(priceWei, null))))) ? null : this.parseNumber(Precise.stringDiv(priceWei, "1000000000000000000"));
         Object filled = ((Helpers.isTrue((Helpers.isEqual(filledWei, null))))) ? null : this.parseNumber(Precise.stringDiv(filledWei, "1000000000000000000"));
-        String statusRaw = (String)this.safeStringLower(order, "status");
+        String statusRaw = this.safeStringLower(order, "status");
         Object status = this.parseOrderStatus(statusRaw);
         Long timestamp = this.parse8601(this.safeString(order, "createdAt"));
-        String tif = (String)this.safeStringUpper(order, "timeInForce");
+        String tif = this.safeStringUpper(order, "timeInForce");
         Boolean isMarketTif = Helpers.isTrue((Helpers.isEqual(tif, "FOK"))) || Helpers.isTrue((Helpers.isEqual(tif, "FAK")));
         // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
         Object outcome = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : this.safeString(market, "outcome");
@@ -1819,7 +1819,7 @@ public class MyriadCore extends MyriadApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            String requestedStatus = (String)this.safeStringLower(parameters, "status");
+            String requestedStatus = this.safeStringLower(parameters, "status");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(requestedStatus, "open"))) || Helpers.isTrue((Helpers.isEqual(requestedStatus, "cancelled")))) || Helpers.isTrue((Helpers.isEqual(requestedStatus, "canceled")))) || Helpers.isTrue((Helpers.isEqual(requestedStatus, "expired")))))
             {
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1896,7 +1896,7 @@ public class MyriadCore extends MyriadApi
             for (var i = 0; Helpers.isLessThan(i, rowsLength); i++)
             {
                 Object row = Helpers.GetValue(rows, i);
-                String action = (String)this.safeStringLower(row, "action");
+                String action = this.safeStringLower(row, "action");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(action, "buy"))) && Helpers.isTrue((!Helpers.isEqual(action, "sell")))))
                 {
                     continue;
@@ -2246,7 +2246,7 @@ public class MyriadCore extends MyriadApi
                     Helpers.addElementToObject(request, "trader", this.walletAddress);
                 }
             }
-            String requestedTradingModel = (String)this.safeStringLower2(parameters, "tradingModel", "trading_model");
+            String requestedTradingModel = this.safeStringLower2(parameters, "tradingModel", "trading_model");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("tradingModel", "trading_model")));
             Object outcomeObj = null;
             Object outcomeSymbol = null;
@@ -2257,7 +2257,7 @@ public class MyriadCore extends MyriadApi
                 if (Helpers.isTrue(Helpers.isEqual(requestedTradingModel, null)))
                 {
                     Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-                    requestedTradingModel = (String)this.safeStringLower(info, "tradingModel");
+                    requestedTradingModel = this.safeStringLower(info, "tradingModel");
                 }
             }
             if (Helpers.isTrue(Helpers.isEqual(requestedTradingModel, "amm")))
@@ -4289,7 +4289,7 @@ final Object finalNetworkId = networkId;
         if (Helpers.isTrue(!Helpers.isEqual(myWallet, null)))
         {
             java.util.List<Object> myLegs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            String takerTrader = (String)this.safeStringLower(taker, "trader");
+            String takerTrader = this.safeStringLower(taker, "trader");
             if (Helpers.isTrue(Helpers.isEqual(takerTrader, myWallet)))
             {
                 ((java.util.List<Object>)myLegs).add(trade);
@@ -4299,7 +4299,7 @@ final Object finalNetworkId = networkId;
             for (var i = 0; Helpers.isLessThan(i, makersLength); i++)
             {
                 Object maker = Helpers.GetValue(makers, i);
-                String makerTrader = (String)this.safeStringLower(maker, "trader");
+                String makerTrader = this.safeStringLower(maker, "trader");
                 if (Helpers.isTrue(Helpers.isEqual(makerTrader, myWallet)))
                 {
                     Object makerSym = this.marketOutcomeToSymbol(networkId, marketId, this.safeString(maker, "outcome"));
@@ -4573,7 +4573,7 @@ final Object finalNetworkId = networkId;
         Object amount = this.fromWei(this.safeString(data, "amount"));
         Object filled = this.fromWei(this.safeString(data, "filledAmount"));
         Object status = this.parseOrderStatus(this.safeStringLower(data, "status"));
-        String tif = (String)this.safeStringUpper(data, "timeInForce");
+        String tif = this.safeStringUpper(data, "timeInForce");
         Boolean isMarketTif = Helpers.isTrue((Helpers.isEqual(tif, "FOK"))) || Helpers.isTrue((Helpers.isEqual(tif, "FAK")));
         Long timestamp = this.parse8601(this.safeString2(data, "updatedAt", "createdAt"));
         final Object finalSym = sym;

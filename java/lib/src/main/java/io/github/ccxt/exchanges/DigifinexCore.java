@@ -1535,7 +1535,7 @@ public class DigifinexCore extends DigifinexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Double indexPrice = this.safeNumber(ticker, "index_price");
         String marketType = ((Helpers.isTrue((!Helpers.isEqual(indexPrice, null))))) ? "contract" : "spot";
-        String marketId = (String)this.safeStringUpper2(ticker, "symbol", "instrument_id");
+        String marketId = this.safeStringUpper2(ticker, "symbol", "instrument_id");
         String symbol = (String) this.safeSymbol(marketId, market, null, marketType);
         market = this.safeMarket(marketId, market, null, marketType);
         Object timestamp = this.safeTimestamp(ticker, "date");
@@ -1634,7 +1634,7 @@ public class DigifinexCore extends DigifinexApi
         String orderId = this.safeString(trade, "order_id");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("amount", "volume", "size")));
-        String marketId = (String)this.safeStringUpper2(trade, "symbol", "instrument_id");
+        String marketId = this.safeStringUpper2(trade, "symbol", "instrument_id");
         String symbol = (String) this.safeSymbol(marketId, market);
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
@@ -3464,7 +3464,7 @@ public class DigifinexCore extends DigifinexApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String address = this.safeString(depositAddress, "address");
         String tag = this.safeString(depositAddress, "addressTag");
-        String currencyId = (String)this.safeStringUpper(depositAddress, "currency");
+        String currencyId = this.safeStringUpper(depositAddress, "currency");
         String code = (String) this.safeCurrencyCode(currencyId);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
@@ -3679,7 +3679,7 @@ public class DigifinexCore extends DigifinexApi
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "memo");
         String txid = this.safeString(transaction, "hash");
-        String currencyId = (String)this.safeStringUpper(transaction, "currency");
+        String currencyId = this.safeStringUpper(transaction, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString(transaction, "created_date"));
         Long updated = this.parse8601(this.safeString(transaction, "finished_date"));
@@ -4792,7 +4792,7 @@ public class DigifinexCore extends DigifinexApi
                 put( "leverage", finalLeverage );
             }};
             String defaultMarginMode = this.safeString2(this.options, "marginMode", "defaultMarginMode");
-            Object marginMode = this.safeStringLower2(parameters, "marginMode", "defaultMarginMode", defaultMarginMode);
+            String marginMode = this.safeStringLower2(parameters, "marginMode", "defaultMarginMode", defaultMarginMode);
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
             {
                 marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, "cross"))))) ? "crossed" : "isolated";

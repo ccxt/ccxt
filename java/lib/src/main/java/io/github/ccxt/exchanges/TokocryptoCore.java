@@ -876,7 +876,7 @@ public class TokocryptoCore extends TokocryptoApi
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
                 String id = this.safeString(market, "symbol");
-                String lowercaseId = (String)this.safeStringLower(market, "symbol");
+                String lowercaseId = this.safeStringLower(market, "symbol");
                 String settleId = this.safeString(market, "marginAsset");
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
@@ -1763,7 +1763,7 @@ public class TokocryptoCore extends TokocryptoApi
             String defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
             String type = this.safeString(parameters, "type", defaultType);
             String defaultMarginMode = this.safeString2(this.options, "marginMode", "defaultMarginMode");
-            Object marginMode = this.safeStringLower(parameters, "marginMode", defaultMarginMode);
+            String marginMode = this.safeStringLower(parameters, "marginMode", defaultMarginMode);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             java.util.Map<String, Object> response = (this.privateGetOpenV1AccountSpot(this.extend(request, parameters))).join();
             //
@@ -1959,7 +1959,7 @@ public class TokocryptoCore extends TokocryptoApi
         String cost = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("cummulativeQuoteQty", "cumQuote", "executedQuoteQty", "cumBase")));
         String id = this.safeString(order, "orderId");
         String type = this.parseOrderType(this.safeStringLower(order, "type"));
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "0")))
         {
             side = "buy";
@@ -2596,7 +2596,7 @@ public class TokocryptoCore extends TokocryptoApi
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
             Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-            String network = (String)this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
+            String network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {

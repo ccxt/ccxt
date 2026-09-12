@@ -783,7 +783,7 @@ public class DydxCore extends DydxApi
         String symbol = this.safeString(market, "symbol");
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "size");
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1085,8 +1085,8 @@ public class DydxCore extends DydxApi
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "size");
         String type = this.parseOrderType(this.safeStringUpper(order, "type"));
-        String side = (String)this.safeStringLower(order, "side");
-        String timeInForce = (String)this.safeStringUpper(order, "timeInForce");
+        String side = this.safeStringLower(order, "side");
+        String timeInForce = this.safeStringUpper(order, "timeInForce");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
             put( "id", DydxCore.this.safeString(order, "id") );
@@ -1137,7 +1137,7 @@ public class DydxCore extends DydxApi
             put( "TAKE_PROFIT_MARKET", "MARKET" );
             put( "TRAILING_STOP", "MARKET" );
         }};
-        return (String) this.safeStringUpper(types, type, type);
+        return this.safeStringUpper(types, type, type);
     }
 
     /**
@@ -1339,7 +1339,7 @@ public class DydxCore extends DydxApi
         String marketId = this.safeString(position, "market");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String side = (String)this.safeStringLower(position, "side");
+        String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
         if (Helpers.isTrue(!Helpers.isEqual(side, "long")))
         {
@@ -1631,7 +1631,7 @@ public class DydxCore extends DydxApi
         Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         Boolean isConditional = Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null));
         Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce", "GTT");
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce", "GTT");
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
         Object amountStr = this.amountToPrecision(symbol, amount);
         Object priceStr = this.priceToPrecision(symbol, price);
@@ -2185,7 +2185,7 @@ public class DydxCore extends DydxApi
         String currencyId = this.safeString(item, "symbol");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        String type = (String)this.safeStringUpper(item, "type");
+        String type = this.safeStringUpper(item, "type");
         String direction = null;
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {

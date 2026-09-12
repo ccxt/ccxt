@@ -862,7 +862,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
 
     public void handleDelta(Object orderbook, Object delta)
     {
-        String rawSide = (String)this.safeStringLower(delta, 0);
+        String rawSide = this.safeStringLower(delta, 0);
         String side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "bids" : "asks";
         Double price = this.safeFloat(delta, 1);
         Double amount = this.safeFloat(delta, 2);

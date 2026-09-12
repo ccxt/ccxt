@@ -1057,7 +1057,7 @@ public class BitrueCore extends BitrueApi
     public Object parseMarket(Object market)
     {
         String id = this.safeString(market, "symbol", "");
-        String lowercaseId = (String)this.safeStringLower(market, "symbol");
+        String lowercaseId = this.safeStringLower(market, "symbol");
         Long side = this.safeInteger(market, "side"); // 1 linear, 0 inverse, undefined spot
         String type = "spot";
         Object isLinear = null;
@@ -2172,8 +2172,8 @@ public class BitrueCore extends BitrueApi
         //   Note this is not the actual cost, since the exchange uses leverage to calculate margins.
         String cost = this.safeString2(order, "cummulativeQuoteQty", "cumQuote");
         String id = this.safeString(order, "orderId");
-        String type = (String)this.safeStringLower(order, "type");
-        String side = (String)this.safeStringLower(order, "side");
+        String type = this.safeStringLower(order, "type");
+        String side = this.safeStringLower(order, "side");
         Object fills = this.safeList(order, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String clientOrderId = this.safeString(order, "clientOrderId");
         String timeInForce = this.safeString(order, "timeInForce");
@@ -2301,7 +2301,7 @@ public class BitrueCore extends BitrueApi
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Boolean isMarket = Helpers.isEqual(uppercaseType, "MARKET");
-                String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
+                String timeInForce = this.safeStringLower(parameters, "timeInForce");
                 Object postOnly = this.isPostOnly(isMarket, null, parameters);
                 if (Helpers.isTrue(postOnly))
                 {

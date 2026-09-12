@@ -1701,7 +1701,7 @@ public class DeriveCore extends DeriveApi
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             Object test = this.safeBool(parameters, "test", false);
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-            String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+            String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
@@ -1903,7 +1903,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-            String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+            String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
@@ -2547,7 +2547,7 @@ public class DeriveCore extends DeriveApi
         String amount = this.safeString(order, "desired_amount");
         String filled = this.safeString(order, "filled_amount");
         String fee = this.safeString(order, "order_fee");
-        String orderType = (String)this.safeStringLower(order, "order_type");
+        String orderType = this.safeStringLower(order, "order_type");
         Object isBid = this.safeBool(order, "is_bid");
         String side = this.safeString(order, "direction");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))

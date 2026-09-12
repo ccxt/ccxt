@@ -1036,7 +1036,7 @@ public class LighterCore extends LighterApi
         Boolean hasTakeProfit = (!Helpers.isEqual(takeProfit, null));
         Boolean isConditional = (Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null))));
         Boolean isMarketOrder = (Helpers.isEqual(orderType, "MARKET"));
-        String timeInForce = (String)this.safeStringLower(parameters, "timeInForce", "gtt");
+        String timeInForce = this.safeStringLower(parameters, "timeInForce", "gtt");
         Object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLoss", "takeProfit", "timeInForce")));
         Object orderTypeNum = null;

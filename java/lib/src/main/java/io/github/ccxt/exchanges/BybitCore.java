@@ -4421,7 +4421,7 @@ public class BybitCore extends BybitApi
         String priceString = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("execPrice", "orderPrice", "price")));
         String costString = this.safeString(trade, "execValue");
         Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "execTime", "tradeTime")));
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             Long isBuyer = this.safeInteger(trade, "isBuyer");
@@ -4453,7 +4453,7 @@ public class BybitCore extends BybitApi
                 }
             }
         }
-        String orderType = (String)this.safeStringLower(trade, "orderType");
+        String orderType = this.safeStringLower(trade, "orderType");
         if (Helpers.isTrue(Helpers.isEqual(orderType, "unknown")))
         {
             orderType = null;
@@ -4931,7 +4931,7 @@ public class BybitCore extends BybitApi
                 }
             }
             Object accountTypes = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
-            Object unifiedType = this.safeStringUpper(accountTypes, type, type);
+            String unifiedType = this.safeStringUpper(accountTypes, type, type);
             Object marginMode = null;
             java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -5233,9 +5233,9 @@ public class BybitCore extends BybitApi
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
         // see https://github.com/ccxt/ccxt/issues/27725
         String id = this.safeString(order, "orderId");
-        String type = (String)this.safeStringLower(order, "orderType");
+        String type = this.safeStringLower(order, "orderType");
         String price = this.safeString(order, "price");
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         Object amount = null;
         Object cost = null;
         Boolean qtyIsQuote = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((Helpers.isEqual(type, "market")))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(marketUnit, "quoteCoin"))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(marketUnit, null))) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))));
@@ -5646,7 +5646,7 @@ public class BybitCore extends BybitApi
         {
             Helpers.addElementToObject(request, "side", this.capitalize(side));
             Helpers.addElementToObject(request, "orderType", this.capitalize(lowerCaseType));
-            String timeInForce = (String)this.safeStringLower(parameters, "timeInForce"); // this is same as exchange specific param
+            String timeInForce = this.safeStringLower(parameters, "timeInForce"); // this is same as exchange specific param
             Boolean postOnly = null;
             java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarket, Helpers.isEqual(timeInForce, "postonly"), parameters);
             postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);

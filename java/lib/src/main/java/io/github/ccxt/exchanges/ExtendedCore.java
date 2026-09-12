@@ -724,7 +724,7 @@ public class ExtendedCore extends ExtendedApi
         String settle = null;
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Boolean isSpot = false;
-        String type = (String)this.safeStringLower(market, "type");
+        String type = this.safeStringLower(market, "type");
         Object contractSize = null;
         Object linear = null;
         Object inverse = null;
@@ -2274,7 +2274,7 @@ public class ExtendedCore extends ExtendedApi
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            String chainId = (String)this.safeStringUpper2(parameters, "chainId", "network", "STRK");
+            String chainId = this.safeStringUpper2(parameters, "chainId", "network", "STRK");
             if (Helpers.isTrue(!Helpers.isEqual(chainId, "STRK")))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " withdraw() only supports Starknet withdrawals with chainId STRK")) ;
@@ -3048,7 +3048,7 @@ public class ExtendedCore extends ExtendedApi
         Long timestamp = (Long) this.safeInteger2(position, "createdAt", "createdTime");
         Long lastUpdateTimestamp = (Long) this.safeInteger2(position, "updatedAt", "updatedTime");
         lastUpdateTimestamp = (Long) this.safeInteger(position, "closedTime", lastUpdateTimestamp);
-        String side = (String)this.safeStringLower(position, "side");
+        String side = this.safeStringLower(position, "side");
         String margin = this.safeString(position, "margin");
         final Object finalMarket = market;
         final Object finalLastUpdateTimestamp = lastUpdateTimestamp;
@@ -3277,7 +3277,7 @@ public class ExtendedCore extends ExtendedApi
             Object priceString = this.priceToPrecision(symbol, price);
             Object postOnly = this.isPostOnly(Helpers.isEqual(uppercaseType, "MARKET"), null, parameters);
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-            String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+            String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
             {
                 timeInForce = ((Helpers.isTrue((Helpers.isEqual(uppercaseType, "MARKET"))))) ? "IOC" : "GTT";
@@ -3454,7 +3454,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(triggerPriceStr, null)))
                 {
-                    String triggerDirection = (String)this.safeStringUpper(parameters, "triggerDirection");
+                    String triggerDirection = this.safeStringUpper(parameters, "triggerDirection");
                     if (Helpers.isTrue(Helpers.isEqual(triggerDirection, null)))
                     {
                         throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires triggerDirection for trigger order")) ;
@@ -4197,8 +4197,8 @@ public class ExtendedCore extends ExtendedApi
         Long timestamp = (Long) this.safeInteger2(order, "createdTime", "timestamp");
         Long lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
-        String side = (String)this.safeStringLower(order, "side");
-        String type = (String)this.safeStringLower(order, "type");
+        String side = this.safeStringLower(order, "side");
+        String type = this.safeStringLower(order, "type");
         String amount = this.safeString(order, "qty");
         String filled = this.safeString(order, "filledQty");
         String feeCost = this.safeString(order, "payedFee");
@@ -4356,7 +4356,7 @@ public class ExtendedCore extends ExtendedApi
         //
         //     {"status":"ERROR","error":{"code":1140,"message":"New order cost exceeds available balance","debugInfo":"Order cost 2.000000 exceeds available for trade 0\nOrder price = 200, mark price = 95.2147597125 estimated market price = 94.81"}}
         //
-        String status = (String)this.safeStringLower(response, "status");
+        String status = this.safeStringLower(response, "status");
         if (Helpers.isTrue(Helpers.isEqual(status, "error")))
         {
             Object error = this.safeDict(response, "error");

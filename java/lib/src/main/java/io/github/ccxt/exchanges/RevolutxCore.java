@@ -860,7 +860,7 @@ public class RevolutxCore extends RevolutxApi
         String symbol = (String) this.safeSymbol(tradeSymbol, market, "/");
         Double price = this.safeNumber(trade, "price");
         Double amount = this.safeNumber(trade, "quantity");
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
         Object cost = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(price, null)) && Helpers.isTrue(!Helpers.isEqual(amount, null))))
@@ -1061,8 +1061,8 @@ public class RevolutxCore extends RevolutxApi
         String clientOrderId = this.safeString(order, "client_order_id");
         String orderSymbol = this.safeString(order, "symbol");
         String symbol = (String) this.safeSymbol(orderSymbol, market, "/");
-        String side = (String)this.safeStringLower(order, "side");
-        String orderType = (String)this.safeStringLower(order, "type");
+        String side = this.safeStringLower(order, "side");
+        String orderType = this.safeStringLower(order, "type");
         String quantity = this.safeString(order, "quantity");
         String filledQuantity = this.safeString(order, "filled_quantity");
         String leavesQuantity = this.safeString(order, "leaves_quantity");
@@ -1073,7 +1073,7 @@ public class RevolutxCore extends RevolutxApi
         String totalFee = this.safeString(order, "total_fee");
         String feeCurrency = this.safeString(order, "fee_currency");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
-        String timeInForce = (String)this.safeStringUpper(order, "time_in_force");
+        String timeInForce = this.safeStringUpper(order, "time_in_force");
         Long createdDate = this.safeInteger(order, "created_date");
         Long updatedDate = this.safeInteger(order, "updated_date");
         Object fee = null;
@@ -1162,7 +1162,7 @@ public class RevolutxCore extends RevolutxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
             String cost = this.safeString2(parameters, "cost", "quote_size");
-            String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+            String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Object executionInstructions = this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions"));
             java.util.Map<String, Object> orderConfiguration = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
@@ -1554,7 +1554,7 @@ public class RevolutxCore extends RevolutxApi
         String orderId = this.safeString(trade, "oid");
         Double price = this.safeNumber(trade, "p");
         Double amount = this.safeNumber(trade, "q");
-        String side = (String)this.safeStringLower(trade, "s");
+        String side = this.safeStringLower(trade, "s");
         Long timestamp = (Long) this.safeInteger2(trade, "tdt", "pdt");
         Object isMaker = this.safeBool(trade, "im", false);
         String takerOrMaker = ((Helpers.isTrue((isMaker)))) ? "maker" : "taker";
@@ -1703,7 +1703,7 @@ public class RevolutxCore extends RevolutxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
             String cost = this.safeString2(parameters, "cost", "quote_size");
-            String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+            String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Object executionInstructions = this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions"));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "client_order_id", clientOrderId );

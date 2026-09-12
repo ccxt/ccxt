@@ -1744,7 +1744,7 @@ public class PoloniexCore extends PoloniexApi
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
-        String side = (String)this.safeStringLower2(trade, "side", "takerSide");
+        String side = this.safeStringLower2(trade, "side", "takerSide");
         Object fee = null;
         String priceString = this.safeString2(trade, "price", "px");
         String amountString = this.safeString2(trade, "quantity", "qty");
@@ -2106,7 +2106,7 @@ public class PoloniexCore extends PoloniexApi
         String amount = this.safeString2(order, "quantity", "sz");
         String filled = this.safeString2(order, "filledQuantity", "execQty");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         String rawType = this.safeString(order, "type");
         String type = this.parseOrderType(rawType);
         String id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderNumber", "id", "orderId", "ordId")));
@@ -2135,7 +2135,7 @@ public class PoloniexCore extends PoloniexApi
             }};
         }
         String clientOrderId = this.safeString2(order, "clientOrderId", "clOrdId");
-        String marginMode = (String)this.safeStringLower(order, "mgnMode");
+        String marginMode = this.safeStringLower(order, "mgnMode");
         Object reduceOnly = this.safeBool(order, "reduceOnly");
         Long leverage = this.safeInteger(order, "lever");
         Boolean hedged = !Helpers.isEqual(this.safeString(order, "posSide"), "BOTH");
@@ -4280,7 +4280,7 @@ public class PoloniexCore extends PoloniexApi
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(position, "cTime");
-        String marginMode = (String)this.safeStringLower(position, "mgnMode");
+        String marginMode = this.safeStringLower(position, "mgnMode");
         String leverage = this.safeString(position, "lever");
         String initialMargin = this.safeString(position, "im");
         String notional = Precise.stringMul(leverage, initialMargin);

@@ -205,10 +205,10 @@ function predictionSourceFiles () {
 // `BaseExchange.safeString / safeString2 / safeStringN` are hand-written, delegate
 // to `SafeMethods`, and are DECLARED `String` (their bodies return a `String` or
 // null on every path), so the narrowed declaration needs no cast. The
-// `safeStringUpper* / safeStringLower*` family is still declared `Object` (it hands
-// a non-String default back untouched), so those keep a `(String)` cast — a
-// checkcast on a String/null is free. Boxed `String`, never a primitive: an absent
-// key yields null.
+// `safeStringUpper* / safeStringLower*` family is declared `String` too (SS-01: the
+// hand-written SafeMethods bodies drop a non-String default through `optString`), so
+// it classifies the same way and needs no `(String)` cast either. Boxed `String`,
+// never a primitive: an absent key yields null.
 //
 // It is applied as a monkey-patch on `transpiler.javaTranspiler` from BOTH the
 // main-thread Transpiler (setupTranspiler below) and the piscina worker
@@ -228,20 +228,25 @@ function predictionSourceFiles () {
 // SafeMethods.SafeStringTyped / safeString2 / SafeStringN coerce the found value to
 // String and drop a non-String default (`instanceof String s ? s : null`), so they
 // are String-or-null unconditionally — and `BaseExchange` declares them `String`.
+//
+// SS-01: SafeMethods.safeStringUpper* / safeStringLower* apply the same rule to their
+// default through `optString` (String when the caller passed one, null when it was
+// absent or non-String), so the case family is String-or-null on every path too and
+// `BaseExchange` declares all six `String`. The family therefore needs no `(String)`
+// checkcast at any declaration/reassignment use site — it classifies exactly like
+// safeString.
 const STRING_ACCESSORS = new Set([
     'safeString', 'safeString2', 'safeStringN',
+    'safeStringUpper', 'safeStringUpper2', 'safeStringUpperN',
+    'safeStringLower', 'safeStringLower2', 'safeStringLowerN',
 ]);
 
-// SafeMethods.safeStringUpper* / safeStringLower* return the found value
-// `.toUpperCase()`d, but hand the DEFAULT back untouched (`Object`), so they stay
-// declared `Object` in Java and a narrowed local needs a `(String)` cast. They
-// classify only when the default is absent or provably a String; index of that
-// argument:
-const STRING_CASE_ACCESSORS: { [name: string]: number } = {
-    'safeStringUpper': 2, 'safeStringLower': 2,
-    'safeStringUpper2': 3, 'safeStringLower2': 3,
-    'safeStringUpperN': 2, 'safeStringLowerN': 2,
-};
+// `String x = this.safeStringUpper(...)`-style declarations that postProcessWsJava's
+// "String type fixes" pass must leave alone (SS-01). The case family is hand-written and
+// declared `String` in the base, so the printer's narrowed declaration is correct for a
+// pro/prediction file too; the `(String)` checkcast that used to shield these lines from
+// the revert regex is gone.
+const WS_STRING_REVERT_EXEMPT = /^this\.safeString(?:Upper|Lower)/;
 
 // hand-written base methods declared with a String return in Java
 // (BaseExchange.iso8601 / numberToString) — used only to prove a later
@@ -271,43 +276,30 @@ function isThisOrSuperCall (node: any): boolean {
         && (node.expression.expression.kind === ts.SyntaxKind.ThisKeyword || node.expression.expression.kind === ts.SyntaxKind.SuperKeyword);
 }
 
-// `this.safeString(...)` resolving to the base accessor in ts/src/base/functions/type.ts
-// (an exchange override would be transpiled with an `Object` return, so it must not classify)
+// `this.safeString(...)` / `this.safeStringUpper(...)` … resolving to the base accessor
+// in ts/src/base/functions/type.ts (an exchange override would be transpiled with its
+// own signature and must not classify)
 function isBaseStringAccessorCall (printer: any, node: any): boolean {
     if (!isThisCall (node)) {
         return false;
     }
     const name = node.expression.name.escapedText;
-    const defaultIndex = STRING_CASE_ACCESSORS[name];
-    if (!STRING_ACCESSORS.has (name) && defaultIndex === undefined) {
+    if (!STRING_ACCESSORS.has (name)) {
         return false;
     }
     const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
-    if (declaration === undefined || !ACCESSOR_DECLARATION_FILE.test (declaration.getSourceFile ().fileName)) {
-        return false;
-    }
-    if (defaultIndex !== undefined && node.arguments.length > defaultIndex) {
-        return isProvablyStringExpression (printer, node.arguments[defaultIndex], undefined);
-    }
-    return true;
-}
-
-// the Java cast a narrowed `safeString*` initializer/reassignment needs: none for
-// the String-declared accessors, `(String)` for the Object-declared case family
-function accessorCast (node: any): string {
-    return (STRING_CASE_ACCESSORS[node.expression.name.escapedText] !== undefined) ? '(String)' : '';
+    return declaration !== undefined && ACCESSOR_DECLARATION_FILE.test (declaration.getSourceFile ().fileName);
 }
 
 // true when the printed Java for `node` is statically a String (or null).
 // `selfName` is the local being classified: a self-reference (`x = cond ? 'a' : x`)
 // is consistent with whatever type that local ends up with.
 //
-// A bare base accessor call is only accepted at the TOP level (`nested` false):
-// the declaration/reassignment hooks below handle exactly that shape (adding the
-// cast the case family needs). Inside a ternary arm a case-family call would print
-// uncast and javac rejects the conditional; the String-declared accessors would be
-// fine there, but that refinement is deliberately not made here so the set of
-// narrowed locals stays unchanged.
+// A bare base accessor call is only accepted at the TOP level (`nested` false): the
+// declaration hook narrows exactly that shape. A case-family call inside a ternary arm
+// would print uncast (fine for javac now that both families are String-declared); the
+// refinement is deliberately not made here so the set of narrowed locals stays
+// unchanged.
 function isProvablyStringExpression (printer: any, node: any, selfName: string | undefined, nested = false): boolean {
     if (node === undefined) {
         return false;
@@ -539,45 +531,7 @@ export function patchJavaLocalTypes (transpiler: any): void {
             return printed; // unexpected shape — leave it as the printer emitted it
         }
         narrowed.set (declaration, javaType);
-        let initializer = declaration.initializer;
-        while (ts.isParenthesizedExpression (initializer)) {
-            initializer = initializer.expression;
-        }
-        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ${accessorCast (initializer)}${value}`;
-    };
-    // `x = this.safeStringUpper(...)` on a narrowed local: the case family is
-    // declared `Object` in Java, so the reassignment needs the same cast the
-    // declaration got (a String-declared accessor needs none)
-    const originalBinary = printer.printBinaryExpression.bind (printer);
-    printer.printBinaryExpression = function (node: any, identation: number) {
-        const printed = originalBinary (node, identation);
-        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
-            return printed;
-        }
-        let right = node.right;
-        while (ts.isParenthesizedExpression (right)) {
-            right = right.expression;
-        }
-        if (!isBaseStringAccessorCall (printer, right)) {
-            return printed;
-        }
-        const symbol = printer.getChecker ().getSymbolAtLocation (node.left);
-        const declaration = symbol?.valueDeclaration;
-        const javaType = (declaration !== undefined) ? narrowed.get (declaration) : undefined;
-        if (javaType === undefined) {
-            return printed;
-        }
-        const cast = accessorCast (right);
-        if (cast === '') {
-            return printed;
-        }
-        const marker = `${printer.printNode (node.left, 0)} = this.`;
-        const at = printed.indexOf (marker);
-        if (at === -1) {
-            return printed;
-        }
-        const head = at + marker.length - 'this.'.length;
-        return printed.slice (0, head) + cast + printed.slice (head);
+        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ${value}`;
     };
     printer._localTypesPatched = true;
 }
@@ -2739,7 +2693,17 @@ class NewTranspiler {
         content = this.rewriteDelayWithStringCallback(content);
 
         // ── String type fixes ──
-        content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
+        // Revert `String x = this.<m>(...)` / `String x = Helpers....` declarations to
+        // `Object`: the typed REST wrapper's overloads (e.g. `Ticker fetchTicker(String)`)
+        // can hand a non-String box back to the inherited async call. WS_STRING_REVERT_EXEMPT
+        // (SS-01) keeps the hand-written safeStringUpper/Lower* family typed — those calls
+        // are declared `String` in the base and carry no checkcast any more.
+        content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, (match: string, name: string, value: string) => {
+            if (WS_STRING_REVERT_EXEMPT.test(value)) {
+                return match;
+            }
+            return `Object ${name} = ${value};`;
+        });
 
         // ── CompletableFuture<Void> → <Object> ──
         content = content.replace(/CompletableFuture<Void>/gm, 'CompletableFuture<Object>');

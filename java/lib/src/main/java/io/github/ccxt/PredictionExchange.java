@@ -265,8 +265,8 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
-            String title = (String)this.safeStringLower(eventVar, "title", "");
-            String description = (String)this.safeStringLower(eventVar, "description", "");
+            String title = this.safeStringLower(eventVar, "title", "");
+            String description = this.safeStringLower(eventVar, "description", "");
             Boolean matched = false;
             for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(queries)); qi++)
             {
