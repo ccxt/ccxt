@@ -25,7 +25,7 @@ public class TestWatchOrders extends BaseTest {
             Boolean success = true;
             try
             {
-                response = (exchange.watchOrders(symbol)).join();
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrders", new Object[]{symbol})).join();
                 if (Helpers.isTrue(Helpers.isEqual(response, null)))
                 {
                     throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;

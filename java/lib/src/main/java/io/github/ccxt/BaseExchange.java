@@ -3606,25 +3606,16 @@ public class BaseExchange {
         String predictionFqcn = (isWs ? EXCHANGES_PKG_PREDICTION_PRO : EXCHANGES_PKG_PREDICTION) + name;
 
         try {
-            // resolution candidates in order of preference. For each package the typed
-            // wrapper class is tried first, then the untyped <Name>Core it extends — the
-            // transpiled tests run against the Cores and must not require the typed
-            // wrappers (generateJavaWrappers output) to exist.
+            // resolution candidates in order of preference: the requested package first,
+            // then the prediction-markets package (prediction venues carry their watch*
+            // methods on the main class, so --prediction uses the non-pro package for ws too)
             java.util.List<String> candidates = new java.util.ArrayList<>();
             if (forcePrediction) {
-                // the --prediction flag prefers the prediction-markets package; prediction exchanges
-                // carry their watch* methods on the main prediction class (no .pro variant), so use the
-                // non-pro package even for ws
-                String predictionNonPro = EXCHANGES_PKG_PREDICTION + name;
-                candidates.add(predictionNonPro);
-                candidates.add(predictionNonPro + "Core");
+                candidates.add(EXCHANGES_PKG_PREDICTION + name);
                 candidates.add(fqcn);
-                candidates.add(fqcn + "Core");
             } else {
                 candidates.add(fqcn);
-                candidates.add(fqcn + "Core");
                 candidates.add(predictionFqcn);
-                candidates.add(predictionFqcn + "Core");
             }
             Class<?> clazz = null;
             for (String candidate : candidates) {
@@ -3738,16 +3729,6 @@ public class BaseExchange {
     // ########################################################################
 
     /**
-     * Helper for typed exchange wrappers: converts a raw List<Object> to a typed List<T>.
-     * Used by generated subclasses (e.g., Binance extends BinanceCore) to convert
-     * untyped method results into typed return values.
-     */
-    @SuppressWarnings("unchecked")
-    protected static <T> List<T> toTypedList(Object raw, java.util.function.Function<Object, T> ctor) {
-        return ((List<Object>) raw).stream().map(ctor).collect(java.util.stream.Collectors.toList());
-    }
-
-    /**
      * Mirrors TS Exchange.close() (ts/src/base/Exchange.ts:1537). Tags every
      * tracked WsClient with a typed ExchangeClosedByUser so its in-flight
      * futures reject with that exception (rather than a bare RuntimeException),
@@ -3798,21 +3779,10 @@ public class BaseExchange {
     // ------------------------------------------------------------------------
     // Untyped async aliases for whitelisted user-facing methods.
     //
-    // These exist solely so that transpiled internal code (per-exchange
-    // `*Core.java` files) can call `this.fetchBalanceAsync()` etc. and get
-    // back a `CompletableFuture<Object>` to chain `.join()` on. The Java
-    // transpiler's regex pass in build/javaTranspiler.ts rewrites internal
-    // zero-arg calls `this.fetchBalance()` → `this.fetchBalanceAsync()` so
-    // they route through the Async path and don't accidentally pick the
-    // typed sync overload added by the typed wrapper (which would break
-    // the `.join()` chain).
-    //
-    // REST `*Core.java` doesn't extend the typed wrapper, so the typed
-    // Async overloads aren't visible there — these untyped Async aliases
-    // on the base class are. For WS `*Core.java` (which extends the typed
-    // REST wrapper), Java's overload resolution picks the typed Async
-    // (more specific than `Object... varargs`) which also returns a Future
-    // and chains `.join()` cleanly with typed return.
+    // Transpiled internal code calls `this.fetchBalanceAsync()` etc. (rewritten from
+    // the zero-arg `this.fetchBalance()` by build/javaTranspiler.ts) and needs a
+    // `CompletableFuture<Object>` to chain `.join()` on; the zero-arg typed defaults
+    // on TypedSurface return typed values and would break that chain.
     //
     // Canonical list lives in ZERO_REQUIRED_TYPED_WHITELIST
     // (build/generateJavaWrappers.ts) — build/javaTranspiler.ts imports it

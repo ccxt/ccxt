@@ -29,7 +29,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = (exchange.watchTradesForSymbols(symbols)).join();
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTradesForSymbols", new Object[]{symbols})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

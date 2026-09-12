@@ -28,7 +28,7 @@ public class TestWatchTicker extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = (exchange.watchTicker(symbol)).join();
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTicker", new Object[]{symbol})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

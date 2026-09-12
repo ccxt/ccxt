@@ -17,7 +17,7 @@ public class TestUnWatchPositions extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         (exchange.sleep(3000)).join();
-        (exchange.createOrder("BTC/USDT:USDT", "market", "buy", 0.001)).join();
+        ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "market", "buy", 0.001})).join();
             return null;
         });
 
@@ -34,11 +34,11 @@ public class TestUnWatchPositions extends BaseTest {
         try
         {
             // First call uses snapshot
-            positionsSubscription = (exchange.watchPositions()).join();
+            positionsSubscription = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{})).join();
             // trigger a position update
             exchange.spawn(() -> { try { this.createOrderAfterDelay( exchange).join(); } catch(Exception _e) { throw new RuntimeException(_e); } });
             // Second call uses subscription
-            positionsSubscription = (exchange.watchPositions()).join();
+            positionsSubscription = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{})).join();
         } catch(Exception e)
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -79,9 +79,9 @@ public class TestUnWatchPositions extends BaseTest {
         Object resubscribeResponse = null;
         try
         {
-            resubscribeResponse = (exchange.watchPositions()).join();
+            resubscribeResponse = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{})).join();
             exchange.spawn(() -> { try { this.createOrderAfterDelay( exchange).join(); } catch(Exception _e) { throw new RuntimeException(_e); } });
-            resubscribeResponse = (exchange.watchPositions()).join();
+            resubscribeResponse = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{})).join();
         } catch(Exception e)
         {
             if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

@@ -25,7 +25,7 @@ public class TestWatchMyTrades extends BaseTest {
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             try
             {
-                response = (exchange.watchMyTrades(symbol)).join();
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchMyTrades", new Object[]{symbol})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

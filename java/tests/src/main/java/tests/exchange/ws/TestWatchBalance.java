@@ -25,7 +25,7 @@ public class TestWatchBalance extends BaseTest {
             Boolean success = true;
             try
             {
-                response = (exchange.watchBalance()).join();
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchBalance", new Object[]{})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

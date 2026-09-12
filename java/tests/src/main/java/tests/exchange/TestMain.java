@@ -341,7 +341,7 @@ public class TestMain extends BaseTest
             if (Helpers.isTrue(isLoadMarkets))
             {
                 dump(this.addPadding("[INFO] TESTING", 25), name, methodName);
-                (exchange.loadMarkets(true)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{true})).join();
                 dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
             }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(skipMessage, null)) && Helpers.isTrue(!Helpers.isEqual(skipMessage, ""))))
@@ -1608,7 +1608,7 @@ public class TestMain extends BaseTest
                 return false;  // this test is only for binance exchange for now
             }
             exchange.returnResponseHeaders = true;
-            Object ticker = (exchange.fetchTicker("BTC/USDT")).join();
+            Object ticker = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{"BTC/USDT"})).join();
             Object info = Helpers.GetValue(ticker, "info");
             Object headers = Helpers.GetValue(info, "responseHeaders");
             Object headersKeys = Helpers.objectKeys(headers);
@@ -3143,7 +3143,7 @@ public class TestMain extends BaseTest
             Object spotOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
@@ -3154,7 +3154,7 @@ public class TestMain extends BaseTest
             Object swapOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 swapOrderRequest = this.urlencodedToDict(exchange.last_request_body);
@@ -3162,7 +3162,7 @@ public class TestMain extends BaseTest
             Object swapInverseOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USD:BTC", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USD:BTC", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 swapInverseOrderRequest = this.urlencodedToDict(exchange.last_request_body);
@@ -3178,9 +3178,9 @@ public class TestMain extends BaseTest
             Object swapAlgoOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new java.util.HashMap<String, Object>() {{
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new java.util.HashMap<String, Object>() {{
                     put( "triggerPrice", 101000 );
-                }})).join();
+                }}})).join();
                 Object checkOrderRequest = this.urlencodedToDict(exchange.last_request_body);
                 Boolean algoOrderIdDefined = (!Helpers.isEqual(Helpers.GetValue(checkOrderRequest, "algoOrderId"), null));
                 Assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined");
@@ -3206,7 +3206,7 @@ public class TestMain extends BaseTest
         put( "side", "buy" );
         put( "amount", 1 );
     }}));
-                (exchange.createOrders(orders)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrders", new Object[]{orders})).join();
             } catch(Exception e)
             {
                 createOrdersRequest = this.urlencodedToDict(exchange.last_request_body);
@@ -3237,7 +3237,7 @@ public class TestMain extends BaseTest
             Object spotOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 spotOrderRequest = jsonParse(exchange.last_request_body);
@@ -3250,7 +3250,7 @@ public class TestMain extends BaseTest
             Object swapOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 swapOrderRequest = jsonParse(exchange.last_request_body);
@@ -3275,11 +3275,11 @@ public class TestMain extends BaseTest
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("cryptocom"));
             String id = "CCXT";
-            (exchange.loadMarkets()).join();
+            ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{})).join();
             Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 request = jsonParse(exchange.last_request_body);
@@ -3306,7 +3306,7 @@ public class TestMain extends BaseTest
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "brokerId"), id), "id not in options");
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers
@@ -3340,7 +3340,7 @@ public class TestMain extends BaseTest
             Assert(Helpers.isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), Helpers.add(Helpers.add("kucoin - key: ", futureKey), " not in options."));
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers
@@ -3350,9 +3350,9 @@ public class TestMain extends BaseTest
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "KC-API-PARTNER"), id), Helpers.add(Helpers.add("kucoin - id: ", id), " not in headers for spot orders."));
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000, new java.util.HashMap<String, Object>() {{
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000, new java.util.HashMap<String, Object>() {{
                     put( "uta", true );
-                }})).join();
+                }}})).join();
             } catch(Exception e)
             {
                 reqHeaders = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)) && Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)))))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
@@ -3361,7 +3361,7 @@ public class TestMain extends BaseTest
             id = "ccxtfutures";
             try
             {
-                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 reqHeaders = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)) && Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)))))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
@@ -3369,9 +3369,9 @@ public class TestMain extends BaseTest
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "KC-API-PARTNER"), id), Helpers.add(Helpers.add("kucoin - id: ", id), " not in headers for swap orders."));
             try
             {
-                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, new java.util.HashMap<String, Object>() {{
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000, new java.util.HashMap<String, Object>() {{
                     put( "uta", true );
-                }})).join();
+                }}})).join();
             } catch(Exception e)
             {
                 reqHeaders = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)) && Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)))))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
@@ -3401,7 +3401,7 @@ public class TestMain extends BaseTest
             try
             {
                 Helpers.addElementToObject(exchange.options, "uta", false);
-                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 reqHeaders = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)) && Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)))))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
@@ -3410,7 +3410,7 @@ public class TestMain extends BaseTest
             try
             {
                 Helpers.addElementToObject(exchange.options, "uta", true);
-                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 reqHeaders = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)) && Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)))))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
@@ -3436,7 +3436,7 @@ public class TestMain extends BaseTest
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "broker"), id), Helpers.add(Helpers.add("bitget - id: ", id), " not in options"));
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 reqHeaders = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)) && Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)))))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
@@ -3460,10 +3460,10 @@ public class TestMain extends BaseTest
             Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             String id = "CCXT";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "broker"), id), Helpers.add(Helpers.add("mexc - id: ", id), " not in options"));
-            (exchange.loadMarkets()).join();
+            ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{})).join();
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 reqHeaders = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)) && Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)))))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
@@ -3489,7 +3489,7 @@ public class TestMain extends BaseTest
             Object spotOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 spotOrderRequest = jsonParse(exchange.last_request_body);
@@ -3501,7 +3501,7 @@ public class TestMain extends BaseTest
             Object swapOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 swapOrderRequest = jsonParse(exchange.last_request_body);
@@ -3509,7 +3509,7 @@ public class TestMain extends BaseTest
             Object swapInverseOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USD:BTC", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USD:BTC", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 swapInverseOrderRequest = jsonParse(exchange.last_request_body);
@@ -3538,7 +3538,7 @@ public class TestMain extends BaseTest
             Object spotOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 spotOrderRequest = jsonParse(exchange.last_request_body);
@@ -3550,9 +3550,9 @@ public class TestMain extends BaseTest
             Object stopOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, new java.util.HashMap<String, Object>() {{
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000, new java.util.HashMap<String, Object>() {{
                     put( "stopPrice", 30000 );
-                }})).join();
+                }}})).join();
             } catch(Exception e)
             {
                 stopOrderRequest = jsonParse(exchange.last_request_body);
@@ -3579,7 +3579,7 @@ public class TestMain extends BaseTest
             Object spotOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 spotOrderRequest = jsonParse(exchange.last_request_body);
@@ -3607,7 +3607,7 @@ public class TestMain extends BaseTest
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "broker"), id), Helpers.add(Helpers.add("bingx - id: ", id), " not in options"));
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers
@@ -3633,7 +3633,7 @@ public class TestMain extends BaseTest
             Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 request = jsonParse(exchange.last_request_body);
@@ -3660,7 +3660,7 @@ public class TestMain extends BaseTest
             Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("LTC/USDT:USDT", "market", "buy", 1)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"LTC/USDT:USDT", "market", "buy", 1})).join();
             } catch(Exception e)
             {
                 request = jsonParse(exchange.last_request_body);
@@ -3705,7 +3705,7 @@ public class TestMain extends BaseTest
             Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 request = jsonParse(exchange.last_request_body);
@@ -3732,7 +3732,7 @@ public class TestMain extends BaseTest
             Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDC", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 request = jsonParse(exchange.last_request_body);
@@ -3760,11 +3760,11 @@ public class TestMain extends BaseTest
             Exchange exchange = ((Exchange)this.initOfflineExchange("woofipro"));
             exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
             String id = "CCXT";
-            (exchange.loadMarkets()).join();
+            ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{})).join();
             Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 request = jsonParse(exchange.last_request_body);
@@ -3790,7 +3790,7 @@ public class TestMain extends BaseTest
             Object spotOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 spotOrderRequest = jsonParse(exchange.last_request_body);
@@ -3800,7 +3800,7 @@ public class TestMain extends BaseTest
             Object swapOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 swapOrderRequest = jsonParse(exchange.last_request_body);
@@ -3856,10 +3856,10 @@ public class TestMain extends BaseTest
             Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
             String id = "CCXT";
             Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "broker"), id), Helpers.add(Helpers.add("paradex - id: ", id), " not in options"));
-            (exchange.loadMarkets()).join();
+            ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{})).join();
             try
             {
-                (exchange.createOrder("BTC/USD:USDC", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USD:USDC", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 reqHeaders = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)) && Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)))))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
@@ -3884,7 +3884,7 @@ public class TestMain extends BaseTest
             String id = "10000700011";
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers
@@ -3909,7 +3909,7 @@ public class TestMain extends BaseTest
             Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "sell", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "sell", 1, 20000})).join();
             } catch(Exception e)
             {
                 request = jsonParse(exchange.last_request_body);
@@ -3947,7 +3947,7 @@ public class TestMain extends BaseTest
                 }};
                 exchange.walletAddress = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749";
                 exchange.privateKey = "0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5";
-                (exchange.createOrder("LBTC/USDC", "limit", "sell", 0.01, 3000, parameters)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"LBTC/USDC", "limit", "sell", 0.01, 3000, parameters})).join();
             } catch(Exception e)
             {
                 request = jsonParse(exchange.last_request_body);
@@ -3974,11 +3974,11 @@ public class TestMain extends BaseTest
             Exchange exchange = ((Exchange)this.initOfflineExchange("modetrade"));
             exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
             String id = "CCXTMODE";
-            (exchange.loadMarkets()).join();
+            ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{})).join();
             Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 request = jsonParse(exchange.last_request_body);
@@ -4006,7 +4006,7 @@ public class TestMain extends BaseTest
             String id = "1400";
             try
             {
-                (exchange.createOrder("ETH/USDC", "limit", "buy", 1, 5000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"ETH/USDC", "limit", "buy", 1, 5000})).join();
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers
@@ -4032,7 +4032,7 @@ public class TestMain extends BaseTest
             String id = "177321641268789";
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers
@@ -4059,7 +4059,7 @@ public class TestMain extends BaseTest
             Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 request = jsonParse(exchange.last_request_body);
@@ -4068,7 +4068,7 @@ public class TestMain extends BaseTest
             Assert(Helpers.isEqual(((String)clientOrderId).startsWith(id), true), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for spot order does not start with id: "), id));
             try
             {
-                (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 request = jsonParse(exchange.last_request_body);
@@ -4090,7 +4090,7 @@ public class TestMain extends BaseTest
             String id = "ccxt";
             try
             {
-                (exchange.createOrder("BTC/BRL", "limit", "buy", 1, 20000)).join();
+                ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/BRL", "limit", "buy", 1, 20000})).join();
             } catch(Exception e)
             {
                 // we expect an error here, we're only interested in the headers

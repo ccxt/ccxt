@@ -90,7 +90,7 @@ public class Exchange extends BaseExchange implements TypedSurface {
 
     // Untyped async aliases for the whitelisted trading methods that live on this
     // Exchange tier (moved off BaseExchange). See BaseExchange.java for the full
-    // rationale — these let transpiled Core code call `this.fetchOrdersAsync()` etc.
+    // rationale — these let transpiled exchange code call `this.fetchOrdersAsync()` etc.
     // and get a CompletableFuture<Object> to chain `.join()` on, without colliding
     // with the typed sync overload added by the typed wrappers.
     public java.util.concurrent.CompletableFuture<Object> fetchOrdersAsync(Object... args) { return fetchOrders(args); }

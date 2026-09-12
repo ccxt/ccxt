@@ -31,7 +31,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = (exchange.watchOrderBookForSymbols(symbols)).join();
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrderBookForSymbols", new Object[]{symbols})).join();
             } catch(Exception e)
             {
                 // interim workaround for InvalidNonce raised by the c# runtime

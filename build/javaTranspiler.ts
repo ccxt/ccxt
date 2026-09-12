@@ -4383,6 +4383,61 @@ class NewTranspiler {
         return s.charAt(0).toUpperCase() + s.slice(1);
     }
 
+    /**
+     * Test-side counterpart of redirectToAsyncOnJoin. `(exchange.<m>(args)).join()` in
+     * transpiled tests binds a typed TypedSurface default whenever the args are
+     * statically typed (String symbol, literals, zero-arg whitelisted names), which
+     * returns the typed value and has no `.join()`. Casting cannot fix it: an
+     * `(Object)` at an SS-05 String position leaves no applicable method. So every
+     * call to a typed-surface name is late-bound through Helpers.callDynamically,
+     * whose findMethod prefers the untyped varargs core over typed overloads.
+     */
+    lateBindTypedSurfaceCalls(content: string): string {
+        const typedNames = new Set<string>();
+        for (const iface of ['TypedSurface.java', 'PredictionTypedSurface.java']) {
+            const path = EXCHANGE_WRAPPER_FOLDER + iface;
+            if (!fs.existsSync(path)) {
+                log.red(`[java] ${path} missing — run \`tsx build/generateJavaWrappers.ts\` first; typed-surface late-binding skipped`);
+                continue;
+            }
+            const re = /^\s{4}default\s+[^=]+?\s+(\w+)\s*\(/gm;
+            let m;
+            const src = fs.readFileSync(path, 'utf-8');
+            while ((m = re.exec(src)) !== null) typedNames.add(m[1]);
+        }
+        if (typedNames.size === 0) return content;
+        const marker = /\(exchange\.(\w+)\(/g;
+        let result = '';
+        let lastIdx = 0;
+        let match;
+        while ((match = marker.exec(content)) !== null) {
+            const name = match[1];
+            if (!typedNames.has(name)) continue;
+            const argsStart = match.index + match[0].length;
+            let depth = 1;
+            let j = argsStart;
+            let inStr: string | null = null;
+            while (j < content.length && depth > 0) {
+                const ch = content[j];
+                if (inStr !== null) {
+                    if (ch === '\\') j++;
+                    else if (ch === inStr) inStr = null;
+                } else if (ch === '"' || ch === '\'') inStr = ch;
+                else if (ch === '(') depth++;
+                else if (ch === ')') depth--;
+                j++;
+            }
+            if (content[j] !== ')' || content.substring(j + 1, j + 8) !== '.join()') continue;
+            const args = content.substring(argsStart, j - 1).trim();
+            const argsArray = args === '' ? 'new Object[]{}' : `new Object[]{${args}}`;
+            result += content.substring(lastIdx, match.index);
+            result += `((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "${name}", ${argsArray})).join()`;
+            lastIdx = j + 8;
+            marker.lastIndex = lastIdx;
+        }
+        return result + content.substring(lastIdx);
+    }
+
     transpileMainTest(files: any) {
         log.magenta('[java] Transpiling from', files.tsFile.yellow)
         let ts = fs.readFileSync(files.tsFile).toString();
@@ -4426,6 +4481,7 @@ class NewTranspiler {
         ])
         // Null-safe Array.isArray (see Helpers.isArrayJs).
         contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
+        contentIndentend = this.lateBindTypedSurfaceCalls(contentIndentend);
 
         const file = [
             'package tests.exchange;',
@@ -4663,6 +4719,8 @@ class NewTranspiler {
                     const argsArray = callArgs.trim() === '' ? 'new Object[]{}' : `new Object[]{${callArgs}}`;
                     return `((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "${name}", ${argsArray})).join()`;
                 });
+            } else {
+                contentIndentend = this.lateBindTypedSurfaceCalls(contentIndentend);
             }
             // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
 

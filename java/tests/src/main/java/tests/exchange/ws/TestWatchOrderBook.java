@@ -33,7 +33,7 @@ public class TestWatchOrderBook extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = (exchange.watchOrderBook(symbol)).join();
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrderBook", new Object[]{symbol})).join();
             } catch(Exception e)
             {
                 if (Helpers.isTrue(!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !Helpers.isTrue((Helpers.isInstance(e, InvalidNonce.class)))))

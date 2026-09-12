@@ -38,7 +38,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
         {
             try
             {
-                response = (exchange.watchLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchLiquidationsForSymbols", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
                 now = System.currentTimeMillis();
                 Object isArray = Helpers.isArray(response);
                 Assert(isArray, "response must be an array");
