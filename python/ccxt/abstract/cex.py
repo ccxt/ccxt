@@ -22,6 +22,7 @@ class ImplicitAPI:
     private_post_do_cancel_my_order = privatePostDoCancelMyOrder = Entry[_Dict]('do_cancel_my_order', 'private', 'POST', {'cost': 1})
     private_post_do_cancel_all_orders = privatePostDoCancelAllOrders = Entry[_Dict]('do_cancel_all_orders', 'private', 'POST', {'cost': 5})
     private_post_get_order_book = privatePostGetOrderBook = Entry[_Dict]('get_order_book', 'private', 'POST', {'cost': 1})
+    private_post_get_ticker = privatePostGetTicker = Entry[_Dict]('get_ticker', 'private', 'POST', {'cost': 1})
     private_post_get_candles = privatePostGetCandles = Entry[_Dict]('get_candles', 'private', 'POST', {'cost': 1})
     private_post_get_trade_history = privatePostGetTradeHistory = Entry[_Dict]('get_trade_history', 'private', 'POST', {'cost': 1})
     private_post_get_my_transaction_history = privatePostGetMyTransactionHistory = Entry[_Dict]('get_my_transaction_history', 'private', 'POST', {'cost': 1})

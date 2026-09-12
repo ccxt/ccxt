@@ -202,9 +202,9 @@ class aster extends Exchange {
                         'v1/klines' => array( 'cost' => 1 ),
                         'v3/klines' => array( 'cost' => 1 ), // dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
                         'v1/indexPriceKlines' => array( 'cost' => 1 ),
-                        'v3/indexPriceKlines' => array( 'cost' => 1 ), // same
+                        'v3/indexPriceKlines' => array( 'cost' => 1 ), // same as klines
                         'v1/markPriceKlines' => array( 'cost' => 1 ),
-                        'v3/markPriceKlines' => array( 'cost' => 1 ), // same
+                        'v3/markPriceKlines' => array( 'cost' => 1 ), // same as klines
                         'v1/premiumIndex' => array( 'cost' => 1 ),
                         'v3/premiumIndex' => array( 'cost' => 1 ),
                         'v1/fundingRate' => array( 'cost' => 1 ),
@@ -261,6 +261,13 @@ class aster extends Exchange {
                         // builder
                         'v3/agent' => array( 'cost' => 1 ),
                         'v3/builder' => array( 'cost' => 1 ),
+                        'v3/builder/userTrades' => array( 'cost' => 5 ),
+                        'v3/builder/approvedUserList' => array( 'cost' => 5 ),
+                        'v3/stpMode' => array( 'cost' => 30 ),
+                        'v3/asset/migrateUser/history' => array( 'cost' => 50 ),
+                        // strategy
+                        'v3/strategyOpenOrder' => array( 'cost' => 5 ),
+                        'v3/strategyHistoryOrder' => array( 'cost' => 5 ),
                     ),
                     'post' => array(
                         'v1/positionSide/dual' => array( 'cost' => 1 ),
@@ -294,6 +301,13 @@ class aster extends Exchange {
                         'v3/updateAgent' => array( 'cost' => 1 ),
                         'v3/approveBuilder' => array( 'cost' => 1 ),
                         'v3/updateBuilder' => array( 'cost' => 1 ),
+                        'v3/registerAndApproveAgent' => array( 'cost' => 50 ),
+                        'v3/asset/migrateUser' => array( 'cost' => 50 ),
+                        'v3/chase' => array( 'cost' => 1 ),
+                        'v3/stpMode' => array( 'cost' => 1 ),
+                        // strategy
+                        'v3/placeStrategyOrder' => array( 'cost' => 50 ),
+                        'v3/updateStrategyOrder' => array( 'cost' => 50 ),
                     ),
                     'put' => array(
                         'v1/listenKey' => array( 'cost' => 1 ),
@@ -306,6 +320,8 @@ class aster extends Exchange {
                         'v3/allOpenOrders' => array( 'cost' => 1 ),
                         'v1/batchOrders' => array( 'cost' => 1 ),
                         'v3/batchOrders' => array( 'cost' => 1 ),
+                        'v3/guardedCancelOrder' => array( 'cost' => 1 ),
+                        'v3/guardedBatchOrders' => array( 'cost' => 1 ),
                         'v3/mmp' => array( 'cost' => 1 ),
                         'v1/listenKey' => array( 'cost' => 1 ),
                         'v3/listenKey' => array( 'cost' => 1 ),
@@ -1133,7 +1149,7 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
          * @param {int} [$params->until] the latest time in ms to fetch orders for
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2787,20 +2803,11 @@ class aster extends Exchange {
         if ($postOnly) {
             $request['timeInForce'] = 'GTX';
         }
-        //
-        // spot
-        // LIMIT timeInForce, quantity, $price
-        // MARKET quantity or $quoteOrderQty
-        // STOP and TAKE_PROFIT quantity, $price, $stopPrice
-        // STOP_MARKET and TAKE_PROFIT_MARKET quantity, $stopPrice
-        // future
-        // LIMIT timeInForce, quantity, $price
-        // MARKET quantity
-        // STOP/TAKE_PROFIT quantity, $price, $stopPrice
-        // STOP_MARKET/TAKE_PROFIT_MARKET $stopPrice
-        // TRAILING_STOP_MARKET callbackRate
-        //
-        // additional required fields depending on the order $type
+        // additional required fields per order $type
+        // spot => LIMIT timeInForce, quantity, $price; MARKET quantity or $quoteOrderQty;
+        //       STOP/TAKE_PROFIT quantity, $price, $stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, $stopPrice
+        // future => LIMIT timeInForce, quantity, $price; MARKET quantity; STOP/TAKE_PROFIT quantity, $price, $stopPrice;
+        //       STOP_MARKET/TAKE_PROFIT_MARKET $stopPrice; TRAILING_STOP_MARKET callbackRate
         $closePosition = $this->safe_bool($params, 'closePosition', false);
         $timeInForceIsRequired = false;
         $priceIsRequired = false;
@@ -3583,7 +3590,7 @@ class aster extends Exchange {
         $entryPrice = $this->parse_number($entryPriceString);
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
-        // to notionalValue
+        // as oppose to notionalValue
         $linear = (is_array($position) && array_key_exists('notional' ?? '', $position));
         if ($marginMode === 'cross') {
             // calculate $collateral
@@ -3837,7 +3844,7 @@ class aster extends Exchange {
                 $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
             }
         }
-        // to notionalValue
+        // as oppose to notionalValue
         $usdm = (is_array($position) && array_key_exists('notional' ?? '', $position));
         $maintenanceMarginString = $this->safe_string($position, 'maintMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
@@ -3987,7 +3994,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_account_positions(?array $symbols = null, $params = array()) {
+    public function fetch_account_positions(?array $symbols = null, $params = array()): array {
         /**
          * @ignore
          * fetch account positions

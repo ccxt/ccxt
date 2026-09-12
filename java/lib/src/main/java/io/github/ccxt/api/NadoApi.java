@@ -64,6 +64,17 @@ public class NadoApi extends Exchange
     }
 
     /**
+     * Calls the gatewayPublicPostEdgeQuery endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  gatewayPublicPostEdgeQuery (Object... optionalArgs)
+    {
+        return this.callAsync ("gatewayPublicPostEdgeQuery", optionalArgs);
+    }
+
+    /**
      * Calls the gatewayPrivatePostExecute endpoint.
      *
      * @param optionalArgs the request parameters
@@ -149,6 +160,17 @@ public class NadoApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  archiveV2PublicGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("archiveV2PublicGetTrades", optionalArgs);
+    }
+
+    /**
+     * Calls the archiveV2PublicGetSymbols endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  archiveV2PublicGetSymbols (Object... optionalArgs)
+    {
+        return this.callAsync ("archiveV2PublicGetSymbols", optionalArgs);
     }
 
     /**

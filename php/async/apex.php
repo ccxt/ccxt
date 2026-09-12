@@ -187,6 +187,7 @@ class apex extends Exchange {
                         'v3/open-orders' => array( 'cost' => 1 ),
                         'v3/transfers' => array( 'cost' => 1 ),
                         'v3/transfer' => array( 'cost' => 1 ),
+                        'v3/stock/account' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'v3/delete-open-orders' => array( 'cost' => 1 ),
@@ -196,6 +197,10 @@ class apex extends Exchange {
                         'v3/set-initial-margin-rate' => array( 'cost' => 1 ),
                         'v3/transfer-out' => array( 'cost' => 1 ),
                         'v3/contract-transfer-out' => array( 'cost' => 1 ),
+                        'v3/contract-transfer-to' => array( 'cost' => 1 ),
+                        'v3/submit-withdraw-claim' => array( 'cost' => 1 ),
+                        'v3/stock/register-account' => array( 'cost' => 1 ),
+                        'v3/stock/generate-api' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -861,7 +866,7 @@ class apex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1320,7 +1325,7 @@ class apex extends Exchange {
             );
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function parse_order_type(?string $type) {
@@ -1378,7 +1383,7 @@ class apex extends Exchange {
     public function get_seeds() {
         $seeds = $this->safe_string($this->options, 'seeds');
         if ($seeds === null) {
-            throw new ArgumentsRequired($this->id . ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it.options["seeds"] = XXXX');
+            throw new ArgumentsRequired($this->id . ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options["seeds"] = XXXX');
         }
         return $seeds;
     }

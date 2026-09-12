@@ -182,6 +182,7 @@ class bittrade extends bittrade$1["default"] {
                         'common/timestamp': { 'cost': 1 }, // 查询系统当前时间
                         'common/exchange': { 'cost': 1 }, // order limits
                         'settings/currencys': { 'cost': 1 }, // ?language=en-US
+                        'retail/maintain/time': { 'cost': 1 }, // 零售维护时间
                     },
                 },
                 'private': {
@@ -212,6 +213,7 @@ class bittrade extends bittrade$1["default"] {
                         'subuser/aggregate-balance': { 'cost': 10 },
                         'stable-coin/exchange_rate': { 'cost': 1 },
                         'stable-coin/quote': { 'cost': 1 },
+                        'retail/order/list': { 'cost': 1 }, // 零售订单历史
                     },
                     'post': {
                         'account/transfer': { 'cost': 1 }, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
@@ -239,6 +241,7 @@ class bittrade extends bittrade$1["default"] {
                         'cross-margin/orders/{id}/repay': { 'cost': 1 }, // 归还借币
                         'stable-coin/exchange': { 'cost': 1 },
                         'subuser/transfer': { 'cost': 10 },
+                        'retail/order/place': { 'cost': 1 }, // 零售下单
                     },
                 },
             },
@@ -552,7 +555,7 @@ class bittrade extends bittrade$1["default"] {
         //         ]
         //    }
         //
-        const markets = this.safeValue(response, 'data', []);
+        const markets = this.safeList(response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new errors.NetworkError(this.id + ' fetchMarkets() returned empty response: ' + this.json(markets));
@@ -828,7 +831,7 @@ class bittrade extends bittrade$1["default"] {
         }
         symbols = this.marketSymbols(symbols);
         const response = await this.marketGetTickers(params);
-        const tickers = this.safeValue(response, 'data', []);
+        const tickers = this.safeList(response, 'data', []);
         const timestamp = this.safeInteger(response, 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -1023,10 +1026,10 @@ class bittrade extends bittrade$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeValue(data[i], 'data', []);
+            const trades = this.safeList(data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
                 const trade = this.parseTrade(trades[j], market);
                 result.push(trade);
@@ -1208,7 +1211,7 @@ class bittrade extends bittrade$1["default"] {
         });
     }
     parseBalance(response) {
-        const balances = this.safeValue(response['data'], 'list', []);
+        const balances = this.safeList(response['data'], 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];

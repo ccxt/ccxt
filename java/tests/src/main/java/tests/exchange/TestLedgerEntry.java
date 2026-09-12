@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestLedgerEntry extends BaseTest {
     public static void testLedgerEntry(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode, Object now)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "id", "x1234" );
             put( "currency", "BTC" );
@@ -30,7 +30,7 @@ public class TestLedgerEntry extends BaseTest {
             put( "datetime", "2021-11-30T00:00:00.000Z" );
             put( "type", "deposit" );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("referenceId", "referenceAccount", "id"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("referenceId", "referenceAccount", "id"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "currency"), requestedCode);

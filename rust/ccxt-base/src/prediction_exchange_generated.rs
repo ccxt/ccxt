@@ -169,8 +169,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 while { if !__for_first_181 { i = add(&i, &Value::Int(1)); } __for_first_181 = false; is_less_than(&i, &get_array_length(&result)) } {
                 let mut event: Value = get_value(&result, &i);
                 let mut event: Value = get_value(&result, &i);
-                let mut idMatch: Value = Value::Bool(is_true(&(!is_equal(&eventId, &Value::Null))) && is_true(&(is_equal(&self.safe_string_k(event.clone(), "id", &[]), &eventId))));
-                let mut slugMatch: Value = Value::Bool(is_true(&(!is_equal(&slug, &Value::Null))) && is_true(&(is_equal(&self.safe_string_k(event.clone(), "slug", &[]), &slug))));
+                let mut idMatch: bool = is_true(&(!is_equal(&eventId, &Value::Null))) && is_true(&(is_equal(&self.safe_string_k(event.clone(), "id", &[]), &eventId)));
+                let mut slugMatch: bool = is_true(&(!is_equal(&slug, &Value::Null))) && is_true(&(is_equal(&self.safe_string_k(event.clone(), "slug", &[]), &slug)));
                 if is_true(&idMatch) || is_true(&slugMatch) {
                     append_to_array(&mut filtered, event.clone());
                 }
@@ -263,8 +263,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if is_true(&(is_equal(&searchIn, &Value::Null))) || is_true(&(is_equal(&queries, &Value::Null))) || is_true(&(is_equal(&queriesLength, &Value::Int(0)))) {
             return events;
         }
-        let mut checkTitle: Value = Value::Bool(is_true(&(is_equal(&searchIn, &Value::Str("title".to_string())))) || is_true(&(is_equal(&searchIn, &Value::Str("both".to_string())))));
-        let mut checkDescription: Value = Value::Bool(is_true(&(is_equal(&searchIn, &Value::Str("description".to_string())))) || is_true(&(is_equal(&searchIn, &Value::Str("both".to_string())))));
+        let mut checkTitle: bool = is_true(&(is_equal(&searchIn, &Value::Str("title".to_string())))) || is_true(&(is_equal(&searchIn, &Value::Str("both".to_string()))));
+        let mut checkDescription: bool = is_true(&(is_equal(&searchIn, &Value::Str("description".to_string())))) || is_true(&(is_equal(&searchIn, &Value::Str("both".to_string()))));
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -274,7 +274,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut event: Value = get_value(&events, &i);
             let mut title: Value = self.safe_string_lower(event.clone(), Value::Str("title".to_string()), &[Value::Str("".to_string())]);
             let mut description: Value = self.safe_string_lower(event.clone(), Value::Str("description".to_string()), &[Value::Str("".to_string())]);
-            let mut matched: Value = Value::Bool(false);
+            let mut matched: bool = false;
             {
                                 let mut qi: Value = Value::Int(0);
                 let mut __for_first_184: bool = true;
@@ -284,14 +284,14 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                     panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" filterEventsBySearchIn() missing title".to_string()))));
                 }
                 if is_true(&checkTitle) && is_true(&(is_greater_than_or_equal(&get_index_of(&title, &q), &Value::Int(0)))) {
-                    matched = Value::Bool(true);
+                    matched = true;
                     break;
                 }
                 if is_equal(&description, &Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" filterEventsBySearchIn() missing description".to_string()))));
                 }
                 if is_true(&checkDescription) && is_true(&(is_greater_than_or_equal(&get_index_of(&description, &q), &Value::Int(0)))) {
-                    matched = Value::Bool(true);
+                    matched = true;
                     break;
                 }
             }
@@ -316,7 +316,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut allowed: Value = Value::Str("abcdefghijklmnopqrstuvwxyz0123456789".to_string());
         let mut chars: Value = self.string_to_chars_array(lower.clone());
         let mut s: Value = Value::Str("".to_string());
-        let mut pendingSep: Value = Value::Bool(false);
+        let mut pendingSep: bool = false;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_186: bool = true;
@@ -328,9 +328,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                     s = add(&s, &Value::Str(" ".to_string()));
                 }
                 s = add(&s, &ch);
-                pendingSep = Value::Bool(false);
+                pendingSep = false;
             }  else {
-                pendingSep = Value::Bool(true);
+                pendingSep = true;
             }
         }
         }
@@ -366,7 +366,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             let mut eventTags: Value = self.safe_list_k(event.clone(), "tags", &[Value::List(vec![])]);
-            let mut matched: Value = Value::Bool(false);
+            let mut matched: bool = false;
             {
                                 let mut ti: Value = Value::Int(0);
                 let mut __for_first_189: bool = true;
@@ -386,7 +386,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut __for_first_188: bool = true;
                         while { if !__for_first_188 { wi = add(&wi, &Value::Int(1)); } __for_first_188 = false; is_less_than(&wi, &get_array_length(&wanted)) } {
                         if is_greater_than_or_equal(&get_index_of(&tagKey, &get_value(&wanted, &wi)), &Value::Int(0)) {
-                            matched = Value::Bool(true);
+                            matched = true;
                             break;
                         }
                     }
@@ -659,7 +659,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut allowed: Value = Value::Str("abcdefghijklmnopqrstuvwxyz0123456789".to_string());
         let mut chars: Value = self.string_to_chars_array(lower.clone());
         let mut s: Value = Value::Str("".to_string());
-        let mut lastDash: Value = Value::Bool(true); // start true to drop leading separators
+        let mut lastDash: bool = true; // start true to drop leading separators
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_193: bool = true;
@@ -668,10 +668,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut ch: Value = get_value(&chars, &i);
             if is_greater_than_or_equal(&get_index_of(&allowed, &ch), &Value::Int(0)) {
                 s = add(&s, &ch);
-                lastDash = Value::Bool(false);
+                lastDash = false;
             }  else if !is_true(&lastDash) {
                 s = add(&s, &Value::Str("-".to_string()));
-                lastDash = Value::Bool(true);
+                lastDash = true;
             }
         }
         }
@@ -741,7 +741,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut allowed: Value = Value::Str("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".to_string());
         let mut chars: Value = self.string_to_chars_array(upper.clone());
         let mut label: Value = Value::Str("".to_string());
-        let mut pendingSep: Value = Value::Bool(false);
+        let mut pendingSep: bool = false;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_196: bool = true;
@@ -753,9 +753,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                     label = add(&label, &Value::Str("_".to_string()));
                 }
                 label = add(&label, &ch);
-                pendingSep = Value::Bool(false);
+                pendingSep = false;
             }  else {
-                pendingSep = Value::Bool(true);
+                pendingSep = true;
             }
         }
         }
@@ -951,7 +951,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             }
             let mut missingLength: Value = get_array_length(&missing);
-            let mut wasWarm: Value = Value::Bool(is_true(&(!is_equal(&self.pred().outcomes, &Value::Null))) && !is_true(&self.is_empty(self.pred().outcomes.clone())));
+            let mut wasWarm: bool = is_true(&(!is_equal(&self.pred().outcomes, &Value::Null))) && !is_true(&self.is_empty(self.pred().outcomes.clone()));
             let mut loadAll: Value = self.safe_bool_k(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]);
             if is_true(&(is_greater_than(&missingLength, &Value::Int(0)))) && is_true(&(is_equal(&loadAll, &Value::Bool(true)))) && !is_true(&wasWarm) && !is_true(&reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
@@ -1027,7 +1027,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if is_true(&self.has_outcome(outcomeSymbol.clone())) {
                 return self.safe_outcome(outcomeSymbol.clone(), &[]);
             }
-            let mut wasWarm: Value = Value::Bool(is_true(&(!is_equal(&self.pred().outcomes, &Value::Null))) && !is_true(&self.is_empty(self.pred().outcomes.clone())));
+            let mut wasWarm: bool = is_true(&(!is_equal(&self.pred().outcomes, &Value::Null))) && !is_true(&self.is_empty(self.pred().outcomes.clone()));
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
             // but the outcome cache is cold, index them for free before hitting the network — this
             // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
@@ -1071,7 +1071,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut normalized: Value = replace_all_str(&to_lower(&marketPart), &Value::Str("-".to_string()), &Value::Str("_".to_string()));
         let mut rawWords: Value = split(&normalized, &Value::Str("_".to_string()));
         let mut words: Value = Value::List(vec![]);
-        let mut hasLetters: Value = Value::Bool(false);
+        let mut hasLetters: bool = false;
         let mut letters: Value = Value::Str("abcdefghijklmnopqrstuvwxyz".to_string());
         {
                         let mut i: Value = Value::Int(0);
@@ -1084,14 +1084,14 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if is_equal(&get_array_length(&word), &Value::Int(0)) {
                 continue;
             }
-            let mut wordHasLetters: Value = Value::Bool(false);
+            let mut wordHasLetters: bool = false;
             let mut chars: Value = self.string_to_chars_array(word.clone());
             {
                                 let mut ci: Value = Value::Int(0);
                 let mut __for_first_205: bool = true;
                 while { if !__for_first_205 { ci = add(&ci, &Value::Int(1)); } __for_first_205 = false; is_less_than(&ci, &get_array_length(&chars)) } {
                 if is_greater_than_or_equal(&get_index_of(&letters, &get_value(&chars, &ci)), &Value::Int(0)) {
-                    wordHasLetters = Value::Bool(true);
+                    wordHasLetters = true;
                     break;
                 }
             }
@@ -1104,7 +1104,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 continue;
             }
             append_to_array(&mut words, word.clone());
-            hasLetters = Value::Bool(true);
+            hasLetters = true;
         }
         }
         let mut wordsLength: Value = get_array_length(&words);

@@ -195,6 +195,7 @@ class bittrade(Exchange, ImplicitAPI):
                         'common/timestamp': {'cost': 1},  # 查询系统当前时间
                         'common/exchange': {'cost': 1},  # order limits
                         'settings/currencys': {'cost': 1},  # ?language=en-US
+                        'retail/maintain/time': {'cost': 1},  # 零售维护时间
                     },
                 },
                 'private': {
@@ -225,6 +226,7 @@ class bittrade(Exchange, ImplicitAPI):
                         'subuser/aggregate-balance': {'cost': 10},
                         'stable-coin/exchange_rate': {'cost': 1},
                         'stable-coin/quote': {'cost': 1},
+                        'retail/order/list': {'cost': 1},  # 零售订单历史
                     },
                     'post': {
                         'account/transfer': {'cost': 1},  # 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
@@ -252,6 +254,7 @@ class bittrade(Exchange, ImplicitAPI):
                         'cross-margin/orders/{id}/repay': {'cost': 1},  # 归还借币
                         'stable-coin/exchange': {'cost': 1},
                         'subuser/transfer': {'cost': 10},
+                        'retail/order/place': {'cost': 1},  # 零售下单
                     },
                 },
             },
@@ -555,7 +558,7 @@ class bittrade(Exchange, ImplicitAPI):
         #         ]
         #    }
         #
-        markets = self.safe_value(response, 'data', [])
+        markets = self.safe_list(response, 'data', [])
         numMarkets = len(markets)
         if numMarkets < 1:
             raise NetworkError(self.id + ' fetchMarkets() returned empty response: ' + self.json(markets))
@@ -810,7 +813,7 @@ class bittrade(Exchange, ImplicitAPI):
             await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.marketGetTickers(params)
-        tickers = self.safe_value(response, 'data', [])
+        tickers = self.safe_list(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
         result = {}
         for i in range(0, len(tickers)):
@@ -987,10 +990,10 @@ class bittrade(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            trades = self.safe_value(data[i], 'data', [])
+            trades = self.safe_list(data[i], 'data', [])
             for j in range(0, len(trades)):
                 trade = self.parse_trade(trades[j], market)
                 result.append(trade)
@@ -1027,7 +1030,7 @@ class bittrade(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1161,7 +1164,7 @@ class bittrade(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response: object) -> Balances:
-        balances = self.safe_value(response['data'], 'list', [])
+        balances = self.safe_list(response['data'], 'list', [])
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -1204,7 +1207,7 @@ class bittrade(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchBalance() does not support the ' + method + ' method')
         return self.parse_balance(response)
 
-    async def fetch_orders_by_states(self, states: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_states(self, states: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         request = {
@@ -1297,7 +1300,7 @@ class bittrade(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    async def fetch_open_orders_v2(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_orders_v2(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         request = {}

@@ -155,12 +155,14 @@ export default class hollaex extends Exchange {
                         'user/deposits': { 'cost': 1 } as Endpoint<Dict>,
                         'user/withdrawals': { 'cost': 1 } as Endpoint<Dict>,
                         'user/withdrawal/fee': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccounts': { 'cost': 1 } as Endpoint<Dict>,
                         'user/trades': { 'cost': 1 } as Endpoint<Dict>,
                         'orders': { 'cost': 1 } as Endpoint<Dict>,
                         'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         'user/withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccount/transfer': { 'cost': 1 } as Endpoint<Dict>,
                         'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
@@ -354,7 +356,7 @@ export default class hollaex extends Exchange {
         //         "status": true
         //     }
         //
-        const pairs = this.safeValue (response, 'pairs', {});
+        const pairs = this.safeDict (response, 'pairs', {});
         const keys = Object.keys (pairs);
         const result: List = [];
         for (let i = 0; i < keys.length; i++) {
@@ -1696,7 +1698,7 @@ export default class hollaex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

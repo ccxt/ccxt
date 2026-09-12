@@ -848,8 +848,8 @@ impl BitvavoCore {
         let mut fees: Value = self.fees.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_432: bool = true;
-            while { if !__for_first_432 { i = add(&i, &Value::Int(1)); } __for_first_432 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_433: bool = true;
+            while { if !__for_first_433 { i = add(&i, &Value::Int(1)); } __for_first_433 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market", &[]);
@@ -1001,8 +1001,8 @@ impl BitvavoCore {
         let mut minWithdraw: Value = self.safe_number_k(rawCurrency.clone(), "withdrawalMinAmount", &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_433: bool = true;
-            while { if !__for_first_433 { j = add(&j, &Value::Int(1)); } __for_first_433 = false; is_less_than(&j, &get_array_length(&networksArray)) } {
+            let mut __for_first_434: bool = true;
+            while { if !__for_first_434 { j = add(&j, &Value::Int(1)); } __for_first_434 = false; is_less_than(&j, &get_array_length(&networksArray)) } {
             let mut networkId: Value = get_value(&networksArray, &j);
             let mut networkId: Value = get_value(&networksArray, &j);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -1376,8 +1376,8 @@ impl BitvavoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_434: bool = true;
-            while { if !__for_first_434 { i = add(&i, &Value::Int(1)); } __for_first_434 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_435: bool = true;
+            while { if !__for_first_435 { i = add(&i, &Value::Int(1)); } __for_first_435 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1585,8 +1585,8 @@ impl BitvavoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_435: bool = true;
-            while { if !__for_first_435 { i = add(&i, &Value::Int(1)); } __for_first_435 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_436: bool = true;
+            while { if !__for_first_436 { i = add(&i, &Value::Int(1)); } __for_first_436 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "symbol", &[]);
@@ -1959,7 +1959,7 @@ impl BitvavoCore {
             m
         });
         let mut isMarketOrder: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("stopLoss".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("takeProfit".to_string())))));
-        let mut isLimitOrder: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("limit".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("stopLossLimit".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("takeProfitLimit".to_string())))));
+        let mut isLimitOrder: bool = is_true(&(is_equal(&type_var, &Value::Str("limit".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("stopLossLimit".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("takeProfitLimit".to_string()))));
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
         let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerAmount".to_string())]), &[]);
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(false), &[params.clone()]);
@@ -1987,8 +1987,8 @@ impl BitvavoCore {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
-        let mut isTakeProfit: Value = Value::Bool(is_true(&(!is_equal(&takeProfitPrice, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("takeProfit".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("takeProfitLimit".to_string())))));
-        let mut isStopLoss: Value = Value::Bool(is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&triggerPrice, &Value::Null))) && is_true(&(!is_true(&isTakeProfit))) || is_true(&(is_equal(&type_var, &Value::Str("stopLoss".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("stopLossLimit".to_string())))));
+        let mut isTakeProfit: bool = is_true(&(!is_equal(&takeProfitPrice, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("takeProfit".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("takeProfitLimit".to_string()))));
+        let mut isStopLoss: bool = is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&triggerPrice, &Value::Null))) && is_true(&(!is_true(&isTakeProfit))) || is_true(&(is_equal(&type_var, &Value::Str("stopLoss".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("stopLossLimit".to_string()))));
         if is_true(&isStopLoss) {
             if !is_equal(&stopLossPrice, &Value::Null) {
                 triggerPrice = stopLossPrice.clone();
@@ -3154,7 +3154,7 @@ impl BitvavoCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut url: Value = add(&add(&add(&Value::Str("/".to_string()), &self.version), &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
-        let mut getOrDelete: Value = Value::Bool(is_true(&(is_equal(&method, &Value::Str("GET".to_string())))) || is_true(&(is_equal(&method, &Value::Str("DELETE".to_string())))));
+        let mut getOrDelete: bool = is_true(&(is_equal(&method, &Value::Str("GET".to_string())))) || is_true(&(is_equal(&method, &Value::Str("DELETE".to_string()))));
         if is_true(&getOrDelete) {
             if is_greater_than(&get_array_length(&object_keys(&query)), &Value::Int(0)) {
                 url = add(&url, &add(&Value::Str("?".to_string()), &self.urlencode(query.clone(), &[])));

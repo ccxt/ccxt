@@ -1355,6 +1355,31 @@ impl HtxCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("v2/invitee/rebate/referrals".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/invitee/rebate/detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/invitee/rebate/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/invitee/rebate/all_rebate/detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/invitee/rebate/batcher_rebate/detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -1557,6 +1582,11 @@ impl HtxCore {
         m.insert("v2/etp/batch-cancel".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
+        m.insert("v5/account/universal_transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
     m
 }));
     m
@@ -2194,6 +2224,36 @@ impl HtxCore {
         m.insert("cost".to_string(), Value::Float(0.41679));
     m
 }));
+        m.insert("api/v6/copyTrading/trader/instruments".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("api/v6/copyTrading/trader/statistics".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("api/v6/copyTrading/trader/profit-sharing-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("api/v6/copyTrading/trader/profit-sharing-history-summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("api/v6/copyTrading/trader/unrealized-profit-sharing-summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("api/v6/copyTrading/trader/followers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -2821,6 +2881,31 @@ impl HtxCore {
         m.insert("v5/algo/cancel_orders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("api/v6/copyTrading/trader/follower".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("api/v6/copyTrading/trader/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("api/v6/copyTrading/trader/follower-settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("api/v6/copyTrading/trader/config".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("api/v6/copyTrading/trader/apikey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
     m
 }));
     m
@@ -3639,8 +3724,8 @@ impl HtxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_759: bool = true;
-            while { if !__for_first_759 { i = add(&i, &Value::Int(1)); } __for_first_759 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_760: bool = true;
+            while { if !__for_first_760 { i = add(&i, &Value::Int(1)); } __for_first_760 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, self.fetch_trading_limits_by_id(self.market_id(symbol.clone()), &[params.clone()]).await);
@@ -3740,8 +3825,8 @@ impl HtxCore {
         let mut keys: Value = object_keys(&types);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_760: bool = true;
-            while { if !__for_first_760 { i = add(&i, &Value::Int(1)); } __for_first_760 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_761: bool = true;
+            while { if !__for_first_761 { i = add(&i, &Value::Int(1)); } __for_first_761 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_equal(&self.safe_bool(types.clone(), key.clone(), &[]), &Value::Bool(true)) {
@@ -3759,8 +3844,8 @@ impl HtxCore {
         promises = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_761: bool = true;
-            while { if !__for_first_761 { i = add(&i, &Value::Int(1)); } __for_first_761 = false; is_less_than(&i, &get_array_length(&promises)) } {
+            let mut __for_first_762: bool = true;
+            while { if !__for_first_762 { i = add(&i, &Value::Int(1)); } __for_first_762 = false; is_less_than(&i, &get_array_length(&promises)) } {
             allMarkets = self.array_concat(allMarkets.clone(), get_value(&promises, &i));
         }
         }
@@ -3788,7 +3873,7 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3906,8 +3991,8 @@ impl HtxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_762: bool = true;
-            while { if !__for_first_762 { i = add(&i, &Value::Int(1)); } __for_first_762 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_763: bool = true;
+            while { if !__for_first_763 { i = add(&i, &Value::Int(1)); } __for_first_763 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut baseId: Value = Value::Null;
@@ -4023,7 +4108,7 @@ impl HtxCore {
             }
             let mut leverageRatio: Value = self.safe_string_k(market.clone(), "leverage-ratio", &[Value::Str("1".to_string())]);
             let mut superLeverageRatio: Value = self.safe_string_k(market.clone(), "super-margin-leverage-ratio", &[Value::Str("1".to_string())]);
-            let mut hasLeverage: Value = Value::Bool(is_true(&crate::precise::Precise::stringGt(&leverageRatio, &Value::Str("1".to_string()))) || is_true(&crate::precise::Precise::stringGt(&superLeverageRatio, &Value::Str("1".to_string()))));
+            let mut hasLeverage: bool = is_true(&crate::precise::Precise::stringGt(&leverageRatio, &Value::Str("1".to_string()))) || is_true(&crate::precise::Precise::stringGt(&superLeverageRatio, &Value::Str("1".to_string())));
             // 0 Delisting
             // 1 Listing
             // 2 Pending Listing
@@ -4148,8 +4233,8 @@ impl HtxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_763: bool = true;
-            while { if !__for_first_763 { i = add(&i, &Value::Int(1)); } __for_first_763 = false; is_less_than(&i, &get_array_length(&futureMarkets)) } {
+            let mut __for_first_764: bool = true;
+            while { if !__for_first_764 { i = add(&i, &Value::Int(1)); } __for_first_764 = false; is_less_than(&i, &get_array_length(&futureMarkets)) } {
             let mut market: Value = get_value(&futureMarkets, &i);
             let mut market: Value = get_value(&futureMarkets, &i);
             let mut info: Value = self.safe_value_k(market.clone(), "info", &[Value::Map({
@@ -4407,7 +4492,7 @@ impl HtxCore {
         if !is_equal(&first, &Value::Null) {
             market = self.market(first.clone());
         }
-        let mut isSubTypeRequested: Value = Value::Bool(is_true(&(Value::Bool(in_op(&params, &Value::Str("subType".to_string()))))) || is_true(&(Value::Bool(in_op(&params, &Value::Str("business_type".to_string()))))));
+        let mut isSubTypeRequested: bool = is_true(&(Value::Bool(in_op(&params, &Value::Str("subType".to_string()))))) || is_true(&(Value::Bool(in_op(&params, &Value::Str("business_type".to_string())))));
         let mut type_var: Value = Value::Null;
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -4416,11 +4501,11 @@ impl HtxCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
-        let mut future: Value = Value::Bool(is_equal(&type_var, &Value::Str("future".to_string())));
-        let mut swap: Value = Value::Bool(is_equal(&type_var, &Value::Str("swap".to_string())));
-        let mut linear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
-        let mut inverse: Value = Value::Bool(is_equal(&subType, &Value::Str("inverse".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
+        let mut future: bool = is_equal(&type_var, &Value::Str("future".to_string()));
+        let mut swap: bool = is_equal(&type_var, &Value::Str("swap".to_string()));
+        let mut linear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
+        let mut inverse: bool = is_equal(&subType, &Value::Str("inverse".to_string()));
         let mut response: Value = Value::Null;
         if !is_true(&isSpot) || is_true(&isSubTypeRequested) {
             if is_true(&linear) {
@@ -5210,13 +5295,13 @@ impl HtxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_765: bool = true;
-            while { if !__for_first_765 { i = add(&i, &Value::Int(1)); } __for_first_765 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_766: bool = true;
+            while { if !__for_first_766 { i = add(&i, &Value::Int(1)); } __for_first_766 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut trades: Value = self.safe_value_k(get_value(&data, &i), "data", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_764: bool = true;
-                while { if !__for_first_764 { j = add(&j, &Value::Int(1)); } __for_first_764 = false; is_less_than(&j, &get_array_length(&trades)) } {
+                let mut __for_first_765: bool = true;
+                while { if !__for_first_765 { j = add(&j, &Value::Int(1)); } __for_first_765 = false; is_less_than(&j, &get_array_length(&trades)) } {
                 let mut trade: Value = self.parse_trade(get_value(&trades, &j), &[market.clone()]);
                 append_to_array(&mut result, trade.clone());
             }
@@ -5499,8 +5584,8 @@ impl HtxCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_766: bool = true;
-            while { if !__for_first_766 { i = add(&i, &Value::Int(1)); } __for_first_766 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+            let mut __for_first_767: bool = true;
+            while { if !__for_first_767 { i = add(&i, &Value::Int(1)); } __for_first_767 = false; is_less_than(&i, &get_array_length(&accounts)) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
             let mut info: Value = self.safe_value_k(account.clone(), "info", &[]);
@@ -5618,8 +5703,8 @@ impl HtxCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_767: bool = true;
-            while { if !__for_first_767 { j = add(&j, &Value::Int(1)); } __for_first_767 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_768: bool = true;
+            while { if !__for_first_768 { j = add(&j, &Value::Int(1)); } __for_first_768 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chainEntry: Value = get_value(&chains, &j);
             let mut chainEntry: Value = get_value(&chains, &j);
             let mut uniqueChainId: Value = self.safe_string_k(chainEntry.clone(), "chain", &[]); // i.e. usdterc20, trc20usdt ...
@@ -5787,16 +5872,16 @@ impl HtxCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut spot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
-        let mut future: Value = Value::Bool(is_equal(&type_var, &Value::Str("future".to_string())));
-        let mut swap: Value = Value::Bool(is_equal(&type_var, &Value::Str("swap".to_string())));
-        let mut inverse: Value = Value::Bool(is_equal(&subType, &Value::Str("inverse".to_string())));
-        let mut linear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
+        let mut spot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
+        let mut future: bool = is_equal(&type_var, &Value::Str("future".to_string()));
+        let mut swap: bool = is_equal(&type_var, &Value::Str("swap".to_string()));
+        let mut inverse: bool = is_equal(&subType, &Value::Str("inverse".to_string()));
+        let mut linear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBalance".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isolated: Value = Value::Bool(is_equal(&marginMode, &Value::Str("isolated".to_string())));
-        let mut cross: Value = Value::Bool(is_equal(&marginMode, &Value::Str("cross".to_string())));
-        let mut margin: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("margin".to_string())))) || is_true(&(is_true(&spot) && is_true(&(is_true(&cross) || is_true(&isolated))))));
+        let mut isolated: bool = is_equal(&marginMode, &Value::Str("isolated".to_string()));
+        let mut cross: bool = is_equal(&marginMode, &Value::Str("cross".to_string()));
+        let mut margin: bool = is_true(&(is_equal(&type_var, &Value::Str("margin".to_string())))) || is_true(&(is_true(&spot) && is_true(&(is_true(&cross) || is_true(&isolated)))));
         let mut response: Value = Value::Null;
         if is_true(&isMultiAssetMode) || is_true(&(is_true(&linear) && is_true(&(is_true(&swap) || is_true(&future))))) {
             let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
@@ -5978,8 +6063,8 @@ impl HtxCore {
             let mut details: Value = self.safe_list_k(data.clone(), "details", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_768: bool = true;
-                while { if !__for_first_768 { i = add(&i, &Value::Int(1)); } __for_first_768 = false; is_less_than(&i, &get_array_length(&details)) } {
+                let mut __for_first_769: bool = true;
+                while { if !__for_first_769 { i = add(&i, &Value::Int(1)); } __for_first_769 = false; is_less_than(&i, &get_array_length(&details)) } {
                 let mut balance: Value = get_value(&details, &i);
                 let mut balance: Value = get_value(&details, &i);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -5997,8 +6082,8 @@ impl HtxCore {
             if is_true(&isolated) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_771: bool = true;
-                    while { if !__for_first_771 { i = add(&i, &Value::Int(1)); } __for_first_771 = false; is_less_than(&i, &get_array_length(&data)) } {
+                    let mut __for_first_772: bool = true;
+                    while { if !__for_first_772 { i = add(&i, &Value::Int(1)); } __for_first_772 = false; is_less_than(&i, &get_array_length(&data)) } {
                     let mut entry: Value = get_value(&data, &i);
                     let mut entry: Value = get_value(&data, &i);
                     let mut balances: Value = self.safe_value_k(entry.clone(), "list", &[]);
@@ -6008,8 +6093,8 @@ impl HtxCore {
                     });
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_769: bool = true;
-                        while { if !__for_first_769 { j = add(&j, &Value::Int(1)); } __for_first_769 = false; is_less_than(&j, &get_array_length(&balances)) } {
+                        let mut __for_first_770: bool = true;
+                        while { if !__for_first_770 { j = add(&j, &Value::Int(1)); } __for_first_770 = false; is_less_than(&j, &get_array_length(&balances)) } {
                         let mut balance: Value = get_value(&balances, &j);
                         let mut balance: Value = get_value(&balances, &j);
                         let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -6022,8 +6107,8 @@ impl HtxCore {
                     let mut subCodes: Value = object_keys(&subResult);
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_770: bool = true;
-                        while { if !__for_first_770 { j = add(&j, &Value::Int(1)); } __for_first_770 = false; is_less_than(&j, &get_array_length(&subCodes)) } {
+                        let mut __for_first_771: bool = true;
+                        while { if !__for_first_771 { j = add(&j, &Value::Int(1)); } __for_first_771 = false; is_less_than(&j, &get_array_length(&subCodes)) } {
                         let mut subCode: Value = get_value(&subCodes, &j);
                         let mut subCode: Value = get_value(&subCodes, &j);
                         result = self.merge_balance_account(result.clone(), subCode.clone(), get_value(&subResult, &subCode));
@@ -6036,8 +6121,8 @@ impl HtxCore {
                 let mut balances: Value = self.safe_value_k(data.clone(), "list", &[Value::List(vec![])]);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_772: bool = true;
-                    while { if !__for_first_772 { i = add(&i, &Value::Int(1)); } __for_first_772 = false; is_less_than(&i, &get_array_length(&balances)) } {
+                    let mut __for_first_773: bool = true;
+                    while { if !__for_first_773 { i = add(&i, &Value::Int(1)); } __for_first_773 = false; is_less_than(&i, &get_array_length(&balances)) } {
                     let mut balance: Value = get_value(&balances, &i);
                     let mut balance: Value = get_value(&balances, &i);
                     let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -6052,8 +6137,8 @@ impl HtxCore {
         }  else if is_true(&inverse) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_773: bool = true;
-                while { if !__for_first_773 { i = add(&i, &Value::Int(1)); } __for_first_773 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_774: bool = true;
+                while { if !__for_first_774 { i = add(&i, &Value::Int(1)); } __for_first_774 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut balance: Value = get_value(&data, &i);
                 let mut balance: Value = get_value(&data, &i);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "symbol", &[]);
@@ -6604,7 +6689,7 @@ impl HtxCore {
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrders".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut contract: Value = Value::Bool(is_true(&(is_equal(&marketType, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&marketType, &Value::Str("future".to_string())))));
+        let mut contract: bool = is_true(&(is_equal(&marketType, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&marketType, &Value::Str("future".to_string()))));
         if is_true(&contract) && is_true(&(is_equal(&symbol, &Value::Null))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" fetchOrders() requires a symbol argument for ".to_string())), &marketType), &Value::Str(" orders".to_string()))));
         }
@@ -6779,7 +6864,7 @@ impl HtxCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchOpenOrders".to_string()), &[market.clone(), params.clone(), Value::Str("linear".to_string())]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isLinear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
+        let mut isLinear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
             if !is_equal(&symbol, &Value::Null) {
@@ -6792,8 +6877,8 @@ impl HtxCore {
                 self.load_accounts(&[]).await;
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_774: bool = true;
-                    while { if !__for_first_774 { i = add(&i, &Value::Int(1)); } __for_first_774 = false; is_less_than(&i, &get_array_length(&self.accounts)) } {
+                    let mut __for_first_775: bool = true;
+                    while { if !__for_first_775 { i = add(&i, &Value::Int(1)); } __for_first_775 = false; is_less_than(&i, &get_array_length(&self.accounts)) } {
                     let mut account: Value = get_value(&self.accounts, &i);
                     if is_equal(&self.safe_string_k(account.clone(), "type", &[]), &Value::Str("spot".to_string())) {
                         accountId = self.safe_string_k(account.clone(), "id", &[]);
@@ -7741,7 +7826,7 @@ impl HtxCore {
         }
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("createOrder".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isLinear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
+        let mut isLinear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[Value::Bool(false)]);
         let mut hedged: Value = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]);
         let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), &[Value::Str("gtc".to_string())]);
@@ -7806,10 +7891,10 @@ impl HtxCore {
         let mut takeProfitTriggerPrice: Value = self.safe_number2(params.clone(), Value::Str("takeProfitPrice".to_string()), Value::Str("tp_trigger_price".to_string()), &[]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callback_rate".to_string()), &[]);
         let mut trailingTriggerPrice: Value = self.safe_number_k(params.clone(), "trailingTriggerPrice", &[price.clone()]);
-        let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        let mut isTrigger: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isStopLossTriggerOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-        let mut isTakeProfitTriggerOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
+        let mut isTrailingPercentOrder: bool = !is_equal(&trailingPercent, &Value::Null);
+        let mut isTrigger: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isStopLossTriggerOrder: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+        let mut isTakeProfitTriggerOrder: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
         let mut clientOrderId: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("client_order_id".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("algo_client_order_id".to_string())]), &[]);
         if is_true(&isLinear) && is_true(&(is_true(&isTrailingPercentOrder) || is_true(&isTrigger) || is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder))) {
             if !is_equal(&clientOrderId, &Value::Null) {
@@ -7957,10 +8042,10 @@ impl HtxCore {
         let mut stopLossTriggerPrice: Value = self.safe_number2(params.clone(), Value::Str("stopLossPrice".to_string()), Value::Str("sl_trigger_price".to_string()), &[]);
         let mut takeProfitTriggerPrice: Value = self.safe_number2(params.clone(), Value::Str("takeProfitPrice".to_string()), Value::Str("tp_trigger_price".to_string()), &[]);
         let mut trailingPercent: Value = self.safe_number_k(params.clone(), "trailingPercent", &[]);
-        let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        let mut isTrigger: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isStopLossTriggerOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-        let mut isTakeProfitTriggerOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
+        let mut isTrailingPercentOrder: bool = !is_equal(&trailingPercent, &Value::Null);
+        let mut isTrigger: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isStopLossTriggerOrder: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+        let mut isTakeProfitTriggerOrder: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
         let mut response: Value = Value::Null;
         if is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)) {
             if is_true(&isTrailingPercentOrder) {
@@ -8168,8 +8253,8 @@ impl HtxCore {
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_775: bool = true;
-            while { if !__for_first_775 { i = add(&i, &Value::Int(1)); } __for_first_775 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_776: bool = true;
+            while { if !__for_first_776 { i = add(&i, &Value::Int(1)); } __for_first_776 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -8348,7 +8433,7 @@ impl HtxCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelOrder".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("cancelOrder".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isLinear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
+        let mut isLinear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -8778,8 +8863,8 @@ impl HtxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_776: bool = true;
-            while { if !__for_first_776 { i = add(&i, &Value::Int(1)); } __for_first_776 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_777: bool = true;
+            while { if !__for_first_777 { i = add(&i, &Value::Int(1)); } __for_first_777 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut order: Value = get_value(&data, &i);
             let mut order: Value = get_value(&data, &i);
             append_to_array(&mut result, self.safe_order(Value::Map({
@@ -8794,8 +8879,8 @@ impl HtxCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_777: bool = true;
-            while { if !__for_first_777 { i = add(&i, &Value::Int(1)); } __for_first_777 = false; is_less_than(&i, &get_array_length(&success)) } {
+            let mut __for_first_778: bool = true;
+            while { if !__for_first_778 { i = add(&i, &Value::Int(1)); } __for_first_778 = false; is_less_than(&i, &get_array_length(&success)) } {
             let mut order: Value = get_value(&success, &i);
             let mut order: Value = get_value(&success, &i);
             append_to_array(&mut result, self.safe_order(Value::Map({
@@ -8809,8 +8894,8 @@ impl HtxCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_778: bool = true;
-            while { if !__for_first_778 { i = add(&i, &Value::Int(1)); } __for_first_778 = false; is_less_than(&i, &get_array_length(&failed)) } {
+            let mut __for_first_779: bool = true;
+            while { if !__for_first_779 { i = add(&i, &Value::Int(1)); } __for_first_779 = false; is_less_than(&i, &get_array_length(&failed)) } {
             let mut order: Value = get_value(&failed, &i);
             let mut order: Value = get_value(&failed, &i);
             append_to_array(&mut result, self.safe_order(Value::Map({
@@ -9124,12 +9209,12 @@ impl HtxCore {
         let mut addresses: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_779: bool = true;
-            while { if !__for_first_779 { i = add(&i, &Value::Int(1)); } __for_first_779 = false; is_less_than(&i, &get_array_length(&allAddresses)) } {
+            let mut __for_first_780: bool = true;
+            while { if !__for_first_780 { i = add(&i, &Value::Int(1)); } __for_first_780 = false; is_less_than(&i, &get_array_length(&allAddresses)) } {
             let mut address: Value = get_value(&allAddresses, &i);
             let mut address: Value = get_value(&allAddresses, &i);
-            let mut noteMatch: Value = Value::Bool(is_true(&(is_equal(&note, &Value::Null))) || is_true(&(is_equal(&get_value(&address, &Value::Str("note".to_string())), &note))));
-            let mut networkMatch: Value = Value::Bool(is_true(&(is_equal(&networkCode, &Value::Null))) || is_true(&(is_equal(&get_value(&address, &Value::Str("network".to_string())), &networkCode))));
+            let mut noteMatch: bool = is_true(&(is_equal(&note, &Value::Null))) || is_true(&(is_equal(&get_value(&address, &Value::Str("note".to_string())), &note)));
+            let mut networkMatch: bool = is_true(&(is_equal(&networkCode, &Value::Null))) || is_true(&(is_equal(&get_value(&address, &Value::Str("network".to_string())), &networkCode)));
             if is_true(&noteMatch) && is_true(&networkMatch) {
                 append_to_array(&mut addresses, address.clone());
             }
@@ -9619,16 +9704,16 @@ impl HtxCore {
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("transfer".to_string()), &[Value::Null, params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut fromAccountId: Value = self.convert_type_to_account(fromAccount.clone());
         let mut toAccountId: Value = self.convert_type_to_account(toAccount.clone());
-        let mut toCross: Value = Value::Bool(is_equal(&toAccountId, &Value::Str("cross".to_string())));
-        let mut fromCross: Value = Value::Bool(is_equal(&fromAccountId, &Value::Str("cross".to_string())));
-        let mut toIsolated: Value = Value::Bool(is_true(&(!is_equal(&self.ids, &Value::Null))) && is_true(&self.in_array(toAccountId.clone(), self.ids.clone())));
-        let mut fromIsolated: Value = Value::Bool(is_true(&(!is_equal(&self.ids, &Value::Null))) && is_true(&self.in_array(fromAccountId.clone(), self.ids.clone())));
-        let mut fromSpot: Value = Value::Bool(is_equal(&fromAccountId, &Value::Str("pro".to_string())));
-        let mut toSpot: Value = Value::Bool(is_equal(&toAccountId, &Value::Str("pro".to_string())));
+        let mut toCross: bool = is_equal(&toAccountId, &Value::Str("cross".to_string()));
+        let mut fromCross: bool = is_equal(&fromAccountId, &Value::Str("cross".to_string()));
+        let mut toIsolated: bool = is_true(&(!is_equal(&self.ids, &Value::Null))) && is_true(&self.in_array(toAccountId.clone(), self.ids.clone()));
+        let mut fromIsolated: bool = is_true(&(!is_equal(&self.ids, &Value::Null))) && is_true(&self.in_array(fromAccountId.clone(), self.ids.clone()));
+        let mut fromSpot: bool = is_equal(&fromAccountId, &Value::Str("pro".to_string()));
+        let mut toSpot: bool = is_equal(&toAccountId, &Value::Str("pro".to_string()));
         if is_true(&fromSpot) && is_true(&toSpot) {
             panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&add(&self.id, &Value::Str(" transfer () cannot make a transfer between ".to_string())), &fromAccount), &Value::Str(" and ".to_string())), &toAccount)));
         }
-        let mut fromOrToFuturesAccount: Value = Value::Bool(is_true(&(is_equal(&fromAccountId, &Value::Str("futures".to_string())))) || is_true(&(is_equal(&toAccountId, &Value::Str("futures".to_string())))));
+        let mut fromOrToFuturesAccount: bool = is_true(&(is_equal(&fromAccountId, &Value::Str("futures".to_string())))) || is_true(&(is_equal(&toAccountId, &Value::Str("futures".to_string()))));
         let mut response: Value = Value::Null;
         if is_true(&fromOrToFuturesAccount) {
             let mut type_var: Value = add(&add(&fromAccountId, &Value::Str("-to-".to_string())), &toAccountId);
@@ -9932,8 +10017,8 @@ impl HtxCore {
         if is_equal(&get_value(&market, &Value::Str("linear".to_string())), &Value::Bool(true)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_780: bool = true;
-                while { if !__for_first_780 { i = add(&i, &Value::Int(1)); } __for_first_780 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_781: bool = true;
+                while { if !__for_first_781 { i = add(&i, &Value::Int(1)); } __for_first_781 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut entry: Value = get_value(&data, &i);
                 let mut entry: Value = get_value(&data, &i);
                 let mut marketId: Value = self.safe_string_k(entry.clone(), "contract_code", &[]);
@@ -9955,8 +10040,8 @@ impl HtxCore {
             let mut result: Value = self.safe_value_k(data.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_781: bool = true;
-                while { if !__for_first_781 { i = add(&i, &Value::Int(1)); } __for_first_781 = false; is_less_than(&i, &get_array_length(&result)) } {
+                let mut __for_first_782: bool = true;
+                while { if !__for_first_782 { i = add(&i, &Value::Int(1)); } __for_first_782 = false; is_less_than(&i, &get_array_length(&result)) } {
                 let mut entry: Value = get_value(&result, &i);
                 add_element_to_object(&mut entry, &Value::Str("current_page".to_string()), cursor.clone());
                 crate::set_value(&mut result, &i, entry.clone());
@@ -10339,7 +10424,7 @@ impl HtxCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut pathString: Value = path.clone();
         let mut url: Value = Value::Str("/".to_string());
-        let mut isArrayParams: Value = Value::Bool(is_array(&params));
+        let mut isArrayParams: bool = is_array(&params);
         let mut query: Value = Value::Null;
         if is_true(&isArrayParams) {
             query = Value::Map({
@@ -10842,7 +10927,7 @@ impl HtxCore {
         let mut rawPositionSide: Value = self.safe_string_k(position.clone(), "position_side", &[]);
         // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
         let mut side: Value = directionSide.clone();
-        let mut isHedgedPositionSide: Value = Value::Bool(is_true(&(is_equal(&rawPositionSide, &Value::Str("long".to_string())))) || is_true(&(is_equal(&rawPositionSide, &Value::Str("short".to_string())))));
+        let mut isHedgedPositionSide: bool = is_true(&(is_equal(&rawPositionSide, &Value::Str("long".to_string())))) || is_true(&(is_equal(&rawPositionSide, &Value::Str("short".to_string()))));
         if is_true(&isHedgedPositionSide) {
             side = rawPositionSide.clone();
         }
@@ -10972,8 +11057,8 @@ impl HtxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_782: bool = true;
-            while { if !__for_first_782 { i = add(&i, &Value::Int(1)); } __for_first_782 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_783: bool = true;
+            while { if !__for_first_783 { i = add(&i, &Value::Int(1)); } __for_first_783 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut position: Value = get_value(&data, &i);
             let mut position: Value = get_value(&data, &i);
             let mut parsed: Value = self.parse_position(position.clone(), &[]);
@@ -11064,8 +11149,8 @@ impl HtxCore {
         if is_true(&(is_equal(&get_value(&market, &Value::Str("future".to_string())), &Value::Bool(true)))) && is_true(&(is_equal(&get_value(&market, &Value::Str("inverse".to_string())), &Value::Bool(true)))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_783: bool = true;
-                while { if !__for_first_783 { i = add(&i, &Value::Int(1)); } __for_first_783 = false; is_less_than(&i, &get_array_length(&positions)) } {
+                let mut __for_first_784: bool = true;
+                while { if !__for_first_784 { i = add(&i, &Value::Int(1)); } __for_first_784 = false; is_less_than(&i, &get_array_length(&positions)) } {
                 let mut entry: Value = get_value(&positions, &i);
                 let mut entry: Value = get_value(&positions, &i);
                 if is_equal(&get_value(&entry, &Value::Str("contract_code".to_string())), &get_value(&market, &Value::Str("id".to_string()))) {
@@ -11304,16 +11389,16 @@ impl HtxCore {
         let mut brackets: Value = self.safe_list_k(info.clone(), "list", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_785: bool = true;
-            while { if !__for_first_785 { i = add(&i, &Value::Int(1)); } __for_first_785 = false; is_less_than(&i, &get_array_length(&brackets)) } {
+            let mut __for_first_786: bool = true;
+            while { if !__for_first_786 { i = add(&i, &Value::Int(1)); } __for_first_786 = false; is_less_than(&i, &get_array_length(&brackets)) } {
             let mut item: Value = get_value(&brackets, &i);
             let mut item: Value = get_value(&brackets, &i);
             let mut leverage: Value = self.safe_string_k(item.clone(), "lever_rate", &[]);
             let mut ladders: Value = self.safe_list_k(item.clone(), "ladders", &[Value::List(vec![])]);
             {
                                 let mut k: Value = Value::Int(0);
-                let mut __for_first_784: bool = true;
-                while { if !__for_first_784 { k = add(&k, &Value::Int(1)); } __for_first_784 = false; is_less_than(&k, &get_array_length(&ladders)) } {
+                let mut __for_first_785: bool = true;
+                while { if !__for_first_785 { k = add(&k, &Value::Int(1)); } __for_first_785 = false; is_less_than(&k, &get_array_length(&ladders)) } {
                 let mut bracket: Value = get_value(&ladders, &k);
                 let mut bracket: Value = get_value(&ladders, &k);
                 let mut adjustFactor: Value = self.safe_string_k(bracket.clone(), "adjust_factor", &[]);
@@ -12203,8 +12288,8 @@ impl HtxCore {
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_786: bool = true;
-            while { if !__for_first_786 { j = add(&j, &Value::Int(1)); } __for_first_786 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_787: bool = true;
+            while { if !__for_first_787 { j = add(&j, &Value::Int(1)); } __for_first_787 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chainEntry: Value = get_value(&chains, &j);
             let mut chainEntry: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chainEntry.clone(), "chain", &[]);
@@ -12302,8 +12387,8 @@ impl HtxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_788: bool = true;
-            while { if !__for_first_788 { i = add(&i, &Value::Int(1)); } __for_first_788 = false; is_less_than(&i, &get_array_length(&settlements)) } {
+            let mut __for_first_789: bool = true;
+            while { if !__for_first_789 { i = add(&i, &Value::Int(1)); } __for_first_789 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             let mut settlement: Value = get_value(&settlements, &i);
             let mut settlement: Value = get_value(&settlements, &i);
             let mut list: Value = self.safe_value_k(settlement.clone(), "list", &[]);
@@ -12320,8 +12405,8 @@ impl HtxCore {
                 });
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_787: bool = true;
-                    while { if !__for_first_787 { j = add(&j, &Value::Int(1)); } __for_first_787 = false; is_less_than(&j, &get_array_length(&list)) } {
+                    let mut __for_first_788: bool = true;
+                    while { if !__for_first_788 { j = add(&j, &Value::Int(1)); } __for_first_788 = false; is_less_than(&j, &get_array_length(&list)) } {
                     let mut item: Value = get_value(&list, &j);
                     let mut item: Value = get_value(&list, &j);
                     let mut parsedSettlement: Value = self.parse_settlement(item.clone(), market.clone());

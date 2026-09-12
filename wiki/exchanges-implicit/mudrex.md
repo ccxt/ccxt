@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official mudrex API documentation:** [docs.trade.mudrex.com](https://docs.trade.mudrex.com/docs)
 
-> 26 implicit endpoints across 2 access groups.
+> 27 implicit endpoints across 2 access groups.
 
 ## market
 
@@ -76,6 +76,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetFuturesAssetId` | GET | `futures/{asset_id}` | 1 |
 | `privateGetWalletFunds` | GET | `wallet/funds` | 5 |
 | `privateGetFuturesFunds` | GET | `futures/funds` | 5 |
+| `privateGetFuturesTransactions` | GET | `futures/transactions` | 1 |
 | `privateGetFuturesOrders` | GET | `futures/orders` | 1 |
 | `privateGetFuturesOrdersHistory` | GET | `futures/orders/history` | 1 |
 | `privateGetFuturesOrdersOrderId` | GET | `futures/orders/{order_id}` | 1 |

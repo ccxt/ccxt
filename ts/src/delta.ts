@@ -188,6 +188,7 @@ export default class delta extends Exchange {
                         'users/update_mmp': { 'cost': 1 } as Endpoint<Dict>,
                         'users/reset_mmp': { 'cost': 1 } as Endpoint<Dict>,
                         'users/margin_mode': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/trading_preferences': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
                         'orders': { 'cost': 1 } as Endpoint<Dict>,
@@ -2333,7 +2334,7 @@ export default class delta extends Exchange {
         return await this.fetchOrdersWithMethod ('privateGetOrdersHistory', symbol, since, limit, params);
     }
 
-    async fetchOrdersWithMethod (method: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersWithMethod (method: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {
             // 'product_ids': market['id'], // comma-separated

@@ -174,11 +174,17 @@ class pacifica extends Exchange {
                         'orders' => array( 'cost' => 1 ),
                         'orders/history' => array( 'cost' => 12 ),
                         'orders/history_by_id' => array( 'cost' => 1 ),
+                        'orders/twap' => array( 'cost' => 1 ),
+                        'orders/twap/history' => array( 'cost' => 12 ),
+                        'orders/twap/history_by_id' => array( 'cost' => 1 ),
                         'spot_assets' => array( 'cost' => 1 ),
                         'spot_assets/bridge/info' => array( 'cost' => 1 ),
                         'spot_assets/bridge/parameters/{symbol}' => array( 'cost' => 1 ),
                         'lake/list' => array( 'cost' => 1 ),
                         'account/builder_codes/approvals' => array( 'cost' => 1 ),
+                        'builder/overview' => array( 'cost' => 1 ),
+                        'builder/trades' => array( 'cost' => 1 ),
+                        'leaderboard/builder_code' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
@@ -203,9 +209,20 @@ class pacifica extends Exchange {
                         'orders/stop/cancel' => array( 'cost' => 0.5 ),
                         'orders/edit' => array( 'cost' => 1 ),
                         'orders/batch' => array( 'cost' => 1 ),
+                        'orders/twap/create' => array( 'cost' => 1 ),
+                        'orders/twap/cancel' => array( 'cost' => 0.5 ),
                         'account/builder_codes/approve' => array( 'cost' => 1 ),
                         'account/builder_codes/revoke' => array( 'cost' => 1 ),
+                        'builder/update_fee_rate' => array( 'cost' => 1 ),
+                        'referral/user/code/claim' => array( 'cost' => 1 ),
                         'agent/bind' => array( 'cost' => 1 ),
+                        'agent/list' => array( 'cost' => 1 ),
+                        'agent/revoke' => array( 'cost' => 1 ),
+                        'agent/revoke_all' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/list' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/add' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/remove' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/toggle' => array( 'cost' => 1 ),
                         'account/api_keys/create' => array( 'cost' => 1 ),
                         'account/api_keys/revoke' => array( 'cost' => 1 ),
                         'account/api_keys' => array( 'cost' => 1 ),
@@ -1180,7 +1197,7 @@ class pacifica extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch. 'limit' is priority
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($since === null) {
             throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a "since" argument');
@@ -1417,7 +1434,9 @@ class pacifica extends Exchange {
         $timestamp = $this->safe_integer($trade, 'created_at');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
-        $symbol = $this->safe_symbol(null, $market);
+        $marketId = $this->safe_string($trade, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $id = $this->safe_string($trade, 'history_id');
         $side = $this->safe_string($trade, 'side');
         if ($side === 'open_long') {
@@ -1541,7 +1560,7 @@ class pacifica extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders, but can be used of Trigger Order.
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders, but can be used as limit_price of Trigger Order.
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at (optional provide stopLossCloid)
@@ -3202,11 +3221,11 @@ class pacifica extends Exchange {
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
-         * transfer currency internally between wallets on the same account
+         * transfer $currency internally between wallets on the same account
          *
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
          *
-         * @param {string} $code unified currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from *spot, swap*
          * @param {string} $toAccount account to transfer to *swap, spot or address*
@@ -3214,10 +3233,14 @@ class pacifica extends Exchange {
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $currency = $this->currency($code);
         $operationType = 'transfer_funds';
         $sigPayload = array(
             'to_account' => $toAccount,
-            'amount' => $amount,
+            'amount' => $this->number_to_string($amount),
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
         $params = $this->omit($params, array( 'expiryWindow' ));
@@ -3234,7 +3257,11 @@ class pacifica extends Exchange {
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_transfer($data);
+        return $this->extend($this->parse_transfer($data, $currency), array(
+            'amount' => $amount,
+            'fromAccount' => $this->safe_string($request, 'account'),
+            'toAccount' => $toAccount,
+        ));
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -3249,16 +3276,21 @@ class pacifica extends Exchange {
         //   "code" => null
         // }
         //
+        $success = $this->safe_bool($transfer, 'success');
+        $status = null;
+        if ($success !== null) {
+            $status = ($success === true) ? 'ok' : 'failed';
+        }
         return array(
             'info' => $transfer,
             'id' => null,
             'timestamp' => null,
             'datetime' => null,
-            'currency' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'fromAccount' => null,
             'toAccount' => null,
-            'status' => 'ok',
+            'status' => $status,
         );
     }
 
@@ -3404,7 +3436,7 @@ class pacifica extends Exchange {
         if ($address1 !== null) {
             return array( $address1, $params );
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $address either as "exchange.walletAddress = ..." or or "address" in params');
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

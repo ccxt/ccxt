@@ -28,7 +28,10 @@ dependencies {
 
     implementation(libs.jackson.databind)
 
-    implementation(libs.web3j.crypto)
+    // BouncyCastle for secp256k1 (RFC 6979 ECDSA + recovery id) and keccak-256 —
+    // neither is in the JDK. Was org.web3j:crypto, which is a thin layer over the
+    // same BC calls but drags 15 extra jars (kotlin-stdlib, tuweni, jc-kzg, ...).
+    implementation(libs.bcprov)
 
     // Netty for WebSocket support (high-performance async I/O)
     implementation(libs.netty.codec.http)

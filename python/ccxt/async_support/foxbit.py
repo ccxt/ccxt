@@ -161,6 +161,8 @@ class foxbit(Exchange, ImplicitAPI):
                             'markets/{market}/candlesticks': {'cost': 12},  # 5 requests per 2 seconds
                             'markets/{market}/trades/history': {'cost': 12},  # 5 requests per 2 seconds
                             'markets/{market}/ticker/24hr': {'cost': 15},  # 4 requests per 2 seconds
+                            'markets/sparkline/{window}': {'cost': 20},  # 3 requests per 2 seconds
+                            'travel_rule/operation_reasons': {'cost': 30},  # 2 requests per 2 seconds
                         },
                     },
                     'private': {
@@ -174,12 +176,14 @@ class foxbit(Exchange, ImplicitAPI):
                             'deposits': {'cost': 10},  # 3 requests per second
                             'withdrawals': {'cost': 10},  # 3 requests per second
                             'me/fees/trading': {'cost': 60},  # 1 requests per 2 seconds
+                            'prime_desk/executions/{quote_id}': {'cost': 10},  # 6 requests per 2 seconds
                         },
                         'post': {
                             'orders': {'cost': 2},  # 30 requests per 2 seconds
                             'orders/batch': {'cost': 7.5},  # 8 requests per 2 seconds
                             'orders/cancel-replace': {'cost': 3},  # 20 requests per 2 seconds
                             'withdrawals': {'cost': 10},  # 3 requests per second
+                            'deposits/{deposit_sn}/travel_rule': {'cost': 30},  # 2 requests per 2 seconds
                         },
                         'put': {
                             'orders/cancel': {'cost': 2},  # 30 requests per 2 seconds
@@ -774,7 +778,7 @@ class foxbit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1439,7 +1443,7 @@ class foxbit(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, used on stop market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, used as stop_price on stop market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """

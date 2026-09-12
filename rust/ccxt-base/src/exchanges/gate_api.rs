@@ -192,6 +192,16 @@ impl GateCore {
         self.call_method(Value::Str("public_futures_get_settle_risk_limit_tiers".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicFuturesGetSettleAdlRiskStates` implicit endpoint.
+    pub async fn public_futures_get_settle_adl_risk_states(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_futures_get_settle_adl_risk_states".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicFuturesPostSettleFundingRates` implicit endpoint.
+    pub async fn public_futures_post_settle_funding_rates(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_futures_post_settle_funding_rates".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicDeliveryGetSettleContracts` implicit endpoint.
     pub async fn public_delivery_get_settle_contracts(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_delivery_get_settle_contracts".to_string()), optional_args).await
@@ -310,6 +320,21 @@ impl GateCore {
     /// Auto-generated wrapper for the `publicEarnGetStructuredProducts` implicit endpoint.
     pub async fn public_earn_get_structured_products(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_earn_get_structured_products".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicEarnGetDualProjectRecommend` implicit endpoint.
+    pub async fn public_earn_get_dual_project_recommend(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_earn_get_dual_project_recommend".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicEarnGetFixedTermProduct` implicit endpoint.
+    pub async fn public_earn_get_fixed_term_product(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_earn_get_fixed_term_product".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicEarnGetFixedTermProductAssetList` implicit endpoint.
+    pub async fn public_earn_get_fixed_term_product_asset_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_earn_get_fixed_term_product_asset_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicLoanGetCollateralCurrencies` implicit endpoint.
@@ -435,6 +460,11 @@ impl GateCore {
     /// Auto-generated wrapper for the `privateWalletGetGetLowCapExchangeList` implicit endpoint.
     pub async fn private_wallet_get_get_low_cap_exchange_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_wallet_get_get_low_cap_exchange_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateWalletGetTransfers` implicit endpoint.
+    pub async fn private_wallet_get_transfers(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_wallet_get_transfers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateWalletPostTransfers` implicit endpoint.
@@ -582,6 +612,16 @@ impl GateCore {
         self.call_method(Value::Str("private_unified_get_leverage_user_currency_setting".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateUnifiedGetDeltaNeutral` implicit endpoint.
+    pub async fn private_unified_get_delta_neutral(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_unified_get_delta_neutral".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateUnifiedGetEstimatedQuickRepayment` implicit endpoint.
+    pub async fn private_unified_get_estimated_quick_repayment(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_unified_get_estimated_quick_repayment".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateUnifiedGetAccountMode` implicit endpoint.
     pub async fn private_unified_get_account_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_unified_get_account_mode".to_string()), optional_args).await
@@ -605,6 +645,21 @@ impl GateCore {
     /// Auto-generated wrapper for the `privateUnifiedPostCollateralCurrencies` implicit endpoint.
     pub async fn private_unified_post_collateral_currencies(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_unified_post_collateral_currencies".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateUnifiedPostDeltaNeutral` implicit endpoint.
+    pub async fn private_unified_post_delta_neutral(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_unified_post_delta_neutral".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateUnifiedPostLeverageUserSetting` implicit endpoint.
+    pub async fn private_unified_post_leverage_user_setting(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_unified_post_leverage_user_setting".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateUnifiedPostQuickRepayment` implicit endpoint.
+    pub async fn private_unified_post_quick_repayment(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_unified_post_quick_repayment".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateUnifiedPostAccountMode` implicit endpoint.
@@ -667,6 +722,16 @@ impl GateCore {
         self.call_method(Value::Str("private_spot_get_price_orders_order_id".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateSpotGetPovOrders` implicit endpoint.
+    pub async fn private_spot_get_pov_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_spot_get_pov_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateSpotGetPovOrdersOrderId` implicit endpoint.
+    pub async fn private_spot_get_pov_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_spot_get_pov_orders_order_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateSpotPostBatchOrders` implicit endpoint.
     pub async fn private_spot_post_batch_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_spot_post_batch_orders".to_string()), optional_args).await
@@ -702,6 +767,11 @@ impl GateCore {
         self.call_method(Value::Str("private_spot_post_price_orders".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateSpotPostPovOrders` implicit endpoint.
+    pub async fn private_spot_post_pov_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_spot_post_pov_orders".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateSpotDeleteOrders` implicit endpoint.
     pub async fn private_spot_delete_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_spot_delete_orders".to_string()), optional_args).await
@@ -720,6 +790,16 @@ impl GateCore {
     /// Auto-generated wrapper for the `privateSpotDeletePriceOrdersOrderId` implicit endpoint.
     pub async fn private_spot_delete_price_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_spot_delete_price_orders_order_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateSpotDeletePovOrders` implicit endpoint.
+    pub async fn private_spot_delete_pov_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_spot_delete_pov_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateSpotDeletePovOrdersOrderId` implicit endpoint.
+    pub async fn private_spot_delete_pov_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_spot_delete_pov_orders_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateSpotPatchOrdersOrderId` implicit endpoint.
@@ -1027,6 +1107,31 @@ impl GateCore {
         self.call_method(Value::Str("private_futures_get_settle_price_orders_order_id".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateFuturesGetSettleAutoorderV1TrailList` implicit endpoint.
+    pub async fn private_futures_get_settle_autoorder_v1_trail_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_futures_get_settle_autoorder_v1_trail_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateFuturesGetSettleAutoorderV1TrailDetail` implicit endpoint.
+    pub async fn private_futures_get_settle_autoorder_v1_trail_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_futures_get_settle_autoorder_v1_trail_detail".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateFuturesGetSettleAutoorderV1TrailChangeLog` implicit endpoint.
+    pub async fn private_futures_get_settle_autoorder_v1_trail_change_log(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_futures_get_settle_autoorder_v1_trail_change_log".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateFuturesGetSettleAutoorderV1ChaseList` implicit endpoint.
+    pub async fn private_futures_get_settle_autoorder_v1_chase_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_futures_get_settle_autoorder_v1_chase_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateFuturesGetSettleAutoorderV1ChaseDetail` implicit endpoint.
+    pub async fn private_futures_get_settle_autoorder_v1_chase_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_futures_get_settle_autoorder_v1_chase_detail".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateFuturesPostSettlePositionsContractMargin` implicit endpoint.
     pub async fn private_futures_post_settle_positions_contract_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_futures_post_settle_positions_contract_margin".to_string()), optional_args).await
@@ -1115,6 +1220,41 @@ impl GateCore {
     /// Auto-generated wrapper for the `privateFuturesPostSettlePriceOrders` implicit endpoint.
     pub async fn private_futures_post_settle_price_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_futures_post_settle_price_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateFuturesPostSettleAutoorderV1TrailCreate` implicit endpoint.
+    pub async fn private_futures_post_settle_autoorder_v1_trail_create(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_futures_post_settle_autoorder_v1_trail_create".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateFuturesPostSettleAutoorderV1TrailStop` implicit endpoint.
+    pub async fn private_futures_post_settle_autoorder_v1_trail_stop(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_futures_post_settle_autoorder_v1_trail_stop".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateFuturesPostSettleAutoorderV1TrailStopAll` implicit endpoint.
+    pub async fn private_futures_post_settle_autoorder_v1_trail_stop_all(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_futures_post_settle_autoorder_v1_trail_stop_all".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateFuturesPostSettleAutoorderV1TrailUpdate` implicit endpoint.
+    pub async fn private_futures_post_settle_autoorder_v1_trail_update(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_futures_post_settle_autoorder_v1_trail_update".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateFuturesPostSettleAutoorderV1ChaseCreate` implicit endpoint.
+    pub async fn private_futures_post_settle_autoorder_v1_chase_create(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_futures_post_settle_autoorder_v1_chase_create".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateFuturesPostSettleAutoorderV1ChaseStop` implicit endpoint.
+    pub async fn private_futures_post_settle_autoorder_v1_chase_stop(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_futures_post_settle_autoorder_v1_chase_stop".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateFuturesPostSettleAutoorderV1ChaseStopAll` implicit endpoint.
+    pub async fn private_futures_post_settle_autoorder_v1_chase_stop_all(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_futures_post_settle_autoorder_v1_chase_stop_all".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateFuturesPutSettleOrdersOrderId` implicit endpoint.
@@ -1322,6 +1462,11 @@ impl GateCore {
         self.call_method(Value::Str("private_options_post_mmp_reset".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateOptionsPutOrdersOrderId` implicit endpoint.
+    pub async fn private_options_put_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_options_put_orders_order_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateOptionsDeleteOrders` implicit endpoint.
     pub async fn private_options_delete_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_options_delete_orders".to_string()), optional_args).await
@@ -1407,6 +1552,51 @@ impl GateCore {
         self.call_method(Value::Str("private_earn_get_staking_assets".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateEarnGetDualOrderRefundPreview` implicit endpoint.
+    pub async fn private_earn_get_dual_order_refund_preview(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_get_dual_order_refund_preview".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnGetFixedTermUserLend` implicit endpoint.
+    pub async fn private_earn_get_fixed_term_user_lend(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_get_fixed_term_user_lend".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnGetFixedTermUserHistory` implicit endpoint.
+    pub async fn private_earn_get_fixed_term_user_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_get_fixed_term_user_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnGetAutoinvestCoins` implicit endpoint.
+    pub async fn private_earn_get_autoinvest_coins(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_get_autoinvest_coins".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnGetAutoinvestConfig` implicit endpoint.
+    pub async fn private_earn_get_autoinvest_config(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_get_autoinvest_config".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnGetAutoinvestOrders` implicit endpoint.
+    pub async fn private_earn_get_autoinvest_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_get_autoinvest_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnGetAutoinvestPlansDetail` implicit endpoint.
+    pub async fn private_earn_get_autoinvest_plans_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_get_autoinvest_plans_detail".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnGetAutoinvestPlansListInfo` implicit endpoint.
+    pub async fn private_earn_get_autoinvest_plans_list_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_get_autoinvest_plans_list_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnGetAutoinvestPlansRecords` implicit endpoint.
+    pub async fn private_earn_get_autoinvest_plans_records(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_get_autoinvest_plans_records".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateEarnGetUniCurrencies` implicit endpoint.
     pub async fn private_earn_get_uni_currencies(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_earn_get_uni_currencies".to_string()), optional_args).await
@@ -1440,6 +1630,51 @@ impl GateCore {
     /// Auto-generated wrapper for the `privateEarnPostStakingSwap` implicit endpoint.
     pub async fn private_earn_post_staking_swap(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_earn_post_staking_swap".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnPostDualOrderRefund` implicit endpoint.
+    pub async fn private_earn_post_dual_order_refund(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_post_dual_order_refund".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnPostDualModifyOrderReinvest` implicit endpoint.
+    pub async fn private_earn_post_dual_modify_order_reinvest(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_post_dual_modify_order_reinvest".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnPostFixedTermUserLend` implicit endpoint.
+    pub async fn private_earn_post_fixed_term_user_lend(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_post_fixed_term_user_lend".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnPostFixedTermUserPreRedeem` implicit endpoint.
+    pub async fn private_earn_post_fixed_term_user_pre_redeem(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_post_fixed_term_user_pre_redeem".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnPostAutoinvestMinInvestAmount` implicit endpoint.
+    pub async fn private_earn_post_autoinvest_min_invest_amount(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_post_autoinvest_min_invest_amount".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnPostAutoinvestPlansAddPosition` implicit endpoint.
+    pub async fn private_earn_post_autoinvest_plans_add_position(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_post_autoinvest_plans_add_position".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnPostAutoinvestPlansCreate` implicit endpoint.
+    pub async fn private_earn_post_autoinvest_plans_create(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_post_autoinvest_plans_create".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnPostAutoinvestPlansStop` implicit endpoint.
+    pub async fn private_earn_post_autoinvest_plans_stop(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_post_autoinvest_plans_stop".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEarnPostAutoinvestPlansUpdate` implicit endpoint.
+    pub async fn private_earn_post_autoinvest_plans_update(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_earn_post_autoinvest_plans_update".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateEarnPutUniInterestReinvest` implicit endpoint.
@@ -1662,6 +1897,11 @@ impl GateCore {
         self.call_method(Value::Str("private_rebate_get_user_sub_relation".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateRebateGetPartnerDataAggregated` implicit endpoint.
+    pub async fn private_rebate_get_partner_data_aggregated(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_rebate_get_partner_data_aggregated".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateOtcGetGetUserDefBank` implicit endpoint.
     pub async fn private_otc_get_get_user_def_bank(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_otc_get_get_user_def_bank".to_string()), optional_args).await
@@ -1680,6 +1920,16 @@ impl GateCore {
     /// Auto-generated wrapper for the `privateOtcGetOrderDetail` implicit endpoint.
     pub async fn private_otc_get_order_detail(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_otc_get_order_detail".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateOtcGetBankList` implicit endpoint.
+    pub async fn private_otc_get_bank_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_otc_get_bank_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateOtcGetBankBankSupplementChecklist` implicit endpoint.
+    pub async fn private_otc_get_bank_bank_supplement_checklist(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_otc_get_bank_bank_supplement_checklist".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateOtcPostQuote` implicit endpoint.
@@ -1705,6 +1955,36 @@ impl GateCore {
     /// Auto-generated wrapper for the `privateOtcPostOrderCancel` implicit endpoint.
     pub async fn private_otc_post_order_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_otc_post_order_cancel".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateOtcPostBankCreate` implicit endpoint.
+    pub async fn private_otc_post_bank_create(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_otc_post_bank_create".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateOtcPostBankDelete` implicit endpoint.
+    pub async fn private_otc_post_bank_delete(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_otc_post_bank_delete".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateOtcPostBankSetDefault` implicit endpoint.
+    pub async fn private_otc_post_bank_set_default(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_otc_post_bank_set_default".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateOtcPostBankPersonalBankSupplement` implicit endpoint.
+    pub async fn private_otc_post_bank_personal_bank_supplement(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_otc_post_bank_personal_bank_supplement".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateOtcPostBankEnterpriseBankSupplement` implicit endpoint.
+    pub async fn private_otc_post_bank_enterprise_bank_supplement(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_otc_post_bank_enterprise_bank_supplement".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateOtcPostUploadPreUpload` implicit endpoint.
+    pub async fn private_otc_post_upload_pre_upload(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_otc_post_upload_pre_upload".to_string()), optional_args).await
     }
 
 }

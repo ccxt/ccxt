@@ -526,6 +526,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/pmloan-history': {'cost': 5},
                         'portfolio/earn-asset-balance': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         # staking
                         'staking/productList': {'cost': 0.1},
                         'staking/position': {'cost': 0.1},
@@ -702,6 +703,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/redeem': {'cost': 20},
                         'portfolio/earn-asset-transfer': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'lending/auto-invest/plan/add': {'cost': 0.1},  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit': {'cost': 0.1},  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status': {'cost': 0.1},  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
@@ -735,6 +737,7 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'delete': {
                         # 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
+                        'portfolio/margin-call-level': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'margin/openOrders': {'cost': 0.1},
                         'margin/order': {'cost': 0.006667},  # Weight(UID): 1 => cost = 0.006667
                         'margin/orderList': {'cost': 0.006667},
@@ -1071,6 +1074,7 @@ class binance(Exchange, ImplicitAPI):
                         'countdownCancelAllHeartBeat': {'cost': 10},
                         'block/order/create': {'cost': 5},
                         'block/order/execute': {'cost': 5},
+                        'stock/contract': {'cost': 50},  # Weight(IP): 50 => cost = 50
                     },
                     'put': {
                         'listenKey': {'cost': 1},
@@ -1103,7 +1107,11 @@ class binance(Exchange, ImplicitAPI):
                         'ticker/price': {'cost': 0.4, 'noSymbol': 0.8},
                         'ticker/bookTicker': {'cost': 0.4, 'noSymbol': 0.8},
                         'exchangeInfo': {'cost': 4},  # Weight(IP): 20 => cost = 0.2 * 20 = 4
+                        'executionRules': {'cost': 0.4, 'noSymbol': 8},  # Weight(IP): 2(symbol) / 40(none) => cost = 0.2 * weight
                         'avgPrice': {'cost': 0.4},
+                        'referencePrice': {'cost': 0.4},  # Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'referencePrice/calculation': {'cost': 0.4},  # Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'historicalBlockTrades': {'cost': 5},  # Weight(IP): 25 => cost = 0.2 * 25 = 5
                     },
                     'put': {
                         'userDataStream': {'cost': 0.4},
@@ -1168,6 +1176,10 @@ class binance(Exchange, ImplicitAPI):
                         'um/conditional/openOrders': {'cost': 1, 'noSymbol': 40},
                         'um/conditional/orderHistory': {'cost': 1},
                         'um/conditional/allOrders': {'cost': 1, 'noSymbol': 40},
+                        # algo(conditional) orders
+                        'um/algo/algoOrder': {'cost': 1},
+                        'um/algo/openAlgoOrders': {'cost': 1},
+                        'um/algo/allAlgoOrders': {'cost': 5},
                         'cm/conditional/openOrder': {'cost': 1},
                         'cm/conditional/openOrders': {'cost': 1, 'noSymbol': 40},
                         'cm/conditional/orderHistory': {'cost': 1},
@@ -1226,6 +1238,7 @@ class binance(Exchange, ImplicitAPI):
                     'post': {
                         'um/order': {'cost': 1},
                         'um/conditional/order': {'cost': 1},
+                        'um/algo/order': {'cost': 1},
                         'cm/order': {'cost': 1},
                         'cm/conditional/order': {'cost': 1},
                         'margin/order': {'cost': 1},
@@ -1256,6 +1269,8 @@ class binance(Exchange, ImplicitAPI):
                         'um/conditional/order': {'cost': 1},
                         'um/allOpenOrders': {'cost': 1},
                         'um/conditional/allOpenOrders': {'cost': 1},
+                        'um/algo/order': {'cost': 1},
+                        'um/algo/allOpenOrders': {'cost': 1},
                         'cm/order': {'cost': 1},
                         'cm/conditional/order': {'cost': 1},
                         'cm/allOpenOrders': {'cost': 1},
@@ -2034,8 +2049,8 @@ class binance(Exchange, ImplicitAPI):
                         '-10005': BadResponse,  # No records found.
                         '-10007': BadRequest,  # This coin is not loanable
                         '-10008': BadRequest,  # This coin is not loanable
-                        '-10009': BadRequest,  # This coin can not be used.
-                        '-10010': BadRequest,  # This coin can not be used.
+                        '-10009': BadRequest,  # This coin can not be used as collateral.
+                        '-10010': BadRequest,  # This coin can not be used as collateral.
                         '-10011': InsufficientFunds,  # Insufficient spot assets.
                         '-10012': BadRequest,  # Invalid repayment amount.
                         '-10013': InsufficientFunds,  # Insufficient collateral amount.
@@ -2191,13 +2206,13 @@ class binance(Exchange, ImplicitAPI):
                         '-4211': BadRequest,  # Stop price is lower than price multiplier floor
                         '-4400': PermissionDenied,  # Futures Trading Quantitative Rules violated, only reduceOnly order is allowed, please try again later.
                         '-4401': PermissionDenied,  # Compliance restricted account permission: can only place reduceOnly order.
-                        '-4402': PermissionDenied,  # Dear user, our Terms of Use and compliance with local regulations, self feature is currently not available in your region.
-                        '-4403': PermissionDenied,  # Dear user, our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
+                        '-4402': PermissionDenied,  # Dear user, as per our Terms of Use and compliance with local regulations, self feature is currently not available in your region.
+                        '-4403': PermissionDenied,  # Dear user, as per our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
                         #
                         #        5xxx
                         #
                         '-5021': OrderNotFillable,  # Due to the order could not be filled immediately, the FOK order has been rejected.
-                        '-5022': OrderNotFillable,  # Due to the order could not be executed, the Post Only order will be rejected.
+                        '-5022': OrderNotFillable,  # Due to the order could not be executed as maker, the Post Only order will be rejected.
                         '-5024': OperationRejected,  # Symbol is not in trading status. Order amendment is not permitted.
                         '-5025': OperationRejected,  # Only limit order is supported.
                         '-5026': OperationRejected,  # Exceed maximum modify order limit.
@@ -2643,7 +2658,7 @@ class binance(Exchange, ImplicitAPI):
                         #        5xxx Order Execution Issues
                         #
                         '-5021': OrderNotFillable,  # Due to the order could not be filled immediately, the FOK order has been rejected.
-                        '-5022': OrderNotFillable,  # Due to the order could not be executed, the Post Only order will be rejected.
+                        '-5022': OrderNotFillable,  # Due to the order could not be executed as maker, the Post Only order will be rejected.
                         '-5028': OperationFailed,  # The requested timestamp is outside the recvWindow of the matching engine
                         '-5041': RateLimitExceeded,  # Time out for too many requests from self account queueing at the same time.
                     },
@@ -4595,6 +4610,15 @@ class binance(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' fetchTicker() returned empty response')
         return self.parse_ticker(response, market)
 
+    def check_no_stock_symbols(self, symbols: Strings, methodName: str):
+        if symbols is None:
+            return
+        for i in range(0, len(symbols)):
+            symbolMarket = self.market(symbols[i])
+            stock = self.safe_bool(symbolMarket, 'stock', False)
+            if stock is True:
+                raise NotSupported(self.id + ' ' + methodName + '() does not support tokenized stock symbols(' + symbols[i] + '), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead')
+
     async def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
@@ -4607,11 +4631,12 @@ class binance(Exchange, ImplicitAPI):
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>` tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
         """
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
+        self.check_no_stock_symbols(symbols, 'fetchBidsAsks')
         market = self.get_market_from_symbols(symbols)
         type = None
         type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
@@ -4753,11 +4778,12 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
         :param str [params.type]: 'spot', 'option', use params["subType"] for swap and future markets
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>` tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
         """
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
+        self.check_no_stock_symbols(symbols, 'fetchTickers')
         market = self.get_market_from_symbols(symbols)
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
@@ -4956,7 +4982,7 @@ class binance(Exchange, ImplicitAPI):
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -5496,7 +5522,7 @@ class binance(Exchange, ImplicitAPI):
             responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
-    async def edit_spot_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}):
+    async def edit_spot_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}) -> Order:
         """
  @ignore
         edit a trade order
@@ -5700,7 +5726,7 @@ class binance(Exchange, ImplicitAPI):
         params = self.omit(params, ['clientOrderId', 'newClientOrderId'])
         return request
 
-    async def edit_contract_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}):
+    async def edit_contract_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}) -> Order:
         """
         edit a trade order
 
@@ -7052,7 +7078,7 @@ class binance(Exchange, ImplicitAPI):
                 if stopPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order')
             else:
-                # check for delta price
+                # check for delta price as well
                 if trailingDelta is None and stopPrice is None and trailingPercent is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a ' + type + ' order')
             if stopPrice is not None:
@@ -9370,7 +9396,7 @@ class binance(Exchange, ImplicitAPI):
             fromIsolated = not (fromId in accountsById)
             toIsolated = not (toId in accountsById)
             if fromIsolated and (market is None):
-                isolatedSymbol = fromId  # allow user provide symbol from/to account
+                isolatedSymbol = fromId  # allow user provide symbol as the from/to account
             if toIsolated and (market is None):
                 isolatedSymbol = toId
             if fromIsolated or toIsolated:  # Isolated margin transfer
@@ -10169,7 +10195,7 @@ class binance(Exchange, ImplicitAPI):
             return result
         raise NotSupported(self.id + ' fetchTradingFees() is not supported for ' + type + ' markets')
 
-    async def futures_transfer(self, code: str, amount: object, type: object, params={}):
+    async def futures_transfer(self, code: str, amount: object, type: object, params={}) -> TransferEntry:
         """
  @ignore
         transfer between futures account
@@ -10544,7 +10570,7 @@ class binance(Exchange, ImplicitAPI):
             rational = self.is_round_number(1000 % leverage)
             if not rational:
                 initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
-        # to notionalValue
+        # as oppose to notionalValue
         usdm = ('notional' in position)
         maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
@@ -10799,7 +10825,7 @@ class binance(Exchange, ImplicitAPI):
         entryPrice = self.parse_number(entryPriceString)
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        # to notionalValue
+        # as oppose to notionalValue
         linear = ('notional' in position)
         if marginMode == 'cross':
             # calculate collateral
@@ -11106,7 +11132,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_option_position(self.safe_dict(response, 0, {}), market)
 
-    async def fetch_option_positions(self, symbols: Strings = None, params={}):
+    async def fetch_option_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch data on open options positions
 
@@ -11255,7 +11281,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + '.options["fetchPositions"]["method"] or params["method"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"')
 
-    async def fetch_account_positions(self, symbols: Strings = None, params={}):
+    async def fetch_account_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
  @ignore
         fetch account positions
@@ -12785,7 +12811,7 @@ class binance(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def create_gift_code(self, code: str, amount: object, params={}):
+    async def create_gift_code(self, code: str, amount: object, params={}) -> dict:
         """
         create gift code
 
@@ -13167,10 +13193,10 @@ class binance(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
-        :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
+        :param int [since]: the time(ms) of the earliest record to retrieve as a unix timestamp
         :param int [limit]: default 30, max 500
         :param dict [params]: exchange specific parameters
-        :param int [params.until]: the time(ms) of the latest record to retrieve unix timestamp
+        :param int [params.until]: the time(ms) of the latest record to retrieve as a unix timestamp
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: an array of `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
         """

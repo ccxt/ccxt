@@ -404,7 +404,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         dataLength = len(data)
         if dataLength == 0:
             return
@@ -559,7 +559,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHash = self.safe_string(message, 'subscription')
         marketId = self.safe_string(message, 'instrument_name')
         market = self.safe_market(marketId)
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             ticker = data[i]
             parsed = self.parse_ws_ticker(ticker, market)
@@ -687,7 +687,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -709,7 +709,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -812,7 +812,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         #
         channel = self.safe_string(message, 'channel')
         symbolSpecificMessageHash = self.safe_string(message, 'subscription')
-        orders = self.safe_value(message, 'data', [])
+        orders = self.safe_list(message, 'data', [])
         ordersLength = len(orders)
         if ordersLength > 0:
             if self.orders is None:
@@ -923,7 +923,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         # and has exactly one subscriptionhash which is the account type
         data = self.safe_value(message, 'data', [])
         firstData = self.safe_value(data, 0, {})
-        rawPositions = self.safe_value(firstData, 'positions', [])
+        rawPositions = self.safe_list(firstData, 'positions', [])
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -1003,8 +1003,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         #     }
         #
         messageHash = self.safe_string(message, 'subscription')
-        data = self.safe_value(message, 'data', [])
-        positionBalances = self.safe_value(data[0], 'position_balances', [])
+        data = self.safe_list(message, 'data', [])
+        positionBalances = self.safe_list(data[0], 'position_balances', [])
         self.balance['info'] = data
         for i in range(0, len(positionBalances)):
             balance = positionBalances[i]

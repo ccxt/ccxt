@@ -15,6 +15,7 @@ interface Exchange {
     privateGetFuturesAssetId (params?: {}): Promise<Dict>;
     privateGetWalletFunds (params?: {}): Promise<Dict>;
     privateGetFuturesFunds (params?: {}): Promise<Dict>;
+    privateGetFuturesTransactions (params?: {}): Promise<Dict>;
     privateGetFuturesOrders (params?: {}): Promise<Dict>;
     privateGetFuturesOrdersHistory (params?: {}): Promise<Dict>;
     privateGetFuturesOrdersOrderId (params?: {}): Promise<Dict>;

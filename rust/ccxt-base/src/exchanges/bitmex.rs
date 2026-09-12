@@ -514,6 +514,16 @@ impl BitmexCore {
         m.insert("cost".to_string(), Value::Int(5));
     m
 }));
+        m.insert("wallet/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("wallet/haircuts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
         m.insert("wallet/networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
@@ -532,7 +542,17 @@ impl BitmexCore {
         m.insert("cost".to_string(), Value::Int(5));
     m
 }));
+        m.insert("addressConfig".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
         m.insert("apiKey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("apiKey/self".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
     m
@@ -557,6 +577,21 @@ impl BitmexCore {
         m.insert("cost".to_string(), Value::Int(5));
     m
 }));
+        m.insert("leagueoftrader/myRankings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("managedSubAccountBinding/investor".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("managedSubAccountBinding/tradingTeam".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
         m.insert("order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
@@ -568,6 +603,26 @@ impl BitmexCore {
     m
 }));
         m.insert("position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("referralCode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("referralCode/check/{code}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("referralCode/code/{code}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("referralCode/{id}".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
     m
@@ -602,6 +657,11 @@ impl BitmexCore {
         m.insert("cost".to_string(), Value::Int(5));
     m
 }));
+        m.insert("user/depositAddressInformation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
         m.insert("user/executionHistory".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
@@ -613,6 +673,11 @@ impl BitmexCore {
     m
 }));
         m.insert("user/margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("user/marginingMode".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
     m
@@ -638,6 +703,11 @@ impl BitmexCore {
     m
 }));
         m.insert("user/staking/tiers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("user/tradingSettings".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
     m
@@ -673,6 +743,16 @@ impl BitmexCore {
     m
 }));
         m.insert("userEvent".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("userPriceAlert".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("userStats/volumeRank".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
     m
@@ -721,6 +801,36 @@ impl BitmexCore {
         m.insert("cost".to_string(), Value::Int(5));
     m
 }));
+        m.insert("managedSubAccountBinding/approve".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("managedSubAccountBinding/cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("managedSubAccountBinding/createMSA".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("managedSubAccountBinding/reject".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("managedSubAccountBinding/toggleTradeHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("managedSubAccountBinding/unbind".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
         m.insert("order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -732,6 +842,11 @@ impl BitmexCore {
     m
 }));
         m.insert("order/closePosition".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("position/crossLeverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
     m
@@ -754,6 +869,11 @@ impl BitmexCore {
         m.insert("position/transferMargin".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referralCode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
     m
 }));
         m.insert("user/addSubaccount".to_string(), Value::Map({
@@ -781,7 +901,22 @@ impl BitmexCore {
         m.insert("cost".to_string(), Value::Int(5));
     m
 }));
+        m.insert("user/createIndependentSubaccount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
         m.insert("user/logout".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("user/marginingMode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("user/positionMode".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
     m
@@ -811,10 +946,20 @@ impl BitmexCore {
         m.insert("cost".to_string(), Value::Int(5));
     m
 }));
+        m.insert("userPriceAlert".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
     m
 }));
         m.insert("put".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
         m.insert("guild".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
@@ -823,6 +968,16 @@ impl BitmexCore {
         m.insert("order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referralCode/{id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("userPriceAlert/{id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
     m
 }));
     m
@@ -839,7 +994,27 @@ impl BitmexCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("referralCode/{id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
         m.insert("user/unstakingRequests".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("user/withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("userPriceAlert".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("userPriceAlert/{id}".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
     m
@@ -1104,8 +1279,8 @@ impl BitmexCore {
         let mut precision: Value = self.parse_number(precisionString.clone(), &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_380: bool = true;
-            while { if !__for_first_380 { j = add(&j, &Value::Int(1)); } __for_first_380 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_381: bool = true;
+            while { if !__for_first_381 { j = add(&j, &Value::Int(1)); } __for_first_381 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "asset", &[]);
@@ -1161,7 +1336,7 @@ impl BitmexCore {
         let mut maxWithdrawal: Value = self.parse_number(crate::precise::Precise::stringMul(&maxWithdrawalString, &precisionString), &[]);
         let mut minDepositString: Value = self.safe_string_k(currency.clone(), "minDepositAmount", &[]);
         let mut minDeposit: Value = self.parse_number(crate::precise::Precise::stringMul(&minDepositString, &precisionString), &[]);
-        let mut isCrypto: Value = Value::Bool(is_equal(&self.safe_string_k(currency.clone(), "currencyType", &[]), &Value::Str("Crypto".to_string())));
+        let mut isCrypto: bool = is_equal(&self.safe_string_k(currency.clone(), "currencyType", &[]), &Value::Str("Crypto".to_string()));
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1347,7 +1522,7 @@ impl BitmexCore {
         }
         let mut positionId: Value = self.safe_string2(market.clone(), Value::Str("positionCurrency".to_string()), Value::Str("underlying".to_string()), &[]);
         let mut position: Value = self.safe_currency_code(positionId.clone(), &[]);
-        let mut positionIsQuote: Value = Value::Bool(is_equal(&position, &quote));
+        let mut positionIsQuote: bool = is_equal(&position, &quote);
         let mut maxOrderQty: Value = self.safe_number_k(market.clone(), "maxOrderQty", &[]);
         let mut initMargin: Value = self.safe_string_k(market.clone(), "initMargin", &[Value::Str("1".to_string())]);
         let mut maxLeverage: Value = self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &initMargin), &[]);
@@ -1485,8 +1660,8 @@ impl BitmexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_381: bool = true;
-            while { if !__for_first_381 { i = add(&i, &Value::Int(1)); } __for_first_381 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_382: bool = true;
+            while { if !__for_first_382 { i = add(&i, &Value::Int(1)); } __for_first_382 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1577,8 +1752,8 @@ impl BitmexCore {
         let mut orders: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_382: bool = true;
-            while { if !__for_first_382 { i = add(&i, &Value::Int(1)); } __for_first_382 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_383: bool = true;
+            while { if !__for_first_383 { i = add(&i, &Value::Int(1)); } __for_first_383 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             let mut side: Value = ternary(is_true(&(is_equal(&get_value(&order, &Value::Str("side".to_string())), &Value::Str("Sell".to_string())))), Value::Str("asks".to_string()), Value::Str("bids".to_string()));
@@ -2194,8 +2369,8 @@ impl BitmexCore {
         let mut rawTickers: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_383: bool = true;
-            while { if !__for_first_383 { i = add(&i, &Value::Int(1)); } __for_first_383 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
+            let mut __for_first_384: bool = true;
+            while { if !__for_first_384 { i = add(&i, &Value::Int(1)); } __for_first_384 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&rawTickers, &i), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if !is_equal(&symbol, &Value::Null) {
@@ -2350,8 +2525,8 @@ impl BitmexCore {
         if is_true(&useOpenTimestamp) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_384: bool = true;
-                while { if !__for_first_384 { i = add(&i, &Value::Int(1)); } __for_first_384 = false; is_less_than(&i, &get_array_length(&result)) } {
+                let mut __for_first_385: bool = true;
+                while { if !__for_first_385 { i = add(&i, &Value::Int(1)); } __for_first_385 = false; is_less_than(&i, &get_array_length(&result)) } {
                 { let __be_tmp = subtract(&self.parse_to_int(get_value(&get_value(&result, &i), &Value::Int(0))), &duration); add_element_to_object(get_value_mut(&mut result, &i), &Value::Int(0), __be_tmp); };
             }
             }
@@ -2737,11 +2912,11 @@ impl BitmexCore {
         // support for unified trigger format
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPx".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("pegOffsetValue".to_string()), &[]);
-        let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
+        let mut isTriggerOrder: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
         if is_true(&isTriggerOrder) || is_true(&isTrailingAmountOrder) {
             let mut triggerDirection: Value = self.safe_string_k(params.clone(), "triggerDirection", &[]);
-            let mut triggerAbove: Value = Value::Bool(is_true(&(is_equal(&triggerDirection, &Value::Str("ascending".to_string())))) || is_true(&(is_equal(&triggerDirection, &Value::Str("above".to_string())))));
+            let mut triggerAbove: bool = is_true(&(is_equal(&triggerDirection, &Value::Str("ascending".to_string())))) || is_true(&(is_equal(&triggerDirection, &Value::Str("above".to_string()))));
             if is_true(&(is_equal(&type_var, &Value::Str("limit".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) {
                 self.check_required_argument(Value::Str("createOrder".to_string()), triggerDirection.clone(), Value::Str("triggerDirection".to_string()), &[Value::List(vec![Value::Str("above".to_string()), Value::Str("below".to_string())])]);
             }
@@ -2759,8 +2934,8 @@ impl BitmexCore {
                 }
             }
             if is_true(&isTrailingAmountOrder) {
-                let mut isStopSellOrder: Value = Value::Bool(is_true(&(is_equal(&side, &Value::Str("sell".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("Stop".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("StopLimit".to_string())))))));
-                let mut isBuyIfTouchedOrder: Value = Value::Bool(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("MarketIfTouched".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("LimitIfTouched".to_string())))))));
+                let mut isStopSellOrder: bool = is_true(&(is_equal(&side, &Value::Str("sell".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("Stop".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("StopLimit".to_string()))))));
+                let mut isBuyIfTouchedOrder: bool = is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("MarketIfTouched".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("LimitIfTouched".to_string()))))));
                 if is_true(&isStopSellOrder) || is_true(&isBuyIfTouchedOrder) {
                     trailingAmount = add(&Value::Str("-".to_string()), &trailingAmount);
                 }
@@ -2805,10 +2980,10 @@ impl BitmexCore {
             m
         });
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("pegOffsetValue".to_string()), &[]);
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
         if is_true(&isTrailingAmountOrder) {
             let mut triggerDirection: Value = self.safe_string_k(params.clone(), "triggerDirection", &[]);
-            let mut triggerAbove: Value = Value::Bool(is_true(&(is_equal(&triggerDirection, &Value::Str("ascending".to_string())))) || is_true(&(is_equal(&triggerDirection, &Value::Str("above".to_string())))));
+            let mut triggerAbove: bool = is_true(&(is_equal(&triggerDirection, &Value::Str("ascending".to_string())))) || is_true(&(is_equal(&triggerDirection, &Value::Str("above".to_string()))));
             if is_true(&(is_equal(&type_var, &Value::Str("limit".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) {
                 self.check_required_argument(Value::Str("editOrder".to_string()), triggerDirection.clone(), Value::Str("triggerDirection".to_string()), &[Value::List(vec![Value::Str("above".to_string()), Value::Str("below".to_string())])]);
             }
@@ -2826,8 +3001,8 @@ impl BitmexCore {
                     orderType = ternary(is_true(&triggerAbove), Value::Str("MarketIfTouched".to_string()), Value::Str("Stop".to_string()));
                 }
             }
-            let mut isStopSellOrder: Value = Value::Bool(is_true(&(is_equal(&side, &Value::Str("sell".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("Stop".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("StopLimit".to_string())))))));
-            let mut isBuyIfTouchedOrder: Value = Value::Bool(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("MarketIfTouched".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("LimitIfTouched".to_string())))))));
+            let mut isStopSellOrder: bool = is_true(&(is_equal(&side, &Value::Str("sell".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("Stop".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("StopLimit".to_string()))))));
+            let mut isBuyIfTouchedOrder: bool = is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("MarketIfTouched".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("LimitIfTouched".to_string()))))));
             if is_true(&isStopSellOrder) || is_true(&isBuyIfTouchedOrder) {
                 trailingAmount = add(&Value::Str("-".to_string()), &trailingAmount);
             }
@@ -3397,8 +3572,8 @@ impl BitmexCore {
         let mut rawItems: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_385: bool = true;
-            while { if !__for_first_385 { i = add(&i, &Value::Int(1)); } __for_first_385 = false; is_less_than(&i, &get_array_length(&rawItems)) } {
+            let mut __for_first_386: bool = true;
+            while { if !__for_first_386 { i = add(&i, &Value::Int(1)); } __for_first_386 = false; is_less_than(&i, &get_array_length(&rawItems)) } {
             let mut item: Value = get_value(&rawItems, &i);
             let mut item: Value = get_value(&rawItems, &i);
             let mut marketId: Value = self.safe_string_k(item.clone(), "symbol", &[]);
@@ -3733,8 +3908,8 @@ impl BitmexCore {
             let mut precision: Value = self.parse_precision(&[scale.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_386: bool = true;
-                while { if !__for_first_386 { i = add(&i, &Value::Int(1)); } __for_first_386 = false; is_less_than(&i, &networksLength) } {
+                let mut __for_first_387: bool = true;
+                while { if !__for_first_387 { i = add(&i, &Value::Int(1)); } __for_first_387 = false; is_less_than(&i, &networksLength) } {
                 let mut network: Value = get_value(&networks, &i);
                 let mut network: Value = get_value(&networks, &i);
                 let mut networkId: Value = self.safe_string_k(network.clone(), "asset", &[]);
@@ -4200,8 +4375,8 @@ impl BitmexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_387: bool = true;
-            while { if !__for_first_387 { i = add(&i, &Value::Int(1)); } __for_first_387 = false; is_less_than(&i, &get_array_length(&settlements)) } {
+            let mut __for_first_388: bool = true;
+            while { if !__for_first_388 { i = add(&i, &Value::Int(1)); } __for_first_388 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             append_to_array(&mut result, self.parse_settlement(get_value(&settlements, &i), &[market.clone()]));
         }
         }

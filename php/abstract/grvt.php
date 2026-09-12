@@ -10,6 +10,48 @@ abstract class grvt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateedge_get_api_v1_deposit_addresses($params = array()) {
+        return $this->request('api/v1/deposit/addresses', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_bridge_withdrawal_info($params = array()) {
+        return $this->request('api/v1/bridge/withdrawal-info', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_bridge_withdrawal_status($params = array()) {
+        return $this->request('api/v1/bridge/withdrawal-status', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_referral_epochs($params = array()) {
+        return $this->request('api/v1/referral/epochs', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_referral_points($params = array()) {
+        return $this->request('api/v1/referral/points', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_referral_data($params = array()) {
+        return $this->request('api/v1/referral/data', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_get_api_v1_referral_indirect_data($params = array()) {
+        return $this->request('api/v1/referral/indirect_data', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateedge_post_auth_api_key_login($params = array()) {
         return $this->request('auth/api_key/login', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
     }
@@ -18,6 +60,30 @@ abstract class grvt extends \ccxt\Exchange {
      */
     public function privateedge_post_auth_wallet_login($params = array()) {
         return $this->request('auth/wallet/login', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_post_auth_builder_authorize($params = array()) {
+        return $this->request('auth/builder/authorize', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_post_api_v1_deposit_generate_address($params = array()) {
+        return $this->request('api/v1/deposit/generate-address', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_post_api_v1_bridge_withdrawal_quote($params = array()) {
+        return $this->request('api/v1/bridge/withdrawal-quote', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateedge_post_api_v1_bridge_withdraw($params = array()) {
+        return $this->request('api/v1/bridge/withdraw', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
     }
     /**
      * @return array<string, mixed>
@@ -90,6 +156,18 @@ abstract class grvt extends \ccxt\Exchange {
      */
     public function publicmarket_post_full_v1_funding($params = array()) {
         return $this->request('full/v1/funding', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicmarket_post_full_v1_supported_assets($params = array()) {
+        return $this->request('full/v1/supported_assets', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicmarket_post_full_v1_get_all_collateral_asset_info($params = array()) {
+        return $this->request('full/v1/get_all_collateral_asset_info', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
     /**
      * @return array<string, mixed>
@@ -310,6 +388,108 @@ abstract class grvt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privatetrading_post_full_v1_create_rfq($params = array()) {
+        return $this->request('full/v1/create_rfq', 'privateTrading', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_cancel_rfq($params = array()) {
+        return $this->request('full/v1/cancel_rfq', 'privateTrading', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_ecn_from_broker($params = array()) {
+        return $this->request('full/v1/ecn_from_broker', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v2_bulk_orders($params = array()) {
+        return $this->request('full/v2/bulk_orders', 'privateTrading', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_position_history($params = array()) {
+        return $this->request('full/v1/position_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_interest_payment_history($params = array()) {
+        return $this->request('full/v1/interest_payment_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_get_collateral_preference($params = array()) {
+        return $this->request('full/v1/get_collateral_preference', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_spot_account_summary($params = array()) {
+        return $this->request('full/v1/spot_account_summary', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_set_indicative_prices($params = array()) {
+        return $this->request('full/v1/set_indicative_prices', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatetrading_post_full_v1_withdrawal_fee($params = array()) {
+        return $this->request('full/v1/withdrawal_fee', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1DepositAddresses($params = array()) {
+        return $this->request('api/v1/deposit/addresses', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1BridgeWithdrawalInfo($params = array()) {
+        return $this->request('api/v1/bridge/withdrawal-info', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1BridgeWithdrawalStatus($params = array()) {
+        return $this->request('api/v1/bridge/withdrawal-status', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1ReferralEpochs($params = array()) {
+        return $this->request('api/v1/referral/epochs', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1ReferralPoints($params = array()) {
+        return $this->request('api/v1/referral/points', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1ReferralData($params = array()) {
+        return $this->request('api/v1/referral/data', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgeGetApiV1ReferralIndirectData($params = array()) {
+        return $this->request('api/v1/referral/indirect_data', 'privateEdge', 'GET', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateEdgePostAuthApiKeyLogin($params = array()) {
         return $this->request('auth/api_key/login', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
     }
@@ -318,6 +498,30 @@ abstract class grvt extends \ccxt\Exchange {
      */
     public function privateEdgePostAuthWalletLogin($params = array()) {
         return $this->request('auth/wallet/login', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgePostAuthBuilderAuthorize($params = array()) {
+        return $this->request('auth/builder/authorize', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgePostApiV1DepositGenerateAddress($params = array()) {
+        return $this->request('api/v1/deposit/generate-address', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgePostApiV1BridgeWithdrawalQuote($params = array()) {
+        return $this->request('api/v1/bridge/withdrawal-quote', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEdgePostApiV1BridgeWithdraw($params = array()) {
+        return $this->request('api/v1/bridge/withdraw', 'privateEdge', 'POST', $params, null, null, array("cost" => 100));
     }
     /**
      * @return array<string, mixed>
@@ -390,6 +594,18 @@ abstract class grvt extends \ccxt\Exchange {
      */
     public function publicMarketPostFullV1Funding($params = array()) {
         return $this->request('full/v1/funding', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicMarketPostFullV1SupportedAssets($params = array()) {
+        return $this->request('full/v1/supported_assets', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicMarketPostFullV1GetAllCollateralAssetInfo($params = array()) {
+        return $this->request('full/v1/get_all_collateral_asset_info', 'publicMarket', 'POST', $params, null, null, array("cost" => 12));
     }
     /**
      * @return array<string, mixed>
@@ -606,5 +822,65 @@ abstract class grvt extends \ccxt\Exchange {
      */
     public function privateTradingPostFullV1BuilderFillHistory($params = array()) {
         return $this->request('full/v1/builder_fill_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1CreateRfq($params = array()) {
+        return $this->request('full/v1/create_rfq', 'privateTrading', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1CancelRfq($params = array()) {
+        return $this->request('full/v1/cancel_rfq', 'privateTrading', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1EcnFromBroker($params = array()) {
+        return $this->request('full/v1/ecn_from_broker', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV2BulkOrders($params = array()) {
+        return $this->request('full/v2/bulk_orders', 'privateTrading', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1PositionHistory($params = array()) {
+        return $this->request('full/v1/position_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1InterestPaymentHistory($params = array()) {
+        return $this->request('full/v1/interest_payment_history', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1GetCollateralPreference($params = array()) {
+        return $this->request('full/v1/get_collateral_preference', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1SpotAccountSummary($params = array()) {
+        return $this->request('full/v1/spot_account_summary', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1SetIndicativePrices($params = array()) {
+        return $this->request('full/v1/set_indicative_prices', 'privateTrading', 'POST', $params, null, null, array("cost" => 40));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateTradingPostFullV1WithdrawalFee($params = array()) {
+        return $this->request('full/v1/withdrawal_fee', 'privateTrading', 'POST', $params, null, null, array("cost" => 100));
     }
 }

@@ -181,11 +181,17 @@ class pacifica extends pacifica$1["default"] {
                         'orders': { 'cost': 1 },
                         'orders/history': { 'cost': 12 },
                         'orders/history_by_id': { 'cost': 1 },
+                        'orders/twap': { 'cost': 1 },
+                        'orders/twap/history': { 'cost': 12 },
+                        'orders/twap/history_by_id': { 'cost': 1 },
                         'spot_assets': { 'cost': 1 },
                         'spot_assets/bridge/info': { 'cost': 1 },
                         'spot_assets/bridge/parameters/{symbol}': { 'cost': 1 },
                         'lake/list': { 'cost': 1 },
                         'account/builder_codes/approvals': { 'cost': 1 },
+                        'builder/overview': { 'cost': 1 },
+                        'builder/trades': { 'cost': 1 },
+                        'leaderboard/builder_code': { 'cost': 1 },
                     },
                 },
                 'private': {
@@ -210,9 +216,20 @@ class pacifica extends pacifica$1["default"] {
                         'orders/stop/cancel': { 'cost': 0.5 },
                         'orders/edit': { 'cost': 1 },
                         'orders/batch': { 'cost': 1 },
+                        'orders/twap/create': { 'cost': 1 },
+                        'orders/twap/cancel': { 'cost': 0.5 },
                         'account/builder_codes/approve': { 'cost': 1 },
                         'account/builder_codes/revoke': { 'cost': 1 },
+                        'builder/update_fee_rate': { 'cost': 1 },
+                        'referral/user/code/claim': { 'cost': 1 },
                         'agent/bind': { 'cost': 1 },
+                        'agent/list': { 'cost': 1 },
+                        'agent/revoke': { 'cost': 1 },
+                        'agent/revoke_all': { 'cost': 1 },
+                        'agent/ip_whitelist/list': { 'cost': 1 },
+                        'agent/ip_whitelist/add': { 'cost': 1 },
+                        'agent/ip_whitelist/remove': { 'cost': 1 },
+                        'agent/ip_whitelist/toggle': { 'cost': 1 },
                         'account/api_keys/create': { 'cost': 1 },
                         'account/api_keys/revoke': { 'cost': 1 },
                         'account/api_keys': { 'cost': 1 },
@@ -1408,7 +1425,9 @@ class pacifica extends pacifica$1["default"] {
         const timestamp = this.safeInteger(trade, 'created_at');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'amount');
-        const symbol = this.safeSymbol(undefined, market);
+        const marketId = this.safeString(trade, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const id = this.safeString(trade, 'history_id');
         let side = this.safeString(trade, 'side');
         if (side === 'open_long') {
@@ -3180,14 +3199,18 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const currency = this.currency(code);
         const operationType = 'transfer_funds';
         const sigPayload = {
             'to_account': toAccount,
-            'amount': amount,
+            'amount': this.numberToString(amount),
         };
         const request = this.postActionRequest(operationType, sigPayload, params);
         params = this.omit(params, ['expiryWindow']);
-        const response = this.privatePostAccountSubaccountTransfer(this.extend(request, params));
+        const response = await this.privatePostAccountSubaccountTransfer(this.extend(request, params));
         //
         // {
         //   "success": true,
@@ -3200,7 +3223,11 @@ class pacifica extends pacifica$1["default"] {
         // }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseTransfer(data);
+        return this.extend(this.parseTransfer(data, currency), {
+            'amount': amount,
+            'fromAccount': this.safeString(request, 'account'),
+            'toAccount': toAccount,
+        });
     }
     parseTransfer(transfer, currency = undefined) {
         //
@@ -3214,16 +3241,21 @@ class pacifica extends pacifica$1["default"] {
         //   "code": null
         // }
         //
+        const success = this.safeBool(transfer, 'success');
+        let status = undefined;
+        if (success !== undefined) {
+            status = (success === true) ? 'ok' : 'failed';
+        }
         return {
             'info': transfer,
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': undefined,
+            'currency': this.safeCurrencyCode(undefined, currency),
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
-            'status': 'ok',
+            'status': status,
         };
     }
     /**

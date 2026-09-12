@@ -209,6 +209,9 @@ public class BitteamCore extends BitteamApi
                         put( "trade/api/rates", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "trade/api/stats", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "trade/api/trade/{id}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -421,7 +424,7 @@ public class BitteamCore extends BitteamApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetTradeApiCcxtPairs(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTradeApiCcxtPairs(parameters)).join();
             //
             //     {
             //         "ok": true,
@@ -517,16 +520,16 @@ public class BitteamCore extends BitteamApi
 
     public Object parseMarket(Object market)
     {
-        Object id = this.safeString(market, "name");
-        Object numericId = this.safeInteger(market, "id");
+        String id = this.safeString(market, "name");
+        Long numericId = this.safeInteger(market, "id");
         Object parts = Helpers.split(((String)id), "_");
-        Object baseId = this.safeString(parts, 0);
-        Object quoteId = this.safeString(parts, 1);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String baseId = this.safeString(parts, 0);
+        String quoteId = this.safeString(parts, 1);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object active = this.safeValue(market, "active");
-        Object timeStart = this.safeString(market, "timeStart");
-        Object created = this.parse8601(timeStart);
+        String timeStart = this.safeString(market, "timeStart");
+        Long created = this.parse8601(timeStart);
         Object minCost = null;
         Object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new java.util.HashMap<String, Object>() {{}});
         Object quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
@@ -603,7 +606,7 @@ public class BitteamCore extends BitteamApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetTradeApiCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTradeApiCurrencies(parameters)).join();
             //
             //     {
             //         "ok": true,
@@ -730,19 +733,19 @@ public class BitteamCore extends BitteamApi
     public Object parseCurrency(Object currency)
     {
         Object statusesResponse = this.safeValue(this.options, "_temp_currencies_statuses", new java.util.HashMap<String, Object>() {{}});
-        Object id = this.safeString(currency, "symbol");
-        Object numericId = this.safeInteger(currency, "id");
-        Object code = this.safeCurrencyCode(id);
+        String id = this.safeString(currency, "symbol");
+        Long numericId = this.safeInteger(currency, "id");
+        String code = (String) this.safeCurrencyCode(id);
         Object active = this.safeBool(currency, "active", false);
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         Object txLimits = this.safeValue(currency, "txLimits", new java.util.HashMap<String, Object>() {{}});
-        Object minWithdraw = this.safeString(txLimits, "minWithdraw");
-        Object maxWithdraw = this.safeString(txLimits, "maxWithdraw");
-        Object minDeposit = this.safeString(txLimits, "minDeposit");
+        String minWithdraw = this.safeString(txLimits, "minWithdraw");
+        String maxWithdraw = this.safeString(txLimits, "maxWithdraw");
+        String minDeposit = this.safeString(txLimits, "minDeposit");
         Object fee = null;
         Object withdrawCommissionFixed = this.safeValue(txLimits, "withdrawCommissionFixed", new java.util.HashMap<String, Object>() {{}});
         Object feesByNetworkId = new java.util.HashMap<String, Object>() {{}};
-        Object blockChain = this.safeString(currency, "blockChain");
+        String blockChain = this.safeString(currency, "blockChain");
         // if only one blockChain
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(blockChain, null))) && Helpers.isTrue((!Helpers.isEqual(blockChain, "")))))
         {
@@ -756,14 +759,14 @@ public class BitteamCore extends BitteamApi
         Object deposit = this.safeValue(statuses, "depositStatus");
         Object withdraw = this.safeValue(statuses, "withdrawStatus");
         Object networkIds = Helpers.objectKeys(feesByNetworkId);
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
-        Object typeRaw = this.safeString(currency, "type");
+        String typeRaw = this.safeString(currency, "type");
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
         {
             Object networkId = Helpers.GetValue(networkIds, j);
             Object networkCode = this.networkIdToCode(networkId, code);
-            Object networkFee = this.safeNumber(feesByNetworkId, networkId);
+            Double networkFee = this.safeNumber(feesByNetworkId, networkId);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 final Object finalNetworkCode = networkCode;
@@ -848,13 +851,13 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object resolution = this.safeString(this.timeframes, timeframe, timeframe);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            String resolution = this.safeString(this.timeframes, timeframe, timeframe);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pairName", Helpers.GetValue(market, "id") );
                 put( "resolution", resolution );
             }};
-            Object response = (this.historyGetApiTwHistoryPairNameResolution(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.historyGetApiTwHistoryPairNameResolution(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -926,11 +929,11 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTradeApiCmcOrderbookPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTradeApiCmcOrderbookPair(this.extend(request, parameters))).join();
             //
             //     {
             //         "timestamp": 1701166703284,
@@ -958,7 +961,7 @@ public class BitteamCore extends BitteamApi
             //         ]
             //     }
             //
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             return orderbook;
         });
@@ -990,8 +993,8 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object type = this.safeString(parameters, "type", "all");
-            Object request = new java.util.HashMap<String, Object>() {{
+            String type = this.safeString(parameters, "type", "all");
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", type );
             }};
             Object market = null;
@@ -1004,7 +1007,7 @@ public class BitteamCore extends BitteamApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetTradeApiCcxtOrdersOfUser(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTradeApiCcxtOrdersOfUser(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -1115,7 +1118,7 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Object market = null;
@@ -1123,7 +1126,7 @@ public class BitteamCore extends BitteamApi
             {
                 market = this.market(symbol);
             }
-            Object response = (this.privateGetTradeApiCcxtOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTradeApiCcxtOrderId(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -1191,7 +1194,7 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "active" );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
@@ -1223,7 +1226,7 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "closed" );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
@@ -1255,7 +1258,7 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "cancelled" );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
@@ -1287,9 +1290,9 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalType = type;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pairId", BitteamCore.this.safeString(market, "numericId") );
                 put( "type", finalType );
                 put( "side", side );
@@ -1305,7 +1308,7 @@ public class BitteamCore extends BitteamApi
                     Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
                 }
             }
-            Object response = (this.privatePostTradeApiCcxtOrdercreate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeApiCcxtOrdercreate(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -1356,10 +1359,10 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object response = (this.privatePostTradeApiCcxtCancelorder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeApiCcxtCancelorder(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -1395,7 +1398,7 @@ public class BitteamCore extends BitteamApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -1404,7 +1407,7 @@ public class BitteamCore extends BitteamApi
             {
                 Helpers.addElementToObject(request, "pairId", "0"); // '0' for all markets
             }
-            Object response = (this.privatePostTradeApiCcxtCancelAllOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeApiCcxtCancelAllOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -1414,7 +1417,7 @@ public class BitteamCore extends BitteamApi
             //     }
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList(result));
+            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList(result));
             return this.parseOrders(orders, market);
         });
 
@@ -1508,12 +1511,12 @@ public class BitteamCore extends BitteamApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, "id");
-        Object marketId = this.safeString(order, "pair");
+        String id = this.safeString(order, "id");
+        String marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
-        Object clientOrderId = this.safeString(order, "orderCid");
+        String clientOrderId = this.safeString(order, "orderCid");
         Object timestamp = null;
-        Object createdAt = this.safeString(order, "createdAt");
+        String createdAt = this.safeString(order, "createdAt");
         if (Helpers.isTrue(!Helpers.isEqual(createdAt, null)))
         {
             timestamp = this.parse8601(createdAt);
@@ -1521,20 +1524,20 @@ public class BitteamCore extends BitteamApi
         {
             timestamp = this.safeTimestamp(order, "timestamp");
         }
-        Object updatedAt = this.safeString(order, "updatedAt");
-        Object lastUpdateTimestamp = this.parse8601(updatedAt);
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
-        Object type = this.parseOrderType(this.safeString(order, "type"));
-        Object side = this.safeString(order, "side");
+        String updatedAt = this.safeString(order, "updatedAt");
+        Long lastUpdateTimestamp = this.parse8601(updatedAt);
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
+        String type = this.parseOrderType(this.safeString(order, "type"));
+        String side = this.safeString(order, "side");
         Object feeRaw = this.safeValue(order, "fee");
-        Object price = this.safeString(order, "price");
-        Object amount = this.safeString(order, "quantity");
-        Object filled = this.safeString(order, "executed");
+        String price = this.safeString(order, "price");
+        String amount = this.safeString(order, "quantity");
+        String filled = this.safeString(order, "executed");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeRaw, null)))
         {
-            Object feeCost = this.safeString(feeRaw, "amount");
-            Object feeCurrencyId = this.safeString(feeRaw, "symbol");
+            String feeCost = this.safeString(feeRaw, "amount");
+            String feeCurrencyId = this.safeString(feeRaw, "symbol");
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", BitteamCore.this.safeCurrencyCode(feeCurrencyId) );
                 put( "cost", feeCost );
@@ -1570,9 +1573,9 @@ public class BitteamCore extends BitteamApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "accepted", "open" );
             put( "executed", "closed" );
             put( "cancelled", "canceled" );
@@ -1585,19 +1588,19 @@ public class BitteamCore extends BitteamApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrderType(Object status)
+    public String parseOrderType(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "market", "market" );
             put( "limit", "limit" );
         }};
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseValueToPricision(Object valueObject, Object valueKey, Object preciseObject, Object precisionKey)
+    public String parseValueToPricision(Object valueObject, Object valueKey, Object preciseObject, Object precisionKey)
     {
-        Object valueRawString = this.safeString(valueObject, valueKey);
-        Object precisionRawString = this.safeString(preciseObject, precisionKey);
+        String valueRawString = this.safeString(valueObject, valueKey);
+        String precisionRawString = this.safeString(preciseObject, precisionKey);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(valueRawString, null)) || Helpers.isTrue(Helpers.isEqual(precisionRawString, null))))
         {
             return null;
@@ -1626,7 +1629,7 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetTradeApiCmcSummary()).join();
+            java.util.List<Object> response = (this.publicGetTradeApiCmcSummary()).join();
             //
             //     [
             //         {
@@ -1658,8 +1661,8 @@ public class BitteamCore extends BitteamApi
             //         ...
             //     ]
             //
-            Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
                 rawTickers = response;
@@ -1694,11 +1697,11 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "name", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTradeApiPairName(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTradeApiPairName(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -1971,7 +1974,7 @@ public class BitteamCore extends BitteamApi
         //         "lowest_price_24h": 37574.894999
         //     }
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeStringLower(ticker, "trading_pairs");
+        String marketId = (String)this.safeStringLower(ticker, "trading_pairs");
         market = this.safeMarket(marketId, market);
         Object bestBidPrice = null;
         Object bestAskPrice = null;
@@ -1992,12 +1995,12 @@ public class BitteamCore extends BitteamApi
             bestBidPrice = this.safeString(ticker, "highest_bid");
             bestAskPrice = this.safeString(ticker, "lowest_ask");
         }
-        Object baseVolume = this.safeString2(ticker, "volume24", "base_volume");
-        Object quoteVolume = this.safeString2(ticker, "quoteVolume24", "quote_volume");
-        Object high = this.safeString2(ticker, "highPrice24", "highest_price_24h");
-        Object low = this.safeString2(ticker, "lowPrice24", "lowest_price_24h");
-        Object close = this.safeString2(ticker, "lastPrice", "last_price");
-        Object changePcnt = this.safeString2(ticker, "change24", "price_change_percent_24h");
+        String baseVolume = this.safeString2(ticker, "volume24", "base_volume");
+        String quoteVolume = this.safeString2(ticker, "quoteVolume24", "quote_volume");
+        String high = this.safeString2(ticker, "highPrice24", "highest_price_24h");
+        String low = this.safeString2(ticker, "lowPrice24", "lowest_price_24h");
+        String close = this.safeString2(ticker, "lastPrice", "last_price");
+        String changePcnt = this.safeString2(ticker, "change24", "price_change_percent_24h");
         final Object finalMarket = market;
         final Object finalBestBidPrice = bestBidPrice;
         final Object finalBestBidVolume = bestBidVolume;
@@ -2049,11 +2052,11 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTradeApiCmcTradesPair(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetTradeApiCmcTradesPair(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2104,7 +2107,7 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2115,7 +2118,7 @@ public class BitteamCore extends BitteamApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetTradeApiCcxtTradesOfUser(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTradeApiCcxtTradesOfUser(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -2313,21 +2316,21 @@ public class BitteamCore extends BitteamApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(trade, "pair");
+        String marketId = this.safeString(trade, "pair");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object id = this.safeString2(trade, "id", "trade_id");
-        Object price = this.safeString(trade, "price");
-        Object amount = this.safeString2(trade, "quantity", "base_volume");
-        Object cost = this.safeString(trade, "quote_volume");
-        Object takerOrMaker = this.safeString(trade, "isCurrentSide");
-        Object timestamp = this.safeString(trade, "timestamp");
+        String id = this.safeString2(trade, "id", "trade_id");
+        String price = this.safeString(trade, "price");
+        String amount = this.safeString2(trade, "quantity", "base_volume");
+        String cost = this.safeString(trade, "quote_volume");
+        String takerOrMaker = this.safeString(trade, "isCurrentSide");
+        String timestamp = this.safeString(trade, "timestamp");
         if (Helpers.isTrue(!Helpers.isEqual(takerOrMaker, null)))
         {
             timestamp = Precise.stringMul(timestamp, "1000");
         }
         // the exchange returns the side of the taker
-        Object side = this.safeString2(trade, "side", "type");
+        String side = this.safeString2(trade, "side", "type");
         Object feeInfo = null;
         Object order = null;
         if (Helpers.isTrue(Helpers.isEqual(takerOrMaker, "maker")))
@@ -2346,13 +2349,13 @@ public class BitteamCore extends BitteamApi
             order = this.safeString(trade, "takerOrderId");
             feeInfo = this.safeValue(trade, "feeTaker", new java.util.HashMap<String, Object>() {{}});
         }
-        Object feeCurrencyId = this.safeString(feeInfo, "symbol");
-        Object feeCost = this.safeString(feeInfo, "amount");
-        Object fee = new java.util.HashMap<String, Object>() {{
+        String feeCurrencyId = this.safeString(feeInfo, "symbol");
+        String feeCost = this.safeString(feeInfo, "amount");
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "currency", BitteamCore.this.safeCurrencyCode(feeCurrencyId) );
             put( "cost", feeCost );
         }};
-        Object intTs = this.parseToInt(timestamp);
+        Long intTs = this.parseToInt(timestamp);
         final Object finalOrder = order;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
@@ -2391,7 +2394,7 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetTradeApiCcxtBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetTradeApiCcxtBalance(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -2440,8 +2443,8 @@ public class BitteamCore extends BitteamApi
         //         }
         //     }
         //
-        Object timestamp = this.milliseconds();
-        Object balance = new java.util.HashMap<String, Object>() {{
+        Long timestamp = this.milliseconds();
+        java.util.Map<String, Object> balance = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
             put( "datetime", BitteamCore.this.iso8601(timestamp) );
@@ -2453,10 +2456,10 @@ public class BitteamCore extends BitteamApi
         {
             Object rawCurrencyId = Helpers.GetValue(rawCurrencyIds, i);
             Object currencyBalance = this.safeValue(result, rawCurrencyId);
-            Object free = this.safeString(currencyBalance, "free");
-            Object used = this.safeString(currencyBalance, "used");
-            Object total = this.safeString(currencyBalance, "total");
-            Object currencyCode = this.safeCurrencyCode(((String)rawCurrencyId).toLowerCase());
+            String free = this.safeString(currencyBalance, "free");
+            String used = this.safeString(currencyBalance, "used");
+            String total = this.safeString(currencyBalance, "total");
+            String currencyCode = (String) this.safeCurrencyCode(((String)rawCurrencyId).toLowerCase());
             if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
             {
                 Helpers.addElementToObject(balance, currencyCode, new java.util.HashMap<String, Object>() {{
@@ -2494,7 +2497,7 @@ public class BitteamCore extends BitteamApi
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.currency(code);
@@ -2504,7 +2507,7 @@ public class BitteamCore extends BitteamApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetTradeApiTransactionsOfUser(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTradeApiTransactionsOfUser(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -2651,25 +2654,25 @@ public class BitteamCore extends BitteamApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object currencyObject = this.safeValue(transaction, "currency");
-        Object currencyId = this.safeString(currencyObject, "symbol");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object id = this.safeString(transaction, "id");
+        String currencyId = this.safeString(currencyObject, "symbol");
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String id = this.safeString(transaction, "id");
         Object parameters = this.safeValue(transaction, "params");
-        Object txid = this.safeString(parameters, "tx_id");
-        Object timestamp = this.safeInteger(transaction, "timestamp");
-        Object networkId = this.safeString(transaction, "blockChain");
+        String txid = this.safeString(parameters, "tx_id");
+        Long timestamp = this.safeInteger(transaction, "timestamp");
+        String networkId = this.safeString(transaction, "blockChain");
         if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
         {
             Object links = this.safeValue(currencyObject, "links", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object blockChain = this.safeValue(links, 0, new java.util.HashMap<String, Object>() {{}});
             networkId = this.safeString(blockChain, "blockChain");
         }
-        Object addressFrom = this.safeString(transaction, "sender");
-        Object addressTo = this.safeString(transaction, "recipient");
-        Object tag = this.safeString(transaction, "message");
-        Object type = this.parseTransactionType(this.safeString(transaction, "type"));
-        Object amount = this.parseValueToPricision(transaction, "amount", currencyObject, "decimals");
-        Object status = this.parseTransactionStatus(this.safeValue(transaction, "status"));
+        String addressFrom = this.safeString(transaction, "sender");
+        String addressTo = this.safeString(transaction, "recipient");
+        String tag = this.safeString(transaction, "message");
+        String type = this.parseTransactionType(this.safeString(transaction, "type"));
+        String amount = this.parseValueToPricision(transaction, "amount", currencyObject, "decimals");
+        String status = this.parseTransactionStatus(this.safeValue(transaction, "status"));
         final Object finalNetworkId = networkId;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -2695,18 +2698,18 @@ public class BitteamCore extends BitteamApi
         }};
     }
 
-    public Object parseTransactionType(Object type)
+    public String parseTransactionType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "deposit", "deposit" );
             put( "withdraw", "withdrawal" );
         }};
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "approving", "pending" );
             put( "success", "ok" );
         }};
@@ -2721,7 +2724,7 @@ public class BitteamCore extends BitteamApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object request = this.omit(parameters, this.extractParams(path));
-        Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
+        String endpoint = Helpers.add("/", this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), endpoint);
         Object query = this.urlencode(request);
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
@@ -2730,18 +2733,18 @@ public class BitteamCore extends BitteamApi
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {
                 body = this.json(request);
-            } else if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(query), 0)))
+            } else if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }
             Object auth = Helpers.add(Helpers.add(this.apiKey, ":"), this.secret);
             Object auth64 = this.stringToBase64(auth);
-            Object signature = Helpers.add("Basic ", auth64);
+            String signature = Helpers.add("Basic ", auth64);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Authorization", signature );
                 put( "Content-Type", "application/json" );
             }};
-        } else if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(query), 0)))
+        } else if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
         {
             url = Helpers.add(url, Helpers.add("?", query));
         }
@@ -2770,19 +2773,19 @@ public class BitteamCore extends BitteamApi
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/ccxt/order/"), 0))) && Helpers.isTrue((Helpers.isEqual(method, "GET")))))
                 {
                     Object parts = Helpers.split(url, "/order/");
-                    Object orderId = this.safeString(parts, 1);
+                    String orderId = this.safeString(parts, 1);
                     throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(this.id, " order "), orderId), " not found")) ;
                 }
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/cmc/orderbook/"), 0)))
                 {
                     Object parts = Helpers.split(url, "/cmc/orderbook/");
-                    Object symbolId = this.safeString(parts, 1);
+                    String symbolId = this.safeString(parts, 1);
                     throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " symbolId "), symbolId), " not found")) ;
                 }
             }
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            Object message = this.safeString(response, "message");
-            Object responseCode = this.safeString(response, "code");
+            String message = this.safeString(response, "message");
+            String responseCode = this.safeString(response, "code");
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), responseCode, feedback);
             throw new ExchangeError((String)feedback) ;

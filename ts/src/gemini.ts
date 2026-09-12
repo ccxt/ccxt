@@ -156,11 +156,30 @@ export default class gemini extends Exchange {
                         'v2/derivatives/candles/{symbol}/{time_frame}': { 'cost': 5 } as Endpoint<List>,
                         'v2/fxrate/{symbol}/{timestamp}': { 'cost': 5 } as Endpoint<Dict>,
                         'v1/riskstats/{symbol}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/{eventTicker}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/{eventTicker}/strike': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/newly-listed': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/recently-settled': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/events/upcoming': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/categories': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/volume/{date}': { 'cost': 5 } as Endpoint<List>,
+                        'v1/prediction-markets/volume/{date}/hourly': { 'cost': 5 } as Endpoint<List>,
+                        'v1/prediction-markets/terms': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/maker-rebate/rates': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/liquidity-rewards/config': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/prediction-markets/liquidity-rewards/events': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         'v1/perpetuals/fundingpaymentreport/records.xlsx': { 'cost': 1 } as Endpoint<string>,
+                        'v1/prediction-markets/terms/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/maker-rebate/summary/total': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/liquidity-rewards/summary/daily': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/liquidity-rewards/summary/total': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/network/{token}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/networks/{network}/assets': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         'v1/staking/unstake': { 'cost': 1 } as Endpoint<Dict>,
@@ -223,6 +242,20 @@ export default class gemini extends Exchange {
                         'v1/perpetuals/fundingPayment': { 'cost': 1 } as Endpoint<List>,
                         'v1/perpetuals/fundingpaymentreport/records.json': { 'cost': 1 } as Endpoint<List>,
                         'v1/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/order/batch': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/order/batch/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/orders/active': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/positions/settled': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/metrics/volume': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/terms/accept': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/prediction-markets/maker-rebate/payouts': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/transfers': { 'cost': 1 } as Endpoint<List>,
+                        'v2/withdraw/{network}/{ticker}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/withdraw/{network}/{ticker}/feeEstimate': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -422,7 +455,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrenciesFromWeb (params = {}) {
+    async fetchCurrenciesFromWeb (params = {}): Promise<Currencies> {
         const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
         if (data === undefined) {
             return {};
@@ -532,7 +565,7 @@ export default class gemini extends Exchange {
         return await this.fetchMarketsFromAPI (params);
     }
 
-    async fetchMarketsFromWeb (params = {}) {
+    async fetchMarketsFromWeb (params = {}): Promise<Market[]> {
         const data = await this.fetchWebEndpoint ('fetchMarkets', 'webGetRestApi', false, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const error = this.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.';
         const tables = data.split ('tbody>');
@@ -630,7 +663,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    parseMarketActive (status: any) {
+    parseMarketActive (status: any): Bool {
         const statuses: Dict = {
             'open': true,
             'closed': false,
@@ -644,13 +677,13 @@ export default class gemini extends Exchange {
         return this.safeBool (statuses, status, true);
     }
 
-    async fetchUSDTMarkets (params = {}) {
+    async fetchUSDTMarkets (params = {}): Promise<Market[]> {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
         if ('test' in this.urls) {
             return []; // sandbox does not have usdt markets
         }
-        const fetchUsdtMarkets = this.safeValue (this.options, 'fetchUsdtMarkets', []);
+        const fetchUsdtMarkets = this.safeList (this.options, 'fetchUsdtMarkets', []);
         const result: List = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
             const marketId = fetchUsdtMarkets[i];
@@ -664,7 +697,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    async fetchMarketsFromAPI (params = {}) {
+    async fetchMarketsFromAPI (params = {}): Promise<Market[]> {
         const marketIdsRaw = await this.publicGetV1Symbols (params);
         //
         //     [

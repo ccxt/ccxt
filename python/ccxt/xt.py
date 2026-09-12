@@ -260,27 +260,42 @@ class xt(Exchange, ImplicitAPI):
                     },
                     'linear': {
                         'get': {
+                            'future/copytrade/user/v1/copy-trade/current-following-v2': {'cost': 1},
+                            'future/copytrade/user/v1/copy-trade/follower-balance-bill': {'cost': 1},
+                            'future/copytrade/user/v1/copy-trade/follower-position': {'cost': 1},
                             'future/trade/v1/entrust/plan-detail': {'cost': 1},
                             'future/trade/v1/entrust/plan-list': {'cost': 1},
                             'future/trade/v1/entrust/plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/profit-detail': {'cost': 1},
                             'future/trade/v1/entrust/profit-list': {'cost': 1},
+                            'future/trade/v1/entrust/profit-list-history': {'cost': 1},
+                            'future/trade/v1/entrust/reverse-plan-list': {'cost': 1},
+                            'future/trade/v1/entrust/reverse-plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/track-detail': {'cost': 1},
                             'future/trade/v1/entrust/track-list': {'cost': 1},
                             'future/trade/v1/entrust/track-list-history': {'cost': 1},
+                            'future/trade/v1/order-entrust/list': {'cost': 1},
                             'future/trade/v1/order/detail': {'cost': 1},
                             'future/trade/v1/order/list': {'cost': 1},
                             'future/trade/v1/order/list-history': {'cost': 1},
+                            'future/trade/v1/order/trade-history': {'cost': 1},
                             'future/trade/v1/position/list-history': {'cost': 1},
+                            'future/trade/v1/position/cross-margin/{symbol}': {'cost': 1},
+                            'future/trade/v1/position/leverage/list': {'cost': 1},
+                            'future/trade/v1/position/list/active': {'cost': 1},
                             'future/trade/v1/order/trade-list': {'cost': 1},
+                            'future/trade/v1/order/trade-list-all': {'cost': 1},
                             'future/user/v1/account/info': {'cost': 1},
+                            'future/user/v1/auto-deleverage/history': {'cost': 1},
                             'future/user/v1/balance/bills': {'cost': 1},
                             'future/user/v1/balance/detail': {'cost': 1},
                             'future/user/v1/balance/funding-rate-list': {'cost': 1},
                             'future/user/v1/balance/list': {'cost': 1},
+                            'future/user/v1/compat/balance/{coin}': {'cost': 1},
                             'future/user/v1/position/adl': {'cost': 1},
                             'future/user/v1/position/break-list': {'cost': 1},
                             'future/user/v1/position/list': {'cost': 1},
+                            'future/user/v1/taker-over/list': {'cost': 1},
                             'future/user/v1/user/step-rate': {'cost': 1},
                             'future/user/v1/user/collection/list': {'cost': 1},
                             'future/user/v1/user/listen-key': {'cost': 1},
@@ -318,22 +333,34 @@ class xt(Exchange, ImplicitAPI):
                             'future/trade/v1/entrust/plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/profit-detail': {'cost': 1},
                             'future/trade/v1/entrust/profit-list': {'cost': 1},
+                            'future/trade/v1/entrust/profit-list-history': {'cost': 1},
+                            'future/trade/v1/entrust/reverse-plan-list': {'cost': 1},
+                            'future/trade/v1/entrust/reverse-plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/track-detail': {'cost': 1},
                             'future/trade/v1/entrust/track-list': {'cost': 1},
                             'future/trade/v1/entrust/track-list-history': {'cost': 1},
+                            'future/trade/v1/order-entrust/list': {'cost': 1},
                             'future/trade/v1/order/detail': {'cost': 1},
                             'future/trade/v1/order/list': {'cost': 1},
                             'future/trade/v1/order/list-history': {'cost': 1},
+                            'future/trade/v1/order/trade-history': {'cost': 1},
                             'future/trade/v1/position/list-history': {'cost': 1},
+                            'future/trade/v1/position/cross-margin/{symbol}': {'cost': 1},
+                            'future/trade/v1/position/leverage/list': {'cost': 1},
+                            'future/trade/v1/position/list/active': {'cost': 1},
                             'future/trade/v1/order/trade-list': {'cost': 1},
+                            'future/trade/v1/order/trade-list-all': {'cost': 1},
                             'future/user/v1/account/info': {'cost': 1},
+                            'future/user/v1/auto-deleverage/history': {'cost': 1},
                             'future/user/v1/balance/bills': {'cost': 1},
                             'future/user/v1/balance/detail': {'cost': 1},
                             'future/user/v1/balance/funding-rate-list': {'cost': 1},
                             'future/user/v1/balance/list': {'cost': 1},
+                            'future/user/v1/compat/balance/{coin}': {'cost': 1},
                             'future/user/v1/position/adl': {'cost': 1},
                             'future/user/v1/position/break-list': {'cost': 1},
                             'future/user/v1/position/list': {'cost': 1},
+                            'future/user/v1/taker-over/list': {'cost': 1},
                             'future/user/v1/user/step-rate': {'cost': 1},
                             'future/user/v1/user/collection/list': {'cost': 1},
                             'future/user/v1/user/listen-key': {'cost': 1},
@@ -1108,7 +1135,7 @@ class xt(Exchange, ImplicitAPI):
         symbols = self.safe_list(data, 'symbols', [])
         return self.parse_markets(symbols)
 
-    def fetch_swap_and_future_markets(self, params={}):
+    def fetch_swap_and_future_markets(self, params={}) -> list[Market]:
         markets = [self.publicLinearGetFutureMarketV1PublicSymbolList(params), self.publicInverseGetFutureMarketV1PublicSymbolList(params)]
         #
         #     {
@@ -1440,7 +1467,7 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -2495,7 +2522,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             return self.create_contract_order(symbol, type, side, amount, price, params)
 
-    def create_spot_order(self, symbol: str, type: OrderType, side: object, amount: object, price: Num = None, params={}):
+    def create_spot_order(self, symbol: str, type: OrderType, side: object, amount: object, price: Num = None, params={}) -> Order:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -2555,7 +2582,7 @@ class xt(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_contract_order(self, symbol: str, type: object, side: object, amount: object, price: Num = None, params={}):
+    def create_contract_order(self, symbol: str, type: object, side: object, amount: object, price: Num = None, params={}) -> Order:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -4768,7 +4795,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             response = self.privateLinearGetFutureUserV1UserStepRate(params)
         #
-        # same response
+        # same response as fetchTradingFee
         #
         fee = self.safe_dict(response, 'result', {})
         result = {}

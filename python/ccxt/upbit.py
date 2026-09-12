@@ -158,6 +158,11 @@ class upbit(Exchange, ImplicitAPI):
                         'travel_rule/vasps': {'cost': 0.67},
                         'status/wallet': {'cost': 0.67},
                         'api_keys': {'cost': 0.67},  # Upbit KR only
+                        'pockets': {'cost': 0.67},
+                        'pockets/api_keys': {'cost': 0.67},
+                        'pockets/assets': {'cost': 0.67},
+                        'pockets/universal_transfers': {'cost': 0.67},
+                        'pockets/transfers': {'cost': 0.67},
                     },
                     'post': {
                         'orders': {'cost': 2.5},  # RPS: 8
@@ -169,6 +174,8 @@ class upbit(Exchange, ImplicitAPI):
                         'deposits/generate_coin_address': {'cost': 0.67},
                         'travel_rule/deposit/uuid': {'cost': 0.67},  # RPS: 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid': {'cost': 0.67},  # RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'pockets/universal_transfers': {'cost': 0.67},
+                        'pockets/transfers': {'cost': 0.67},
                     },
                     'delete': {
                         'order': {'cost': 0.67},
@@ -1113,7 +1120,7 @@ class upbit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1206,7 +1213,7 @@ class upbit(Exchange, ImplicitAPI):
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
         :param str [params.ordType]: self field can be used to place a ‘best’ type order
         :param str [params.timeInForce]: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. self field is required when the order type is 'best'.
         :param str [params.selfTradePrevention]: 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
@@ -1348,16 +1355,16 @@ class upbit(Exchange, ImplicitAPI):
         https://docs.upbit.com/kr/reference/cancel-and-new-order
         https://global-docs.upbit.com/reference/cancel-and-new-order
 
-        canceled existing order and create new order. It's only generated same side and symbol canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+        canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
         :param str id: the uuid of the previous order you want to edit.
-        :param str symbol: the symbol of the new order. it must be the same symbol of the previous order.
+        :param str symbol: the symbol of the new order. it must be the same as the symbol of the previous order.
         :param str type: the type of the new order. only limit or market is accepted. if params.newOrdType is set to best, a best-type order will be created regardless of the value of type.
-        :param str side: the side of the new order. it must be the same side of the previous order.
+        :param str side: the side of the new order. it must be the same as the side of the previous order.
         :param number amount: the amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in params.
         :param number price: the price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in params.
         :param dict [params]: extra parameters specific to the exchange API endpoint.
         :param str [params.clientOrderId]: to identify the previous order, either the id or self field is hasattr(self, required) method.
-        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used alternative for the amount.
+        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
         :param str [params.newTimeInForce]: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. self field is required when the order type is 'best'.
         :param str [params.newClientOrderId]: the order ID that the user can define.
         :param str [params.newOrdType]: self field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use self field.
@@ -1497,7 +1504,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_deposit(self, id: str, code: Str = None, params={}):
+    def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch information on a deposit
 
@@ -1581,7 +1588,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1807,7 +1814,7 @@ class upbit(Exchange, ImplicitAPI):
         feeCost = self.safe_string(order, 'paid_fee')
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
-        trades = self.safe_value(order, 'trades', [])
+        trades = self.safe_list(order, 'trades', [])
         trades = self.parse_trades(trades, market, None, None, {
             'order': id,
             'type': type,

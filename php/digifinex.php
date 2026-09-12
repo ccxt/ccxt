@@ -659,7 +659,7 @@ class digifinex extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
             //
-            // The $status is documented in the exchange API docs:
+            // The $status is documented in the exchange API docs as follows:
             // TRADING, HALT (delisted), BREAK (trading paused)
             // https://docs.digifinex.vip/en-ww/v3/#/public/spot/symbols
             // However, all $spot markets actually have $status === 'HALT'
@@ -740,7 +740,7 @@ class digifinex extends Exchange {
         return $result;
     }
 
-    public function fetch_markets_v1($params = array()) {
+    public function fetch_markets_v1($params = array()): array {
         $response = $this->publicSpotGetMarkets($params);
         //
         //     {
@@ -757,7 +757,7 @@ class digifinex extends Exchange {
         //         "code":0
         //     }
         //
-        $markets = $this->safe_value($response, 'data', array());
+        $markets = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -1089,7 +1089,7 @@ class digifinex extends Exchange {
         //     }
         //
         $result = array();
-        $tickers = $this->safe_value_2($response, 'ticker', 'data', array());
+        $tickers = $this->safe_list_2($response, 'ticker', 'data', array());
         $date = $this->safe_integer($response, 'date');
         for ($i = 0; $i < count($tickers); $i++) {
             $rawTicker = $this->extend(array(
@@ -1570,7 +1570,7 @@ class digifinex extends Exchange {
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1675,7 +1675,7 @@ class digifinex extends Exchange {
          * @param {bool} [$params->postOnly] true or false
          * @param {bool} [$params->reduceOnly] true or false
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
@@ -2018,7 +2018,7 @@ class digifinex extends Exchange {
         //     }
         //
         if (($marketType === 'spot') || ($marketType === 'margin')) {
-            $canceledOrders = $this->safe_value($response, 'success', array());
+            $canceledOrders = $this->safe_list($response, 'success', array());
             $numCanceledOrders = count($canceledOrders);
             if ($numCanceledOrders !== 1) {
                 throw new OrderNotFound($this->id . ' cancelOrder() ' . $id . ' not found');
@@ -2868,7 +2868,7 @@ class digifinex extends Exchange {
         return $address;
     }
 
-    public function fetch_transactions_by_type(mixed $type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_by_type(mixed $type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3285,7 +3285,7 @@ class digifinex extends Exchange {
         //         "equity" => 45.133305540922
         //     }
         //
-        $data = $this->safe_value($response, 'list', array());
+        $data = $this->safe_list($response, 'list', array());
         $result = null;
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -3521,7 +3521,7 @@ class digifinex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $result = $this->safe_value($data, 'funding_rates', array());
+        $result = $this->safe_list($data, 'funding_rates', array());
         $rates = array();
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];
@@ -3697,7 +3697,7 @@ class digifinex extends Exchange {
         //     }
         //
         $positionRequest = ($marketType === 'swap') ? 'data' : 'positions';
-        $positions = $this->safe_value($response, $positionRequest, array());
+        $positions = $this->safe_list($response, $positionRequest, array());
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
             $result[] = $this->parse_position($positions[$i], $market);
@@ -3789,7 +3789,7 @@ class digifinex extends Exchange {
         //     }
         //
         $dataRequest = ($marketType === 'swap') ? 'data' : 'positions';
-        $data = $this->safe_value($response, $dataRequest, array());
+        $data = $this->safe_list($response, $dataRequest, array());
         $position = $this->parse_position($data[0], $market);
         if ($marketType === 'swap') {
             return $position;

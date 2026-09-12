@@ -215,6 +215,7 @@ export default class whitebit extends Exchange {
                             'collateral-account/positions/history': { 'cost': 1 },
                             'collateral-account/leverage': { 'cost': 1 },
                             'collateral-account/positions/open': { 'cost': 1 },
+                            'collateral-account/positions/closed-pnl': { 'cost': 1 },
                             'collateral-account/summary': { 'cost': 1 },
                             'collateral-account/funding-history': { 'cost': 1 },
                             'main-account/address': { 'cost': 1 },
@@ -228,6 +229,7 @@ export default class whitebit extends Exchange {
                             'main-account/history': { 'cost': 1 },
                             'main-account/withdraw': { 'cost': 1 },
                             'main-account/withdraw-pay': { 'cost': 1 },
+                            'main-account/express-withdraw/token': { 'cost': 1 },
                             'main-account/transfer': { 'cost': 1 },
                             'main-account/smart/plans': { 'cost': 1 },
                             'main-account/smart/investment': { 'cost': 1 },
@@ -235,10 +237,19 @@ export default class whitebit extends Exchange {
                             'main-account/smart/investments': { 'cost': 1 },
                             'main-account/fee': { 'cost': 1 },
                             'main-account/smart/interest-payment-history': { 'cost': 1 },
+                            'main-account/smart-flex/plans': { 'cost': 1 },
+                            'main-account/smart-flex/investments': { 'cost': 1 },
+                            'main-account/smart-flex/investments/history': { 'cost': 1 },
+                            'main-account/smart-flex/investments/payment-history': { 'cost': 1 },
+                            'main-account/smart-flex/investments/invest': { 'cost': 1 },
+                            'main-account/smart-flex/investments/withdraw': { 'cost': 1 },
+                            'main-account/smart-flex/investments/close': { 'cost': 1 },
+                            'main-account/smart-flex/investments/auto-invest': { 'cost': 1 },
                             'trade-account/balance': { 'cost': 1 },
                             // answers with a list when a market is set and a dict of lists otherwise — no shape assertion
                             'trade-account/executed-history': { 'cost': 1 },
                             'trade-account/order/history': { 'cost': 1 },
+                            'trade-account/order/history/query': { 'cost': 1 },
                             'trade-account/order': { 'cost': 1 },
                             'order/collateral/limit': { 'cost': 1 },
                             'order/collateral/market': { 'cost': 1 },
@@ -252,6 +263,7 @@ export default class whitebit extends Exchange {
                             'order/stop_market': { 'cost': 1 },
                             'order/cancel': { 'cost': 1 },
                             'order/cancel/all': { 'cost': 1 },
+                            'order/cancel/bulk': { 'cost': 1 },
                             'order/kill-switch': { 'cost': 1 },
                             'order/kill-switch/status': { 'cost': 1 },
                             'order/bulk': { 'cost': 1 },
@@ -284,8 +296,22 @@ export default class whitebit extends Exchange {
                             'sub-account/api-key/ip-address/create': { 'cost': 1 },
                             'sub-account/api-key/ip-address/delete': { 'cost': 1 },
                             'mining/rewards': { 'cost': 1 },
+                            'mining/hashrate': { 'cost': 1 },
+                            'mining/payout-destination': { 'cost': 1 },
+                            'mining/payout-destination/edit': { 'cost': 1 },
+                            'mining/miners/info': { 'cost': 1 },
+                            'mining/workers/names': { 'cost': 1 },
+                            'mining/workers/hashrate': { 'cost': 1 },
+                            'mining/watcher-links/create': { 'cost': 1 },
+                            'mining/watcher-links/list': { 'cost': 1 },
+                            'mining/accounts/create': { 'cost': 1 },
+                            'mining/accounts': { 'cost': 1 },
                             'market/fee': { 'cost': 1 },
+                            'market/fee/single': { 'cost': 1 },
                             'conditional-orders': { 'cost': 1 },
+                            'travel-rule/vasps': { 'cost': 1 },
+                            'travel-rule/deposit/verification': { 'cost': 1 },
+                            'jwt': { 'cost': 1 },
                         },
                     },
                 },
@@ -4264,7 +4290,7 @@ export default class whitebit extends Exchange {
                     const errorsLength = errorKeys.length;
                     if (errorsLength > 0) {
                         const errorKey = errorKeys[0];
-                        const errorMessageArray = this.safeValue(errorObject, errorKey, []);
+                        const errorMessageArray = this.safeList(errorObject, errorKey, []);
                         const errorMessageLength = errorMessageArray.length;
                         errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
                     }

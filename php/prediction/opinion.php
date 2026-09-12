@@ -174,7 +174,7 @@ class opinion extends Exchange {
     private function do_fetch_markets($params = array()) {
         /**
          * fetches every kind of opinion market
-         * categorical parents double unified "events" and are cached into $this->events side effect
+         * categorical parents double as our unified "events" and are cached into $this->events as a side effect
          *
          * @see https://docs.opinion.trade/developer-guide/opinion-open-api/market
          *
@@ -842,7 +842,7 @@ class opinion extends Exchange {
          * @param {int} [$since] $timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum number of $candles to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} a list of $candles ordered as $timestamp, open, high, low, close, volume
          */
         if (!(is_array($this->timeframes) && array_key_exists($timeframe ?? '', $this->timeframes))) {
             $supportedKeys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
@@ -887,7 +887,7 @@ class opinion extends Exchange {
          * parses a single opinion $price-history point into a unified OHLCV candle
          * @param {array} $ohlcv the raw array( p, t ) point
          * @param {array} [$market] the outcome object the candle belongs to
-         * @return {int[]} a candle ordered, open, high, low, close, volume
+         * @return {int[]} a candle ordered as timestamp, open, high, low, close, volume
          */
         // Unused => fetchOHLCV maps array( p, t ) points directly.
         //
@@ -1037,7 +1037,7 @@ class opinion extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount for limit orders, the number of $outcome shares to trade; for market orders, the quote (USDT) to spend on a BUY or the shares to sell on a SELL
-         * @param {float} [$price] the $price per $outcome token between 0 and 1; required for limit orders and market SELL orders (where it acts reference / worst acceptable $price for the taker $amount); ignored for market BUY orders ($amount is already the quote to spend)
+         * @param {float} [$price] the $price per $outcome token between 0 and 1; required for limit orders and market SELL orders (where it acts as the reference / worst acceptable $price for the taker $amount); ignored for market BUY orders ($amount is already the quote to spend)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->postOnly] limit orders only - reject the $order if it would cross the spread
          * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?id=prediction-$order-structure)
@@ -1674,7 +1674,7 @@ class opinion extends Exchange {
         // sign() prefers $this->apiKey over options['apiKey'] - clear it too, or a directly-set
         // exchange.apiKey would keep being used for private calls after the key is revoked.
         // an empty string, not null => the strict base types the credential, and
-        // sign() treats an empty key
+        // sign() treats an empty key as absent
         $this->apiKey = '';
         return $response;
     }
@@ -1723,7 +1723,7 @@ class opinion extends Exchange {
         );
         $this->options['apiKey'] = $creds['apiKey'];
         // checkRequiredCredentials() (called by createOrder()) checks $this->apiKey, not
-        // options['apiKey'] - keep both in sync, same() clearing both
+        // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
         $this->apiKey = $creds['apiKey'];
         return $creds;
     }
@@ -1731,7 +1731,7 @@ class opinion extends Exchange {
     public function opinion_ws_url(): string {
         /**
          * @ignore
-         * builds the websocket url - the venue authenticates the whole connection with the $apiKey passed query parameter, for public and private channels alike
+         * builds the websocket url - the venue authenticates the whole connection with the $apiKey passed as a query parameter, for public and private channels alike
          * @return {string} the websocket url
          */
         $hasDirectApiKey = !$this->is_empty_string($this->apiKey);
@@ -2289,7 +2289,7 @@ class opinion extends Exchange {
                 $headers['OPINION_SIGNATURE'] = $this->sign_api_key_auth($this->walletAddress, $action, $timestamp);
                 $headers['OPINION_TIMESTAMP'] = $timestamp;
             } else {
-                // an empty $this->apiKey counts - deleteApiKey clears it to '' (the
+                // an empty $this->apiKey counts as absent - deleteApiKey clears it to '' (the
                 // strict base types the credential, null can not be assigned)
                 $hasDirectApiKey = !$this->is_empty_string($this->apiKey);
                 $apiKey = ($hasDirectApiKey) ? $this->apiKey : $this->safe_string($this->options, 'apiKey');

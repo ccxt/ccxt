@@ -161,7 +161,9 @@ export default class latoken extends Exchange {
                     'get': {
                         'auth/account': { 'cost': 1 } as Endpoint<List>,
                         'auth/account/currency/{currency}/{type}': { 'cost': 1 } as Endpoint<List>,
+                        'auth/account/filtered': { 'cost': 1 } as Endpoint<List>,
                         'auth/order': { 'cost': 1 } as Endpoint<List>,
+                        'auth/order/active': { 'cost': 1 } as Endpoint<List>,
                         'auth/order/getOrder/{id}': { 'cost': 1 } as Endpoint<Dict>,
                         'auth/order/pair/{currency}/{quote}': { 'cost': 1 } as Endpoint<List>,
                         'auth/order/pair/{currency}/{quote}/active': { 'cost': 1 } as Endpoint<List>,
@@ -182,7 +184,9 @@ export default class latoken extends Exchange {
                         'auth/order/cancel': { 'cost': 1 } as Endpoint<Dict>,
                         'auth/order/cancelAll': { 'cost': 1 } as Endpoint<Dict>,
                         'auth/order/cancelAll/{currency}/{quote}': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/order/cancelBulk': { 'cost': 1 } as Endpoint<Dict>,
                         'auth/order/place': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/order/placeBulk': { 'cost': 1 } as Endpoint<Dict>,
                         'auth/spot/deposit': { 'cost': 1 } as Endpoint<Dict>,
                         'auth/spot/withdraw': { 'cost': 1 } as Endpoint<Dict>,
                         'auth/stopOrder/cancel': { 'cost': 1 } as Endpoint<Dict>,
@@ -605,7 +609,7 @@ export default class latoken extends Exchange {
         const types = this.safeValue (this.options, 'types', {});
         const accountType = this.safeString (types, type, type);
         const balancesByType = this.groupBy (response, 'type');
-        const balances = this.safeValue (balancesByType, accountType, []);
+        const balances = this.safeList (balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -975,7 +979,7 @@ export default class latoken extends Exchange {
         }
     }
 
-    async fetchPublicTradingFee (symbol: string, params = {}) {
+    async fetchPublicTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1003,7 +1007,7 @@ export default class latoken extends Exchange {
         };
     }
 
-    async fetchPrivateTradingFee (symbol: string, params = {}) {
+    async fetchPrivateTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

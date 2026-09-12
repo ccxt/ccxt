@@ -201,6 +201,7 @@ class hitbtc(Exchange, ImplicitAPI):
                         'margin/history/trade': {'cost': 15},
                         'margin/history/positions': {'cost': 15},
                         'margin/history/clearing': {'cost': 15},
+                        'margin-settings': {'cost': 15},
                         'futures/balance': {'cost': 15},
                         'futures/balance/{currency}': {'cost': 15},
                         'futures/account': {'cost': 1},
@@ -214,8 +215,10 @@ class hitbtc(Exchange, ImplicitAPI):
                         'futures/history/trade': {'cost': 15},
                         'futures/history/positions': {'cost': 15},
                         'futures/history/clearing': {'cost': 15},
+                        'user/api-keys': {'cost': 15},
                         'wallet/balance': {'cost': 30},
                         'wallet/balance/{currency}': {'cost': 30},
+                        'wallet/crypto/address/white-list': {'cost': 30},
                         'wallet/crypto/address': {'cost': 30},
                         'wallet/crypto/address/recent-deposit': {'cost': 30},
                         'wallet/crypto/address/recent-withdraw': {'cost': 30},
@@ -223,6 +226,7 @@ class hitbtc(Exchange, ImplicitAPI):
                         'wallet/transactions': {'cost': 30},
                         'wallet/transactions/{tx_id}': {'cost': 30},
                         'wallet/crypto/fee/estimate': {'cost': 30},
+                        'wallet/crypto/fee/withdraw/hash': {'cost': 30},
                         'wallet/airdrops': {'cost': 30},
                         'wallet/amount-locks': {'cost': 30},
                         'sub-account': {'cost': 15},
@@ -244,10 +248,13 @@ class hitbtc(Exchange, ImplicitAPI):
                         'wallet/internal/withdraw': {'cost': 30},
                         'wallet/crypto/check-offchain-available': {'cost': 30},
                         'wallet/crypto/fees/estimate': {'cost': 30},
+                        'wallet/crypto/fee/estimate/bulk': {'cost': 30},
                         'wallet/airdrops/{id}/claim': {'cost': 30},
                         'sub-account/freeze': {'cost': 15},
                         'sub-account/activate': {'cost': 15},
                         'sub-account/transfer': {'cost': 15},
+                        'sub-account/transfer/sub-to-super': {'cost': 15},
+                        'sub-account/transfer/sub-to-sub': {'cost': 15},
                         'sub-account/acl': {'cost': 15},
                     },
                     'patch': {
@@ -270,7 +277,10 @@ class hitbtc(Exchange, ImplicitAPI):
                     },
                     'put': {
                         'margin/account/isolated/{symbol}': {'cost': 1},
+                        'margin-settings/amm': {'cost': 15},
+                        'margin/margin-settings/amr': {'cost': 15},
                         'futures/account/isolated/{symbol}': {'cost': 1},
+                        'futures/margin-settings/amr': {'cost': 15},
                         'wallet/crypto/withdraw/{id}': {'cost': 30},
                     },
                 },
@@ -983,7 +993,7 @@ class hitbtc(Exchange, ImplicitAPI):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
             networkCode = self.network_id_to_code(networkId, code)
-            networkCode = networkCode.upper() if (networkCode is not None) else code  # is white label, ensure we safeguard from possible bugs
+            networkCode = networkCode.upper() if (networkCode is not None) else code  # as hitbtc is white label, ensure we safeguard from possible bugs
             if networkCode is not None:
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -1123,7 +1133,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         type = self.safe_string_lower(params, 'type', 'spot')
         params = self.omit(params, ['type'])
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         account = None if (type is None) else self.safe_string(accountsByType, type, type)
         response: dict
         if account == 'wallet':
@@ -1426,7 +1436,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        # we use clientOrderId order id with self exchange intentionally
+        # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         orderId = self.safe_string_2(trade, 'clientOrderId', 'client_order_id')
@@ -1795,7 +1805,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -2019,7 +2029,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         request = {
-            'order_id': id,  # exchange assigned order id to the client order id
+            'order_id': id,  # exchange assigned order id as oppose to the client order id
         }
         marketType = None
         marginMode = None
@@ -2471,7 +2481,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string(order, 'client_order_id')
-        # we use clientOrderId order id with self exchange intentionally
+        # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         side = self.safe_string(order, 'side')
@@ -2656,13 +2666,13 @@ class hitbtc(Exchange, ImplicitAPI):
             await self.load_markets()
         if code != 'USDT':
             raise ExchangeError(self.id + ' convertCurrencyNetwork() only supports USDT currently')
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         fromNetwork = fromNetwork.upper()
         toNetwork = toNetwork.upper()
         fromNetwork = self.safe_string(networks, fromNetwork)  # handle ETH>ERC20 alias
         toNetwork = self.safe_string(networks, toNetwork)  # handle ETH>ERC20 alias
         if fromNetwork == toNetwork:
-            raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same')
+            raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
         if (fromNetwork is None) or (toNetwork is None):
             keys = list(networks.keys())
             raise ArgumentsRequired(self.id + ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' + ', '.join(keys))
@@ -3025,7 +3035,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marginMode = self.safe_string(position, 'type')
         leverage = self.safe_number(position, 'leverage')
         datetime = self.safe_string(position, 'updated_at')
-        positions = self.safe_value(position, 'positions', [])
+        positions = self.safe_list(position, 'positions', [])
         liquidationPrice = None
         entryPrice = None
         contracts = None
@@ -3034,7 +3044,7 @@ class hitbtc(Exchange, ImplicitAPI):
             liquidationPrice = self.safe_number(entry, 'price_liquidation')
             entryPrice = self.safe_number(entry, 'price_entry')
             contracts = self.safe_number(entry, 'quantity')
-        currencies = self.safe_value(position, 'currencies', [])
+        currencies = self.safe_list(position, 'currencies', [])
         collateral = None
         for i in range(0, len(currencies)):
             entry = currencies[i]
@@ -3556,7 +3566,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #         ]
         #    }
         #
-        networks = self.safe_value(fee, 'networks', [])
+        networks = self.safe_list(fee, 'networks', [])
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(networks)):
             networkEntry = networks[j]

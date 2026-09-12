@@ -228,6 +228,20 @@ public partial class bitmex : Exchange
         return await this.callAsync<List<object>> ("publicGetWalletAssets",parameters);
     }
 
+    /// <summary>Calls the publicGetWalletCurrencies endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetWalletCurrencies (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetWalletCurrencies",parameters);
+    }
+
+    /// <summary>Calls the publicGetWalletHaircuts endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetWalletHaircuts (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetWalletHaircuts",parameters);
+    }
+
     /// <summary>Calls the publicGetWalletNetworks endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> publicGetWalletNetworks (object parameters = null)
@@ -242,11 +256,25 @@ public partial class bitmex : Exchange
         return await this.callAsync<List<object>> ("privateGetAddress",parameters);
     }
 
+    /// <summary>Calls the privateGetAddressConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAddressConfig (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAddressConfig",parameters);
+    }
+
     /// <summary>Calls the privateGetApiKey endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateGetApiKey (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privateGetApiKey",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiKeySelf endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiKeySelf (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiKeySelf",parameters);
     }
 
     /// <summary>Calls the privateGetExecution endpoint.</summary>
@@ -277,6 +305,27 @@ public partial class bitmex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetLeaderboardName",parameters);
     }
 
+    /// <summary>Calls the privateGetLeagueoftraderMyRankings endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetLeagueoftraderMyRankings (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetLeagueoftraderMyRankings",parameters);
+    }
+
+    /// <summary>Calls the privateGetManagedSubAccountBindingInvestor endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetManagedSubAccountBindingInvestor (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetManagedSubAccountBindingInvestor",parameters);
+    }
+
+    /// <summary>Calls the privateGetManagedSubAccountBindingTradingTeam endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetManagedSubAccountBindingTradingTeam (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetManagedSubAccountBindingTradingTeam",parameters);
+    }
+
     /// <summary>Calls the privateGetOrder endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateGetOrder (object parameters = null)
@@ -296,6 +345,34 @@ public partial class bitmex : Exchange
     public async Task<List<object>> privateGetPosition (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privateGetPosition",parameters);
+    }
+
+    /// <summary>Calls the privateGetReferralCode endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetReferralCode (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetReferralCode",parameters);
+    }
+
+    /// <summary>Calls the privateGetReferralCodeCheckCode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetReferralCodeCheckCode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetReferralCodeCheckCode",parameters);
+    }
+
+    /// <summary>Calls the privateGetReferralCodeCodeCode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetReferralCodeCodeCode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetReferralCodeCodeCode",parameters);
+    }
+
+    /// <summary>Calls the privateGetReferralCodeId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetReferralCodeId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetReferralCodeId",parameters);
     }
 
     /// <summary>Calls the privateGetUser endpoint.</summary>
@@ -340,6 +417,13 @@ public partial class bitmex : Exchange
         return await this.callAsync<string> ("privateGetUserDepositAddress",parameters);
     }
 
+    /// <summary>Calls the privateGetUserDepositAddressInformation endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUserDepositAddressInformation (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUserDepositAddressInformation",parameters);
+    }
+
     /// <summary>Calls the privateGetUserExecutionHistory endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateGetUserExecutionHistory (object parameters = null)
@@ -359,6 +443,13 @@ public partial class bitmex : Exchange
     public async Task<Dictionary<string, object>> privateGetUserMargin (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetUserMargin",parameters);
+    }
+
+    /// <summary>Calls the privateGetUserMarginingMode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUserMarginingMode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUserMarginingMode",parameters);
     }
 
     /// <summary>Calls the privateGetUserQuoteFillRatio endpoint.</summary>
@@ -394,6 +485,13 @@ public partial class bitmex : Exchange
     public async Task<Dictionary<string, object>> privateGetUserStakingTiers (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetUserStakingTiers",parameters);
+    }
+
+    /// <summary>Calls the privateGetUserTradingSettings endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUserTradingSettings (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUserTradingSettings",parameters);
     }
 
     /// <summary>Calls the privateGetUserTradingVolume endpoint.</summary>
@@ -443,6 +541,20 @@ public partial class bitmex : Exchange
     public async Task<List<object>> privateGetUserEvent (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privateGetUserEvent",parameters);
+    }
+
+    /// <summary>Calls the privateGetUserPriceAlert endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetUserPriceAlert (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetUserPriceAlert",parameters);
+    }
+
+    /// <summary>Calls the privateGetUserStatsVolumeRank endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUserStatsVolumeRank (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUserStatsVolumeRank",parameters);
     }
 
     /// <summary>Calls the privatePostAddress endpoint.</summary>
@@ -501,6 +613,48 @@ public partial class bitmex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostGuildSharesTrades",parameters);
     }
 
+    /// <summary>Calls the privatePostManagedSubAccountBindingApprove endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostManagedSubAccountBindingApprove (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostManagedSubAccountBindingApprove",parameters);
+    }
+
+    /// <summary>Calls the privatePostManagedSubAccountBindingCancel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostManagedSubAccountBindingCancel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostManagedSubAccountBindingCancel",parameters);
+    }
+
+    /// <summary>Calls the privatePostManagedSubAccountBindingCreateMSA endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostManagedSubAccountBindingCreateMSA (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostManagedSubAccountBindingCreateMSA",parameters);
+    }
+
+    /// <summary>Calls the privatePostManagedSubAccountBindingReject endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostManagedSubAccountBindingReject (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostManagedSubAccountBindingReject",parameters);
+    }
+
+    /// <summary>Calls the privatePostManagedSubAccountBindingToggleTradeHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostManagedSubAccountBindingToggleTradeHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostManagedSubAccountBindingToggleTradeHistory",parameters);
+    }
+
+    /// <summary>Calls the privatePostManagedSubAccountBindingUnbind endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostManagedSubAccountBindingUnbind (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostManagedSubAccountBindingUnbind",parameters);
+    }
+
     /// <summary>Calls the privatePostOrder endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostOrder (object parameters = null)
@@ -520,6 +674,13 @@ public partial class bitmex : Exchange
     public async Task<Dictionary<string, object>> privatePostOrderClosePosition (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostOrderClosePosition",parameters);
+    }
+
+    /// <summary>Calls the privatePostPositionCrossLeverage endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostPositionCrossLeverage (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostPositionCrossLeverage",parameters);
     }
 
     /// <summary>Calls the privatePostPositionIsolate endpoint.</summary>
@@ -548,6 +709,13 @@ public partial class bitmex : Exchange
     public async Task<Dictionary<string, object>> privatePostPositionTransferMargin (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostPositionTransferMargin",parameters);
+    }
+
+    /// <summary>Calls the privatePostReferralCode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostReferralCode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostReferralCode",parameters);
     }
 
     /// <summary>Calls the privatePostUserAddSubaccount endpoint.</summary>
@@ -585,11 +753,32 @@ public partial class bitmex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostUserConfirmWithdrawal",parameters);
     }
 
+    /// <summary>Calls the privatePostUserCreateIndependentSubaccount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUserCreateIndependentSubaccount (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUserCreateIndependentSubaccount",parameters);
+    }
+
     /// <summary>Calls the privatePostUserLogout endpoint.</summary>
     /// <returns>a JSON scalar</returns>
     public async Task<string> privatePostUserLogout (object parameters = null)
     {
         return await this.callAsync<string> ("privatePostUserLogout",parameters);
+    }
+
+    /// <summary>Calls the privatePostUserMarginingMode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUserMarginingMode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUserMarginingMode",parameters);
+    }
+
+    /// <summary>Calls the privatePostUserPositionMode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUserPositionMode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUserPositionMode",parameters);
     }
 
     /// <summary>Calls the privatePostUserPreferences endpoint.</summary>
@@ -627,6 +816,20 @@ public partial class bitmex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostUserWalletTransfer",parameters);
     }
 
+    /// <summary>Calls the privatePostUserPriceAlert endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUserPriceAlert (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUserPriceAlert",parameters);
+    }
+
+    /// <summary>Calls the privatePutAddress endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutAddress (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutAddress",parameters);
+    }
+
     /// <summary>Calls the privatePutGuild endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePutGuild (object parameters = null)
@@ -639,6 +842,20 @@ public partial class bitmex : Exchange
     public async Task<Dictionary<string, object>> privatePutOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePutOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePutReferralCodeId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutReferralCodeId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutReferralCodeId",parameters);
+    }
+
+    /// <summary>Calls the privatePutUserPriceAlertId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutUserPriceAlertId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutUserPriceAlertId",parameters);
     }
 
     /// <summary>Calls the privateDeleteOrder endpoint.</summary>
@@ -655,11 +872,39 @@ public partial class bitmex : Exchange
         return await this.callAsync<List<object>> ("privateDeleteOrderAll",parameters);
     }
 
+    /// <summary>Calls the privateDeleteReferralCodeId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteReferralCodeId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteReferralCodeId",parameters);
+    }
+
     /// <summary>Calls the privateDeleteUserUnstakingRequests endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateDeleteUserUnstakingRequests (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateDeleteUserUnstakingRequests",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteUserWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteUserWithdrawal (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteUserWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteUserPriceAlert endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteUserPriceAlert (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteUserPriceAlert",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteUserPriceAlertId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteUserPriceAlertId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteUserPriceAlertId",parameters);
     }
 
 }

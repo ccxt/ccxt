@@ -142,7 +142,10 @@ public partial class BaseExchange
         }
     }
 
-    public void handleHttpStatusCode(object code, object reason, object url, object method, object body)
+    // params are concretely typed: the only call site (in fetch below) passes an int
+    // status code, the reason/url/method strings it already resolved from `as String` casts,
+    // and the raw response body string — every use in the body behaves identically
+    public void handleHttpStatusCode(int code, string? reason, string? url, string? method, string body)
     {
         var codeString = code.ToString();
         var codeInHttpExceptions = safeValue(this.httpExceptions, codeString);
@@ -529,16 +532,16 @@ public partial class BaseExchange
         return Convert.ToInt64(res);
     }
 
-    public async virtual Task<object> loadMarketsHelper(bool reload = false, dict parameters = null)
+    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, dict parameters = null)
     {
         if (!reload && this.markets != null)
         {
             if (this.markets_by_id == null)
             {
-                return this.setMarkets(this.markets);
+                return ((IDictionary<string, object>)((object)(this.setMarkets(this.markets))));
             }
             // return Task.FromResult(this.markets);
-            return this.markets;
+            return ((IDictionary<string, object>)((object)(this.markets)));
         }
 
         object currencies = null;
@@ -550,10 +553,10 @@ public partial class BaseExchange
         }
         var markets = await this.FetchMarkets();
         this.options.TryRemove("cachedCurrencies", out _);
-        return this.setMarkets(markets, currencies);
+        return ((IDictionary<string, object>)((object)(this.setMarkets(markets, currencies))));
     }
 
-    public virtual Task<object> loadMarkets(object reload2 = null, object parameters2 = null)
+    public virtual Task<IDictionary<string, object>> loadMarkets(object reload2 = null, object parameters2 = null)
     {
         reload2 ??= false;
         var reload = (bool)reload2;
@@ -582,9 +585,9 @@ public partial class BaseExchange
         return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<object> fetchCurrencies(object parameters = null)
+    public virtual async Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
-        return this.currencies;
+        return ((IDictionary<string, object>)((object)(this.currencies)));
     }
 
     public async Task<Currencies> FetchCurrencies(object parameters = null)
@@ -593,9 +596,9 @@ public partial class BaseExchange
         return new Currencies(res);
     }
 
-    public virtual async Task<object> fetchCurrenciesWs(object parameters = null)
+    public virtual async Task<IDictionary<string, object>> fetchCurrenciesWs(object parameters = null)
     {
-        return this.currencies;
+        return ((IDictionary<string, object>)((object)(this.currencies)));
     }
 
     public async Task<Currencies> FetchCurrenciesWs(object parameters = null)
@@ -785,10 +788,15 @@ public partial class BaseExchange
         await this.Close();
     }
 
-    public virtual object parseNumber(object value, object defaultValue = null)
+    // TS `parseNumber (value, d)`: returns the parsed number, or `d` when the value is
+    // missing/does not parse. The C# signature is `double?` — the box every successful
+    // path already produces (Convert.ToDouble) — so a TS-valid `Num` default is
+    // converted the same way SafeFloatN converts its default; returning the default
+    // unchanged would erase the declared type (and box an Int64 default).
+    public virtual double? parseNumber(object value, object defaultValue = null)
     {
         if (value == null || (value.GetType() == typeof(string) && value.ToString().Trim() == ""))
-            return defaultValue;
+            return ParseNumberDefault(defaultValue);
 
 
         try
@@ -797,13 +805,18 @@ public partial class BaseExchange
         }
         catch (Exception e)
         {
-            return defaultValue;
+            return ParseNumberDefault(defaultValue);
         }
         // if (this.number.GetType() == typeof(float).GetType())
         // {
         //     return double.Parse(value.ToString(), CultureInfo.InvariantCulture);
         // }
         // return value;
+    }
+
+    private static double? ParseNumberDefault(object defaultValue)
+    {
+        return (defaultValue == null) ? null : Convert.ToDouble(defaultValue, CultureInfo.InvariantCulture);
     }
 
     public object convertToBigInt(object value)
@@ -1140,16 +1153,6 @@ public partial class BaseExchange
         var encodedFromRaw = new TypedData().EncodeTypedDataRaw((typeRaw), address);
 
         return encodedFromRaw;
-    }
-
-    public ECDSA.ECSignature Stark()
-    {
-        // debug only remove later
-        var msgHash = "111111";
-        var bytes = Exchange.StringToByteArray(msgHash);
-        var bigInt = new BigInteger(bytes);
-        var res = ECDSA.Sign(bigInt, bigInt);
-        return res;
     }
 
     public object spawn(object action, object[] args = null)

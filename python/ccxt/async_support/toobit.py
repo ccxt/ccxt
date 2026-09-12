@@ -179,6 +179,16 @@ class toobit(Exchange, ImplicitAPI):
                         'api/v1/agent/user/export': {'cost': 1},
                         'api/v1/agent/export-list': {'cost': 1},
                         'api/v1/agent/export-url': {'cost': 1},
+                        # v2
+                        'api/v2/account/balance-flow': {'cost': 5},
+                        'api/v2/futures/order': {'cost': 1 * 1.67},
+                        'api/v2/futures/open-orders': {'cost': 1 * 1.67},
+                        'api/v2/futures/history-orders': {'cost': 5 * 1.67},
+                        'api/v2/futures/user-trades': {'cost': 5 * 1.67},
+                        'api/v2/futures/algo-order': {'cost': 1 * 1.67},
+                        'api/v2/futures/open-algo-orders': {'cost': 1 * 1.67},
+                        'api/v2/futures/history-algo-orders': {'cost': 5 * 1.67},
+                        'api/v2/futures/voucher/list': {'cost': 5},
                     },
                     'post': {
                         'api/v1/spot/orderTest': {'cost': 1 * 1.67},
@@ -1212,7 +1222,7 @@ class toobit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1684,7 +1694,7 @@ class toobit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1976,7 +1986,7 @@ class toobit(Exchange, ImplicitAPI):
             response = await self.privateDeleteApiV1SpotOrder(self.extend(request, params))
         else:
             response = await self.privateDeleteApiV1FuturesOrder(self.extend(request, params))
-        # response same `createOrder`
+        # response same as in `createOrder`
         status = self.parse_order_status(self.safe_string(response, 'status'))
         if status != 'open':
             raise OrderNotFound(self.id + ' order ' + id + ' can not be canceled, ' + self.json(response))
@@ -2613,7 +2623,7 @@ class toobit(Exchange, ImplicitAPI):
         """
         return await self.fetch_deposits_or_withdrawals_helper('withdrawals', code, since, limit, params)
 
-    async def fetch_deposits_or_withdrawals_helper(self, type: object, code: object, since: object, limit: object, params={}):
+    async def fetch_deposits_or_withdrawals_helper(self, type: object, code: object, since: object, limit: object, params={}) -> list[Transaction]:
         if self.markets is None:
             await self.load_markets()
         currency = None
@@ -3016,12 +3026,12 @@ class toobit(Exchange, ImplicitAPI):
             'info': position,
             'id': self.safe_string(position, 'id'),
             'symbol': market['symbol'],
-            'entryPrice': self.safe_string(position, 'avgPrice'),
-            'markPrice': self.safe_string(position, 'markPrice'),
-            'lastPrice': self.safe_string(position, 'lastPrice'),
-            'notional': self.safe_string(position, 'positionValue'),
+            'entryPrice': self.safe_number(position, 'avgPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'lastPrice': self.safe_number(position, 'lastPrice'),
+            'notional': self.safe_number(position, 'positionValue'),
             'collateral': None,
-            'unrealizedPnl': self.safe_string(position, 'unrealizedPnL'),
+            'unrealizedPnl': self.safe_number(position, 'unrealizedPnL'),
             'side': side,
             'contracts': self.parse_number(quantity),
             'contractSize': None,
@@ -3030,7 +3040,7 @@ class toobit(Exchange, ImplicitAPI):
             'hedged': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'initialMargin': self.safe_string(position, 'margin'),
+            'initialMargin': self.safe_number(position, 'margin'),
             'initialMarginPercentage': None,
             'leverage': leverage,
             'liquidationPrice': None,

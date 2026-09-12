@@ -227,6 +227,7 @@ class coinbase(Exchange, ImplicitAPI):
                             'payment-methods/{payment_method_id}': {'cost': 10.6},
                             'user': {'cost': 10.6},
                             'user/auth': {'cost': 10.6},
+                            'subscriptions/coinbase-one': {'cost': 10.6},
                         },
                         'post': {
                             'accounts': {'cost': 10.6},
@@ -286,6 +287,9 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/cfm/positions': {'cost': 1},
                             'brokerage/cfm/positions/{product_id}': {'cost': 1},
                             'brokerage/cfm/sweeps': {'cost': 1},
+                            'brokerage/cfm/intraday/current_margin_window': {'cost': 1},
+                            'brokerage/cfm/intraday/margin_setting': {'cost': 1},
+                            'brokerage/intx/balances/{portfolio_uuid}': {'cost': 1},
                             'brokerage/intx/portfolio/{portfolio_uuid}': {'cost': 1},
                             'brokerage/intx/positions/{portfolio_uuid}': {'cost': 1},
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}': {'cost': 1},
@@ -304,7 +308,9 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/convert/quote': {'cost': 1},
                             'brokerage/convert/trade/{trade_id}': {'cost': 1},
                             'brokerage/cfm/sweeps/schedule': {'cost': 1},
+                            'brokerage/cfm/intraday/margin_setting': {'cost': 1},
                             'brokerage/intx/allocate': {'cost': 1},
+                            'brokerage/intx/multi_asset_collateral': {'cost': 1},
                             # futures
                             'brokerage/orders/close_position': {'cost': 1},
                         },
@@ -854,7 +860,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_my_sells(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_sells(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
  @ignore
         fetch sells
@@ -876,7 +882,7 @@ class coinbase(Exchange, ImplicitAPI):
         sellsData = self.safe_list(sells, 'data', [])
         return self.parse_trades(sellsData, None, since, limit)
 
-    async def fetch_my_buys(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_buys(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
  @ignore
         fetch buys
@@ -898,7 +904,7 @@ class coinbase(Exchange, ImplicitAPI):
         buysData = self.safe_list(buys, 'data', [])
         return self.parse_trades(buysData, None, since, limit)
 
-    async def fetch_transactions_with_method(self, method: object, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transactions_with_method(self, method: object, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         request = None
         request, params = await self.prepare_account_request_with_currency_code(code, limit, params)
         if self.markets is None:
@@ -2924,7 +2930,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
         :param str [params.stop_direction]: 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
         :param str [params.end_time]: '2023-05-25T17:01:05.092Z' for 'GTD' orders
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param boolean [params.preview]: default to False, wether to use the test/preview endpoint or not
         :param float [params.leverage]: default to 1, the leverage to use for the order
         :param str [params.marginMode]: 'cross' or 'isolated'
@@ -3683,7 +3689,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch trades for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param boolean [params.usePrivate]: default False, when True will use the private endpoint to fetch the candles
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -4224,7 +4230,7 @@ class coinbase(Exchange, ImplicitAPI):
             'tag': self.safe_string(addressInfo, 'destination_tag'),
         }
 
-    async def deposit(self, code: str, amount: float, id: str, params={}):
+    async def deposit(self, code: str, amount: float, id: str, params={}) -> Transaction:
         """
         make a deposit
 
@@ -4295,7 +4301,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict_2(response, 'data', 'transfer', {})
         return self.parse_transaction(data)
 
-    async def fetch_deposit(self, id: str, code: Str = None, params={}):
+    async def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
 
@@ -4396,7 +4402,7 @@ class coinbase(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'payment_methods', [])
         return self.parse_deposit_method_ids(result)
 
-    async def fetch_deposit_method_id(self, id: str, params={}):
+    async def fetch_deposit_method_id(self, id: str, params={}) -> dict:
         """
         fetch the deposit id for a fiat currency associated with self account
 
@@ -4658,7 +4664,7 @@ class coinbase(Exchange, ImplicitAPI):
             portfolio = None
             portfolio, params = self.handle_option_and_params(params, 'fetchPositions', 'portfolio')
             if portfolio is None:
-                raise ArgumentsRequired(self.id + ' fetchPositions() requires a "portfolio" value in params(eg: dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
+                raise ArgumentsRequired(self.id + ' fetchPositions() requires a "portfolio" value in params(eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
             request = {
                 'portfolio_uuid': portfolio,
             }
@@ -4695,7 +4701,7 @@ class coinbase(Exchange, ImplicitAPI):
             portfolio = None
             portfolio, params = self.handle_option_and_params(params, 'fetchPositions', 'portfolio')
             if portfolio is None:
-                raise ArgumentsRequired(self.id + ' fetchPosition() requires a "portfolio" value in params(eg: dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
+                raise ArgumentsRequired(self.id + ' fetchPosition() requires a "portfolio" value in params(eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
             request = {
                 'symbol': market['id'],
                 'portfolio_uuid': portfolio,

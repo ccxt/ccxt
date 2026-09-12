@@ -17,7 +17,7 @@ public partial class testMainClass : BaseTest
         object items = await invokeExchangeDynamically(exchange, "fetchLiquidations", code);
         assert(((items is IList<object>) || (items.GetType().IsGenericType && items.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), code), " must return an array. "), exchange.json(items)));
         // const now = exchange.milliseconds ();
-        for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
         {
             testLiquidation(exchange, skippedProperties, method, getValue(items, i), code);
         }

@@ -225,6 +225,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'collateral-account/positions/history': {'cost': 1},
                             'collateral-account/leverage': {'cost': 1},
                             'collateral-account/positions/open': {'cost': 1},
+                            'collateral-account/positions/closed-pnl': {'cost': 1},
                             'collateral-account/summary': {'cost': 1},
                             'collateral-account/funding-history': {'cost': 1},
                             'main-account/address': {'cost': 1},
@@ -238,6 +239,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'main-account/history': {'cost': 1},
                             'main-account/withdraw': {'cost': 1},
                             'main-account/withdraw-pay': {'cost': 1},
+                            'main-account/express-withdraw/token': {'cost': 1},
                             'main-account/transfer': {'cost': 1},
                             'main-account/smart/plans': {'cost': 1},
                             'main-account/smart/investment': {'cost': 1},
@@ -245,10 +247,19 @@ class whitebit(Exchange, ImplicitAPI):
                             'main-account/smart/investments': {'cost': 1},
                             'main-account/fee': {'cost': 1},
                             'main-account/smart/interest-payment-history': {'cost': 1},
+                            'main-account/smart-flex/plans': {'cost': 1},
+                            'main-account/smart-flex/investments': {'cost': 1},
+                            'main-account/smart-flex/investments/history': {'cost': 1},
+                            'main-account/smart-flex/investments/payment-history': {'cost': 1},
+                            'main-account/smart-flex/investments/invest': {'cost': 1},
+                            'main-account/smart-flex/investments/withdraw': {'cost': 1},
+                            'main-account/smart-flex/investments/close': {'cost': 1},
+                            'main-account/smart-flex/investments/auto-invest': {'cost': 1},
                             'trade-account/balance': {'cost': 1},
                             # answers with a list when a market is set and a dict of lists otherwise — no shape assertion
                             'trade-account/executed-history': {'cost': 1},
                             'trade-account/order/history': {'cost': 1},
+                            'trade-account/order/history/query': {'cost': 1},
                             'trade-account/order': {'cost': 1},
                             'order/collateral/limit': {'cost': 1},
                             'order/collateral/market': {'cost': 1},
@@ -262,6 +273,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'order/stop_market': {'cost': 1},
                             'order/cancel': {'cost': 1},
                             'order/cancel/all': {'cost': 1},
+                            'order/cancel/bulk': {'cost': 1},
                             'order/kill-switch': {'cost': 1},
                             'order/kill-switch/status': {'cost': 1},
                             'order/bulk': {'cost': 1},
@@ -294,8 +306,22 @@ class whitebit(Exchange, ImplicitAPI):
                             'sub-account/api-key/ip-address/create': {'cost': 1},
                             'sub-account/api-key/ip-address/delete': {'cost': 1},
                             'mining/rewards': {'cost': 1},
+                            'mining/hashrate': {'cost': 1},
+                            'mining/payout-destination': {'cost': 1},
+                            'mining/payout-destination/edit': {'cost': 1},
+                            'mining/miners/info': {'cost': 1},
+                            'mining/workers/names': {'cost': 1},
+                            'mining/workers/hashrate': {'cost': 1},
+                            'mining/watcher-links/create': {'cost': 1},
+                            'mining/watcher-links/list': {'cost': 1},
+                            'mining/accounts/create': {'cost': 1},
+                            'mining/accounts': {'cost': 1},
                             'market/fee': {'cost': 1},
+                            'market/fee/single': {'cost': 1},
                             'conditional-orders': {'cost': 1},
+                            'travel-rule/vasps': {'cost': 1},
+                            'travel-rule/deposit/verification': {'cost': 1},
+                            'jwt': {'cost': 1},
                         },
                     },
                 },
@@ -1781,7 +1807,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -3025,7 +3051,7 @@ class whitebit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposit(self, id: str, code: Str = None, params={}):
+    def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch information on a deposit
 
@@ -4036,7 +4062,7 @@ class whitebit(Exchange, ImplicitAPI):
                     errorsLength = len(errorKeys)
                     if errorsLength > 0:
                         errorKey = errorKeys[0]
-                        errorMessageArray = self.safe_value(errorObject, errorKey, [])
+                        errorMessageArray = self.safe_list(errorObject, errorKey, [])
                         errorMessageLength = len(errorMessageArray)
                         errorInfo = errorMessageArray[0] if (errorMessageLength > 0) else body
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorInfo, feedback)

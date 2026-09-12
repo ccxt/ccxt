@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official blockchaincom API documentation:** [api.blockchain.com](https://api.blockchain.com/v3)
 
-> 24 implicit endpoints across 2 access groups.
+> 25 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -77,6 +77,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `privateGetFees` | GET | `fees` | 1 |
+| `privateGetInternalOrders` | GET | `internal/orders` | 1 |
 | `privateGetOrders` | GET | `orders` | 1 |
 | `privateGetOrdersOrderId` | GET | `orders/{orderId}` | 1 |
 | `privateGetTrades` | GET | `trades` | 1 |

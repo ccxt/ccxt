@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bitteam API documentation:** [bit.team](https://bit.team/trade/api/documentation)
 
-> 25 implicit endpoints across 3 access groups.
+> 26 implicit endpoints across 3 access groups.
 
 ## history
 
@@ -79,6 +79,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetTradeApiPairs` | GET | `trade/api/pairs` | 1 |
 | `publicGetTradeApiPairsPrecisions` | GET | `trade/api/pairs/precisions` | 1 |
 | `publicGetTradeApiRates` | GET | `trade/api/rates` | 1 |
+| `publicGetTradeApiStats` | GET | `trade/api/stats` | 1 |
 | `publicGetTradeApiTradeId` | GET | `trade/api/trade/{id}` | 1 |
 | `publicGetTradeApiTrades` | GET | `trade/api/trades` | 1 |
 | `publicGetTradeApiCcxtPairs` | GET | `trade/api/ccxt/pairs` | 1 |

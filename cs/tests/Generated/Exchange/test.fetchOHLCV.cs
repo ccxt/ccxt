@@ -18,13 +18,13 @@ public partial class testMainClass : BaseTest
         {
             chosenTimeframeKey = getValue(timeframeKeys, 0);
         }
-        object limit = 10;
-        object duration = exchange.parseTimeframe(chosenTimeframeKey);
-        object since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
+        int limit = 10;
+        int duration = exchange.parseTimeframe(chosenTimeframeKey);
+        Int64 since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
         object ohlcvs = await invokeExchangeDynamically(exchange, "fetchOHLCV", symbol, chosenTimeframeKey, since, limit);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, ohlcvs, symbol);
-        object now = exchange.milliseconds();
-        for (object i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
+        Int64 now = exchange.milliseconds();
+        for (int i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
         {
             testOHLCV(exchange, skippedProperties, method, getValue(ohlcvs, i), symbol, now);
         }

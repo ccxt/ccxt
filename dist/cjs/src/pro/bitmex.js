@@ -443,7 +443,7 @@ class bitmex extends bitmex$1["default"] {
         //        ]
         //    }
         //
-        const rawLiquidations = this.safeValue(message, 'data', []);
+        const rawLiquidations = this.safeList(message, 'data', []);
         const newLiquidations = [];
         if (this.liquidations === undefined) {
             const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
@@ -916,7 +916,7 @@ class bitmex extends bitmex$1["default"] {
             this.positions = new Cache.ArrayCacheBySymbolBySide();
         }
         const cache = this.positions;
-        const rawPositions = this.safeValue(message, 'data', []);
+        const rawPositions = this.safeList(message, 'data', []);
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -1143,7 +1143,7 @@ class bitmex extends bitmex$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const messageHash = 'order';
         // initial subscription response with multiple orders
         const dataLength = data.length;
@@ -1497,7 +1497,7 @@ class bitmex extends bitmex$1["default"] {
         const interval = table.replace('tradeBin', '');
         const timeframe = this.findTimeframe(interval);
         const duration = this.parseTimeframe(timeframe);
-        const candles = this.safeValue(message, 'data', []);
+        const candles = this.safeList(message, 'data', []);
         const results = {};
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
@@ -1592,7 +1592,7 @@ class bitmex extends bitmex$1["default"] {
         if (table === undefined) {
             return; // protecting from weird updates
         }
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         // if it's an initial snapshot
         if (action === 'partial') {
             const filter = this.safeDict(message, 'filter', {});
@@ -1710,7 +1710,7 @@ class bitmex extends bitmex$1["default"] {
         const error = this.safeString(message, 'error');
         if (error !== undefined) {
             const request = this.safeValue(message, 'request', {});
-            const args = this.safeValue(request, 'args', []);
+            const args = this.safeList(request, 'args', []);
             const numArgs = args.length;
             if (numArgs > 0) {
                 const messageHash = args[0];

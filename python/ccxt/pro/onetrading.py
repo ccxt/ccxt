@@ -213,7 +213,7 @@ class onetrading(ccxt.async_support.onetrading):
         #         "time": "2022-06-23T16:41:00.004162Z"
         #     }
         #
-        tickers = self.safe_value(message, 'ticker_updates', [])
+        tickers = self.safe_list(message, 'ticker_updates', [])
         datetime = self.safe_string(message, 'time')
         for i in range(0, len(tickers)):
             ticker = tickers[i]
@@ -696,7 +696,7 @@ class onetrading(ccxt.async_support.onetrading):
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
-        rawOrders = self.safe_value(message, 'orders', [])
+        rawOrders = self.safe_list(message, 'orders', [])
         rawOrdersLength = len(rawOrders)
         if rawOrdersLength == 0:
             return
@@ -706,7 +706,7 @@ class onetrading(ccxt.async_support.onetrading):
             symbol = self.safe_string(order, 'symbol', '')
             orders.append(order)
             client.resolve(self.orders, 'orders:' + symbol)
-            rawTrades = self.safe_value(rawOrders[i], 'trades', [])
+            rawTrades = self.safe_list(rawOrders[i], 'trades', [])
             for ii in range(0, len(rawTrades)):
                 trade = self.parse_trade(rawTrades[ii])
                 symbol = self.safe_string(trade, 'symbol', symbol)
@@ -951,7 +951,7 @@ class onetrading(ccxt.async_support.onetrading):
             orderId = self.safe_string(update, 'order_id')
             datetime = self.safe_string_2(update, 'time', 'timestamp')
             previousOrderArray = self.filter_by_array(self.orders, 'id', orderId, False)
-            previousOrder = self.safe_value(previousOrderArray, 0, {})
+            previousOrder = self.safe_dict(previousOrderArray, 0, {})
             symbol = previousOrder['symbol']
             filled = self.safe_string(update, 'filled_amount')
             status = self.parse_ws_order_status(updateType)
@@ -1024,7 +1024,7 @@ class onetrading(ccxt.async_support.onetrading):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()

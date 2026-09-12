@@ -1912,6 +1912,61 @@ public class HtxApi extends Exchange
     }
 
     /**
+     * Calls the spotPrivateGetV2InviteeRebateReferrals endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetV2InviteeRebateReferrals (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivateGetV2InviteeRebateReferrals", optionalArgs);
+    }
+
+    /**
+     * Calls the spotPrivateGetV2InviteeRebateDetail endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetV2InviteeRebateDetail (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivateGetV2InviteeRebateDetail", optionalArgs);
+    }
+
+    /**
+     * Calls the spotPrivateGetV2InviteeRebateHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetV2InviteeRebateHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivateGetV2InviteeRebateHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the spotPrivateGetV2InviteeRebateAllRebateDetail endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetV2InviteeRebateAllRebateDetail (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivateGetV2InviteeRebateAllRebateDetail", optionalArgs);
+    }
+
+    /**
+     * Calls the spotPrivateGetV2InviteeRebateBatcherRebateDetail endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetV2InviteeRebateBatcherRebateDetail (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivateGetV2InviteeRebateBatcherRebateDetail", optionalArgs);
+    }
+
+    /**
      * Calls the spotPrivatePostV1AccountTransfer endpoint.
      *
      * @param optionalArgs the request parameters
@@ -2349,6 +2404,17 @@ public class HtxApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostV2EtpBatchCancel (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostV2EtpBatchCancel", optionalArgs);
+    }
+
+    /**
+     * Calls the spotPrivatePostV5AccountUniversalTransfer endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostV5AccountUniversalTransfer (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivatePostV5AccountUniversalTransfer", optionalArgs);
     }
 
     /**
@@ -3702,6 +3768,72 @@ public class HtxApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetV5AlgoOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetV5AlgoOrderHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetApiV6CopyTradingTraderInstruments endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetApiV6CopyTradingTraderInstruments (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetApiV6CopyTradingTraderInstruments", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetApiV6CopyTradingTraderStatistics endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetApiV6CopyTradingTraderStatistics (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetApiV6CopyTradingTraderStatistics", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetApiV6CopyTradingTraderFollowers endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetApiV6CopyTradingTraderFollowers (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetApiV6CopyTradingTraderFollowers", optionalArgs);
     }
 
     /**
@@ -5077,6 +5209,61 @@ public class HtxApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostV5AlgoCancelOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostV5AlgoCancelOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivatePostApiV6CopyTradingTraderFollower endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostApiV6CopyTradingTraderFollower (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivatePostApiV6CopyTradingTraderFollower", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivatePostApiV6CopyTradingTraderTransfer endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostApiV6CopyTradingTraderTransfer (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivatePostApiV6CopyTradingTraderTransfer", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivatePostApiV6CopyTradingTraderFollowerSettings endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostApiV6CopyTradingTraderFollowerSettings (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivatePostApiV6CopyTradingTraderFollowerSettings", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivatePostApiV6CopyTradingTraderConfig endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostApiV6CopyTradingTraderConfig (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivatePostApiV6CopyTradingTraderConfig", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivatePostApiV6CopyTradingTraderApikey endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostApiV6CopyTradingTraderApikey (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivatePostApiV6CopyTradingTraderApikey", optionalArgs);
     }
 
 }

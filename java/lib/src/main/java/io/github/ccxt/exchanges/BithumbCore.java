@@ -231,6 +231,12 @@ public class BithumbCore extends BithumbApi
                         put( "v1/orders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "v2/orders/pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/orders/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "v1/twap", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -325,6 +331,9 @@ public class BithumbCore extends BithumbApi
                         }} );
                         put( "v2/orders/cancel", new java.util.HashMap<String, Object>() {{
                             put( "cost", 6 );
+                        }} );
+                        put( "v2/orders/search", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
                         }} );
                         put( "v1/twap", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
@@ -537,19 +546,19 @@ public class BithumbCore extends BithumbApi
 
     public Object amountToPrecision(Object symbol, Object amount)
     {
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         return this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
     public Object getGen2MarketId(Object market)
     {
-        Object marketId = this.safeString(market, "id");
+        String marketId = this.safeString(market, "id");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketId, "-"), 0)))))
         {
             return marketId;
         }
-        Object quoteId = this.safeString2(market, "quoteId", "quote");
-        Object baseId = this.safeString2(market, "baseId", "base");
+        String quoteId = this.safeString2(market, "quoteId", "quote");
+        String baseId = this.safeString2(market, "baseId", "base");
         return Helpers.add(Helpers.add(quoteId, "-"), baseId);
     }
 
@@ -569,16 +578,16 @@ public class BithumbCore extends BithumbApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 Helpers.addElementToObject(request, "isDetails", true);
-                Object response = (this.publicGetV1MarketAll(this.extend(request, parameters))).join();
+                java.util.List<Object> response = (this.publicGetV1MarketAll(this.extend(request, parameters))).join();
                 //
                 //     [
                 //         {
@@ -592,7 +601,7 @@ public class BithumbCore extends BithumbApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
                     Object entry = Helpers.GetValue(response, i);
-                    Object marketId = this.safeString(entry, "market");
+                    String marketId = this.safeString(entry, "market");
                     Object baseId = null;
                     Object quoteId = null;
                     Object base = null;
@@ -669,7 +678,7 @@ public class BithumbCore extends BithumbApi
             {
                 Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new java.util.HashMap<String, Object>() {{}});
                 Object quotes = Helpers.objectKeys(quoteCurrencies);
-                Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
                 {
                     Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(quotes, i));
@@ -692,8 +701,8 @@ public class BithumbCore extends BithumbApi
                             continue;
                         }
                         Object market = Helpers.GetValue(data, currencyId);
-                        Object base = this.safeCurrencyCode(currencyId);
-                        Object active = true;
+                        String base = (String) this.safeCurrencyCode(currencyId);
+                        Boolean active = true;
                         if (Helpers.isTrue(Helpers.isArray(market)))
                         {
                             Object numElements = Helpers.getArrayLength(market);
@@ -707,7 +716,7 @@ public class BithumbCore extends BithumbApi
                         final Object finalQuote = quote;
                         final Object finalQuoteId = quoteId;
                         final Object finalActive = active;
-                        Object entry = this.deepExtend(new java.util.HashMap<String, Object>() {{
+                        java.util.Map<String, Object> entry = this.deepExtend(new java.util.HashMap<String, Object>() {{
                             put( "id", finalCurrencyId );
                             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), finalQuote) );
                             put( "base", finalBase );
@@ -789,7 +798,7 @@ public class BithumbCore extends BithumbApi
         //         },
         //     ]
         //
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object balances = this.safeDict(response, "data");
@@ -800,8 +809,8 @@ public class BithumbCore extends BithumbApi
             {
                 Object code = Helpers.GetValue(codes, i);
                 Object account = this.account();
-                Object currency = this.currency(code);
-                Object lowerCurrencyId = this.safeStringLower(currency, "id");
+                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+                String lowerCurrencyId = (String)this.safeStringLower(currency, "id");
                 Helpers.addElementToObject(account, "total", this.safeString(balances, Helpers.add("total_", lowerCurrencyId)));
                 Helpers.addElementToObject(account, "used", this.safeString(balances, Helpers.add("in_use_", lowerCurrencyId)));
                 Helpers.addElementToObject(account, "free", this.safeString(balances, Helpers.add("available_", lowerCurrencyId)));
@@ -813,8 +822,8 @@ public class BithumbCore extends BithumbApi
             {
                 Object entry = Helpers.GetValue(response, i);
                 Object account = this.account();
-                Object currencyId = this.safeString(entry, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
+                String currencyId = this.safeString(entry, "currency");
+                String code = (String) this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {
                     continue;
@@ -848,7 +857,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object response = null;
@@ -857,7 +866,7 @@ public class BithumbCore extends BithumbApi
                 response = (this.privateGetV1Accounts(parameters)).join();
             } else
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "currency", "ALL" );
                 }};
                 response = (this.privatePostInfoBalance(this.extend(request, parameters))).join();
@@ -891,11 +900,11 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             Object data = null;
             Object timestamp = null;
@@ -924,8 +933,8 @@ public class BithumbCore extends BithumbApi
                 Object result = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
                 timestamp = this.safeInteger(result, "timestamp");
                 Object orderBookUnits = this.safeList(result, "orderbook_units", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                Object asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderBookUnits)); i++)
                 {
                     Object entry = Helpers.GetValue(orderBookUnits, i);
@@ -1069,17 +1078,17 @@ public class BithumbCore extends BithumbApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger2(ticker, "date", "trade_timestamp");
-        Object marketId = this.safeString(ticker, "market");
-        Object symbol = this.safeSymbol(marketId, market);
-        Object close = this.safeString2(ticker, "closing_price", "trade_price");
+        Long timestamp = (Long) this.safeInteger2(ticker, "date", "trade_timestamp");
+        String marketId = this.safeString(ticker, "market");
+        String symbol = (String) this.safeSymbol(marketId, market);
+        String close = this.safeString2(ticker, "closing_price", "trade_price");
         Object change = this.safeString2(ticker, "signed_change_price", "change_price");
-        Object percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
-        Object open = this.safeString(ticker, "opening_price");
+        String percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
+        String open = this.safeString(ticker, "opening_price");
         Object nonZeroOpen = this.omitZero(open);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((!Helpers.isEqual(nonZeroOpen, null)))) && Helpers.isTrue((!Helpers.isEqual(close, null)))))
         {
-            Object computedChange = Precise.stringSub(close, open);
+            String computedChange = Precise.stringSub(close, open);
             // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(change, null))) && Helpers.isTrue(Precise.stringEq(change, "0"))) && !Helpers.isTrue(Precise.stringEq(computedChange, "0"))))
             {
@@ -1150,11 +1159,11 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            Object request = new java.util.HashMap<String, Object>() {{}};
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 // Bithumb v2 ticker payloads are inconsistent for all-market calls,
@@ -1164,7 +1173,7 @@ public class BithumbCore extends BithumbApi
                 Object symbolsForMarketIdsLength = Helpers.getArrayLength(symbolsForMarketIds);
                 for (var i = 0; Helpers.isLessThan(i, symbolsForMarketIdsLength); i++)
                 {
-                    Object market = this.market(Helpers.GetValue(symbolsForMarketIds, i));
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbolsForMarketIds, i));
                     ((java.util.List<Object>)marketIds).add(this.getGen2MarketId(market));
                 }
                 Object marketIdsLength = Helpers.getArrayLength(marketIds);
@@ -1172,8 +1181,8 @@ public class BithumbCore extends BithumbApi
                 {
                     return result;
                 }
-                Object marketIdsChunks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> marketIdsChunks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
                     Helpers.addElementToObject(request, "markets", String.join((String)",", (java.util.List<String>)marketIds));
@@ -1191,7 +1200,7 @@ public class BithumbCore extends BithumbApi
                     {
                         ((java.util.List<Object>)marketIdsChunk).add(Helpers.GetValue(marketIds, i));
                         Object marketIdsChunkLength = Helpers.getArrayLength(marketIdsChunk);
-                        Object isLastMarketId = (Helpers.isEqual(i, (Helpers.subtract(marketIdsLength, 1))));
+                        Boolean isLastMarketId = (Helpers.isEqual(i, (Helpers.subtract(marketIdsLength, 1))));
                         if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest))) || Helpers.isTrue(isLastMarketId)))
                         {
                             ((java.util.List<Object>)marketIdsChunks).add(marketIdsChunk);
@@ -1244,7 +1253,7 @@ public class BithumbCore extends BithumbApi
                     }
                     Object expectedMarketId = null;
                     Object marketIdsChunk = this.safeList(marketIdsChunks, i, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    Object firstMarketId = this.safeString(marketIdsChunk, 0);
+                    String firstMarketId = this.safeString(marketIdsChunk, 0);
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(firstMarketId, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(marketIdsChunk, 1), null)))))
                     {
                         expectedMarketId = firstMarketId;
@@ -1276,13 +1285,13 @@ public class BithumbCore extends BithumbApi
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(tickers)); j++)
                     {
                         Object entry = Helpers.GetValue(tickers, j);
-                        Object marketId = this.safeString(entry, "market", expectedMarketId);
+                        String marketId = this.safeString(entry, "market", expectedMarketId);
                         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
                         {
                             continue;
                         }
-                        Object market = this.safeMarket(marketId);
-                        Object symbol = this.safeSymbol(marketId, market);
+                        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+                        String symbol = (String) this.safeSymbol(marketId, market);
                         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                         {
                             continue;
@@ -1296,25 +1305,25 @@ public class BithumbCore extends BithumbApi
                 Object quotes = Helpers.objectKeys(quoteCurrencies);
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
-                    Object requiredQuotes = new java.util.HashMap<String, Object>() {{}};
+                    java.util.Map<String, Object> requiredQuotes = new java.util.HashMap<String, Object>() {{}};
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                     {
                         Object symbol = Helpers.GetValue(symbols, i);
-                        Object market = this.market(symbol);
-                        Object quoteId = this.safeString(market, "quoteId");
+                        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                        String quoteId = this.safeString(market, "quoteId");
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(quoteId, null))) && Helpers.isTrue((Helpers.inOp(quoteCurrencies, quoteId)))))
                         {
                             Helpers.addElementToObject(requiredQuotes, quoteId, true);
                         }
                     }
                     Object requiredQuoteIds = Helpers.objectKeys(requiredQuotes);
-                    Object populatedQuotes = this.safeString(requiredQuoteIds, 0);
+                    String populatedQuotes = this.safeString(requiredQuoteIds, 0);
                     if (Helpers.isTrue(!Helpers.isEqual(populatedQuotes, null)))
                     {
                         quotes = requiredQuoteIds;
                     }
                 }
-                Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
                 {
                     Helpers.addElementToObject(request, "quoteId", Helpers.GetValue(quotes, i));
@@ -1326,16 +1335,16 @@ public class BithumbCore extends BithumbApi
                     Object quote = Helpers.GetValue(quotes, i);
                     Object response = Helpers.GetValue(responses, i);
                     Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                    Object timestamp = this.safeInteger(data, "date");
+                    Long timestamp = this.safeInteger(data, "date");
                     Object tickers = this.omit(data, "date");
                     Object currencyIds = Helpers.objectKeys(tickers);
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
                     {
                         Object currencyId = Helpers.GetValue(currencyIds, j);
                         Object ticker = Helpers.GetValue(data, currencyId);
-                        Object base = this.safeCurrencyCode(currencyId);
+                        String base = (String) this.safeCurrencyCode(currencyId);
                         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                        Object market = this.safeMarket(symbol);
+                        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
                         Helpers.addElementToObject(ticker, "date", timestamp);
                         Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
                     }
@@ -1368,11 +1377,11 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchTicker", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTicker", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             Object data = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
@@ -1516,11 +1525,11 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
@@ -1541,7 +1550,7 @@ public class BithumbCore extends BithumbApi
                     response = (this.publicGetV1CandlesMonths(this.extend(request, parameters))).join();
                 } else
                 {
-                    Object timeframeInteger = this.safeInteger(this.timeframes, timeframe);
+                    Long timeframeInteger = this.safeInteger(this.timeframes, timeframe);
                     if (Helpers.isTrue(Helpers.isEqual(timeframeInteger, null)))
                     {
                         throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe)) ;
@@ -1569,7 +1578,7 @@ public class BithumbCore extends BithumbApi
                 data = response;
             } else
             {
-                Object legacyTimeframes = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> legacyTimeframes = new java.util.HashMap<String, Object>() {{
                     put( "1m", "1m" );
                     put( "3m", "3m" );
                     put( "5m", "5m" );
@@ -1677,8 +1686,8 @@ public class BithumbCore extends BithumbApi
         // a workaround for their bug in date format, hours are not 0-padded
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(trade, "timestamp");
-        Object isGenerationTwo = (!Helpers.isEqual(timestamp, null));
-        Object transactionDatetime = this.safeString(trade, "transaction_date");
+        Boolean isGenerationTwo = (!Helpers.isEqual(timestamp, null));
+        String transactionDatetime = this.safeString(trade, "transaction_date");
         if (Helpers.isTrue(!Helpers.isEqual(transactionDatetime, null)))
         {
             Object parts = Helpers.split(transactionDatetime, " ");
@@ -1686,7 +1695,7 @@ public class BithumbCore extends BithumbApi
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
                 Object transactionDate = Helpers.GetValue(parts, 0);
-                Object transactionTime = Helpers.GetValue(parts, 1);
+                String transactionTime = (String) Helpers.GetValue(parts, 1);
                 if (Helpers.isTrue(Helpers.isLessThan(((String)transactionTime).length(), 8)))
                 {
                     transactionTime = Helpers.add("0", transactionTime);
@@ -1702,7 +1711,7 @@ public class BithumbCore extends BithumbApi
             timestamp = Helpers.subtract(timestamp, Helpers.multiply(9, 3600000)); // they report UTC + 9 hours, server in Korean timezone
         }
         Object type = null;
-        Object side = this.safeStringLower2(trade, "ask_bid", "type");
+        String side = (String)this.safeStringLower2(trade, "ask_bid", "type");
         if (Helpers.isTrue(Helpers.isEqual(side, "bid")))
         {
             side = "buy";
@@ -1713,21 +1722,21 @@ public class BithumbCore extends BithumbApi
         {
             side = null;
         }
-        Object id = this.safeString2(trade, "cont_no", "sequential_id");
-        Object marketId = this.safeString(trade, "market");
+        String id = this.safeString2(trade, "cont_no", "sequential_id");
+        String marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market);
-        Object priceString = this.safeString2(trade, "price", "trade_price");
+        String priceString = this.safeString2(trade, "price", "trade_price");
         Object amountString = this.safeString(trade, "trade_volume");
         if (Helpers.isTrue(Helpers.isEqual(amountString, null)))
         {
             amountString = this.fixCommaNumber(this.safeString2(trade, "units_traded", "units"));
         }
-        Object costString = this.safeString(trade, "total");
+        String costString = this.safeString(trade, "total");
         Object fee = null;
-        Object feeCostString = this.safeString(trade, "fee");
+        String feeCostString = this.safeString(trade, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
-            Object feeCurrencyId = this.safeString(trade, "fee_currency");
+            String feeCurrencyId = this.safeString(trade, "fee_currency");
             Object feeCurrencyCode = this.commonCurrencyCode(((String)feeCurrencyId));
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
@@ -1783,11 +1792,11 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "count", limit);
@@ -1865,7 +1874,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "createOrders", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrders", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -1877,23 +1886,23 @@ public class BithumbCore extends BithumbApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires a non-empty orders array")) ;
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object orderSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
-                Object symbol = this.safeString(rawOrder, "symbol");
+                String symbol = this.safeString(rawOrder, "symbol");
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires each order to have a symbol")) ;
                 }
                 ((java.util.List<Object>)orderSymbols).add(symbol);
-                Object type = this.safeString(rawOrder, "type");
+                String type = this.safeString(rawOrder, "type");
                 if (Helpers.isTrue(Helpers.isEqual(type, null)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires each order to have a type")) ;
                 }
-                Object side = this.safeString(rawOrder, "side");
+                String side = this.safeString(rawOrder, "side");
                 if (Helpers.isTrue(Helpers.isEqual(side, null)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires each order to have a side")) ;
@@ -1905,11 +1914,11 @@ public class BithumbCore extends BithumbApi
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Object market = this.market(Helpers.GetValue(orderSymbols, 0));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "batch_orders", ordersRequests );
             }};
-            Object response = (this.privatePostV2OrdersBatch(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV2OrdersBatch(this.extend(request, parameters))).join();
             //
             //     {
             //         "batch_orders_response": [
@@ -1947,11 +1956,11 @@ public class BithumbCore extends BithumbApi
         */
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object market = this.market(symbol);
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "market", BithumbCore.this.getGen2MarketId(market) );
         }};
-        Object sideRequest = null;
+        String sideRequest = null;
         if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
         {
             sideRequest = "bid";
@@ -1963,7 +1972,7 @@ public class BithumbCore extends BithumbApi
             throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " createOrder() invalid side "), side)) ;
         }
         Helpers.addElementToObject(request, "side", sideRequest);
-        Object timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force");
+        String timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
         {
             timeInForce = "GTC";
@@ -1971,9 +1980,9 @@ public class BithumbCore extends BithumbApi
         {
             parameters = this.omit(parameters, "timeInForce");
         }
-        Object postOnly = false;
-        var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
-        postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+        Boolean postOnly = false;
+        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
+        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue(postOnly) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO")))))
         {
@@ -1993,15 +2002,15 @@ public class BithumbCore extends BithumbApi
             Helpers.addElementToObject(request, "order_type", "limit");
         } else
         {
-            Object typeRequest = null;
+            String typeRequest = null;
             if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
             {
                 typeRequest = "price";
                 // for market buy it requires the amount of quote currency to spend
-                Object cost = this.safeString(parameters, "cost");
+                String cost = this.safeString(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 Object createMarketBuyOrderRequiresPrice = true;
-                var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
@@ -2027,7 +2036,7 @@ public class BithumbCore extends BithumbApi
             }
             Helpers.addElementToObject(request, "order_type", typeRequest);
         }
-        Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+        String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
             Helpers.addElementToObject(request, "client_order_id", clientOrderId);
@@ -2072,11 +2081,11 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
@@ -2090,7 +2099,7 @@ public class BithumbCore extends BithumbApi
                 if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
                 {
                     Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
-                    Object typeRequest = null;
+                    String typeRequest = null;
                     if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                     {
                         typeRequest = "bid";
@@ -2108,7 +2117,7 @@ public class BithumbCore extends BithumbApi
                     response = (this.privatePostTradeMarketSell(this.extend(request, parameters))).join();
                 }
             }
-            Object id = this.safeString(response, "order_id");
+            String id = this.safeString(response, "order_id");
             if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
                 throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() did not return an order id")) ;
@@ -2150,7 +2159,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -2191,17 +2200,17 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "createTwapOrder", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createTwapOrder", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " createTwapOrder() is only supported for the generation 2 API")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object durationString = this.numberToString(duration);
-            Object durationSeconds = Precise.stringDiv(durationString, "1000");
-            Object request = new java.util.HashMap<String, Object>() {{
+            String durationSeconds = Precise.stringDiv(durationString, "1000");
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", BithumbCore.this.getGen2MarketId(market) );
                 put( "duration", durationSeconds );
             }};
@@ -2209,7 +2218,7 @@ public class BithumbCore extends BithumbApi
             {
                 Helpers.addElementToObject(request, "volume", this.amountToPrecision(symbol, amount)); // required for sale
             }
-            Object sideRequest = null;
+            String sideRequest = null;
             if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
             {
                 sideRequest = "bid";
@@ -2218,7 +2227,7 @@ public class BithumbCore extends BithumbApi
                 sideRequest = "ask";
             }
             Helpers.addElementToObject(request, "side", sideRequest);
-            Object response = (this.privatePostV1Twap(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1Twap(this.extend(request, parameters))).join();
             //
             //     {
             //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
@@ -2257,7 +2266,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrder", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object market = null;
@@ -2267,7 +2276,7 @@ public class BithumbCore extends BithumbApi
             }
             Object twap = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             Object data = null;
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
@@ -2308,7 +2317,7 @@ public class BithumbCore extends BithumbApi
                     data = this.safeDict(orders, 0, new java.util.HashMap<String, Object>() {{}});
                 } else
                 {
-                    Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+                    String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
                     if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
                     {
                         Helpers.addElementToObject(request, "client_order_id", clientOrderId);
@@ -2349,8 +2358,8 @@ public class BithumbCore extends BithumbApi
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
                 }
                 Object marketDefined = market;
-                Object base = this.safeString(marketDefined, "base");
-                Object quote = this.safeString(marketDefined, "quote");
+                String base = this.safeString(marketDefined, "base");
+                String quote = this.safeString(marketDefined, "quote");
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a market with defined base and quote")) ;
@@ -2388,18 +2397,18 @@ public class BithumbCore extends BithumbApi
                 //
                 data = this.safeDict(response, "data");
             }
-            Object orderData = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> orderData = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object parsedOrder = this.extend(data, orderData);
+            java.util.Map<String, Object> parsedOrder = this.extend(data, orderData);
             return this.parseOrder(parsedOrder, market);
         });
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "Pending", "open" );
             put( "Completed", "closed" );
             put( "Cancel", "canceled" );
@@ -2531,14 +2540,14 @@ public class BithumbCore extends BithumbApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object datetime = this.safeString(order, "created_at");
+        String datetime = this.safeString(order, "created_at");
         Object timestamp = null;
         if (Helpers.isTrue(!Helpers.isEqual(datetime, null)))
         {
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))
             {
                 Object normalized = Helpers.replace((String)datetime, (String)"+09:00", (String)"Z");
-                Object normalizedTimestamp = this.parse8601(normalized);
+                Long normalizedTimestamp = this.parse8601(normalized);
                 if (Helpers.isTrue(!Helpers.isEqual(normalizedTimestamp, null)))
                 {
                     timestamp = Helpers.subtract(normalizedTimestamp, Helpers.multiply(9, 3600000));
@@ -2555,8 +2564,8 @@ public class BithumbCore extends BithumbApi
             timestamp = this.safeIntegerProduct(order, "order_date", 0.001);
             datetime = this.iso8601(timestamp);
         }
-        Object sideProperty = this.safeString2(order, "type", "side");
-        Object side = null;
+        String sideProperty = this.safeString2(order, "type", "side");
+        String side = null;
         if (Helpers.isTrue(Helpers.isEqual(sideProperty, "bid")))
         {
             side = "buy";
@@ -2564,10 +2573,10 @@ public class BithumbCore extends BithumbApi
         {
             side = "sell";
         }
-        Object status = this.parseOrderStatus(this.safeString2(order, "order_status", "state"));
-        Object price = this.safeString2(order, "order_price", "price");
-        Object type = this.safeString2(order, "order_type", "ord_type");
-        Object progressCount = this.safeString(order, "progress_count");
+        String status = this.parseOrderStatus(this.safeString2(order, "order_status", "state"));
+        String price = this.safeString2(order, "order_price", "price");
+        String type = this.safeString2(order, "order_type", "ord_type");
+        String progressCount = this.safeString(order, "progress_count");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, null))) && Helpers.isTrue((!Helpers.isEqual(price, null)))) && Helpers.isTrue((Helpers.isEqual(progressCount, null)))))
         {
             if (Helpers.isTrue(Precise.stringEquals(price, "0")))
@@ -2591,23 +2600,23 @@ public class BithumbCore extends BithumbApi
             }
         }
         Object symbol = null;
-        Object baseId = this.safeString(order, "order_currency");
-        Object quoteId = this.safeString(order, "payment_currency");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String baseId = this.safeString(order, "order_currency");
+        String quoteId = this.safeString(order, "payment_currency");
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && Helpers.isTrue((!Helpers.isEqual(quote, null)))))
         {
             symbol = Helpers.add(Helpers.add(base, "/"), quote);
         }
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
-            Object marketId = this.safeString(order, "market");
+            String marketId = this.safeString(order, "market");
             market = this.safeMarket(marketId, market);
             symbol = Helpers.GetValue(market, "symbol");
         }
-        Object id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_id", "uuid", "algo_order_id")));
+        String id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_id", "uuid", "algo_order_id")));
         Object rawTrades = this.safeList2(order, "contract", "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object feeCost = this.safeNumber(order, "reserved_fee");
+        Double feeCost = this.safeNumber(order, "reserved_fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -2625,7 +2634,7 @@ public class BithumbCore extends BithumbApi
             }};
         }
         Object postOnly = null;
-        Object timeInForce = this.safeStringUpper(order, "time_in_force");
+        String timeInForce = (String)this.safeStringUpper(order, "time_in_force");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "POST_ONLY")))
         {
             timeInForce = "PO";
@@ -2697,10 +2706,10 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
@@ -2771,14 +2780,14 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOrders is only supported for the generation 2 API")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object twap = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             if (!Helpers.isTrue(twap))
@@ -2952,7 +2961,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object market = null;
@@ -2960,7 +2969,7 @@ public class BithumbCore extends BithumbApi
             {
                 market = this.market(symbol);
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             Object twap = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
@@ -2969,7 +2978,7 @@ public class BithumbCore extends BithumbApi
                 Helpers.addElementToObject(request, "algo_order_id", id);
             } else
             {
-                Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+                String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(generation, 2))) && Helpers.isTrue((!Helpers.isEqual(clientOrderId, null)))))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderId);
@@ -2995,18 +3004,18 @@ public class BithumbCore extends BithumbApi
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
                 }
                 Object marketDefined = market;
-                Object base = this.safeString(marketDefined, "base");
-                Object quote = this.safeString(marketDefined, "quote");
+                String base = this.safeString(marketDefined, "base");
+                String quote = this.safeString(marketDefined, "quote");
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a market with defined base and quote")) ;
                 }
-                Object side_in_params = (Helpers.inOp(parameters, "side"));
+                Boolean side_in_params = (Helpers.inOp(parameters, "side"));
                 if (!Helpers.isTrue(side_in_params))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a `side` parameter (sell or buy)")) ;
                 }
-                Object side = null;
+                String side = null;
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(parameters, "side"), "buy")))
                 {
                     side = "bid";
@@ -3052,7 +3061,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -3064,7 +3073,7 @@ public class BithumbCore extends BithumbApi
             {
                 market = this.market(symbol);
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
@@ -3074,7 +3083,7 @@ public class BithumbCore extends BithumbApi
             {
                 Helpers.addElementToObject(request, "order_ids", ids);
             }
-            Object response = (this.privatePostV2OrdersCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV2OrdersCancel(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": [
@@ -3098,7 +3107,7 @@ public class BithumbCore extends BithumbApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "side", Helpers.GetValue(order, "side") );
             }};
             return (this.cancelOrder(((String)Helpers.GetValue(order, "id")), Helpers.GetValue(order, "symbol"), this.extend(request, parameters))).join();
@@ -3144,22 +3153,22 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "withdraw", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
-            Object network = this.safeString2(parameters, "network", "net_type");
+            String network = this.safeString2(parameters, "network", "net_type");
             parameters = this.omit(parameters, "network");
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             Object destinationRequest = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(code, "XRP")) || Helpers.isTrue(Helpers.isEqual(code, "XMR"))) || Helpers.isTrue(Helpers.isEqual(code, "EOS"))) || Helpers.isTrue(Helpers.isEqual(code, "STEEM"))) || Helpers.isTrue(Helpers.isEqual(code, "TON"))))
             {
-                Object destination = this.safeString2(parameters, "destination", "secondary_address");
+                String destination = this.safeString2(parameters, "destination", "secondary_address");
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("destination", "secondary_address")));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tag, null))) && Helpers.isTrue((Helpers.isEqual(destination, null)))))
                 {
@@ -3172,18 +3181,18 @@ public class BithumbCore extends BithumbApi
                     destinationRequest = destination;
                 }
             }
-            Object receiverType = this.safeString2(parameters, "receiver_type", "cust_type_cd");
+            String receiverType = this.safeString2(parameters, "receiver_type", "cust_type_cd");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("receiver_type", "cust_type_cd")));
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(code, "KRW")))
                 {
-                    Object twoFactorType = this.safeString(parameters, "two_factor_type");
+                    String twoFactorType = this.safeString(parameters, "two_factor_type");
                     if (Helpers.isTrue(Helpers.isEqual(twoFactorType, null)))
                     {
                         throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
                     }
-                    Object krwRequest = new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> krwRequest = new java.util.HashMap<String, Object>() {{
                         put( "amount", BithumbCore.this.numberToString(amount) );
                     }}; // KRW withdraw only accepts amount and two_factor_type parameters
                     response = (this.privatePostV1WithdrawsKrw(this.extend(krwRequest, parameters))).join();
@@ -3265,15 +3274,15 @@ public class BithumbCore extends BithumbApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object type = this.safeString(transaction, "type");
-        Object currencyId = this.safeString(transaction, "currency");
+        String type = this.safeString(transaction, "type");
+        String currencyId = this.safeString(transaction, "currency");
         currency = this.safeCurrency(currencyId, currency);
-        Object datetime = this.safeString(transaction, "created_at");
+        String datetime = this.safeString(transaction, "created_at");
         Object timestamp = this.parse8601(datetime);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(datetime, null))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))))
         {
             Object normalized = Helpers.replace((String)datetime, (String)"+09:00", (String)"Z");
-            Object normalizedTimestamp = this.parse8601(normalized);
+            Long normalizedTimestamp = this.parse8601(normalized);
             if (Helpers.isTrue(!Helpers.isEqual(normalizedTimestamp, null)))
             {
                 timestamp = Helpers.subtract(normalizedTimestamp, Helpers.multiply(9, 3600000));
@@ -3317,7 +3326,7 @@ public class BithumbCore extends BithumbApi
         {
             return status;
         }
-        Object statusesByType = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statusesByType = new java.util.HashMap<String, Object>() {{
             put( "deposit", new java.util.HashMap<String, Object>() {{
                 put( "DEPOSIT_PROCESSING", "pending" );
                 put( "DEPOSIT_ACCEPTED", "ok" );
@@ -3359,14 +3368,14 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchWithdrawalWhitelist() is only supported for the generation 2 API")) ;
             }
-            Object response = (this.privateGetV1WithdrawsCoinAddresses(parameters)).join();
+            java.util.List<Object> response = (this.privateGetV1WithdrawsCoinAddresses(parameters)).join();
             //
             //     [
             //         {
@@ -3410,7 +3419,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawal", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawal", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -3421,15 +3430,15 @@ public class BithumbCore extends BithumbApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchWithdrawal() requires a code argument")) ;
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
                 Helpers.addElementToObject(request, "uuid", id);
             }
-            Object response = (this.privateGetV1Withdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1Withdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "type": "withdraw",
@@ -3482,14 +3491,14 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchWithdrawals() is only supported for the generation 2 API")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
@@ -3555,7 +3564,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposit", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDeposit", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -3566,15 +3575,15 @@ public class BithumbCore extends BithumbApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDeposit() requires a code argument")) ;
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
                 Helpers.addElementToObject(request, "uuid", id);
             }
-            Object response = (this.privateGetV1Deposit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1Deposit(this.extend(request, parameters))).join();
             //
             //     {
             //         "type": "deposit",
@@ -3627,14 +3636,14 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchDeposits() is only supported for the generation 2 API")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
@@ -3698,25 +3707,25 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "createDepositAddress", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createDepositAddress", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " createDepositAddress() is only supported for the generation 2 API")) ;
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object network = this.safeString2(parameters, "network", "net_type");
+            String network = this.safeString2(parameters, "network", "net_type");
             parameters = this.omit(parameters, "network");
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " createDepositAddress() requires a network parameter")) ;
             }
             Helpers.addElementToObject(request, "net_type", network);
-            Object response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "currency": "BTC",
@@ -3752,25 +3761,25 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositAddress", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDepositAddress", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchDepositAddress() is only supported for the generation 2 API")) ;
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object network = this.safeString2(parameters, "network", "net_type");
+            String network = this.safeString2(parameters, "network", "net_type");
             parameters = this.omit(parameters, "network");
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " fetchDepositAddress() requires a network parameter")) ;
             }
             Helpers.addElementToObject(request, "net_type", network);
-            Object response = (this.privateGetV1DepositsCoinAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1DepositsCoinAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "currency": "BTC",
@@ -3806,14 +3815,14 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositAddresses", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDepositAddresses", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchDepositAddresses() is only supported for the generation 2 API")) ;
             }
-            Object response = (this.privateGetV1DepositsCoinAddresses(parameters)).join();
+            java.util.List<Object> response = (this.privateGetV1DepositsCoinAddresses(parameters)).join();
             //
             //     [
             //         {
@@ -3842,9 +3851,9 @@ public class BithumbCore extends BithumbApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(response, "currency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object address = this.safeString(response, "deposit_address");
+        String currencyId = this.safeString(response, "currency");
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String address = this.safeString(response, "deposit_address");
         if (Helpers.isTrue(Helpers.isEqual(address, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseDepositAddress() could not find deposit_address")) ;
@@ -3927,12 +3936,12 @@ public class BithumbCore extends BithumbApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
+        String endpoint = Helpers.add("/", this.implodeParams(path, parameters));
         Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api)), endpoint);
         Object query = this.omit(parameters, this.extractParams(path));
         Object queryKeys = Helpers.objectKeys(query);
         Object queryKeysLength = Helpers.getArrayLength(queryKeys);
-        Object hasQuery = (Helpers.isGreaterThan(queryKeysLength, 0));
+        Boolean hasQuery = (Helpers.isGreaterThan(queryKeysLength, 0));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
             if (Helpers.isTrue(hasQuery))
@@ -3942,13 +3951,13 @@ public class BithumbCore extends BithumbApi
         } else
         {
             this.checkRequiredCredentials();
-            Object isVersionedApi = (Helpers.isTrue(((String)endpoint).startsWith(((String)"/v1/"))) || Helpers.isTrue(((String)endpoint).startsWith(((String)"/v2/"))));
+            Boolean isVersionedApi = (Helpers.isTrue(((String)endpoint).startsWith(((String)"/v1/"))) || Helpers.isTrue(((String)endpoint).startsWith(((String)"/v2/"))));
             if (Helpers.isTrue(isVersionedApi))
             {
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "Accept", "application/json" );
                 }};
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "access_key", BithumbCore.this.apiKey );
                     put( "nonce", BithumbCore.this.uuid() );
                     put( "timestamp", BithumbCore.this.milliseconds() );
@@ -4022,8 +4031,8 @@ public class BithumbCore extends BithumbApi
         Object error = this.safeDict(response, "error");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
-            Object errorName = this.safeString(error, "name");
-            Object message = this.safeString(error, "message");
+            String errorName = this.safeString(error, "name");
+            String message = this.safeString(error, "message");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
             if (Helpers.isTrue(!Helpers.isEqual(errorName, null)))
             {
@@ -4041,8 +4050,8 @@ public class BithumbCore extends BithumbApi
             //
             //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             //
-            Object status = this.safeString(response, "status");
-            Object message = this.safeString(response, "message");
+            String status = this.safeString(response, "status");
+            String message = this.safeString(response, "message");
             if (Helpers.isTrue(!Helpers.isEqual(status, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(status, "0000")))

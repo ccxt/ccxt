@@ -117,6 +117,11 @@ impl LighterCore {
         self.call_method(Value::Str("public_get_candles".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetMarkPriceCandles` implicit endpoint.
+    pub async fn public_get_mark_price_candles(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_mark_price_candles".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetFundings` implicit endpoint.
     pub async fn public_get_fundings(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_fundings".to_string()), optional_args).await
@@ -135,6 +140,21 @@ impl LighterCore {
     /// Auto-generated wrapper for the `publicGetWithdrawalDelay` implicit endpoint.
     pub async fn public_get_withdrawal_delay(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_withdrawal_delay".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetPartnerStats` implicit endpoint.
+    pub async fn public_get_partner_stats(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_partner_stats".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetSyntheticSpotInfo` implicit endpoint.
+    pub async fn public_get_synthetic_spot_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_synthetic_spot_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetTokenlist` implicit endpoint.
+    pub async fn public_get_tokenlist(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_tokenlist".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicPostSendTx` implicit endpoint.
@@ -182,6 +202,11 @@ impl LighterCore {
         self.call_method(Value::Str("private_get_public_pools_metadata".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetGetMakerOnlyApiKeys` implicit endpoint.
+    pub async fn private_get_get_maker_only_api_keys(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_get_maker_only_api_keys".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetAccountActiveOrders` implicit endpoint.
     pub async fn private_get_account_active_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_account_active_orders".to_string()), optional_args).await
@@ -192,9 +217,19 @@ impl LighterCore {
         self.call_method(Value::Str("private_get_account_inactive_orders".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetAccountOrders` implicit endpoint.
+    pub async fn private_get_account_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_account_orders".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetExport` implicit endpoint.
     pub async fn private_get_export(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_export".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetExportHistoricalTrades` implicit endpoint.
+    pub async fn private_get_export_historical_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_export_historical_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetTrades` implicit endpoint.
@@ -232,14 +267,44 @@ impl LighterCore {
         self.call_method(Value::Str("private_get_transfer_fee_info".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetRfqGet` implicit endpoint.
+    pub async fn private_get_rfq_get(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_rfq_get".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetRfqList` implicit endpoint.
+    pub async fn private_get_rfq_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_rfq_list".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostChangeAccountTier` implicit endpoint.
     pub async fn private_post_change_account_tier(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_change_account_tier".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostSetMakerOnlyApiKeys` implicit endpoint.
+    pub async fn private_post_set_maker_only_api_keys(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_set_maker_only_api_keys".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostNotificationAck` implicit endpoint.
     pub async fn private_post_notification_ack(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_notification_ack".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostRfqCreate` implicit endpoint.
+    pub async fn private_post_rfq_create(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_rfq_create".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostRfqRespond` implicit endpoint.
+    pub async fn private_post_rfq_respond(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_rfq_respond".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostRfqUpdate` implicit endpoint.
+    pub async fn private_post_rfq_update(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_rfq_update".to_string()), optional_args).await
     }
 
 }

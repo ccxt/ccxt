@@ -454,6 +454,87 @@
         ],
         "fetchTrades": [
             {
+                "description": "over limit",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USD",
+                    null,
+                    2500
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "8551ae76-1f5b-3717-97b8-a9b68d740e52",
+                            "symbol": "BTC/USD",
+                            "price": "79159.11",
+                            "quantity": "0.00006125",
+                            "timestamp": 1788937380452,
+                            "side": "sell"
+                        },
+                        {
+                            "id": "07ebf350-3973-3a46-b4c7-5ce37ce3143e",
+                            "symbol": "BTC/USD",
+                            "price": "79176.36",
+                            "quantity": "0.00798648",
+                            "timestamp": 1788937375899,
+                            "side": "buy"
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1788937406483,
+                        "next_cursor": "ZGF0ZT0xNzg4ODgyMjkwODM3O2lkPTljYjc1NjQ3LTZiMmQtMzE1MC1hNmU4LTg2YzlmMDY5NzAwMw=="
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "07ebf350-3973-3a46-b4c7-5ce37ce3143e",
+                            "symbol": "BTC/USD",
+                            "price": "79176.36",
+                            "quantity": "0.00798648",
+                            "timestamp": 1788937375899,
+                            "side": "buy"
+                        },
+                        "id": "07ebf350-3973-3a46-b4c7-5ce37ce3143e",
+                        "order": null,
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "price": 79176.36,
+                        "amount": 0.00798648,
+                        "cost": 632.3404156128,
+                        "timestamp": 1788937375899,
+                        "datetime": "2026-09-09T07:02:55.899Z",
+                        "fee": null,
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "8551ae76-1f5b-3717-97b8-a9b68d740e52",
+                            "symbol": "BTC/USD",
+                            "price": "79159.11",
+                            "quantity": "0.00006125",
+                            "timestamp": 1788937380452,
+                            "side": "sell"
+                        },
+                        "id": "8551ae76-1f5b-3717-97b8-a9b68d740e52",
+                        "order": null,
+                        "symbol": "BTC/USD",
+                        "side": "sell",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "price": 79159.11,
+                        "amount": 0.00006125,
+                        "cost": 4.8484954875,
+                        "timestamp": 1788937380452,
+                        "datetime": "2026-09-09T07:03:00.452Z",
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            },
+            {
                 "description": "BTC/USD trades",
                 "method": "fetchTrades",
                 "input": [

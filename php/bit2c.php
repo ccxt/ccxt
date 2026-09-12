@@ -126,6 +126,7 @@ class bit2c extends Exchange {
                     'get' => array(
                         'Exchanges/{pair}/Ticker' => array( 'cost' => 1 ),
                         'Exchanges/{pair}/orderbook' => array( 'cost' => 1 ),
+                        'Exchanges/{pair}/orderbook-top' => array( 'cost' => 1 ),
                         'Exchanges/{pair}/trades' => array( 'cost' => 1 ),
                         'Exchanges/{pair}/lasttrades' => array( 'cost' => 1 ),
                     ),
@@ -134,6 +135,7 @@ class bit2c extends Exchange {
                     'post' => array(
                         'Merchant/CreateCheckout' => array( 'cost' => 1 ),
                         'Funds/AddCoinFundsRequest' => array( 'cost' => 1 ),
+                        'Funds/WithdrawCoin' => array( 'cost' => 1 ),
                         'Order/AddFund' => array( 'cost' => 1 ),
                         'Order/AddOrder' => array( 'cost' => 1 ),
                         'Order/GetById' => array( 'cost' => 1 ),
@@ -153,6 +155,7 @@ class bit2c extends Exchange {
                         'Order/GetById' => array( 'cost' => 1 ),
                         'Order/AccountHistory' => array( 'cost' => 1 ),
                         'Order/OrderHistory' => array( 'cost' => 1 ),
+                        'Order/HistoryByOrderId' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -538,7 +541,7 @@ class bit2c extends Exchange {
         //         }
         //     }
         //
-        $fees = $this->safe_value($response, 'Fees', array());
+        $fees = $this->safe_dict($response, 'Fees', array());
         $keys = is_array($fees) ? array_keys($fees) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -979,7 +982,7 @@ class bit2c extends Exchange {
         ), $market);
     }
 
-    public function is_fiat(mixed $code) {
+    public function is_fiat(mixed $code): bool {
         return $code === 'NIS';
     }
 

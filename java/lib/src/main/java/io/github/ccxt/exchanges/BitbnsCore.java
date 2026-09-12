@@ -154,7 +154,13 @@ public class BitbnsCore extends BitbnsApi
                         put( "depositHistoryAll/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "userHistoryNew", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "listOpenOrders/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "listOpenOrdersOther/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "listOpenStopOrders/{symbol}", new java.util.HashMap<String, Object>() {{
@@ -166,7 +172,13 @@ public class BitbnsCore extends BitbnsApi
                         put( "placeSellOrder/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "placeSellOrderOther/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "placeBuyOrder/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "placeBuyOrderOther/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "buyStopLoss/{symbol}", new java.util.HashMap<String, Object>() {{
@@ -176,6 +188,9 @@ public class BitbnsCore extends BitbnsApi
                             put( "cost", 1 );
                         }} );
                         put( "cancelOrder/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancelOrderOther/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "cancelStopLossOrder/{symbol}", new java.util.HashMap<String, Object>() {{
@@ -305,7 +320,7 @@ public class BitbnsCore extends BitbnsApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v1GetPlatformStatus(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1GetPlatformStatus(parameters)).join();
             //
             //     {
             //         "data":{
@@ -318,7 +333,7 @@ public class BitbnsCore extends BitbnsApi
             //         "code":200
             //     }
             //
-            Object statusRaw = this.safeString(response, "status");
+            String statusRaw = this.safeString(response, "status");
             return new java.util.HashMap<String, Object>() {{
                 put( "status", BitbnsCore.this.safeString(new java.util.HashMap<String, Object>() {{
                     put( "1", "ok" );
@@ -345,7 +360,7 @@ public class BitbnsCore extends BitbnsApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.wwwGetOrderFetchMarkets(parameters)).join();
+            java.util.List<Object> response = (this.wwwGetOrderFetchMarkets(parameters)).join();
             //
             //     [
             //         {
@@ -369,22 +384,22 @@ public class BitbnsCore extends BitbnsApi
             //         },
             //     ]
             //
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawMarkets = this.toArray(response);
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawMarkets = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
             {
                 Object market = Helpers.GetValue(rawMarkets, i);
-                Object id = this.safeString(market, "id");
-                Object baseId = this.safeString(market, "base");
-                Object quoteId = this.safeString(market, "quote");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String id = this.safeString(market, "id");
+                String baseId = this.safeString(market, "base");
+                String quoteId = this.safeString(market, "quote");
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 Object marketPrecision = this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}});
                 Object marketLimits = this.safeDict(market, "limits", new java.util.HashMap<String, Object>() {{}});
                 Object amountLimits = this.safeDict(marketLimits, "amount", new java.util.HashMap<String, Object>() {{}});
                 Object priceLimits = this.safeDict(marketLimits, "price", new java.util.HashMap<String, Object>() {{}});
                 Object costLimits = this.safeDict(marketLimits, "cost", new java.util.HashMap<String, Object>() {{}});
-                Object usdt = (Helpers.isEqual(quoteId, "USDT"));
+                Boolean usdt = (Helpers.isEqual(quoteId, "USDT"));
                 // INR markets don't need a _INR prefix
                 Object uppercaseId = ((Helpers.isTrue(usdt))) ? (Helpers.add(Helpers.add(baseId, "_"), quoteId)) : baseId;
     final Object finalBase = base;
@@ -466,15 +481,15 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
             }
-            Object response = (this.wwwGetOrderFetchOrderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.wwwGetOrderFetchOrderbook(this.extend(request, parameters))).join();
             //
             //     {
             //         "bids":[
@@ -492,7 +507,7 @@ public class BitbnsCore extends BitbnsApi
             //         "nonce":""
             //     }
             //
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
         });
 
@@ -531,10 +546,10 @@ public class BitbnsCore extends BitbnsApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "timestamp");
-        Object marketId = this.safeString(ticker, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
-        Object last = this.safeString(ticker, "last");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
+        String marketId = this.safeString(ticker, "symbol");
+        String symbol = (String) this.safeSymbol(marketId, market);
+        String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -578,7 +593,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.wwwGetOrderFetchTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.wwwGetOrderFetchTickers(parameters)).join();
             //
             //     {
             //         "BTC/INR":{
@@ -619,7 +634,7 @@ public class BitbnsCore extends BitbnsApi
     public Object parseBalance(Object response)
     {
         Object timestamp = null;
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
             put( "datetime", BitbnsCore.this.iso8601(timestamp) );
@@ -633,7 +648,7 @@ public class BitbnsCore extends BitbnsApi
             Object numParts = Helpers.getArrayLength(parts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
-                Object currencyId = this.safeString(parts, 1);
+                String currencyId = this.safeString(parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(data, key));
@@ -642,7 +657,7 @@ public class BitbnsCore extends BitbnsApi
                 {
                     currencyId = "INR";
                 }
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     Helpers.addElementToObject(result, code, account);
@@ -669,7 +684,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v1PostCurrentCoinBalanceEVERYTHING(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PostCurrentCoinBalanceEVERYTHING(parameters)).join();
             //
             //     {
             //         "data":{
@@ -692,9 +707,9 @@ public class BitbnsCore extends BitbnsApi
 
     }
 
-    public Object parseStatus(Object status)
+    public String parseStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "-1", "cancelled" );
             put( "0", "open" );
             put( "1", "open" );
@@ -739,10 +754,10 @@ public class BitbnsCore extends BitbnsApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString2(order, "id", "entry_id");
-        Object datetime = this.safeString(order, "time");
-        Object triggerPrice = this.safeString(order, "t_rate");
-        Object side = this.safeString(order, "type");
+        String id = this.safeString2(order, "id", "entry_id");
+        String datetime = this.safeString(order, "time");
+        String triggerPrice = this.safeString(order, "t_rate");
+        String side = this.safeString(order, "type");
         if (Helpers.isTrue(Helpers.isEqual(side, "0")))
         {
             side = "buy";
@@ -750,7 +765,7 @@ public class BitbnsCore extends BitbnsApi
         {
             side = "sell";
         }
-        Object data = this.safeString(order, "data");
+        String data = this.safeString(order, "data");
         Object status = this.safeString(order, "status");
         if (Helpers.isTrue(Helpers.isEqual(data, "Successfully cancelled the order")))
         {
@@ -821,17 +836,17 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "t_rate")));
-            Object targetRate = this.safeString(parameters, "target_rate");
-            Object trailRate = this.safeString(parameters, "trail_rate");
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "t_rate")));
+            String targetRate = this.safeString(parameters, "target_rate");
+            String trailRate = this.safeString(parameters, "trail_rate");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate")));
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalSide = side;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "side", ((String)finalSide).toUpperCase() );
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
                 put( "quantity", BitbnsCore.this.amountToPrecision(symbol, amount) );
@@ -905,15 +920,15 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "entry_id", id );
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
             }};
             Object response = null;
-            Object tail = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "StopLossOrder" : "Order";
+            String tail = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "StopLossOrder" : "Order";
             Object quoteSide = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "quoteId"), "USDT"))))) ? "usdtcancel" : "cancel";
             quoteSide = Helpers.add(quoteSide, tail);
             Helpers.addElementToObject(request, "side", quoteSide);
@@ -949,8 +964,8 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "entry_id", id );
             }};
@@ -959,7 +974,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOrder cannot fetch stop orders")) ;
             }
-            Object response = (this.v1PostOrderStatusSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PostOrderStatusSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "data":[
@@ -1022,18 +1037,18 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
-            Object quoteSide = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "quoteId"), "USDT"))))) ? "usdtListOpen" : "listOpen";
+            String quoteSide = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "quoteId"), "USDT"))))) ? "usdtListOpen" : "listOpen";
             final Object finalIsTrigger = isTrigger;
             final Object finalQuoteSide = quoteSide;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
                 put( "page", 0 );
                 put( "side", ((Helpers.isTrue((Helpers.isEqual(finalIsTrigger, true))))) ? (Helpers.add(finalQuoteSide, "StopOrders")) : (Helpers.add(finalQuoteSide, "Orders")) );
             }};
-            Object response = (this.v2PostGetordersnew(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PostGetordersnew(this.extend(request, parameters))).join();
             //
             //     {
             //         "data":[
@@ -1095,12 +1110,12 @@ public class BitbnsCore extends BitbnsApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         market = this.safeMarket(null, market);
-        Object orderId = this.safeString2(trade, "id", "tradeId");
-        Object timestamp = this.parse8601(this.safeString(trade, "date"));
-        timestamp = this.safeInteger(trade, "timestamp", timestamp);
-        Object priceString = this.safeString2(trade, "rate", "price");
-        Object amountString = this.safeString(trade, "amount");
-        Object side = this.safeStringLower(trade, "type");
+        String orderId = this.safeString2(trade, "id", "tradeId");
+        Long timestamp = this.parse8601(this.safeString(trade, "date"));
+        timestamp = (Long) this.safeInteger(trade, "timestamp", timestamp);
+        String priceString = this.safeString2(trade, "rate", "price");
+        String amountString = this.safeString(trade, "amount");
+        String side = (String)this.safeStringLower(trade, "type");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(side, "buy"), 0)))
@@ -1111,7 +1126,7 @@ public class BitbnsCore extends BitbnsApi
                 side = "sell";
             }
         }
-        Object factor = this.safeString(trade, "factor");
+        String factor = this.safeString(trade, "factor");
         Object costString = null;
         if (Helpers.isTrue(!Helpers.isEqual(factor, null)))
         {
@@ -1123,7 +1138,7 @@ public class BitbnsCore extends BitbnsApi
         }
         Object symbol = Helpers.GetValue(market, "symbol");
         Object fee = null;
-        Object feeCostString = this.safeString(trade, "fee");
+        String feeCostString = this.safeString(trade, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             Object feeCurrencyCode = Helpers.GetValue(market, "quote");
@@ -1182,8 +1197,8 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "page", 0 );
             }};
@@ -1191,7 +1206,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 Helpers.addElementToObject(request, "since", this.iso8601(since));
             }
-            Object response = (this.v1PostListExecutedOrdersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PostListExecutedOrdersSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -1265,12 +1280,12 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(market, "baseId") );
                 put( "market", Helpers.GetValue(market, "quoteId") );
             }};
-            Object response = (this.wwwGetExchangeDataTradedetails(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.wwwGetExchangeDataTradedetails(this.extend(request, parameters))).join();
             //
             //     [
             //         {"tradeId":"1909151","price":"61904.6300","quote_volume":1618.05,"base_volume":0.02607254,"timestamp":1634548602000,"type":"buy"},
@@ -1310,12 +1325,12 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
                 put( "page", 0 );
             }};
-            Object response = (this.v1PostDepositHistorySymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PostDepositHistorySymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "data":[
@@ -1372,12 +1387,12 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
                 put( "page", 0 );
             }};
-            Object response = (this.v1PostWithdrawHistorySymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PostWithdrawHistorySymbol(this.extend(request, parameters))).join();
             //
             //     ...
             //
@@ -1390,7 +1405,7 @@ public class BitbnsCore extends BitbnsApi
     public Object parseTransactionStatusByType(Object status, Object... optionalArgs)
     {
         Object type = Helpers.getArg(optionalArgs, 0, null);
-        Object statusesByType = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statusesByType = new java.util.HashMap<String, Object>() {{
             put( "deposit", new java.util.HashMap<String, Object>() {{
                 put( "0", "pending" );
                 put( "1", "ok" );
@@ -1434,12 +1449,12 @@ public class BitbnsCore extends BitbnsApi
         //     ...
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(transaction, "unit");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.parse8601(this.safeString2(transaction, "date", "timestamp"));
-        Object type = this.safeString(transaction, "type");
-        Object expTime = this.safeString(transaction, "expTime", "");
-        Object status = null;
+        String currencyId = this.safeString(transaction, "unit");
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        Long timestamp = this.parse8601(this.safeString2(transaction, "date", "timestamp"));
+        String type = this.safeString(transaction, "type");
+        String expTime = this.safeString(transaction, "expTime", "");
+        String status = null;
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "deposit"), 0)))
@@ -1452,8 +1467,8 @@ public class BitbnsCore extends BitbnsApi
             }
         }
         // const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
-        Object amount = this.safeNumber(transaction, "amount");
-        Object feeCost = this.safeNumber(transaction, "fee");
+        Double amount = this.safeNumber(transaction, "amount");
+        Double feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -1508,11 +1523,11 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.v1PostGetCoinAddressSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PostGetCoinAddressSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "data":{
@@ -1524,8 +1539,8 @@ public class BitbnsCore extends BitbnsApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object address = this.safeString(data, "token");
-            Object tag = this.safeString(data, "tag");
+            String address = this.safeString(data, "token");
+            String tag = this.safeString(data, "tag");
             this.checkAddress(address);
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -1562,7 +1577,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "X-BITBNS-APIKEY", BitbnsCore.this.apiKey );
             }};
         }
-        Object baseUrl = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api));
+        String baseUrl = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api));
         Object url = Helpers.add(Helpers.add(baseUrl, "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object nonce = String.valueOf(this.nonce());
@@ -1582,7 +1597,7 @@ public class BitbnsCore extends BitbnsApi
                 body = "{}";
             }
             final Object finalBody = body;
-            Object auth = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> auth = new java.util.HashMap<String, Object>() {{
                 put( "timeStamp_nonce", nonce );
                 put( "body", finalBody );
             }};
@@ -1615,9 +1630,9 @@ public class BitbnsCore extends BitbnsApi
         //     {"msg":"Invalid Request","status":-1,"code":400}
         //     {"data":[],"status":0,"error":"Nothing to show","code":417}
         //
-        Object code = this.safeString(response, "code");
-        Object message = this.safeString(response, "msg");
-        Object error = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((!Helpers.isEqual(code, "200")))) && Helpers.isTrue((!Helpers.isEqual(code, "204")));
+        String code = this.safeString(response, "code");
+        String message = this.safeString(response, "msg");
+        Boolean error = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((!Helpers.isEqual(code, "200")))) && Helpers.isTrue((!Helpers.isEqual(code, "204")));
         if (Helpers.isTrue(Helpers.isTrue(error) || Helpers.isTrue((!Helpers.isEqual(message, null)))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

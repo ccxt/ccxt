@@ -250,7 +250,7 @@ class upbit(ccxt.async_support.upbit):
         orderbook['symbol'] = symbol
         bids = orderbook['bids']
         asks = orderbook['asks']
-        data = self.safe_value(message, 'orderbook_units', [])
+        data = self.safe_list(message, 'orderbook_units', [])
         for i in range(0, len(data)):
             entry = data[i]
             ask_price = self.safe_float(entry, 'ask_price')

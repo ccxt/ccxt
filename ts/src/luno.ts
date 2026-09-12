@@ -568,7 +568,7 @@ export default class luno extends Exchange {
         //     }
         //
         const result: List = [];
-        const markets = this.safeValue (response, 'markets', []);
+        const markets = this.safeList (response, 'markets', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'market_id');
@@ -668,7 +668,7 @@ export default class luno extends Exchange {
      */
     override async fetchAccounts (params = {}): Promise<Account[]> {
         const response = await this.privateGetBalance (params);
-        const wallets = this.safeValue (response, 'balance', []);
+        const wallets = this.safeList (response, 'balance', []);
         const result: Account[] = [];
         for (let i = 0; i < wallets.length; i++) {
             const account = wallets[i];
@@ -686,7 +686,7 @@ export default class luno extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const wallets = this.safeValue (response, 'balance', []);
+        const wallets = this.safeList (response, 'balance', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -872,7 +872,7 @@ export default class luno extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrdersByState (state: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByState (state: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

@@ -42,6 +42,11 @@ impl MudrexCore {
         self.call_method(Value::Str("private_get_futures_funds".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetFuturesTransactions` implicit endpoint.
+    pub async fn private_get_futures_transactions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_futures_transactions".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetFuturesOrders` implicit endpoint.
     pub async fn private_get_futures_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_orders".to_string()), optional_args).await

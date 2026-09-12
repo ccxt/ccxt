@@ -159,16 +159,19 @@ export default class deribit extends Exchange {
                         // Account management
                         'get_announcements': { 'cost': 1 } as Endpoint<Dict>,
                         // Market data
+                        'get_apr_history': { 'cost': 1 } as Endpoint<Dict>,
                         'get_book_summary_by_currency': { 'cost': 1 } as Endpoint<Dict>,
                         'get_book_summary_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
                         'get_contract_size': { 'cost': 1 } as Endpoint<Dict>,
                         'get_currencies': { 'cost': 1 } as Endpoint<Dict>,
                         'get_delivery_prices': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_expirations': { 'cost': 1 } as Endpoint<Dict>,
                         'get_funding_chart_data': { 'cost': 1 } as Endpoint<Dict>,
                         'get_funding_rate_history': { 'cost': 1 } as Endpoint<Dict>,
                         'get_funding_rate_value': { 'cost': 1 } as Endpoint<Dict>,
                         'get_historical_volatility': { 'cost': 1 } as Endpoint<Dict>,
                         'get_index': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_index_chart_data': { 'cost': 1 } as Endpoint<Dict>,
                         'get_index_price': { 'cost': 1 } as Endpoint<Dict>,
                         'get_index_price_names': { 'cost': 1 } as Endpoint<Dict>,
                         'get_instrument': { 'cost': 1 } as Endpoint<Dict>,
@@ -181,6 +184,7 @@ export default class deribit extends Exchange {
                         'get_last_trades_by_instrument_and_time': { 'cost': 1 } as Endpoint<Dict>,
                         'get_mark_price_history': { 'cost': 1 } as Endpoint<Dict>,
                         'get_order_book': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_supported_index_names': { 'cost': 1 } as Endpoint<Dict>,
                         'get_trade_volumes': { 'cost': 1 } as Endpoint<Dict>,
                         'get_tradingview_chart_data': { 'cost': 1 } as Endpoint<Dict>,
                         'get_volatility_index_data': { 'cost': 1 } as Endpoint<Dict>,
@@ -213,6 +217,7 @@ export default class deribit extends Exchange {
                         'get_account_summary': { 'cost': 1 } as Endpoint<Dict>,
                         'get_account_summaries': { 'cost': 1 } as Endpoint<Dict>,
                         'get_affiliate_program_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_currencies': { 'cost': 1 } as Endpoint<Dict>,
                         'get_email_language': { 'cost': 1 } as Endpoint<Dict>,
                         'get_new_announcements': { 'cost': 1 } as Endpoint<Dict>,
                         'get_portfolio_margins': { 'cost': 1 } as Endpoint<Dict>,
@@ -227,16 +232,23 @@ export default class deribit extends Exchange {
                         'reset_api_key': { 'cost': 1 } as Endpoint<Dict>,
                         'set_announcement_as_read': { 'cost': 1 } as Endpoint<Dict>,
                         'set_api_key_as_default': { 'cost': 1 } as Endpoint<Dict>,
+                        'set_disabled_trading_products': { 'cost': 1 } as Endpoint<Dict>,
                         'set_email_for_subaccount': { 'cost': 1 } as Endpoint<Dict>,
                         'set_email_language': { 'cost': 1 } as Endpoint<Dict>,
                         'set_password_for_subaccount': { 'cost': 1 } as Endpoint<Dict>,
+                        'simulate_portfolio': { 'cost': 1 } as Endpoint<Dict>,
                         'toggle_notifications_from_subaccount': { 'cost': 1 } as Endpoint<Dict>,
                         'toggle_subaccount_login': { 'cost': 1 } as Endpoint<Dict>,
                         // Block Trade
+                        'approve_block_trade': { 'cost': 1 } as Endpoint<Dict>,
                         'execute_block_trade': { 'cost': 4 } as Endpoint<Dict>,
                         'get_block_trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_block_trade_requests': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_block_trades': { 'cost': 1 } as Endpoint<Dict>,
                         'get_last_block_trades_by_currency': { 'cost': 1 } as Endpoint<Dict>,
                         'invalidate_block_trade_signature': { 'cost': 1 } as Endpoint<Dict>,
+                        'reject_block_trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'simulate_block_trade': { 'cost': 4 } as Endpoint<Dict>,
                         'verify_block_trade': { 'cost': 4 } as Endpoint<Dict>,
                         // Trading
                         'buy': { 'cost': 4 } as Endpoint<Dict>,
@@ -248,15 +260,20 @@ export default class deribit extends Exchange {
                         'cancel_all_by_currency': { 'cost': 4 } as Endpoint<Dict>,
                         'cancel_all_by_instrument': { 'cost': 4 } as Endpoint<Dict>,
                         'cancel_by_label': { 'cost': 4 } as Endpoint<Dict>,
+                        'cancel_quotes': { 'cost': 4 } as Endpoint<Dict>,
                         'close_position': { 'cost': 4 } as Endpoint<Dict>,
                         'get_margins': { 'cost': 1 } as Endpoint<Dict>,
                         'get_mmp_config': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_mmp_status': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_open_orders': { 'cost': 1 } as Endpoint<Dict>,
                         'get_open_orders_by_currency': { 'cost': 1 } as Endpoint<Dict>,
                         'get_open_orders_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_open_orders_by_label': { 'cost': 1 } as Endpoint<Dict>,
                         'get_order_history_by_currency': { 'cost': 1 } as Endpoint<Dict>,
                         'get_order_history_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
                         'get_order_margin_by_ids': { 'cost': 1 } as Endpoint<Dict>,
                         'get_order_state': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order_state_by_label': { 'cost': 1 } as Endpoint<Dict>,
                         'get_stop_order_history': { 'cost': 1 } as Endpoint<Dict>, // deprecated
                         'get_trigger_order_history': { 'cost': 1 } as Endpoint<Dict>,
                         'get_user_trades_by_currency': { 'cost': 1 } as Endpoint<Dict>,
@@ -264,20 +281,28 @@ export default class deribit extends Exchange {
                         'get_user_trades_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
                         'get_user_trades_by_instrument_and_time': { 'cost': 1 } as Endpoint<Dict>,
                         'get_user_trades_by_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'mass_quote': { 'cost': 4 } as Endpoint<Dict>,
+                        'move_positions': { 'cost': 4 } as Endpoint<Dict>,
                         'reset_mmp': { 'cost': 1 } as Endpoint<Dict>,
                         'set_mmp_config': { 'cost': 1 } as Endpoint<Dict>,
                         'get_settlement_history_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
                         'get_settlement_history_by_currency': { 'cost': 1 } as Endpoint<Dict>,
                         // Wallet
+                        'add_to_address_book': { 'cost': 1 } as Endpoint<Dict>,
                         'cancel_transfer_by_id': { 'cost': 1 } as Endpoint<Dict>,
                         'cancel_withdrawal': { 'cost': 1 } as Endpoint<Dict>,
                         'create_deposit_address': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_address_book': { 'cost': 1 } as Endpoint<Dict>,
                         'get_current_deposit_address': { 'cost': 1 } as Endpoint<Dict>,
                         'get_deposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_reward_eligibility': { 'cost': 1 } as Endpoint<Dict>,
                         'get_transfers': { 'cost': 1 } as Endpoint<Dict>,
                         'get_withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                        'remove_from_address_book': { 'cost': 1 } as Endpoint<Dict>,
+                        'set_clearance_originator': { 'cost': 1 } as Endpoint<Dict>,
                         'submit_transfer_to_subaccount': { 'cost': 1 } as Endpoint<Dict>,
                         'submit_transfer_to_user': { 'cost': 1 } as Endpoint<Dict>,
+                        'update_in_address_book': { 'cost': 1 } as Endpoint<Dict>,
                         'withdraw': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
@@ -841,7 +866,7 @@ export default class deribit extends Exchange {
             //         "testnet": false
             //     }
             //
-            const currenciesResult = this.safeValue (currenciesResponse, 'result', []);
+            const currenciesResult = this.safeList (currenciesResponse, 'result', []);
             for (let i = 0; i < currenciesResult.length; i++) {
                 const currencyId = this.safeString (currenciesResult[i], 'currency');
                 const request: Dict = {
@@ -925,7 +950,7 @@ export default class deribit extends Exchange {
             }
         }
         for (let i = 0; i < instrumentsResponses.length; i++) {
-            const instrumentsResult = this.safeValue (instrumentsResponses[i], 'result', []);
+            const instrumentsResult = this.safeList (instrumentsResponses[i], 'result', []);
             for (let k = 0; k < instrumentsResult.length; k++) {
                 const market = instrumentsResult[k];
                 const kind = this.safeString (market, 'kind');
@@ -1757,7 +1782,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const fees = this.safeValue (result, 'fees', []);
+        const fees = this.safeList (result, 'fees', []);
         let perpetualFee: Dict = {};
         let futureFee: Dict = {};
         let optionFee: Dict = {};
@@ -2922,7 +2947,7 @@ export default class deribit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
      */
-    async fetchVolatilityHistory (code: string, params = {}) {
+    async fetchVolatilityHistory (code: string, params = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2963,7 +2988,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const volatilityResult = this.safeValue (volatility, 'result', []);
+        const volatilityResult = this.safeList (volatility, 'result', []);
         const result: List = [];
         for (let i = 0; i < volatilityResult.length; i++) {
             const timestamp = this.safeInteger (volatilityResult[i], 0);
@@ -3347,7 +3372,7 @@ export default class deribit extends Exchange {
         //    }
         //
         const rates: List = [];
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         for (let i = 0; i < result.length; i++) {
             const fr = result[i];
             const rate = this.parseFundingRate (fr, market);

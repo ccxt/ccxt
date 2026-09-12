@@ -564,6 +564,41 @@ impl WeexCore {
         m.insert("cost".to_string(), Value::Int(20));
     m
 }));
+        m.insert("api/v3/apiReferral/checkUserEligibility".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("api/v3/apiReferral/rebate/recentRecord".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("api/v3/apiReferral/rebateRatio".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("api/v3/content/articles/detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v3/content/articles/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v3/content/articles/listByCoin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v3/content/banners/latest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -591,6 +626,11 @@ impl WeexCore {
         m.insert("api/v3/rebate/affiliate/internalWithdrawal".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("api/v3/tax/income".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
     m
 }));
     m
@@ -778,6 +818,51 @@ impl WeexCore {
         m.insert("cost".to_string(), Value::Int(10));
     m
 }));
+        m.insert("capi/v3/copy/follower/historyOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("capi/v3/copy/follower/myTraders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("capi/v3/copy/follower/openOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("capi/v3/copy/follower/settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("capi/v3/copy/trader/historyOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("capi/v3/copy/trader/openOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("capi/v3/copy/trader/pairs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("capi/v3/trailing/openOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("capi/v3/trailing/historyOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -840,6 +925,21 @@ impl WeexCore {
         m.insert("capi/v3/sim/order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("capi/v3/copy/follower/closePos".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
+        m.insert("capi/v3/copy/follower/settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("capi/v3/copy/follower/stopCopy".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
     m
 }));
     m
@@ -1374,8 +1474,8 @@ impl WeexCore {
         let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1094: bool = true;
-            while { if !__for_first_1094 { j = add(&j, &Value::Int(1)); } __for_first_1094 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_1099: bool = true;
+            while { if !__for_first_1099 { j = add(&j, &Value::Int(1)); } __for_first_1099 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -1414,7 +1514,7 @@ impl WeexCore {
         }
         let mut networkKeys: Value = object_keys(&networks);
         let mut networksLength: Value = get_array_length(&networkKeys);
-        let mut emptyChains: Value = Value::Bool(is_equal(&networksLength, &Value::Int(0))); // non-functional coins
+        let mut emptyChains: bool = is_equal(&networksLength, &Value::Int(0)); // non-functional coins
         let mut valueForEmpty: Value = ternary(is_true(&emptyChains), Value::Bool(false), Value::Null);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1786,8 +1886,8 @@ impl WeexCore {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1095: bool = true;
-            while { if !__for_first_1095 { i = add(&i, &Value::Int(1)); } __for_first_1095 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1100: bool = true;
+            while { if !__for_first_1100 { i = add(&i, &Value::Int(1)); } __for_first_1100 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut rawTicker: Value = get_value(&response, &i);
             let mut rawTicker: Value = get_value(&response, &i);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
@@ -2757,8 +2857,8 @@ impl WeexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1096: bool = true;
-            while { if !__for_first_1096 { i = add(&i, &Value::Int(1)); } __for_first_1096 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1101: bool = true;
+            while { if !__for_first_1101 { i = add(&i, &Value::Int(1)); } __for_first_1101 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             if is_true(&(is_equal(&sandboxMode, &Value::Bool(true)))) && is_true(&(is_equal(&currencyId, &Value::Str("SUSDT".to_string())))) {
@@ -3074,7 +3174,7 @@ impl WeexCore {
                 m.insert("type".to_string(), to_upper(&type_var));
             m
         });
-        let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
+        let mut isMarketOrder: bool = is_equal(&type_var, &Value::Str("market".to_string()));
         if !is_true(&isMarketOrder) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
@@ -3083,9 +3183,9 @@ impl WeexCore {
         let mut stopLossPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPricequeryVariable, &Value::Int(1));
         let mut takeProfitPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPricequeryVariable, &Value::Int(2));
         let mut query: Value = get_value(&triggerPricestopLossPricetakeProfitPricequeryVariable, &Value::Int(3));
-        let mut isTrigger: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isStopLoss: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
-        let mut isTakeProfit: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
+        let mut isTrigger: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isStopLoss: bool = !is_equal(&stopLossPrice, &Value::Null);
+        let mut isTakeProfit: bool = !is_equal(&takeProfitPrice, &Value::Null);
         if is_true(&isTrigger) && is_true(&(is_true(&isStopLoss) || is_true(&isTakeProfit))) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters".to_string()))));
         }
@@ -3093,7 +3193,7 @@ impl WeexCore {
         if is_true(&isStopLoss) || is_true(&isTakeProfit) {
             reduceOnly = Value::Bool(true);
         }
-        let mut isReduceOnly: Value = Value::Bool(is_equal(&reduceOnly, &Value::Bool(true)));
+        let mut isReduceOnly: bool = is_equal(&reduceOnly, &Value::Bool(true));
         let mut positionSide: Value = Value::Str("LONG".to_string());
         if is_true(&isReduceOnly) {
             if is_equal(&side, &Value::Str("buy".to_string())) {
@@ -3104,9 +3204,9 @@ impl WeexCore {
         }
         add_element_to_object(&mut request, &Value::Str("positionSide".to_string()), positionSide.clone());
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
         // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
         if is_true(&hasTakeProfit) && is_true(&(!is_equal(&self.safe_number_k(takeProfit.clone(), "price", &[]), &Value::Null))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price".to_string()))));
@@ -3402,7 +3502,7 @@ impl WeexCore {
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelOrders".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&marketType, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&marketType, &Value::Str("spot".to_string()));
         let mut clientOrderIds: Value = self.safe_list_k(params.clone(), "clientOrderIds", &[]);
         params = self.omit(params.clone(), Value::Str("clientOrderIds".to_string()), &[]);
         if !is_equal(&clientOrderIds, &Value::Null) {
@@ -3467,7 +3567,7 @@ impl WeexCore {
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrder".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&marketType, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&marketType, &Value::Str("spot".to_string()));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3550,7 +3650,7 @@ impl WeexCore {
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&marketType, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&marketType, &Value::Str("spot".to_string()));
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenOrders".to_string()), Value::Str("paginate".to_string()), &[Value::Bool(false)]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut maxLimit: Value = Value::Int(100);
@@ -4011,7 +4111,7 @@ impl WeexCore {
         let mut isReduceOnly: Value = self.safe_bool_k(order.clone(), "reduceOnly", &[]);
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
         // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
-        let mut isEntryTrigger: Value = Value::Bool(!is_true(&self.safe_bool_k(order.clone(), "reduceOnly", &[Value::Bool(true)])));
+        let mut isEntryTrigger: bool = !is_true(&self.safe_bool_k(order.clone(), "reduceOnly", &[Value::Bool(true)]));
         let mut takeProfitPrice: Value = Value::Null;
         let mut stopLossPrice: Value = Value::Null;
         if !is_true(&isEntryTrigger) {
@@ -4179,7 +4279,7 @@ impl WeexCore {
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchMyTrades".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&marketType, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&marketType, &Value::Str("spot".to_string()));
         if is_true(&isSpot) && is_true(&(is_equal(&symbol, &Value::Null))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument for spot markets".to_string()))));
         }
@@ -4410,7 +4510,7 @@ impl WeexCore {
         }
         let mut rawType: Value = self.safe_string2(item.clone(), Value::Str("bizType".to_string()), Value::Str("incomeType".to_string()), &[]);
         let mut transferReason: Value = self.safe_string_k(item.clone(), "transferReason", &[]);
-        let mut isContractEntry: Value = Value::Bool(!is_equal(&transferReason, &Value::Null));
+        let mut isContractEntry: bool = !is_equal(&transferReason, &Value::Null);
         if is_true(&isContractEntry) {
             if is_true(&(is_equal(&rawType, &Value::Str("withdraw".to_string())))) || is_true(&(is_equal(&rawType, &Value::Str("deposit".to_string())))) {
                 rawType = Value::Str("transfer".to_string());
@@ -5332,7 +5432,7 @@ impl WeexCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut endpoint: Value = self.implode_params(path.clone(), params.clone());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut isBatch: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&path, &Value::Str("batch".to_string())), &Value::Int(0)));
+        let mut isBatch: bool = is_greater_than_or_equal(&get_index_of(&path, &Value::Str("batch".to_string())), &Value::Int(0));
         if !is_true(&isBatch) && is_true(&(is_true(&(is_equal(&method, &Value::Str("GET".to_string())))) || is_true(&(is_equal(&method, &Value::Str("DELETE".to_string())))))) {
             if is_greater_than(&get_array_length(&object_keys(&query)), &Value::Int(0)) {
                 endpoint = add(&endpoint, &add(&Value::Str("?".to_string()), &self.urlencode(query.clone(), &[])));

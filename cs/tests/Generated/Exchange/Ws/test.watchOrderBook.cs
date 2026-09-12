@@ -16,15 +16,15 @@ public partial class testMainClass : BaseTest
         // iteration risks blocking until the test-runner kills the whole exchange.
         // a validated book is already a pass, so keep sampling only while updates
         // keep arriving quickly and stop once the book goes quiet.
-        object maxIdleTime = 5000;
-        object now = exchange.milliseconds();
+        int maxIdleTime = 5000;
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
         bool idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = null;
             bool success = true;
-            object startTime = exchange.milliseconds();
+            Int64 startTime = exchange.milliseconds();
             try
             {
                 response = ((IOrderBook)(await exchange.WatchOrderBook(((string)symbol)))).Copy();
@@ -42,7 +42,7 @@ public partial class testMainClass : BaseTest
             if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
                 testOrderBook(exchange, skippedProperties, method, response, symbol);
-                object elapsed = subtract(now, startTime);
+                Int64 elapsed = subtract(now, startTime);
                 if (isTrue(isGreaterThan(elapsed, maxIdleTime)))
                 {
                     // this market updates slower than the remaining test window, so

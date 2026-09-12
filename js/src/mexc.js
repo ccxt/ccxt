@@ -196,6 +196,7 @@ export default class mexc extends Exchange {
                         'get': {
                             'kyc/status': { 'cost': 1 },
                             'uid': { 'cost': 1 },
+                            'apiKeyInfo': { 'cost': 1 },
                             'order': { 'cost': 2 },
                             'openOrders': { 'cost': 3 },
                             'allOrders': { 'cost': 10 },
@@ -258,6 +259,7 @@ export default class mexc extends Exchange {
                             'sub-account/margin': { 'cost': 1 },
                             'batchOrders': { 'cost': 10 },
                             'strategy/group': { 'cost': 20 },
+                            'strategy/group/uid': { 'cost': 20 },
                             'capital/withdraw/apply': { 'cost': 1 },
                             'capital/withdraw': { 'cost': 1 },
                             'capital/transfer': { 'cost': 50 },
@@ -728,18 +730,8 @@ export default class mexc extends Exchange {
                     'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
                     'BNB Smart Chain(BEP20)': 'BSC',
                     'Ethereum(ERC20)': 'ERC20',
-                    // TODO: uncomment below after deciding unified name
-                    // 'PEPE COIN BSC':
-                    // 'SMART BLOCKCHAIN':
-                    // 'f(x)Core':
-                    // 'Syscoin Rollux':
-                    // 'Syscoin UTXO':
-                    // 'zkSync Era':
-                    // 'zkSync Lite':
-                    // 'Darwinia Smart Chain':
-                    // 'Arbitrum One(ARB-Bridged)':
-                    // 'Optimism(OP-Bridged)':
-                    // 'Polygon(MATIC-Bridged)':
+                    // TODO: unified names undecided for PEPE COIN BSC, SMART BLOCKCHAIN, f(x)Core, Syscoin Rollux, Syscoin UTXO,
+                    // zkSync Era, zkSync Lite, Darwinia Smart Chain, Arbitrum One(ARB-Bridged), Optimism(OP-Bridged), Polygon(MATIC-Bridged)
                 },
                 'recvWindow': 5 * 1000, // 5 sec, default
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1, // 90 days
@@ -1187,7 +1179,7 @@ export default class mexc extends Exchange {
         const id = this.safeString(rawCurrency, 'coin');
         const code = this.safeCurrencyCode(id);
         const networks = {};
-        const chains = this.safeValue(rawCurrency, 'networkList', []);
+        const chains = this.safeList(rawCurrency, 'networkList', []);
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString2(chain, 'netWork', 'network');
@@ -1303,7 +1295,7 @@ export default class mexc extends Exchange {
         // Notes:
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
-        const data = this.safeValue(response, 'symbols', []);
+        const data = this.safeList(response, 'symbols', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -1434,7 +1426,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -2576,16 +2568,7 @@ export default class mexc extends Exchange {
             'vol': parseFloat(volString),
             // 'leverage': int, // required for isolated margin
             // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
-            //
-            // supported order types
-            //
-            //     1 limit
-            //     2 post only maker (PO)
-            //     3 transact or cancel instantly (IOC)
-            //     4 transact completely or cancel completely (FOK)
-            //     5 market orders
-            //     6 convert market price to current price
-            //
+            // order types: 1 limit, 2 post only (PO), 3 IOC, 4 FOK, 5 market, 6 convert market price to current price
             'type': type,
             'openType': openType, // 1 isolated, 2 cross
             // 'positionId': 1394650, // long, filling in this parameter when closing a position is recommended
@@ -3860,7 +3843,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets();
         }
         const response = await this.fetchAccountHelper(marketType, query);
-        const data = this.safeValue(response, 'balances', []);
+        const data = this.safeList(response, 'balances', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -3980,13 +3963,13 @@ export default class mexc extends Exchange {
         //
         let wallet;
         if (marketType === 'margin') {
-            wallet = this.safeValue(response, 'assets', []);
+            wallet = this.safeList(response, 'assets', []);
         }
         else if (marketType === 'swap') {
-            wallet = this.safeValue(response, 'data', []);
+            wallet = this.safeList(response, 'data', []);
         }
         else {
-            wallet = this.safeValue(response, 'balances', []);
+            wallet = this.safeList(response, 'balances', []);
         }
         let result = { 'info': response };
         if (marketType === 'margin') {
@@ -4513,7 +4496,7 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const resultList = this.safeValue(data, 'resultList', []);
+        const resultList = this.safeList(data, 'resultList', []);
         const result = [];
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
@@ -4682,7 +4665,7 @@ export default class mexc extends Exchange {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const result = this.safeValue(data, 'resultList', []);
+        const result = this.safeList(data, 'resultList', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -5967,7 +5950,7 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeValue(transaction, 'networkList', []);
+        const networkList = this.safeList(transaction, 'networkList', []);
         const result = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
@@ -6050,7 +6033,7 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeValue(fee, 'networkList', []);
+        const networkList = this.safeList(fee, 'networkList', []);
         const result = this.depositWithdrawFee(fee);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];

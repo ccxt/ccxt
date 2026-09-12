@@ -142,7 +142,7 @@ class blofin extends \ccxt\async\blofin {
         //         instId => "DOGE-USDT",
         //       ),
         //       $data : array(
-        //         <same object in REST example>,
+        //         <same object as shown in REST example>,
         //         ...
         //       )
         //     }
@@ -326,7 +326,7 @@ class blofin extends \ccxt\async\blofin {
         //             instId => "DOGE-USDT",
         //         ),
         //         $data => array(
-        //             <same object in REST example>
+        //             <same object as shown in REST example>
         //         ),
         //     }
         //
@@ -431,7 +431,7 @@ class blofin extends \ccxt\async\blofin {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
@@ -452,7 +452,7 @@ class blofin extends \ccxt\async\blofin {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         $symbolsLength = count($symbolsAndTimeframes);
         if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
@@ -479,7 +479,7 @@ class blofin extends \ccxt\async\blofin {
         //             instId => "DOGE-USDT",
         //         ),
         //         $data => array(
-        //             array( same object in REST example )
+        //             array( same object as shown in REST example )
         //         ),
         //     }
         //
@@ -545,7 +545,7 @@ class blofin extends \ccxt\async\blofin {
         //         arg => array(
         //           channel => "account",
         //         ),
-        //         data => <same object in REST example>,
+        //         data => <same object as shown in REST example>,
         //     }
         //
         $marketType = 'swap'; // for now
@@ -624,7 +624,7 @@ class blofin extends \ccxt\async\blofin {
         //         action => 'update',
         //         $arg => array( channel => 'orders' ),
         //         $data => array(
-        //           <same object in REST example>
+        //           <same object as shown in REST example>
         //         )
         //     }
         //
@@ -682,7 +682,7 @@ class blofin extends \ccxt\async\blofin {
         //     {
         //         $arg => array( channel => 'positions' ),
         //         $data => array(
-        //           <same object in REST example>
+        //           <same object as shown in REST example>
         //         )
         //     }
         //

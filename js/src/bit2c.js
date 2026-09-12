@@ -134,6 +134,7 @@ export default class bit2c extends Exchange {
                     'get': {
                         'Exchanges/{pair}/Ticker': { 'cost': 1 },
                         'Exchanges/{pair}/orderbook': { 'cost': 1 },
+                        'Exchanges/{pair}/orderbook-top': { 'cost': 1 },
                         'Exchanges/{pair}/trades': { 'cost': 1 },
                         'Exchanges/{pair}/lasttrades': { 'cost': 1 },
                     },
@@ -142,6 +143,7 @@ export default class bit2c extends Exchange {
                     'post': {
                         'Merchant/CreateCheckout': { 'cost': 1 },
                         'Funds/AddCoinFundsRequest': { 'cost': 1 },
+                        'Funds/WithdrawCoin': { 'cost': 1 },
                         'Order/AddFund': { 'cost': 1 },
                         'Order/AddOrder': { 'cost': 1 },
                         'Order/GetById': { 'cost': 1 },
@@ -161,6 +163,7 @@ export default class bit2c extends Exchange {
                         'Order/GetById': { 'cost': 1 },
                         'Order/AccountHistory': { 'cost': 1 },
                         'Order/OrderHistory': { 'cost': 1 },
+                        'Order/HistoryByOrderId': { 'cost': 1 },
                     },
                 },
             },
@@ -540,7 +543,7 @@ export default class bit2c extends Exchange {
         //         }
         //     }
         //
-        const fees = this.safeValue(response, 'Fees', {});
+        const fees = this.safeDict(response, 'Fees', {});
         const keys = Object.keys(fees);
         const result = {};
         for (let i = 0; i < keys.length; i++) {

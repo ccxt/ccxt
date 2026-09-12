@@ -75,15 +75,15 @@ public partial class testMainClass : BaseTest
         object swap = getValue(market, "swap");
         object future = getValue(market, "future");
         object option = getValue(market, "option");
-        object index = exchange.safeBool(market, "index"); // todo: unify
+        bool? index = exchange.safeBool(market, "index"); // todo: unify
         bool isIndex = isTrue((!isEqual(index, null))) && isTrue(index);
         object linear = getValue(market, "linear");
         object inverse = getValue(market, "inverse");
-        object quanto = exchange.safeBool(market, "quanto"); // todo: unify
+        bool? quanto = exchange.safeBool(market, "quanto"); // todo: unify
         bool isQuanto = isTrue((!isEqual(quanto, null))) && isTrue(quanto);
         bool isInactiveMarket = isEqual(getValue(market, "active"), false);
         //
-        object emptyAllowedFor = new List<object>() {"margin"};
+        List<object> emptyAllowedFor = new List<object>() {"margin"};
         if (isTrue(!isEqual(contract, true)))
         {
             ((IList<object>)emptyAllowedFor).Add("contractSize");
@@ -133,16 +133,16 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "maker", "-100");
         testSharedMethods.assertLess(exchange, skippedProperties, method, market, "maker", "100");
         // validate type ('prediction' for prediction-market exchanges)
-        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index", "prediction", "other"};
+        List<object> validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index", "prediction", "other"};
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
-        object validSubTypes = new List<object>() {"linear", "inverse", "quanto", null};
+        List<object> validSubTypes = new List<object>() {"linear", "inverse", "quanto", null};
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
-        object checkedTypes = new List<object>() {"spot", "swap", "future", "option"};
-        for (object i = 0; isLessThan(i, getArrayLength(checkedTypes)); postFixIncrement(ref i))
+        List<object> checkedTypes = new List<object>() {"spot", "swap", "future", "option"};
+        for (int i = 0; isLessThan(i, getArrayLength(checkedTypes)); postFixIncrement(ref i))
         {
-            object type = getValue(checkedTypes, i);
+            string? type = ((string)getValue(checkedTypes, i));
             if (isTrue(isEqual(getValue(market, type), true)))
             {
                 assert(isEqual(type, getValue(market, "type")), add(add(add(add(add("market.type (", getValue(market, "type")), ") not equal to \""), type), "\""), logText));
@@ -151,10 +151,10 @@ public partial class testMainClass : BaseTest
         // check if 'subType' is consistent
         if (isTrue(isTrue((isEqual(swap, true))) || isTrue((isEqual(future, true)))))
         {
-            object checkedSubTypes = new List<object>() {"linear", "inverse"};
-            for (object i = 0; isLessThan(i, getArrayLength(checkedSubTypes)); postFixIncrement(ref i))
+            List<object> checkedSubTypes = new List<object>() {"linear", "inverse"};
+            for (int i = 0; isLessThan(i, getArrayLength(checkedSubTypes)); postFixIncrement(ref i))
             {
-                object subType = getValue(checkedSubTypes, i);
+                string? subType = ((string)getValue(checkedSubTypes, i));
                 if (isTrue(isEqual(getValue(market, subType), true)))
                 {
                     assert(isEqual(subType, getValue(market, "subType")), add(add(add(add(add("market.subType (", getValue(market, "subType")), ") not equal to \""), subType), "\""), logText));
@@ -185,7 +185,7 @@ public partial class testMainClass : BaseTest
             // if not spot, any of the below should be true
             assert(isTrue((isEqual(contract, true))) && isTrue((isTrue(isTrue(isTrue((isEqual(future, true))) || isTrue((isEqual(swap, true)))) || isTrue((isEqual(option, true)))) || isTrue((isEqual(isIndex, true))))), add("for non-spot markets, any of (future/swap/option/index) should be set", logText));
         }
-        object contractSize = exchange.safeString(market, "contractSize");
+        string? contractSize = exchange.safeString(market, "contractSize");
         // contract fields
         if (isTrue(isTrue((isEqual(contract, true))) && !isTrue(isInactiveMarket)))
         {
@@ -233,7 +233,7 @@ public partial class testMainClass : BaseTest
             assert(!isEqual(getValue(market, "expiry"), null), add("\"expiry\" must be defined when \"future\" is true", logText));
             assert(!isEqual(getValue(market, "expiryDatetime"), null), add("\"expiryDatetime\" must be defined when \"future\" is true", logText));
             // expiry datetime should be correct
-            object isoString = exchange.iso8601(getValue(market, "expiry"));
+            string? isoString = exchange.iso8601(getValue(market, "expiry"));
             assert(isEqual(getValue(market, "expiryDatetime"), isoString), add(add(add(add(add("expiryDatetime (\"", getValue(market, "expiryDatetime")), "\") must be equal to expiry in iso8601 format \""), isoString), "\""), logText));
             testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "expiry", "0");
             if (isTrue(isEqual(option, true)))
@@ -259,14 +259,14 @@ public partial class testMainClass : BaseTest
         List<object> precisionKeys = new List<object>(((IDictionary<string,object>)getValue(market, "precision")).Keys);
         int precisionKeysLen = getArrayLength(precisionKeys);
         assert(isGreaterThanOrEqual(precisionKeysLen, 2), add("precision should have \"amount\" and \"price\" keys at least", logText));
-        for (object i = 0; isLessThan(i, getArrayLength(precisionKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(precisionKeys)); postFixIncrement(ref i))
         {
-            object priceOrAmountKey = getValue(precisionKeys, i);
+            string? priceOrAmountKey = ((string)getValue(precisionKeys, i));
             // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
             bool isExclusivePair = isEqual(getValue(market, "baseId"), "BTC");
             bool isNonSpot = !isEqual(spot, true); // such high precision is only allowed in contract markets
             bool isPrice = isEqual(priceOrAmountKey, "price");
-            object isTickSize5 = Precise.stringEq("5", exchange.safeString(getValue(market, "precision"), priceOrAmountKey));
+            bool isTickSize5 = Precise.stringEq("5", exchange.safeString(getValue(market, "precision"), priceOrAmountKey));
             if (isTrue(isTrue(isTrue(isTrue(isNonSpot) && isTrue(isPrice)) && isTrue(isExclusivePair)) && isTrue(isTickSize5)))
             {
                 continue;
@@ -280,9 +280,9 @@ public partial class testMainClass : BaseTest
         List<object> limitsKeys = new List<object>(((IDictionary<string,object>)getValue(market, "limits")).Keys);
         int limitsKeysLength = getArrayLength(limitsKeys);
         assert(isGreaterThanOrEqual(limitsKeysLength, 3), add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText));
-        for (object i = 0; isLessThan(i, getArrayLength(limitsKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(limitsKeys)); postFixIncrement(ref i))
         {
-            object key = getValue(limitsKeys, i);
+            string? key = ((string)getValue(limitsKeys, i));
             object limitEntry = getValue(getValue(market, "limits"), key);
             if (isTrue(isInactiveMarket))
             {
@@ -295,7 +295,7 @@ public partial class testMainClass : BaseTest
                 // max >= 0
                 testSharedMethods.assertGreater(exchange, skippedProperties, method, limitEntry, "max", "0");
                 // max >= min
-                object minString = exchange.safeString(limitEntry, "min");
+                string? minString = exchange.safeString(limitEntry, "min");
                 if (isTrue(!isEqual(minString, null)))
                 {
                     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "max", minString);
@@ -315,7 +315,7 @@ public partial class testMainClass : BaseTest
         // margin modes
         if (!isTrue((inOp(skippedProperties, "marginModes"))))
         {
-            object marginModes = exchange.safeDict(market, "marginModes", new Dictionary<string, object>() {}); // in future, remove safeDict
+            IDictionary<string, object> marginModes = exchange.safeDict(market, "marginModes", new Dictionary<string, object>() {}); // in future, remove safeDict
             assert(inOp(marginModes, "cross"), add("marginModes should have \"cross\" key", logText));
             assert(inOp(marginModes, "isolated"), add("marginModes should have \"isolated\" key", logText));
             testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "cross", new List<object>() {true, false, null});

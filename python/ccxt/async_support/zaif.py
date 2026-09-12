@@ -115,6 +115,9 @@ class zaif(Exchange, ImplicitAPI):
                         'last_price/{pair}': {'cost': 1},
                         'ticker/{pair}': {'cost': 1},
                         'trades/{pair}': {'cost': 1},
+                        'vasp_info/{vasp_master_id}': {'cost': 1},
+                        'country_info/{code}': {'cost': 1},
+                        'corp_type_id_info/{id}': {'cost': 1},
                     },
                 },
                 'private': {
@@ -329,7 +332,7 @@ class zaif(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         }
-        funds = self.safe_value(balances, 'funds', {})
+        funds = self.safe_dict(balances, 'funds', {})
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]

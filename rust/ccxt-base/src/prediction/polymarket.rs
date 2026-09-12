@@ -1081,15 +1081,15 @@ impl PolymarketCore {
         });
         {
                         let mut rei: Value = Value::Int(0);
-            let mut __for_first_1353: bool = true;
-            while { if !__for_first_1353 { rei = add(&rei, &Value::Int(1)); } __for_first_1353 = false; is_less_than(&rei, &get_array_length(&rawEvents)) } {
+            let mut __for_first_1358: bool = true;
+            while { if !__for_first_1358 { rei = add(&rei, &Value::Int(1)); } __for_first_1358 = false; is_less_than(&rei, &get_array_length(&rawEvents)) } {
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut ccxtMarkets: Value = self.parse_event_to_markets(rawEvent.clone());
             {
                                 let mut mi: Value = Value::Int(0);
-                let mut __for_first_1352: bool = true;
-                while { if !__for_first_1352 { mi = add(&mi, &Value::Int(1)); } __for_first_1352 = false; is_less_than(&mi, &get_array_length(&ccxtMarkets)) } {
+                let mut __for_first_1357: bool = true;
+                while { if !__for_first_1357 { mi = add(&mi, &Value::Int(1)); } __for_first_1357 = false; is_less_than(&mi, &get_array_length(&ccxtMarkets)) } {
                 append_to_array(&mut flatMarkets, get_value(&ccxtMarkets, &mi));
             }
             }
@@ -1152,8 +1152,8 @@ impl PolymarketCore {
         let mut rawEvents: Value = Value::List(vec![]);
         {
                         let mut qi: Value = Value::Int(0);
-            let mut __for_first_1360: bool = true;
-            while { if !__for_first_1360 { qi = add(&qi, &Value::Int(1)); } __for_first_1360 = false; is_less_than(&qi, &get_array_length(&queries)) } {
+            let mut __for_first_1365: bool = true;
+            while { if !__for_first_1365 { qi = add(&qi, &Value::Int(1)); } __for_first_1365 = false; is_less_than(&qi, &get_array_length(&queries)) } {
             let mut q: Value = get_value(&queries, &qi);
             let mut q: Value = get_value(&queries, &qi);
             let mut baseRequest: Value = Value::Map({
@@ -1200,16 +1200,16 @@ impl PolymarketCore {
             let mut remainingPages: Value = Value::List(vec![]);
             {
                                 let mut p: Value = Value::Int(2);
-                let mut __for_first_1354: bool = true;
-                while { if !__for_first_1354 { p = add(&p, &Value::Int(1)); } __for_first_1354 = false; is_less_than_or_equal(&p, &totalPages) } {
+                let mut __for_first_1359: bool = true;
+                while { if !__for_first_1359 { p = add(&p, &Value::Int(1)); } __for_first_1359 = false; is_less_than_or_equal(&p, &totalPages) } {
                 append_to_array(&mut remainingPages, p.clone());
             }
             }
             let mut restPromises: Value = Value::List(vec![]);
             {
                                 let mut pi: Value = Value::Int(0);
-                let mut __for_first_1355: bool = true;
-                while { if !__for_first_1355 { pi = add(&pi, &Value::Int(1)); } __for_first_1355 = false; is_less_than(&pi, &get_array_length(&remainingPages)) } {
+                let mut __for_first_1360: bool = true;
+                while { if !__for_first_1360 { pi = add(&pi, &Value::Int(1)); } __for_first_1360 = false; is_less_than(&pi, &get_array_length(&remainingPages)) } {
                 let mut pageRequest: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("page".to_string(), get_value(&remainingPages, &pi));
@@ -1224,20 +1224,20 @@ impl PolymarketCore {
             let mut allEvents: Value = Value::List(vec![]);
             {
                                 let mut fi: Value = Value::Int(0);
-                let mut __for_first_1356: bool = true;
-                while { if !__for_first_1356 { fi = add(&fi, &Value::Int(1)); } __for_first_1356 = false; is_less_than(&fi, &get_array_length(&firstEvents)) } {
+                let mut __for_first_1361: bool = true;
+                while { if !__for_first_1361 { fi = add(&fi, &Value::Int(1)); } __for_first_1361 = false; is_less_than(&fi, &get_array_length(&firstEvents)) } {
                 append_to_array(&mut allEvents, get_value(&firstEvents, &fi));
             }
             }
             {
                                 let mut ri: Value = Value::Int(0);
-                let mut __for_first_1358: bool = true;
-                while { if !__for_first_1358 { ri = add(&ri, &Value::Int(1)); } __for_first_1358 = false; is_less_than(&ri, &get_array_length(&restResponses)) } {
+                let mut __for_first_1363: bool = true;
+                while { if !__for_first_1363 { ri = add(&ri, &Value::Int(1)); } __for_first_1363 = false; is_less_than(&ri, &get_array_length(&restResponses)) } {
                 let mut pageEvents: Value = self.safe_list_k(get_value(&restResponses, &ri), "events", &[Value::List(vec![])]);
                 {
                                         let mut ei: Value = Value::Int(0);
-                    let mut __for_first_1357: bool = true;
-                    while { if !__for_first_1357 { ei = add(&ei, &Value::Int(1)); } __for_first_1357 = false; is_less_than(&ei, &get_array_length(&pageEvents)) } {
+                    let mut __for_first_1362: bool = true;
+                    while { if !__for_first_1362 { ei = add(&ei, &Value::Int(1)); } __for_first_1362 = false; is_less_than(&ei, &get_array_length(&pageEvents)) } {
                     append_to_array(&mut allEvents, get_value(&pageEvents, &ei));
                 }
                 }
@@ -1245,8 +1245,8 @@ impl PolymarketCore {
             }
             {
                                 let mut ei: Value = Value::Int(0);
-                let mut __for_first_1359: bool = true;
-                while { if !__for_first_1359 { ei = add(&ei, &Value::Int(1)); } __for_first_1359 = false; is_less_than(&ei, &get_array_length(&allEvents)) } {
+                let mut __for_first_1364: bool = true;
+                while { if !__for_first_1364 { ei = add(&ei, &Value::Int(1)); } __for_first_1364 = false; is_less_than(&ei, &get_array_length(&allEvents)) } {
                 let mut rawEvent: Value = get_value(&allEvents, &ei);
                 let mut rawEvent: Value = get_value(&allEvents, &ei);
                 let mut eventId: Value = self.safe_string_k(rawEvent.clone(), "id", &[]);
@@ -1276,11 +1276,11 @@ impl PolymarketCore {
         let mut allowed: Value = Value::Str("abcdefghijklmnopqrstuvwxyz0123456789".to_string());
         let mut chars: Value = self.string_to_chars_array(lower.clone());
         let mut slug: Value = Value::Str("".to_string());
-        let mut pendingSep: Value = Value::Bool(false);
+        let mut pendingSep: bool = false;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1361: bool = true;
-            while { if !__for_first_1361 { i = add(&i, &Value::Int(1)); } __for_first_1361 = false; is_less_than(&i, &get_array_length(&chars)) } {
+            let mut __for_first_1366: bool = true;
+            while { if !__for_first_1366 { i = add(&i, &Value::Int(1)); } __for_first_1366 = false; is_less_than(&i, &get_array_length(&chars)) } {
             let mut ch: Value = get_value(&chars, &i);
             let mut ch: Value = get_value(&chars, &i);
             if is_greater_than_or_equal(&get_index_of(&allowed, &ch), &Value::Int(0)) {
@@ -1288,9 +1288,9 @@ impl PolymarketCore {
                     slug = add(&slug, &Value::Str("-".to_string()));
                 }
                 slug = add(&slug, &ch);
-                pendingSep = Value::Bool(false);
+                pendingSep = false;
             }  else {
-                pendingSep = Value::Bool(true);
+                pendingSep = true;
             }
         }
         }
@@ -1356,8 +1356,8 @@ impl PolymarketCore {
             let mut unioned: Value = Value::List(vec![]);
             {
                                 let mut ti: Value = Value::Int(0);
-                let mut __for_first_1363: bool = true;
-                while { if !__for_first_1363 { ti = add(&ti, &Value::Int(1)); } __for_first_1363 = false; is_less_than(&ti, &requestedTagsLength) } {
+                let mut __for_first_1368: bool = true;
+                while { if !__for_first_1368 { ti = add(&ti, &Value::Int(1)); } __for_first_1368 = false; is_less_than(&ti, &requestedTagsLength) } {
                 let mut singleTagParams: Value = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1366,8 +1366,8 @@ impl PolymarketCore {
                 let mut tagEvents: Value = Box::pin(self.fetch_raw_events_list(&[singleTagParams.clone()])).await;
                 {
                                         let mut ei: Value = Value::Int(0);
-                    let mut __for_first_1362: bool = true;
-                    while { if !__for_first_1362 { ei = add(&ei, &Value::Int(1)); } __for_first_1362 = false; is_less_than(&ei, &get_array_length(&tagEvents)) } {
+                    let mut __for_first_1367: bool = true;
+                    while { if !__for_first_1367 { ei = add(&ei, &Value::Int(1)); } __for_first_1367 = false; is_less_than(&ei, &get_array_length(&tagEvents)) } {
                     let mut rawEvent: Value = get_value(&tagEvents, &ei);
                     let mut rawEvent: Value = get_value(&tagEvents, &ei);
                     let mut eventId: Value = self.safe_string_k(rawEvent.clone(), "id", &[]);
@@ -1408,8 +1408,8 @@ impl PolymarketCore {
         let mut allRawEvents: Value = Value::List(vec![]);
         {
                         let mut fi: Value = Value::Int(0);
-            let mut __for_first_1364: bool = true;
-            while { if !__for_first_1364 { fi = add(&fi, &Value::Int(1)); } __for_first_1364 = false; is_less_than(&fi, &firstPageLength) } {
+            let mut __for_first_1369: bool = true;
+            while { if !__for_first_1369 { fi = add(&fi, &Value::Int(1)); } __for_first_1369 = false; is_less_than(&fi, &firstPageLength) } {
             append_to_array(&mut allRawEvents, get_value(&firstPage, &fi));
         }
         }
@@ -1417,16 +1417,16 @@ impl PolymarketCore {
             let mut offsets: Value = Value::List(vec![]);
             {
                                 let mut p: Value = Value::Int(1);
-                let mut __for_first_1365: bool = true;
-                while { if !__for_first_1365 { p = add(&p, &Value::Int(1)); } __for_first_1365 = false; is_less_than(&p, &maxPages) } {
+                let mut __for_first_1370: bool = true;
+                while { if !__for_first_1370 { p = add(&p, &Value::Int(1)); } __for_first_1370 = false; is_less_than(&p, &maxPages) } {
                 append_to_array(&mut offsets, multiply(&p, &pageSize));
             }
             }
             let mut restPromises: Value = Value::List(vec![]);
             {
                                 let mut oi: Value = Value::Int(0);
-                let mut __for_first_1366: bool = true;
-                while { if !__for_first_1366 { oi = add(&oi, &Value::Int(1)); } __for_first_1366 = false; is_less_than(&oi, &get_array_length(&offsets)) } {
+                let mut __for_first_1371: bool = true;
+                while { if !__for_first_1371 { oi = add(&oi, &Value::Int(1)); } __for_first_1371 = false; is_less_than(&oi, &get_array_length(&offsets)) } {
                 let mut pageRequest: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("offset".to_string(), get_value(&offsets, &oi));
@@ -1439,14 +1439,14 @@ impl PolymarketCore {
             let mut restPages: Value = promise_all(&restPromises).await;
             {
                                 let mut ri: Value = Value::Int(0);
-                let mut __for_first_1368: bool = true;
-                while { if !__for_first_1368 { ri = add(&ri, &Value::Int(1)); } __for_first_1368 = false; is_less_than(&ri, &get_array_length(&restPages)) } {
+                let mut __for_first_1373: bool = true;
+                while { if !__for_first_1373 { ri = add(&ri, &Value::Int(1)); } __for_first_1373 = false; is_less_than(&ri, &get_array_length(&restPages)) } {
                 let mut page: Value = ternary(is_true(&(!is_equal(&get_value(&restPages, &ri), &Value::Null))), get_value(&restPages, &ri), Value::List(vec![]));
                 let mut pageLength: Value = get_array_length(&page);
                 {
                                         let mut pi: Value = Value::Int(0);
-                    let mut __for_first_1367: bool = true;
-                    while { if !__for_first_1367 { pi = add(&pi, &Value::Int(1)); } __for_first_1367 = false; is_less_than(&pi, &pageLength) } {
+                    let mut __for_first_1372: bool = true;
+                    while { if !__for_first_1372 { pi = add(&pi, &Value::Int(1)); } __for_first_1372 = false; is_less_than(&pi, &pageLength) } {
                     append_to_array(&mut allRawEvents, get_value(&page, &pi));
                 }
                 }
@@ -1468,8 +1468,8 @@ impl PolymarketCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut mi: Value = Value::Int(0);
-            let mut __for_first_1370: bool = true;
-            while { if !__for_first_1370 { mi = add(&mi, &Value::Int(1)); } __for_first_1370 = false; is_less_than(&mi, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_1375: bool = true;
+            while { if !__for_first_1375 { mi = add(&mi, &Value::Int(1)); } __for_first_1375 = false; is_less_than(&mi, &get_array_length(&rawMarkets)) } {
             let mut market: Value = get_value(&rawMarkets, &mi);
             let mut market: Value = get_value(&rawMarkets, &mi);
             let mut conditionId: Value = self.safe_string_k(market.clone(), "conditionId", &[]);
@@ -1526,8 +1526,8 @@ impl PolymarketCore {
             let mut outcomes: Value = Value::List(vec![]);
             {
                                 let mut oi: Value = Value::Int(0);
-                let mut __for_first_1369: bool = true;
-                while { if !__for_first_1369 { oi = add(&oi, &Value::Int(1)); } __for_first_1369 = false; is_less_than(&oi, &get_array_length(&outcomeLabels)) } {
+                let mut __for_first_1374: bool = true;
+                while { if !__for_first_1374 { oi = add(&oi, &Value::Int(1)); } __for_first_1374 = false; is_less_than(&oi, &get_array_length(&outcomeLabels)) } {
                 let mut outcomeLabel: Value = get_value(&outcomeLabels, &oi);
                 let mut outcomeLabel: Value = get_value(&outcomeLabels, &oi);
                 let mut clobTokenId: Value = get_value(&clobTokenIds, &oi);
@@ -1703,8 +1703,8 @@ impl PolymarketCore {
                 let mut ccxtMarketsLength: Value = get_array_length(&ccxtMarkets);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_1371: bool = true;
-                    while { if !__for_first_1371 { i = add(&i, &Value::Int(1)); } __for_first_1371 = false; is_less_than(&i, &ccxtMarketsLength) } {
+                    let mut __for_first_1376: bool = true;
+                    while { if !__for_first_1376 { i = add(&i, &Value::Int(1)); } __for_first_1376 = false; is_less_than(&i, &ccxtMarketsLength) } {
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     if is_equal(&mkt, &Value::Null) {
@@ -1738,8 +1738,8 @@ impl PolymarketCore {
         let mut tokenIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1372: bool = true;
-            while { if !__for_first_1372 { i = add(&i, &Value::Int(1)); } __for_first_1372 = false; is_less_than(&i, &get_array_length(&outcomeSymbols)) } {
+            let mut __for_first_1377: bool = true;
+            while { if !__for_first_1377 { i = add(&i, &Value::Int(1)); } __for_first_1377 = false; is_less_than(&i, &get_array_length(&outcomeSymbols)) } {
             let mut outcomeSymbol: Value = get_value(&outcomeSymbols, &i);
             let mut outcomeSymbol: Value = get_value(&outcomeSymbols, &i);
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
@@ -1767,8 +1767,8 @@ impl PolymarketCore {
                 let mut chunk: Value = Value::List(vec![]);
                 {
                                         let mut i: Value = startIndex.clone();
-                    let mut __for_first_1373: bool = true;
-                    while { if !__for_first_1373 { i = add(&i, &Value::Int(1)); } __for_first_1373 = false; is_less_than(&i, &endIndex) } {
+                    let mut __for_first_1378: bool = true;
+                    while { if !__for_first_1378 { i = add(&i, &Value::Int(1)); } __for_first_1378 = false; is_less_than(&i, &endIndex) } {
                     append_to_array(&mut chunk, get_value(&tokenIds, &i));
                 }
                 }
@@ -1788,8 +1788,8 @@ impl PolymarketCore {
                 }));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_1374: bool = true;
-                    while { if !__for_first_1374 { i = add(&i, &Value::Int(1)); } __for_first_1374 = false; is_less_than(&i, &get_array_length(&ccxtMarkets)) } {
+                    let mut __for_first_1379: bool = true;
+                    while { if !__for_first_1379 { i = add(&i, &Value::Int(1)); } __for_first_1379 = false; is_less_than(&i, &get_array_length(&ccxtMarkets)) } {
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     if is_equal(&mkt, &Value::Null) {
@@ -1804,8 +1804,8 @@ impl PolymarketCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1375: bool = true;
-            while { if !__for_first_1375 { i = add(&i, &Value::Int(1)); } __for_first_1375 = false; is_less_than(&i, &get_array_length(&outcomeSymbols)) } {
+            let mut __for_first_1380: bool = true;
+            while { if !__for_first_1380 { i = add(&i, &Value::Int(1)); } __for_first_1380 = false; is_less_than(&i, &get_array_length(&outcomeSymbols)) } {
             if !is_true(&self.has_outcome(get_value(&outcomeSymbols, &i))) {
                 self.fetch_outcome(get_value(&outcomeSymbols, &i)).await;
             }
@@ -1888,8 +1888,8 @@ impl PolymarketCore {
         let mut targets: Value = Value::List(vec![]);
         {
                         let mut oi: Value = Value::Int(0);
-            let mut __for_first_1376: bool = true;
-            while { if !__for_first_1376 { oi = add(&oi, &Value::Int(1)); } __for_first_1376 = false; is_less_than(&oi, &get_array_length(&outcomes)) } {
+            let mut __for_first_1381: bool = true;
+            while { if !__for_first_1381 { oi = add(&oi, &Value::Int(1)); } __for_first_1381 = false; is_less_than(&oi, &get_array_length(&outcomes)) } {
             append_to_array(&mut targets, get_value(&outcomes, &oi));
         }
         }
@@ -1900,8 +1900,8 @@ impl PolymarketCore {
         let mut tokenIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1377: bool = true;
-            while { if !__for_first_1377 { i = add(&i, &Value::Int(1)); } __for_first_1377 = false; is_less_than(&i, &get_array_length(&targets)) } {
+            let mut __for_first_1382: bool = true;
+            while { if !__for_first_1382 { i = add(&i, &Value::Int(1)); } __for_first_1382 = false; is_less_than(&i, &get_array_length(&targets)) } {
             let mut outcomeObj: Value = self.outcome(get_value(&targets, &i));
             let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
             if is_true(&(!is_equal(&tokenId, &Value::Null))) && !is_true(&(Value::Bool(in_op(&outcomesByTokenId, &tokenId)))) {
@@ -1925,8 +1925,8 @@ impl PolymarketCore {
             let mut bookParams: Value = Value::List(vec![]);
             {
                                 let mut i: Value = startIndex.clone();
-                let mut __for_first_1378: bool = true;
-                while { if !__for_first_1378 { i = add(&i, &Value::Int(1)); } __for_first_1378 = false; is_less_than(&i, &endIndex) } {
+                let mut __for_first_1383: bool = true;
+                while { if !__for_first_1383 { i = add(&i, &Value::Int(1)); } __for_first_1383 = false; is_less_than(&i, &endIndex) } {
                 append_to_array(&mut bookParams, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("token_id".to_string(), get_value(&tokenIds, &i));
@@ -1950,8 +1950,8 @@ impl PolymarketCore {
             let mut lastTradesLength: Value = get_array_length(&lastTrades);
             {
                                 let mut li: Value = Value::Int(0);
-                let mut __for_first_1379: bool = true;
-                while { if !__for_first_1379 { li = add(&li, &Value::Int(1)); } __for_first_1379 = false; is_less_than(&li, &lastTradesLength) } {
+                let mut __for_first_1384: bool = true;
+                while { if !__for_first_1384 { li = add(&li, &Value::Int(1)); } __for_first_1384 = false; is_less_than(&li, &lastTradesLength) } {
                 let mut lastTradeEntry: Value = get_value(&lastTrades, &li);
                 let mut lastTradeEntry: Value = get_value(&lastTrades, &li);
                 let mut lastTradeTokenId: Value = self.safe_string_k(lastTradeEntry.clone(), "token_id", &[]);
@@ -1963,8 +1963,8 @@ impl PolymarketCore {
             let mut booksLength: Value = get_array_length(&books);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1380: bool = true;
-                while { if !__for_first_1380 { i = add(&i, &Value::Int(1)); } __for_first_1380 = false; is_less_than(&i, &booksLength) } {
+                let mut __for_first_1385: bool = true;
+                while { if !__for_first_1385 { i = add(&i, &Value::Int(1)); } __for_first_1385 = false; is_less_than(&i, &booksLength) } {
                 let mut book: Value = get_value(&books, &i);
                 let mut book: Value = get_value(&books, &i);
                 let mut tokenId: Value = self.safe_string_k(book.clone(), "asset_id", &[]);
@@ -2241,8 +2241,8 @@ impl PolymarketCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1381: bool = true;
-            while { if !__for_first_1381 { i = add(&i, &Value::Int(1)); } __for_first_1381 = false; is_less_than(&i, &get_array_length(&history)) } {
+            let mut __for_first_1386: bool = true;
+            while { if !__for_first_1386 { i = add(&i, &Value::Int(1)); } __for_first_1386 = false; is_less_than(&i, &get_array_length(&history)) } {
             let mut item: Value = get_value(&history, &i);
             let mut item: Value = get_value(&history, &i);
             let mut t: Value = self.safe_integer_k(item.clone(), "t", &[]);
@@ -2279,8 +2279,8 @@ impl PolymarketCore {
         let mut unsortedCandles: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1382: bool = true;
-            while { if !__for_first_1382 { i = add(&i, &Value::Int(1)); } __for_first_1382 = false; is_less_than(&i, &get_array_length(&bucketKeys)) } {
+            let mut __for_first_1387: bool = true;
+            while { if !__for_first_1387 { i = add(&i, &Value::Int(1)); } __for_first_1387 = false; is_less_than(&i, &get_array_length(&bucketKeys)) } {
             append_to_array(&mut unsortedCandles, get_value(&buckets, &get_value(&bucketKeys, &i)));
         }
         }
@@ -2345,7 +2345,7 @@ impl PolymarketCore {
         //
         //     OK
         //
-        let mut ok: Value = Value::Bool(is_true(&(is_equal(&response, &Value::Str("OK".to_string())))) || is_true(&(is_equal(&response, &Value::Str("ok".to_string())))));
+        let mut ok: bool = is_true(&(is_equal(&response, &Value::Str("OK".to_string())))) || is_true(&(is_equal(&response, &Value::Str("ok".to_string()))));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), ternary(is_true(&ok), Value::Str("ok".to_string()), Value::Str("maintenance".to_string())));
@@ -2517,8 +2517,8 @@ impl PolymarketCore {
         let mut filteredTrades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1383: bool = true;
-            while { if !__for_first_1383 { i = add(&i, &Value::Int(1)); } __for_first_1383 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_1388: bool = true;
+            while { if !__for_first_1388 { i = add(&i, &Value::Int(1)); } __for_first_1388 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut trade: Value = get_value(&rawTrades, &i);
             let mut trade: Value = get_value(&rawTrades, &i);
             let mut tradeAsset: Value = self.safe_string_k(trade.clone(), "asset", &[]);
@@ -2595,22 +2595,22 @@ impl PolymarketCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1385: bool = true;
-            while { if !__for_first_1385 { i = add(&i, &Value::Int(1)); } __for_first_1385 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_1390: bool = true;
+            while { if !__for_first_1390 { i = add(&i, &Value::Int(1)); } __for_first_1390 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut info: Value = self.safe_dict_k(trade.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut belongs: Value = Value::Bool(is_true(&(is_equal(&self.safe_string_k(trade.clone(), "order", &[]), &id))) || is_true(&(is_equal(&self.safe_string_k(info.clone(), "taker_order_id", &[]), &id))));
+            let mut belongs: bool = is_true(&(is_equal(&self.safe_string_k(trade.clone(), "order", &[]), &id))) || is_true(&(is_equal(&self.safe_string_k(info.clone(), "taker_order_id", &[]), &id)));
             let mut makerOrders: Value = self.safe_list_k(info.clone(), "maker_orders", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1384: bool = true;
-                while { if !__for_first_1384 { j = add(&j, &Value::Int(1)); } __for_first_1384 = false; is_less_than(&j, &get_array_length(&makerOrders)) } {
+                let mut __for_first_1389: bool = true;
+                while { if !__for_first_1389 { j = add(&j, &Value::Int(1)); } __for_first_1389 = false; is_less_than(&j, &get_array_length(&makerOrders)) } {
                 if is_equal(&self.safe_string_k(get_value(&makerOrders, &j), "order_id", &[]), &id) {
-                    belongs = Value::Bool(true);
+                    belongs = true;
                 }
             }
             }
@@ -2796,8 +2796,8 @@ impl PolymarketCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1386: bool = true;
-            while { if !__for_first_1386 { i = add(&i, &Value::Int(1)); } __for_first_1386 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1391: bool = true;
+            while { if !__for_first_1391 { i = add(&i, &Value::Int(1)); } __for_first_1391 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             add_element_to_object(&mut wantedIds, &get_value(&outcomeObj, &Value::Str("outcomeId".to_string())), Value::Bool(true));
         }
@@ -2805,8 +2805,8 @@ impl PolymarketCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1387: bool = true;
-            while { if !__for_first_1387 { i = add(&i, &Value::Int(1)); } __for_first_1387 = false; is_less_than(&i, &get_array_length(&parsed)) } {
+            let mut __for_first_1392: bool = true;
+            while { if !__for_first_1392 { i = add(&i, &Value::Int(1)); } __for_first_1392 = false; is_less_than(&i, &get_array_length(&parsed)) } {
             let mut position: Value = get_value(&parsed, &i);
             let mut position: Value = get_value(&parsed, &i);
             let mut info: Value = self.safe_dict_k(position.clone(), "info", &[Value::Map({
@@ -3127,8 +3127,8 @@ impl PolymarketCore {
         let mut orderOutcomes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1388: bool = true;
-            while { if !__for_first_1388 { i = add(&i, &Value::Int(1)); } __for_first_1388 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_1393: bool = true;
+            while { if !__for_first_1393 { i = add(&i, &Value::Int(1)); } __for_first_1393 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut o: Value = get_value(&orders, &i);
             let mut o: Value = get_value(&orders, &i);
             let mut __oc: Value = self.safe_string_k(o.clone(), "outcome", &[]);
@@ -3144,8 +3144,8 @@ impl PolymarketCore {
         let mut batchSalt: Value = self.milliseconds();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1389: bool = true;
-            while { if !__for_first_1389 { i = add(&i, &Value::Int(1)); } __for_first_1389 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_1394: bool = true;
+            while { if !__for_first_1394 { i = add(&i, &Value::Int(1)); } __for_first_1394 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut o: Value = get_value(&orders, &i);
             let mut o: Value = get_value(&orders, &i);
             let mut orderParams: Value = self.safe_dict_k(o.clone(), "params", &[Value::Map({
@@ -3181,8 +3181,8 @@ impl PolymarketCore {
         if is_true(&Value::Bool(is_array(&response))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1390: bool = true;
-                while { if !__for_first_1390 { i = add(&i, &Value::Int(1)); } __for_first_1390 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_1395: bool = true;
+                while { if !__for_first_1395 { i = add(&i, &Value::Int(1)); } __for_first_1395 = false; is_less_than(&i, &get_array_length(&response)) } {
                 // request echo first so the response's real orderID/status win on overlap
                 let mut enriched: Value = self.extend(get_value(&requests, &i), &[get_value(&response, &i)]);
                 let mut parsedItem: Value = self.parse_prediction_order(enriched.clone(), &[get_value(&outcomes, &i)]);
@@ -3218,7 +3218,7 @@ impl PolymarketCore {
         let mut outcomeObj: Value = self.outcome(outcome.clone());
         let mut tokenId: Value = get_value(&outcomeObj, &Value::Str("outcomeId".to_string()));
         let mut sideStr: Value = to_upper(&side);
-        let mut isMarket: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
+        let mut isMarket: bool = is_equal(&type_var, &Value::Str("market".to_string()));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
         // native override: params.orderType (GTC, GTD, FOK or FAK)
         let mut orderTypeStr: Value = self.safe_string_upper(params.clone(), Value::Str("orderType".to_string()), &[]);
@@ -3706,8 +3706,8 @@ impl PolymarketCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1391: bool = true;
-            while { if !__for_first_1391 { i = add(&i, &Value::Int(1)); } __for_first_1391 = false; is_less_than(&i, &get_array_length(&canceled)) } {
+            let mut __for_first_1396: bool = true;
+            while { if !__for_first_1396 { i = add(&i, &Value::Int(1)); } __for_first_1396 = false; is_less_than(&i, &get_array_length(&canceled)) } {
             append_to_array(&mut orders, self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(canceled.clone(), i.clone(), &[]));
@@ -3758,8 +3758,8 @@ impl PolymarketCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1392: bool = true;
-            while { if !__for_first_1392 { i = add(&i, &Value::Int(1)); } __for_first_1392 = false; is_less_than(&i, &get_array_length(&canceled)) } {
+            let mut __for_first_1397: bool = true;
+            while { if !__for_first_1397 { i = add(&i, &Value::Int(1)); } __for_first_1397 = false; is_less_than(&i, &get_array_length(&canceled)) } {
             append_to_array(&mut orders, self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(canceled.clone(), i.clone(), &[]));
@@ -3841,8 +3841,8 @@ impl PolymarketCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut rei: Value = Value::Int(0);
-            let mut __for_first_1394: bool = true;
-            while { if !__for_first_1394 { rei = add(&rei, &Value::Int(1)); } __for_first_1394 = false; is_less_than(&rei, &get_array_length(&rawEvents)) } {
+            let mut __for_first_1399: bool = true;
+            while { if !__for_first_1399 { rei = add(&rei, &Value::Int(1)); } __for_first_1399 = false; is_less_than(&rei, &get_array_length(&rawEvents)) } {
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut eventForParsing: Value = rawEvent.clone();
@@ -3873,8 +3873,8 @@ impl PolymarketCore {
             }
             {
                                 let mut mi: Value = Value::Int(0);
-                let mut __for_first_1393: bool = true;
-                while { if !__for_first_1393 { mi = add(&mi, &Value::Int(1)); } __for_first_1393 = false; is_less_than(&mi, &get_array_length(&ccxtMarkets)) } {
+                let mut __for_first_1398: bool = true;
+                while { if !__for_first_1398 { mi = add(&mi, &Value::Int(1)); } __for_first_1398 = false; is_less_than(&mi, &get_array_length(&ccxtMarkets)) } {
                 let mut m: Value = get_value(&ccxtMarkets, &mi);
                 let mut m: Value = get_value(&ccxtMarkets, &mi);
                 if is_equal(&m, &Value::Null) {
@@ -4036,8 +4036,8 @@ impl PolymarketCore {
         let mut parsedTags: Value = Value::List(vec![]);
         {
                         let mut ti: Value = Value::Int(0);
-            let mut __for_first_1395: bool = true;
-            while { if !__for_first_1395 { ti = add(&ti, &Value::Int(1)); } __for_first_1395 = false; is_less_than(&ti, &rawTagsLength) } {
+            let mut __for_first_1400: bool = true;
+            while { if !__for_first_1400 { ti = add(&ti, &Value::Int(1)); } __for_first_1400 = false; is_less_than(&ti, &rawTagsLength) } {
             let mut tagLabel: Value = self.safe_string2(get_value(&rawTags, &ti), Value::Str("label".to_string()), Value::Str("slug".to_string()), &[]);
             if !is_equal(&tagLabel, &Value::Null) {
                 append_to_array(&mut parsedTags, tagLabel.clone());
@@ -4094,8 +4094,8 @@ impl PolymarketCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1396: bool = true;
-            while { if !__for_first_1396 { i = add(&i, &Value::Int(1)); } __for_first_1396 = false; is_less_than(&i, &get_array_length(&rawEvents)) } {
+            let mut __for_first_1401: bool = true;
+            while { if !__for_first_1401 { i = add(&i, &Value::Int(1)); } __for_first_1401 = false; is_less_than(&i, &get_array_length(&rawEvents)) } {
             let mut rawEvent: Value = get_value(&rawEvents, &i);
             let mut rawEvent: Value = get_value(&rawEvents, &i);
             append_to_array(&mut result, self.parse_event(rawEvent.clone()));
@@ -4154,11 +4154,11 @@ impl PolymarketCore {
         let mut url: Value = add(&add(&baseUrl, &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
         // an empty params container must not become a body: in PHP an empty array is
         // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
-        let mut isArrayBody: Value = Value::Bool(false);
+        let mut isArrayBody: bool = false;
         if is_true(&Value::Bool(is_array(&params))) {
             let mut paramsList: Value = params.clone();
             let mut paramsListLength: Value = get_array_length(&paramsList);
-            isArrayBody = Value::Bool(is_greater_than(&paramsListLength, &Value::Int(0)));
+            isArrayBody = is_greater_than(&paramsListLength, &Value::Int(0));
         }
         let mut query: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4171,14 +4171,14 @@ impl PolymarketCore {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
             // encoder capitalizes booleans ("False") under the C# base
-            let mut hasArrayParam: Value = Value::Bool(false);
+            let mut hasArrayParam: bool = false;
             let mut queryKeys: Value = object_keys(&query);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1397: bool = true;
-                while { if !__for_first_1397 { i = add(&i, &Value::Int(1)); } __for_first_1397 = false; is_less_than(&i, &get_array_length(&queryKeys)) } {
+                let mut __for_first_1402: bool = true;
+                while { if !__for_first_1402 { i = add(&i, &Value::Int(1)); } __for_first_1402 = false; is_less_than(&i, &get_array_length(&queryKeys)) } {
                 if is_true(&Value::Bool(is_array(&get_value(&query, &get_value(&queryKeys, &i))))) {
-                    hasArrayParam = Value::Bool(true);
+                    hasArrayParam = true;
                 }
             }
             }
@@ -4211,7 +4211,7 @@ impl PolymarketCore {
             // '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
             // would corrupt the literal to 'auth/derive-$api-key' and break this check
             let mut deriveApiKeyPath: Value = add(&Value::Str("auth/derive-".to_string()), &Value::Str("api-key".to_string()));
-            let mut isL1Auth: Value = Value::Bool(is_true(&(is_equal(&path, &Value::Str("auth/api-key".to_string())))) || is_true(&(is_equal(&path, &deriveApiKeyPath))) || is_true(&(is_equal(&path, &Value::Str("auth/api-keys".to_string())))));
+            let mut isL1Auth: bool = is_true(&(is_equal(&path, &Value::Str("auth/api-key".to_string())))) || is_true(&(is_equal(&path, &deriveApiKeyPath))) || is_true(&(is_equal(&path, &Value::Str("auth/api-keys".to_string()))));
             if is_true(&isL1Auth) {
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if is_equal(&self.privateKey, &Value::Null) {
@@ -4299,8 +4299,8 @@ impl PolymarketCore {
         let mut result: Value = Value::Str("".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1398: bool = true;
-            while { if !__for_first_1398 { i = add(&i, &Value::Int(1)); } __for_first_1398 = false; is_less_than(&i, &get_array_length(&addrChars)) } {
+            let mut __for_first_1403: bool = true;
+            while { if !__for_first_1403 { i = add(&i, &Value::Int(1)); } __for_first_1403 = false; is_less_than(&i, &get_array_length(&addrChars)) } {
             let mut ch: Value = get_value(&addrChars, &i);
             let mut ch: Value = get_value(&addrChars, &i);
             if is_greater_than_or_equal(&get_index_of(&upperNibbles, &get_value(&hashChars, &i)), &Value::Int(0)) {
@@ -4497,7 +4497,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut apiKey: Value = ternary(is_true(&(!is_equal(&self.apiKey, &Value::Null))), self.apiKey.clone(), self.safe_string_k(self.options.clone(), "l2ApiKey", &[]));
         let mut secret: Value = ternary(is_true(&(!is_equal(&self.secret, &Value::Null))), self.secret.clone(), self.safe_string_k(self.options.clone(), "l2Secret", &[]));
         let mut passphrase: Value = ternary(is_true(&(!is_equal(&self.password, &Value::Null))), self.password.clone(), self.safe_string_k(self.options.clone(), "l2Passphrase", &[]));
-        let mut hasL2: Value = Value::Bool(is_true(&(!is_equal(&apiKey, &Value::Null))) && is_true(&(!is_equal(&secret, &Value::Null))) && is_true(&(!is_equal(&passphrase, &Value::Null))));
+        let mut hasL2: bool = is_true(&(!is_equal(&apiKey, &Value::Null))) && is_true(&(!is_equal(&secret, &Value::Null))) && is_true(&(!is_equal(&passphrase, &Value::Null)));
         if is_true(&hasL2) {
             return Value::Null;
         }
@@ -4523,8 +4523,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut events: Value = ternary(is_true(&Value::Bool(is_array(&message))), message.clone(), Value::List(vec![message.clone()]));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1399: bool = true;
-            while { if !__for_first_1399 { i = add(&i, &Value::Int(1)); } __for_first_1399 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut __for_first_1404: bool = true;
+            while { if !__for_first_1404 { i = add(&i, &Value::Int(1)); } __for_first_1404 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             if is_true(&(is_equal(&event, &Value::Null))) || is_true(&(is_equal(&event, &Value::Null))) || is_true(&(!is_object(&event))) {
@@ -4566,8 +4566,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut bids: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1400: bool = true;
-            while { if !__for_first_1400 { i = add(&i, &Value::Int(1)); } __for_first_1400 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
+            let mut __for_first_1405: bool = true;
+            while { if !__for_first_1405 { i = add(&i, &Value::Int(1)); } __for_first_1405 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
             let mut b: Value = get_value(&rawBids, &i);
             let mut b: Value = get_value(&rawBids, &i);
             append_to_array(&mut bids, Value::List(vec![self.safe_number_k(b.clone(), "price", &[]), self.safe_number_k(b.clone(), "size", &[])]));
@@ -4576,8 +4576,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut asks: Value = Value::List(vec![]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1401: bool = true;
-            while { if !__for_first_1401 { j = add(&j, &Value::Int(1)); } __for_first_1401 = false; is_less_than(&j, &get_array_length(&rawAsks)) } {
+            let mut __for_first_1406: bool = true;
+            while { if !__for_first_1406 { j = add(&j, &Value::Int(1)); } __for_first_1406 = false; is_less_than(&j, &get_array_length(&rawAsks)) } {
             let mut a: Value = get_value(&rawAsks, &j);
             let mut a: Value = get_value(&rawAsks, &j);
             append_to_array(&mut asks, Value::List(vec![self.safe_number_k(a.clone(), "price", &[]), self.safe_number_k(a.clone(), "size", &[])]));
@@ -4608,8 +4608,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1402: bool = true;
-            while { if !__for_first_1402 { i = add(&i, &Value::Int(1)); } __for_first_1402 = false; is_less_than(&i, &get_array_length(&changes)) } {
+            let mut __for_first_1407: bool = true;
+            while { if !__for_first_1407 { i = add(&i, &Value::Int(1)); } __for_first_1407 = false; is_less_than(&i, &get_array_length(&changes)) } {
             let mut change: Value = get_value(&changes, &i);
             let mut change: Value = get_value(&changes, &i);
             let mut tokenId: Value = self.safe_string_k(change.clone(), "asset_id", &[]);
@@ -4620,7 +4620,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut orderbook: Value = get_value(&self.orderbooks, &outcome);
             let mut price: Value = self.safe_number_k(change.clone(), "price", &[]);
             let mut size: Value = self.safe_number_k(change.clone(), "size", &[]);
-            let mut isBuy: Value = Value::Bool(is_equal(&self.safe_string_upper(change.clone(), Value::Str("side".to_string()), &[Value::Str("".to_string())]), &Value::Str("BUY".to_string())));
+            let mut isBuy: bool = is_equal(&self.safe_string_upper(change.clone(), Value::Str("side".to_string()), &[Value::Str("".to_string())]), &Value::Str("BUY".to_string()));
             let mut side: Value = ternary(is_true(&isBuy), get_value(&orderbook, &Value::Str("bids".to_string())), get_value(&orderbook, &Value::Str("asks".to_string())));
             // storeArray([price, size]) inserts/updates or removes (size=0) the level
             let mut sideRef: Value = side.clone();
@@ -4633,8 +4633,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut updatedSymbols: Value = object_keys(&updated);
         {
                         let mut k: Value = Value::Int(0);
-            let mut __for_first_1403: bool = true;
-            while { if !__for_first_1403 { k = add(&k, &Value::Int(1)); } __for_first_1403 = false; is_less_than(&k, &get_array_length(&updatedSymbols)) } {
+            let mut __for_first_1408: bool = true;
+            while { if !__for_first_1408 { k = add(&k, &Value::Int(1)); } __for_first_1408 = false; is_less_than(&k, &get_array_length(&updatedSymbols)) } {
             let mut outcome: Value = get_value(&updatedSymbols, &k);
             let mut outcome: Value = get_value(&updatedSymbols, &k);
             let mut orderbook: Value = get_value(&self.orderbooks, &outcome);

@@ -217,6 +217,11 @@ impl WhitebitCore {
         self.call_method(Value::Str("v4_private_post_collateral_account_positions_open".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v4PrivatePostCollateralAccountPositionsClosedPnl` implicit endpoint.
+    pub async fn v4_private_post_collateral_account_positions_closed_pnl(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_collateral_account_positions_closed_pnl".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v4PrivatePostCollateralAccountSummary` implicit endpoint.
     pub async fn v4_private_post_collateral_account_summary(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v4_private_post_collateral_account_summary".to_string()), optional_args).await
@@ -282,6 +287,11 @@ impl WhitebitCore {
         self.call_method(Value::Str("v4_private_post_main_account_withdraw_pay".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v4PrivatePostMainAccountExpressWithdrawToken` implicit endpoint.
+    pub async fn v4_private_post_main_account_express_withdraw_token(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_main_account_express_withdraw_token".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountTransfer` implicit endpoint.
     pub async fn v4_private_post_main_account_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v4_private_post_main_account_transfer".to_string()), optional_args).await
@@ -317,6 +327,46 @@ impl WhitebitCore {
         self.call_method(Value::Str("v4_private_post_main_account_smart_interest_payment_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartFlexPlans` implicit endpoint.
+    pub async fn v4_private_post_main_account_smart_flex_plans(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_main_account_smart_flex_plans".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartFlexInvestments` implicit endpoint.
+    pub async fn v4_private_post_main_account_smart_flex_investments(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_main_account_smart_flex_investments".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartFlexInvestmentsHistory` implicit endpoint.
+    pub async fn v4_private_post_main_account_smart_flex_investments_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_main_account_smart_flex_investments_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory` implicit endpoint.
+    pub async fn v4_private_post_main_account_smart_flex_investments_payment_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_main_account_smart_flex_investments_payment_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartFlexInvestmentsInvest` implicit endpoint.
+    pub async fn v4_private_post_main_account_smart_flex_investments_invest(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_main_account_smart_flex_investments_invest".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw` implicit endpoint.
+    pub async fn v4_private_post_main_account_smart_flex_investments_withdraw(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_main_account_smart_flex_investments_withdraw".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartFlexInvestmentsClose` implicit endpoint.
+    pub async fn v4_private_post_main_account_smart_flex_investments_close(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_main_account_smart_flex_investments_close".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest` implicit endpoint.
+    pub async fn v4_private_post_main_account_smart_flex_investments_auto_invest(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_main_account_smart_flex_investments_auto_invest".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v4PrivatePostTradeAccountBalance` implicit endpoint.
     pub async fn v4_private_post_trade_account_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v4_private_post_trade_account_balance".to_string()), optional_args).await
@@ -330,6 +380,11 @@ impl WhitebitCore {
     /// Auto-generated wrapper for the `v4PrivatePostTradeAccountOrderHistory` implicit endpoint.
     pub async fn v4_private_post_trade_account_order_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v4_private_post_trade_account_order_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostTradeAccountOrderHistoryQuery` implicit endpoint.
+    pub async fn v4_private_post_trade_account_order_history_query(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_trade_account_order_history_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostTradeAccountOrder` implicit endpoint.
@@ -395,6 +450,11 @@ impl WhitebitCore {
     /// Auto-generated wrapper for the `v4PrivatePostOrderCancelAll` implicit endpoint.
     pub async fn v4_private_post_order_cancel_all(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v4_private_post_order_cancel_all".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostOrderCancelBulk` implicit endpoint.
+    pub async fn v4_private_post_order_cancel_bulk(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_order_cancel_bulk".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderKillSwitch` implicit endpoint.
@@ -557,14 +617,84 @@ impl WhitebitCore {
         self.call_method(Value::Str("v4_private_post_mining_rewards".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v4PrivatePostMiningHashrate` implicit endpoint.
+    pub async fn v4_private_post_mining_hashrate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_mining_hashrate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMiningPayoutDestination` implicit endpoint.
+    pub async fn v4_private_post_mining_payout_destination(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_mining_payout_destination".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMiningPayoutDestinationEdit` implicit endpoint.
+    pub async fn v4_private_post_mining_payout_destination_edit(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_mining_payout_destination_edit".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMiningMinersInfo` implicit endpoint.
+    pub async fn v4_private_post_mining_miners_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_mining_miners_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMiningWorkersNames` implicit endpoint.
+    pub async fn v4_private_post_mining_workers_names(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_mining_workers_names".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMiningWorkersHashrate` implicit endpoint.
+    pub async fn v4_private_post_mining_workers_hashrate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_mining_workers_hashrate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMiningWatcherLinksCreate` implicit endpoint.
+    pub async fn v4_private_post_mining_watcher_links_create(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_mining_watcher_links_create".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMiningWatcherLinksList` implicit endpoint.
+    pub async fn v4_private_post_mining_watcher_links_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_mining_watcher_links_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMiningAccountsCreate` implicit endpoint.
+    pub async fn v4_private_post_mining_accounts_create(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_mining_accounts_create".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostMiningAccounts` implicit endpoint.
+    pub async fn v4_private_post_mining_accounts(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_mining_accounts".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v4PrivatePostMarketFee` implicit endpoint.
     pub async fn v4_private_post_market_fee(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v4_private_post_market_fee".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v4PrivatePostMarketFeeSingle` implicit endpoint.
+    pub async fn v4_private_post_market_fee_single(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_market_fee_single".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v4PrivatePostConditionalOrders` implicit endpoint.
     pub async fn v4_private_post_conditional_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v4_private_post_conditional_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostTravelRuleVasps` implicit endpoint.
+    pub async fn v4_private_post_travel_rule_vasps(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_travel_rule_vasps".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostTravelRuleDepositVerification` implicit endpoint.
+    pub async fn v4_private_post_travel_rule_deposit_verification(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_travel_rule_deposit_verification".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostJwt` implicit endpoint.
+    pub async fn v4_private_post_jwt(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_jwt".to_string()), optional_args).await
     }
 
 }

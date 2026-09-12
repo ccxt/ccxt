@@ -105,9 +105,22 @@ export default class grvt extends Exchange {
             'api': {
                 // RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge': {
+                    'get': {
+                        'api/v1/deposit/addresses': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'api/v1/bridge/withdrawal-info': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'api/v1/bridge/withdrawal-status': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'api/v1/referral/epochs': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'api/v1/referral/points': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'api/v1/referral/data': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'api/v1/referral/indirect_data': { 'cost': rlOthers } as Endpoint<Dict>,
+                    },
                     'post': {
                         'auth/api_key/login': { 'cost': 100 } as Endpoint<Dict>,
                         'auth/wallet/login': { 'cost': 100 } as Endpoint<Dict>,
+                        'auth/builder/authorize': { 'cost': 100 } as Endpoint<Dict>,
+                        'api/v1/deposit/generate-address': { 'cost': 100 } as Endpoint<Dict>,
+                        'api/v1/bridge/withdrawal-quote': { 'cost': 100 } as Endpoint<Dict>,
+                        'api/v1/bridge/withdraw': { 'cost': 100 } as Endpoint<Dict>,
                     },
                 },
                 'publicMarket': {
@@ -124,6 +137,8 @@ export default class grvt extends Exchange {
                         'full/v1/trade_history': { 'cost': 12 } as Endpoint<Dict>,
                         'full/v1/kline': { 'cost': 12 } as Endpoint<Dict>,
                         'full/v1/funding': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/supported_assets': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/get_all_collateral_asset_info': { 'cost': 12 } as Endpoint<Dict>,
                     },
                 },
                 'privateTrading': {
@@ -164,6 +179,16 @@ export default class grvt extends Exchange {
                         'full/v1/authorize_builder': { 'cost': rlOthers } as Endpoint<Dict>, // https://pastebin(dot)com/0Mb8cFhN
                         'full/v1/get_authorized_builders': { 'cost': rlOthers } as Endpoint<Dict>,
                         'full/v1/builder_fill_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/create_rfq': { 'cost': 5 } as Endpoint<Dict>,
+                        'full/v1/cancel_rfq': { 'cost': 5 } as Endpoint<Dict>,
+                        'full/v1/ecn_from_broker': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v2/bulk_orders': { 'cost': 50 } as Endpoint<Dict>,
+                        'full/v1/position_history': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/interest_payment_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/get_collateral_preference': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/spot_account_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/set_indicative_prices': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/withdrawal_fee': { 'cost': 100 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -472,7 +497,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    usesPrivateKey () {
+    usesPrivateKey (): boolean {
         const privateKeyDefined = this.privateKey !== undefined && this.privateKey !== '';
         const apiKeyDefined = this.apiKey !== undefined && this.apiKey !== '';
         if (privateKeyDefined && apiKeyDefined) {

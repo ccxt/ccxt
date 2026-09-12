@@ -22,6 +22,18 @@ abstract class krakenfutures extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function public_get_instruments_status($params = array()) {
+        return $this->request('instruments/status', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_instruments_symbol_status($params = array()) {
+        return $this->request('instruments/{symbol}/status', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_orderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -30,6 +42,12 @@ abstract class krakenfutures extends \ccxt\Exchange {
      */
     public function public_get_tickers($params = array()) {
         return $this->request('tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_tickers_symbol($params = array()) {
+        return $this->request('tickers/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -124,6 +142,36 @@ abstract class krakenfutures extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_unwindqueue($params = array()) {
+        return $this->request('unwindqueue', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_self_trade_strategy($params = array()) {
+        return $this->request('self-trade-strategy', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_subaccounts($params = array()) {
+        return $this->request('subaccounts', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_subaccount_uid_trading_enabled($params = array()) {
+        return $this->request('subaccount/{uid}/trading-enabled', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_rfq_assignment_max_leverage($params = array()) {
+        return $this->request('rfq-assignment/max-leverage', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_sendorder($params = array()) {
         return $this->request('sendorder', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -144,6 +192,12 @@ abstract class krakenfutures extends \ccxt\Exchange {
      */
     public function private_post_transfer($params = array()) {
         return $this->request('transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_transfer_subaccount($params = array()) {
+        return $this->request('transfer/subaccount', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -196,8 +250,38 @@ abstract class krakenfutures extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_put_self_trade_strategy($params = array()) {
+        return $this->request('self-trade-strategy', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_put_subaccount_uid_trading_enabled($params = array()) {
+        return $this->request('subaccount/{uid}/trading-enabled', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_put_rfq_assignment_max_leverage($params = array()) {
+        return $this->request('rfq-assignment/max-leverage', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_delete_rfq_assignment_max_leverage($params = array()) {
+        return $this->request('rfq-assignment/max-leverage', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function charts_get_price_type_symbol_interval($params = array()) {
         return $this->request('{price_type}/{symbol}/{interval}', 'charts', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function charts_get_analytics_liquidity_pool($params = array()) {
+        return $this->request('analytics/liquidity-pool', 'charts', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -244,6 +328,18 @@ abstract class krakenfutures extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function history_get_market_symbol_price($params = array()) {
+        return $this->request('market/{symbol}/price', 'history', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function history_get_positions($params = array()) {
+        return $this->request('positions', 'history', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetFeeschedules($params = array()) {
         return $this->request('feeschedules', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -256,6 +352,18 @@ abstract class krakenfutures extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function publicGetInstrumentsStatus($params = array()) {
+        return $this->request('instruments/status', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetInstrumentsSymbolStatus($params = array()) {
+        return $this->request('instruments/{symbol}/status', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetOrderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -264,6 +372,12 @@ abstract class krakenfutures extends \ccxt\Exchange {
      */
     public function publicGetTickers($params = array()) {
         return $this->request('tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetTickersSymbol($params = array()) {
+        return $this->request('tickers/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -358,6 +472,36 @@ abstract class krakenfutures extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetUnwindqueue($params = array()) {
+        return $this->request('unwindqueue', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetSelfTradeStrategy($params = array()) {
+        return $this->request('self-trade-strategy', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetSubaccounts($params = array()) {
+        return $this->request('subaccounts', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetSubaccountUidTradingEnabled($params = array()) {
+        return $this->request('subaccount/{uid}/trading-enabled', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetRfqAssignmentMaxLeverage($params = array()) {
+        return $this->request('rfq-assignment/max-leverage', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostSendorder($params = array()) {
         return $this->request('sendorder', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -378,6 +522,12 @@ abstract class krakenfutures extends \ccxt\Exchange {
      */
     public function privatePostTransfer($params = array()) {
         return $this->request('transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostTransferSubaccount($params = array()) {
+        return $this->request('transfer/subaccount', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -430,8 +580,38 @@ abstract class krakenfutures extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privatePutSelfTradeStrategy($params = array()) {
+        return $this->request('self-trade-strategy', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePutSubaccountUidTradingEnabled($params = array()) {
+        return $this->request('subaccount/{uid}/trading-enabled', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePutRfqAssignmentMaxLeverage($params = array()) {
+        return $this->request('rfq-assignment/max-leverage', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateDeleteRfqAssignmentMaxLeverage($params = array()) {
+        return $this->request('rfq-assignment/max-leverage', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function chartsGetPriceTypeSymbolInterval($params = array()) {
         return $this->request('{price_type}/{symbol}/{interval}', 'charts', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function chartsGetAnalyticsLiquidityPool($params = array()) {
+        return $this->request('analytics/liquidity-pool', 'charts', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -474,5 +654,17 @@ abstract class krakenfutures extends \ccxt\Exchange {
      */
     public function historyGetMarketSymbolExecutions($params = array()) {
         return $this->request('market/{symbol}/executions', 'history', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function historyGetMarketSymbolPrice($params = array()) {
+        return $this->request('market/{symbol}/price', 'history', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function historyGetPositions($params = array()) {
+        return $this->request('positions', 'history', 'GET', $params, null, null, array("cost" => 1));
     }
 }

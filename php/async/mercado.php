@@ -136,6 +136,7 @@ class mercado extends Exchange {
                     'private' => 'https://www.mercadobitcoin.net/tapi',
                     'v4Public' => 'https://www.mercadobitcoin.com.br/v4',
                     'v4PublicNet' => 'https://api.mercadobitcoin.net/api/v4',
+                    'v4Private' => 'https://api.mercadobitcoin.net/api/v4',
                 ),
                 'www' => 'https://www.mercadobitcoin.com.br',
                 'doc' => array(
@@ -179,6 +180,16 @@ class mercado extends Exchange {
                 'v4PublicNet' => array(
                     'get' => array(
                         'candles' => array( 'cost' => 1 ),
+                    ),
+                ),
+                'v4Private' => array(
+                    'post' => array(
+                        'accounts' => array( 'cost' => 1 ),
+                        'accounts/{accountId}/{symbol}/transfers/internal' => array( 'cost' => 1 ),
+                        'oauth2/token' => array( 'cost' => 1 ),
+                    ),
+                    'patch' => array(
+                        'accounts/{accountId}/wallet/{symbol}/deposits/{depositId}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -538,7 +549,7 @@ class mercado extends Exchange {
 
     public function parse_balance(mixed $response): array {
         $data = $this->safe_value($response, 'response_data', array());
-        $balances = $this->safe_value($data, 'balance', array());
+        $balances = $this->safe_dict($data, 'balance', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
@@ -922,7 +933,7 @@ class mercado extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -933,7 +944,7 @@ class mercado extends Exchange {
             'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom $symbol syntax
         );
         if ($limit === null) {
-            $limit = 100; // set some default $limit,'s required if user doesn't provide it
+            $limit = 100; // set some default $limit, as it's required if user doesn't provide it
         }
         if ($since !== null) {
             $request['from'] = $this->parse_to_int($since / 1000);
@@ -1042,7 +1053,7 @@ class mercado extends Exchange {
     public function orders_to_trades(mixed $orders) {
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $trades = $this->safe_value($orders[$i], 'trades', array());
+            $trades = $this->safe_list($orders[$i], 'trades', array());
             for ($y = 0; $y < count($trades); $y++) {
                 $result[] = $trades[$y];
             }

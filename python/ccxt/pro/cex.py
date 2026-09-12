@@ -105,7 +105,7 @@ class cex(ccxt.async_support.cex):
         #     }
         #
         data = self.safe_value(message, 'data', {})
-        freeBalance = self.safe_value(data, 'balance', {})
+        freeBalance = self.safe_dict(data, 'balance', {})
         usedBalance = self.safe_value(data, 'obalance', {})
         result = {
             'info': data,
@@ -876,8 +876,8 @@ class cex(ccxt.async_support.cex):
         #         "ok": "ok"
         #     }
         #
-        symbol = self.safe_string(message, 'oid')  # symbol is set in watchOrders
-        rawOrders = self.safe_value(message, 'data', [])
+        symbol = self.safe_string(message, 'oid')  # symbol is set as requestId in watchOrders
+        rawOrders = self.safe_list(message, 'data', [])
         myOrders = self.orders
         if myOrders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -1031,7 +1031,7 @@ class cex(ccxt.async_support.cex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1143,7 +1143,7 @@ class cex(ccxt.async_support.cex):
         #         "pair": "BTC:USD"
         #     }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         pair = self.safe_string(message, 'pair')
         symbol = self.pair_to_symbol(pair)
         messageHash = 'ohlcv:' + symbol

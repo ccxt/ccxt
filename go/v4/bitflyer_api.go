@@ -8,176 +8,181 @@
 package ccxt
 
 // PublicGetGetmarketsUsa returns a channel that yields a JSON array.
-func (this *BitflyerCore) PublicGetGetmarketsUsa(args ...any) <-chan any {
+func (this *Bitflyer) PublicGetGetmarketsUsa(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetmarketsUsa", args...)
 }
 
 // PublicGetGetmarketsEu returns a channel that yields a JSON array.
-func (this *BitflyerCore) PublicGetGetmarketsEu(args ...any) <-chan any {
+func (this *Bitflyer) PublicGetGetmarketsEu(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetmarketsEu", args...)
 }
 
 // PublicGetGetmarkets returns a channel that yields a JSON array.
-func (this *BitflyerCore) PublicGetGetmarkets(args ...any) <-chan any {
+func (this *Bitflyer) PublicGetGetmarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetmarkets", args...)
 }
 
 // PublicGetGetboard returns a channel that yields a JSON object.
-func (this *BitflyerCore) PublicGetGetboard(args ...any) <-chan any {
+func (this *Bitflyer) PublicGetGetboard(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetboard", args...)
 }
 
 // PublicGetGetticker returns a channel that yields a JSON object.
-func (this *BitflyerCore) PublicGetGetticker(args ...any) <-chan any {
+func (this *Bitflyer) PublicGetGetticker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetticker", args...)
 }
 
 // PublicGetGetexecutions returns a channel that yields a JSON array.
-func (this *BitflyerCore) PublicGetGetexecutions(args ...any) <-chan any {
+func (this *Bitflyer) PublicGetGetexecutions(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetexecutions", args...)
 }
 
 // PublicGetGethealth returns a channel that yields a JSON object.
-func (this *BitflyerCore) PublicGetGethealth(args ...any) <-chan any {
+func (this *Bitflyer) PublicGetGethealth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGethealth", args...)
 }
 
 // PublicGetGetboardstate returns a channel that yields a JSON object.
-func (this *BitflyerCore) PublicGetGetboardstate(args ...any) <-chan any {
+func (this *Bitflyer) PublicGetGetboardstate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetboardstate", args...)
 }
 
 // PublicGetGetchats returns a channel that yields a JSON array.
-func (this *BitflyerCore) PublicGetGetchats(args ...any) <-chan any {
+func (this *Bitflyer) PublicGetGetchats(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetchats", args...)
 }
 
 // PublicGetGetfundingrate returns a channel that yields a JSON object.
-func (this *BitflyerCore) PublicGetGetfundingrate(args ...any) <-chan any {
+func (this *Bitflyer) PublicGetGetfundingrate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetfundingrate", args...)
 }
 
+// PublicGetGetfundingratehistory returns a channel that yields a JSON array.
+func (this *Bitflyer) PublicGetGetfundingratehistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetfundingratehistory", args...)
+}
+
 // PrivateGetGetpermissions returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetpermissions(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetpermissions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetpermissions", args...)
 }
 
 // PrivateGetGetbalance returns a channel that yields a JSON object.
-func (this *BitflyerCore) PrivateGetGetbalance(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetbalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetbalance", args...)
 }
 
 // PrivateGetGetbalancehistory returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetbalancehistory(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetbalancehistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetbalancehistory", args...)
 }
 
 // PrivateGetGetcollateral returns a channel that yields a JSON object.
-func (this *BitflyerCore) PrivateGetGetcollateral(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetcollateral(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetcollateral", args...)
 }
 
 // PrivateGetGetcollateralhistory returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetcollateralhistory(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetcollateralhistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetcollateralhistory", args...)
 }
 
 // PrivateGetGetcollateralaccounts returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetcollateralaccounts(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetcollateralaccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetcollateralaccounts", args...)
 }
 
 // PrivateGetGetaddresses returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetaddresses(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetaddresses(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetaddresses", args...)
 }
 
 // PrivateGetGetcoinins returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetcoinins(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetcoinins(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetcoinins", args...)
 }
 
 // PrivateGetGetcoinouts returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetcoinouts(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetcoinouts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetcoinouts", args...)
 }
 
 // PrivateGetGetbankaccounts returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetbankaccounts(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetbankaccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetbankaccounts", args...)
 }
 
 // PrivateGetGetdeposits returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetdeposits(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetdeposits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetdeposits", args...)
 }
 
 // PrivateGetGetwithdrawals returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetwithdrawals(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetwithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetwithdrawals", args...)
 }
 
 // PrivateGetGetchildorders returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetchildorders(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetchildorders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetchildorders", args...)
 }
 
 // PrivateGetGetparentorders returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetparentorders(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetparentorders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetparentorders", args...)
 }
 
 // PrivateGetGetparentorder returns a channel that yields a JSON object.
-func (this *BitflyerCore) PrivateGetGetparentorder(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetparentorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetparentorder", args...)
 }
 
 // PrivateGetGetexecutions returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetexecutions(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetexecutions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetexecutions", args...)
 }
 
 // PrivateGetGetpositions returns a channel that yields a JSON array.
-func (this *BitflyerCore) PrivateGetGetpositions(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGetpositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetpositions", args...)
 }
 
 // PrivateGetGettradingcommission returns a channel that yields a JSON object.
-func (this *BitflyerCore) PrivateGetGettradingcommission(args ...any) <-chan any {
+func (this *Bitflyer) PrivateGetGettradingcommission(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGettradingcommission", args...)
 }
 
 // PrivatePostSendcoin returns a channel that yields a JSON object.
-func (this *BitflyerCore) PrivatePostSendcoin(args ...any) <-chan any {
+func (this *Bitflyer) PrivatePostSendcoin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSendcoin", args...)
 }
 
 // PrivatePostWithdraw returns a channel that yields a JSON object.
-func (this *BitflyerCore) PrivatePostWithdraw(args ...any) <-chan any {
+func (this *Bitflyer) PrivatePostWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdraw", args...)
 }
 
 // PrivatePostSendchildorder returns a channel that yields a JSON object.
-func (this *BitflyerCore) PrivatePostSendchildorder(args ...any) <-chan any {
+func (this *Bitflyer) PrivatePostSendchildorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSendchildorder", args...)
 }
 
 // PrivatePostCancelchildorder returns a channel that yields a JSON object.
-func (this *BitflyerCore) PrivatePostCancelchildorder(args ...any) <-chan any {
+func (this *Bitflyer) PrivatePostCancelchildorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelchildorder", args...)
 }
 
 // PrivatePostSendparentorder returns a channel that yields a JSON object.
-func (this *BitflyerCore) PrivatePostSendparentorder(args ...any) <-chan any {
+func (this *Bitflyer) PrivatePostSendparentorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSendparentorder", args...)
 }
 
 // PrivatePostCancelparentorder returns a channel that yields a JSON object.
-func (this *BitflyerCore) PrivatePostCancelparentorder(args ...any) <-chan any {
+func (this *Bitflyer) PrivatePostCancelparentorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelparentorder", args...)
 }
 
 // PrivatePostCancelallchildorders returns a channel that yields a JSON object.
-func (this *BitflyerCore) PrivatePostCancelallchildorders(args ...any) <-chan any {
+func (this *Bitflyer) PrivatePostCancelallchildorders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelallchildorders", args...)
 }

@@ -125,7 +125,7 @@ class blofin(ccxt.async_support.blofin):
         #         instId: "DOGE-USDT",
         #       },
         #       data : [
-        #         <same object in REST example>,
+        #         <same object as shown in REST example>,
         #         ...
         #       ]
         #     }
@@ -277,7 +277,7 @@ class blofin(ccxt.async_support.blofin):
         #             instId: "DOGE-USDT",
         #         },
         #         data: [
-        #             <same object in REST example>
+        #             <same object as shown in REST example>
         #         ],
         #     }
         #
@@ -364,7 +364,7 @@ class blofin(ccxt.async_support.blofin):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
@@ -380,7 +380,7 @@ class blofin(ccxt.async_support.blofin):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
@@ -403,7 +403,7 @@ class blofin(ccxt.async_support.blofin):
         #             instId: "DOGE-USDT",
         #         },
         #         data: [
-        #             [same object in REST example]
+        #             [same object as shown in REST example]
         #         ],
         #     }
         #
@@ -459,7 +459,7 @@ class blofin(ccxt.async_support.blofin):
         #         arg: {
         #           channel: "account",
         #         },
-        #         data: <same object in REST example>,
+        #         data: <same object as shown in REST example>,
         #     }
         #
         marketType = 'swap'  # for now
@@ -523,7 +523,7 @@ class blofin(ccxt.async_support.blofin):
         #         action: 'update',
         #         arg: {channel: 'orders'},
         #         data: [
-        #           <same object in REST example>
+        #           <same object as shown in REST example>
         #         ]
         #     }
         #
@@ -570,7 +570,7 @@ class blofin(ccxt.async_support.blofin):
         #     {
         #         arg: {channel: 'positions'},
         #         data: [
-        #           <same object in REST example>
+        #           <same object as shown in REST example>
         #         ]
         #     }
         #

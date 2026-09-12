@@ -97,6 +97,28 @@ public class FoxbitApi extends Exchange
     }
 
     /**
+     * Calls the v3PublicGetMarketsSparklineWindow endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetMarketsSparklineWindow (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PublicGetMarketsSparklineWindow", optionalArgs);
+    }
+
+    /**
+     * Calls the v3PublicGetTravelRuleOperationReasons endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetTravelRuleOperationReasons (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PublicGetTravelRuleOperationReasons", optionalArgs);
+    }
+
+    /**
      * Calls the v3PrivateGetAccounts endpoint.
      *
      * @param optionalArgs the request parameters
@@ -196,6 +218,17 @@ public class FoxbitApi extends Exchange
     }
 
     /**
+     * Calls the v3PrivateGetPrimeDeskExecutionsQuoteId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetPrimeDeskExecutionsQuoteId (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PrivateGetPrimeDeskExecutionsQuoteId", optionalArgs);
+    }
+
+    /**
      * Calls the v3PrivatePostOrders endpoint.
      *
      * @param optionalArgs the request parameters
@@ -237,6 +270,17 @@ public class FoxbitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostWithdrawals", optionalArgs);
+    }
+
+    /**
+     * Calls the v3PrivatePostDepositsDepositSnTravelRule endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostDepositsDepositSnTravelRule (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PrivatePostDepositsDepositSnTravelRule", optionalArgs);
     }
 
     /**

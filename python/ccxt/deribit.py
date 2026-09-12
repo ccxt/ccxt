@@ -170,16 +170,19 @@ class deribit(Exchange, ImplicitAPI):
                         # Account management
                         'get_announcements': {'cost': 1},
                         # Market data
+                        'get_apr_history': {'cost': 1},
                         'get_book_summary_by_currency': {'cost': 1},
                         'get_book_summary_by_instrument': {'cost': 1},
                         'get_contract_size': {'cost': 1},
                         'get_currencies': {'cost': 1},
                         'get_delivery_prices': {'cost': 1},
+                        'get_expirations': {'cost': 1},
                         'get_funding_chart_data': {'cost': 1},
                         'get_funding_rate_history': {'cost': 1},
                         'get_funding_rate_value': {'cost': 1},
                         'get_historical_volatility': {'cost': 1},
                         'get_index': {'cost': 1},
+                        'get_index_chart_data': {'cost': 1},
                         'get_index_price': {'cost': 1},
                         'get_index_price_names': {'cost': 1},
                         'get_instrument': {'cost': 1},
@@ -192,6 +195,7 @@ class deribit(Exchange, ImplicitAPI):
                         'get_last_trades_by_instrument_and_time': {'cost': 1},
                         'get_mark_price_history': {'cost': 1},
                         'get_order_book': {'cost': 1},
+                        'get_supported_index_names': {'cost': 1},
                         'get_trade_volumes': {'cost': 1},
                         'get_tradingview_chart_data': {'cost': 1},
                         'get_volatility_index_data': {'cost': 1},
@@ -224,6 +228,7 @@ class deribit(Exchange, ImplicitAPI):
                         'get_account_summary': {'cost': 1},
                         'get_account_summaries': {'cost': 1},
                         'get_affiliate_program_info': {'cost': 1},
+                        'get_currencies': {'cost': 1},
                         'get_email_language': {'cost': 1},
                         'get_new_announcements': {'cost': 1},
                         'get_portfolio_margins': {'cost': 1},
@@ -238,16 +243,23 @@ class deribit(Exchange, ImplicitAPI):
                         'reset_api_key': {'cost': 1},
                         'set_announcement_as_read': {'cost': 1},
                         'set_api_key_as_default': {'cost': 1},
+                        'set_disabled_trading_products': {'cost': 1},
                         'set_email_for_subaccount': {'cost': 1},
                         'set_email_language': {'cost': 1},
                         'set_password_for_subaccount': {'cost': 1},
+                        'simulate_portfolio': {'cost': 1},
                         'toggle_notifications_from_subaccount': {'cost': 1},
                         'toggle_subaccount_login': {'cost': 1},
                         # Block Trade
+                        'approve_block_trade': {'cost': 1},
                         'execute_block_trade': {'cost': 4},
                         'get_block_trade': {'cost': 1},
+                        'get_block_trade_requests': {'cost': 1},
+                        'get_block_trades': {'cost': 1},
                         'get_last_block_trades_by_currency': {'cost': 1},
                         'invalidate_block_trade_signature': {'cost': 1},
+                        'reject_block_trade': {'cost': 1},
+                        'simulate_block_trade': {'cost': 4},
                         'verify_block_trade': {'cost': 4},
                         # Trading
                         'buy': {'cost': 4},
@@ -259,15 +271,20 @@ class deribit(Exchange, ImplicitAPI):
                         'cancel_all_by_currency': {'cost': 4},
                         'cancel_all_by_instrument': {'cost': 4},
                         'cancel_by_label': {'cost': 4},
+                        'cancel_quotes': {'cost': 4},
                         'close_position': {'cost': 4},
                         'get_margins': {'cost': 1},
                         'get_mmp_config': {'cost': 1},
+                        'get_mmp_status': {'cost': 1},
+                        'get_open_orders': {'cost': 1},
                         'get_open_orders_by_currency': {'cost': 1},
                         'get_open_orders_by_instrument': {'cost': 1},
+                        'get_open_orders_by_label': {'cost': 1},
                         'get_order_history_by_currency': {'cost': 1},
                         'get_order_history_by_instrument': {'cost': 1},
                         'get_order_margin_by_ids': {'cost': 1},
                         'get_order_state': {'cost': 1},
+                        'get_order_state_by_label': {'cost': 1},
                         'get_stop_order_history': {'cost': 1},  # deprecated
                         'get_trigger_order_history': {'cost': 1},
                         'get_user_trades_by_currency': {'cost': 1},
@@ -275,20 +292,28 @@ class deribit(Exchange, ImplicitAPI):
                         'get_user_trades_by_instrument': {'cost': 1},
                         'get_user_trades_by_instrument_and_time': {'cost': 1},
                         'get_user_trades_by_order': {'cost': 1},
+                        'mass_quote': {'cost': 4},
+                        'move_positions': {'cost': 4},
                         'reset_mmp': {'cost': 1},
                         'set_mmp_config': {'cost': 1},
                         'get_settlement_history_by_instrument': {'cost': 1},
                         'get_settlement_history_by_currency': {'cost': 1},
                         # Wallet
+                        'add_to_address_book': {'cost': 1},
                         'cancel_transfer_by_id': {'cost': 1},
                         'cancel_withdrawal': {'cost': 1},
                         'create_deposit_address': {'cost': 1},
+                        'get_address_book': {'cost': 1},
                         'get_current_deposit_address': {'cost': 1},
                         'get_deposits': {'cost': 1},
+                        'get_reward_eligibility': {'cost': 1},
                         'get_transfers': {'cost': 1},
                         'get_withdrawals': {'cost': 1},
+                        'remove_from_address_book': {'cost': 1},
+                        'set_clearance_originator': {'cost': 1},
                         'submit_transfer_to_subaccount': {'cost': 1},
                         'submit_transfer_to_user': {'cost': 1},
+                        'update_in_address_book': {'cost': 1},
                         'withdraw': {'cost': 1},
                     },
                 },
@@ -404,16 +429,16 @@ class deribit(Exchange, ImplicitAPI):
                 '10019': PermissionDenied,  # 'locked_by_admin' Trading is temporary locked by admin.
                 '10020': ExchangeError,  # 'invalid_or_unsupported_instrument' Instrument name is not valid.
                 '10021': InvalidOrder,  # 'invalid_amount' Amount is not valid.
-                '10022': InvalidOrder,  # 'invalid_quantity' quantity was not recognized valid number(for API v1).
-                '10023': InvalidOrder,  # 'invalid_price' price was not recognized valid number.
-                '10024': InvalidOrder,  # 'invalid_max_show' max_show parameter was not recognized valid number.
-                '10025': InvalidOrder,  # 'invalid_order_id' Order id is missing or its format was not recognized.
+                '10022': InvalidOrder,  # 'invalid_quantity' quantity was not recognized as a valid number(for API v1).
+                '10023': InvalidOrder,  # 'invalid_price' price was not recognized as a valid number.
+                '10024': InvalidOrder,  # 'invalid_max_show' max_show parameter was not recognized as a valid number.
+                '10025': InvalidOrder,  # 'invalid_order_id' Order id is missing or its format was not recognized as valid.
                 '10026': InvalidOrder,  # 'price_precision_exceeded' Extra precision of the price is not supported.
-                '10027': InvalidOrder,  # 'non_integer_contract_amount' Futures contract amount was not recognized.
+                '10027': InvalidOrder,  # 'non_integer_contract_amount' Futures contract amount was not recognized as integer.
                 '10028': DDoSProtection,  # 'too_many_requests' Allowed request rate has been exceeded.
                 '10029': OrderNotFound,  # 'not_owner_of_order' Attempt to operate with not own order.
                 '10030': ExchangeError,  # 'must_be_websocket_request' REST request where Websocket is expected.
-                '10031': ExchangeError,  # 'invalid_args_for_instrument' Some of arguments are not recognized.
+                '10031': ExchangeError,  # 'invalid_args_for_instrument' Some of arguments are not recognized as valid.
                 '10032': InvalidOrder,  # 'whole_cost_too_low' Total cost is too low.
                 '10033': NotSupported,  # 'not_implemented' Method is not implemented yet.
                 '10034': InvalidOrder,  # 'stop_price_too_high' Stop price is too high.
@@ -429,10 +454,10 @@ class deribit(Exchange, ImplicitAPI):
                 '10048': ExchangeError,  # 'not_on_self_server' The requested operation is not available on self server.
                 '11008': InvalidOrder,  # 'already_filled' This request is not allowed in regards to the filled order.
                 '11029': BadRequest,  # 'invalid_arguments' Some invalid input has been detected.
-                '11030': ExchangeError,  # 'other_reject <Reason>' Some rejects which are not considered often, more info may be specified in <Reason>.
-                '11031': ExchangeError,  # 'other_error <Error>' Some errors which are not considered often, more info may be specified in <Error>.
+                '11030': ExchangeError,  # 'other_reject <Reason>' Some rejects which are not considered as very often, more info may be specified in <Reason>.
+                '11031': ExchangeError,  # 'other_error <Error>' Some errors which are not considered as very often, more info may be specified in <Error>.
                 '11035': DDoSProtection,  # 'no_more_stops <Limit>' Allowed amount of stop orders has been exceeded.
-                '11036': InvalidOrder,  # 'invalid_stoppx_for_index_or_last' Invalid StopPx(too high or too low) current index or market.
+                '11036': InvalidOrder,  # 'invalid_stoppx_for_index_or_last' Invalid StopPx(too high or too low) as to current index or market.
                 '11037': BadRequest,  # 'outdated_instrument_for_IV_order' Instrument already not available for trading.
                 '11038': InvalidOrder,  # 'no_adv_for_futures' Advanced orders are not available for futures.
                 '11039': InvalidOrder,  # 'no_adv_postonly' Advanced post-only orders are not supported yet.
@@ -447,7 +472,7 @@ class deribit(Exchange, ImplicitAPI):
                 '11049': BadRequest,  # 'bad_arguments' Several bad arguments have been passed.
                 '11050': BadRequest,  # 'bad_request' Request has not been parsed properly.
                 '11051': OnMaintenance,  # 'system_maintenance' System is under maintenance.
-                '11052': ExchangeError,  # 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without self error, please check list of subscribed channels returned, channels can be not subscribed due to wrong input or lack of permissions.
+                '11052': ExchangeError,  # 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without self error, please check list of subscribed channels returned, as some channels can be not subscribed due to wrong input or lack of permissions.
                 '11053': ExchangeError,  # 'transfer_not_found' Specified transfer is not found.
                 '11090': InvalidAddress,  # 'invalid_addr' Invalid address.
                 '11091': InvalidAddress,  # 'invalid_transfer_address' Invalid addres for the transfer.
@@ -458,7 +483,7 @@ class deribit(Exchange, ImplicitAPI):
                 '11096': ExchangeError,  # 'address_belongs_to_user' Withdrawal instead of transfer.
                 '12000': AuthenticationError,  # 'bad_tfa' Wrong TFA code
                 '12001': DDoSProtection,  # 'too_many_subaccounts' Limit of subbacounts is reached.
-                '12002': ExchangeError,  # 'wrong_subaccount_name' The input is not allowed of subaccount.
+                '12002': ExchangeError,  # 'wrong_subaccount_name' The input is not allowed as name of subaccount.
                 '12998': AuthenticationError,  # 'tfa_over_limit' The number of failed TFA attempts is limited.
                 '12003': AuthenticationError,  # 'login_over_limit' The number of failed login attempts is limited.
                 '12004': AuthenticationError,  # 'registration_over_limit' The number of registration requests is limited.
@@ -835,7 +860,7 @@ class deribit(Exchange, ImplicitAPI):
             #         "testnet": False
             #     }
             #
-            currenciesResult = self.safe_value(currenciesResponse, 'result', [])
+            currenciesResult = self.safe_list(currenciesResponse, 'result', [])
             for i in range(0, len(currenciesResult)):
                 currencyId = self.safe_string(currenciesResult[i], 'currency')
                 request = {
@@ -917,7 +942,7 @@ class deribit(Exchange, ImplicitAPI):
                 #
                 instrumentsResponses.append(instrumentsResponse)
         for i in range(0, len(instrumentsResponses)):
-            instrumentsResult = self.safe_value(instrumentsResponses[i], 'result', [])
+            instrumentsResult = self.safe_list(instrumentsResponses[i], 'result', [])
             for k in range(0, len(instrumentsResult)):
                 market = instrumentsResult[k]
                 kind = self.safe_string(market, 'kind')
@@ -1420,7 +1445,7 @@ class deribit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: whether to paginate the results, set to False by default
         :param int [params.until]: the latest time in ms to fetch ohlcv for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1692,7 +1717,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        fees = self.safe_value(result, 'fees', [])
+        fees = self.safe_list(result, 'fees', [])
         perpetualFee = {}
         futureFee = {}
         optionFee = {}
@@ -2770,7 +2795,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result')
         return self.parse_positions(result, symbols)
 
-    def fetch_volatility_history(self, code: str, params={}):
+    def fetch_volatility_history(self, code: str, params={}) -> list[dict]:
         """
         fetch the historical volatility of an option market based on an underlying asset
 
@@ -2818,7 +2843,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "testnet": False
         #     }
         #
-        volatilityResult = self.safe_value(volatility, 'result', [])
+        volatilityResult = self.safe_list(volatility, 'result', [])
         result = []
         for i in range(0, len(volatilityResult)):
             timestamp = self.safe_integer(volatilityResult[i], 0)
@@ -3176,7 +3201,7 @@ class deribit(Exchange, ImplicitAPI):
         #    }
         #
         rates = []
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         for i in range(0, len(result)):
             fr = result[i]
             rate = self.parse_funding_rate(fr, market)

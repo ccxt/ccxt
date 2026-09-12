@@ -299,6 +299,9 @@ public class WhitebitCore extends WhitebitApi
                             put( "collateral-account/positions/open", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "collateral-account/positions/closed-pnl", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "collateral-account/summary", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -338,6 +341,9 @@ public class WhitebitCore extends WhitebitApi
                             put( "main-account/withdraw-pay", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "main-account/express-withdraw/token", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "main-account/transfer", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -359,6 +365,30 @@ public class WhitebitCore extends WhitebitApi
                             put( "main-account/smart/interest-payment-history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "main-account/smart-flex/plans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments/history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments/payment-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments/invest", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments/withdraw", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments/close", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments/auto-invest", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "trade-account/balance", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -366,6 +396,9 @@ public class WhitebitCore extends WhitebitApi
                                 put( "cost", 1 );
                             }} );
                             put( "trade-account/order/history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "trade-account/order/history/query", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "trade-account/order", new java.util.HashMap<String, Object>() {{
@@ -405,6 +438,9 @@ public class WhitebitCore extends WhitebitApi
                                 put( "cost", 1 );
                             }} );
                             put( "order/cancel/all", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "order/cancel/bulk", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "order/kill-switch", new java.util.HashMap<String, Object>() {{
@@ -503,10 +539,52 @@ public class WhitebitCore extends WhitebitApi
                             put( "mining/rewards", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "mining/hashrate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/payout-destination", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/payout-destination/edit", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/miners/info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/workers/names", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/workers/hashrate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/watcher-links/create", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/watcher-links/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/accounts/create", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "market/fee", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "market/fee/single", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "conditional-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "travel-rule/vasps", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "travel-rule/deposit/verification", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "jwt", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -686,7 +764,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadTimeDifference()).join();
             }
-            Object markets = (this.v4PublicGetMarkets()).join();
+            java.util.List<Object> markets = (this.v4PublicGetMarkets()).join();
             //
             //    [
             //        {
@@ -717,22 +795,22 @@ public class WhitebitCore extends WhitebitApi
 
     public Object parseMarket(Object market)
     {
-        Object id = this.safeString(market, "name");
-        Object baseId = this.safeString(market, "stock");
-        Object quoteId = this.safeString(market, "money");
+        String id = this.safeString(market, "name");
+        String baseId = this.safeString(market, "stock");
+        String quoteId = this.safeString(market, "money");
         quoteId = ((Helpers.isTrue((Helpers.isEqual(quoteId, "PERP"))))) ? "USDT" : quoteId;
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object active = this.safeValue(market, "tradesEnabled");
         Object isCollateral = this.safeValue(market, "isCollateral");
-        Object typeId = this.safeString(market, "type");
+        String typeId = this.safeString(market, "type");
         Object type = null;
         Object settle = null;
         Object settleId = null;
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object swap = Helpers.isTrue((Helpers.isEqual(typeId, "futures"))) || Helpers.isTrue((Helpers.isEqual(typeId, "tradfiFutures")));
-        Object margin = Helpers.isTrue((Helpers.isEqual(isCollateral, true))) && !Helpers.isTrue(swap);
-        Object contract = false;
+        Boolean swap = Helpers.isTrue((Helpers.isEqual(typeId, "futures"))) || Helpers.isTrue((Helpers.isEqual(typeId, "tradfiFutures")));
+        Boolean margin = Helpers.isTrue((Helpers.isEqual(isCollateral, true))) && !Helpers.isTrue(swap);
+        Boolean contract = false;
         Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
         Object linear = null;
         Object inverse = null;
@@ -749,11 +827,11 @@ public class WhitebitCore extends WhitebitApi
         {
             type = "spot";
         }
-        Object takerFeeRate = this.safeString(market, "takerFee");
-        Object taker = Precise.stringDiv(takerFeeRate, "100");
-        Object makerFeeRate = this.safeString(market, "makerFee");
-        Object maker = Precise.stringDiv(makerFeeRate, "100");
-        Object isSpot = !Helpers.isTrue(swap);
+        String takerFeeRate = this.safeString(market, "takerFee");
+        String taker = Precise.stringDiv(takerFeeRate, "100");
+        String makerFeeRate = this.safeString(market, "makerFee");
+        String maker = Precise.stringDiv(makerFeeRate, "100");
+        Boolean isSpot = !Helpers.isTrue(swap);
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalSettle = settle;
@@ -830,7 +908,7 @@ public class WhitebitCore extends WhitebitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v4PublicGetAssets(parameters)).join();
+            java.util.Map<String, Object> response = (this.v4PublicGetAssets(parameters)).join();
             //
             // {
             //   BTC: {
@@ -905,17 +983,17 @@ public class WhitebitCore extends WhitebitApi
     public Object parseCurrency(Object rawCurrency)
     {
         // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
-        Object id = this.safeString(rawCurrency, "_coin_id");
-        Object code = this.safeCurrencyCode(id);
-        Object hasProvider = (Helpers.inOp(rawCurrency, "providers"));
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        String id = this.safeString(rawCurrency, "_coin_id");
+        String code = (String) this.safeCurrencyCode(id);
+        Boolean hasProvider = (Helpers.inOp(rawCurrency, "providers"));
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object rawNetworks = this.safeDict(rawCurrency, "networks", new java.util.HashMap<String, Object>() {{}});
         Object depositsNetworks = this.safeList(rawNetworks, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object withdrawsNetworks = this.safeList(rawNetworks, "withdraws", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object networkLimits = this.safeDict(rawCurrency, "limits", new java.util.HashMap<String, Object>() {{}});
         Object depositLimits = this.safeDict(networkLimits, "deposit", new java.util.HashMap<String, Object>() {{}});
         Object withdrawLimits = this.safeDict(networkLimits, "withdraw", new java.util.HashMap<String, Object>() {{}});
-        Object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+        java.util.List<Object> allNetworks = (java.util.List<Object>) this.arrayConcat(depositsNetworks, withdrawsNetworks);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(allNetworks)); j++)
         {
             Object networkId = Helpers.GetValue(allNetworks, j);
@@ -997,7 +1075,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v4PublicGetFee(parameters)).join();
+            java.util.Map<String, Object> response = (this.v4PublicGetFee(parameters)).join();
             //
             //      {
             //          "1INCH":{
@@ -1024,13 +1102,13 @@ public class WhitebitCore extends WhitebitApi
             //      }
             //
             Object currenciesIds = Helpers.objectKeys(response);
-            Object withdrawFees = new java.util.HashMap<String, Object>() {{}};
-            Object depositFees = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> withdrawFees = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> depositFees = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currenciesIds)); i++)
             {
                 Object currency = Helpers.GetValue(currenciesIds, i);
                 Object data = this.safeDict(response, currency, new java.util.HashMap<String, Object>() {{}});
-                Object code = this.safeCurrencyCode(currency);
+                String code = (String) this.safeCurrencyCode(currency);
                 Object withdraw = this.safeValue(data, "withdraw", new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
@@ -1071,7 +1149,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v4PublicGetFee(parameters)).join();
+            java.util.Map<String, Object> response = (this.v4PublicGetFee(parameters)).join();
             //
             //    {
             //        "1INCH": {
@@ -1165,7 +1243,7 @@ public class WhitebitCore extends WhitebitApi
         //
         Object codes = Helpers.getArg(optionalArgs, 0, null);
         Object currencyIdKey = Helpers.getArg(optionalArgs, 1, null);
-        Object depositWithdrawFees = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> depositWithdrawFees = new java.util.HashMap<String, Object>() {{}};
         codes = this.marketCodes(codes);
         Object currencyIds = Helpers.objectKeys(response);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
@@ -1174,7 +1252,7 @@ public class WhitebitCore extends WhitebitApi
             Object splitEntry = Helpers.split(entry, " ");
             Object currencyId = Helpers.GetValue(splitEntry, 0);
             Object feeInfo = Helpers.GetValue(response, entry);
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
             {
                 Object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
@@ -1186,15 +1264,15 @@ public class WhitebitCore extends WhitebitApi
                 Object networkId = this.safeString(splitEntry, 1);
                 Object withdraw = this.safeValue(feeInfo, "withdraw");
                 Object deposit = this.safeValue(feeInfo, "deposit");
-                Object withdrawFee = this.safeNumber(withdraw, "fixed");
-                Object depositFee = this.safeNumber(deposit, "fixed");
+                Double withdrawFee = this.safeNumber(withdraw, "fixed");
+                Double depositFee = this.safeNumber(deposit, "fixed");
                 final Object finalWithdrawFee = withdrawFee;
-                Object withdrawResult = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> withdrawResult = new java.util.HashMap<String, Object>() {{
                     put( "fee", finalWithdrawFee );
                     put( "percentage", ((Helpers.isTrue((!Helpers.isEqual(finalWithdrawFee, null))))) ? false : null );
                 }};
                 final Object finalDepositFee = depositFee;
-                Object depositResult = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> depositResult = new java.util.HashMap<String, Object>() {{
                     put( "fee", finalDepositFee );
                     put( "percentage", ((Helpers.isTrue((!Helpers.isEqual(finalDepositFee, null))))) ? false : null );
                 }};
@@ -1221,7 +1299,7 @@ public class WhitebitCore extends WhitebitApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(depositWithdrawCodes)); i++)
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Helpers.addElementToObject(depositWithdrawFees, code, this.assignDefaultDepositWithdrawFees(Helpers.GetValue(depositWithdrawFees, code), currency));
         }
         return depositWithdrawFees;
@@ -1245,7 +1323,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v4PublicGetAssets(parameters)).join();
+            java.util.Map<String, Object> response = (this.v4PublicGetAssets(parameters)).join();
             //
             //      {
             //          "1INCH": {
@@ -1263,15 +1341,15 @@ public class WhitebitCore extends WhitebitApi
             //            ...
             //      }
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            Object symbols = this.symbols;
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            java.util.List<Object> symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object fee = this.safeValue(response, Helpers.GetValue(market, "baseId"), new java.util.HashMap<String, Object>() {{}});
-                Object makerFee = this.safeString(fee, "maker_fee");
-                Object takerFee = this.safeString(fee, "taker_fee");
+                String makerFee = this.safeString(fee, "maker_fee");
+                String takerFee = this.safeString(fee, "taker_fee");
                 makerFee = Precise.stringDiv(makerFee, "100");
                 takerFee = Precise.stringDiv(takerFee, "100");
                 final Object finalMakerFee = makerFee;
@@ -1354,7 +1432,7 @@ public class WhitebitCore extends WhitebitApi
             //         "tierBased": false                   // Tier-based fees
             //     }
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             // Process all markets from the loaded markets cache
             Object markets = this.markets;
             if (Helpers.isTrue(Helpers.isEqual(markets, null)))
@@ -1366,7 +1444,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object market = Helpers.GetValue(markets, marketId);
-                Object marketSymbol = this.safeString(market, "symbol");
+                String marketSymbol = this.safeString(market, "symbol");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(market, null))) || Helpers.isTrue((Helpers.isEqual(market, null)))) || Helpers.isTrue((Helpers.isEqual(marketSymbol, null)))) || Helpers.isTrue((Helpers.isEqual(marketSymbol, "")))))
                 {
                     continue;
@@ -1375,7 +1453,7 @@ public class WhitebitCore extends WhitebitApi
                 // Filter by symbols if specified
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
-                    Object symbolFound = false;
+                    Boolean symbolFound = false;
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(symbols)); j++)
                     {
                         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(symbols, j), symbol)))
@@ -1395,9 +1473,9 @@ public class WhitebitCore extends WhitebitApi
                 Object priceLimits = this.safeDict(limits, "price");
                 Object costLimits = this.safeDict(limits, "cost");
                 // Validate that all required limits exist and are valid numbers
-                Object hasAmountLimits = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amountLimits, null))) && Helpers.isTrue((!Helpers.isEqual(amountLimits, null)))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(amountLimits, "min"), null))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(amountLimits, "max"), null));
-                Object hasPriceLimits = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(priceLimits, null))) && Helpers.isTrue((!Helpers.isEqual(priceLimits, null)))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(priceLimits, "min"), null))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(priceLimits, "max"), null));
-                Object hasCostLimits = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(costLimits, null))) && Helpers.isTrue((!Helpers.isEqual(costLimits, null)))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(costLimits, "min"), null))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(costLimits, "max"), null));
+                Boolean hasAmountLimits = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amountLimits, null))) && Helpers.isTrue((!Helpers.isEqual(amountLimits, null)))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(amountLimits, "min"), null))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(amountLimits, "max"), null));
+                Boolean hasPriceLimits = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(priceLimits, null))) && Helpers.isTrue((!Helpers.isEqual(priceLimits, null)))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(priceLimits, "min"), null))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(priceLimits, "max"), null));
+                Boolean hasCostLimits = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(costLimits, null))) && Helpers.isTrue((!Helpers.isEqual(costLimits, null)))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(costLimits, "min"), null))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(costLimits, "max"), null));
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(hasAmountLimits, true))) && Helpers.isTrue((Helpers.isEqual(hasPriceLimits, true)))) && Helpers.isTrue((Helpers.isEqual(hasCostLimits, true)))))
                 {
                     final Object finalMarket = market;
@@ -1509,7 +1587,7 @@ public class WhitebitCore extends WhitebitApi
             //         }
             //     }
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object currencyKeys = Helpers.objectKeys(currenciesData);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyKeys)); i++)
             {
@@ -1538,7 +1616,7 @@ public class WhitebitCore extends WhitebitApi
                 }
                 // Build comprehensive funding limits
                 Object currencyLimits = this.safeDict(currency, "limits", new java.util.HashMap<String, Object>() {{}});
-                Object limits = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> limits = new java.util.HashMap<String, Object>() {{
                     put( "deposit", new java.util.HashMap<String, Object>() {{
                         put( "min", Helpers.GetValue(Helpers.GetValue(currencyLimits, "deposit"), "min") );
                         put( "max", Helpers.GetValue(Helpers.GetValue(currencyLimits, "deposit"), "max") );
@@ -1556,7 +1634,7 @@ public class WhitebitCore extends WhitebitApi
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(depositFee, null))) && Helpers.isTrue((!Helpers.isEqual(depositFee, null)))))
                     {
                         final Object finalDepositFee = depositFee;
-                        Object depositFeeData = new java.util.HashMap<String, Object>() {{
+                        java.util.Map<String, Object> depositFeeData = new java.util.HashMap<String, Object>() {{
                             put( "fixed", WhitebitCore.this.safeNumber(finalDepositFee, "fixed") );
                         }};
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(depositFee, "flex"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(depositFee, "flex"), null)))))
@@ -1572,7 +1650,7 @@ public class WhitebitCore extends WhitebitApi
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(withdrawFee, null))) && Helpers.isTrue((!Helpers.isEqual(withdrawFee, null)))))
                     {
                         final Object finalWithdrawFee = withdrawFee;
-                        Object withdrawFeeData = new java.util.HashMap<String, Object>() {{
+                        java.util.Map<String, Object> withdrawFeeData = new java.util.HashMap<String, Object>() {{
                             put( "fixed", WhitebitCore.this.safeNumber(finalWithdrawFee, "fixed") );
                         }};
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(withdrawFee, "flex"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(withdrawFee, "flex"), null)))))
@@ -1621,11 +1699,11 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v1PublicGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetTicker(this.extend(request, parameters))).join();
             //
             //      {
             //         "success":true,
@@ -1736,12 +1814,12 @@ public class WhitebitCore extends WhitebitApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString2(ticker, "tradingPairs", "ticker_id");
+        String marketId = this.safeString2(ticker, "tradingPairs", "ticker_id");
         market = this.safeMarket(marketId, market);
         // last price is provided as "last" or "last_price"
-        Object last = this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("last", "last_price", "lastPrice")));
+        String last = this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("last", "last_price", "lastPrice")));
         // if "close" is provided, use it, otherwise use <last>
-        Object close = this.safeString(ticker, "close", last);
+        String close = this.safeString(ticker, "close", last);
         final Object finalMarket = market;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -1796,7 +1874,7 @@ public class WhitebitCore extends WhitebitApi
             Object checkActive = this.safeBool(parameters, "checkActive", true);
             Object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("checkActive", "checkExecuted")));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
             Object market = null;
@@ -1810,17 +1888,17 @@ public class WhitebitCore extends WhitebitApi
             {
                 try
                 {
-                    Object response = (this.v4PrivatePostOrders(this.extend(request, parameters))).join();
+                    java.util.List<Object> response = (this.v4PrivatePostOrders(this.extend(request, parameters))).join();
                     // Search for order in active orders response (array format)
-                    Object orders = this.toArray(response);
+                    java.util.List<Object> orders = this.toArray(response);
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
                     {
                         Object order = Helpers.GetValue(orders, i);
-                        Object orderId = this.safeString(order, "orderId");
+                        String orderId = this.safeString(order, "orderId");
                         if (Helpers.isTrue(Helpers.isEqual(orderId, id)))
                         {
-                            Object marketId = this.safeString(order, "market");
-                            Object marketNew = this.safeMarket(marketId, null, "_");
+                            String marketId = this.safeString(order, "market");
+                            java.util.Map<String, Object> marketNew = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_");
                             return this.parseOrder(order, marketNew);
                         }
                     }
@@ -1837,18 +1915,18 @@ public class WhitebitCore extends WhitebitApi
             {
                 try
                 {
-                    Object response = (this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters))).join();
+                    java.util.Map<String, Object> response = (this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters))).join();
                     // Search for order in executed orders response (object format)
                     Object marketIds = Helpers.objectKeys(response);
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
                     {
                         Object marketId = Helpers.GetValue(marketIds, i);
-                        Object marketNew = this.safeMarket(marketId, null, "_");
+                        java.util.Map<String, Object> marketNew = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_");
                         Object marketOrders = this.safeList(response, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(marketOrders)); j++)
                         {
                             Object order = Helpers.GetValue(marketOrders, j);
-                            Object orderId = this.safeString(order, "id");
+                            String orderId = this.safeString(order, "id");
                             if (Helpers.isTrue(Helpers.isEqual(orderId, id)))
                             {
                                 return this.parseOrder(order, marketNew);
@@ -1891,13 +1969,13 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object onlyContractSymbols = true;
+            Boolean onlyContractSymbols = true;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    Object market = this.market(symbol);
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                     if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                     {
                         onlyContractSymbols = false;
@@ -1909,11 +1987,11 @@ public class WhitebitCore extends WhitebitApi
                 onlyContractSymbols = false;
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(method, null)))
@@ -1994,11 +2072,11 @@ public class WhitebitCore extends WhitebitApi
                 return this.parseTickers(resultList, symbols);
             }
             Object marketIds = Helpers.objectKeys(response);
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object market = this.safeMarket(marketId);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object ticker = this.parseTicker(Helpers.GetValue(response, marketId), market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 Helpers.addElementToObject(result, ((String)symbol), ticker);
@@ -2029,15 +2107,15 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit); // default = 100, maximum = 100
             }
-            Object response = (this.v4PublicGetOrderbookMarket(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PublicGetOrderbookMarket(this.extend(request, parameters))).join();
             //
             //      {
             //          "timestamp": 1594391413,
@@ -2086,11 +2164,11 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v4PublicGetTradesMarket(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.v4PublicGetTradesMarket(this.extend(request, parameters))).join();
             //
             //      [
             //          {
@@ -2133,7 +2211,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -2187,9 +2265,9 @@ public class WhitebitCore extends WhitebitApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
                 {
                     Object marketId = Helpers.GetValue(keys, i);
-                    Object marketNew = this.safeMarket(marketId, null, "_");
+                    java.util.Map<String, Object> marketNew = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_");
                     Object rawTrades = this.safeValue(response, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    Object parsed = this.parseTrades(rawTrades, marketNew, since, limit);
+                    java.util.List<Object> parsed = this.parseTrades(rawTrades, marketNew, since, limit);
                     results = this.arrayConcat(results, parsed);
                 }
                 results = this.sortBy2(results, "timestamp", "id");
@@ -2247,21 +2325,21 @@ public class WhitebitCore extends WhitebitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         market = this.safeMarket(null, market);
         Object timestamp = this.safeTimestamp2(trade, "time", "trade_timestamp");
-        Object orderId = this.safeString2(trade, "dealOrderId", "orderId");
-        Object cost = this.safeString(trade, "deal");
-        Object price = this.safeString(trade, "price");
-        Object amount = this.safeString2(trade, "amount", "quote_volume");
-        Object id = this.safeString2(trade, "id", "tradeID");
-        Object side = this.safeString2(trade, "type", "side");
+        String orderId = this.safeString2(trade, "dealOrderId", "orderId");
+        String cost = this.safeString(trade, "deal");
+        String price = this.safeString(trade, "price");
+        String amount = this.safeString2(trade, "amount", "quote_volume");
+        String id = this.safeString2(trade, "id", "tradeID");
+        String side = this.safeString2(trade, "type", "side");
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object role = this.safeInteger(trade, "role");
-        Object takerOrMaker = null;
+        Long role = this.safeInteger(trade, "role");
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(role, null)))
         {
             takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(role, 1))))) ? "maker" : "taker";
         }
         Object fee = null;
-        Object feeCost = this.safeString(trade, "fee");
+        String feeCost = this.safeString(trade, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;
@@ -2314,27 +2392,27 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "interval", WhitebitCore.this.safeString(WhitebitCore.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object maxLimit = 1440;
+                Integer maxLimit = 1440;
                 if (Helpers.isTrue(Helpers.isEqual(limit, null)))
                 {
                     limit = maxLimit;
                 }
                 limit = Helpers.mathMin(limit, maxLimit);
-                Object start = this.parseToInt(Helpers.divide(since, 1000));
+                Long start = this.parseToInt(Helpers.divide(since, 1000));
                 Helpers.addElementToObject(request, "start", start);
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1440));
             }
-            Object response = (this.v1PublicGetKline(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetKline(this.extend(request, parameters))).join();
             //
             //     {
             //         "success":true,
@@ -2383,13 +2461,13 @@ public class WhitebitCore extends WhitebitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v4PublicGetPing(parameters)).join();
+            java.util.List<Object> response = (this.v4PublicGetPing(parameters)).join();
             //
             //      [
             //          "pong"
             //      ]
             //
-            Object status = this.safeString(response, 0);
+            String status = this.safeString(response, 0);
             final Object finalStatus = status;
             return new java.util.HashMap<String, Object>() {{
                 put( "status", ((Helpers.isTrue((Helpers.isEqual(finalStatus, "pong"))))) ? "ok" : finalStatus );
@@ -2416,7 +2494,7 @@ public class WhitebitCore extends WhitebitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v4PublicGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.v4PublicGetTime(parameters)).join();
             //
             //     {
             //         "time":1737380046
@@ -2443,7 +2521,7 @@ public class WhitebitCore extends WhitebitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object req = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
             // only buy side is supported
@@ -2508,15 +2586,15 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalSide = side;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "side", finalSide );
             }};
-            Object cost = null;
-            var costparametersVariable = this.handleParamString(parameters, "cost");
-            cost = ((java.util.List<Object>) costparametersVariable).get(0);
+            String cost = null;
+            java.util.List<Object> costparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "cost");
+            cost = (String) ((java.util.List<Object>) costparametersVariable).get(0);
             parameters = ((java.util.List<Object>) costparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
             {
@@ -2529,10 +2607,10 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
             }
-            Object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
+            String clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
-                Object brokerId = this.safeString(this.options, "brokerId");
+                String brokerId = this.safeString(this.options, "brokerId");
                 if (Helpers.isTrue(!Helpers.isEqual(brokerId, null)))
                 {
                     Helpers.addElementToObject(request, "clientOrderId", Helpers.add(brokerId, this.uuid16()));
@@ -2542,18 +2620,18 @@ public class WhitebitCore extends WhitebitApi
                 Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
             }
-            Object marketType = this.safeString(market, "type");
-            Object isLimitOrder = Helpers.isEqual(type, "limit");
-            Object isMarketOrder = Helpers.isEqual(type, "market");
-            Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "activation_price")));
-            Object isStopOrder = (!Helpers.isEqual(triggerPrice, null));
-            Object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+            String marketType = this.safeString(market, "type");
+            Boolean isLimitOrder = Helpers.isEqual(type, "limit");
+            Boolean isMarketOrder = Helpers.isEqual(type, "market");
+            Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "activation_price")));
+            Boolean isStopOrder = (!Helpers.isEqual(triggerPrice, null));
+            String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeInForce, null))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "GTC")))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "IOC")))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "PO")))))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support timeInForce "), timeInForce), ", only GTC, IOC and PO are allowed")) ;
             }
             Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
-            Object ioc = (Helpers.isEqual(timeInForce, "IOC"));
+            Boolean ioc = (Helpers.isEqual(timeInForce, "IOC"));
             if (Helpers.isTrue(Helpers.isTrue(isStopOrder) && Helpers.isTrue((Helpers.isTrue(postOnly) || Helpers.isTrue(ioc)))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
@@ -2562,7 +2640,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createOrder() timeInForce IOC is only supported for limit orders")) ;
             }
-            var marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             if (Helpers.isTrue(postOnly))
@@ -2578,7 +2656,7 @@ public class WhitebitCore extends WhitebitApi
                 throw new NotSupported((String)Helpers.add(this.id, " createOrder() is only available for cross margin")) ;
             }
             parameters = this.omit(query, new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly", "triggerPrice", "stopPrice", "timeInForce")));
-            Object useCollateralEndpoint = Helpers.isTrue(!Helpers.isEqual(marginMode, null)) || Helpers.isTrue(Helpers.isEqual(marketType, "swap"));
+            Boolean useCollateralEndpoint = Helpers.isTrue(!Helpers.isEqual(marginMode, null)) || Helpers.isTrue(Helpers.isEqual(marketType, "swap"));
             Object response = null;
             if (Helpers.isTrue(isStopOrder))
             {
@@ -2663,12 +2741,12 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             // Handle clientOrderId vs orderId (clientOrderId takes priority)
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
@@ -2677,15 +2755,15 @@ public class WhitebitCore extends WhitebitApi
                 Helpers.addElementToObject(request, "orderId", id);
             }
             // Handle amount vs total parameter based on order type and side
-            Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "activationPrice")));
-            Object isStopOrder = (!Helpers.isEqual(triggerPrice, null));
+            Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "activationPrice")));
+            Boolean isStopOrder = (!Helpers.isEqual(triggerPrice, null));
             // Handle activation price for stop orders
             if (Helpers.isTrue(isStopOrder))
             {
                 Helpers.addElementToObject(request, "activation_price", this.priceToPrecision(symbol, triggerPrice));
             }
-            Object isLimitOrder = Helpers.isEqual(type, "limit");
-            Object total = this.safeNumber(parameters, "total");
+            Boolean isLimitOrder = Helpers.isEqual(type, "limit");
+            Double total = this.safeNumber(parameters, "total");
             if (Helpers.isTrue(!Helpers.isEqual(total, null)))
             {
                 Helpers.addElementToObject(request, "total", this.amountToPrecision(symbol, total));
@@ -2711,13 +2789,13 @@ public class WhitebitCore extends WhitebitApi
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
             // Ensure at least one modifiable parameter is provided
-            Object hasModifiableParam = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amount, null))) || Helpers.isTrue((!Helpers.isEqual(price, null)))) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))) || Helpers.isTrue((!Helpers.isEqual(total, null)));
+            Boolean hasModifiableParam = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amount, null))) || Helpers.isTrue((!Helpers.isEqual(price, null)))) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))) || Helpers.isTrue((!Helpers.isEqual(total, null)));
             if (!Helpers.isTrue(hasModifiableParam))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total")));
-            Object response = (this.v4PrivatePostOrderModify(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostOrderModify(this.extend(request, parameters))).join();
             return this.parseOrder(response);
         });
 
@@ -2748,12 +2826,12 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "orderId", Helpers.parseInt(id) );
             }};
-            Object response = (this.v4PrivatePostOrderCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostOrderCancel(this.extend(request, parameters))).join();
             //
             //    {
             //        "orderId": 4180284841, // order id
@@ -2801,21 +2879,21 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            Object requestType = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> requestType = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 Object isMargin = null;
-                var isMarginparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
+                java.util.List<Object> isMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
                 isMargin = ((java.util.List<Object>) isMarginparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) isMarginparametersVariable).get(1);
                 if (Helpers.isTrue(isMargin))
@@ -2833,7 +2911,7 @@ public class WhitebitCore extends WhitebitApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrders() does not support "), type), " type")) ;
             }
             Helpers.addElementToObject(request, "type", requestType);
-            Object response = (this.v4PrivatePostOrderCancelAll(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.v4PrivatePostOrderCancelAll(this.extend(request, parameters))).join();
             //
             // []
             //
@@ -2871,9 +2949,9 @@ public class WhitebitCore extends WhitebitApi
             var openOrdersclosedOrdersVariable = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchOpenOrders(symbol, since, limit, parameters), this.fetchClosedOrders(symbol, since, limit, parameters))))).join();
             var openOrders = ((java.util.List<Object>) openOrdersclosedOrdersVariable).get(0);
             var closedOrders = ((java.util.List<Object>) openOrdersclosedOrdersVariable).get(1);
-            Object allOrders = this.arrayConcat(openOrders, closedOrders);
+            java.util.List<Object> allOrders = (java.util.List<Object>) this.arrayConcat(openOrders, closedOrders);
             // Sort by timestamp (most recent first)
-            Object sortedOrders = this.sortBy(allOrders, "timestamp", true);
+            java.util.List<Object> sortedOrders = this.sortBy(allOrders, "timestamp", true);
             // Apply limit if specified (since and symbol filtering already handled by individual methods)
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(limit, null)) && Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(sortedOrders), limit))))
             {
@@ -2905,19 +2983,19 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object symbol = this.safeString(parameters, "symbol");
+            String symbol = this.safeString(parameters, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrdersAfter() requires a symbol argument in params")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             parameters = this.omit(parameters, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
             }
-            Object isBiggerThanZero = (Helpers.isGreaterThan(timeout, 0));
-            Object request = new java.util.HashMap<String, Object>() {{
+            Boolean isBiggerThanZero = (Helpers.isGreaterThan(timeout, 0));
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(isBiggerThanZero))
@@ -2927,7 +3005,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "timeout", "null");
             }
-            Object response = (this.v4PrivatePostOrderKillSwitch(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostOrderKillSwitch(this.extend(request, parameters))).join();
             //
             //     {
             //         "market": "BTC_USDT", // currency market,
@@ -2944,11 +3022,11 @@ public class WhitebitCore extends WhitebitApi
     public Object parseBalance(Object response)
     {
         Object balanceKeys = Helpers.objectKeys(response);
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balanceKeys)); i++)
         {
             Object id = Helpers.GetValue(balanceKeys, i);
-            Object code = this.safeCurrencyCode(id);
+            String code = (String) this.safeCurrencyCode(id);
             Object balance = Helpers.GetValue(response, id);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(balance, null)) && Helpers.isTrue(this.isDictionary(balance))))
             {
@@ -2993,7 +3071,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -3003,8 +3081,8 @@ public class WhitebitCore extends WhitebitApi
             } else
             {
                 Object options = this.safeValue(this.options, "fetchBalance", new java.util.HashMap<String, Object>() {{}});
-                Object defaultAccount = this.safeString(options, "account");
-                Object account = this.safeString2(parameters, "account", "type", defaultAccount);
+                String defaultAccount = this.safeString(options, "account");
+                String account = this.safeString2(parameters, "account", "type", defaultAccount);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("account", "type")));
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(account, "main")) || Helpers.isTrue(Helpers.isEqual(account, "funding"))))
                 {
@@ -3066,7 +3144,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -3076,7 +3154,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 100));
             }
-            Object response = (this.v4PrivatePostOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.v4PrivatePostOrders(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -3128,7 +3206,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -3140,7 +3218,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 100)); // default 50 max 100
             }
-            Object response = (this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "BTC_USDT": [
@@ -3163,7 +3241,7 @@ public class WhitebitCore extends WhitebitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object marketNew = this.safeMarket(marketId, null, "_");
+                java.util.Map<String, Object> marketNew = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_");
                 Object orders = this.safeList(response, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(orders)); j++)
                 {
@@ -3180,9 +3258,9 @@ public class WhitebitCore extends WhitebitApi
 
     }
 
-    public Object parseOrderType(Object type)
+    public String parseOrderType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "limit", "limit" );
             put( "market", "market" );
             put( "stop market", "market" );
@@ -3236,33 +3314,33 @@ public class WhitebitCore extends WhitebitApi
         //      }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(order, "market");
+        String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object side = this.safeString(order, "side");
-        Object filled = this.safeString(order, "dealStock");
-        Object remaining = this.safeString(order, "left");
-        Object clientOrderId = this.safeString(order, "clientOrderId");
+        String side = this.safeString(order, "side");
+        String filled = this.safeString(order, "dealStock");
+        String remaining = this.safeString(order, "left");
+        String clientOrderId = this.safeString(order, "clientOrderId");
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, "")))
         {
             clientOrderId = null;
         }
-        Object price = this.safeString(order, "price");
-        Object triggerPrice = this.safeNumber(order, "activation_price");
-        Object orderId = this.safeString2(order, "orderId", "id");
-        Object type = this.safeString(order, "type");
-        Object orderType = this.parseOrderType(type);
+        String price = this.safeString(order, "price");
+        Double triggerPrice = this.safeNumber(order, "activation_price");
+        String orderId = this.safeString2(order, "orderId", "id");
+        String type = this.safeString(order, "type");
+        String orderType = this.parseOrderType(type);
         if (Helpers.isTrue(Helpers.isEqual(orderType, "market")))
         {
             remaining = null;
         }
         Object amount = this.safeString(order, "amount");
-        Object cost = this.safeString(order, "dealMoney");
+        String cost = this.safeString(order, "dealMoney");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "buy"))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "market"))) || Helpers.isTrue((Helpers.isEqual(type, "stop market")))))))
         {
             amount = filled;
         }
-        Object dealFee = this.safeString(order, "dealFee");
+        String dealFee = this.safeString(order, "dealFee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(dealFee, null)))
         {
@@ -3277,7 +3355,7 @@ public class WhitebitCore extends WhitebitApi
         Object lastTradeTimestamp = this.safeTimestamp(order, "ftime");
         Object postOnly = this.safeBool(order, "postOnly");
         Object ioc = this.safeBool(order, "ioc");
-        Object timeInForce = null;
+        String timeInForce = null;
         if (Helpers.isTrue(Helpers.isEqual(ioc, true)))
         {
             timeInForce = "IOC";
@@ -3318,15 +3396,15 @@ public class WhitebitCore extends WhitebitApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "CANCELED", "canceled" );
             put( "OPEN", "open" );
             put( "PARTIALLY_FILLED", "open" );
             put( "FILLED", "closed" );
         }};
-        return this.safeStringLower(statuses, ((String)status), status);
+        return (String) this.safeStringLower(statuses, ((String)status), status);
     }
 
     /**
@@ -3354,7 +3432,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", Helpers.parseInt(id) );
             }};
             Object market = null;
@@ -3367,7 +3445,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 100));
             }
-            Object response = (this.v4PrivatePostTradeAccountOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostTradeAccountOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "records": [
@@ -3419,7 +3497,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.currency(code);
@@ -3439,7 +3517,7 @@ public class WhitebitCore extends WhitebitApi
             }
             // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
             Helpers.addElementToObject(request, "transactionMethod", "2");
-            Object response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -3489,7 +3567,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.currency(code);
@@ -3508,7 +3586,7 @@ public class WhitebitCore extends WhitebitApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
-            Object response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "records": [
@@ -3562,20 +3640,20 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker", Helpers.GetValue(currency, "id") );
             }};
             Object response = null;
             if (Helpers.isTrue(this.isFiat(code)))
             {
-                Object provider = this.safeString(parameters, "provider");
+                String provider = this.safeString(parameters, "provider");
                 if (Helpers.isTrue(Helpers.isEqual(provider, null)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires a provider when the ticker is fiat")) ;
                 }
                 Helpers.addElementToObject(request, "provider", provider);
-                Object amount = this.safeNumber(parameters, "amount");
+                Double amount = this.safeNumber(parameters, "amount");
                 if (Helpers.isTrue(Helpers.isEqual(amount, null)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires an amount when the ticker is fiat")) ;
@@ -3617,10 +3695,10 @@ public class WhitebitCore extends WhitebitApi
             //         }
             //     }
             //
-            Object url = this.safeString(response, "url");
+            String url = this.safeString(response, "url");
             Object account = this.safeValue(response, "account", new java.util.HashMap<String, Object>() {{}});
-            Object address = this.safeString(account, "address", url);
-            Object tag = this.safeString(account, "memo");
+            String address = this.safeString(account, "address", url);
+            String tag = this.safeString(account, "memo");
             this.checkAddress(address);
             final Object finalResponse = response;
             return new java.util.HashMap<String, Object>() {{
@@ -3655,11 +3733,11 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.v4PrivatePostMainAccountCreateNewAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostMainAccountCreateNewAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "account": {
@@ -3720,8 +3798,8 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object accounts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object response = (this.v4PrivatePostSubAccountList(parameters)).join();
+            java.util.List<Object> accounts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.Map<String, Object> response = (this.v4PrivatePostSubAccountList(parameters)).join();
             //
             //     {
             //         "offset": 0,
@@ -3744,8 +3822,8 @@ public class WhitebitCore extends WhitebitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subAccounts)); i++)
             {
                 Object subAccount = this.safeDict(subAccounts, i, new java.util.HashMap<String, Object>() {{}});
-                Object accountId = this.safeString(subAccount, "id");
-                Object accountName = this.safeString(subAccount, "alias");
+                String accountId = this.safeString(subAccount, "id");
+                String accountName = this.safeString(subAccount, "alias");
                 ((java.util.List<Object>)accounts).add(new java.util.HashMap<String, Object>() {{
                     put( "id", accountId );
                     put( "type", "subaccount" );
@@ -3789,7 +3867,7 @@ public class WhitebitCore extends WhitebitApi
                 throw new BadRequest((String)Helpers.add(this.id, " setLeverage() leverage should be between 1 and 20")) ;
             }
             final Object finalLeverage = leverage;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "leverage", finalLeverage );
             }};
             return (this.v4PrivatePostCollateralAccountLeverage(this.extend(request, parameters))).join();
@@ -3819,18 +3897,18 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object accountsByType = this.safeValue(this.options, "accountsByType");
-            Object fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
-            Object toAccountId = this.safeString(accountsByType, toAccount, toAccount);
+            String fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
+            String toAccountId = this.safeString(accountsByType, toAccount, toAccount);
             Object amountString = this.currencyToPrecision(code, amount);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker", Helpers.GetValue(currency, "id") );
                 put( "amount", amountString );
                 put( "from", fromAccountId );
                 put( "to", toAccountId );
             }};
-            Object response = (this.v4PrivatePostMainAccountTransfer(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.v4PrivatePostMainAccountTransfer(this.extend(request, parameters))).join();
             //
             //    []
             //
@@ -3881,8 +3959,8 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code); // check if it has canDeposit
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code); // check if it has canDeposit
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker", Helpers.GetValue(currency, "id") );
                 put( "amount", WhitebitCore.this.currencyToPrecision(code, amount) );
                 put( "address", address );
@@ -3906,7 +3984,7 @@ public class WhitebitCore extends WhitebitApi
                 }
                 Helpers.addElementToObject(request, "provider", provider);
             }
-            Object response = (this.v4PrivatePostMainAccountWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostMainAccountWithdraw(this.extend(request, parameters))).join();
             //
             // empty array with a success status
             // go to deposit/withdraw history and check you request status by uniqueId
@@ -3956,11 +4034,11 @@ public class WhitebitCore extends WhitebitApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         currency = this.safeCurrency(null, currency);
-        Object address = this.safeString(transaction, "address");
+        String address = this.safeString(transaction, "address");
         Object timestamp = this.safeTimestamp(transaction, "createdAt");
-        Object currencyId = this.safeString(transaction, "ticker");
-        Object status = this.safeString(transaction, "status");
-        Object method = this.safeString(transaction, "method");
+        String currencyId = this.safeString(transaction, "ticker");
+        String status = this.safeString(transaction, "status");
+        String method = this.safeString(transaction, "method");
         final Object finalMethod = method;
         final Object finalCurrency = currency;
         return new java.util.HashMap<String, Object>() {{
@@ -3990,9 +4068,9 @@ public class WhitebitCore extends WhitebitApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "1", "pending" );
             put( "2", "pending" );
             put( "3", "ok" );
@@ -4035,7 +4113,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "transactionMethod", 1 );
                 put( "uniqueId", id );
                 put( "limit", 1 );
@@ -4046,7 +4124,7 @@ public class WhitebitCore extends WhitebitApi
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "ticker", Helpers.GetValue(currency, "id"));
             }
-            Object response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "limit": 100,
@@ -4116,7 +4194,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "transactionMethod", 1 );
                 put( "limit", 100 );
                 put( "offset", 0 );
@@ -4130,7 +4208,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 100));
             }
-            Object response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "limit": 100,
@@ -4205,14 +4283,14 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.v4PrivatePostCollateralAccountPositionsOpen(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.v4PrivatePostCollateralAccountPositionsOpen(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4262,8 +4340,8 @@ public class WhitebitCore extends WhitebitApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(info, "market");
-        Object symbol = this.safeSymbol(marketId, market, "_");
+        String marketId = this.safeString(info, "market");
+        String symbol = (String) this.safeSymbol(marketId, market, "_");
         Object timestamp = this.safeTimestamp(info, "modifyDate");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
@@ -4325,7 +4403,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.v4PublicGetFutures(parameters)).join();
+            java.util.Map<String, Object> response = (this.v4PublicGetFutures(parameters)).join();
             //
             //    [
             //        {
@@ -4411,13 +4489,13 @@ public class WhitebitCore extends WhitebitApi
         //  }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(contract, "ticker_id");
-        Object symbol = this.safeSymbol(marketId, market);
-        Object markPrice = this.safeNumber(contract, "markPrice");
-        Object indexPrice = this.safeNumber(contract, "indexPrice");
-        Object interestRate = this.safeNumber(contract, "interestRate");
-        Object fundingRate = this.safeNumber(contract, "funding_rate");
-        Object fundingTime = this.safeInteger(contract, "next_funding_rate_timestamp");
+        String marketId = this.safeString(contract, "ticker_id");
+        String symbol = (String) this.safeSymbol(marketId, market);
+        Double markPrice = this.safeNumber(contract, "markPrice");
+        Double indexPrice = this.safeNumber(contract, "indexPrice");
+        Double interestRate = this.safeNumber(contract, "interestRate");
+        Double fundingRate = this.safeNumber(contract, "funding_rate");
+        Long fundingTime = this.safeInteger(contract, "next_funding_rate_timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -4468,7 +4546,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -4480,10 +4558,10 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("endDate", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endDate", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "records": [
@@ -4521,8 +4599,8 @@ public class WhitebitCore extends WhitebitApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(contract, "market");
-        Object timestamp = this.safeInteger(contract, "fundingTime");
+        String marketId = this.safeString(contract, "market");
+        Long timestamp = this.safeInteger(contract, "fundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", WhitebitCore.this.safeSymbol(marketId, market, null, "swap") );
@@ -4539,13 +4617,13 @@ public class WhitebitCore extends WhitebitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(contracts)); i++)
         {
             Object contract = Helpers.GetValue(contracts, i);
             ((java.util.List<Object>)result).add(this.parseFundingHistory(contract, market));
         }
-        Object sorted = this.sortBy(result, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySinceLimit(sorted, since, limit);
     }
 
@@ -4581,7 +4659,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -4592,7 +4670,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 1000
             }
-            Object response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "limit": 100,
@@ -4664,15 +4742,15 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object fromCurrency = this.currency(fromCode);
-            Object toCurrency = this.currency(toCode);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCode);
+            java.util.Map<String, Object> toCurrency = (java.util.Map<String, Object>) this.currency(toCode);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "from", fromCode );
                 put( "to", toCode );
                 put( "amount", WhitebitCore.this.numberToString(amount) );
                 put( "direction", "from" );
             }};
-            Object response = (this.v4PrivatePostConvertEstimate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostConvertEstimate(this.extend(request, parameters))).join();
             //
             //     {
             //         "give": "4",
@@ -4712,12 +4790,12 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object fromCurrency = this.currency(fromCode);
-            Object toCurrency = this.currency(toCode);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCode);
+            java.util.Map<String, Object> toCurrency = (java.util.Map<String, Object>) this.currency(toCode);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "quoteId", id );
             }};
-            Object response = (this.v4PrivatePostConvertConfirm(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostConvertConfirm(this.extend(request, parameters))).join();
             //
             //     {
             //         "finalGive": "4",
@@ -4764,17 +4842,17 @@ public class WhitebitCore extends WhitebitApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object start = this.parseToInt(Helpers.divide(since, 1000));
+                Long start = this.parseToInt(Helpers.divide(since, 1000));
                 Helpers.addElementToObject(request, "from", this.numberToString(start));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("to", request, parameters, 0.001);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("to", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.v4PrivatePostConvertHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PrivatePostConvertHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "records": [
@@ -4847,13 +4925,13 @@ public class WhitebitCore extends WhitebitApi
         Object toCurrency = Helpers.getArg(optionalArgs, 1, null);
         Object path = this.safeList(conversion, "path", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object first = this.safeDict(path, 0, new java.util.HashMap<String, Object>() {{}});
-        Object fromPath = this.safeString(first, "from");
-        Object toPath = this.safeString(first, "to");
+        String fromPath = this.safeString(first, "from");
+        String toPath = this.safeString(first, "to");
         Object timestamp = this.safeTimestamp2(conversion, "date", "expireAt");
-        Object fromCoin = this.safeString(conversion, "from", fromPath);
-        Object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
-        Object toCoin = this.safeString(conversion, "to", toPath);
-        Object toCode = this.safeCurrencyCode(toCoin, toCurrency);
+        String fromCoin = this.safeString(conversion, "from", fromPath);
+        String fromCode = (String) this.safeCurrencyCode(fromCoin, fromCurrency);
+        String toCoin = this.safeString(conversion, "to", toPath);
+        String toCode = (String) this.safeCurrencyCode(toCoin, toCurrency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
@@ -4892,7 +4970,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -4904,10 +4982,10 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "limit", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endDate", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endDate", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4958,7 +5036,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.v4PrivatePostCollateralAccountPositionsOpen(parameters)).join();
+            java.util.List<Object> response = (this.v4PrivatePostCollateralAccountPositionsOpen(parameters)).join();
             //
             //     [
             //         {
@@ -5004,11 +5082,11 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v4PrivatePostCollateralAccountPositionsOpen(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.v4PrivatePostCollateralAccountPositionsOpen(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -5082,7 +5160,7 @@ public class WhitebitCore extends WhitebitApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(position, "market");
+        String marketId = this.safeString(position, "market");
         Object timestamp = this.safeTimestamp(position, "openDate");
         Object tpsl = this.safeDict(position, "tpsl", new java.util.HashMap<String, Object>() {{}});
         Object orderDetail = this.safeDict(position, "orderDetail", new java.util.HashMap<String, Object>() {{}});
@@ -5149,9 +5227,9 @@ public class WhitebitCore extends WhitebitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            Object maxLimit = 100;
+            Integer maxLimit = 100;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -5162,7 +5240,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -5170,14 +5248,14 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "startDate", Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000)))));
             }
-            var requestparametersVariable = this.handleUntilOption("until_timestamp", request, parameters, 0.001);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("until_timestamp", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v4PublicGetFundingHistoryMarket(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.v4PublicGetFundingHistoryMarket(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -5197,7 +5275,7 @@ public class WhitebitCore extends WhitebitApi
     public Object parseFundingRateHistory(Object info, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(info, "market");
+        String marketId = this.safeString(info, "market");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeTimestamp(info, "fundingTime");
         final Object finalMarket = market;
@@ -5230,7 +5308,7 @@ public class WhitebitCore extends WhitebitApi
             headers = new java.util.HashMap<String, Object>() {{}};
         }
         Helpers.addElementToObject(headers, "User-Agent", Helpers.add(Helpers.add(Helpers.add("ccxt/", this.id), "-"), this.version));
-        Object pathWithParams = Helpers.add("/", this.implodeParams(path, parameters));
+        String pathWithParams = Helpers.add("/", this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), version), accessibility), pathWithParams);
         if (Helpers.isTrue(Helpers.isEqual(accessibility, "public")))
         {
@@ -5245,7 +5323,7 @@ public class WhitebitCore extends WhitebitApi
             Object nonce = String.valueOf(this.nonce());
             Object secret = this.encode(this.secret);
             Object request = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/", "api"), "/"), version), pathWithParams);
-            var nonceWindowrequestParamsVariable = this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
+            java.util.List<Object> nonceWindowrequestParamsVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
             var nonceWindow = ((java.util.List<Object>) nonceWindowrequestParamsVariable).get(0);
             var requestParams = ((java.util.List<Object>) nonceWindowrequestParamsVariable).get(1);
             body = this.json(this.extend(new java.util.HashMap<String, Object>() {{
@@ -5287,14 +5365,14 @@ public class WhitebitCore extends WhitebitApi
         {
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
-            Object status = this.safeString(response, "status");
+            String status = this.safeString(response, "status");
             Object errors = this.safeValue(response, "errors");
             // {"code":10,"message":"Unauthorized request."}
-            Object message = this.safeString(response, "message");
+            String message = this.safeString(response, "message");
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
-            Object codeNew = this.safeInteger(response, "code");
-            Object hasErrorStatus = Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(status, null)) && Helpers.isTrue(!Helpers.isEqual(status, "200"))) && Helpers.isTrue(!Helpers.isEqual(errors, null));
+            Long codeNew = this.safeInteger(response, "code");
+            Boolean hasErrorStatus = Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(status, null)) && Helpers.isTrue(!Helpers.isEqual(status, "200"))) && Helpers.isTrue(!Helpers.isEqual(errors, null));
             if (Helpers.isTrue(Helpers.isTrue(hasErrorStatus) || Helpers.isTrue(!Helpers.isEqual(codeNew, null))))
             {
                 Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
@@ -5310,7 +5388,7 @@ public class WhitebitCore extends WhitebitApi
                     if (Helpers.isTrue(Helpers.isGreaterThan(errorsLength, 0)))
                     {
                         Object errorKey = Helpers.GetValue(errorKeys, 0);
-                        Object errorMessageArray = this.safeValue(errorObject, errorKey, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        Object errorMessageArray = this.safeList(errorObject, errorKey, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                         Object errorMessageLength = Helpers.getArrayLength(errorMessageArray);
                         errorInfo = ((Helpers.isTrue((Helpers.isGreaterThan(errorMessageLength, 0))))) ? Helpers.GetValue(errorMessageArray, 0) : body;
                     }

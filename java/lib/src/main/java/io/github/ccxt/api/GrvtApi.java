@@ -20,6 +20,83 @@ public class GrvtApi extends Exchange
     }
 
     /**
+     * Calls the privateEdgeGetApiV1DepositAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1DepositAddresses (Object... optionalArgs)
+    {
+        return this.callAsync ("privateEdgeGetApiV1DepositAddresses", optionalArgs);
+    }
+
+    /**
+     * Calls the privateEdgeGetApiV1BridgeWithdrawalInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1BridgeWithdrawalInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateEdgeGetApiV1BridgeWithdrawalInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the privateEdgeGetApiV1BridgeWithdrawalStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1BridgeWithdrawalStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("privateEdgeGetApiV1BridgeWithdrawalStatus", optionalArgs);
+    }
+
+    /**
+     * Calls the privateEdgeGetApiV1ReferralEpochs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1ReferralEpochs (Object... optionalArgs)
+    {
+        return this.callAsync ("privateEdgeGetApiV1ReferralEpochs", optionalArgs);
+    }
+
+    /**
+     * Calls the privateEdgeGetApiV1ReferralPoints endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1ReferralPoints (Object... optionalArgs)
+    {
+        return this.callAsync ("privateEdgeGetApiV1ReferralPoints", optionalArgs);
+    }
+
+    /**
+     * Calls the privateEdgeGetApiV1ReferralData endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1ReferralData (Object... optionalArgs)
+    {
+        return this.callAsync ("privateEdgeGetApiV1ReferralData", optionalArgs);
+    }
+
+    /**
+     * Calls the privateEdgeGetApiV1ReferralIndirectData endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgeGetApiV1ReferralIndirectData (Object... optionalArgs)
+    {
+        return this.callAsync ("privateEdgeGetApiV1ReferralIndirectData", optionalArgs);
+    }
+
+    /**
      * Calls the privateEdgePostAuthApiKeyLogin endpoint.
      *
      * @param optionalArgs the request parameters
@@ -39,6 +116,50 @@ public class GrvtApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgePostAuthWalletLogin (Object... optionalArgs)
     {
         return this.callAsync ("privateEdgePostAuthWalletLogin", optionalArgs);
+    }
+
+    /**
+     * Calls the privateEdgePostAuthBuilderAuthorize endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgePostAuthBuilderAuthorize (Object... optionalArgs)
+    {
+        return this.callAsync ("privateEdgePostAuthBuilderAuthorize", optionalArgs);
+    }
+
+    /**
+     * Calls the privateEdgePostApiV1DepositGenerateAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgePostApiV1DepositGenerateAddress (Object... optionalArgs)
+    {
+        return this.callAsync ("privateEdgePostApiV1DepositGenerateAddress", optionalArgs);
+    }
+
+    /**
+     * Calls the privateEdgePostApiV1BridgeWithdrawalQuote endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgePostApiV1BridgeWithdrawalQuote (Object... optionalArgs)
+    {
+        return this.callAsync ("privateEdgePostApiV1BridgeWithdrawalQuote", optionalArgs);
+    }
+
+    /**
+     * Calls the privateEdgePostApiV1BridgeWithdraw endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateEdgePostApiV1BridgeWithdraw (Object... optionalArgs)
+    {
+        return this.callAsync ("privateEdgePostApiV1BridgeWithdraw", optionalArgs);
     }
 
     /**
@@ -171,6 +292,28 @@ public class GrvtApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1Funding (Object... optionalArgs)
     {
         return this.callAsync ("publicMarketPostFullV1Funding", optionalArgs);
+    }
+
+    /**
+     * Calls the publicMarketPostFullV1SupportedAssets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1SupportedAssets (Object... optionalArgs)
+    {
+        return this.callAsync ("publicMarketPostFullV1SupportedAssets", optionalArgs);
+    }
+
+    /**
+     * Calls the publicMarketPostFullV1GetAllCollateralAssetInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicMarketPostFullV1GetAllCollateralAssetInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("publicMarketPostFullV1GetAllCollateralAssetInfo", optionalArgs);
     }
 
     /**
@@ -567,6 +710,116 @@ public class GrvtApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1BuilderFillHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateTradingPostFullV1BuilderFillHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateTradingPostFullV1CreateRfq endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1CreateRfq (Object... optionalArgs)
+    {
+        return this.callAsync ("privateTradingPostFullV1CreateRfq", optionalArgs);
+    }
+
+    /**
+     * Calls the privateTradingPostFullV1CancelRfq endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1CancelRfq (Object... optionalArgs)
+    {
+        return this.callAsync ("privateTradingPostFullV1CancelRfq", optionalArgs);
+    }
+
+    /**
+     * Calls the privateTradingPostFullV1EcnFromBroker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1EcnFromBroker (Object... optionalArgs)
+    {
+        return this.callAsync ("privateTradingPostFullV1EcnFromBroker", optionalArgs);
+    }
+
+    /**
+     * Calls the privateTradingPostFullV2BulkOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV2BulkOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateTradingPostFullV2BulkOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privateTradingPostFullV1PositionHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1PositionHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateTradingPostFullV1PositionHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateTradingPostFullV1InterestPaymentHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1InterestPaymentHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateTradingPostFullV1InterestPaymentHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateTradingPostFullV1GetCollateralPreference endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1GetCollateralPreference (Object... optionalArgs)
+    {
+        return this.callAsync ("privateTradingPostFullV1GetCollateralPreference", optionalArgs);
+    }
+
+    /**
+     * Calls the privateTradingPostFullV1SpotAccountSummary endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1SpotAccountSummary (Object... optionalArgs)
+    {
+        return this.callAsync ("privateTradingPostFullV1SpotAccountSummary", optionalArgs);
+    }
+
+    /**
+     * Calls the privateTradingPostFullV1SetIndicativePrices endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1SetIndicativePrices (Object... optionalArgs)
+    {
+        return this.callAsync ("privateTradingPostFullV1SetIndicativePrices", optionalArgs);
+    }
+
+    /**
+     * Calls the privateTradingPostFullV1WithdrawalFee endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateTradingPostFullV1WithdrawalFee (Object... optionalArgs)
+    {
+        return this.callAsync ("privateTradingPostFullV1WithdrawalFee", optionalArgs);
     }
 
 }

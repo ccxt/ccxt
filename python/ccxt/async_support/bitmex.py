@@ -196,34 +196,48 @@ class bitmex(Exchange, ImplicitAPI):
                         'trade': {'cost': 5},
                         'trade/bucketed': {'cost': 5},
                         'wallet/assets': {'cost': 5},
+                        'wallet/currencies': {'cost': 5},
+                        'wallet/haircuts': {'cost': 5},
                         'wallet/networks': {'cost': 5},
                     },
                 },
                 'private': {
                     'get': {
                         'address': {'cost': 5},
+                        'addressConfig': {'cost': 5},
                         'apiKey': {'cost': 5},
+                        'apiKey/self': {'cost': 5},
                         'execution': {'cost': 5},
                         'execution/tradeHistory': {'cost': 5},
                         'globalNotification': {'cost': 5},
                         'leaderboard/name': {'cost': 5},
+                        'leagueoftrader/myRankings': {'cost': 5},
+                        'managedSubAccountBinding/investor': {'cost': 5},
+                        'managedSubAccountBinding/tradingTeam': {'cost': 5},
                         'order': {'cost': 5},
                         'porl/snapshots': {'cost': 5},
                         'position': {'cost': 5},
+                        'referralCode': {'cost': 5},
+                        'referralCode/check/{code}': {'cost': 5},
+                        'referralCode/code/{code}': {'cost': 5},
+                        'referralCode/{id}': {'cost': 5},
                         'user': {'cost': 5},
                         'user/affiliateStatus': {'cost': 5},
                         'user/checkReferralCode': {'cost': 5},
                         'user/commission': {'cost': 5},
                         'user/csa': {'cost': 5},
                         'user/depositAddress': {'cost': 5},
+                        'user/depositAddressInformation': {'cost': 5},
                         'user/executionHistory': {'cost': 5},
                         'user/getWalletTransferAccounts': {'cost': 5},
                         'user/margin': {'cost': 5},
+                        'user/marginingMode': {'cost': 5},
                         'user/quoteFillRatio': {'cost': 5},
                         'user/quoteValueRatio': {'cost': 5},
                         'user/staking': {'cost': 5},
                         'user/staking/instruments': {'cost': 5},
                         'user/staking/tiers': {'cost': 5},
+                        'user/tradingSettings': {'cost': 5},
                         'user/tradingVolume': {'cost': 5},
                         'user/unstakingRequests': {'cost': 5},
                         'user/wallet': {'cost': 5},
@@ -231,6 +245,8 @@ class bitmex(Exchange, ImplicitAPI):
                         'user/walletSummary': {'cost': 5},
                         'userAffiliates': {'cost': 5},
                         'userEvent': {'cost': 5},
+                        'userPriceAlert': {'cost': 5},
+                        'userStats/volumeRank': {'cost': 5},
                     },
                     'post': {
                         'address': {'cost': 5},
@@ -241,33 +257,52 @@ class bitmex(Exchange, ImplicitAPI):
                         'guild/kick': {'cost': 5},
                         'guild/leave': {'cost': 5},
                         'guild/sharesTrades': {'cost': 5},
+                        'managedSubAccountBinding/approve': {'cost': 5},
+                        'managedSubAccountBinding/cancel': {'cost': 5},
+                        'managedSubAccountBinding/createMSA': {'cost': 5},
+                        'managedSubAccountBinding/reject': {'cost': 5},
+                        'managedSubAccountBinding/toggleTradeHistory': {'cost': 5},
+                        'managedSubAccountBinding/unbind': {'cost': 5},
                         'order': {'cost': 1},
                         'order/cancelAllAfter': {'cost': 5},
                         'order/closePosition': {'cost': 5},
+                        'position/crossLeverage': {'cost': 5},
                         'position/isolate': {'cost': 1},
                         'position/leverage': {'cost': 1},
                         'position/riskLimit': {'cost': 5},
                         'position/transferMargin': {'cost': 1},
+                        'referralCode': {'cost': 5},
                         'user/addSubaccount': {'cost': 5},
                         'user/cancelWithdrawal': {'cost': 5},
                         'user/communicationToken': {'cost': 5},
                         'user/confirmEmail': {'cost': 5},
                         'user/confirmWithdrawal': {'cost': 5},
+                        'user/createIndependentSubaccount': {'cost': 5},
                         'user/logout': {'cost': 5},
+                        'user/marginingMode': {'cost': 5},
+                        'user/positionMode': {'cost': 5},
                         'user/preferences': {'cost': 5},
                         'user/requestWithdrawal': {'cost': 5},
                         'user/unstakingRequests': {'cost': 5},
                         'user/updateSubaccount': {'cost': 5},
                         'user/walletTransfer': {'cost': 5},
+                        'userPriceAlert': {'cost': 5},
                     },
                     'put': {
+                        'address': {'cost': 5},
                         'guild': {'cost': 5},
                         'order': {'cost': 1},
+                        'referralCode/{id}': {'cost': 5},
+                        'userPriceAlert/{id}': {'cost': 5},
                     },
                     'delete': {
                         'order': {'cost': 1},
                         'order/all': {'cost': 1},
+                        'referralCode/{id}': {'cost': 5},
                         'user/unstakingRequests': {'cost': 5},
+                        'user/withdrawal': {'cost': 5},
+                        'userPriceAlert': {'cost': 5},
+                        'userPriceAlert/{id}': {'cost': 5},
                     },
                 },
             },
@@ -482,7 +517,7 @@ class bitmex(Exchange, ImplicitAPI):
         code = self.safe_currency_code(asset)
         id = self.safe_string(currency, 'currency')
         name = self.safe_string(currency, 'name')
-        chains = self.safe_value(currency, 'networks', [])
+        chains = self.safe_list(currency, 'networks', [])
         depositEnabled = False
         withdrawEnabled = False
         networks = {}
@@ -1587,7 +1622,7 @@ class bitmex(Exchange, ImplicitAPI):
             await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.publicGetInstrumentActiveAndIndices(params)
-        # same response "fetchMarkets"
+        # same response as under "fetchMarkets"
         result = {}
         rawTickers = self.to_array(response)
         for i in range(0, len(rawTickers)):
@@ -1670,7 +1705,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -2646,7 +2681,7 @@ class bitmex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         response = await self.publicGetInstrumentActiveAndIndices(params)
-        # same response "fetchMarkets"
+        # same response as under "fetchMarkets"
         filteredResponse = []
         rawItems = self.to_array(response)
         for i in range(0, len(rawItems)):
@@ -2884,7 +2919,7 @@ class bitmex(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        networks = self.safe_value(fee, 'networks', [])
+        networks = self.safe_list(fee, 'networks', [])
         networksLength = len(networks)
         result = {
             'info': fee,

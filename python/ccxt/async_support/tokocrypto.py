@@ -206,6 +206,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
                         'exchangeInfo': {'cost': 10},
+                        'executionRules': {'cost': 2, 'noSymbol': 40},
                     },
                     'put': {
                         'userDataStream': {'cost': 1},
@@ -245,6 +246,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                         'open/v1/orders/oco': {'cost': 1},
                         'open/v1/withdraws': {'cost': 1},
                         'open/v1/user-data-stream': {'cost': 1},
+                        'open/v1/user-listen-token': {'cost': 1},
                     },
                 },
             },
@@ -794,7 +796,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
         data = self.safe_value(response, 'data', {})
-        list = self.safe_value(data, 'list', [])
+        list = self.safe_list(data, 'list', [])
         result = []
         for i in range(0, len(list)):
             market = list[i]
@@ -811,7 +813,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             filtersByType = self.index_by(filters, 'filterType')
             status = self.safe_string(market, 'spotTradingEnable')
             active = (status == '1')
-            permissions = self.safe_value(market, 'permissions', [])
+            permissions = self.safe_list(market, 'permissions', [])
             for j in range(0, len(permissions)):
                 if permissions[j] == 'TRD_GRP_003':
                     active = False
@@ -870,7 +872,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'info': market,
             }
             if 'PRICE_FILTER' in filtersByType:
-                filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+                filter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
                 entry['precision']['price'] = self.safe_number(filter, 'tickSize')
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
@@ -1436,7 +1438,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1566,7 +1568,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
         data = self.safe_value(response, 'data', {})
-        balances = self.safe_value(data, 'accountAssets', [])
+        balances = self.safe_list(data, 'accountAssets', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset')
@@ -1769,7 +1771,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order would be triggered
-        :param float [params.cost]: for spot market buy orders, the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: for spot market buy orders, the quote quantity that can be used as an alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:

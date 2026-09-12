@@ -18,16 +18,16 @@ public partial class testMainClass : BaseTest
     {
         argParams ??= new Dictionary<string, object>();
         string method = "watchTickers";
-        object now = exchange.milliseconds();
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
-        object maxIdleTime = 5000;
+        int maxIdleTime = 5000;
         bool idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = new Dictionary<string, object>() {};
             bool success = true;
             bool shouldReturn = false;
-            object startTime = exchange.milliseconds();
+            Int64 startTime = exchange.milliseconds();
             try
             {
                 response = detypeForComparison(await exchange.WatchTickers(argSymbols, argParams));
@@ -64,7 +64,7 @@ public partial class testMainClass : BaseTest
                     checkedSymbol = getValue(argSymbols, 0);
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-                for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
                 {
                     object ticker = getValue(values, i);
                     try

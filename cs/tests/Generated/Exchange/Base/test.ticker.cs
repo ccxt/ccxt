@@ -24,7 +24,7 @@ public partial class testMainClass : BaseTest
                 { "previousClose", true },
             }, skippedProperties);
         }
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "symbol", "ETH/BTC" },
             { "timestamp", 1502962946216 },
@@ -47,7 +47,7 @@ public partial class testMainClass : BaseTest
             { "quoteVolume", exchange.parseNumber("1.234") },
         };
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        object emptyAllowedFor = new List<object>() {"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"};
+        List<object> emptyAllowedFor = new List<object>() {"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"};
         // trick csharp-transpiler for string
         if (!isTrue((((object)method).ToString().Contains("BidsAsks"))))
         {
@@ -58,7 +58,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
         // check market
-        object market = null;
+        IDictionary<string, object> market = null;
         bool isUnrecognizedSymbol = false;
         bool isFetchTickerCalled = isEqual(method, "fetchTicker");
         object symbolForMarket = ((bool) isTrue((!isEqual(symbol, null)))) ? symbol : exchange.safeString(entry, "symbol");
@@ -89,7 +89,7 @@ public partial class testMainClass : BaseTest
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
         bool isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
-        object valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
+        bool valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
         if (isTrue(isTrue(valuesShouldBePositive) && !isTrue((inOp(skippedProperties, "positiveValues")))))
         {
             testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "open", "0");
@@ -109,10 +109,10 @@ public partial class testMainClass : BaseTest
         //
         // close price
         //
-        object lastString = exchange.safeString(entry, "last");
-        object closeString = exchange.safeString(entry, "close");
+        string? lastString = exchange.safeString(entry, "last");
+        string? closeString = exchange.safeString(entry, "close");
         assert(isTrue((isTrue((isEqual(closeString, null))) && isTrue((isEqual(lastString, null))))) || isTrue(Precise.stringEq(lastString, closeString)), add("`last` != `close`", logText));
-        object openPrice = exchange.safeString(entry, "open");
+        string? openPrice = exchange.safeString(entry, "open");
         //
         // base & quote volumes
         //
@@ -129,14 +129,14 @@ public partial class testMainClass : BaseTest
             // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
             // far above baseVolume * high), so the spot-derived invariant does not hold there,
             // see https://github.com/ccxt/ccxt/pull/29563
-            object isInverse = exchange.safeBool(market, "inverse", false);
+            bool? isInverse = exchange.safeBool(market, "inverse", false);
             if (isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(baseVolume, null))) && isTrue((!isEqual(quoteVolume, null)))) && isTrue((!isEqual(high, null)))) && isTrue((!isEqual(low, null)))) && isTrue((!isEqual(isInverse, true)))))
             {
-                object baseLow = Precise.stringMul(baseVolume, low);
-                object baseHigh = Precise.stringMul(baseVolume, high);
+                string? baseLow = Precise.stringMul(baseVolume, low);
+                string? baseHigh = Precise.stringMul(baseVolume, high);
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
-                object mPrecision = exchange.safeDict(market, "precision");
-                object amountPrecision = exchange.safeString(mPrecision, "amount");
+                IDictionary<string, object> mPrecision = exchange.safeDict(market, "precision");
+                string? amountPrecision = exchange.safeString(mPrecision, "amount");
                 string tolerance = "1.0001";
                 if (isTrue(!isEqual(amountPrecision, null)))
                 {
@@ -160,8 +160,8 @@ public partial class testMainClass : BaseTest
                 // 0.01), so we widen the acceptance window by one such step on
                 // each side - big enough to forgive rounding, far too small to
                 // hide a real bug like mismatched units or a wrong-field parse
-                object quoteVolumeDecimals = exchange.precisionFromString(quoteVolume);
-                object quoteQuantum = exchange.parsePrecision(exchange.numberToString(quoteVolumeDecimals));
+                int quoteVolumeDecimals = exchange.precisionFromString(quoteVolume);
+                string? quoteQuantum = exchange.parsePrecision(exchange.numberToString(quoteVolumeDecimals));
                 baseLow = Precise.stringSub(baseLow, quoteQuantum);
                 baseHigh = Precise.stringAdd(baseHigh, quoteQuantum);
                 assert(Precise.stringGe(quoteVolume, baseLow), add("quoteVolume should be => baseVolume * low", logText));
@@ -185,7 +185,7 @@ public partial class testMainClass : BaseTest
         //
         // vwap
         //
-        object vwap = exchange.safeString(entry, "vwap");
+        string? vwap = exchange.safeString(entry, "vwap");
         if (isTrue(!isEqual(vwap, null)))
         {
             // todo
@@ -203,8 +203,8 @@ public partial class testMainClass : BaseTest
                 assert(!isEqual(baseVolume, null), add("quoteVolume & vwap is defined, but baseVolume is not", logText));
             }
         }
-        object askString = exchange.safeString(entry, "ask");
-        object bidString = exchange.safeString(entry, "bid");
+        string? askString = exchange.safeString(entry, "ask");
+        string? bidString = exchange.safeString(entry, "bid");
         if (isTrue(isTrue(isTrue((!isEqual(askString, null))) && isTrue((!isEqual(bidString, null)))) && !isTrue((inOp(skippedProperties, "spread")))))
         {
             // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
@@ -214,20 +214,20 @@ public partial class testMainClass : BaseTest
         string allowedPercentageVariation = "0.01";
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isFetchTickerCalled) && isTrue(!isEqual(lastString, null))) && isTrue(!isEqual(bidString, null))) && isTrue(!isEqual(askString, null))) && !isTrue((inOp(skippedProperties, "lastBetweenBidAsk")))))
         {
-            object medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
-            object medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
-            object medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
+            string? medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
+            string? medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
+            string? medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
             assert(isTrue(Precise.stringGe(lastString, medianLow)) && isTrue(Precise.stringLe(lastString, medianHigh)), add("last price should be within 1% of the bid/ask median price", logText));
         }
-        object percentage = exchange.safeString(entry, "percentage");
-        object change = exchange.safeString(entry, "change");
+        string? percentage = exchange.safeString(entry, "percentage");
+        string? change = exchange.safeString(entry, "change");
         // option markets are exempt from the UPPER percentage/change caps only:
         // expiry-day convexity makes any finite cap wrong - a formerly-OTM
         // contract moving into the money legitimately gains 1000x+ (observed: a
         // paradex call at +109055% on its expiry date, mark price equal to
         // intrinsic). the floors stay: a long option cannot lose more than its
         // premium, so percentage >= -100 and change >= -open hold for options too
-        object isOptionMarket = exchange.safeBool(market, "option", false);
+        bool? isOptionMarket = exchange.safeBool(market, "option", false);
         if (isTrue(!isTrue((inOp(skippedProperties, "maxIncrease"))) && !isTrue(isUnrecognizedSymbol)))
         {
             //
@@ -246,7 +246,7 @@ public partial class testMainClass : BaseTest
             //
             // change
             //
-            object approxValue = exchange.safeStringN(entry, new List<object>() {"open", "close", "average", "bid", "ask", "vwap", "previousClose"});
+            string? approxValue = exchange.safeStringN(entry, new List<object>() {"open", "close", "average", "bid", "ask", "vwap", "previousClose"});
             if (isTrue(!isEqual(change, null)))
             {
                 // - should be above -price and (for non-options) below +price*maxIncrease

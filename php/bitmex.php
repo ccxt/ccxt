@@ -181,34 +181,48 @@ class bitmex extends Exchange {
                         'trade' => array( 'cost' => 5 ),
                         'trade/bucketed' => array( 'cost' => 5 ),
                         'wallet/assets' => array( 'cost' => 5 ),
+                        'wallet/currencies' => array( 'cost' => 5 ),
+                        'wallet/haircuts' => array( 'cost' => 5 ),
                         'wallet/networks' => array( 'cost' => 5 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         'address' => array( 'cost' => 5 ),
+                        'addressConfig' => array( 'cost' => 5 ),
                         'apiKey' => array( 'cost' => 5 ),
+                        'apiKey/self' => array( 'cost' => 5 ),
                         'execution' => array( 'cost' => 5 ),
                         'execution/tradeHistory' => array( 'cost' => 5 ),
                         'globalNotification' => array( 'cost' => 5 ),
                         'leaderboard/name' => array( 'cost' => 5 ),
+                        'leagueoftrader/myRankings' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/investor' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/tradingTeam' => array( 'cost' => 5 ),
                         'order' => array( 'cost' => 5 ),
                         'porl/snapshots' => array( 'cost' => 5 ),
                         'position' => array( 'cost' => 5 ),
+                        'referralCode' => array( 'cost' => 5 ),
+                        'referralCode/check/{code}' => array( 'cost' => 5 ),
+                        'referralCode/code/{code}' => array( 'cost' => 5 ),
+                        'referralCode/{id}' => array( 'cost' => 5 ),
                         'user' => array( 'cost' => 5 ),
                         'user/affiliateStatus' => array( 'cost' => 5 ),
                         'user/checkReferralCode' => array( 'cost' => 5 ),
                         'user/commission' => array( 'cost' => 5 ),
                         'user/csa' => array( 'cost' => 5 ),
                         'user/depositAddress' => array( 'cost' => 5 ),
+                        'user/depositAddressInformation' => array( 'cost' => 5 ),
                         'user/executionHistory' => array( 'cost' => 5 ),
                         'user/getWalletTransferAccounts' => array( 'cost' => 5 ),
                         'user/margin' => array( 'cost' => 5 ),
+                        'user/marginingMode' => array( 'cost' => 5 ),
                         'user/quoteFillRatio' => array( 'cost' => 5 ),
                         'user/quoteValueRatio' => array( 'cost' => 5 ),
                         'user/staking' => array( 'cost' => 5 ),
                         'user/staking/instruments' => array( 'cost' => 5 ),
                         'user/staking/tiers' => array( 'cost' => 5 ),
+                        'user/tradingSettings' => array( 'cost' => 5 ),
                         'user/tradingVolume' => array( 'cost' => 5 ),
                         'user/unstakingRequests' => array( 'cost' => 5 ),
                         'user/wallet' => array( 'cost' => 5 ),
@@ -216,6 +230,8 @@ class bitmex extends Exchange {
                         'user/walletSummary' => array( 'cost' => 5 ),
                         'userAffiliates' => array( 'cost' => 5 ),
                         'userEvent' => array( 'cost' => 5 ),
+                        'userPriceAlert' => array( 'cost' => 5 ),
+                        'userStats/volumeRank' => array( 'cost' => 5 ),
                     ),
                     'post' => array(
                         'address' => array( 'cost' => 5 ),
@@ -226,33 +242,52 @@ class bitmex extends Exchange {
                         'guild/kick' => array( 'cost' => 5 ),
                         'guild/leave' => array( 'cost' => 5 ),
                         'guild/sharesTrades' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/approve' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/cancel' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/createMSA' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/reject' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/toggleTradeHistory' => array( 'cost' => 5 ),
+                        'managedSubAccountBinding/unbind' => array( 'cost' => 5 ),
                         'order' => array( 'cost' => 1 ),
                         'order/cancelAllAfter' => array( 'cost' => 5 ),
                         'order/closePosition' => array( 'cost' => 5 ),
+                        'position/crossLeverage' => array( 'cost' => 5 ),
                         'position/isolate' => array( 'cost' => 1 ),
                         'position/leverage' => array( 'cost' => 1 ),
                         'position/riskLimit' => array( 'cost' => 5 ),
                         'position/transferMargin' => array( 'cost' => 1 ),
+                        'referralCode' => array( 'cost' => 5 ),
                         'user/addSubaccount' => array( 'cost' => 5 ),
                         'user/cancelWithdrawal' => array( 'cost' => 5 ),
                         'user/communicationToken' => array( 'cost' => 5 ),
                         'user/confirmEmail' => array( 'cost' => 5 ),
                         'user/confirmWithdrawal' => array( 'cost' => 5 ),
+                        'user/createIndependentSubaccount' => array( 'cost' => 5 ),
                         'user/logout' => array( 'cost' => 5 ),
+                        'user/marginingMode' => array( 'cost' => 5 ),
+                        'user/positionMode' => array( 'cost' => 5 ),
                         'user/preferences' => array( 'cost' => 5 ),
                         'user/requestWithdrawal' => array( 'cost' => 5 ),
                         'user/unstakingRequests' => array( 'cost' => 5 ),
                         'user/updateSubaccount' => array( 'cost' => 5 ),
                         'user/walletTransfer' => array( 'cost' => 5 ),
+                        'userPriceAlert' => array( 'cost' => 5 ),
                     ),
                     'put' => array(
+                        'address' => array( 'cost' => 5 ),
                         'guild' => array( 'cost' => 5 ),
                         'order' => array( 'cost' => 1 ),
+                        'referralCode/{id}' => array( 'cost' => 5 ),
+                        'userPriceAlert/{id}' => array( 'cost' => 5 ),
                     ),
                     'delete' => array(
                         'order' => array( 'cost' => 1 ),
                         'order/all' => array( 'cost' => 1 ),
+                        'referralCode/{id}' => array( 'cost' => 5 ),
                         'user/unstakingRequests' => array( 'cost' => 5 ),
+                        'user/withdrawal' => array( 'cost' => 5 ),
+                        'userPriceAlert' => array( 'cost' => 5 ),
+                        'userPriceAlert/{id}' => array( 'cost' => 5 ),
                     ),
                 ),
             ),
@@ -469,7 +504,7 @@ class bitmex extends Exchange {
         $code = $this->safe_currency_code($asset);
         $id = $this->safe_string($currency, 'currency');
         $name = $this->safe_string($currency, 'name');
-        $chains = $this->safe_value($currency, 'networks', array());
+        $chains = $this->safe_list($currency, 'networks', array());
         $depositEnabled = false;
         $withdrawEnabled = false;
         $networks = array();
@@ -1649,7 +1684,7 @@ class bitmex extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetInstrumentActiveAndIndices($params);
-        // same $response "fetchMarkets"
+        // same $response as under "fetchMarkets"
         $result = array();
         $rawTickers = $this->to_array($response);
         for ($i = 0; $i < count($rawTickers); $i++) {
@@ -1737,7 +1772,7 @@ class bitmex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as $timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2793,7 +2828,7 @@ class bitmex extends Exchange {
             $this->load_markets();
         }
         $response = $this->publicGetInstrumentActiveAndIndices($params);
-        // same $response "fetchMarkets"
+        // same $response as under "fetchMarkets"
         $filteredResponse = array();
         $rawItems = $this->to_array($response);
         for ($i = 0; $i < count($rawItems); $i++) {
@@ -3058,7 +3093,7 @@ class bitmex extends Exchange {
         //        )
         //    }
         //
-        $networks = $this->safe_value($fee, 'networks', array());
+        $networks = $this->safe_list($fee, 'networks', array());
         $networksLength = count($networks);
         $result = array(
             'info' => $fee,

@@ -97,6 +97,17 @@ public class BlockchaincomApi extends Exchange
     }
 
     /**
+     * Calls the privateGetInternalOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetInternalOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetInternalOrders", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetOrders endpoint.
      *
      * @param optionalArgs the request parameters

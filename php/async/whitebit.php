@@ -221,6 +221,7 @@ class whitebit extends Exchange {
                             'collateral-account/positions/history' => array( 'cost' => 1 ),
                             'collateral-account/leverage' => array( 'cost' => 1 ),
                             'collateral-account/positions/open' => array( 'cost' => 1 ),
+                            'collateral-account/positions/closed-pnl' => array( 'cost' => 1 ),
                             'collateral-account/summary' => array( 'cost' => 1 ),
                             'collateral-account/funding-history' => array( 'cost' => 1 ),
                             'main-account/address' => array( 'cost' => 1 ),
@@ -234,6 +235,7 @@ class whitebit extends Exchange {
                             'main-account/history' => array( 'cost' => 1 ),
                             'main-account/withdraw' => array( 'cost' => 1 ),
                             'main-account/withdraw-pay' => array( 'cost' => 1 ),
+                            'main-account/express-withdraw/token' => array( 'cost' => 1 ),
                             'main-account/transfer' => array( 'cost' => 1 ),
                             'main-account/smart/plans' => array( 'cost' => 1 ),
                             'main-account/smart/investment' => array( 'cost' => 1 ),
@@ -241,10 +243,19 @@ class whitebit extends Exchange {
                             'main-account/smart/investments' => array( 'cost' => 1 ),
                             'main-account/fee' => array( 'cost' => 1 ),
                             'main-account/smart/interest-payment-history' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/plans' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/history' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/payment-history' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/invest' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/withdraw' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/close' => array( 'cost' => 1 ),
+                            'main-account/smart-flex/investments/auto-invest' => array( 'cost' => 1 ),
                             'trade-account/balance' => array( 'cost' => 1 ),
                             // answers with a list when a market is set and a dict of lists otherwise — no shape assertion
                             'trade-account/executed-history' => array( 'cost' => 1 ),
                             'trade-account/order/history' => array( 'cost' => 1 ),
+                            'trade-account/order/history/query' => array( 'cost' => 1 ),
                             'trade-account/order' => array( 'cost' => 1 ),
                             'order/collateral/limit' => array( 'cost' => 1 ),
                             'order/collateral/market' => array( 'cost' => 1 ),
@@ -258,6 +269,7 @@ class whitebit extends Exchange {
                             'order/stop_market' => array( 'cost' => 1 ),
                             'order/cancel' => array( 'cost' => 1 ),
                             'order/cancel/all' => array( 'cost' => 1 ),
+                            'order/cancel/bulk' => array( 'cost' => 1 ),
                             'order/kill-switch' => array( 'cost' => 1 ),
                             'order/kill-switch/status' => array( 'cost' => 1 ),
                             'order/bulk' => array( 'cost' => 1 ),
@@ -290,8 +302,22 @@ class whitebit extends Exchange {
                             'sub-account/api-key/ip-address/create' => array( 'cost' => 1 ),
                             'sub-account/api-key/ip-address/delete' => array( 'cost' => 1 ),
                             'mining/rewards' => array( 'cost' => 1 ),
+                            'mining/hashrate' => array( 'cost' => 1 ),
+                            'mining/payout-destination' => array( 'cost' => 1 ),
+                            'mining/payout-destination/edit' => array( 'cost' => 1 ),
+                            'mining/miners/info' => array( 'cost' => 1 ),
+                            'mining/workers/names' => array( 'cost' => 1 ),
+                            'mining/workers/hashrate' => array( 'cost' => 1 ),
+                            'mining/watcher-links/create' => array( 'cost' => 1 ),
+                            'mining/watcher-links/list' => array( 'cost' => 1 ),
+                            'mining/accounts/create' => array( 'cost' => 1 ),
+                            'mining/accounts' => array( 'cost' => 1 ),
                             'market/fee' => array( 'cost' => 1 ),
+                            'market/fee/single' => array( 'cost' => 1 ),
                             'conditional-orders' => array( 'cost' => 1 ),
+                            'travel-rule/vasps' => array( 'cost' => 1 ),
+                            'travel-rule/deposit/verification' => array( 'cost' => 1 ),
+                            'jwt' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -1920,7 +1946,7 @@ class whitebit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3372,7 +3398,7 @@ class whitebit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_deposit(...))($id, $code, $params);
     }
 
@@ -4504,7 +4530,7 @@ class whitebit extends Exchange {
                     $errorsLength = count($errorKeys);
                     if ($errorsLength > 0) {
                         $errorKey = $errorKeys[0];
-                        $errorMessageArray = $this->safe_value($errorObject, $errorKey, array());
+                        $errorMessageArray = $this->safe_list($errorObject, $errorKey, array());
                         $errorMessageLength = count($errorMessageArray);
                         $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;
                     }

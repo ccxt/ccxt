@@ -37,6 +37,7 @@ declare class testMainClass {
     testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<boolean>;
     getSkips(exchange: Exchange, methodName: string): string | Dict;
     testSafe(methodName: any, exchange: any, args?: never[], isPublic?: boolean): Promise<boolean>;
+    getLastRequestUrl(exchange: any): string;
     runPublicTests(exchange: any, symbols: any): Promise<boolean>;
     runTests(exchange: any, tests: any, isPublicTest: boolean): Promise<boolean>;
     loadExchange(exchange: any): Promise<boolean>;

@@ -112,6 +112,11 @@ impl KucoinCore {
         self.call_method(Value::Str("public_get_margin_collateral_ratio".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetMarginAvailableInventory` implicit endpoint.
+    pub async fn public_get_margin_available_inventory(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_margin_available_inventory".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetConvertSymbol` implicit endpoint.
     pub async fn public_get_convert_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_convert_symbol".to_string()), optional_args).await
@@ -482,6 +487,11 @@ impl KucoinCore {
         self.call_method(Value::Str("private_get_margin_interest".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetMarginBorrowRate` implicit endpoint.
+    pub async fn private_get_margin_borrow_rate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_margin_borrow_rate".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetProjectList` implicit endpoint.
     pub async fn private_get_project_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_project_list".to_string()), optional_args).await
@@ -560,6 +570,31 @@ impl KucoinCore {
     /// Auto-generated wrapper for the `privateGetAffiliateInviterStatistics` implicit endpoint.
     pub async fn private_get_affiliate_inviter_statistics(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_affiliate_inviter_statistics".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAffiliateQueryInvitees` implicit endpoint.
+    pub async fn private_get_affiliate_query_invitees(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_affiliate_query_invitees".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAffiliateQueryMyCommission` implicit endpoint.
+    pub async fn private_get_affiliate_query_my_commission(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_affiliate_query_my_commission".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAffiliateQueryTransactionByUid` implicit endpoint.
+    pub async fn private_get_affiliate_query_transaction_by_uid(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_affiliate_query_transaction_by_uid".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAffiliateQueryTransactionByTime` implicit endpoint.
+    pub async fn private_get_affiliate_query_transaction_by_time(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_affiliate_query_transaction_by_time".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAffiliateQueryKumining` implicit endpoint.
+    pub async fn private_get_affiliate_query_kumining(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_affiliate_query_kumining".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSubUserCreated` implicit endpoint.
@@ -1382,6 +1417,11 @@ impl KucoinCore {
         self.call_method(Value::Str("broker_get_broker_nd_rebase_download".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `brokerGetBrokerNdMarkUp` implicit endpoint.
+    pub async fn broker_get_broker_nd_mark_up(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_get_broker_nd_mark_up".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `brokerGetAssetNdbrokerDepositList` implicit endpoint.
     pub async fn broker_get_asset_ndbroker_deposit_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("broker_get_asset_ndbroker_deposit_list".to_string()), optional_args).await
@@ -1420,6 +1460,11 @@ impl KucoinCore {
     /// Auto-generated wrapper for the `brokerPostBrokerNdAccountUpdateApikey` implicit endpoint.
     pub async fn broker_post_broker_nd_account_update_apikey(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("broker_post_broker_nd_account_update_apikey".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPostBrokerNdMarkUp` implicit endpoint.
+    pub async fn broker_post_broker_nd_mark_up(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_post_broker_nd_mark_up".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `brokerDeleteBrokerNdAccountApikey` implicit endpoint.

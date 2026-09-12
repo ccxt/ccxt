@@ -799,7 +799,7 @@ class p2b extends Exchange {
          * @param {int} [$limit] 1-500, default=50
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->offset] default=0, with this value the last candles are returned
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

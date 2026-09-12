@@ -95,16 +95,16 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
-            Object interval = this.safeInteger(timeframes, timeframe);
+            Long interval = this.safeInteger(timeframes, timeframe);
             Object marketId = Helpers.GetValue(market, "id");
             // currently there is no way of knowing
             // the interval upon getting an update
             // so that can't be part of the message hash, and the user can only subscribe
             // to one timeframe per symbol
-            Object messageHash = Helpers.add("candles:", symbol);
+            String messageHash = (String) Helpers.add("candles:", symbol);
             Object reqParams = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketId, interval));
             Object method = "candles_subscribe";
             Object ohlcv = (this.watchPublic(messageHash, method, reqParams, parameters)).join();
@@ -137,14 +137,14 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //     "id": null
         // }
         //
-        Object parameters = this.safeValue(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object parameters = this.safeList(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parameters)); i++)
         {
             Object data = Helpers.GetValue(parameters, i);
             Object marketId = this.safeString(data, 7);
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add(Helpers.add("candles", ":"), symbol);
+            String messageHash = (String) Helpers.add(Helpers.add("candles", ":"), symbol);
             Object parsed = this.parseOHLCV(data, market);
             // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
@@ -154,7 +154,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), "unknown"))))
             {
-                Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), "unknown", stored);
             }
@@ -186,12 +186,12 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 10; // max 100
             }
-            Object messageHash = Helpers.add(Helpers.add("orderbook", ":"), Helpers.GetValue(market, "symbol"));
+            String messageHash = (String) Helpers.add(Helpers.add("orderbook", ":"), Helpers.GetValue(market, "symbol"));
             Object method = "depth_subscribe";
             Object options = this.safeValue(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
             Object defaultPriceInterval = this.safeString(options, "priceInterval", "0");
@@ -246,16 +246,16 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object parameters = this.safeValue(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object isSnapshot = this.safeValue(parameters, 0);
         Object marketId = this.safeString(parameters, 2);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object data = this.safeValue(parameters, 1);
         Object timestamp = this.safeTimestamp(data, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
-            Object ob = this.orderBook();
+            io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
             Helpers.addElementToObject(this.orderbooks, symbol, ob);
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         if (Helpers.isTrue(Helpers.isEqual(isSnapshot, true)))
@@ -269,14 +269,14 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
         }
-        Object messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
+        String messageHash = (String) Helpers.add(Helpers.add("orderbook", ":"), symbol);
         client.resolve(orderbook, messageHash);
     }
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = this.safeFloat(delta, 0);
-        Object amount = this.safeFloat(delta, 1);
+        Double price = this.safeFloat(delta, 0);
+        Double amount = this.safeFloat(delta, 1);
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
@@ -307,10 +307,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object method = "market_subscribe";
-            Object messageHash = Helpers.add("ticker:", symbol);
+            String messageHash = (String) Helpers.add("ticker:", symbol);
             // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
             return (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
         });
@@ -338,18 +338,18 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object method = "market_subscribe";
+            String method = "market_subscribe";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object id = this.nonce();
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object args = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> args = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                Object market = this.market(Helpers.GetValue(symbols, i));
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("ticker:", Helpers.GetValue(market, "symbol")));
                 ((java.util.List<Object>)args).add(Helpers.GetValue(market, "id"));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", method );
                 put( "params", args );
@@ -383,10 +383,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //
         Object tickers = this.safeValue(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object marketId = this.safeString(tickers, 0);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object rawTicker = this.safeValue(tickers, 1, new java.util.HashMap<String, Object>() {{}});
-        Object messageHash = Helpers.add(Helpers.add("ticker", ":"), symbol);
+        String messageHash = (String) Helpers.add(Helpers.add("ticker", ":"), symbol);
         Object ticker = this.parseTicker(rawTicker, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         // watchTicker
@@ -436,9 +436,9 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add(Helpers.add("trades", ":"), symbol);
+            String messageHash = (String) Helpers.add(Helpers.add("trades", ":"), symbol);
             Object method = "trades_subscribe";
             // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
             Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
@@ -479,22 +479,22 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //
         Object parameters = this.safeValue(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object marketId = this.safeString(parameters, 0);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Object data = this.safeValue(parameters, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object parsedTrades = this.parseTrades(data, market);
+        java.util.List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parsedTrades)); j++)
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
         }
-        Object messageHash = Helpers.add("trades:", Helpers.GetValue(market, "symbol"));
+        String messageHash = (String) Helpers.add("trades:", Helpers.GetValue(market, "symbol"));
         client.resolve(stored, messageHash);
     }
 
@@ -527,9 +527,9 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("myTrades:", symbol);
+            String messageHash = (String) Helpers.add("myTrades:", symbol);
             Object method = "deals_subscribe";
             Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, true, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -566,14 +566,14 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object trade = this.safeValue(message, "params");
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
         Object parsed = this.parseWsTrade(trade);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Object symbol = Helpers.GetValue(parsed, "symbol");
-        Object messageHash = Helpers.add("myTrades:", symbol);
+        String messageHash = (String) Helpers.add("myTrades:", symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -614,8 +614,8 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 put( "currency", feeCurrencyCode );
             }};
         }
-        Object rawSide = this.safeInteger(trade, 8);
-        Object side = null;
+        Long rawSide = this.safeInteger(trade, 8);
+        String side = null;
         if (Helpers.isTrue(Helpers.isEqual(rawSide, 1)))
         {
             side = "sell";
@@ -623,8 +623,8 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         {
             side = "buy";
         }
-        Object role = this.safeInteger(trade, 9);
-        Object takerOrMaker = null;
+        Long role = this.safeInteger(trade, 9);
+        String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(role, 1)))
         {
             takerOrMaker = "maker";
@@ -682,9 +682,9 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("orders:", symbol);
+            String messageHash = (String) Helpers.add("orders:", symbol);
             Object method = "ordersPending_subscribe";
             Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -729,17 +729,17 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object data = this.safeValue(parameters, 1);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.orders;
-        Object status = this.safeInteger(parameters, 0);
+        Long status = this.safeInteger(parameters, 0);
         Object parsed = this.parseWsOrder(this.extend(data, new java.util.HashMap<String, Object>() {{
             put( "status", status );
         }}));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Object symbol = Helpers.GetValue(parsed, "symbol");
-        Object messageHash = Helpers.add("orders:", symbol);
+        String messageHash = (String) Helpers.add("orders:", symbol);
         client.resolve(this.orders, messageHash);
     }
 
@@ -768,7 +768,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object status = this.safeInteger(order, "status");
+        Long status = this.safeInteger(order, "status");
         Object marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         Object id = this.safeString(order, "id");
@@ -793,8 +793,8 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object timestamp = this.safeTimestamp(order, "ctime");
         Object lastTradeTimestamp = this.safeTimestamp(order, "mtime");
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object rawSide = this.safeInteger(order, "side");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, 1))))) ? "sell" : "buy";
+        Long rawSide = this.safeInteger(order, "side");
+        String side = ((Helpers.isTrue((Helpers.isEqual(rawSide, 1))))) ? "sell" : "buy";
         Object dealFee = this.safeString(order, "deal_fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(dealFee, null)))
@@ -806,7 +806,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 put( "currency", Helpers.GetValue(finalMarket, "quote") );
             }};
         }
-        Object unifiedStatus = null;
+        String unifiedStatus = null;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(status, 1))) || Helpers.isTrue((Helpers.isEqual(status, 2)))))
         {
             unifiedStatus = "open";
@@ -851,9 +851,9 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         }}, market);
     }
 
-    public Object parseWsOrderType(Object status)
+    public String parseWsOrderType(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "1", "limit" );
             put( "2", "market" );
             put( "202", "market" );
@@ -890,10 +890,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            Object messageHash = "wallet:";
+            String messageHash = (String) "wallet:";
             Object method = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
@@ -909,10 +909,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             this.setBalanceCache(client, type, messageHash);
             Object fetchBalanceSnapshot = null;
             Object awaitBalanceSnapshot = null;
-            var fetchBalanceSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+            java.util.List<Object> fetchBalanceSnapshotparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
             fetchBalanceSnapshot = ((java.util.List<Object>) fetchBalanceSnapshotparametersVariable).get(0);
             parameters = ((java.util.List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
-            var awaitBalanceSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "awaitBalanceSnapshot", true);
+            java.util.List<Object> awaitBalanceSnapshotparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "awaitBalanceSnapshot", true);
             awaitBalanceSnapshot = ((java.util.List<Object>) awaitBalanceSnapshotparametersVariable).get(0);
             parameters = ((java.util.List<Object>) awaitBalanceSnapshotparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot)))
@@ -1008,7 +1008,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         {
             return;
         }
-        Object isMargin = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "Margin"), 0));
+        Boolean isMargin = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "Margin"), 0));
         Object data = this.safeList(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
@@ -1017,7 +1017,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             if (Helpers.isTrue(isMargin))
             {
                 Object currencyId = this.safeString(balanceDict, "a");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balanceDict, "av"));
                 Helpers.addElementToObject(account, "total", this.safeString(balanceDict, "B"));
@@ -1033,7 +1033,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 {
                     Object currencyId = Helpers.GetValue(keys, j);
                     Object rawBalance = this.safeDict(balanceDict, currencyId, new java.util.HashMap<String, Object>() {{}});
-                    Object code = this.safeCurrencyCode(currencyId);
+                    String code = (String) this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "free", this.safeString(rawBalance, "available"));
                     Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "freeze"));
@@ -1045,7 +1045,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             }
         }
         this.balance = this.safeBalance(this.balance);
-        Object messageHash = "wallet:";
+        String messageHash = (String) "wallet:";
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "Spot"), 0)))
         {
             messageHash = Helpers.add(messageHash, "spot");
@@ -1065,12 +1065,12 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object id = this.nonce();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", method );
                 put( "params", reqParams );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -1091,11 +1091,11 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object id = this.nonce();
             Client client = (Client)this.safeValue(this.clients, url);
             Object request = null;
-            Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(client, null)))
             {
-                Object subscription = new java.util.HashMap<String, Object>() {{}};
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
                 if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
                 {
@@ -1113,13 +1113,13 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                     put( "method", finalMethod );
                     put( "params", finalMarketIds );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 return (this.watch(url, messageHash, message, method, subscription)).join();
             } else
             {
-                Object subscription = this.safeValue(client.subscriptions, method, new java.util.HashMap<String, Object>() {{}});
-                Object hasSymbolSubscription = true;
-                Object market = this.market(symbol);
+                Object subscription = this.safeDict(client.subscriptions, method, new java.util.HashMap<String, Object>() {{}});
+                Boolean hasSymbolSubscription = true;
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
                 Object isSubscribed = this.safeBool(subscription, marketId, false);
                 if (Helpers.isTrue(!Helpers.isEqual(isSubscribed, true)))
@@ -1145,7 +1145,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                     }
                     final Object finalMethod_2 = method;
                     final Object finalMarketIdsNew = marketIdsNew;
-                    Object resubRequest = new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> resubRequest = new java.util.HashMap<String, Object>() {{
                         put( "id", id );
                         put( "method", finalMethod_2 );
                         put( "params", finalMarketIdsNew );
@@ -1172,12 +1172,12 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object id = this.nonce();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", method );
                 put( "params", reqParams );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -1192,24 +1192,17 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             this.checkRequiredCredentials();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            Object subscribeHash = "authenticated";
+            String subscribeHash = "authenticated";
             // handleAuthenticate () resolves the handshake future with 1, so 1 is
             // the authorized sentinel authenticate () has always returned - every
             // path below hands back that same value
-            Object authorized = 1;
-            // single-flight leader election, see
-            // https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
-            // subscriptions['authenticated'], which watch () only registers once
-            // the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
-            // every concurrent cold caller used to pass that gate, burn a
-            // rate-limited private REST call for its own websocket_token and push
-            // its own authorize frame down the shared socket. the flight is
-            // registered in client.futures on the very client that carries the
-            // handshake, under a key that is not one of the exchange's own
-            // messageHashes, and is settled through client.resolve () /
-            // client.reject () so every write to that map goes through the
-            // client's own accessors
-            Object messageHash = "authenticateFlight";
+            Integer authorized = 1;
+            // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+            // the handshake gate subscriptions['authenticated'] is only registered after the awaited
+            // token fetch, so concurrent cold callers would each burn a private REST call and push
+            // their own authorize frame. the flight lives in client.futures of the handshake client
+            // under a non-messageHash key and settles only via client.resolve () / client.reject ()
+            String messageHash = (String) "authenticateFlight";
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
             {
                 // a flight is already in progress - wake when the leader settles
@@ -1233,7 +1226,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             try
             {
-                Object authToken = (this.v4PrivatePostProfileWebsocketToken()).join();
+                java.util.Map<String, Object> authToken = (this.v4PrivatePostProfileWebsocketToken()).join();
                 //
                 //   {
                 //       "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"
@@ -1246,12 +1239,12 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 }
                 Object id = this.nonce();
                 final Object finalToken = token;
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "method", "authorize" );
                     put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalToken, "public")) );
                 }};
-                Object subscription = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "method", "handleAuthenticate");
                 }};
@@ -1350,13 +1343,13 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             this.handlePong(client, message);
             return;
         }
-        Object id = this.safeInteger(message, "id");
+        Long id = this.safeInteger(message, "id");
         if (Helpers.isTrue(!Helpers.isEqual(id, null)))
         {
             this.handleSubscriptionStatus(client, message, id);
             return;
         }
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "market_update", "handleTicker");
             put( "trades_update", "handleTrades");
             put( "depth_update", "handleOrderBook");
@@ -1386,7 +1379,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object subscription = Helpers.GetValue(values, i);
             if (Helpers.isTrue(!Helpers.isEqual(subscription, true)))
             {
-                Object subId = this.safeInteger(subscription, "id");
+                Long subId = this.safeInteger(subscription, "id");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subId, null))) && Helpers.isTrue((Helpers.isEqual(subId, id)))))
                 {
                     Object method = this.safeValue(subscription, "method");

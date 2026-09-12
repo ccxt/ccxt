@@ -969,7 +969,7 @@ Folder: `ts/src/test/static/request/`
 You can create a static-request test by running this command and pasting the result in the correct file (eg: `static/request/binance.json`)
 
 ```shell
-node cli.js binance fetchTrades "BTC/USDT:USDT" --report
+npm run cli.ts -- binance fetchTrades "BTC/USDT:USDT" --request
 ````
 
 The `output` field holds the expected HTTP body. When that body is itself JSON, store it
@@ -992,7 +992,7 @@ Folder: `ts/src/test/static/response/binance.json`
 You can create a static-response test by running this command and pasting the result in the correct file (eg: `static/response/binance.json`)
 
 ```shell
-node cli.js binance fetchTrades "BTC/USDT:USDT"  undefined 1 --response
+npm run cli.ts -- binance fetchTrades "BTC/USDT:USDT"  undefined 1 --response
 ````
 #### Adding Exchange Credentials
 

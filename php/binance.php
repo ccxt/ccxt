@@ -495,6 +495,7 @@ class binance extends Exchange {
                         'portfolio/pmloan-history' => array( 'cost' => 5 ),
                         'portfolio/earn-asset-balance' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         // staking
                         'staking/productList' => array( 'cost' => 0.1 ),
                         'staking/position' => array( 'cost' => 0.1 ),
@@ -671,6 +672,7 @@ class binance extends Exchange {
                         'portfolio/redeem' => array( 'cost' => 20 ),
                         'portfolio/earn-asset-transfer' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'lending/auto-invest/plan/add' => array( 'cost' => 0.1 ), // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit' => array( 'cost' => 0.1 ), // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status' => array( 'cost' => 0.1 ), // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
@@ -704,6 +706,7 @@ class binance extends Exchange {
                     ),
                     'delete' => array(
                         // 'account/apiRestrictions/ipRestriction/ipList' => 1, discontinued
+                        'portfolio/margin-call-level' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'margin/openOrders' => array( 'cost' => 0.1 ),
                         'margin/order' => array( 'cost' => 0.006667 ), // Weight(UID) => 1 => cost = 0.006667
                         'margin/orderList' => array( 'cost' => 0.006667 ),
@@ -1040,6 +1043,7 @@ class binance extends Exchange {
                         'countdownCancelAllHeartBeat' => array( 'cost' => 10 ),
                         'block/order/create' => array( 'cost' => 5 ),
                         'block/order/execute' => array( 'cost' => 5 ),
+                        'stock/contract' => array( 'cost' => 50 ), // Weight(IP) => 50 => cost = 50
                     ),
                     'put' => array(
                         'listenKey' => array( 'cost' => 1 ),
@@ -1072,7 +1076,11 @@ class binance extends Exchange {
                         'ticker/price' => array( 'cost' => 0.4, 'noSymbol' => 0.8 ),
                         'ticker/bookTicker' => array( 'cost' => 0.4, 'noSymbol' => 0.8 ),
                         'exchangeInfo' => array( 'cost' => 4 ), // Weight(IP) => 20 => cost = 0.2 * 20 = 4
+                        'executionRules' => array( 'cost' => 0.4, 'noSymbol' => 8 ), // Weight(IP) => 2 (symbol) / 40 (none) => cost = 0.2 * weight
                         'avgPrice' => array( 'cost' => 0.4 ),
+                        'referencePrice' => array( 'cost' => 0.4 ), // Weight(IP) => 2 => cost = 0.2 * 2 = 0.4
+                        'referencePrice/calculation' => array( 'cost' => 0.4 ), // Weight(IP) => 2 => cost = 0.2 * 2 = 0.4
+                        'historicalBlockTrades' => array( 'cost' => 5 ), // Weight(IP) => 25 => cost = 0.2 * 25 = 5
                     ),
                     'put' => array(
                         'userDataStream' => array( 'cost' => 0.4 ),
@@ -1137,6 +1145,10 @@ class binance extends Exchange {
                         'um/conditional/openOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'um/conditional/orderHistory' => array( 'cost' => 1 ),
                         'um/conditional/allOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
+                        // algo (conditional) orders
+                        'um/algo/algoOrder' => array( 'cost' => 1 ),
+                        'um/algo/openAlgoOrders' => array( 'cost' => 1 ),
+                        'um/algo/allAlgoOrders' => array( 'cost' => 5 ),
                         'cm/conditional/openOrder' => array( 'cost' => 1 ),
                         'cm/conditional/openOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'cm/conditional/orderHistory' => array( 'cost' => 1 ),
@@ -1195,6 +1207,7 @@ class binance extends Exchange {
                     'post' => array(
                         'um/order' => array( 'cost' => 1 ),
                         'um/conditional/order' => array( 'cost' => 1 ),
+                        'um/algo/order' => array( 'cost' => 1 ),
                         'cm/order' => array( 'cost' => 1 ),
                         'cm/conditional/order' => array( 'cost' => 1 ),
                         'margin/order' => array( 'cost' => 1 ),
@@ -1225,6 +1238,8 @@ class binance extends Exchange {
                         'um/conditional/order' => array( 'cost' => 1 ),
                         'um/allOpenOrders' => array( 'cost' => 1 ),
                         'um/conditional/allOpenOrders' => array( 'cost' => 1 ),
+                        'um/algo/order' => array( 'cost' => 1 ),
+                        'um/algo/allOpenOrders' => array( 'cost' => 1 ),
                         'cm/order' => array( 'cost' => 1 ),
                         'cm/conditional/order' => array( 'cost' => 1 ),
                         'cm/allOpenOrders' => array( 'cost' => 1 ),
@@ -2003,8 +2018,8 @@ class binance extends Exchange {
                         '-10005' => '\\ccxt\\BadResponse', // No records found.
                         '-10007' => '\\ccxt\\BadRequest', // This coin is not loanable
                         '-10008' => '\\ccxt\\BadRequest', // This coin is not loanable
-                        '-10009' => '\\ccxt\\BadRequest', // This coin can not be used.
-                        '-10010' => '\\ccxt\\BadRequest', // This coin can not be used.
+                        '-10009' => '\\ccxt\\BadRequest', // This coin can not be used as collateral.
+                        '-10010' => '\\ccxt\\BadRequest', // This coin can not be used as collateral.
                         '-10011' => '\\ccxt\\InsufficientFunds', // Insufficient spot assets.
                         '-10012' => '\\ccxt\\BadRequest', // Invalid repayment amount.
                         '-10013' => '\\ccxt\\InsufficientFunds', // Insufficient collateral amount.
@@ -2160,13 +2175,13 @@ class binance extends Exchange {
                         '-4211' => '\\ccxt\\BadRequest', // Stop price is lower than price multiplier floor
                         '-4400' => '\\ccxt\\PermissionDenied', // Futures Trading Quantitative Rules violated, only reduceOnly order is allowed, please try again later.
                         '-4401' => '\\ccxt\\PermissionDenied', // Compliance restricted account permission => can only place reduceOnly order.
-                        '-4402' => '\\ccxt\\PermissionDenied', // Dear user, our Terms of Use and compliance with local regulations, this feature is currently not available in your region.
-                        '-4403' => '\\ccxt\\PermissionDenied', // Dear user, our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
+                        '-4402' => '\\ccxt\\PermissionDenied', // Dear user, as per our Terms of Use and compliance with local regulations, this feature is currently not available in your region.
+                        '-4403' => '\\ccxt\\PermissionDenied', // Dear user, as per our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
                         //
                         //        5xxx
                         //
                         '-5021' => '\\ccxt\\OrderNotFillable', // Due to the order could not be filled immediately, the FOK order has been rejected.
-                        '-5022' => '\\ccxt\\OrderNotFillable', // Due to the order could not be executed, the Post Only order will be rejected.
+                        '-5022' => '\\ccxt\\OrderNotFillable', // Due to the order could not be executed as maker, the Post Only order will be rejected.
                         '-5024' => '\\ccxt\\OperationRejected', // Symbol is not in trading status. Order amendment is not permitted.
                         '-5025' => '\\ccxt\\OperationRejected', // Only limit order is supported.
                         '-5026' => '\\ccxt\\OperationRejected', // Exceed maximum modify order limit.
@@ -2612,7 +2627,7 @@ class binance extends Exchange {
                         //        5xxx Order Execution Issues
                         //
                         '-5021' => '\\ccxt\\OrderNotFillable', // Due to the order could not be filled immediately, the FOK order has been rejected.
-                        '-5022' => '\\ccxt\\OrderNotFillable', // Due to the order could not be executed, the Post Only order will be rejected.
+                        '-5022' => '\\ccxt\\OrderNotFillable', // Due to the order could not be executed as maker, the Post Only order will be rejected.
                         '-5028' => '\\ccxt\\OperationFailed', // The requested timestamp is outside the recvWindow of the matching engine
                         '-5041' => '\\ccxt\\RateLimitExceeded', // Time out for too many requests from this account queueing at the same time.
                     ),
@@ -4698,6 +4713,19 @@ class binance extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
+    public function check_no_stock_symbols(?array $symbols, string $methodName) {
+        if ($symbols === null) {
+            return;
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbolMarket = $this->market($symbols[$i]);
+            $stock = $this->safe_bool($symbolMarket, 'stock', false);
+            if ($stock === true) {
+                throw new NotSupported($this->id . ' ' . $methodName . '() does not support tokenized $stock $symbols (' . $symbols[$i] . '), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead');
+            }
+        }
+    }
+
     public function fetch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
@@ -4710,12 +4738,13 @@ class binance extends Exchange {
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] "linear" or "inverse"
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~ tokenized stock $symbols are not supported here, use fetchTicker() per symbol instead
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $this->check_no_stock_symbols($symbols, 'fetchBidsAsks');
         $market = $this->get_market_from_symbols($symbols);
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
@@ -4867,12 +4896,13 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] "linear" or "inverse"
          * @param {string} [$params->type] 'spot', 'option', use $params["subType"] for swap and future markets
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~ tokenized stock $symbols are not supported here, use fetchTicker() per symbol instead
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $this->check_no_stock_symbols($symbols, 'fetchTickers');
         $market = $this->get_market_from_symbols($symbols);
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
@@ -5086,7 +5116,7 @@ class binance extends Exchange {
          * @param {string} [$params->price] "mark" or "index" for mark $price and index $price $candles
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -5663,7 +5693,7 @@ class binance extends Exchange {
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
-    public function edit_spot_order(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function edit_spot_order(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         /**
          * @ignore
          * edit a trade order
@@ -5901,7 +5931,7 @@ class binance extends Exchange {
         return $request;
     }
 
-    public function edit_contract_order(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function edit_contract_order(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         /**
          * edit a trade order
          *
@@ -7349,7 +7379,7 @@ class binance extends Exchange {
                     throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice extra param for a ' . $type . ' order');
                 }
             } else {
-                // check for delta $price
+                // check for delta $price as well
                 if ($trailingDelta === null && $stopPrice === null && $trailingPercent === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice, $trailingDelta or $trailingPercent param for a ' . $type . ' order');
                 }
@@ -9885,7 +9915,7 @@ class binance extends Exchange {
             $fromIsolated = !(is_array($accountsById) && array_key_exists($fromId ?? '', $accountsById));
             $toIsolated = !(is_array($accountsById) && array_key_exists($toId ?? '', $accountsById));
             if ($fromIsolated && ($market === null)) {
-                $isolatedSymbol = $fromId; // allow user provide $symbol from/to account
+                $isolatedSymbol = $fromId; // allow user provide $symbol as the from/to account
             }
             if ($toIsolated && ($market === null)) {
                 $isolatedSymbol = $toId;
@@ -10747,7 +10777,7 @@ class binance extends Exchange {
         throw new NotSupported($this->id . ' fetchTradingFees() is not supported for ' . $type . ' markets');
     }
 
-    public function futures_transfer(string $code, mixed $amount, mixed $type, $params = array()) {
+    public function futures_transfer(string $code, mixed $amount, mixed $type, $params = array()): array {
         /**
          * @ignore
          * transfer between futures account
@@ -11153,7 +11183,7 @@ class binance extends Exchange {
                 $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
             }
         }
-        // to notionalValue
+        // as oppose to notionalValue
         $usdm = (is_array($position) && array_key_exists('notional' ?? '', $position));
         $maintenanceMarginString = $this->safe_string($position, 'maintMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
@@ -11424,7 +11454,7 @@ class binance extends Exchange {
         $entryPrice = $this->parse_number($entryPriceString);
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
-        // to notionalValue
+        // as oppose to notionalValue
         $linear = (is_array($position) && array_key_exists('notional' ?? '', $position));
         if ($marginMode === 'cross') {
             // calculate $collateral
@@ -11763,7 +11793,7 @@ class binance extends Exchange {
         return $this->parse_option_position($this->safe_dict($response, 0, array()), $market);
     }
 
-    public function fetch_option_positions(?array $symbols = null, $params = array()) {
+    public function fetch_option_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch data on open options $positions
          *
@@ -11924,7 +11954,7 @@ class binance extends Exchange {
         }
     }
 
-    public function fetch_account_positions(?array $symbols = null, $params = array()) {
+    public function fetch_account_positions(?array $symbols = null, $params = array()): array {
         /**
          * @ignore
          * fetch account positions
@@ -13634,7 +13664,7 @@ class binance extends Exchange {
         );
     }
 
-    public function create_gift_code(string $code, mixed $amount, $params = array()) {
+    public function create_gift_code(string $code, mixed $amount, $params = array()): array {
         /**
          * create gift $code
          *
@@ -14040,10 +14070,10 @@ class binance extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
-         * @param {int} [$since] the time(ms) of the earliest record to retrieve unix timestamp
+         * @param {int} [$since] the time(ms) of the earliest record to retrieve as a unix timestamp
          * @param {int} [$limit] default 30, max 500
          * @param {array} [$params] exchange specific parameters
-         * @param {int} [$params->until] the time(ms) of the latest record to retrieve unix timestamp
+         * @param {int} [$params->until] the time(ms) of the latest record to retrieve as a unix timestamp
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
          */

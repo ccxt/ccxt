@@ -167,6 +167,7 @@ export default class kraken extends Exchange {
                         // rate-limits explained in comment in the top of this file
                         'Time': { 'cost': 1 } as Endpoint<Dict>,
                         'SystemStatus': { 'cost': 1 } as Endpoint<Dict>,
+                        'MaintenanceSchedule': { 'cost': 1 } as Endpoint<Dict>,
                         'Assets': { 'cost': 1 } as Endpoint<Dict>,
                         'AssetPairs': { 'cost': 1 } as Endpoint<Dict>,
                         'Ticker': { 'cost': 1 } as Endpoint<Dict>,
@@ -202,6 +203,7 @@ export default class kraken extends Exchange {
                         'RetrieveExport': { 'cost': 3 } as Endpoint<Dict>,
                         'RemoveExport': { 'cost': 3 } as Endpoint<Dict>,
                         'GetApiKeyInfo': { 'cost': 3 } as Endpoint<Dict>,
+                        'ListWalletAccounts': { 'cost': 3 } as Endpoint<Dict>,
                         // trading
                         'AddOrder': { 'cost': 0 } as Endpoint<Dict>,
                         'AmendOrder': { 'cost': 0 } as Endpoint<Dict>,
@@ -1366,7 +1368,7 @@ export default class kraken extends Exchange {
         //                                                    "fee": "0.0050000000",
         //                                                "balance": "0.0000051000"           },
         const result = this.safeValue (response, 'result', {});
-        const ledger = this.safeValue (result, 'ledger', {});
+        const ledger = this.safeDict (result, 'ledger', {});
         const keys = Object.keys (ledger);
         const items: List = [];
         for (let i = 0; i < keys.length; i++) {
@@ -1378,7 +1380,7 @@ export default class kraken extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    async fetchLedgerEntriesByIds (ids: any, code: Str = undefined, params = {}) {
+    async fetchLedgerEntriesByIds (ids: any, code: Str = undefined, params = {}): Promise<LedgerEntry[]> {
         // https://www.kraken.com/features/api#query-ledgers
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1620,7 +1622,7 @@ export default class kraken extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeValue (response, 'result', {});
+        const balances = this.safeDict (response, 'result', {});
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1843,7 +1845,7 @@ export default class kraken extends Exchange {
     }
 
     findMarketByAltnameOrId (id: any) {
-        const marketsByAltname = this.safeValue (this.options, 'marketsByAltname', {});
+        const marketsByAltname = this.safeDict (this.options, 'marketsByAltname', {});
         if (id in marketsByAltname) {
             return marketsByAltname[id];
         } else {
@@ -2106,7 +2108,7 @@ export default class kraken extends Exchange {
         }
         const userref = this.safeString (order, 'userref');
         const clientOrderId = this.safeString (order, 'cl_ord_id', userref);
-        const rawTrades = this.safeValue (order, 'trades', []);
+        const rawTrades = this.safeList (order, 'trades', []);
         const trades: List = [];
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
@@ -2545,7 +2547,7 @@ export default class kraken extends Exchange {
             'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': ids.join (','), // comma delimited list of transaction ids to query info about (20 maximum)
         }, params));
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const orders: List = [];
         const orderIds = Object.keys (result);
         for (let i = 0; i < orderIds.length; i++) {

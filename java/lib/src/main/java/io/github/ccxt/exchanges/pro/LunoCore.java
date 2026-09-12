@@ -69,20 +69,20 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
             final Object finalSymbol = symbol;
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
-            Object messageHash = Helpers.add("trades:", symbol);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            String messageHash = (String) Helpers.add("trades:", symbol);
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "api_key_id", LunoCore.this.apiKey );
                 put( "api_key_secret", LunoCore.this.secret );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object trades = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -110,19 +110,19 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        Object rawTrades = this.safeValue(message, "trade_updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawTrades = this.safeList(message, "trade_updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object length = Helpers.getArrayLength(rawTrades);
         if (Helpers.isTrue(Helpers.isEqual(length, 0)))
         {
             return;
         }
         Object symbol = Helpers.GetValue(subscription, "symbol");
-        Object market = this.market(symbol);
-        Object messageHash = Helpers.add("trades:", symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        String messageHash = (String) Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -191,20 +191,20 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
             final Object finalSymbol = symbol;
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
-            Object messageHash = Helpers.add("orderbook:", symbol);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            String messageHash = (String) Helpers.add("orderbook:", symbol);
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "api_key_id", LunoCore.this.apiKey );
                 put( "api_key_secret", LunoCore.this.secret );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -246,8 +246,8 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         //     }
         //
         Object symbol = Helpers.GetValue(subscription, "symbol");
-        Object messageHash = Helpers.add("orderbook:", symbol);
-        Object timestamp = this.safeInteger(message, "timestamp");
+        String messageHash = (String) Helpers.add("orderbook:", symbol);
+        Long timestamp = this.safeInteger(message, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new java.util.HashMap<String, Object>() {{}}));
@@ -259,13 +259,13 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(snapshot));
         } else
         {
-            Object ob = Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook ob = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             this.handleDelta(ob, message);
             Helpers.addElementToObject(ob, "timestamp", timestamp);
             Helpers.addElementToObject(ob, "datetime", this.iso8601(timestamp));
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-        Object nonce = this.safeInteger(message, "sequence");
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        Long nonce = this.safeInteger(message, "sequence");
         Helpers.addElementToObject(orderbook, "nonce", nonce);
         client.resolve(orderbook, messageHash);
     }
@@ -296,7 +296,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         Object amountKey = Helpers.getArg(optionalArgs, 1, "volume");
         Object thirdKey = Helpers.getArg(optionalArgs, 2, 2);
         bidasks = this.toArray(bidasks);
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidasks)); i++)
         {
             ((java.util.List<Object>)result).add(this.customParseBidAsk(Helpers.GetValue(bidasks, i), priceKey, amountKey, thirdKey));
@@ -309,9 +309,9 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         Object priceKey = Helpers.getArg(optionalArgs, 0, "price");
         Object amountKey = Helpers.getArg(optionalArgs, 1, "volume");
         Object thirdKey = Helpers.getArg(optionalArgs, 2, 2);
-        Object price = this.safeNumber(bidask, priceKey);
-        Object amount = this.safeNumber(bidask, amountKey);
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount));
+        Double price = this.safeNumber(bidask, priceKey);
+        Double amount = this.safeNumber(bidask, amountKey);
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount));
         if (Helpers.isTrue(!Helpers.isEqual(thirdKey, null)))
         {
             Object thirdValue = ((Object)this.safeString(bidask, thirdKey));
@@ -396,7 +396,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             return;
         }
         Object subscriptions = Helpers.objectValues(client.subscriptions);
-        Object handlers = new java.util.ArrayList<Object>(java.util.Arrays.asList("handleOrderBook", "handleTrades"));
+        java.util.List<Object> handlers = new java.util.ArrayList<Object>(java.util.Arrays.asList("handleOrderBook", "handleTrades"));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(handlers)); j++)
         {
             Object handler = Helpers.GetValue(handlers, j);

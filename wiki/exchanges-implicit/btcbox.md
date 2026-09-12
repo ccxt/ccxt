@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official btcbox API documentation:** [blog.btcbox.jp](https://blog.btcbox.jp/en/archives/8762)
 
-> 11 implicit endpoints across 3 access groups.
+> 12 implicit endpoints across 3 access groups.
 
 ## public
 
@@ -71,6 +71,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `privatePostBalance` | POST | `balance` | 1 |
+| `privatePostOrderHistory` | POST | `order_history` | 1 |
 | `privatePostTradeAdd` | POST | `trade_add` | 1 |
 | `privatePostTradeCancel` | POST | `trade_cancel` | 1 |
 | `privatePostTradeList` | POST | `trade_list` | 1 |

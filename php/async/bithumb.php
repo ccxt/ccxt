@@ -181,6 +181,8 @@ class bithumb extends Exchange {
                         'v1/orders/chance' => array( 'cost' => 1 ),
                         'v1/order' => array( 'cost' => 1 ),
                         'v1/orders' => array( 'cost' => 1 ),
+                        'v2/orders/pending' => array( 'cost' => 1 ),
+                        'v2/orders/history' => array( 'cost' => 1 ),
                         'v1/twap' => array( 'cost' => 1 ),
                         'v1/withdraws' => array( 'cost' => 1 ),
                         'v1/withdraws/krw' => array( 'cost' => 1 ),
@@ -216,6 +218,7 @@ class bithumb extends Exchange {
                         'v2/orders' => array( 'cost' => 1 ),
                         'v2/orders/batch' => array( 'cost' => 6 ), // max 20 requests per second
                         'v2/orders/cancel' => array( 'cost' => 6 ), // max 20 requests per second
+                        'v2/orders/search' => array( 'cost' => 1 ),
                         'v1/twap' => array( 'cost' => 1 ),
                         'v1/withdraws/coin' => array( 'cost' => 1 ),
                         'v1/withdraws/krw' => array( 'cost' => 1 ),
@@ -950,7 +953,7 @@ class bithumb extends Exchange {
         $nonZeroOpen = $this->omit_zero($open);
         if (($marketId !== null) && ($nonZeroOpen !== null) && ($close !== null)) {
             $computedChange = Precise::string_sub($close, $open);
-            // Some v2 payloads return signed_change_price while open/last imply a non-zero move.
+            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
             if (($change !== null) && Precise::string_eq($change, '0') && !Precise::string_eq($computedChange, '0')) {
                 $change = $computedChange;
                 $percentage = null;
@@ -1348,7 +1351,7 @@ class bithumb extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->generation] if you want to use the API $generation 1 or 2, default is 2
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1916,7 +1919,7 @@ class bithumb extends Exchange {
 
     private function do_create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array()) {
         /**
-         * create a trade order that is executed TWAP order over a specified $duration->
+         * create a trade order that is executed as a TWAP order over a specified $duration->
          *
          * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
          *
@@ -3000,7 +3003,7 @@ class bithumb extends Exchange {
         return $response;
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_withdrawal(...))($id, $code, $params);
     }
 
@@ -3121,7 +3124,7 @@ class bithumb extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_deposit(...))($id, $code, $params);
     }
 

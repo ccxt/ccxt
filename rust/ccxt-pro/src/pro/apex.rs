@@ -666,7 +666,7 @@ impl ApexCore {
         //     }
         //
         let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        let mut isSnapshot: Value = Value::Bool(is_equal(&type_var, &Value::Str("snapshot".to_string())));
+        let mut isSnapshot: bool = is_equal(&type_var, &Value::Str("snapshot".to_string()));
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -957,7 +957,7 @@ impl ApexCore {
         let mut timeframeId: Value = self.safe_string(topicParts.clone(), Value::Int(1), &[]);
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
         let mut marketId: Value = self.safe_string(topicParts.clone(), subtract(&topicLength, &Value::Int(1)), &[]);
-        let mut isSpot: Value = Value::Bool(is_greater_than(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())), &negate(&Value::Int(1))));
+        let mut isSpot: bool = is_greater_than(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())), &negate(&Value::Int(1)));
         let mut marketType: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
@@ -1489,6 +1489,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_equal(&self.handle_error_message(client.clone(), message.clone()), &Value::Bool(true)) {
             return;
         }
+        let mut ret_msg: Value = self.safe_string_k(message.clone(), "ret_msg", &[]);
+        let mut pong: Value = self.safe_integer_k(message.clone(), "pong", &[]);
+        if is_equal(&ret_msg, &Value::Str("pong".to_string())) || !is_equal(&pong, &Value::Null) {
+            self.handle_pong(client.clone(), message.clone());
+            return;
+        }
         let mut topic: Value = self.safe_string2(message.clone(), Value::Str("topic".to_string()), Value::Str("op".to_string()), &[Value::Str("".to_string())]);
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1586,6 +1592,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {
+        crate::set_value(&mut client, &Value::Str("lastPong".to_string()), self.milliseconds());
         self.spawn(&[Value::Str("pong".to_string()).clone(), client.clone(), message.clone()]);
 }
 

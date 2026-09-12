@@ -158,6 +158,48 @@ abstract class weex extends \ccxt\async\Exchange {
         return $this->request('api/v3/agency/getDealData', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_api_v3_apireferral_checkusereligibility($params = array()) {
+        return $this->request('api/v3/apiReferral/checkUserEligibility', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_api_v3_apireferral_rebate_recentrecord($params = array()) {
+        return $this->request('api/v3/apiReferral/rebate/recentRecord', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_api_v3_apireferral_rebateratio($params = array()) {
+        return $this->request('api/v3/apiReferral/rebateRatio', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_api_v3_content_articles_detail($params = array()) {
+        return $this->request('api/v3/content/articles/detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_api_v3_content_articles_list($params = array()) {
+        return $this->request('api/v3/content/articles/list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_api_v3_content_articles_listbycoin($params = array()) {
+        return $this->request('api/v3/content/articles/listByCoin', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_api_v3_content_banners_latest($params = array()) {
+        return $this->request('api/v3/content/banners/latest', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_post_api_v3_account_bills($params = array()) {
@@ -186,6 +228,12 @@ abstract class weex extends \ccxt\async\Exchange {
      */
     public function private_post_api_v3_rebate_affiliate_internalwithdrawal($params = array()) {
         return $this->request('api/v3/rebate/affiliate/internalWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_api_v3_tax_income($params = array()) {
+        return $this->request('api/v3/tax/income', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -388,6 +436,60 @@ abstract class weex extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function contractprivate_get_capi_v3_copy_follower_historyorders($params = array()) {
+        return $this->request('capi/v3/copy/follower/historyOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractprivate_get_capi_v3_copy_follower_mytraders($params = array()) {
+        return $this->request('capi/v3/copy/follower/myTraders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractprivate_get_capi_v3_copy_follower_openorders($params = array()) {
+        return $this->request('capi/v3/copy/follower/openOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractprivate_get_capi_v3_copy_follower_settings($params = array()) {
+        return $this->request('capi/v3/copy/follower/settings', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractprivate_get_capi_v3_copy_trader_historyorders($params = array()) {
+        return $this->request('capi/v3/copy/trader/historyOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractprivate_get_capi_v3_copy_trader_openorders($params = array()) {
+        return $this->request('capi/v3/copy/trader/openOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractprivate_get_capi_v3_copy_trader_pairs($params = array()) {
+        return $this->request('capi/v3/copy/trader/pairs', 'contractPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractprivate_get_capi_v3_trailing_openorders($params = array()) {
+        return $this->request('capi/v3/trailing/openOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractprivate_get_capi_v3_trailing_historyorders($params = array()) {
+        return $this->request('capi/v3/trailing/historyOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function contractprivate_post_capi_v3_account_income($params = array()) {
         return $this->request('capi/v3/account/income', 'contractPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -456,6 +558,24 @@ abstract class weex extends \ccxt\async\Exchange {
      */
     public function contractprivate_post_capi_v3_sim_order($params = array()) {
         return $this->request('capi/v3/sim/order', 'contractPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractprivate_post_capi_v3_copy_follower_closepos($params = array()) {
+        return $this->request('capi/v3/copy/follower/closePos', 'contractPrivate', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractprivate_post_capi_v3_copy_follower_settings($params = array()) {
+        return $this->request('capi/v3/copy/follower/settings', 'contractPrivate', 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractprivate_post_capi_v3_copy_follower_stopcopy($params = array()) {
+        return $this->request('capi/v3/copy/follower/stopCopy', 'contractPrivate', 'POST', $params, null, null, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -638,6 +758,48 @@ abstract class weex extends \ccxt\async\Exchange {
         return $this->request('api/v3/agency/getDealData', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetApiV3ApiReferralCheckUserEligibility($params = array()) {
+        return $this->request('api/v3/apiReferral/checkUserEligibility', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetApiV3ApiReferralRebateRecentRecord($params = array()) {
+        return $this->request('api/v3/apiReferral/rebate/recentRecord', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetApiV3ApiReferralRebateRatio($params = array()) {
+        return $this->request('api/v3/apiReferral/rebateRatio', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetApiV3ContentArticlesDetail($params = array()) {
+        return $this->request('api/v3/content/articles/detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetApiV3ContentArticlesList($params = array()) {
+        return $this->request('api/v3/content/articles/list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetApiV3ContentArticlesListByCoin($params = array()) {
+        return $this->request('api/v3/content/articles/listByCoin', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetApiV3ContentBannersLatest($params = array()) {
+        return $this->request('api/v3/content/banners/latest', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privatePostApiV3AccountBills($params = array()) {
@@ -666,6 +828,12 @@ abstract class weex extends \ccxt\async\Exchange {
      */
     public function privatePostApiV3RebateAffiliateInternalWithdrawal($params = array()) {
         return $this->request('api/v3/rebate/affiliate/internalWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 100));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostApiV3TaxIncome($params = array()) {
+        return $this->request('api/v3/tax/income', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -868,6 +1036,60 @@ abstract class weex extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function contractPrivateGetCapiV3CopyFollowerHistoryOrders($params = array()) {
+        return $this->request('capi/v3/copy/follower/historyOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivateGetCapiV3CopyFollowerMyTraders($params = array()) {
+        return $this->request('capi/v3/copy/follower/myTraders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractPrivateGetCapiV3CopyFollowerOpenOrders($params = array()) {
+        return $this->request('capi/v3/copy/follower/openOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractPrivateGetCapiV3CopyFollowerSettings($params = array()) {
+        return $this->request('capi/v3/copy/follower/settings', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivateGetCapiV3CopyTraderHistoryOrders($params = array()) {
+        return $this->request('capi/v3/copy/trader/historyOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractPrivateGetCapiV3CopyTraderOpenOrders($params = array()) {
+        return $this->request('capi/v3/copy/trader/openOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractPrivateGetCapiV3CopyTraderPairs($params = array()) {
+        return $this->request('capi/v3/copy/trader/pairs', 'contractPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractPrivateGetCapiV3TrailingOpenOrders($params = array()) {
+        return $this->request('capi/v3/trailing/openOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function contractPrivateGetCapiV3TrailingHistoryOrders($params = array()) {
+        return $this->request('capi/v3/trailing/historyOrders', 'contractPrivate', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function contractPrivatePostCapiV3AccountIncome($params = array()) {
         return $this->request('capi/v3/account/income', 'contractPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -936,6 +1158,24 @@ abstract class weex extends \ccxt\async\Exchange {
      */
     public function contractPrivatePostCapiV3SimOrder($params = array()) {
         return $this->request('capi/v3/sim/order', 'contractPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivatePostCapiV3CopyFollowerClosePos($params = array()) {
+        return $this->request('capi/v3/copy/follower/closePos', 'contractPrivate', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivatePostCapiV3CopyFollowerSettings($params = array()) {
+        return $this->request('capi/v3/copy/follower/settings', 'contractPrivate', 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function contractPrivatePostCapiV3CopyFollowerStopCopy($params = array()) {
+        return $this->request('capi/v3/copy/follower/stopCopy', 'contractPrivate', 'POST', $params, null, null, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

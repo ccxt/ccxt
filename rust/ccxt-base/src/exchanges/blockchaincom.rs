@@ -253,6 +253,11 @@ impl BlockchaincomCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("internal/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("orders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -565,8 +570,8 @@ impl BlockchaincomCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_436: bool = true;
-            while { if !__for_first_436 { i = add(&i, &Value::Int(1)); } __for_first_436 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_437: bool = true;
+            while { if !__for_first_437 { i = add(&i, &Value::Int(1)); } __for_first_437 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_value(markets.clone(), marketId.clone(), &[]);
@@ -987,13 +992,13 @@ impl BlockchaincomCore {
                 add_element_to_object(&mut request, &Value::Str("ordType".to_string()), Value::Str("STOPLIMIT".to_string()));
             }
         }
-        let mut priceRequired: Value = Value::Bool(false);
-        let mut stopPriceRequired: Value = Value::Bool(false);
+        let mut priceRequired: bool = false;
+        let mut stopPriceRequired: bool = false;
         if is_equal(&get_value(&request, &Value::Str("ordType".to_string())), &Value::Str("LIMIT".to_string())) || is_equal(&get_value(&request, &Value::Str("ordType".to_string())), &Value::Str("STOPLIMIT".to_string())) {
-            priceRequired = Value::Bool(true);
+            priceRequired = true;
         }
         if is_equal(&get_value(&request, &Value::Str("ordType".to_string())), &Value::Str("STOP".to_string())) || is_equal(&get_value(&request, &Value::Str("ordType".to_string())), &Value::Str("STOPLIMIT".to_string())) {
-            stopPriceRequired = Value::Bool(true);
+            stopPriceRequired = true;
         }
         if is_true(&priceRequired) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
@@ -1113,8 +1118,8 @@ impl BlockchaincomCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_437: bool = true;
-            while { if !__for_first_437 { i = add(&i, &Value::Int(1)); } __for_first_437 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_438: bool = true;
+            while { if !__for_first_438 { i = add(&i, &Value::Int(1)); } __for_first_438 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -1708,8 +1713,8 @@ impl BlockchaincomCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_438: bool = true;
-            while { if !__for_first_438 { i = add(&i, &Value::Int(1)); } __for_first_438 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_439: bool = true;
+            while { if !__for_first_439 { i = add(&i, &Value::Int(1)); } __for_first_439 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = get_value(&balances, &i);
             let mut entry: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);

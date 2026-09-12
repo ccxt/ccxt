@@ -13,15 +13,15 @@ public partial class testMainClass : BaseTest
         {
             return;
         }
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "id", "btc" },
             { "code", "BTC" },
         };
         // todo: remove fee from empty
-        object emptyAllowedFor = new List<object>() {"name", "fee"};
+        List<object> emptyAllowedFor = new List<object>() {"name", "fee"};
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
         bool isNative = isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchCurrencies"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchCurrencies"), false)))) && isTrue((!isEqual(getValue(exchange.has, "fetchCurrencies"), "emulated")));
-        object currencyType = exchange.safeString(entry, "type");
+        string? currencyType = exchange.safeString(entry, "type");
         if (isTrue(isEqual(isNative, true)))
         {
             ((IDictionary<string,object>)format)["info"] = new Dictionary<string, object>() {};
@@ -60,7 +60,7 @@ public partial class testMainClass : BaseTest
         //
         testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "code"));
         // check if empty networks should be skipped
-        object networks = exchange.safeDict(entry, "networks", new Dictionary<string, object>() {});
+        IDictionary<string, object> networks = exchange.safeDict(entry, "networks", new Dictionary<string, object>() {});
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         int networkKeysLength = getArrayLength(networkKeys);
         if (isTrue(isTrue(isEqual(networkKeysLength, 0)) && isTrue((inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))))
@@ -97,13 +97,13 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "min", "0");
             testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", "0");
             // max should be more than min (withdrawal limits)
-            object minStringWithdrawal = exchange.safeString(withdrawLimits, "min");
+            string? minStringWithdrawal = exchange.safeString(withdrawLimits, "min");
             if (isTrue(!isEqual(minStringWithdrawal, null)))
             {
                 testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, withdrawLimits, "max", minStringWithdrawal);
             }
             // max should be more than min (deposit limits)
-            object minStringDeposit = exchange.safeString(depositLimits, "min");
+            string? minStringDeposit = exchange.safeString(depositLimits, "min");
             if (isTrue(!isEqual(minStringDeposit, null)))
             {
                 testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", minStringDeposit);

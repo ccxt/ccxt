@@ -27,6 +27,11 @@ impl ZebpayCore {
         self.call_method(Value::Str("public_spot_get_v2_market_orderbook".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicSpotGetV2MarketOrderbookTicker` implicit endpoint.
+    pub async fn public_spot_get_v2_market_orderbook_ticker(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_spot_get_v2_market_orderbook_ticker".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicSpotGetV2MarketTrades` implicit endpoint.
     pub async fn public_spot_get_v2_market_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_spot_get_v2_market_trades".to_string()), optional_args).await
@@ -82,6 +87,16 @@ impl ZebpayCore {
         self.call_method(Value::Str("public_swap_get_v1_exchange_tradefees".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicSwapGetV1ExchangeExchangeInfo` implicit endpoint.
+    pub async fn public_swap_get_v1_exchange_exchange_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_swap_get_v1_exchange_exchange_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicSwapGetV1ExchangePairs` implicit endpoint.
+    pub async fn public_swap_get_v1_exchange_pairs(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_swap_get_v1_exchange_pairs".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicSwapGetV1MarketOrderBook` implicit endpoint.
     pub async fn public_swap_get_v1_market_order_book(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_swap_get_v1_market_order_book".to_string()), optional_args).await
@@ -95,6 +110,11 @@ impl ZebpayCore {
     /// Auto-generated wrapper for the `publicSwapGetV1MarketMarkets` implicit endpoint.
     pub async fn public_swap_get_v1_market_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_swap_get_v1_market_markets".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicSwapGetV1MarketMarketInfo` implicit endpoint.
+    pub async fn public_swap_get_v1_market_market_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_swap_get_v1_market_market_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicSwapGetV1MarketAggTrade` implicit endpoint.
@@ -125,6 +145,11 @@ impl ZebpayCore {
     /// Auto-generated wrapper for the `privateSpotGetV2ExTradefee` implicit endpoint.
     pub async fn private_spot_get_v2_ex_tradefee(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_spot_get_v2_ex_tradefee".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateSpotGetV2ExMyfeeSymbol` implicit endpoint.
+    pub async fn private_spot_get_v2_ex_myfee_symbol(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_spot_get_v2_ex_myfee_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateSpotGetV2ExOrder` implicit endpoint.
@@ -167,6 +192,11 @@ impl ZebpayCore {
         self.call_method(Value::Str("private_swap_get_v1_trade_order_open_orders".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateSwapGetV1TradeOrderHistory` implicit endpoint.
+    pub async fn private_swap_get_v1_trade_order_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_swap_get_v1_trade_order_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateSwapGetV1TradeUserLeverages` implicit endpoint.
     pub async fn private_swap_get_v1_trade_user_leverages(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_swap_get_v1_trade_user_leverages".to_string()), optional_args).await
@@ -185,6 +215,11 @@ impl ZebpayCore {
     /// Auto-generated wrapper for the `privateSwapGetV1TradeHistory` implicit endpoint.
     pub async fn private_swap_get_v1_trade_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_swap_get_v1_trade_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateSwapGetV1TradeTransactionHistory` implicit endpoint.
+    pub async fn private_swap_get_v1_trade_transaction_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_swap_get_v1_trade_transaction_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateSwapPostV1TradeOrder` implicit endpoint.
@@ -220,6 +255,16 @@ impl ZebpayCore {
     /// Auto-generated wrapper for the `privateSwapDeleteV1TradeOrder` implicit endpoint.
     pub async fn private_swap_delete_v1_trade_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_swap_delete_v1_trade_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateSwapDeleteV1TradeOrderAll` implicit endpoint.
+    pub async fn private_swap_delete_v1_trade_order_all(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_swap_delete_v1_trade_order_all".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateSwapPatchV1TradeOrder` implicit endpoint.
+    pub async fn private_swap_patch_v1_trade_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_swap_patch_v1_trade_order".to_string()), optional_args).await
     }
 
 }

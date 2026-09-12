@@ -176,6 +176,8 @@ export default class bithumb extends Exchange {
                         'v1/orders/chance': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/order': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/orders': { 'cost': 1 } as Endpoint<List>,
+                        'v2/orders/pending': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/orders/history': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/twap': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/withdraws': { 'cost': 1 } as Endpoint<List>,
                         'v1/withdraws/krw': { 'cost': 1 } as Endpoint<List>,
@@ -211,6 +213,7 @@ export default class bithumb extends Exchange {
                         'v2/orders': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/orders/batch': { 'cost': 6 } as Endpoint<Dict>, // max 20 requests per second
                         'v2/orders/cancel': { 'cost': 6 } as Endpoint<Dict>, // max 20 requests per second
+                        'v2/orders/search': { 'cost': 1 } as Endpoint<List>,
                         'v1/twap': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/withdraws/coin': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/withdraws/krw': { 'cost': 1 } as Endpoint<Dict>,
@@ -2925,7 +2928,7 @@ export default class bithumb extends Exchange {
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3038,7 +3041,7 @@ export default class bithumb extends Exchange {
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
+    async fetchDeposit (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

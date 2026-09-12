@@ -140,7 +140,7 @@ class indodax extends Exchange {
                 'transfer' => false,
                 'withdraw' => true,
             ),
-            'version' => '2.0', // 9 April 2018
+            'version' => '2.0', // as of 9 April 2018
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api' => array(
@@ -174,7 +174,9 @@ class indodax extends Exchange {
                         'openOrders' => array( 'cost' => 4 ),
                         'orderHistory' => array( 'cost' => 4 ),
                         'getOrder' => array( 'cost' => 4 ),
+                        'getOrderByClientOrderId' => array( 'cost' => 4 ),
                         'cancelOrder' => array( 'cost' => 4 ),
+                        'cancelByClientOrderId' => array( 'cost' => 4 ),
                         'withdrawFee' => array( 'cost' => 4 ),
                         'withdrawCoin' => array( 'cost' => 4 ),
                         'listDownline' => array( 'cost' => 4 ),
@@ -448,7 +450,7 @@ class indodax extends Exchange {
 
     public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response, 'return', array());
-        $free = $this->safe_value($balances, 'balance', array());
+        $free = $this->safe_dict($balances, 'balance', array());
         $used = $this->safe_value($balances, 'balance_hold', array());
         $timestamp = $this->safe_timestamp($balances, 'server_time');
         $result = array(
@@ -756,7 +758,7 @@ class indodax extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1313,8 +1315,8 @@ class indodax extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'return', array());
-        $withdraw = $this->safe_value($data, 'withdraw', array());
-        $deposit = $this->safe_value($data, 'deposit', array());
+        $withdraw = $this->safe_dict($data, 'withdraw', array());
+        $deposit = $this->safe_dict($data, 'deposit', array());
         $transactions = array();
         $currency = null;
         if ($code === null) {

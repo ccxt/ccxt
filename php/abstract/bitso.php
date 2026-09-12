@@ -250,6 +250,18 @@ abstract class bitso extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_patch_orders($params = array()) {
+        return $this->request('orders', 'private', 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_patch_orders_oid($params = array()) {
+        return $this->request('orders/{oid}', 'private', 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetAvailableBooks($params = array()) {
         return $this->request('available_books', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -486,5 +498,17 @@ abstract class bitso extends \ccxt\Exchange {
      */
     public function privateDeleteOrdersAll($params = array()) {
         return $this->request('orders/all', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePatchOrders($params = array()) {
+        return $this->request('orders', 'private', 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePatchOrdersOid($params = array()) {
+        return $this->request('orders/{oid}', 'private', 'PATCH', $params, null, null, array("cost" => 1));
     }
 }

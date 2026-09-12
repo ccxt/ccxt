@@ -190,11 +190,17 @@ class pacifica(Exchange, ImplicitAPI):
                         'orders': {'cost': 1},
                         'orders/history': {'cost': 12},
                         'orders/history_by_id': {'cost': 1},
+                        'orders/twap': {'cost': 1},
+                        'orders/twap/history': {'cost': 12},
+                        'orders/twap/history_by_id': {'cost': 1},
                         'spot_assets': {'cost': 1},
                         'spot_assets/bridge/info': {'cost': 1},
                         'spot_assets/bridge/parameters/{symbol}': {'cost': 1},
                         'lake/list': {'cost': 1},
                         'account/builder_codes/approvals': {'cost': 1},
+                        'builder/overview': {'cost': 1},
+                        'builder/trades': {'cost': 1},
+                        'leaderboard/builder_code': {'cost': 1},
                     },
                 },
                 'private': {
@@ -219,9 +225,20 @@ class pacifica(Exchange, ImplicitAPI):
                         'orders/stop/cancel': {'cost': 0.5},
                         'orders/edit': {'cost': 1},
                         'orders/batch': {'cost': 1},
+                        'orders/twap/create': {'cost': 1},
+                        'orders/twap/cancel': {'cost': 0.5},
                         'account/builder_codes/approve': {'cost': 1},
                         'account/builder_codes/revoke': {'cost': 1},
+                        'builder/update_fee_rate': {'cost': 1},
+                        'referral/user/code/claim': {'cost': 1},
                         'agent/bind': {'cost': 1},
+                        'agent/list': {'cost': 1},
+                        'agent/revoke': {'cost': 1},
+                        'agent/revoke_all': {'cost': 1},
+                        'agent/ip_whitelist/list': {'cost': 1},
+                        'agent/ip_whitelist/add': {'cost': 1},
+                        'agent/ip_whitelist/remove': {'cost': 1},
+                        'agent/ip_whitelist/toggle': {'cost': 1},
                         'account/api_keys/create': {'cost': 1},
                         'account/api_keys/revoke': {'cost': 1},
                         'account/api_keys': {'cost': 1},
@@ -1160,7 +1177,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch. 'limit' is priority
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if since is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a "since" argument')
@@ -1378,7 +1395,9 @@ class pacifica(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'created_at')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'amount')
-        symbol = self.safe_symbol(None, market)
+        marketId = self.safe_string(trade, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         id = self.safe_string(trade, 'history_id')
         side = self.safe_string(trade, 'side')
         if side == 'open_long':
@@ -1492,7 +1511,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used of Trigger Order.
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used as limit_price of Trigger Order.
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at(optional provide stopLossCloid)
@@ -3041,10 +3060,13 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
+        if self.markets is None:
+            self.load_markets()
+        currency = self.currency(code)
         operationType = 'transfer_funds'
         sigPayload = {
             'to_account': toAccount,
-            'amount': amount,
+            'amount': self.number_to_string(amount),
         }
         request = self.post_action_request(operationType, sigPayload, params)
         params = self.omit(params, ['expiryWindow'])
@@ -3061,7 +3083,11 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_transfer(data)
+        return self.extend(self.parse_transfer(data, currency), {
+            'amount': amount,
+            'fromAccount': self.safe_string(request, 'account'),
+            'toAccount': toAccount,
+        })
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
@@ -3075,16 +3101,20 @@ class pacifica(Exchange, ImplicitAPI):
         #   "code": null
         # }
         #
+        success = self.safe_bool(transfer, 'success')
+        status = None
+        if success is not None:
+            status = 'ok' if (success is True) else 'failed'
         return {
             'info': transfer,
             'id': None,
             'timestamp': None,
             'datetime': None,
-            'currency': None,
+            'currency': self.safe_currency_code(None, currency),
             'amount': None,
             'fromAccount': None,
             'toAccount': None,
-            'status': 'ok',
+            'status': status,
         }
 
     def create_sub_account(self, name: str, params={}):
@@ -3215,7 +3245,7 @@ class pacifica(Exchange, ImplicitAPI):
         address1 = self.walletAddress
         if address1 is not None:
             return [address1, params]
-        raise ArgumentsRequired(self.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or or "address" in params')
+        raise ArgumentsRequired(self.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params')
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

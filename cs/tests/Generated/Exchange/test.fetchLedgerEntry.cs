@@ -20,7 +20,7 @@ public partial class testMainClass : BaseTest
             if (isTrue(!isEqual(id, null)))
             {
                 object item = await invokeExchangeDynamically(exchange, "fetchLedgerEntry", id);
-                object now = exchange.milliseconds();
+                Int64 now = exchange.milliseconds();
                 testLedgerEntry(exchange, skippedProperties, method, item, code, now);
             }
         }

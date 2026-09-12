@@ -171,7 +171,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         self.handle_bid_ask(client, message)
         event = self.safe_string(message, 'event')
-        tickers = self.safe_value(message, 'data', [])
+        tickers = self.safe_list(message, 'data', [])
         result = []
         for i in range(0, len(tickers)):
             data = tickers[i]
@@ -204,7 +204,7 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     def handle_bid_ask(self, client: Client, message: object):
         event = 'bidask'
-        tickers = self.safe_value(message, 'data', [])
+        tickers = self.safe_list(message, 'data', [])
         result = []
         for i in range(0, len(tickers)):
             data = tickers[i]
@@ -366,7 +366,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -459,7 +459,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of [symbol, timeframe] keyed arrays of candles ordered, open, high, low, close, volume
+        :returns dict: a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -807,9 +807,9 @@ class bitvavo(ccxt.async_support.bitvavo):
             self.handle_order_book_message(client, messageItem, orderbook)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
-        # getBook is a one-shot request but self.watch tracks it persistent
+        # getBook is a one-shot request but self.watch tracks it as a persistent
         # subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
-        # instead of suppressing the request already-active subscription
+        # instead of suppressing the request as an already-active subscription
         snapshotHash = 'getBook@' + marketId
         if snapshotHash in client.subscriptions:
             del client.subscriptions[snapshotHash]
@@ -1286,7 +1286,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1603,7 +1603,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #         }
         #     }
         #
-        subscriptions = self.safe_value(message, 'subscriptions', {})
+        subscriptions = self.safe_dict(message, 'subscriptions', {})
         methods = {
             'book': self.handle_order_book_subscriptions,
         }

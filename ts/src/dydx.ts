@@ -200,6 +200,14 @@ export default class dydx extends Exchange {
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': { 'cost': 1 } as Endpoint<Dict>,
                         'fills/parentSubaccount': { 'cost': 1 } as Endpoint<Dict>,
                         'historical-pnl/parentSubaccount': { 'cost': 1 } as Endpoint<Dict>,
+                        'pnl': { 'cost': 1 } as Endpoint<Dict>,
+                        'pnl/parentSubaccountNumber': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradeHistory': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradeHistory/parentSubaccountNumber': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'turnkey/signin': { 'cost': 1 } as Endpoint<Dict>,
+                        'turnkey/uploadAddress': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'nodeRpc': {
@@ -2275,7 +2283,7 @@ export default class dydx extends Exchange {
         return this.parseTransactions (rows, currency, since, limit);
     }
 
-    async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         const methodName = this.safeString (params, 'methodName');
         params = this.omit (params, 'methodName');
         let userAddress: Str = undefined;

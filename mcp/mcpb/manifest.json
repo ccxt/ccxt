@@ -3,7 +3,7 @@
   "manifest_version": "0.4",
   "name": "ccxt-mcp",
   "display_name": "CCXT — Crypto Exchanges",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Market data, balances and (opt-in) trading across 100+ crypto exchanges and prediction markets via CCXT.",
   "long_description": "The official CCXT MCP server. Connect an AI agent to 100+ cryptocurrency exchanges and prediction markets through the unified CCXT API: prices, order books, candles, market search and prediction-market events with no keys; balances, orders and positions once you configure an account; and order placement when you explicitly enable it. Your API keys are stored in the OS keychain and are never visible to the model — it references accounts by name only. Trading is opt-in and sandbox-first: enabling it here allows orders on testnet/sandbox accounts only; live trading must be turned on in the config file.",
   "author": {

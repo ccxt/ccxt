@@ -1164,7 +1164,7 @@ class gate extends gate$1["default"] {
         //     ]
         // }
         //
-        const result = this.safeValue(message, 'result', []);
+        const result = this.safeList(message, 'result', []);
         const tradesLength = result.length;
         if (tradesLength === 0) {
             return;
@@ -1292,7 +1292,7 @@ class gate extends gate$1["default"] {
         //       ]
         //   }
         //
-        const result = this.safeValue(message, 'result', []);
+        const result = this.safeList(message, 'result', []);
         this.balance['info'] = result;
         for (let i = 0; i < result.length; i++) {
             const rawBalance = result[i];
@@ -1450,7 +1450,7 @@ class gate extends gate$1["default"] {
         //    }
         //
         const type = this.getMarketTypeByUrl(client.url);
-        const data = this.safeValue(message, 'result', []);
+        const data = this.safeList(message, 'result', []);
         const cache = this.positions[type];
         const newPositions = [];
         for (let i = 0; i < data.length; i++) {

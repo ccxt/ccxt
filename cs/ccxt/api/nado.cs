@@ -39,6 +39,13 @@ public partial class nado : Exchange
         return await this.callAsync<Dictionary<string, object>> ("gatewayPublicPostQuery",parameters);
     }
 
+    /// <summary>Calls the gatewayPublicPostEdgeQuery endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> gatewayPublicPostEdgeQuery (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("gatewayPublicPostEdgeQuery",parameters);
+    }
+
     /// <summary>Calls the gatewayPrivatePostExecute endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> gatewayPrivatePostExecute (object parameters = null)
@@ -93,6 +100,13 @@ public partial class nado : Exchange
     public async Task<List<object>> archiveV2PublicGetTrades (object parameters = null)
     {
         return await this.callAsync<List<object>> ("archiveV2PublicGetTrades",parameters);
+    }
+
+    /// <summary>Calls the archiveV2PublicGetSymbols endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> archiveV2PublicGetSymbols (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("archiveV2PublicGetSymbols",parameters);
     }
 
     /// <summary>Calls the triggerPrivatePostExecute endpoint.</summary>

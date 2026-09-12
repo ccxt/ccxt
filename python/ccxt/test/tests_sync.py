@@ -88,6 +88,7 @@ class testMainClass:
             'timeout': 30000,
         }
         exchange = init_exchange(exchange_id, exchange_args, self.ws_tests)
+        set_exchange_prop(exchange, 'fetchHistoryCacheSize', 5)
         if exchange.alias:
             dump(self.add_padding('[INFO] skipping alias', 25))
             exit_script(0)
@@ -310,7 +311,7 @@ class testMainClass:
                 is_auth_error = (isinstance(e, AuthenticationError))
                 is_not_supported = (isinstance(e, NotSupported))
                 is_operation_failed = (isinstance(e, OperationFailed))  # includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                last_url_msg = '' if self.ws_tests else ' (Last url: ' + exchange.last_request_url + ' )'
+                last_url_msg = '' if self.ws_tests else ' (Last url: ' + self.get_last_request_url(exchange) + ' )'
                 if is_operation_failed:
                     # if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if i == max_retries - 1:
@@ -365,6 +366,16 @@ class testMainClass:
                         dump('[TEST_FAILURE]', exchange.id, method_name, args_stringified, last_url_msg, exception_message(e))
                         return False
         return True
+
+    def get_last_request_url(self, exchange):
+        fetch_cache = exchange.get_fetch_cache()
+        url = ''
+        if len(fetch_cache) > 0:
+            last_entry = fetch_cache[len(fetch_cache) - 1]
+            last_request = last_entry['request']
+            if last_request is not None:
+                url = exchange.safe_string(last_request, 'url', '')
+        return url
 
     def run_public_tests(self, exchange, symbols):
         primary_symbol = symbols[0]

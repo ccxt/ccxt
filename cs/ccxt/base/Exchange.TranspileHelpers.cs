@@ -54,6 +54,48 @@ public partial class BaseExchange
         return a;
     }
 
+    // Typed counterparts for locals the transpiler declares as `int` / `Int64` / `double`
+    // (for-loop counters and numeric locals). A `ref` argument binds only to its exact
+    // type, so `ref int` never competes with the `ref object` overload above. The
+    // arithmetic is the same unchecked `+ 1` / `- 1` the `object` overload applies to an
+    // int / Int64 / double box, and the return value is the incremented value exactly as
+    // above (it is only ever discarded).
+    public static int postFixIncrement(ref int a)
+    {
+        a = a + 1;
+        return a;
+    }
+
+    public static Int64 postFixIncrement(ref Int64 a)
+    {
+        a = a + 1;
+        return a;
+    }
+
+    public static double postFixIncrement(ref double a)
+    {
+        a = a + 1;
+        return a;
+    }
+
+    public static int postFixDecrement(ref int a)
+    {
+        a = a - 1;
+        return a;
+    }
+
+    public static Int64 postFixDecrement(ref Int64 a)
+    {
+        a = a - 1;
+        return a;
+    }
+
+    public static double postFixDecrement(ref double a)
+    {
+        a = a - 1;
+        return a;
+    }
+
     public static object postFixDecrement(ref object a)
     {
 
@@ -102,6 +144,28 @@ public partial class BaseExchange
         return a;
     }
 
+    // Typed counterparts for prefix `-x` on locals the transpiler declares as `int` /
+    // `Int64` / `double`: `a = -a` is the same unchecked negation the object overload
+    // applies to the box (wrapping at the value type's minimum), and the return value is
+    // the same boxed numeric value it returns.
+    public static int prefixUnaryNeg(ref int a)
+    {
+        a = -a;
+        return a;
+    }
+
+    public static Int64 prefixUnaryNeg(ref Int64 a)
+    {
+        a = -a;
+        return a;
+    }
+
+    public static double prefixUnaryNeg(ref double a)
+    {
+        a = -a;
+        return a;
+    }
+
     public static object prefixUnaryPlus(ref object a)
     {
         if (a.GetType() == typeof(Int64))
@@ -127,34 +191,23 @@ public partial class BaseExchange
         return a;
     }
 
-    public static object plusEqual(object a, object value)
+    // Same typed counterparts for prefix `+x`: `a = +a` is the identity the object
+    // overload applies to the box, with the same return value.
+    public static int prefixUnaryPlus(ref int a)
     {
+        a = +a;
+        return a;
+    }
 
-        a = normalizeIntIfNeeded(a);
-        value = normalizeIntIfNeeded(value);
+    public static Int64 prefixUnaryPlus(ref Int64 a)
+    {
+        a = +a;
+        return a;
+    }
 
-        if (value == null)
-            return null;
-        if (a.GetType() == typeof(Int64))
-        {
-            a = (Int64)a + (Int64)value;
-        }
-        else if (a.GetType() == typeof(int))
-        {
-            a = (int)a + (int)value;
-        }
-        else if (a.GetType() == typeof(double))
-        {
-            a = (double)a + (double)value;
-        }
-        else if (a.GetType() == typeof(string))
-        {
-            a = (string)a + (string)value;
-        }
-        else
-        {
-            return null;
-        }
+    public static double prefixUnaryPlus(ref double a)
+    {
+        a = +a;
         return a;
     }
 
@@ -403,6 +456,17 @@ public partial class BaseExchange
         }
     }
 
+    // The three `add` overloads MUST agree wherever more than one is applicable, because
+    // the declared type of a generated local picks the overload at compile time:
+    //   add(object, object): null left -> null; null right -> left unchanged
+    //   add(string, string): C# concat: null on either side -> the other side ("" for both)
+    //   add(string, object): was `a + b.ToString()`, a NullReferenceException on a null right;
+    //                        now delegates to add(string, string) so the two string overloads
+    //                        are identical for every input (a string right operand's ToString()
+    //                        is itself; a null right becomes a null string)
+    // A null LEFT still differs between (object,object) [null] and (string,*) [right operand],
+    // which is why build/csharp-local-types.js keeps a string local `object` when it is the
+    // LEFT operand of `+`: only RIGHT operands may be typed (see the proof there).
     public static string add(string a, string b)
     {
         return a + b;
@@ -410,7 +474,7 @@ public partial class BaseExchange
 
     public static string add(string a, object b)
     {
-        return add(a, b.ToString());
+        return add(a, b?.ToString());
     }
 
     // public static string add(object a, string b)
@@ -478,6 +542,46 @@ public partial class BaseExchange
     // {
     //     return a - b;
     // }
+
+    // Typed counterparts for generated operands whose static type is already an integer /
+    // double family (build/csharp-local-types.js only names an operand type when the C#
+    // value already IS that type). They exist so that a generated declaration such as
+    // `Int64 z = multiply (a, b);` is type-correct — the (object, object) overload's static
+    // return is `object`, which a typed declaration cannot receive — and they are reachable
+    // only from operands of exactly those static types, where the (object, object) overload
+    // above returns the identical result for every such input. Proven by the differential
+    // harness in the PR (object path vs typed path over int / uint / long / Int64 / double /
+    // zero / overflow, comparing value, box type and exception type):
+    //   multiply(Int64, Int64): the object overload normalizes every int / uint / long /
+    //     Int64 operand to Int64 and takes its Int64 branch, so this is the same unchecked
+    //     `a * b` boxed Int64.
+    //   divide(Int64, Int64): the object overload's Int64 branch — the same truncating
+    //     Int64 division (JS `/` does not truncate; that divergence predates these
+    //     overloads and is unchanged by them, because these only bind where the object
+    //     path already computed the very same division).
+    //   divide(double, double): whenever either operand is a double the object overload
+    //     falls through to its else branch, `Convert.ToDouble(a) / Convert.ToDouble(b)`,
+    //     which is exactly `a / b` on the converted operands.
+    // multiply(double, double) and subtract(double, double) are deliberately absent. An
+    // integer-valued double product comes back from the object multiply as an Int64 box
+    // (IsInteger), which a `double` return could not reproduce; and a subtract double twin
+    // would capture (int / long / uint, double) pairs whose object path runs the Int64
+    // branch's `(Int64)b` unboxing — an InvalidCastException at runtime the twin would
+    // replace with a computed value (both verified by the harness).
+    public static Int64 multiply(Int64 a, Int64 b)
+    {
+        return a * b;
+    }
+
+    public static Int64 divide(Int64 a, Int64 b)
+    {
+        return a / b;
+    }
+
+    public static double divide(double a, double b)
+    {
+        return a / b;
+    }
 
     public static object divide(object a, object b)
     {

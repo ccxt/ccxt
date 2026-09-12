@@ -163,6 +163,28 @@ public class IndependentreserveApi extends Exchange
     }
 
     /**
+     * Calls the publicGetGetDepositFees endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetDepositFees (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetGetDepositFees", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetGetFiatWithdrawalFees endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetFiatWithdrawalFees (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetGetFiatWithdrawalFees", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetGetCryptoWithdrawalFees endpoint.
      *
      * @param optionalArgs the request parameters
@@ -339,6 +361,17 @@ public class IndependentreserveApi extends Exchange
     }
 
     /**
+     * Calls the privatePostGetTradesByOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetTradesByOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetTradesByOrder", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostGetBrokerageFees endpoint.
      *
      * @param optionalArgs the request parameters
@@ -358,6 +391,39 @@ public class IndependentreserveApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetDigitalCurrencyWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetDigitalCurrencyWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetFiatWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetFiatWithdrawal (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetFiatWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetDepositLimits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetDepositLimits (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetDepositLimits", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetWithdrawalLimits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetWithdrawalLimits (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetWithdrawalLimits", optionalArgs);
     }
 
     /**
@@ -391,6 +457,17 @@ public class IndependentreserveApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostCancelOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostCancelOrders", optionalArgs);
     }
 
     /**

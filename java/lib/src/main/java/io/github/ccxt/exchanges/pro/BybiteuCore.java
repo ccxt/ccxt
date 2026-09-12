@@ -24,7 +24,7 @@ public class BybiteuCore extends io.github.ccxt.exchanges.Bybiteu
         var restInstance = new io.github.ccxt.exchanges.Bybiteu();
         Object restDescribe = restInstance.describe();
         Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
-        Object extended = this.deepExtend(restDescribe, parentWsDescribe);
+        java.util.Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new java.util.HashMap<String, Object>() {{
             put( "id", "bybiteu" );
             put( "name", "Bybit EU" );

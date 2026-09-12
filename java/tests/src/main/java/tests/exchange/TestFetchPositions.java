@@ -16,7 +16,7 @@ public class TestFetchPositions extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchPositions";
+        String method = "fetchPositions";
         Object now = exchange.milliseconds();
         // without symbol
         Object positions = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{})).join();

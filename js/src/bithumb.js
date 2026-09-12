@@ -177,6 +177,8 @@ export default class bithumb extends Exchange {
                         'v1/orders/chance': { 'cost': 1 },
                         'v1/order': { 'cost': 1 },
                         'v1/orders': { 'cost': 1 },
+                        'v2/orders/pending': { 'cost': 1 },
+                        'v2/orders/history': { 'cost': 1 },
                         'v1/twap': { 'cost': 1 },
                         'v1/withdraws': { 'cost': 1 },
                         'v1/withdraws/krw': { 'cost': 1 },
@@ -212,6 +214,7 @@ export default class bithumb extends Exchange {
                         'v2/orders': { 'cost': 1 },
                         'v2/orders/batch': { 'cost': 6 }, // max 20 requests per second
                         'v2/orders/cancel': { 'cost': 6 }, // max 20 requests per second
+                        'v2/orders/search': { 'cost': 1 },
                         'v1/twap': { 'cost': 1 },
                         'v1/withdraws/coin': { 'cost': 1 },
                         'v1/withdraws/krw': { 'cost': 1 },

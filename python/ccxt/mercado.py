@@ -135,6 +135,7 @@ class mercado(Exchange, ImplicitAPI):
                     'private': 'https://www.mercadobitcoin.net/tapi',
                     'v4Public': 'https://www.mercadobitcoin.com.br/v4',
                     'v4PublicNet': 'https://api.mercadobitcoin.net/api/v4',
+                    'v4Private': 'https://api.mercadobitcoin.net/api/v4',
                 },
                 'www': 'https://www.mercadobitcoin.com.br',
                 'doc': [
@@ -178,6 +179,16 @@ class mercado(Exchange, ImplicitAPI):
                 'v4PublicNet': {
                     'get': {
                         'candles': {'cost': 1},
+                    },
+                },
+                'v4Private': {
+                    'post': {
+                        'accounts': {'cost': 1},
+                        'accounts/{accountId}/{symbol}/transfers/internal': {'cost': 1},
+                        'oauth2/token': {'cost': 1},
+                    },
+                    'patch': {
+                        'accounts/{accountId}/wallet/{symbol}/deposits/{depositId}': {'cost': 1},
                     },
                 },
             },
@@ -506,7 +517,7 @@ class mercado(Exchange, ImplicitAPI):
 
     def parse_balance(self, response: object) -> Balances:
         data = self.safe_value(response, 'response_data', {})
-        balances = self.safe_value(data, 'balance', {})
+        balances = self.safe_dict(data, 'balance', {})
         result = {'info': response}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
@@ -835,7 +846,7 @@ class mercado(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -845,7 +856,7 @@ class mercado(Exchange, ImplicitAPI):
             'symbol': market['base'] + '-' + market['quote'],  # exceptional endpoint, that needs custom symbol syntax
         }
         if limit is None:
-            limit = 100  # set some default limit,'s required if user doesn't provide it
+            limit = 100  # set some default limit, as it's required if user doesn't provide it
         if since is not None:
             request['from'] = self.parse_to_int(since / 1000)
             request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe))
@@ -930,7 +941,7 @@ class mercado(Exchange, ImplicitAPI):
     def orders_to_trades(self, orders: object):
         result = []
         for i in range(0, len(orders)):
-            trades = self.safe_value(orders[i], 'trades', [])
+            trades = self.safe_list(orders[i], 'trades', [])
             for y in range(0, len(trades)):
                 result.append(trades[y])
         return result

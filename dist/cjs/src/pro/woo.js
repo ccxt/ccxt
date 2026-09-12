@@ -1361,7 +1361,7 @@ class woo extends woo$1["default"] {
         //    }
         //
         const data = this.safeValue(message, 'data', {});
-        const rawPositions = this.safeValue(data, 'positions', {});
+        const rawPositions = this.safeDict(data, 'positions', {});
         const postitionsIds = Object.keys(rawPositions);
         if (this.positions === undefined) {
             this.positions = new Cache.ArrayCacheBySymbolBySide();

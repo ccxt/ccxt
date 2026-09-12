@@ -357,6 +357,7 @@ impl DeepcoinCore {
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
+        m.insert("keepAlive".to_string(), Value::Int(15000));
     m
 }));
     m
@@ -497,16 +498,10 @@ impl DeepcoinCore {
         self.check_required_credentials(&[]);
         let mut time: Value = self.milliseconds();
         // single-flight leader election on a never-dialed client, see
-        // https://github.com/ccxt/ccxt/issues/29393: the key rides the private
-        // ws url query string, so racing acquires mint several keys, the last
-        // write wins the cache and every loser dials a stream keyed to an
-        // orphaned credential that never delivers.
-        // the whole check-then-fetch is the critical section here: the
-        // acquire-vs-extend branch reads the very key and expiry the leader
-        // rewrites. the flight IS the entry in client.futures - registered
-        // before the first fetch and settled through client.resolve /
-        // client.reject, so every mutation of that registry happens inside the
-        // client, which is what keeps the go port's map access under one lock
+        // https://github.com/ccxt/ccxt/issues/29393: the key rides the private ws url query string, so racing
+        // acquires would mint several keys and losers dial streams keyed to orphaned credentials. the whole
+        // check-then-fetch (acquire vs extend) is the critical section; the flight IS the client.futures entry,
+        // settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
         let mut messageHash: Value = Value::Str("authenticate".to_string());
         let mut client: Value = self.client(&[Value::Str("authenticationFlights".to_string())]);
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
@@ -519,14 +514,14 @@ impl DeepcoinCore {
         let mut listenKey: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut listenKeyExpiryTimestamp: Value = self.safe_integer_k(self.options.clone(), "listenKeyExpiryTimestamp", &[time.clone()]);
-            let mut expired: Value = Value::Bool(is_greater_than(&(subtract(&time, &listenKeyExpiryTimestamp)), &Value::Int(60000))); // 1 minute before expiry
+            let mut expired: bool = is_greater_than(&(subtract(&time, &listenKeyExpiryTimestamp)), &Value::Int(60000)); // 1 minute before expiry
             listenKey = self.safe_string_k(self.options.clone(), "listenKey", &[]);
             let mut response: Value = Value::Null;
             if is_equal(&listenKey, &Value::Null) {
                 response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await;
             }  else if is_true(&expired) {
                 let mut method: Value = self.safe_string_k(self.options.clone(), "method", &[Value::Str("privateGetDeepcoinListenkeyExtend".to_string())]);
-                let mut getNewKey: Value = Value::Bool(is_equal(&method, &Value::Str("privateGetDeepcoinListenkeyAcquire".to_string())));
+                let mut getNewKey: bool = is_equal(&method, &Value::Str("privateGetDeepcoinListenkeyAcquire".to_string()));
                 if is_true(&getNewKey) {
                     response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await;
                 }  else {

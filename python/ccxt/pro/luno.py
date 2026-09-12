@@ -85,7 +85,7 @@ class luno(ccxt.async_support.luno):
         #         "timestamp": 1660598775360
         #     }
         #
-        rawTrades = self.safe_value(message, 'trade_updates', [])
+        rawTrades = self.safe_list(message, 'trade_updates', [])
         length = len(rawTrades)
         if length == 0:
             return

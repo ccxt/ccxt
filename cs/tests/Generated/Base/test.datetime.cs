@@ -86,6 +86,9 @@ public partial class BaseTest
             Assert(isEqual(exchange.parse8601("1986-04-26T01:23:47.062Z"), 514862627062));
             Assert(isEqual(exchange.parse8601("1986-04-26T01:23:47.06Z"), 514862627060));
             Assert(isEqual(exchange.parse8601("1986-04-26T01:23:47.6Z"), 514862627600));
+            // a negative offset is a zone like any other
+            Assert(isEqual(exchange.parse8601("1986-04-26T01:23:47.559-04:00"), 514877027559));
+            Assert(isEqual(exchange.parse8601("1986-04-26T01:23:47.559+00:00"), 514862627559));
             Assert(isEqual(exchange.parse8601("1977-13-13T00:00:00.000Z"), null));
             Assert(isEqual(exchange.parse8601("1986-04-26T25:71:47.000Z"), null));
             Assert(isEqual(exchange.parse8601("3333"), null));
@@ -111,7 +114,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object value = exchange.microseconds();
+            Int64 value = exchange.microseconds();
             string valueString = ((object)value).ToString();
             Assert(isGreaterThan(value, 0));
             Assert(isEqual(((string)valueString).Length, 16));
@@ -121,7 +124,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object value = exchange.milliseconds();
+            Int64 value = exchange.milliseconds();
             string valueString = ((object)value).ToString();
             Assert(isGreaterThan(value, 0));
             Assert(isEqual(((string)valueString).Length, 13));
@@ -131,10 +134,26 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object value = exchange.seconds();
+            Int64 value = exchange.seconds();
             string valueString = ((object)value).ToString();
             Assert(isGreaterThan(value, 0));
             Assert(isEqual(((string)valueString).Length, 10));
+        }
+        public void testConvertExpireDate()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            // callers write this into expiryDatetime, which types.ts documents with milliseconds
+            Assert(isEqual(exchange.convertExpireDate("260503"), "2026-05-03T00:00:00.000Z"));
+            Assert(isEqual(exchange.convertExpireDate("240426"), "2024-04-26T00:00:00.000Z"));
+            // both spellings of midnight parse to the same instant
+            Assert(isEqual(exchange.parse8601(exchange.convertExpireDate("260503")), 1777766400000));
+            Assert(isEqual(exchange.parse8601("2026-05-03T00:00:00Z"), exchange.parse8601(exchange.convertExpireDate("260503"))));
+            // the notation is now a fixed point of iso8601 (parse8601 (x)) - this is the
+            // invariant the change exists to establish, and it fails on the old spelling
+            Assert(isEqual(exchange.convertExpireDate("260503"), exchange.iso8601(exchange.parse8601(exchange.convertExpireDate("260503")))));
+            Assert(isEqual(exchange.convertExpireDate(null), null));
         }
         public void testYymmdd()
         {
@@ -142,11 +161,11 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             object testMs = 1750123456789; // 17 June 2025
-            object value = exchange.yymmdd(testMs, "_");
+            string? value = exchange.yymmdd(testMs, "_");
             Assert(isEqual(value, "25_06_17"));
-            object value2 = exchange.yymmdd(exchange.milliseconds());
+            string? value2 = exchange.yymmdd(exchange.milliseconds());
             Assert(isEqual(((string)value2).Length, 6));
-            object intNum = exchange.parseToInt(value2);
+            Int64? intNum = exchange.parseToInt(value2);
             Assert(isTrue(isGreaterThan(intNum, 260000)) && isTrue(isLessThan(intNum, 360000))); // date between 2026 and 2036
         }
         public void testYyyymmdd()
@@ -155,11 +174,11 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             object testMs = 1750123456789; // 17 June 2025
-            object value = exchange.yyyymmdd(testMs, "_");
+            string? value = exchange.yyyymmdd(testMs, "_");
             Assert(isEqual(value, "2025_06_17"));
-            object value2 = exchange.yyyymmdd(exchange.milliseconds());
+            string? value2 = exchange.yyyymmdd(exchange.milliseconds());
             Assert(isEqual(((string)value2).Length, 10));
-            object intNum = exchange.parseToInt(((string)(((string)value2).Replace((string)"-", (string)""))).Replace((string)"-", (string)""));
+            Int64? intNum = exchange.parseToInt(((string)(((string)value2).Replace((string)"-", (string)""))).Replace((string)"-", (string)""));
             Assert(isTrue(isGreaterThan(intNum, 20260000)) && isTrue(isLessThan(intNum, 20360000))); // date between 2026 and 2036
         }
         public void testYmd()
@@ -177,7 +196,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             object testMs = 1750123456789; // 17 June 2025
-            object value = exchange.ymdhms(testMs, "_");
+            string? value = exchange.ymdhms(testMs, "_");
             Assert(isTrue(isEqual(value, "2025-06-17_01:24:16")) || isTrue(isEqual(value, "2025-06-17_01:24:17"))); // todo: php/py rounds up to 17
         }
         public void testDatetime()
@@ -194,5 +213,6 @@ public partial class BaseTest
             testSeconds();
             testYymmdd();
             testYyyymmdd();
+            testConvertExpireDate();
         }
 }

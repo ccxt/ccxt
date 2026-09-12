@@ -253,27 +253,42 @@ class xt extends Exchange {
                     ),
                     'linear' => array(
                         'get' => array(
+                            'future/copytrade/user/v1/copy-trade/current-following-v2' => array( 'cost' => 1 ),
+                            'future/copytrade/user/v1/copy-trade/follower-balance-bill' => array( 'cost' => 1 ),
+                            'future/copytrade/user/v1/copy-trade/follower-position' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/plan-detail' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/plan-list' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/plan-list-history' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/profit-detail' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/profit-list' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/profit-list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/reverse-plan-list' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/reverse-plan-list-history' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/track-detail' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/track-list' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/track-list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/order-entrust/list' => array( 'cost' => 1 ),
                             'future/trade/v1/order/detail' => array( 'cost' => 1 ),
                             'future/trade/v1/order/list' => array( 'cost' => 1 ),
                             'future/trade/v1/order/list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/trade-history' => array( 'cost' => 1 ),
                             'future/trade/v1/position/list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/position/cross-margin/{symbol}' => array( 'cost' => 1 ),
+                            'future/trade/v1/position/leverage/list' => array( 'cost' => 1 ),
+                            'future/trade/v1/position/list/active' => array( 'cost' => 1 ),
                             'future/trade/v1/order/trade-list' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/trade-list-all' => array( 'cost' => 1 ),
                             'future/user/v1/account/info' => array( 'cost' => 1 ),
+                            'future/user/v1/auto-deleverage/history' => array( 'cost' => 1 ),
                             'future/user/v1/balance/bills' => array( 'cost' => 1 ),
                             'future/user/v1/balance/detail' => array( 'cost' => 1 ),
                             'future/user/v1/balance/funding-rate-list' => array( 'cost' => 1 ),
                             'future/user/v1/balance/list' => array( 'cost' => 1 ),
+                            'future/user/v1/compat/balance/{coin}' => array( 'cost' => 1 ),
                             'future/user/v1/position/adl' => array( 'cost' => 1 ),
                             'future/user/v1/position/break-list' => array( 'cost' => 1 ),
                             'future/user/v1/position/list' => array( 'cost' => 1 ),
+                            'future/user/v1/taker-over/list' => array( 'cost' => 1 ),
                             'future/user/v1/user/step-rate' => array( 'cost' => 1 ),
                             'future/user/v1/user/collection/list' => array( 'cost' => 1 ),
                             'future/user/v1/user/listen-key' => array( 'cost' => 1 ),
@@ -311,22 +326,34 @@ class xt extends Exchange {
                             'future/trade/v1/entrust/plan-list-history' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/profit-detail' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/profit-list' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/profit-list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/reverse-plan-list' => array( 'cost' => 1 ),
+                            'future/trade/v1/entrust/reverse-plan-list-history' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/track-detail' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/track-list' => array( 'cost' => 1 ),
                             'future/trade/v1/entrust/track-list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/order-entrust/list' => array( 'cost' => 1 ),
                             'future/trade/v1/order/detail' => array( 'cost' => 1 ),
                             'future/trade/v1/order/list' => array( 'cost' => 1 ),
                             'future/trade/v1/order/list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/trade-history' => array( 'cost' => 1 ),
                             'future/trade/v1/position/list-history' => array( 'cost' => 1 ),
+                            'future/trade/v1/position/cross-margin/{symbol}' => array( 'cost' => 1 ),
+                            'future/trade/v1/position/leverage/list' => array( 'cost' => 1 ),
+                            'future/trade/v1/position/list/active' => array( 'cost' => 1 ),
                             'future/trade/v1/order/trade-list' => array( 'cost' => 1 ),
+                            'future/trade/v1/order/trade-list-all' => array( 'cost' => 1 ),
                             'future/user/v1/account/info' => array( 'cost' => 1 ),
+                            'future/user/v1/auto-deleverage/history' => array( 'cost' => 1 ),
                             'future/user/v1/balance/bills' => array( 'cost' => 1 ),
                             'future/user/v1/balance/detail' => array( 'cost' => 1 ),
                             'future/user/v1/balance/funding-rate-list' => array( 'cost' => 1 ),
                             'future/user/v1/balance/list' => array( 'cost' => 1 ),
+                            'future/user/v1/compat/balance/{coin}' => array( 'cost' => 1 ),
                             'future/user/v1/position/adl' => array( 'cost' => 1 ),
                             'future/user/v1/position/break-list' => array( 'cost' => 1 ),
                             'future/user/v1/position/list' => array( 'cost' => 1 ),
+                            'future/user/v1/taker-over/list' => array( 'cost' => 1 ),
                             'future/user/v1/user/step-rate' => array( 'cost' => 1 ),
                             'future/user/v1/user/collection/list' => array( 'cost' => 1 ),
                             'future/user/v1/user/listen-key' => array( 'cost' => 1 ),
@@ -1129,7 +1156,7 @@ class xt extends Exchange {
         return $this->parse_markets($symbols);
     }
 
-    public function fetch_swap_and_future_markets($params = array()) {
+    public function fetch_swap_and_future_markets($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_swap_and_future_markets(...))($params);
     }
 
@@ -1483,7 +1510,7 @@ class xt extends Exchange {
          * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2647,7 +2674,7 @@ class xt extends Exchange {
         }
     }
 
-    public function create_spot_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()) {
+    public function create_spot_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_spot_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2720,7 +2747,7 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_contract_order(string $symbol, mixed $type, mixed $side, mixed $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order(string $symbol, mixed $type, mixed $side, mixed $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_contract_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -5208,7 +5235,7 @@ class xt extends Exchange {
             $response = Async\await($this->privateLinearGetFutureUserV1UserStepRate($params));
         }
         //
-        // same $response
+        // same $response as fetchTradingFee
         //
         $fee = $this->safe_dict($response, 'result', array());
         $result = array();

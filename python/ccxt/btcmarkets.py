@@ -303,7 +303,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_transactions_with_method(self, method: object, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transactions_with_method(self, method: object, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -649,7 +649,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -800,7 +800,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_ticker_2(self, symbol: str, params={}):
+    def fetch_ticker_2(self, symbol: str, params={}) -> Ticker:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)

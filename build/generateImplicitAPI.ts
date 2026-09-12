@@ -934,7 +934,7 @@ function createImplicitMethodsGo(){
         const methods = ownMethodNames.map(method=> {
             return [
                 `// ${capitalize(method)} returns a channel that yields ${proseReturnShape (exchange, method)}.`,
-                `func (this *${capitalize(exchange)}Core) ${capitalize(method)}(args ...any) <-chan any {`,
+                `func (this *${capitalize(exchange)}) ${capitalize(method)}(args ...any) <-chan any {`,
                 `\treturn this.${callEndpoint}("${method}", args...)`,
                 `}`,
                 ``,

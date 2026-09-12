@@ -53,6 +53,17 @@ public class ZebpayApi extends Exchange
     }
 
     /**
+     * Calls the publicSpotGetV2MarketOrderbookTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSpotGetV2MarketOrderbookTicker (Object... optionalArgs)
+    {
+        return this.callAsync ("publicSpotGetV2MarketOrderbookTicker", optionalArgs);
+    }
+
+    /**
      * Calls the publicSpotGetV2MarketTrades endpoint.
      *
      * @param optionalArgs the request parameters
@@ -174,6 +185,28 @@ public class ZebpayApi extends Exchange
     }
 
     /**
+     * Calls the publicSwapGetV1ExchangeExchangeInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetV1ExchangeExchangeInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("publicSwapGetV1ExchangeExchangeInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the publicSwapGetV1ExchangePairs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetV1ExchangePairs (Object... optionalArgs)
+    {
+        return this.callAsync ("publicSwapGetV1ExchangePairs", optionalArgs);
+    }
+
+    /**
      * Calls the publicSwapGetV1MarketOrderBook endpoint.
      *
      * @param optionalArgs the request parameters
@@ -204,6 +237,17 @@ public class ZebpayApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetV1MarketMarkets (Object... optionalArgs)
     {
         return this.callAsync ("publicSwapGetV1MarketMarkets", optionalArgs);
+    }
+
+    /**
+     * Calls the publicSwapGetV1MarketMarketInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicSwapGetV1MarketMarketInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("publicSwapGetV1MarketMarketInfo", optionalArgs);
     }
 
     /**
@@ -270,6 +314,17 @@ public class ZebpayApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetV2ExTradefee (Object... optionalArgs)
     {
         return this.callAsync ("privateSpotGetV2ExTradefee", optionalArgs);
+    }
+
+    /**
+     * Calls the privateSpotGetV2ExMyfeeSymbol endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSpotGetV2ExMyfeeSymbol (Object... optionalArgs)
+    {
+        return this.callAsync ("privateSpotGetV2ExMyfeeSymbol", optionalArgs);
     }
 
     /**
@@ -361,6 +416,17 @@ public class ZebpayApi extends Exchange
     }
 
     /**
+     * Calls the privateSwapGetV1TradeOrderHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetV1TradeOrderHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateSwapGetV1TradeOrderHistory", optionalArgs);
+    }
+
+    /**
      * Calls the privateSwapGetV1TradeUserLeverages endpoint.
      *
      * @param optionalArgs the request parameters
@@ -402,6 +468,17 @@ public class ZebpayApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetV1TradeHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapGetV1TradeHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateSwapGetV1TradeTransactionHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapGetV1TradeTransactionHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateSwapGetV1TradeTransactionHistory", optionalArgs);
     }
 
     /**
@@ -479,6 +556,28 @@ public class ZebpayApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapDeleteV1TradeOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateSwapDeleteV1TradeOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privateSwapDeleteV1TradeOrderAll endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapDeleteV1TradeOrderAll (Object... optionalArgs)
+    {
+        return this.callAsync ("privateSwapDeleteV1TradeOrderAll", optionalArgs);
+    }
+
+    /**
+     * Calls the privateSwapPatchV1TradeOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateSwapPatchV1TradeOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privateSwapPatchV1TradeOrder", optionalArgs);
     }
 
 }

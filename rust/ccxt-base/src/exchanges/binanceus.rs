@@ -386,6 +386,11 @@ impl BinanceusCore {
         m.insert("noSymbol".to_string(), Value::Int(100));
     m
 }));
+        m.insert("ticker/tradingDay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
     m
 }));
     m
@@ -397,6 +402,11 @@ impl BinanceusCore {
         m.insert("account".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("account/commission".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
     m
 }));
         m.insert("rateLimit/order".to_string(), Value::Map({
@@ -423,6 +433,11 @@ impl BinanceusCore {
         m.insert("myPreventedMatches".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("myFilters".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(40));
     m
 }));
         m.insert("allOrders".to_string(), Value::Map({

@@ -327,4 +327,14 @@ impl CoinoneCore {
         self.call_method(Value::Str("v2_1_private_post_transaction_coin_withdrawal_limit".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v2_1PrivatePostEventOrderRewardPrograms` implicit endpoint.
+    pub async fn v2_1_private_post_event_order_reward_programs(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v2_1_private_post_event_order_reward_programs".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v2_1PrivatePostEventOrderRewardHistory` implicit endpoint.
+    pub async fn v2_1_private_post_event_order_reward_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v2_1_private_post_event_order_reward_history".to_string()), optional_args).await
+    }
+
 }

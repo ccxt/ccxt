@@ -217,6 +217,11 @@ impl LbankCore {
         self.call_method(Value::Str("spot_private_post_supplement_get_deposit_address".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `spotPrivatePostSupplementAddDepositAddress` implicit endpoint.
+    pub async fn spot_private_post_supplement_add_deposit_address(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_post_supplement_add_deposit_address".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `spotPrivatePostSupplementAssetDetail` implicit endpoint.
     pub async fn spot_private_post_supplement_asset_detail(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_private_post_supplement_asset_detail".to_string()), optional_args).await
@@ -280,6 +285,31 @@ impl LbankCore {
     /// Auto-generated wrapper for the `spotPrivatePostSupplementTransactionHistory` implicit endpoint.
     pub async fn spot_private_post_supplement_transaction_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_private_post_supplement_transaction_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivatePostSpotWalletWithdraw` implicit endpoint.
+    pub async fn spot_private_post_spot_wallet_withdraw(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_post_spot_wallet_withdraw".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivatePostSpotWalletDepositHistory` implicit endpoint.
+    pub async fn spot_private_post_spot_wallet_deposit_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_post_spot_wallet_deposit_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivatePostSpotWalletWithdraws` implicit endpoint.
+    pub async fn spot_private_post_spot_wallet_withdraws(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_post_spot_wallet_withdraws".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivatePostSpotTradeOrdersInfo` implicit endpoint.
+    pub async fn spot_private_post_spot_trade_orders_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_post_spot_trade_orders_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivatePostSpotTradeOrdersInfoHistory` implicit endpoint.
+    pub async fn spot_private_post_spot_trade_orders_info_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_post_spot_trade_orders_info_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `contractPublicGetCfdOpenApiV1PubGetTime` implicit endpoint.

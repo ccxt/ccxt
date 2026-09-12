@@ -16,7 +16,7 @@ public class TestFetchLastPrices extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchLastprices";
+        String method = "fetchLastprices";
         // log ('fetching all tickers at once...')
         Object response = new java.util.HashMap<String, Object>() {{}};
         Object checkedSymbol = null;
@@ -31,7 +31,7 @@ public class TestFetchLastPrices extends BaseTest {
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, checkedSymbol);
         Object values = Helpers.objectValues(response);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-        Object atLeastOnePassed = false;
+        Boolean atLeastOnePassed = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(values)); i++)
         {
             // todo: symbol check here

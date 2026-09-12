@@ -85,6 +85,7 @@ export default class paymium extends Exchange {
                         'user/orders': { 'cost': 1 } as Endpoint<List>,
                         'user/orders/{uuid}': { 'cost': 1 } as Endpoint<Dict>,
                         'user/price_alerts': { 'cost': 1 } as Endpoint<List>,
+                        'user/withdrawals': { 'cost': 1 } as Endpoint<List>,
                         'merchant/get_payment/{uuid}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {

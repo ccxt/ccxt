@@ -645,6 +645,35 @@ const VENUE_TYPED_CORES: Record<string, Record<string, string>> = {
     },
 };
 
+// Sync cores retyped from `object` to a concrete C# type. Unlike TYPED_CORES (async
+// Task<object> -> Task<T>, where a To*/From* helper pair moves a boxed struct across the
+// boundary), these are plain sync methods whose runtime value ALREADY is the named type:
+// this.markets / this.currencies / this.markets_by_id / this.currencies_by_id hold plain
+// Dictionary<string, object> rows (setMarkets builds each row with deepExtend and toArray
+// de-types the typed fetchMarkets list before the merge), so naming the type moves no box.
+// The row BUILDERS (parseMarket / parseCurrency / createExpiredOptionMarket) return the
+// same family of rows: a census of all 119 declarations found every return path ending in
+// safeMarketStructure / safeCurrencyStructure, this.extend / deepExtend, a fresh
+// Dictionary literal, or a peer builder that resolves to one of those (poloniex's
+// parseMarket forwards to parseSpot/SwapMarket, both ending in safeMarketStructure), so
+// the ToDict funnel below is identity for them too.
+// Every declaration (the BaseExchange original and every venue override — C# overrides are
+// invariant) is rewritten, and each return expression is funnelled through ToDict (`as`
+// cast: identity for these rows, null for null) unless it already hands the dictionary back
+// unchanged. Registered in build/csharp-local-types.js so `object x = this.market(symbol)`
+// locals can be typed downstream.
+const SYNC_TYPED_CORES: Record<string, string> = {
+    'safeMarketStructure': 'Dictionary<string, object>',
+    'safeCurrencyStructure': 'Dictionary<string, object>',
+    'safeMarket': 'Dictionary<string, object>',
+    'safeCurrency': 'Dictionary<string, object>',
+    'market': 'Dictionary<string, object>',
+    'currency': 'Dictionary<string, object>',
+    'parseMarket': 'Dictionary<string, object>',
+    'parseCurrency': 'Dictionary<string, object>',
+    'createExpiredOptionMarket': 'Dictionary<string, object>',
+};
+
 // Generated C# core parameters that can be narrowed from `object` to `string`.
 // Keyed by POSITION, never by name: the prediction tier renames `symbol` to
 // `outcome`, and C# overrides are invariant on parameter types, not names.
@@ -749,6 +778,9 @@ const CORE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'fetchUtaCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
     'fetchUtaOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
     'fetchWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    // cs-5: TS `amount: number` (required) -> double; the four call sites (bingx/lighter
+    // addMargin/reduceMargin) get the ToDoubleArgRequired wrap.
+    'setMargin': { 1: 'double' },
     'transfer': { 1: 'double' },
     'watchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
     // additional watch* numeric args, same evidence gate as above (build/tmp_watch_args.py)
@@ -769,8 +801,44 @@ const CORE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'withdraw': { 1: 'double' },
 };
 
+// Collection-returning helpers whose every return site yields a list (or null) at runtime but
+// whose generated declaration still said `object`. Every site was checked mechanically (a
+// return-site census over cs/ccxt/*.cs and cs/ccxt/exchanges/*.cs): `new List<object>()`, a
+// `List<object>` local, `null`, a call to another name in this list, or one of the three shapes
+// typeCollectionReturns() normalizes:
+//   return <own object param>;         -> return this.toArray(<param>);
+//   return this.arraySlice(...);       -> return this.toArray(this.arraySlice(...));
+//   return ((object)this.<name>(...)); -> return this.<name>(...);
+// Deliberately absent: filterByArray / filterOutByArray / filterByArray* / filterBySymbols*
+// (they hand back a DICTIONARY when `indexed` is true - argument-dependent, so not a list
+// type), parseTickers / parsePositions / parseFundingRates / parseOpenInterests (funelled
+// through filterByArray), parseFundingHistory (returns a Dictionary), parseWsTrade /
+// parseWsTrades (46 ws-file overrides - a full ws regeneration is out of scope here) and
+// arraySlice (byte[] callers receive byte[] / List<byte> back, so it keeps its object
+// signature; its list returns are funnelled through toArray at the call sites above).
+const COLLECTION_RETURN_METHODS: string[] = [
+    'filterByKey', 'filterBySymbol', 'filterByLimit', 'filterBySinceLimit',
+    'filterByValueSinceLimit', 'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit',
+    'filterBySymbolsSinceLimit', 'filterByOutcomeSinceLimit',
+    'parseTrades', 'parseTradesHelper', 'parseOrders', 'parseOHLCVs', 'parseTransactions',
+    'parseLedger', 'parseLiquidations', 'marketIds', 'currencyIds', 'marketCodes',
+    'marketSymbols', 'marketsForSymbols', 'parseMarkets',
+];
+
+// Same idea for the one collection helper that hands back a keyed dictionary: parseCurrencies
+// accumulates `Dictionary<string, object> result` (keyed by currency code) and returns it —
+// both the base implementation and the bitstamp override. No return-site normalizations are
+// needed (every return is that dict local); only the declaration changes.
+const COLLECTION_RETURN_DICT_METHODS: string[] = [
+    'parseCurrencies',
+];
+
 const CORE_STRING_ARGS: Record<string, number[]> = {
     'addMargin': [ 0 ],
+    'borrowCrossMargin': [ 0 ],
+    'borrowIsolatedMargin': [ 1 ],
+    'borrowMargin': [ 0 ],
+    'buildOHLCVC': [ 1 ],
     'cancelAllOrders': [ 0 ],
     'cancelAllOrdersWs': [ 0 ],
     'cancelContractOrder': [ 0, 1 ],
@@ -785,9 +853,13 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'cancelUtaOrder': [ 0, 1 ],
     'cancelUtaOrders': [ 1 ],
     'closePosition': [ 0, 1 ],
+    'commonCurrencyCode': [ 0 ],
+    'convertCurrencyNetwork': [ 0 ],
+    'convertToRealAmount': [ 0 ],
     'createAmmOrder': [ 0, 1, 2 ],
     'createConvertTrade': [ 0 ],
     'createDepositAddress': [ 0 ],
+    'createGiftCode': [ 0 ],
     'createLimitBuyOrder': [ 0 ],
     'createLimitBuyOrderWs': [ 0 ],
     'createLimitOrder': [ 0, 1 ],
@@ -804,6 +876,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'createMarketSellOrder': [ 0 ],
     'createMarketSellOrderWithCost': [ 0 ],
     'createMarketSellOrderWs': [ 0 ],
+    'createOHLCVObject': [ 1 ],
     'createOrder': [ 0, 1, 2 ],
     'createOrderWithTakeProfitAndStopLoss': [ 0, 1, 2 ],
     'createOrderWithTakeProfitAndStopLossWs': [ 0, 1, 2 ],
@@ -830,6 +903,10 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'createTriggerOrder': [ 0, 1, 2 ],
     'createTriggerOrderWs': [ 0, 1, 2 ],
     'createTwapOrder': [ 0, 1 ],
+    'currency': [ 0 ],
+    'currencyId': [ 0 ],
+    'currencyToPrecision': [ 0 ],
+    'deposit': [ 0 ],
     'editContractOrder': [ 0, 1, 2, 3 ],
     'editLimitBuyOrder': [ 0, 1 ],
     'editLimitOrder': [ 0, 1, 2 ],
@@ -840,24 +917,34 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'editSpotOrder': [ 0, 1, 2, 3 ],
     'fetchADLRank': [ 0 ],
     'fetchAmmOrders': [ 0 ],
+    'fetchBorrowInterest': [ 0 ],
+    'fetchBorrowRate': [ 0 ],
+    'fetchBorrowRateHistory': [ 0 ],
     'fetchCanceledOrders': [ 0 ],
     'fetchClosedOrder': [ 0, 1 ],
     'fetchClosedOrders': [ 0 ],
     'fetchClosedOrdersWs': [ 0 ],
     'fetchContractDepositAddress': [ 0 ],
+    'fetchContractDeposits': [ 0 ],
     'fetchContractOHLCV': [ 0, 1 ],
+    'fetchContractWithdrawals': [ 0 ],
     'fetchConvertTrade': [ 0, 1 ],
     'fetchConvertTradeHistory': [ 0 ],
     'fetchCrossBorrowRate': [ 0 ],
+    'fetchCurrency': [ 0 ],
     'fetchDeposit': [ 0, 1 ],
     'fetchDepositAddress': [ 0 ],
     'fetchDepositAddressDefault': [ 0 ],
     'fetchDepositAddressSupplement': [ 0 ],
     'fetchDepositAddressesByNetwork': [ 0 ],
+    'fetchDepositMethods': [ 0 ],
     'fetchDepositWithdrawFee': [ 0 ],
     'fetchDeposits': [ 0 ],
+    'fetchDepositsRequest': [ 0 ],
+    'fetchDepositsWithdrawals': [ 0 ],
     'fetchDepositsWs': [ 0 ],
     'fetchDerivativesMarketLeverageTiers': [ 0 ],
+    'fetchDerivativesOpenInterestHistory': [ 1 ],
     'fetchEvent': [ 0 ],
     'fetchFundingInterval': [ 0 ],
     'fetchFundingRate': [ 0 ],
@@ -865,6 +952,13 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchGreeks': [ 0 ],
     'fetchIndexOHLCV': [ 0, 1 ],
     'fetchIsolatedBorrowRate': [ 0 ],
+    // cs-5: first-parameter symbol/id positions admitted by build/analyzeCoreArgs.py on the
+    // current tree (the table predates these methods). Every call site already passes a
+    // string-typed arg (blockchaincom fetchOrderBook -> fetchL3OrderBook, weex fetchPosition
+    // -> fetchPositionsForSymbol) or receives the standard ((string)…) wrap (bingx/lighter
+    // addMargin/reduceMargin -> setMargin).
+    'fetchL2OrderBook': [ 0 ],
+    'fetchL3OrderBook': [ 0 ],
     'fetchLedger': [ 0 ],
     'fetchLedgerByEntries': [ 0 ],
     'fetchLedgerEntriesByIds': [ 1 ],
@@ -884,9 +978,12 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchMySells': [ 0 ],
     'fetchMyTrades': [ 0 ],
     'fetchMyTradesWs': [ 0 ],
+    'fetchNetworkDepositAddress': [ 0 ],
     'fetchOHLCV': [ 0, 1 ],
+    'fetchOHLCVRequest': [ 1 ],
     'fetchOHLCVWs': [ 0, 1 ],
     'fetchOpenInterest': [ 0 ],
+    'fetchOpenInterestHistory': [ 0, 1 ],
     'fetchOpenOrder': [ 0, 1 ],
     'fetchOpenOrders': [ 0 ],
     'fetchOpenOrdersWs': [ 0 ],
@@ -896,6 +993,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchOrder': [ 0, 1 ],
     'fetchOrderBook': [ 0 ],
     'fetchOrderBookWs': [ 0 ],
+    'fetchOrderStatus': [ 0, 1 ],
     'fetchOrderTrades': [ 0, 1 ],
     'fetchOrderWithClientOrderId': [ 0, 1 ],
     'fetchOrderWs': [ 0, 1 ],
@@ -903,11 +1001,13 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchOrdersByIds': [ 1 ],
     'fetchOrdersByStatusWs': [ 0, 1 ],
     'fetchOrdersWs': [ 0 ],
+    'fetchPaginatedCallDeterministic': [ 4 ],
     'fetchPosition': [ 0 ],
     'fetchPositionADLRank': [ 0 ],
     'fetchPositionHistory': [ 0 ],
     'fetchPositionMode': [ 0 ],
     'fetchPositionWs': [ 0 ],
+    'fetchPositionsForSymbol': [ 0 ],
     'fetchPositionsForSymbolWs': [ 0 ],
     'fetchPremiumIndexOHLCV': [ 0, 1 ],
     'fetchSettlements': [ 0 ],
@@ -923,14 +1023,41 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchTrades': [ 0 ],
     'fetchTradesWs': [ 0 ],
     'fetchTradingFee': [ 0 ],
+    'fetchTransactionFee': [ 0 ],
+    'fetchTransactions': [ 0 ],
+    'fetchTransactionsByType': [ 1 ],
+    'fetchTransactionsWithMethod': [ 1 ],
     'fetchTransfer': [ 0, 1 ],
     'fetchTransfers': [ 0 ],
     'fetchUTAOHLCV': [ 0, 1 ],
+    'fetchVolatilityHistory': [ 0 ],
+    'fetchWithdrawAddresses': [ 0 ],
     'fetchWithdrawal': [ 0, 1 ],
     'fetchWithdrawals': [ 0 ],
+    'fetchWithdrawalsRequest': [ 0 ],
     'fetchWithdrawalsWs': [ 0 ],
+    'filterByCurrencySinceLimit': [ 1 ],
+    'futuresTransfer': [ 0 ],
+    'getAssetHistoryRows': [ 0 ],
+    'mergeBalanceAccount': [ 1 ],
+    'parseBalanceForSingleCurrency': [ 1 ],
+    'parseBorrowRateHistory': [ 1 ],
+    'parseConversions': [ 1 ],
+    'parseOHLCVs': [ 2 ],
+    'parseTradingViewOHLCV': [ 2 ],
+    'parseTransactionsByType': [ 2 ],
+    'parseWsOHLCVs': [ 2 ],
+    'prepareAccountRequestWithCurrencyCode': [ 0 ],
+    'prepareRequestForDepositAddress': [ 0 ],
+    'queryTransactionsByEventType': [ 3 ],
     'reduceMargin': [ 0 ],
+    'repayCrossMargin': [ 0 ],
+    'repayIsolatedMargin': [ 1 ],
+    'repayMargin': [ 0 ],
+    'requestWalletHistoryRows': [ 2 ],
+    'safeDeterministicCall': [ 4 ],
     'setLeverage': [ 1 ],
+    'setMargin': [ 0 ],
     'setMarginMode': [ 0, 1 ],
     'setPositionMode': [ 1 ],
     'transfer': [ 0, 2, 3 ],
@@ -940,6 +1067,8 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'transferIn': [ 0 ],
     'transferOut': [ 0 ],
     'transferUta': [ 0, 2, 3 ],
+    'unWatchOHLCV': [ 1 ],
+    'updateSpotCurrencyCode': [ 0 ],
     // watch* string args, gated by build/tmp_watch_args.py: admitted only when every
     // generated wrapper declaration agrees on `string` at that position and every core
     // declaration agrees on arity. The venue-internal helpers (watchPublic, watchTopics,
@@ -956,6 +1085,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'watchTicker': [ 0 ],
     'watchTrades': [ 0 ],
     'withdraw': [ 0, 2, 3 ],
+    'withdrawRequest': [ 0 ],
     'withdrawWs': [ 0, 2, 3 ],
     // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
     // hand-written WsBridge caller both pass `object` and cannot be narrowed here
@@ -982,6 +1112,77 @@ const PREDICTION_CLASS_ALIAS_FILE = './cs/ccxt/base/Exchange.PredictionAliases.c
 const PREDICTION_WS_CLASS_ALIAS_FILE = './cs/ccxt/base/Exchange.PredictionWsAliases.cs'
 const ERRORS_FILE = './cs/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './cs/ccxt/base/Exchange.BaseMethods.cs';
+
+// The safeDict/safeList family is generated from ts/src/base/Exchange.ts, but its return
+// annotations (`Dictionary<any>` / `any[]`, each unioned with `undefined`) do not reach the
+// C# printer: getTypeFromRawType() has no member for a dictionary alias and a union falls
+// back to DEFAULT_RETURN_TYPE, so every one of the six prints `public virtual object`
+// (probed against the pinned ast-transpiler: bare `Dict`, `Dictionary<any>`, `Array<any>`,
+// `any[]` and every `| undefined` variant all emit `object`). The bodies, however, return
+// the real type on every path, so the emitted method text is retyped here: signature to the
+// concrete C# type, every `return <x>;` through an explicit cast. build/csharp-local-types.js
+// then names the locals fed by these calls.
+//
+// The dictionary three return the INTERFACE, not the concrete class: the found value only
+// passed `isDictionary`, which accepts any IDictionary<string, object> — this port hands
+// ConcurrentDictionary<string, object> through these paths for real (options itself is one,
+// createSafeDictionary() builds one, and paradex stores one in options['paradexAccount']),
+// and `(Dictionary<string, object>)` on such a value throws InvalidCastException. The cast
+// to the interface is identity-preserving for every value the guard passes and never throws
+// where the previous `object` return did not.
+//
+// Lists keep the concrete List<object>: every value the List<> guard passes that is NOT a
+// List<object> also fails the consumer-side IList<object> casts this port already emits, so
+// narrowing to List<object> changes nothing a caller could previously have used.
+//
+// The FOUND value is cast (the guard proves it); the DEFAULT is handed back with `as`, so a
+// default that is not the declared collection drops to null instead of throwing — the same
+// convention the hand-written SafeString/SafeStringN use (`return defaultValue as string`).
+// This is reachable in the real tree: myriad's fetchOHLCV passes a dictionary as the list
+// default (`safeDict`-shaped data read through `safeList (chart, 'data', chart)`), which the
+// fixture suite catches the moment a hard cast is used there.
+//
+// The rewrite is exact-match and throws if the generated shape ever changes.
+const SAFE_COLLECTION_HELPER_TYPES: Record<string, string> = {
+    'safeDict': 'IDictionary<string, object>',
+    'safeDict2': 'IDictionary<string, object>',
+    'safeDictN': 'IDictionary<string, object>',
+    'safeList': 'List<object>',
+    'safeList2': 'List<object>',
+    'safeListN': 'List<object>',
+};
+
+// locate a whole transpiled C# method (plus a preceding /** */ doc-comment block, if any)
+// by name — the span stripCSharpMethod() cuts out, kept addressable so a rewritten method
+// can be spliced back at its original position
+function findCSharpMethodSpan (body: string, name: string): { start: number, end: number, method: string } | undefined {
+    const sigRe = new RegExp ('\\n([ \\t]*)public [^\\n]*\\b' + name + '\\s*\\(');
+    const m = sigRe.exec (body);
+    if (!m) {
+        return undefined;
+    }
+    let start = m.index; // the '\n' just before the signature line
+    const before = body.substring (0, start);
+    const docMatch = before.match (/\n[ \t]*\/\*\*[\s\S]*?\*\/[ \t]*$/);
+    if (docMatch) {
+        start = docMatch.index as number;
+    }
+    let depth = 0;
+    let end = body.indexOf ('{', m.index + m[0].length - 1);
+    for (; end < body.length; end++) {
+        const c = body[end];
+        if (c === '{') {
+            depth++;
+        } else if (c === '}') {
+            depth--;
+            if (depth === 0) {
+                end++;
+                break;
+            }
+        }
+    }
+    return { start, end, method: body.substring (start, end) };
+}
 const EXCHANGES_FOLDER = './cs/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './cs/ccxt/exchanges/pro/';
 const EXCHANGES_PREDICTION_FOLDER = './cs/ccxt/exchanges/prediction/';
@@ -1052,6 +1253,12 @@ class NewTranspiler {
             [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
             [/this\.safeValue\(client\.futures,/gm, 'this.safeValue((client as WebSocketClient).futures,'],
+            // reads of the cached orderbook map go through the typed helpers added next to
+            // safeValue in cs/ccxt/ws/Exchange.WsBridge.cs (both return ccxt.pro.IOrderBook;
+            // the map only ever holds this.orderBook()/indexedOrderBook()/countedOrderBook()
+            // instances, so the value inside the box is unchanged)
+            [/this\.safeValue\((this\.orderbooks),/gm, 'this.safeOrderBook($1,'],
+            [/getValue\((this\.orderbooks),/gm, 'this.getOrderBook($1,'],
             [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
             [/(object \w+) = client\.futures/, '$1 = (client as WebSocketClient).futures'],
             [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
@@ -1951,6 +2158,81 @@ class NewTranspiler {
         return lines.filter (line => line !== null).join ('\n');
     }
 
+    // rewrites every sync core declared in SYNC_TYPED_CORES — the BaseExchange original and
+    // every venue override — from `object` to its concrete type, and funnels each return
+    // expression through `ccxt.BaseExchange.ToDict(...)`. ToDict is `value as
+    // Dictionary<string, object>`: identity for the rows these paths build, null for null,
+    // so the typed signature compiles without touching the box. Return expressions that
+    // already carry the dictionary statically stay bare: extend/deepExtend are declared
+    // Dictionary<string, object> in Exchange.Generic.cs, and a retyped core hands the same
+    // row back unmodified (this.safeMarketStructure(, base.safeMarket(, ...).
+    typeSyncCores (content: string): string {
+        const names = Object.keys (SYNC_TYPED_CORES);
+        if (!names.some (name => content.includes ('object ' + name + '('))) {
+            return content;
+        }
+        const sigRe = new RegExp ('^(\\s*)public (virtual|override) object (' + names.join ('|') + ')\\(');
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig) {
+                continue;
+            }
+            const [ full, indent, modifier, methodName ] = sig;
+            lines[i] = indent + 'public ' + modifier + ' ' + SYNC_TYPED_CORES[methodName] + ' ' + methodName + '(' + lines[i].substring (full.length);
+            // the body ends at its closing brace: the first line indented exactly like the
+            // signature (brace counting is unusable — generated bodies carry braces inside
+            // string literals)
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                if (!lines[j].trim ().startsWith ('return ')) {
+                    continue;
+                }
+                const [ lastLine, semi ] = this.collectReturnStatement (lines, j);
+                const head = lines[j].substring (lines[j].indexOf ('return ') + 7);
+                const middle = lines.slice (j + 1, lastLine);
+                const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
+                const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
+                if (this.syncCoreReturnIsAlreadyTyped (expr)) {
+                    j = lastLine;
+                    continue;
+                }
+                const retAt = lines[j].indexOf ('return ') + 7;
+                if (lastLine === j) {
+                    lines[j] = lines[j].substring (0, retAt) + 'ccxt.BaseExchange.ToDict(' + lines[j].substring (retAt, semi) + ')' + lines[j].substring (semi);
+                } else {
+                    // multi-line expression: open the helper on the first line, close it
+                    // before the `;` on the last — formatting is preserved
+                    lines[j] = lines[j].substring (0, retAt) + 'ccxt.BaseExchange.ToDict(' + lines[j].substring (retAt);
+                    lines[lastLine] = lines[lastLine].substring (0, semi) + ')' + lines[lastLine].substring (semi);
+                }
+                j = lastLine;
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // the returns of a SYNC_TYPED_CORES method that already hand the dictionary back, so a
+    // ToDict funnel would only add noise
+    syncCoreReturnIsAlreadyTyped (expr: string): boolean {
+        const unchanged = [ 'ccxt.BaseExchange.ToDict(', 'this.extend(', 'base.extend(', 'this.deepExtend(', 'base.deepExtend(' ];
+        for (const name of Object.keys (SYNC_TYPED_CORES)) {
+            unchanged.push ('this.' + name + '(', 'base.' + name + '(');
+        }
+        return unchanged.some ((prefix) => expr.startsWith (prefix));
+    }
+
     // A typed core needs no PascalCase forwarding wrapper: the core itself carries the public
     // name. The key set matches typedCoreType(), which falls back to TYPED_CORES on the
     // prediction tier, so a single union map covers both hierarchies.
@@ -2168,6 +2450,87 @@ class NewTranspiler {
                 lines[bodyStart] = lines[bodyStart] + '\n' + shadows.join ('\n');
             }
             i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // Retypes the helpers in COLLECTION_RETURN_METHODS from `object` to `IList<object>` (same
+    // runtime box, now nameable) and normalizes the return sites that would stop compiling; see
+    // the COLLECTION_RETURN_METHODS comment for the exact shapes. In-place, line-preserving:
+    // only the signature line and specific single-line return statements change. The list is
+    // also registered in build/csharp-local-types.js so `object x = this.<name>(...)` locals
+    // become `IList<object>`.
+    typeCollectionReturns (content: string): string {
+        if (!COLLECTION_RETURN_METHODS.concat (COLLECTION_RETURN_DICT_METHODS).some ((name) => content.includes (' object ' + name + '('))) {
+            return content;
+        }
+        const targets = new Map<string, string> ();
+        for (const name of COLLECTION_RETURN_METHODS) {
+            targets.set (name, 'IList<object>');
+        }
+        for (const name of COLLECTION_RETURN_DICT_METHODS) {
+            targets.set (name, 'Dictionary<string, object>');
+        }
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)public (async )?(virtual|override) object (\w+)\((.*)\)\s*$/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig || !targets.has (sig[4])) {
+                continue;
+            }
+            const [ , indent, , , methodName, plist ] = sig;
+            const target = targets.get (methodName) as string;
+            // body span: opening brace on its own line, closing brace at the signature indent
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const paramNames = this.splitCsharpParams (plist)
+                .map ((p) => p.split ('=')[0].trim ().split (/\s+/).pop ())
+                .filter ((p) => p !== undefined) as string[];
+            lines[i] = lines[i].replace (' object ' + methodName + '(', ' ' + target + ' ' + methodName + '(');
+            if (target !== 'IList<object>') {
+                continue; // dict returns need no return-site normalization
+            }
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                const line = lines[j];
+                const trimmed = line.trim ();
+                if (!trimmed.startsWith ('return ')) {
+                    continue;
+                }
+                const pad = line.substring (0, line.length - line.trimStart ().length);
+                // arraySlice keeps its object signature (byte[] callers get byte[] / List<byte>
+                // back); toArray is an identity on the list inputs these helpers receive
+                const slice = /^return this\.arraySlice\((.*)\);\s*$/.exec (trimmed);
+                if (slice) {
+                    lines[j] = `${pad}return this.toArray(this.arraySlice(${slice[1]}));`;
+                    continue;
+                }
+                // `return ((object)this.<another listed name>(...));` — the (object) cast was a
+                // no-op while both sides were `object`; drop it so the typed return compiles
+                if (trimmed.startsWith ('return ((object)this.')) {
+                    const inner = trimmed.substring ('return ((object)this.'.length);
+                    const called = /^(\w+)\(/.exec (inner);
+                    if (called && targets.has (called[1])) {
+                        lines[j] = pad + 'return this.' + inner.replace (/\)\);\s*$/, ');');
+                        continue;
+                    }
+                }
+                // `return <own object param>;` — the null/empty guards hand the input straight
+                // back; toArray keeps null null and an IList<object>/List<object> identical
+                const ident = /^return (\w+);\s*$/.exec (trimmed);
+                if (ident && paramNames.includes (ident[1])) {
+                    lines[j] = `${pad}return this.toArray(${ident[1]});`;
+                    continue;
+                }
+            }
         }
         return lines.join ('\n');
     }
@@ -2609,6 +2972,38 @@ class NewTranspiler {
         return { 'body': newBody, 'method': method };
     }
 
+    // retype the generated safeDict/safeList family in Exchange.BaseMethods.cs (see
+    // SAFE_COLLECTION_HELPER_TYPES for why the printer cannot do it from the TS annotations).
+    // The found value is proven by the method's own guard, so it goes through an explicit
+    // cast; the fallback hands the caller's default back with `as` (drop to null when it is
+    // not the declared collection, the SafeString convention). Throws if a method is
+    // missing, its signature moved, or any return survived without the rewrite.
+    retypeSafeCollectionHelpers (baseMethods: string): string {
+        for (const [ name, csharpType ] of Object.entries (SAFE_COLLECTION_HELPER_TYPES)) {
+            const found = findCSharpMethodSpan (baseMethods, name);
+            if (!found) {
+                throw new Error (`[csharp] retypeSafeCollectionHelpers: ${name} not found in the generated base methods`);
+            }
+            const signature = 'public virtual object ' + name + '(';
+            if (!found.method.includes (signature)) {
+                throw new Error (`[csharp] retypeSafeCollectionHelpers: ${name} does not carry the expected \`${signature}\` signature`);
+            }
+            let rewritten = found.method.replace (signature, 'public virtual ' + csharpType + ' ' + name + '(');
+            for (const returned of [ 'value', 'value2' ]) {
+                rewritten = rewritten.replaceAll ('return ' + returned + ';', 'return (' + csharpType + ')' + returned + ';');
+            }
+            rewritten = rewritten.replaceAll ('return defaultValue;', 'return defaultValue as ' + csharpType + ';');
+            const returns = (found.method.match (/return\s/g) ?? []).length;
+            const typedReturns = (rewritten.match (/return\s(?:\(|defaultValue as )/g) ?? []).length;
+            const bareReturns = (rewritten.match (/return\s(?!(?:\(|defaultValue as ))/g) ?? []).length;
+            if (returns === 0 || typedReturns !== returns || bareReturns !== 0) {
+                throw new Error (`[csharp] retypeSafeCollectionHelpers: ${name} lost return statements in the rewrite (${returns} -> ${typedReturns} typed, ${bareReturns} bare)`);
+            }
+            baseMethods = baseMethods.substring (0, found.start) + rewritten + baseMethods.substring (found.end);
+        }
+        return baseMethods;
+    }
+
     transpileBaseMethods(baseExchangeFile: string, force = true) {
         // the four generated base files all come out of this one pass; `exchanges.json`
         // is a real input too — createExchangesWrappers() emits one `public class <Id>`
@@ -2667,6 +3062,10 @@ class NewTranspiler {
         // Fix setMarketsFromExchange parameter type — typed as BaseExchange so it lives on the base
         // tier (returning `this`) and accepts both Exchange and PredictionExchange source instances
         baseClass = baseClass.replaceAll(/public virtual object setMarketsFromExchange\(object sourceExchange\)/g, 'public virtual BaseExchange setMarketsFromExchange(BaseExchange sourceExchange)');
+        // implodeHostname forwards implodeParams (object -> string in Exchange.Misc.cs), so its
+        // generated `object` signature only erased the string it already returns; the local-typing
+        // classifier (build/csharp-local-types.js) relies on the honest `string` here.
+        baseClass = baseClass.replaceAll(/public virtual object implodeHostname\(object url\)/g, 'public virtual string implodeHostname(object url)');
         // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
         // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
@@ -2715,7 +3114,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, false))), false) + "\n";
+            const file = fileHeader + this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false)))), false)) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -2723,7 +3122,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (exchangeBody, false))), false) + "\n}\n";
+                const tradingFile = tradingHeader + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false)))), false) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -2771,7 +3170,7 @@ class NewTranspiler {
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
-            const file = fileHeader + fields + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, true))), true) + "\n";
+            const file = fileHeader + fields + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true)))), true) + "\n";
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -2944,7 +3343,7 @@ class NewTranspiler {
         const maxThreads = csharpWorkerThreads ();
         if (!this.piscina) {
             this.piscina = new Piscina({
-                filename: resolve(__dirname, 'csharp-worker.js'),
+                filename: resolve(__dirname, 'csharp-worker.ts'),
                 maxThreads,
             });
         }
@@ -2952,7 +3351,7 @@ class NewTranspiler {
         const configKey = JSON.stringify (parserConfig);
 
         // One file per task. `roots` is the FULL stage list on every task so each worker
-        // builds ONE sticky ts.Program (build/worker-program-batch.js) and prints off it.
+        // builds ONE sticky ts.Program (build/worker-program-batch.ts) and prints off it.
         const promises: any = [];
         const now = Date.now();
         for (const file of allFiles) {
@@ -3111,7 +3510,7 @@ class NewTranspiler {
                 this.venueParents[this.currentVenue] = parent;
             }
         }
-        content = this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (content))));
+        content = this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))));
         this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
@@ -3577,10 +3976,12 @@ class NewTranspiler {
             }
 
             contentIndentend = this.regexAll (contentIndentend, regexes)
+            // narrowed core parameters (`string code`, `string timeframe`) also need an explicit
+            // cast in tests: REST tests route only the awaited `await exchange.X(` calls through
+            // invokeExchangeDynamically, so synchronous helpers (currency, parseOHLCVs, ...) stay
+            // static calls against `BaseExchange`; WS tests bind statically throughout.
+            contentIndentend = this.castCoreArgCallSites (contentIndentend, [ 'exchange.' ]);
             if (isWs) {
-                // WS tests bind the unified methods statically (no `dynamic` hop), so a core
-                // parameter narrowed to `string` needs the same explicit cast the cores get
-                contentIndentend = this.castCoreArgCallSites (contentIndentend, [ 'exchange.' ]);
                 contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
                 // must run last: it matches the PascalCase names the previous pass produced
                 contentIndentend = this.detypeWsTypedCoreCalls (contentIndentend);

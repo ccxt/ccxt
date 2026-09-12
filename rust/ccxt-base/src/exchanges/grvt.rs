@@ -287,6 +287,45 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("privateEdge".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("api/v1/deposit/addresses".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("api/v1/bridge/withdrawal-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("api/v1/bridge/withdrawal-status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("api/v1/referral/epochs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("api/v1/referral/points".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("api/v1/referral/data".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("api/v1/referral/indirect_data".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+    m
+}));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("auth/api_key/login".to_string(), Value::Map({
@@ -295,6 +334,26 @@ impl GrvtCore {
     m
 }));
         m.insert("auth/wallet/login".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("auth/builder/authorize".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("api/v1/deposit/generate-address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("api/v1/bridge/withdrawal-quote".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("api/v1/bridge/withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(100));
     m
@@ -363,6 +422,16 @@ impl GrvtCore {
     m
 }));
         m.insert("full/v1/funding".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
+        m.insert("full/v1/supported_assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
+        m.insert("full/v1/get_all_collateral_asset_info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(12));
     m
@@ -553,6 +622,56 @@ impl GrvtCore {
         m.insert("full/v1/builder_fill_history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/create_rfq".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("full/v1/cancel_rfq".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("full/v1/ecn_from_broker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v2/bulk_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
+        m.insert("full/v1/position_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOrders.clone());
+    m
+}));
+        m.insert("full/v1/interest_payment_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/get_collateral_preference".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/spot_account_summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/set_indicative_prices".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/withdrawal_fee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
     m
 }));
     m
@@ -1114,7 +1233,7 @@ impl GrvtCore {
 
     pub fn uses_private_key(&self) -> Value {
         let mut privateKeyDefined: Value = Value::Bool(!is_equal(&self.privateKey, &Value::Null) && !is_equal(&self.privateKey, &Value::Str("".to_string())));
-        let mut apiKeyDefined: Value = Value::Bool(!is_equal(&self.apiKey, &Value::Null) && !is_equal(&self.apiKey, &Value::Str("".to_string())));
+        let mut apiKeyDefined: bool = !is_equal(&self.apiKey, &Value::Null) && !is_equal(&self.apiKey, &Value::Str("".to_string()));
         if is_true(&privateKeyDefined) && is_true(&apiKeyDefined) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str("You should provide either \"privateKey\" or \"apikey & secret\"".to_string())));
         }
@@ -1251,18 +1370,18 @@ impl GrvtCore {
         let mut currentBuilders: Value = get_value(&results, &Value::Int(0));
         let mut approvedBuilder: Value = self.safe_list_k(currentBuilders.clone(), "results", &[Value::List(vec![])]);
         let mut length: Value = get_array_length(&approvedBuilder);
-        let mut found: Value = Value::Bool(false);
+        let mut found: bool = false;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_715: bool = true;
-            while { if !__for_first_715 { i = add(&i, &Value::Int(1)); } __for_first_715 = false; is_less_than(&i, &length) } {
+            let mut __for_first_716: bool = true;
+            while { if !__for_first_716 { i = add(&i, &Value::Int(1)); } __for_first_716 = false; is_less_than(&i, &length) } {
             let mut builderInfo: Value = self.safe_dict(approvedBuilder.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut builderAccountId: Value = self.safe_string_k(builderInfo.clone(), "builder_account_id", &[]);
             if is_equal(&builderAccountId, &self.safe_string_k(self.options.clone(), "builder", &[])) {
-                found = Value::Bool(true);
+                found = true;
                 break;
             }
         }
@@ -1868,8 +1987,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             side = ternary(is_true(&isTakerBuyer), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
             takerOrMaker = Value::Str("taker".to_string());
         }  else {
-            let mut isTaker: Value = Value::Bool(is_equal(&self.safe_bool_k(trade.clone(), "is_taker", &[]), &Value::Bool(true)));
-            let mut isBuyer: Value = Value::Bool(is_equal(&self.safe_bool_k(trade.clone(), "is_buyer", &[]), &Value::Bool(true)));
+            let mut isTaker: bool = is_equal(&self.safe_bool_k(trade.clone(), "is_taker", &[]), &Value::Bool(true));
+            let mut isBuyer: bool = is_equal(&self.safe_bool_k(trade.clone(), "is_buyer", &[]), &Value::Bool(true));
             takerOrMaker = ternary(is_true(&isTaker), Value::Str("taker".to_string()), Value::Str("maker".to_string()));
             side = ternary(is_true(&isBuyer), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
         }
@@ -2199,8 +2318,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut availableBalance: Value = self.safe_string_k(response.clone(), "available_balance", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_716: bool = true;
-            while { if !__for_first_716 { i = add(&i, &Value::Int(1)); } __for_first_716 = false; is_less_than(&i, &get_array_length(&spotBalances)) } {
+            let mut __for_first_717: bool = true;
+            while { if !__for_first_717 { i = add(&i, &Value::Int(1)); } __for_first_717 = false; is_less_than(&i, &get_array_length(&spotBalances)) } {
             let mut balance: Value = get_value(&spotBalances, &i);
             let mut balance: Value = get_value(&spotBalances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -2614,8 +2733,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut nonMatchedResults: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_717: bool = true;
-            while { if !__for_first_717 { i = add(&i, &Value::Int(1)); } __for_first_717 = false; is_less_than(&i, &get_array_length(&transfers)) } {
+            let mut __for_first_718: bool = true;
+            while { if !__for_first_718 { i = add(&i, &Value::Int(1)); } __for_first_718 = false; is_less_than(&i, &get_array_length(&transfers)) } {
             let mut transfer: Value = get_value(&transfers, &i);
             let mut transfer: Value = get_value(&transfers, &i);
             if is_true(&(is_true(&onlyMainAccount) && is_equal(&get_value(&transfer, &Value::Str("fromAccount".to_string())), &Value::Str("0".to_string())) && is_equal(&get_value(&transfer, &Value::Str("toAccount".to_string())), &Value::Str("0".to_string())))) || is_true(&(!is_true(&onlyMainAccount) && is_true(&(!is_equal(&get_value(&transfer, &Value::Str("fromAccount".to_string())), &Value::Str("0".to_string())) || !is_equal(&get_value(&transfer, &Value::Str("toAccount".to_string())), &Value::Str("0".to_string())))))) {
@@ -2687,7 +2806,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut msg: Value = self.exception_message(error.clone(), &[]);
-            let mut isFromFundingAccount: Value = Value::Bool(is_equal(&fromAccount, &Value::Str("funding".to_string())));
+            let mut isFromFundingAccount: bool = is_equal(&fromAccount, &Value::Str("funding".to_string()));
             if is_true(&isFromFundingAccount) && is_true(&(is_greater_than_or_equal(&get_index_of(&msg, &Value::Str("You are not authorized".to_string())), &Value::Int(0)))) {
                 panic!("{}", crate::exchange_errors::permission_denied(add(&add(&self.id, &Value::Str(" transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ".to_string())), &msg)));
             }
@@ -2794,7 +2913,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //         }
         //     }
         //
-        let mut accountIsUndefined: Value = Value::Bool(is_equal(&self.safe_string_k(self.options.clone(), "accountId", &[]), &Value::Null));
+        let mut accountIsUndefined: bool = is_equal(&self.safe_string_k(self.options.clone(), "accountId", &[]), &Value::Null);
         if is_true(&accountIsUndefined) {
             append_to_array(&mut promises, self.private_trading_post_full_v1_get_sub_accounts(&[]).await);
         }
@@ -2999,7 +3118,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             }
             // trigger type
             let mut selectedType: Value = Value::Null;
-            let mut isBuy: Value = Value::Bool(is_equal(&side, &Value::Str("buy".to_string())));
+            let mut isBuy: bool = is_equal(&side, &Value::Str("buy".to_string()));
             if !is_equal(&stopLossPrice, &Value::Null) {
                 selectedType = ternary(is_true(&isBuy), Value::Str("STOP_LOSS".to_string()), Value::Str("TAKE_PROFIT".to_string()));
             }  else if !is_equal(&takeProfitPrice, &Value::Null) {
@@ -3130,8 +3249,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut legs: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_718: bool = true;
-            while { if !__for_first_718 { i = add(&i, &Value::Int(1)); } __for_first_718 = false; is_less_than(&i, &get_array_length(&orderLegs)) } {
+            let mut __for_first_719: bool = true;
+            while { if !__for_first_719 { i = add(&i, &Value::Int(1)); } __for_first_719 = false; is_less_than(&i, &get_array_length(&orderLegs)) } {
             let mut leg: Value = get_value(&orderLegs, &i);
             let mut leg: Value = get_value(&orderLegs, &i);
             let mut market: Value = self.market(get_value(&leg, &Value::Str("instrument".to_string())));
@@ -3302,8 +3421,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             add_element_to_object(&mut request, &Value::Str("quote".to_string()), Value::List(vec![]));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_719: bool = true;
-                while { if !__for_first_719 { i = add(&i, &Value::Int(1)); } __for_first_719 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_720: bool = true;
+                while { if !__for_first_720 { i = add(&i, &Value::Int(1)); } __for_first_720 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -4096,7 +4215,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut marketId: Value = self.safe_string_k(firstLeg.clone(), "instrument", &[]);
             market = self.safe_market(&[marketId.clone(), market.clone()]);
             size = self.safe_string_k(firstLeg.clone(), "size", &[]);
-            let mut isBuyingAsset: Value = Value::Bool(is_equal(&self.safe_bool_k(firstLeg.clone(), "is_buying_asset", &[]), &Value::Bool(true)));
+            let mut isBuyingAsset: bool = is_equal(&self.safe_bool_k(firstLeg.clone(), "is_buying_asset", &[]), &Value::Bool(true));
             side = ternary(is_true(&isBuyingAsset), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
             price = self.safe_string_k(firstLeg.clone(), "limit_price", &[]);
             filled = self.safe_string(filledAmounts.clone(), primaryOrderIndex.clone(), &[]);

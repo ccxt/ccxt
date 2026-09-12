@@ -1145,7 +1145,7 @@ impl ToobitCore {
         self.authenticate(&[]).await;
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&marketType, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&marketType, &Value::Str("spot".to_string()));
         let mut type_var: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
         let mut spotSubHash: Value = Value::Str("spot:balance".to_string());
         let mut swapSubHash: Value = Value::Str("contract:private".to_string());
@@ -1486,7 +1486,7 @@ impl ToobitCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "s", &[]);
         let mut ts: Value = self.safe_string_k(trade.clone(), "t", &[]);
-        let mut isMaker: Value = Value::Bool(is_equal(&self.safe_bool_k(trade.clone(), "m", &[]), &Value::Bool(true)));
+        let mut isMaker: bool = is_equal(&self.safe_bool_k(trade.clone(), "m", &[]), &Value::Bool(true));
         let mut takerOrMaker: Value = ternary(is_true(&isMaker), Value::Str("maker".to_string()), Value::Str("taker".to_string()));
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1737,17 +1737,10 @@ impl ToobitCore {
         if is_greater_than(&subtract(&time, &lastAuthenticatedTime), &delay) {
             self.check_required_credentials(&[]);
             // single-flight leader election on a never-dialed client, see
-            // https://github.com/ccxt/ccxt/issues/29393. the election used to
-            // run on this.client (this.getUserStreamUrl ()), but that url
-            // embeds the listenKey it is about to mint, so the client the
-            // flight registers on is not the client the next caller looks at:
-            // the cold call elected on .../ws/undefined and every later call
-            // landed on .../ws/<key> with an empty subscriptions map, found
-            // the key still fresh, skipped the fetch and hung on a future
-            // nobody resolves. client.futures is the registry: client.future ()
-            // is the atomic check-and-insert and client.resolve () /
-            // client.reject () settle and remove the entry under the same lock
-            // in every port
+            // https://github.com/ccxt/ccxt/issues/29393: the user-stream url embeds the listenKey being minted,
+            // so the flight must not live on that client or later callers would look at a different one.
+            // client.futures is the registry: client.future () is the atomic check-and-insert and
+            // client.resolve () / client.reject () settle and remove the entry under the same lock in every port
             let mut messageHash: Value = Value::Str("authenticate".to_string());
             let mut client: Value = self.client(&[Value::Str("authenticationFlights".to_string())]);
             if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {

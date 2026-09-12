@@ -289,6 +289,97 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("broker".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("private".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("v1/accounts/{account_id}/tokenization/requests".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/accounts/{account_id}/tokenization/requests:by_client_request_id".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fpsl/analytics/{account_id}/loans".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/ipos".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/ipos/{offering_reference}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/wallets/travel-rule/vasps".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/acats".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/acats/contrabrokers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/acats/{account_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/acats/{account_id}/{acats_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/acats/{account_id}/{acats_id}/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("v1beta1/acats/{account_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("patch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+    m
+}));
     m
 }));
         m.insert("trader".to_string(), Value::Map({
@@ -397,6 +488,41 @@ impl AlpacaCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("v1/locates".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/locates/{locate_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/locates/quotes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/tokenization/requests".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/tokenization/requests/{tokenization_request_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/tokenization/requests:by_client_request_id".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/wallets/travel-rule/vasps".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -422,6 +548,11 @@ impl AlpacaCore {
     m
 }));
         m.insert("v2/wallets/transfers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/locates".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -455,6 +586,11 @@ impl AlpacaCore {
     m
 }));
         m.insert("v2/account/configurations".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -559,6 +695,16 @@ impl AlpacaCore {
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("v1beta1/corporate-actions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/fixed_income/latest/prices".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/fixed_income/latest/quotes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -2441,7 +2587,7 @@ impl AlpacaCore {
                 let mut entry: Value = get_value(&ledger, &i);
                 let mut activityType: Value = self.safe_string_k(entry.clone(), "activity_type", &[]);
                 let mut amount: Value = self.safe_string_k(entry.clone(), "net_amount", &[]);
-                let mut isIncoming: Value = Value::Bool(is_true(&(is_equal(&activityType, &Value::Str("CSD".to_string())))) || is_true(&(is_true(&(is_equal(&activityType, &Value::Str("TRANS".to_string())))) && !is_true(&crate::precise::Precise::stringLt(&amount, &Value::Str("0".to_string()))))));
+                let mut isIncoming: bool = is_true(&(is_equal(&activityType, &Value::Str("CSD".to_string())))) || is_true(&(is_true(&(is_equal(&activityType, &Value::Str("TRANS".to_string())))) && !is_true(&crate::precise::Precise::stringLt(&amount, &Value::Str("0".to_string())))));
                 let mut entryDirection: Value = ternary(is_true(&isIncoming), Value::Str("INCOMING".to_string()), Value::Str("OUTGOING".to_string()));
                 if is_true(&(is_equal(&type_var, &Value::Str("BOTH".to_string())))) || is_true(&(is_equal(&entryDirection, &type_var))) {
                     append_to_array(&mut filtered, entry.clone());
@@ -2612,7 +2758,7 @@ impl AlpacaCore {
         let mut fee: Value = Value::Null;
         if !is_equal(&activityType, &Value::Null) {
             let mut netAmount: Value = self.safe_string_k(transaction.clone(), "net_amount", &[]);
-            let mut isIncoming: Value = Value::Bool(is_true(&(is_equal(&activityType, &Value::Str("CSD".to_string())))) || is_true(&(is_true(&(is_equal(&activityType, &Value::Str("TRANS".to_string())))) && !is_true(&crate::precise::Precise::stringLt(&netAmount, &Value::Str("0".to_string()))))));
+            let mut isIncoming: bool = is_true(&(is_equal(&activityType, &Value::Str("CSD".to_string())))) || is_true(&(is_true(&(is_equal(&activityType, &Value::Str("TRANS".to_string())))) && !is_true(&crate::precise::Precise::stringLt(&netAmount, &Value::Str("0".to_string())))));
             timestamp = self.parse8601(add(&self.safe_string_k(transaction.clone(), "date", &[]), &Value::Str("T00:00:00Z".to_string())));
             datetime = self.iso8601(timestamp.clone());
             type_var = ternary(is_true(&isIncoming), Value::Str("deposit".to_string()), Value::Str("withdrawal".to_string()));

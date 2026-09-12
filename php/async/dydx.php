@@ -201,6 +201,14 @@ class dydx extends Exchange {
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/orders' => array( 'cost' => 1 ),
                         'fills/parentSubaccount' => array( 'cost' => 1 ),
                         'historical-pnl/parentSubaccount' => array( 'cost' => 1 ),
+                        'pnl' => array( 'cost' => 1 ),
+                        'pnl/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'tradeHistory' => array( 'cost' => 1 ),
+                        'tradeHistory/parentSubaccountNumber' => array( 'cost' => 1 ),
+                    ),
+                    'post' => array(
+                        'turnkey/signin' => array( 'cost' => 1 ),
+                        'turnkey/uploadAddress' => array( 'cost' => 1 ),
                     ),
                 ),
                 'nodeRpc' => array(
@@ -515,7 +523,7 @@ class dydx extends Exchange {
         }
         $parts = explode('-', $marketId);
         $baseName = $this->safe_string($parts, 0);
-        $baseId = $this->safe_string($market, 'baseId', $baseName); // idk where 'baseId' comes from, but leaving
+        $baseId = $this->safe_string($market, 'baseId', $baseName); // idk where 'baseId' comes from, but leaving as is
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $settleId = 'USDC';
@@ -761,7 +769,7 @@ class dydx extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2370,7 +2378,7 @@ class dydx extends Exchange {
         return $this->parse_transactions($rows, $currency, $since, $limit);
     }
 
-    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions_helper(...))($code, $since, $limit, $params);
     }
 
