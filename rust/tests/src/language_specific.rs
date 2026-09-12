@@ -9,6 +9,9 @@
 //                          subclass exchanges inherit that typed surface
 //                          (mirror + superset of `go/tests/base/test.types.rest.go`).
 //
+//   * `test_ws_initialization` — the live-test snapshot preserves WS defaults
+//                          and configured options across loadMarkets.
+//
 //   * `test_throttler_performance` — the rate limiter actually spaces requests
 //                          at the venue's declared rateLimit (mirror of
 //                          `go/tests/base/test.throttlerPerformance.go`). It
@@ -141,6 +144,80 @@ pub async fn test_throttler_performance() -> Result<(), String> {
 
 
 pub async fn run_async() -> Result<(), String> {
+    test_ws_initialization().await?;
     test_throttler_performance().await?;
+    Ok(())
+}
+
+/// Exercise the same snapshot -> Core write-through used by live loadMarkets,
+/// with preloaded markets so this regression test needs no network.
+pub async fn test_ws_initialization() -> Result<(), String> {
+    use ccxt::value::{get_value, set_value};
+    use crate::{assert_eq_msg, assert_true};
+
+    let at = |value: &Value, keys: &[&str]| {
+        keys.iter().fold(value.clone(), |v, key| get_value(&v, &Value::str(*key)))
+    };
+    // Granular builds may omit either venue; full base-test CI includes both.
+    let mut ws_ids = Vec::new();
+    macro_rules! ws_id { ($name:ident, $core:ident) => { ws_ids.push(stringify!($name)); }; }
+    crate::registry::for_each_ws_core!(ws_id);
+    for (id, timeframe_path, expected, options) in [
+        ("bingx", &["spot", "timeframes"][..], "1min",
+            serde_json::json!({"spot": {"timeframes": {"1h": "custom"}}})),
+        ("bitget", &["timeframes"][..], "1m",
+            serde_json::json!({"timeframes": {"1h": "custom"}})),
+    ] {
+        if !ws_ids.contains(&id) {
+            continue;
+        }
+        let market_id = if id == "bingx" { "BTC-USDT" } else { "BTCUSDT" };
+        for ws in [false, true] {
+            let cfg = Value::from_json(&serde_json::json!({
+                "markets": {"BTC/USDT": {
+                    "id": market_id, "symbol": "BTC/USDT",
+                    "base": "BTC", "quote": "USDT", "type": "spot", "spot": true
+                }},
+                "options": options,
+            }));
+            let mut exchange = crate::test_helpers::initExchange(
+                Value::str(id), &[cfg, Value::Bool(ws)],
+            );
+            let expected_default = if ws { Value::str(expected) } else { Value::Null };
+            let snapshot_options = get_value(&exchange, &Value::str("options"));
+            assert_eq_msg!(
+                get_value(&at(&snapshot_options, timeframe_path), &Value::str("1m")),
+                expected_default, format!("{id} ws={ws}: initial snapshot timeframe")
+            );
+
+            let markets = crate::live_dispatch::dispatch(
+                &mut exchange, "load_markets", vec![Value::Bool(false)],
+            ).await;
+            assert_true!(
+                matches!(get_value(&markets, &Value::str("BTC/USDT")), Value::Dict(_)),
+                "loadMarkets should return the preloaded market"
+            );
+            // dispatch syncs the Core's actual options back onto the snapshot.
+            let core_options = get_value(&exchange, &Value::str("options"));
+            let timeframes = at(&core_options, timeframe_path);
+            assert_eq_msg!(get_value(&timeframes, &Value::str("1m")), expected_default,
+                format!("{id} ws={ws}: loadMarkets must preserve the default timeframe"));
+            assert_eq_msg!(get_value(&timeframes, &Value::str("1h")), Value::str("custom"),
+                format!("{id} ws={ws}: loadMarkets must preserve the configured timeframe"));
+
+            if !ws {
+                // REST fixtures replace their options between cases. A blanket
+                // merge in dispatch would retain the previous case's override.
+                set_value(&mut exchange, &Value::str("options"),
+                    Value::from_json(&serde_json::json!({})));
+                crate::live_dispatch::dispatch(
+                    &mut exchange, "load_markets", vec![Value::Bool(false)],
+                ).await;
+                let reset_options = get_value(&exchange, &Value::str("options"));
+                assert_eq_msg!(get_value(&at(&reset_options, timeframe_path), &Value::str("1h")),
+                    Value::Null, format!("{id}: REST fixture override must not leak"));
+            }
+        }
+    }
     Ok(())
 }
