@@ -1737,10 +1737,29 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 impl<T: crate::exchange_generated::ExchangeBase> ExchangeRuntime for T {}
 
 /// Normalize a TS dynamic method name for the generated Rust dispatch table.
+///
+/// Must stay byte-identical to the transpiler's `toSnakeCase`
+/// (`build/rustTranspiler.ts`) and to `Exchange::to_snake_case` (which names
+/// the implicit-API entries `call_dynamic`'s fall-through looks up) — it is the
+/// only thing deciding whether a paginated `this[method](...)` re-entry lands
+/// on a dispatch arm. `method_name_snake_case_tests` pins all three.
+///
+/// A name that is not a `Value::Str` (or is empty) is a hard bug: TS
+/// `this[name](...)` always indexes with a string. Returning `""` here would
+/// resolve to no dispatch arm and no implicit endpoint, so `call_dynamic`
+/// would hand back `Value::Null` and the caller would silently see an empty
+/// page instead of an error — exactly the failure this PR set out to remove.
+/// Panic instead, mirroring the TS `TypeError: this[method] is not a function`
+/// (the transpiled try/catch turns it back into a catchable error).
 pub fn method_name_to_snake_case(name: &Value) -> String {
     let name = match name {
-        Value::Str(name) => name,
-        _ => return String::new(),
+        Value::Str(name) if !name.is_empty() => name,
+        _ => panic!(
+            "{}",
+            crate::exchange_errors::not_supported(format!(
+                "dynamic method dispatch requires a non-empty string method name, got {name:?}"
+            )),
+        ),
     };
     let chars: Vec<char> = name.chars().collect();
     let mut out = String::with_capacity(name.len() + 4);
@@ -2293,6 +2312,80 @@ pub(crate) fn url_pct(s: &str) -> String {
         b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => (b as char).to_string(),
         _ => format!("%{b:02X}"),
     }).collect()
+}
+
+/// Pins `method_name_to_snake_case` — the transform that decides whether a
+/// paginated `this[method](...)` re-entry lands on a `call_dynamic` arm — against
+/// the two implementations it must agree with: the transpiler's `toSnakeCase`
+/// (`build/rustTranspiler.ts`, which names the arms) and `Exchange::to_snake_case`
+/// (which names the implicit-API entries the `_` arm falls through to).
+/// Requested in review on #30385.
+#[cfg(test)]
+mod method_name_snake_case_tests {
+    use super::{method_name_to_snake_case, Exchange};
+    use crate::Value;
+
+    fn snake(name: &str) -> String {
+        method_name_to_snake_case(&Value::Str(name.to_string()))
+    }
+
+    // The four names the review called out, plus the digit/acronym shapes that
+    // are the only places the three transforms could plausibly diverge.
+    #[test]
+    fn matches_the_transpiler_dispatch_arm_names() {
+        // unified methods re-entered by fetchPaginatedCall* — these must hit an arm
+        assert_eq!(snake("fetchTransfers"), "fetch_transfers");
+        assert_eq!(snake("fetchOHLCV"), "fetch_ohlcv");                 // trailing acronym
+        assert_eq!(snake("fetchOpenOrdersWs"), "fetch_open_orders_ws");
+        assert_eq!(snake("fetchL2OrderBook"), "fetch_l2_order_book");   // letter+digit token
+        assert_eq!(snake("getLeverageTiersPaginated"), "get_leverage_tiers_paginated");
+        // implicit endpoints re-entered by fetchWebEndpoint — these must hit the
+        // `_` arm's implicit_api lookup, which is keyed by to_snake_case
+        assert_eq!(snake("publicGetTicker24hr"), "public_get_ticker24hr"); // NO `_` before a digit
+        assert_eq!(snake("webExchangeGetV3Assets"), "web_exchange_get_v3_assets");
+        assert_eq!(snake("webApiGetAjaxCoinCoinInfo"), "web_api_get_ajax_coin_coin_info");
+        // acronym runs: `[A-Z]+[A-Z][a-z]` splits before the last capital only
+        assert_eq!(snake("parseHTTPResponse"), "parse_http_response");
+        assert_eq!(snake("fetchOHLCVWs"), "fetch_ohlcv_ws");
+        // already-snake and single-token names are pass-through
+        assert_eq!(snake("fetch"), "fetch");
+        assert_eq!(snake("fetch_transfers"), "fetch_transfers");
+    }
+
+    // `method_name_to_snake_case` and `Exchange::to_snake_case` must produce the
+    // SAME key, or a dynamic name would snake to something the implicit-api map
+    // does not hold. Differential over the shapes above; the full 11k-name sweep
+    // over every ts/src method + abstract endpoint also reports zero divergence.
+    #[test]
+    fn agrees_with_exchange_to_snake_case() {
+        for name in [
+            "fetchTransfers", "fetchOHLCV", "fetchOpenOrdersWs", "publicGetTicker24hr",
+            "fetchL2OrderBook", "webExchangeGetV3Assets", "webApiGetAjaxCoinCoinInfo",
+            "parseHTTPResponse", "fetchOHLCVWs", "privatePostSPEIWithdrawal",
+            "sapiV3GetAsset", "fapiPublicGetTicker24hr", "publicGet10PublicTickers",
+            "fetch", "fetchPositionsRisk", "createOrderWs", "fetchMyLiquidations",
+        ] {
+            assert_eq!(
+                snake(name),
+                Exchange::to_snake_case(name),
+                "method_name_to_snake_case and Exchange::to_snake_case diverge on {name}",
+            );
+        }
+    }
+
+    // A non-string / empty dynamic name used to snake to "" and then resolve to
+    // Value::Null — a silent empty page. It must be loud instead.
+    #[test]
+    #[should_panic(expected = "NotSupported")]
+    fn non_string_method_name_is_loud() {
+        let _ = method_name_to_snake_case(&Value::Int(7));
+    }
+
+    #[test]
+    #[should_panic(expected = "NotSupported")]
+    fn empty_method_name_is_loud() {
+        let _ = method_name_to_snake_case(&Value::Str(String::new()));
+    }
 }
 
 #[cfg(test)]
