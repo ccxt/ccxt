@@ -2281,7 +2281,7 @@ public class TestMain extends BaseTest
                     {
                         Object headerKey = Helpers.GetValue(storedHeaderKeys, i);
                         Object storedHeaderValue = Helpers.GetValue(storedHeaders, headerKey);
-                        Object sentHeaderValue = exchange.safeString(sentHeaders, headerKey);
+                        String sentHeaderValue = exchange.safeString(sentHeaders, headerKey);
                         this.AssertStaticError(Helpers.isEqual(sentHeaderValue, storedHeaderValue), Helpers.add("header mismatch for ", headerKey), storedHeaderValue, sentHeaderValue);
                     }
                 }

@@ -4845,7 +4845,7 @@ final Object finalNetworkId = networkId;
             // corrupted header name in php only - every other language stays green, so the
             // regression would ship silently. pinned by the fixture in
             // ts/src/test/static/request/prediction/myriad.json
-            Object headerKey = Helpers.add("x-api", "-key");
+            String headerKey = Helpers.add("x-api", "-key");
             java.util.Map<String, Object> headersKey = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(headersKey, headerKey, this.apiKey);
             headers = this.extend(headers, headersKey);

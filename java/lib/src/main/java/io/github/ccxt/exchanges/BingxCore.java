@@ -5020,7 +5020,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelOrders() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelOrders() is not supported for inverse swap markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -7306,7 +7306,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " editOrder() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " editOrder() is not supported for inverse swap markets")) ;
             }
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Helpers.addElementToObject(request, "cancelOrderId", id);
