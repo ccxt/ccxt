@@ -510,7 +510,7 @@ public class HyperliquidCore extends HyperliquidApi
         String id = this.safeString(rawCurrency, "index");
         String name = this.safeString(rawCurrency, "name");
         String code = (String) this.safeCurrencyCode(name);
-        Helpers.addElementToObject(Helpers.GetValue(this.options, "cachedCurrenciesById"), ((String)id), name);
+        Helpers.addElementToObject(Helpers.GetValue(this.options, "cachedCurrenciesById"), id, name);
         final Object finalName = name;
         final Object finalCode = code;
         java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -720,7 +720,7 @@ public class HyperliquidCore extends HyperliquidApi
                         // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                         String safeCode = (String) this.safeCurrencyCode(name);
                         Object hip3Code = ((Helpers.isTrue((Helpers.isEqual(safeCode, null))))) ? name : Helpers.replace((String)safeCode, (String)":", (String)"-");
-                        Helpers.addElementToObject(Helpers.GetValue(this.options, "hip3TokensByName"), ((String)name), new java.util.HashMap<String, Object>() {{
+                        Helpers.addElementToObject(Helpers.GetValue(this.options, "hip3TokensByName"), name, new java.util.HashMap<String, Object>() {{
         put( "quote", collateralTokenCode );
         put( "code", hip3Code );
     }});
@@ -1447,7 +1447,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Object info = Helpers.GetValue(market, "info");
                 Object ticker = this.parseTicker(info, market);
                 String symbol = this.safeString(ticker, "symbol");
-                Helpers.addElementToObject(result, ((String)symbol), ticker);
+                Helpers.addElementToObject(result, symbol, ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         });

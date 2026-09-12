@@ -18,7 +18,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaMapChannelStringCasts } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
 ansi.nice
@@ -863,6 +863,13 @@ class NewTranspiler {
         // method returns those locals rely on, and the conditional-arm restorations —
         // same module, additive section (also applied per worker thread in java-worker.ts)
         installJavaNumericLocalTypes(this.transpiler);
+        // SS-09: the map put/get channel (Helpers.addElementToObject / Helpers.GetValue /
+        // put(...) object-literal emits) takes String operands with no cast — drop the
+        // redundant ((String)x) checkcast an `x as string` assertion prints at those
+        // positions when the operand's declaration printed `String`. Installed LAST so the
+        // print-order proof sees every other local-typing pass's rewritten declaration text
+        // (also applied per worker thread in java-worker.ts)
+        patchJavaMapChannelStringCasts(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a

@@ -3736,7 +3736,7 @@ public class BitrueCore extends BitrueApi
             url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type);
         } else
         {
-            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), ((String)type)), "/"), version);
+            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type), "/"), version);
         }
         url = Helpers.add(Helpers.add(url, "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));

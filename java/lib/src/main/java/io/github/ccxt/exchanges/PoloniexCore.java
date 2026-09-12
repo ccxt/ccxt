@@ -3697,7 +3697,7 @@ public class PoloniexCore extends PoloniexApi
                 Object entry = Helpers.GetValue(entries, i);
                 Object currencies = Helpers.objectKeys(entry);
                 String currencyId = this.safeString(currencies, 0);
-                Helpers.addElementToObject(data, ((String)currencyId), Helpers.GetValue(entry, ((String)currencyId)));
+                Helpers.addElementToObject(data, currencyId, Helpers.GetValue(entry, currencyId));
             }
             return this.parseDepositWithdrawFees(data, codes);
         });
@@ -3780,7 +3780,7 @@ public class PoloniexCore extends PoloniexApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object depositWithdrawFee = this.depositWithdrawFee(new java.util.HashMap<String, Object>() {{}});
         String currencyCode = this.safeString(currency, "code");
-        Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "info"), ((String)currencyCode), fee);
+        Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "info"), currencyCode, fee);
         String networkId = this.safeString(fee, "blockchain");
         Double withdrawFee = this.safeNumber(fee, "withdrawalFee");
         final Object finalWithdrawFee = withdrawFee;

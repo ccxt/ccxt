@@ -2218,7 +2218,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
         {
             Object symbol = this.safeString(subscription, "symbol");
-            Helpers.addElementToObject(this.orderbooks, ((String)symbol), this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         } else
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)

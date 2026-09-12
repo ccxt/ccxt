@@ -6887,7 +6887,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             String code = this.safeString(currency, "code");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))
             {
-                Helpers.addElementToObject(withdrawFees, ((String)code), this.parseTransactionFee(entry, currency));
+                Helpers.addElementToObject(withdrawFees, code, this.parseTransactionFee(entry, currency));
             }
         }
         return new java.util.HashMap<String, Object>() {{
@@ -6934,7 +6934,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             String networkId = this.safeString(networkEntry, "network");
             String networkCode = this.safeString(Helpers.GetValue(this.options, "networks"), networkId, networkId);
             Double fee = this.safeNumber(networkEntry, "withdrawFee");
-            Helpers.addElementToObject(result, ((String)networkCode), fee);
+            Helpers.addElementToObject(result, networkCode, fee);
         }
         return result;
     }
@@ -7339,10 +7339,10 @@ final Object finalRiskIncrVol = riskIncrVol;
         {
             if (Helpers.isTrue(Helpers.isEqual(section, "broker")))
             {
-                url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), ((String)access)), "/"), path);
+                url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), access), "/"), path);
             } else
             {
-                url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), ((String)access)), "/api/"), this.version), "/"), path);
+                url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), access), "/api/"), this.version), "/"), path);
             }
             Object urlParams = parameters;
             if (Helpers.isTrue(Helpers.isEqual(access, "private")))
@@ -7383,7 +7383,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(section, "contract")) || Helpers.isTrue(Helpers.isEqual(section, "spot2"))))
         {
-            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), ((String)access)), "/"), this.implodeParams(path, parameters));
+            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), access), "/"), this.implodeParams(path, parameters));
             parameters = this.omit(parameters, this.extractParams(path));
             if (Helpers.isTrue(Helpers.isEqual(access, "public")))
             {

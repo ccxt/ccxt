@@ -1150,9 +1150,9 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
+            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
         }
-        Object ohlcv = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
+        Object ohlcv = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         Object parsed = this.parseOHLCV(data);
         Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
         String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("candles:", timeframe), ":"), symbol);
@@ -1378,13 +1378,13 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         }
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.balance, account), null)))
         {
-            Helpers.addElementToObject(this.balance, ((String)account), new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(this.balance, account, new java.util.HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, ((String)account)), "info", info);
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, ((String)account)), "timestamp", timestamp);
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, ((String)account)), "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(this.balance, ((String)account), this.safeBalance(Helpers.GetValue(this.balance, ((String)account))));
-        client.resolve(Helpers.GetValue(this.balance, ((String)account)), messageHash);
+        Helpers.addElementToObject(Helpers.GetValue(this.balance, account), "info", info);
+        Helpers.addElementToObject(Helpers.GetValue(this.balance, account), "timestamp", timestamp);
+        Helpers.addElementToObject(Helpers.GetValue(this.balance, account), "datetime", this.iso8601(timestamp));
+        Helpers.addElementToObject(this.balance, account, this.safeBalance(Helpers.GetValue(this.balance, account)));
+        client.resolve(Helpers.GetValue(this.balance, account), messageHash);
     }
 
     public void parseWsBalance(Object balance, Object... optionalArgs)
@@ -1768,7 +1768,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             Object order = this.parseOrder(rawOrder);
             Helpers.callDynamically(stored, "append", new Object[]{order});
             Object symbol = this.safeString(order, "symbol");
-            Helpers.addElementToObject(marketSymbols, ((String)symbol), true);
+            Helpers.addElementToObject(marketSymbols, symbol, true);
         }
         Object keys = Helpers.objectKeys(marketSymbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)

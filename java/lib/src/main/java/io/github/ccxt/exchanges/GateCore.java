@@ -3293,7 +3293,7 @@ public class GateCore extends GateApi
                 String address = this.safeString(entry, "address");
                 String tag = this.safeString(entry, "payment_id");
                 final Object finalCode = code;
-                Helpers.addElementToObject(result, ((String)network), new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(result, network, new java.util.HashMap<String, Object>() {{
         put( "info", entry );
         put( "code", finalCode );
         put( "currency", finalCode );
@@ -3389,8 +3389,8 @@ public class GateCore extends GateApi
         String code = this.safeString(currency, "code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", ((String)code) );
-            put( "address", ((String)address) );
+            put( "currency", code );
+            put( "address", address );
             put( "tag", GateCore.this.safeString(depositAddress, "payment_id") );
             put( "network", GateCore.this.networkIdToCode(GateCore.this.safeString(depositAddress, "chain"), code) );
         }};
