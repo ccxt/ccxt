@@ -1441,12 +1441,13 @@ export class BaseExchange {
             else if ((httpProxyAgent !== undefined) && (httpProxyAgent !== null)) {
                 finalAgent = httpProxyAgent;
             }
-            //
+            const wsThrottler = new Throttler(this.tokenBucket);
             const options = this.deepExtend(this.streaming, {
                 'log': (this.log !== undefined) ? this.log.bind(this) : this.log,
                 'ping': (this.ping !== undefined) ? this.ping.bind(this) : this.ping,
+                'throttle': wsThrottler.throttle.bind(wsThrottler),
                 'verbose': this.verbose,
-                'throttler': new Throttler(this.tokenBucket),
+                'throttler': wsThrottler,
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
