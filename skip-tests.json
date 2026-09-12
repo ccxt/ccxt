@@ -225,7 +225,7 @@
                 "timestamp": "same"
             },
             "watchTickers": {
-                "compareQuoteVolumeBaseVolume": "https://github.com/ccxt/ccxt/actions/runs/32295515130/job/96206607580?pr=29952#step:11:295"
+                "compareQuoteVolumeBaseVolume": "coin-m ids (BTCUSD_PERP, ETHUSD_PERP, XRPUSD_260925, ...) leak into the usdm !miniTicker@arr stream; binanceusdm loads only linear markets, so they resolve to no loaded market and the inverse-contract exemption (safeBool(market,'inverse')) cannot fire, https://github.com/ccxt/ccxt/actions/runs/32295515130/job/96206607580?pr=29952#step:11:295"
             }
         }
     },
