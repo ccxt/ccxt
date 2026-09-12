@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable max-classes-per-file */
 import fs from 'fs';
-import path from 'node:path';
+import nodePath from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import ccxt, { Exchange } from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
@@ -9,7 +9,7 @@ import { unCamelCase } from '../base/functions/string.js';
 import { Dict } from '../base/types.js';
 
 // js specific codes //
-const DIR_NAME = path.dirname (fileURLToPath (import.meta.url)) + path.sep;
+const DIR_NAME = nodePath.dirname (fileURLToPath (import.meta.url)) + nodePath.sep;
 process.on ('uncaughtException', (e) => {
     throw new Error ('[TEST_FAILURE] ' + exceptionMessage (e));
     // process.exit (1);
@@ -58,7 +58,7 @@ function getCliArgValue (arg: string) {
 const fileParts = import.meta.url.split ('.');
 const EXT = fileParts[fileParts.length - 1];
 const LANG = 'JS';
-const ROOT_DIR = path.resolve (DIR_NAME, '..', '..', '..') + path.sep;
+const ROOT_DIR = nodePath.resolve (DIR_NAME, '..', '..', '..') + nodePath.sep;
 const ENV_VARS = process.env;
 const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;
