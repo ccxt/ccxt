@@ -10,6 +10,7 @@ public final class Balance {
     public Double used;
     public Double total;
     public Double debt;
+    public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
     public Balance(Object raw) {
@@ -18,5 +19,6 @@ public final class Balance {
         this.used = TypeHelper.safeFloat(data, "used");
         this.total = TypeHelper.safeFloat(data, "total");
         this.debt = TypeHelper.safeFloat(data, "debt");
+        this.info = TypeHelper.getInfo(data);
     }
 }
