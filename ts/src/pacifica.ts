@@ -3244,11 +3244,11 @@ export default class pacifica extends Exchange {
         const operationType = 'transfer_funds';
         const sigPayload = {
             'to_account': toAccount,
-            'amount': amount,
+            'amount': this.numberToString (amount),
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
         params = this.omit (params, [ 'expiryWindow' ]);
-        const response = this.privatePostAccountSubaccountTransfer (this.extend (request, params));
+        const response = await this.privatePostAccountSubaccountTransfer (this.extend (request, params));
         //
         // {
         //   "success": true,
