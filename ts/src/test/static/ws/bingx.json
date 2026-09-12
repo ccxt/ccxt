@@ -3,6 +3,398 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchBalance": [
+            {
+                "description": "spot balance without frozen amount without REST snapshot",
+                "input": [
+                    {
+                        "type": "spot",
+                        "fetchBalanceSnapshot": false,
+                        "awaitBalanceSnapshot": false
+                    }
+                ],
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
+                "messages": [
+                    {
+                        "e": "ACCOUNT_UPDATE",
+                        "E": 1721356200000,
+                        "a": {
+                            "B": [
+                                {
+                                    "a": "USDT",
+                                    "wb": "60",
+                                    "cw": "60",
+                                    "bc": "10"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "a": "USDT",
+                            "wb": "60",
+                            "cw": "60",
+                            "bc": "10"
+                        }
+                    ],
+                    "timestamp": 1721356200000,
+                    "datetime": "2024-07-19T02:30:00.000Z",
+                    "USDT": {
+                        "info": {
+                            "a": "USDT",
+                            "wb": "60",
+                            "cw": "60",
+                            "bc": "10"
+                        },
+                        "free": null,
+                        "used": null,
+                        "total": 60
+                    },
+                    "free": {
+                        "USDT": null
+                    },
+                    "used": {
+                        "USDT": null
+                    },
+                    "total": {
+                        "USDT": 60
+                    }
+                }
+            },
+            {
+                "description": "spot balance with zero frozen amount without REST snapshot",
+                "input": [
+                    {
+                        "type": "spot",
+                        "fetchBalanceSnapshot": false,
+                        "awaitBalanceSnapshot": false
+                    }
+                ],
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
+                "messages": [
+                    {
+                        "e": "ACCOUNT_UPDATE",
+                        "E": 1721356200000,
+                        "a": {
+                            "B": [
+                                {
+                                    "a": "USDT",
+                                    "wb": "60",
+                                    "cw": "60",
+                                    "bc": "10",
+                                    "lk": "0"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "a": "USDT",
+                            "wb": "60",
+                            "cw": "60",
+                            "bc": "10",
+                            "lk": "0"
+                        }
+                    ],
+                    "timestamp": 1721356200000,
+                    "datetime": "2024-07-19T02:30:00.000Z",
+                    "USDT": {
+                        "info": {
+                            "a": "USDT",
+                            "wb": "60",
+                            "cw": "60",
+                            "bc": "10",
+                            "lk": "0"
+                        },
+                        "free": 60,
+                        "used": 0,
+                        "total": 60
+                    },
+                    "free": {
+                        "USDT": 60
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 60
+                    }
+                }
+            },
+            {
+                "description": "spot balance with frozen amount without REST snapshot",
+                "input": [
+                    {
+                        "type": "spot",
+                        "fetchBalanceSnapshot": false,
+                        "awaitBalanceSnapshot": false
+                    }
+                ],
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
+                "messages": [
+                    {
+                        "e": "ACCOUNT_UPDATE",
+                        "E": 1721356200000,
+                        "a": {
+                            "B": [
+                                {
+                                    "a": "USDT",
+                                    "wb": "60",
+                                    "cw": "60",
+                                    "bc": "10",
+                                    "lk": "5"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "a": "USDT",
+                            "wb": "60",
+                            "cw": "60",
+                            "bc": "10",
+                            "lk": "5"
+                        }
+                    ],
+                    "timestamp": 1721356200000,
+                    "datetime": "2024-07-19T02:30:00.000Z",
+                    "USDT": {
+                        "info": {
+                            "a": "USDT",
+                            "wb": "60",
+                            "cw": "60",
+                            "bc": "10",
+                            "lk": "5"
+                        },
+                        "free": 55,
+                        "used": 5,
+                        "total": 60
+                    },
+                    "free": {
+                        "USDT": 55
+                    },
+                    "used": {
+                        "USDT": 5
+                    },
+                    "total": {
+                        "USDT": 60
+                    }
+                }
+            },
+            {
+                "description": "swap balance without frozen amount without REST snapshot",
+                "input": [
+                    {
+                        "type": "swap",
+                        "fetchBalanceSnapshot": false,
+                        "awaitBalanceSnapshot": false
+                    }
+                ],
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "messages": [
+                    {
+                        "e": "ACCOUNT_UPDATE",
+                        "E": 1721356200000,
+                        "a": {
+                            "B": [
+                                {
+                                    "a": "USDT",
+                                    "wb": "60",
+                                    "cw": "60",
+                                    "bc": "10"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "a": "USDT",
+                            "wb": "60",
+                            "cw": "60",
+                            "bc": "10"
+                        }
+                    ],
+                    "timestamp": 1721356200000,
+                    "datetime": "2024-07-19T02:30:00.000Z",
+                    "USDT": {
+                        "info": {
+                            "a": "USDT",
+                            "wb": "60",
+                            "cw": "60",
+                            "bc": "10"
+                        },
+                        "free": null,
+                        "used": null,
+                        "total": 60
+                    },
+                    "free": {
+                        "USDT": null
+                    },
+                    "used": {
+                        "USDT": null
+                    },
+                    "total": {
+                        "USDT": 60
+                    }
+                }
+            },
+            {
+                "description": "swap balance with zero frozen amount without REST snapshot",
+                "input": [
+                    {
+                        "type": "swap",
+                        "fetchBalanceSnapshot": false,
+                        "awaitBalanceSnapshot": false
+                    }
+                ],
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "messages": [
+                    {
+                        "e": "ACCOUNT_UPDATE",
+                        "E": 1721356200000,
+                        "a": {
+                            "B": [
+                                {
+                                    "a": "USDT",
+                                    "wb": "60",
+                                    "cw": "60",
+                                    "bc": "10",
+                                    "lk": "0"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "a": "USDT",
+                            "wb": "60",
+                            "cw": "60",
+                            "bc": "10",
+                            "lk": "0"
+                        }
+                    ],
+                    "timestamp": 1721356200000,
+                    "datetime": "2024-07-19T02:30:00.000Z",
+                    "USDT": {
+                        "info": {
+                            "a": "USDT",
+                            "wb": "60",
+                            "cw": "60",
+                            "bc": "10",
+                            "lk": "0"
+                        },
+                        "free": 60,
+                        "used": 0,
+                        "total": 60
+                    },
+                    "free": {
+                        "USDT": 60
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 60
+                    }
+                }
+            },
+            {
+                "description": "swap balance with frozen amount without REST snapshot",
+                "input": [
+                    {
+                        "type": "swap",
+                        "fetchBalanceSnapshot": false,
+                        "awaitBalanceSnapshot": false
+                    }
+                ],
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "messages": [
+                    {
+                        "e": "ACCOUNT_UPDATE",
+                        "E": 1721356200000,
+                        "a": {
+                            "B": [
+                                {
+                                    "a": "USDT",
+                                    "wb": "60",
+                                    "cw": "60",
+                                    "bc": "10",
+                                    "lk": "5"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "a": "USDT",
+                            "wb": "60",
+                            "cw": "60",
+                            "bc": "10",
+                            "lk": "5"
+                        }
+                    ],
+                    "timestamp": 1721356200000,
+                    "datetime": "2024-07-19T02:30:00.000Z",
+                    "USDT": {
+                        "info": {
+                            "a": "USDT",
+                            "wb": "60",
+                            "cw": "60",
+                            "bc": "10",
+                            "lk": "5"
+                        },
+                        "free": 55,
+                        "used": 5,
+                        "total": 60
+                    },
+                    "free": {
+                        "USDT": 55
+                    },
+                    "used": {
+                        "USDT": 5
+                    },
+                    "total": {
+                        "USDT": 60
+                    }
+                }
+            }
+        ],
         "watchTicker": [
             {
                 "description": "linear swap ticker",
