@@ -3574,6 +3574,11 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaReceiverAccessorTypes (printer, narrowed);
     printer._javaLocalTypesPatched = true;
     patchJavaDataflowTypes (transpiler);
+    // (6) SS-05 parameter typing: symbol/id/code/currency parameter positions -> String
+    // (own table + own printParameterType hook; section at the bottom of this file).
+    // Chained last so it sees no interference from the declaration hooks above it — it
+    // touches only method signatures, never locals.
+    patchJavaParamTypes (transpiler);
     // (6) redundant `(String)` cast removal (SS-04, additive slice): records the FINAL
     // printed type of every single-declarator local and stops the printer from emitting
     // a `(String)` checkcast whose operand is already Java-`String`. Installed LAST so
@@ -6763,4 +6768,271 @@ export function patchJavaRedundantStringCasts (transpiler) {
     }
 
     printer._javaRedundantStringCastsPatched = true;
+}
+
+
+// ===== SS-05: symbol / id / code / currency PARAMETER typing =====
+//
+// The Java printer declares EVERY method parameter `Object` (printParameterType falls back
+// to DEFAULT_PARAMETER_TYPE).  JAVA_STRING_PARAM_POSITIONS below retypes a CLOSED set of
+// (method name -> fixed parameter index) positions to `String`; the hook wraps the
+// printer's printParameterType so every declaration of the name — base Exchange.java,
+// the BaseExchange.java suffix, PredictionExchange.java, every venue core, pro core,
+// prediction core and prediction/REST typed facade — moves together (Java overrides are
+// invariant on parameter types, so this must be all-or-nothing per name).
+//
+// PROOF (run against the full 802-file Java tree: java/lib/src/main/java +
+// java/lib/src/test/java + java/tests/src/main/java + java/examples + java/cli):
+//
+//  * build/ss05-param-census.py — 44,375 call-site argument sites over the 184 names.
+//    A position is admitted only when EVERY argument that can bind it is statically
+//    String-or-null: a String-declared local/parameter, the restricted-string
+//    safeString/safeString2/safeStringN family, a string literal, `null`, a `(String)`
+//    cast, Helpers string-returning statics, or a parameter that itself qualifies
+//    (monotone fixpoint, cycles allowed).  An `(Object) x` argument at a retyped
+//    position in the pro tier is the WRAPPER's own cast (see below), which the wrapper
+//    generator stops emitting for exactly these positions — the census models that and
+//    the two emitters implement it.
+//    Body scan over every admitted declaration: no parameter is used as the LEFT operand
+//    of a `Helpers.add(` call (the single String-overload behaviour trap — add(String,*)
+//    diverges from add(Object,Object) only for a null left + null right; zero sites).
+//  * build/ss05-ts-param-check.mts — every TypeScript declaration of the admitted names
+//    (base, venue .ts, pro, prediction, pro/test) must spell the position `string` / `Str`.
+//    REJECTED for `any` venue params: constructCurrencyObject, convertFromRawCost,
+//    defaultNetworkCodeForCurrency, getDedicatedNetworkId, parseMarginBalanceHelper.
+//    REJECTED for binding reasons: fetchPosition — pro/KucoinCore re-dispatches through
+//    `(this.fetchPosition((Object)(symbol))).join()`; once the parameter is String the
+//    `(Object)` redirect cast cannot be dropped without the typed REST truncation
+//    overload `fetchPosition(String)` stealing the call (and keeping it leaves no
+//    applicable overload), so the name cannot move.
+//  * Dependency closure: the tests-tier watch helpers whose OWN parameter is the argument
+//    of a retyped call site must move with it — testWatchOHLCV / testWatchOrderBook /
+//    testWatchTicker / testWatchTrades position 2 (`symbol: string` in
+//    ts/src/pro/test/Exchange/test.watch*.ts; the java/tests call sites pass that
+//    parameter straight into exchange.watchX(...)).  Every other tests-tier position
+//    stays out of scope: java tests invoke those dynamically with caller-supplied values
+//    and the table only moves what a generated call site proves.
+//  * build/ss05-kept-table.txt / census JSON — per-name call counts, droppable `(Object)`
+//    argument casts and the reject census of the 152 blocked positions (top blockers:
+//    `market` 2,240 call sites — 1,121 Object-declared `Helpers.getArg`/`GetValue` locals
+//    + 948 dependents; `safeCurrencyCode` 944 — 192 Object locals like
+//    `Object settleId = null;`; `fetchOHLCV` 676 — 5 dependents + 1 test local;
+//    `createOrder` 557 — 68 dependents; `safeSymbol`/`currency`/`priceToPrecision` —
+//    getArg prologue locals and blocked dependency chains).
+//
+// The SAME table is imported by build/generateJavaWrappers.ts: the typed WS wrapper
+// emits `super.watchX((Object) symbol, (Object) timeframe, ...)` casts to force binding to
+// the untyped varargs WS implementation; for a retyped position the cast must be dropped
+// (`super.watchX(symbol, (Object) timeframe, ...)`) or the call would no longer find the
+// String-parameter method at all (and keeping it would silently dispatch to the base
+// no-op override once that method is retyped).  5,776 such argument casts disappear.
+// build/javaTranspiler.ts#redirectToAsyncOnJoin carries the same per-position guard for
+// pro-core `(this.X(...)).join()` redirect sites (no live site today; the guard keeps the
+// no-Object-cast invariant explicit there too).
+export const JAVA_STRING_PARAM_POSITIONS = {
+    'addMargin': [0],
+    'borrowCrossMargin': [0],
+    'borrowIsolatedMargin': [0, 1],
+    'borrowMargin': [0],
+    'calculateFee': [0],
+    'calculateFeeWithRate': [0],
+    'cancelOrderWs': [0],
+    'checkRequiredMarginArgument': [1],
+    'convertCurrencyNetwork': [0],
+    'createAdvancedOrderRequest': [0],
+    'createConvertTrade': [0],
+    'createDepositAddress': [0],
+    'createEditOrderRequest': [0, 1],
+    'createGiftCode': [0],
+    'createLimitBuyOrder': [0],
+    'createLimitBuyOrderWs': [0],
+    'createLimitOrder': [0],
+    'createLimitOrderWs': [0],
+    'createLimitSellOrder': [0],
+    'createLimitSellOrderWs': [0],
+    'createMarketBuyOrder': [0],
+    'createMarketBuyOrderWithCost': [0],
+    'createMarketBuyOrderWs': [0],
+    'createMarketOrder': [0],
+    'createMarketOrderWithCost': [0],
+    'createMarketOrderWithCostWs': [0],
+    'createMarketOrderWs': [0],
+    'createMarketSellOrder': [0],
+    'createMarketSellOrderWithCost': [0],
+    'createMarketSellOrderWs': [0],
+    'createOrderWithTakeProfitAndStopLoss': [0],
+    'createOrderWithTakeProfitAndStopLossWs': [0],
+    'createOrderWs': [0],
+    'createPostOnlyOrder': [0],
+    'createPostOnlyOrderWs': [0],
+    'createReduceOnlyOrder': [0],
+    'createReduceOnlyOrderWs': [0],
+    'createStopLimitOrder': [0],
+    'createStopLimitOrderWs': [0],
+    'createStopLossOrder': [0],
+    'createStopLossOrderWs': [0],
+    'createStopMarketOrder': [0],
+    'createStopMarketOrderWs': [0],
+    'createStopOrder': [0],
+    'createStopOrderWs': [0],
+    'createTakeProfitOrder': [0],
+    'createTakeProfitOrderWs': [0],
+    'createTrailingAmountOrder': [0],
+    'createTrailingAmountOrderWs': [0],
+    'createTrailingPercentOrder': [0],
+    'createTrailingPercentOrderWs': [0],
+    'createTriggerOrder': [0],
+    'createTriggerOrderWs': [0],
+    'createTwapOrder': [0],
+    'deposit': [0, 2],
+    'editContractOrder': [0, 1],
+    'editContractOrderRequest': [0, 1],
+    'editLimitBuyOrder': [0, 1],
+    'editLimitOrder': [0, 1],
+    'editLimitSellOrder': [0, 1],
+    'editOrder': [0, 1],
+    'editOrderWithClientOrderId': [1],
+    'editOrderWs': [0, 1],
+    'editSpotOrder': [0, 1],
+    'editSpotOrderRequest': [0, 1],
+    'feeToPrecision': [0],
+    'fetchADLRank': [0],
+    'fetchBorrowRate': [0],
+    'fetchBorrowRateHistory': [0],
+    'fetchClosedOrder': [0],
+    'fetchContractDepositAddress': [0],
+    'fetchConvertTrade': [0],
+    'fetchCrossBorrowRate': [0],
+    'fetchCurrency': [0],
+    'fetchDeposit': [0],
+    'fetchDepositAddress': [0],
+    'fetchDepositAddressDefault': [0],
+    'fetchDepositAddressSupplement': [0],
+    'fetchDepositMethodId': [0],
+    'fetchDepositWithdrawFee': [0],
+    'fetchDerivativesMarketLeverageTiers': [0],
+    'fetchDerivativesOpenInterestHistory': [0],
+    'fetchEvent': [0],
+    'fetchFundingInterval': [0],
+    'fetchFundingRate': [0],
+    'fetchGreeks': [0],
+    'fetchIndexOHLCV': [0],
+    'fetchIsolatedBorrowRate': [0],
+    'fetchL2OrderBook': [0],
+    'fetchLedgerEntry': [0],
+    'fetchLeverage': [0],
+    'fetchLiquidations': [0],
+    'fetchLongShortRatio': [0],
+    'fetchMarginMode': [0],
+    'fetchMarkOHLCV': [0],
+    'fetchMarkPrice': [0],
+    'fetchMarket': [0],
+    'fetchMarketLeverageTiers': [0],
+    'fetchNetworkDepositAddress': [0],
+    'fetchOHLCVWs': [0],
+    'fetchOpenInterest': [0],
+    'fetchOpenInterestHistory': [0],
+    'fetchOpenOrder': [0],
+    'fetchOption': [0],
+    'fetchOptionChain': [0],
+    'fetchOrderBookWs': [0],
+    'fetchOrderStatus': [0],
+    'fetchOrderTrades': [0],
+    'fetchOrderWs': [0],
+    'fetchPositionADLRank': [0],
+    'fetchPositionHistory': [0],
+    'fetchPositionWs': [0],
+    'fetchPositionsForSymbolWs': [0],
+    'fetchPremiumIndexOHLCV': [0],
+    'fetchPrivateTradingFee': [0],
+    'fetchPublicTradingFee': [0],
+    'fetchSpotOrderTrades': [0],
+    'fetchTicker': [0],
+    'fetchTicker2': [0],
+    'fetchTickerV1': [0],
+    'fetchTickerV1AndV2': [0],
+    'fetchTickerV2': [0],
+    'fetchTickerV3': [0],
+    'fetchTickerWs': [0],
+    'fetchTrades': [0],
+    'fetchTradesWs': [0],
+    'fetchTradingFee': [0],
+    'fetchTransactionFee': [0],
+    'fetchTransfer': [0],
+    'fetchVolatilityHistory': [0],
+    'fetchWithdrawAddresses': [0],
+    'fetchWithdrawal': [0],
+    'fromSandboxMarketId': [0],
+    'futuresTransfer': [0],
+    'handleUnSubscriptionTrades': [1],
+    'handleUnsubscriptionOHLCV': [1],
+    'handleUnsubscriptionOrderBook': [1],
+    'handleUnsubscriptionTicker': [1],
+    'modifyMarginHelper': [0],
+    'orderRequestWs': [1],
+    'parseBalanceForSingleCurrency': [1],
+    'parseBorrowRateHistory': [1],
+    'parseLeverageFromSetting': [0],
+    'parseMarginModeFromSetting': [0],
+    'prepareRequestForDepositAddress': [0],
+    'priceToPredictionPrecision': [0],
+    'reduceMargin': [0],
+    'removeMarketSuffix': [0],
+    'repayCrossMargin': [0],
+    'repayIsolatedMargin': [0, 1],
+    'repayMargin': [0],
+    'seedOrderBook': [0],
+    'setMargin': [0],
+    'setTakeProfitAndStopLossParams': [0],
+    'sortedOrders': [0],
+    'testWatchOHLCV': [2],
+    'testWatchOrderBook': [2],
+    'testWatchTicker': [2],
+    'testWatchTrades': [2],
+    'transfer': [0],
+    'transferBetweenMainAndSubAccount': [0],
+    'transferBetweenSubAccounts': [0],
+    'transferClassic': [0],
+    'transferIn': [0],
+    'transferOut': [0],
+    'transferUta': [0],
+    'unWatchFundingRate': [0],
+    'unWatchMarkPrice': [0],
+    'unWatchOHLCV': [0],
+    'unWatchTicker': [0],
+    'unWatchTrades': [0],
+    'updateSpotCurrencyCode': [0],
+    'verifyGiftCode': [0],
+    'watchFundingRate': [0],
+    'watchLiquidations': [0],
+    'watchMarkPrice': [0],
+    'watchMyLiquidations': [0],
+    'watchOHLCV': [0],
+    'watchOrderBook': [0],
+    'watchTicker': [0],
+    'watchTrades': [0],
+    'withdraw': [0],
+    'withdrawRequest': [0],
+    'withdrawWs': [0],
+};
+
+export function patchJavaParamTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printParameterType !== 'function' || printer._javaParamTypesPatched) {
+        return;
+    }
+    const upstream = printer.printParameterType.bind (printer);
+    printer.printParameterType = function (node) {
+        const parent = node?.parent;
+        if (parent !== undefined
+            && (parent?.kind === ts.SyntaxKind.MethodDeclaration || parent?.kind === ts.SyntaxKind.FunctionDeclaration)) {
+            const name = parent.name?.escapedText;
+            const positions = name === undefined ? undefined : JAVA_STRING_PARAM_POSITIONS[name];
+            if (positions !== undefined && Array.isArray (parent.parameters) && positions.indexOf (parent.parameters.indexOf (node)) !== -1) {
+                return 'String';
+            }
+        }
+        return upstream (node);
+    };
+    printer._javaParamTypesPatched = true;
 }

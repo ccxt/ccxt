@@ -18,7 +18,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, SS15_CENSUS, ss15Record, ss15TsPosition } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, SS15_CENSUS, ss15Record, ss15TsPosition, JAVA_STRING_PARAM_POSITIONS } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
 ansi.nice
@@ -3265,9 +3265,17 @@ class NewTranspiler {
                 const argsRaw = content.substring(argsStart, j - 1);
                 // Zero-arg calls are already unambiguous (typed overloads require
                 // 1+ args); only cast when there are real args.
+                //
+                // SS-05: an argument at a parameter position the transpiler retyped to
+                // `String` (JAVA_STRING_PARAM_POSITIONS) must stay uncast — an `(Object)`
+                // cast would no longer bind the String-parameter method at all, and the
+                // method name is only admitted to that table when dropping the cast
+                // still binds the untyped varargs implementation (no typed truncation
+                // overload can steal it).
+                const retyped = JAVA_STRING_PARAM_POSITIONS[methodName] ?? [];
                 const argsCast = argsRaw.trim().length === 0
                     ? argsRaw
-                    : this.splitTopLevelArgs(argsRaw).map(a => `(Object)(${a.trim()})`).join(', ');
+                    : this.splitTopLevelArgs(argsRaw).map((a, k) => (retyped.includes(k) ? a.trim() : `(Object)(${a.trim()})`)).join(', ');
                 result += content.substring(lastIdx, match.index);
                 result += `(this.${methodName}(${argsCast})).join()`;
                 lastIdx = j + 8;
