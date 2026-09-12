@@ -1101,20 +1101,6 @@ export function patchJavaLocalTypes (transpiler: any): void {
             if (javaType !== 'String') {
                 return printed;
             }
-            // a ws-tier declaration is reverted to Object unless it prints with a
-            // `(String)` prefix (the case family) — the write site must stay Object there
-            const isWsFile = /[\\/](pro|prediction)[\\/]/.test (declaration.getSourceFile ().fileName);
-            if (isWsFile) {
-                let initializer = declaration.initializer;
-                while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
-                    initializer = initializer.expression;
-                }
-                const survivesRevert = isBaseStringAccessorCall (printer, initializer)
-                    && STRING_CASE_ACCESSORS[String (initializer.expression.name.escapedText)] !== undefined;
-                if (!survivesRevert) {
-                    return printed;
-                }
-            }
             const leftText = printer.printNode (node.left, 0);
             const marker = `${leftText} = `;
             const at = printed.lastIndexOf (marker);
@@ -1130,6 +1116,7 @@ export function patchJavaLocalTypes (transpiler: any): void {
             }
             return printed.slice (0, head) + '(String) ' + printed.slice (head);
         }
+        return printed;
     };
     printer._localTypesPatched = true;
 }
