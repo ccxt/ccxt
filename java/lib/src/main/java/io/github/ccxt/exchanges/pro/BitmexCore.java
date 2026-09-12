@@ -380,7 +380,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         {
             Object update = Helpers.GetValue(data, i);
             Object marketId = this.safeString(update, "symbol");
-            String symbol = (String) this.safeSymbol(marketId);
+            Object symbol = this.safeSymbol(marketId);
             if (!Helpers.isTrue((Helpers.inOp(this.tickers, symbol))))
             {
                 Helpers.addElementToObject(this.tickers, symbol, this.parseTicker(new java.util.HashMap<String, Object>() {{}}));

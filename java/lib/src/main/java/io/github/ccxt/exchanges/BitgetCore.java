@@ -3874,8 +3874,8 @@ public class BitgetCore extends BitgetApi
                 String marketId = this.safeString(market, "symbol");
                 String quoteId = this.safeString(market, "quoteCoin");
                 String baseId = this.safeString(market, "baseCoin");
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
                 Object supportMarginCoins = this.safeValue(market, "supportMarginCoins", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 String settleId = null;
                 if (Helpers.isTrue(this.inArray(baseId, supportMarginCoins)))
@@ -3888,7 +3888,7 @@ public class BitgetCore extends BitgetApi
                 {
                     settleId = this.safeString(supportMarginCoins, 0);
                 }
-                String settle = (String) this.safeCurrencyCode(settleId);
+                String settle = this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object type = null;
                 Boolean swap = false;
@@ -4171,8 +4171,8 @@ public class BitgetCore extends BitgetApi
                 String marketId = this.safeString(market, "symbol");
                 String quoteId = this.safeString(market, "quoteCoin");
                 String baseId = this.safeString(market, "baseCoin");
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
                 String settleId = null;
                 Object settle = null;
                 if (Helpers.isTrue(Helpers.isEqual(category, "USDT-FUTURES")))
@@ -4396,7 +4396,7 @@ public class BitgetCore extends BitgetApi
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object entry = rawCurrency;
         String id = this.safeString(entry, "coin"); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object chains = this.safeList(entry, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object withdraw = null;
@@ -5132,7 +5132,7 @@ final Object finalMinNotional = minNotional;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "coin");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = (Long) this.safeInteger2(transaction, "cTime", "createdTime");
         String networkId = this.safeString(transaction, "chain");
         String status = this.safeString(transaction, "status");
@@ -5292,7 +5292,7 @@ final Object finalMinNotional = minNotional;
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(depositAddress, "coin");
         String networkId = this.safeString(depositAddress, "chain");
-        String parsedCurrency = (String) this.safeCurrencyCode(currencyId, currency);
+        String parsedCurrency = this.safeCurrencyCode(currencyId, currency);
         Object network = null;
         if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
         {
@@ -6072,7 +6072,7 @@ final Object finalMinNotional = minNotional;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("cTime", "ts", "createdTime")));
         Object fee = null;
         Object feeDetail = this.safeValue(trade, "feeDetail");
@@ -6082,7 +6082,7 @@ final Object finalMinNotional = minNotional;
         Object feeStructure = ((Helpers.isTrue(isFeeStructure))) ? Helpers.GetValue(feeDetail, 0) : feeDetail;
         if (Helpers.isTrue(!Helpers.isEqual(feeStructure, null)))
         {
-            String currencyCode = (String) this.safeCurrencyCode(this.safeString(feeStructure, "feeCoin"));
+            String currencyCode = this.safeCurrencyCode(this.safeString(feeStructure, "feeCoin"));
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", currencyCode );
             }};
@@ -6486,7 +6486,7 @@ final Object finalMinNotional = minNotional;
             {
                 Object entry = Helpers.GetValue(data, i);
                 String marketId = this.safeString(entry, "symbol");
-                String symbol = (String) this.safeSymbol(marketId, null, null, marketType);
+                String symbol = this.safeSymbol(marketId, null, null, marketType);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object fee = this.parseTradingFee(entry, market);
                 Helpers.addElementToObject(result, symbol, fee);
@@ -6987,7 +6987,7 @@ final Object finalMinNotional = minNotional;
             Object entry = Helpers.GetValue(balance, i);
             Object account = this.account();
             String currencyId = this.safeString(entry, "coin");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Helpers.addElementToObject(account, "debt", this.safeString(entry, "debt"));
             Helpers.addElementToObject(account, "used", this.safeString2(entry, "locked", "frozen"));
             Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
@@ -7057,7 +7057,7 @@ final Object finalMinNotional = minNotional;
             Object entry = Helpers.GetValue(balance, i);
             Object account = this.account();
             String currencyId = this.safeString2(entry, "marginCoin", "coin");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             String borrow = this.safeString(entry, "borrow");
             if (Helpers.isTrue(!Helpers.isEqual(borrow, null)))
             {
@@ -10590,7 +10590,7 @@ final Object finalMinNotional = minNotional;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "coin");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Long timestamp = this.safeInteger(item, "cTime");
         Double after = this.safeNumber(item, "balance");
@@ -11644,7 +11644,7 @@ final Object finalMinNotional = minNotional;
             {
                 Object entry = Helpers.GetValue(result, i);
                 String marketId = this.safeString(entry, "symbol");
-                String symbolInner = (String) this.safeSymbol(marketId, market);
+                String symbolInner = this.safeSymbol(marketId, market);
                 Long timestamp = (Long) this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
@@ -11916,7 +11916,7 @@ final Object finalMinNotional = minNotional;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, null, "swap");
+        String symbol = this.safeSymbol(marketId, market, null, "swap");
         Long fundingTimestamp = (Long) this.safeInteger2(contract, "nextFundingTime", "nextUpdate");
         String interval = this.safeString2(contract, "ratePeriod", "fundingRateInterval");
         Long timestamp = this.safeInteger(contract, "ts");
@@ -13485,7 +13485,7 @@ final Object finalMinNotional = minNotional;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, null, "spot");
+        String symbol = this.safeSymbol(marketId, market, null, "spot");
         String baseId = this.safeString(info, "baseCoin");
         String quoteId = this.safeString(info, "quoteCoin");
         Long timestamp = this.safeInteger(info, "timestamp");
@@ -14315,9 +14315,9 @@ final Object finalMinNotional = minNotional;
         Object toCurrency = Helpers.getArg(optionalArgs, 1, null);
         Long timestamp = this.safeInteger(conversion, "ts");
         String fromCoin = this.safeString(conversion, "fromCoin");
-        String fromCode = (String) this.safeCurrencyCode(fromCoin, fromCurrency);
+        String fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
         String to = this.safeString(conversion, "toCoin");
-        String toCode = (String) this.safeCurrencyCode(to, toCurrency);
+        String toCode = this.safeCurrencyCode(to, toCurrency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
@@ -14372,7 +14372,7 @@ final Object finalMinNotional = minNotional;
             {
                 Object entry = Helpers.GetValue(data, i);
                 String id = this.safeString(entry, "coin");
-                String code = (String) this.safeCurrencyCode(id);
+                String code = this.safeCurrencyCode(id);
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     final Object finalCode = code;

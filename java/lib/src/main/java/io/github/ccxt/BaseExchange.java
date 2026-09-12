@@ -9140,8 +9140,8 @@ public Object describe()
                 {
                     String baseId = this.safeString(parts, 0);
                     String quoteId = this.safeString(parts, 1);
-                    Object base = this.safeCurrencyCode(baseId);
-                    Object quote = this.safeCurrencyCode(quoteId);
+                    String base = this.safeCurrencyCode(baseId);
+                    String quote = this.safeCurrencyCode(quoteId);
                     Helpers.addElementToObject(result, "baseId", baseId);
                     Helpers.addElementToObject(result, "quoteId", quoteId);
                     if (Helpers.isTrue(!Helpers.isEqual(base, null)))
@@ -9215,7 +9215,7 @@ public Object describe()
         return true;
     }
 
-    public Object oath()
+    public String oath()
     {
         if (Helpers.isTrue(!Helpers.isEqual(this.twofa, null)))
         {
@@ -10642,11 +10642,11 @@ public Object describe()
 
     }
 
-    public Object safeCurrencyCode(Object currencyId, Object... optionalArgs)
+    public String safeCurrencyCode(Object currencyId, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         currency = this.safeCurrency(currencyId, currency);
-        return Helpers.GetValue(currency, "code");
+        return (String) Helpers.GetValue(currency, "code");
     }
 
     public java.util.List<Object> filterBySymbolSinceLimit(Object array, Object... optionalArgs)
@@ -10856,13 +10856,13 @@ public Object describe()
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public Object safeSymbol(Object marketId, Object... optionalArgs)
+    public String safeSymbol(Object marketId, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object delimiter = Helpers.getArg(optionalArgs, 1, null);
         Object marketType = Helpers.getArg(optionalArgs, 2, null);
         market = this.safeMarket(marketId, market, delimiter, marketType);
-        return Helpers.GetValue(market, "symbol");
+        return (String) Helpers.GetValue(market, "symbol");
     }
 
     public Object parseFundingRate(Object contract, Object... optionalArgs)
@@ -11334,7 +11334,7 @@ public Object describe()
 
     }
 
-    public Object handleTimeInForce(Object... optionalArgs)
+    public String handleTimeInForce(Object... optionalArgs)
     {
         /**
         * @ignore

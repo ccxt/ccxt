@@ -334,7 +334,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         //        "bid_size": 5 }, ... ],
         //   "stream_type": "SNAPSHOT" }
         Object marketId = this.safeString(message, "code");
-        String symbol = (String) this.safeSymbol(marketId, null, "-");
+        Object symbol = this.safeSymbol(marketId, null, "-");
         Object type = this.safeString(message, "stream_type");
         Object options = this.safeValue(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(options, "limit", 15);
@@ -421,7 +421,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         //     stream_type: 'REALTIME'
         //   }
         Object marketId = this.safeString(message, "code");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         String messageHash = (String) Helpers.add("candle.1s:", symbol);
         Object ohlcv = this.parseOHLCV(message);
         client.resolve(ohlcv, messageHash);
@@ -854,7 +854,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         {
             Object balance = Helpers.GetValue(data, i);
             Object currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object available = this.safeString(balance, "balance");
             Object frozen = this.safeString(balance, "locked");
             Object account = this.account();

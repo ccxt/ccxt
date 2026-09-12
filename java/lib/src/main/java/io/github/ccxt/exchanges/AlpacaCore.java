@@ -756,8 +756,8 @@ public class AlpacaCore extends AlpacaApi
         String assetClass = this.safeString(asset, "class");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         // Us equity markets do not include quote in symbol.
         // We can safely coerce us_equity quote to USD
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(quote, null)) && Helpers.isTrue(Helpers.isEqual(assetClass, "us_equity"))))
@@ -1335,7 +1335,7 @@ public class AlpacaCore extends AlpacaApi
 
     }
 
-    public Object generateClientOrderId(Object parameters)
+    public String generateClientOrderId(Object parameters)
     {
         String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         Object uuid = this.uuid();
@@ -2085,7 +2085,7 @@ public class AlpacaCore extends AlpacaApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(trade, "S", "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String datetime = this.safeString2(trade, "t", "transaction_time");
         Long timestamp = this.parse8601(datetime);
         String alpacaSide = this.safeString(trade, "tks");
@@ -2652,7 +2652,7 @@ public class AlpacaCore extends AlpacaApi
         }};
         Object account = this.account();
         String currencyId = this.safeString(response, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Helpers.addElementToObject(account, "free", this.safeString(response, "cash"));
         Helpers.addElementToObject(account, "total", this.safeString(response, "equity"));
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))

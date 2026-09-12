@@ -1474,7 +1474,7 @@ public class MudrexCore extends MudrexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         market = this.safeMarket(null, market);
         String ms = this.safeString(position, "symbol");
-        String symbol = (String) this.safeSymbol(ms, market);
+        String symbol = this.safeSymbol(ms, market);
         // open positions use "order_type", closed positions (history) use "position_type"
         String rawSide = this.safeStringUpper2(position, "order_type", "position_type");
         String side = null;

@@ -693,7 +693,7 @@ public class BullishCore extends BullishApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         String name = this.safeString(rawCurrency, "name");
         String precision = this.safeString(rawCurrency, "precision");
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -965,8 +965,8 @@ public class BullishCore extends BullishApi
         Object id = ((String)this.safeString(market, "symbol"));
         String baseId = this.safeString(market, "baseSymbol");
         String quoteId = this.safeString(market, "quoteSymbol");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         String basePrecision = this.safeString(market, "basePrecision");
         String quotePrecision = this.safeString(market, "quotePrecision");
@@ -980,7 +980,7 @@ public class BullishCore extends BullishApi
         String minCostLimit = this.safeString(market, "minCostLimit");
         String maxCostLimit = this.safeString(market, "maxCostLimit");
         String settleId = this.safeString(market, "settlementAssetSymbol");
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         String type = this.parseMarketType(this.safeString(market, "marketType"), "spot");
         Boolean spot = false;
         Boolean swap = false;
@@ -1411,7 +1411,7 @@ public class BullishCore extends BullishApi
         String side = this.safeStringLower(trade, "side");
         Object isTaker = this.safeBool(trade, "isTaker");
         Object currency = Helpers.GetValue(market, "quote");
-        String code = (String) this.safeCurrencyCode(currency);
+        String code = this.safeCurrencyCode(currency);
         Double feeCost = this.safeNumber(trade, "quoteFee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -2458,7 +2458,7 @@ public class BullishCore extends BullishApi
         {
             market = this.safeMarket(marketId);
         }
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String id = this.safeString(order, "orderId");
         Long timestamp = this.safeInteger(order, "createdAtTimestamp");
         String type = this.safeString(order, "type");
@@ -2713,7 +2713,7 @@ public class BullishCore extends BullishApi
         String address = this.safeString(transactionDetails, "address");
         Double amount = this.safeNumber(transaction, "quantity");
         String currencyId = this.safeString(transaction, "symbol");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transaction, "status");
         Object sources = this.safeList(transactionDetails, "sources", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object source = this.safeDict(sources, 0, new java.util.HashMap<String, Object>() {{}});
@@ -2995,7 +2995,7 @@ public class BullishCore extends BullishApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(depositAddress, "symbol");
         String network = this.safeString(depositAddress, "network");
-        String code = (String) this.safeCurrencyCode(id, currency);
+        String code = this.safeCurrencyCode(id, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
@@ -3080,7 +3080,7 @@ public class BullishCore extends BullishApi
         {
             Object balance = Helpers.GetValue(response, i);
             String symbol = this.safeString(balance, "assetSymbol");
-            String code = (String) this.safeCurrencyCode(symbol);
+            String code = this.safeCurrencyCode(symbol);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "availableQuantity"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "lockedQuantity"));

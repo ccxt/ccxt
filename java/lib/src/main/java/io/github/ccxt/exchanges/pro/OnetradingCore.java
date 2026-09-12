@@ -250,7 +250,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         {
             Object ticker = Helpers.GetValue(tickers, i);
             Object marketId = this.safeString(ticker, "instrument");
-            String symbol = (String) this.safeSymbol(marketId);
+            Object symbol = this.safeSymbol(marketId);
             Helpers.addElementToObject(this.tickers, symbol, this.parseWSTicker(ticker));
             Long timestamp = this.parse8601(datetime);
             Helpers.addElementToObject(Helpers.GetValue(this.tickers, symbol), "timestamp", timestamp);
@@ -434,7 +434,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         //
         Object type = this.safeString(message, "type");
         Object marketId = this.safeString(message, "instrument_code");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         Object dateTime = this.safeString(message, "time");
         Long timestamp = this.parse8601(dateTime);
         Object channel = Helpers.add("book:", symbol);
@@ -704,7 +704,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object datetime = this.safeString(order, "time");
         Object marketId = this.safeString(order, "instrument_code");
-        String symbol = (String) this.safeSymbol(marketId, market, "_");
+        Object symbol = this.safeSymbol(marketId, market, "_");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", OnetradingCore.this.safeString(order, "order_id") );
             put( "clientOrderId", OnetradingCore.this.safeString(order, "client_id") );
@@ -1149,7 +1149,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         //     }
         //
         Object currencyId = this.safeString(balance, "currency_code");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        Object code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(balance, "new_available"));
         Helpers.addElementToObject(account, "used", this.safeString(balance, "new_locked"));
@@ -1300,7 +1300,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         //     }
         //
         Object marketId = this.safeString(message, "instrument_code");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         Object dateTime = this.safeString(message, "time");
         Object timeframeId = this.safeValue(message, "granularity");
         Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});

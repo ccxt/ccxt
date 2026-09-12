@@ -171,7 +171,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         {
             Object entry = Helpers.GetValue(rawTickers, i);
             Object marketId = this.safeString(entry, "market");
-            String symbol = (String) this.safeSymbol(marketId, null, null, defaultType);
+            Object symbol = this.safeSymbol(marketId, null, null, defaultType);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
             Object parsedTicker = this.parseWSTicker(entry, market);
             Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
@@ -438,7 +438,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object accountType = Helpers.getArg(optionalArgs, 0, null);
         Object account = this.account();
         Object currencyId = this.safeString(balance, "ccy");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        Object code = this.safeCurrencyCode(currencyId);
         Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
         Helpers.addElementToObject(account, "used", this.safeString(balance, "frozen"));
         if (Helpers.isTrue(!Helpers.isEqual(accountType, null)))

@@ -584,7 +584,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         String fee = this.safeString(transaction, "fee");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         String currencyId = this.safeString(transaction, "assetName");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         String amount = this.safeString(transaction, "amount");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fee, null))) && Helpers.isTrue((!Helpers.isEqual(fee, "")))))
         {
@@ -662,8 +662,8 @@ public class BtcmarketsCore extends BtcmarketsApi
         String baseId = this.safeString(market, "baseAssetName");
         String quoteId = this.safeString(market, "quoteAssetName");
         String id = this.safeString(market, "marketId");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object fees = this.safeValue(this.safeDict(this.options, "fees", new java.util.HashMap<String, Object>() {{}}), quote, this.fees);
         Object pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
@@ -766,7 +766,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "assetName");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));

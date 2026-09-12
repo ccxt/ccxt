@@ -1250,7 +1250,7 @@ public class CoinexCore extends CoinexApi
         Object asset = this.safeDict(coin, "asset", new java.util.HashMap<String, Object>() {{}});
         String currencyId = this.safeString(asset, "ccy");
         Object chains = this.safeList(coin, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
@@ -1382,8 +1382,8 @@ public class CoinexCore extends CoinexApi
                 String id = this.safeString(market, "market");
                 String baseId = this.safeString(market, "base_ccy");
                 String quoteId = this.safeString(market, "quote_ccy");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -1483,10 +1483,10 @@ public class CoinexCore extends CoinexApi
                 String id = this.safeString(entry, "market");
                 String baseId = this.safeString(entry, "base_ccy");
                 String quoteId = this.safeString(entry, "quote_ccy");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String settleId = ((Helpers.isTrue((Helpers.isEqual(subType, "linear"))))) ? "USDT" : baseId;
-                String settle = (String) this.safeCurrencyCode(settleId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                Object settleId = ((Helpers.isTrue((Helpers.isEqual(subType, "linear"))))) ? "USDT" : baseId;
+                String settle = this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
                 Object leveragesLength = Helpers.getArrayLength(leverages);
     final Object finalBase = base;
@@ -1592,7 +1592,7 @@ public class CoinexCore extends CoinexApi
         Object symbol = Helpers.GetValue(market, "symbol");
         // on inverse contracts 'value' is denominated in the settle currency, not
         // the quote, so it is the quote volume only for spot and linear markets
-        String quoteVolume = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true))))) ? null : this.safeString(ticker, "value");
+        Object quoteVolume = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true))))) ? null : this.safeString(ticker, "value");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -1931,7 +1931,7 @@ public class CoinexCore extends CoinexApi
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             String feeCurrencyId = this.safeString(trade, "fee_ccy");
-            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -2108,7 +2108,7 @@ public class CoinexCore extends CoinexApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeValue(fee, "market");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -2261,7 +2261,7 @@ public class CoinexCore extends CoinexApi
                 Object interest = this.safeDict(entry, "interest", new java.util.HashMap<String, Object>() {{}});
                 Object baseAccount = this.account();
                 String baseCurrencyId = this.safeString(entry, "base_ccy");
-                String baseCurrencyCode = (String) this.safeCurrencyCode(baseCurrencyId);
+                String baseCurrencyCode = this.safeCurrencyCode(baseCurrencyId);
                 Helpers.addElementToObject(baseAccount, "free", this.safeString(free, "base_ccy"));
                 Helpers.addElementToObject(baseAccount, "used", this.safeString(used, "base_ccy"));
                 String baseDebt = this.safeString(loan, "base_ccy");
@@ -2309,7 +2309,7 @@ public class CoinexCore extends CoinexApi
             {
                 Object entry = Helpers.GetValue(balances, i);
                 String currencyId = this.safeString(entry, "ccy");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "frozen"));
@@ -2358,7 +2358,7 @@ public class CoinexCore extends CoinexApi
             {
                 Object entry = Helpers.GetValue(balances, i);
                 String currencyId = this.safeString(entry, "ccy");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "frozen"));
@@ -2404,7 +2404,7 @@ public class CoinexCore extends CoinexApi
             {
                 Object entry = Helpers.GetValue(balances, i);
                 String currencyId = this.safeString(entry, "ccy");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "frozen"));
@@ -2694,7 +2694,7 @@ public class CoinexCore extends CoinexApi
         }
         String marketId = this.safeString(order, "market");
         String defaultType = this.safeString(this.options, "defaultType");
-        String orderType = this.safeStringLower(order, "market_type", defaultType);
+        Object orderType = this.safeStringLower(order, "market_type", defaultType);
         if (Helpers.isTrue(Helpers.isEqual(orderType, "futures")))
         {
             orderType = "swap";
@@ -2809,7 +2809,7 @@ public class CoinexCore extends CoinexApi
         String option = this.safeString(parameters, "option");
         Boolean isMarketOrder = Helpers.isEqual(type, "market");
         Object postOnly = this.isPostOnly(isMarketOrder, Helpers.isEqual(option, "maker_only"), parameters);
-        String timeInForceRaw = this.safeStringUpper(parameters, "timeInForce");
+        String timeInForceRaw = (String)this.safeStringUpper(parameters, "timeInForce");
         Object reduceOnly = this.safeBool(parameters, "reduceOnly");
         if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
@@ -3040,7 +3040,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            String symbol = null;
+            Object symbol = null;
             Object reduceOnly = false;
             Boolean isTriggerOrder = false;
             Boolean isStopLossOrTakeProfitTrigger = false;
@@ -3408,7 +3408,7 @@ public class CoinexCore extends CoinexApi
                 Object entry = Helpers.GetValue(data, i);
                 String code = this.safeString(entry, "code");
                 String message = this.safeString(entry, "message", "");
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(message.toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
                 {
                     Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
                     this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
@@ -4550,7 +4550,7 @@ final Object finalI = i;
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            String status = this.safeStringLower(response, "message");
+            String status = (String)this.safeStringLower(response, "message");
             String type = ((Helpers.isTrue((Helpers.isEqual(addOrReduce, "reduce"))))) ? "reduce" : "add";
             return this.extend(this.parseMarginModification(data, market), new java.util.HashMap<String, Object>() {{
                 put( "type", type );
@@ -4749,7 +4749,7 @@ final Object finalI = i;
                 Object entry = Helpers.GetValue(data, i);
                 Long timestamp = this.safeInteger(entry, "created_at");
                 String currencyId = this.safeString(entry, "ccy");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
     final Object finalSymbol = symbol;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
@@ -5128,7 +5128,7 @@ final Object finalI = i;
             {
                 Object entry = Helpers.GetValue(data, i);
                 String marketId = this.safeString(entry, "market");
-                String symbolInner = (String) this.safeSymbol(marketId, market, null, "swap");
+                String symbolInner = this.safeSymbol(marketId, market, null, "swap");
                 Long timestamp = this.safeInteger(entry, "funding_time");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
@@ -5195,7 +5195,7 @@ final Object finalI = i;
         String tag = this.safeString(transaction, "memo");
         if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(tag.length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(((String)tag).length(), 1)))
             {
                 tag = null;
             }
@@ -5203,7 +5203,7 @@ final Object finalI = i;
         String remark = this.safeString(transaction, "remark");
         if (Helpers.isTrue(!Helpers.isEqual(remark, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(remark.length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(((String)remark).length(), 1)))
             {
                 remark = null;
             }
@@ -5211,18 +5211,18 @@ final Object finalI = i;
         String txid = this.safeString(transaction, "tx_id");
         if (Helpers.isTrue(!Helpers.isEqual(txid, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(txid.length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(((String)txid).length(), 1)))
             {
                 txid = null;
             }
         }
         String currencyId = this.safeString(transaction, "ccy");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(transaction, "created_at");
         String type = ((Helpers.isTrue((Helpers.inOp(transaction, "withdraw_id"))))) ? "withdrawal" : "deposit";
         String networkId = this.safeString(transaction, "chain");
         String feeCost = this.safeString(transaction, "tx_fee");
-        String transferMethod = this.safeStringLower2(transaction, "withdraw_method", "deposit_method");
+        String transferMethod = (String)this.safeStringLower2(transaction, "withdraw_method", "deposit_method");
         Boolean intern = Helpers.isEqual(transferMethod, "local");
         Double amount = this.safeNumber(transaction, "actual_amount");
         if (Helpers.isTrue(Helpers.isEqual(amount, null)))
@@ -6059,7 +6059,7 @@ final Object finalI = i;
                 {
                     continue;
                 }
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(codes, null)) || Helpers.isTrue(this.inArray(code, codes))))
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -6131,7 +6131,7 @@ final Object finalI = i;
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(networkId, null))) && Helpers.isTrue((!Helpers.isEqual(networkId, "")))))
                 {
                     String currencyId = this.safeString(asset, "ccy");
-                    String feeCode = (String) this.safeCurrencyCode(currencyId, currency);
+                    String feeCode = this.safeCurrencyCode(currencyId, currency);
                     Object networkCode = this.networkIdToCode(networkId, feeCode);
                     if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
                     {
@@ -6574,7 +6574,7 @@ final Object finalI = i;
         String code = this.safeString(response, "code");
         Object data = this.safeValue(response, "data");
         String message = this.safeString(response, "message", "");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(message.toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);

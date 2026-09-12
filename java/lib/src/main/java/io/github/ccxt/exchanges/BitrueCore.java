@@ -878,7 +878,7 @@ public class BitrueCore extends BitrueApi
     {
         String id = this.safeString(rawCurrency, "coin");
         String name = this.safeString(rawCurrency, "coinFulName");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object networkDetails = this.safeList(rawCurrency, "chainDetail", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkDetails)); j++)
@@ -1090,8 +1090,8 @@ public class BitrueCore extends BitrueApi
             }
             settle = this.safeCurrencyCode(settleId);
         }
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         if (Helpers.isTrue(!Helpers.isEqual(settle, null)))
         {
@@ -1239,7 +1239,7 @@ public class BitrueCore extends BitrueApi
         {
             Object balance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString2(balance, "asset", "marginCoin");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString2(balance, "free", "accountNormal"));
             Helpers.addElementToObject(account, "used", this.safeString2(balance, "locked", "accountLock"));
@@ -1440,7 +1440,7 @@ public class BitrueCore extends BitrueApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         String last = this.safeString2(ticker, "lastPrice", "last");
         Long timestamp = this.safeInteger(ticker, "time");
         String percentage = null;
@@ -1960,7 +1960,7 @@ public class BitrueCore extends BitrueApi
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
         String marketId = this.safeString2(trade, "symbol", "contractName");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String orderId = this.safeString(trade, "orderId");
         String id = this.safeString2(trade, "id", "tradeId");
         String side = null;
@@ -2141,7 +2141,7 @@ public class BitrueCore extends BitrueApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String status = this.parseOrderStatus(this.safeString2(order, "status", "orderStatus"));
         String marketId = this.safeString(order, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String filled = this.safeString(order, "executedQty");
         Object timestamp = null;
         Object lastTradeTimestamp = null;
@@ -3235,7 +3235,7 @@ public class BitrueCore extends BitrueApi
                 network = networkId.toUpperCase();
             }
         }
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Double feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))

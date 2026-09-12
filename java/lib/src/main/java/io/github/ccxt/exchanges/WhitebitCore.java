@@ -799,8 +799,8 @@ public class WhitebitCore extends WhitebitApi
         String baseId = this.safeString(market, "stock");
         String quoteId = this.safeString(market, "money");
         quoteId = ((Helpers.isTrue((Helpers.isEqual(quoteId, "PERP"))))) ? "USDT" : quoteId;
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object active = this.safeValue(market, "tradesEnabled");
         Object isCollateral = this.safeValue(market, "isCollateral");
         String typeId = this.safeString(market, "type");
@@ -984,7 +984,7 @@ public class WhitebitCore extends WhitebitApi
     {
         // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
         String id = this.safeString(rawCurrency, "_coin_id");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Boolean hasProvider = (Helpers.inOp(rawCurrency, "providers"));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object rawNetworks = this.safeDict(rawCurrency, "networks", new java.util.HashMap<String, Object>() {{}});
@@ -1108,7 +1108,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Object currency = Helpers.GetValue(currenciesIds, i);
                 Object data = this.safeDict(response, currency, new java.util.HashMap<String, Object>() {{}});
-                String code = (String) this.safeCurrencyCode(currency);
+                String code = this.safeCurrencyCode(currency);
                 Object withdraw = this.safeValue(data, "withdraw", new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
@@ -1252,7 +1252,7 @@ public class WhitebitCore extends WhitebitApi
             Object splitEntry = Helpers.split(entry, " ");
             Object currencyId = Helpers.GetValue(splitEntry, 0);
             Object feeInfo = Helpers.GetValue(response, entry);
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
             {
                 Object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
@@ -3026,7 +3026,7 @@ public class WhitebitCore extends WhitebitApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balanceKeys)); i++)
         {
             Object id = Helpers.GetValue(balanceKeys, i);
-            String code = (String) this.safeCurrencyCode(id);
+            String code = this.safeCurrencyCode(id);
             Object balance = Helpers.GetValue(response, id);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(balance, null)) && Helpers.isTrue(this.isDictionary(balance))))
             {
@@ -4341,7 +4341,7 @@ public class WhitebitCore extends WhitebitApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "market");
-        String symbol = (String) this.safeSymbol(marketId, market, "_");
+        String symbol = this.safeSymbol(marketId, market, "_");
         Object timestamp = this.safeTimestamp(info, "modifyDate");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
@@ -4490,7 +4490,7 @@ public class WhitebitCore extends WhitebitApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "ticker_id");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Double markPrice = this.safeNumber(contract, "markPrice");
         Double indexPrice = this.safeNumber(contract, "indexPrice");
         Double interestRate = this.safeNumber(contract, "interestRate");
@@ -4929,9 +4929,9 @@ public class WhitebitCore extends WhitebitApi
         String toPath = this.safeString(first, "to");
         Object timestamp = this.safeTimestamp2(conversion, "date", "expireAt");
         String fromCoin = this.safeString(conversion, "from", fromPath);
-        String fromCode = (String) this.safeCurrencyCode(fromCoin, fromCurrency);
+        String fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
         String toCoin = this.safeString(conversion, "to", toPath);
-        String toCode = (String) this.safeCurrencyCode(toCoin, toCurrency);
+        String toCode = this.safeCurrencyCode(toCoin, toCurrency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );

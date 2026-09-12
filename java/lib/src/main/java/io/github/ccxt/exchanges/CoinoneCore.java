@@ -477,7 +477,7 @@ public class CoinoneCore extends CoinoneApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Boolean isWithdrawEnabled = Helpers.isEqual(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
         Boolean isDepositEnabled = Helpers.isEqual(this.safeString(rawCurrency, "deposit_status", ""), "normal");
         String type = ((Helpers.isTrue((!Helpers.isEqual(code, "KRW"))))) ? "crypto" : "fiat";
@@ -564,10 +564,10 @@ public class CoinoneCore extends CoinoneApi
             {
                 Object entry = this.safeValue(tickers, i);
                 String id = this.safeString(entry, "id");
-                String baseId = this.safeStringUpper(entry, "target_currency");
-                String quoteId = this.safeStringUpper(entry, "quote_currency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String baseId = (String)this.safeStringUpper(entry, "target_currency");
+                String quoteId = (String)this.safeStringUpper(entry, "quote_currency");
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
@@ -636,7 +636,7 @@ public class CoinoneCore extends CoinoneApi
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
             Object balance = Helpers.GetValue(balances, currencyId);
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "avail"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
@@ -909,8 +909,8 @@ public class CoinoneCore extends CoinoneApi
         Object bids = this.safeList(ticker, "best_bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String baseId = this.safeString(ticker, "target_currency");
         String quoteId = this.safeString(ticker, "quote_currency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         final Object finalBase = base;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
@@ -1265,10 +1265,10 @@ public class CoinoneCore extends CoinoneApi
         {
             timestamp = this.safeInteger2(order, "ordered_at", "updated_at"); // v2.1 sends milliseconds
         }
-        String side = this.safeStringLower2(order, "type", "side");
+        String side = (String)this.safeStringLower2(order, "type", "side");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "limit"))) || Helpers.isTrue((Helpers.isEqual(side, "market")))) || Helpers.isTrue((Helpers.isEqual(side, "stop_limit")))))
         {
-            side = this.safeStringLower(order, "side"); // in v2.1 rows the type field carries the order type, the side lives in side
+            side = (String)this.safeStringLower(order, "side"); // in v2.1 rows the type field carries the order type, the side lives in side
         }
         if (Helpers.isTrue(Helpers.isEqual(side, "ask")))
         {
@@ -1279,7 +1279,7 @@ public class CoinoneCore extends CoinoneApi
         }
         String remainingString = this.safeString2(order, "remainQty", "remain_qty");
         String amountString = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("originalQty", "qty", "original_qty")));
-        String status = this.safeString(order, "status");
+        Object status = this.safeString(order, "status");
         // https://github.com/ccxt/ccxt/pull/7067
         if (Helpers.isTrue(Helpers.isEqual(status, "live")))
         {
@@ -1555,7 +1555,7 @@ public class CoinoneCore extends CoinoneApi
                 Object parts = Helpers.split(key, "_");
                 Object currencyId = this.safeValue(parts, 0);
                 Object secondPart = this.safeValue(parts, 1);
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object depositAddress = this.safeValue(result, code);
                 if (Helpers.isTrue(Helpers.isEqual(depositAddress, null)))
                 {

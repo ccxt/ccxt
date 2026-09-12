@@ -439,11 +439,11 @@ public class FoxbitCore extends FoxbitApi
         Long precision = this.safeInteger(rawCurrency, "precision");
         String currencyId = this.safeString(rawCurrency, "symbol");
         String name = this.safeString(rawCurrency, "name");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Object depositInfo = this.safeDict(rawCurrency, "deposit_info");
         Object withdrawInfo = this.safeDict(rawCurrency, "withdraw_info");
         Object networks = this.safeList(rawCurrency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        String type = this.safeStringLower(rawCurrency, "type");
+        String type = (String)this.safeStringLower(rawCurrency, "type");
         java.util.Map<String, Object> parsedNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
         {
@@ -991,7 +991,7 @@ public class FoxbitCore extends FoxbitApi
             {
                 Object account = Helpers.GetValue(accounts, i);
                 String currencyId = this.safeString(account, "currency_symbol");
-                String currencyCode = (String) this.safeCurrencyCode(currencyId);
+                String currencyCode = this.safeCurrencyCode(currencyId);
                 String total = this.safeString(account, "balance");
                 String used = this.safeString(account, "balance_locked");
                 String free = this.safeString(account, "balance_available");
@@ -1151,7 +1151,7 @@ public class FoxbitCore extends FoxbitApi
             {
                 throw new InvalidOrder((String)Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
             }
-            String timeInForce = this.safeStringUpper(parameters, "timeInForce");
+            String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
             Object postOnly = this.safeBool(parameters, "postOnly", false);
             Double triggerPrice = this.safeNumber(parameters, "triggerPrice");
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
@@ -1243,13 +1243,13 @@ public class FoxbitCore extends FoxbitApi
                 Object order = this.safeDict(orders, i);
                 String symbol = this.safeString(order, "symbol");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                String type = this.safeStringUpper(order, "type");
+                String type = (String)this.safeStringUpper(order, "type");
                 Object orderParams = this.safeDict(order, "params", new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "LIMIT")) && Helpers.isTrue(!Helpers.isEqual(type, "MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_LIMIT"))) && Helpers.isTrue(!Helpers.isEqual(type, "INSTANT"))))
                 {
                     throw new InvalidOrder((String)Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
                 }
-                String timeInForce = this.safeStringUpper(orderParams, "timeInForce");
+                String timeInForce = (String)this.safeStringUpper(orderParams, "timeInForce");
                 Object postOnly = this.safeBool(orderParams, "postOnly", false);
                 Double triggerPrice = this.safeNumber(orderParams, "triggerPrice");
                 final Object finalType = type;
@@ -2073,8 +2073,8 @@ public class FoxbitCore extends FoxbitApi
         String baseId = this.safeString(baseAssets, "symbol");
         Object quoteAssets = this.safeDict(market, "quote");
         String quoteId = this.safeString(quoteAssets, "symbol");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object fees = this.safeDict(market, "default_fees");
         final Object finalBase = base;
@@ -2151,7 +2151,7 @@ public class FoxbitCore extends FoxbitApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "market_symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, null, "spot");
+        String symbol = this.safeSymbol(marketId, market, null, "spot");
         Object rolling_24h = Helpers.GetValue(ticker, "rolling_24h");
         Object best = this.safeDict(ticker, "best");
         Object bestAsk = this.safeDict(best, "ask");
@@ -2194,8 +2194,8 @@ public class FoxbitCore extends FoxbitApi
         Object timestamp = this.parseDate(this.safeString(trade, "created_at"));
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "volume", this.safeString(trade, "quantity"));
-        String privateSideField = this.safeStringLower(trade, "side");
-        String side = this.safeStringLower(trade, "taker_side", privateSideField);
+        String privateSideField = (String)this.safeStringLower(trade, "side");
+        Object side = this.safeStringLower(trade, "taker_side", privateSideField);
         String cost = Precise.stringMul(price, amount);
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "currency", FoxbitCore.this.safeSymbol(FoxbitCore.this.safeString(trade, "fee_currency_symbol")) );
@@ -2261,11 +2261,11 @@ public class FoxbitCore extends FoxbitApi
             String priceToCalculate = this.safeString(order, "price", priceAverage);
             cost = Precise.stringMul(priceToCalculate, amount);
         }
-        String side = this.safeStringLower(order, "side");
-        String feeCurrency = this.safeStringUpper(market, "quoteId");
+        String side = (String)this.safeStringLower(order, "side");
+        String feeCurrency = (String)this.safeStringUpper(market, "quoteId");
         if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
         {
-            feeCurrency = this.safeStringUpper(market, "baseId");
+            feeCurrency = (String)this.safeStringUpper(market, "baseId");
         }
         final Object finalMarket = market;
         final Object finalSide = side;
@@ -2310,7 +2310,7 @@ public class FoxbitCore extends FoxbitApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object network = this.safeDict(depositAddress, "network");
         String networkId = this.safeString(network, "code");
-        String currencyCode = (String) this.safeCurrencyCode(null, currency);
+        String currencyCode = this.safeCurrencyCode(null, currency);
         Object unifiedNetwork = this.networkIdToCode(networkId, currencyCode);
         return new java.util.HashMap<String, Object>() {{
             put( "address", FoxbitCore.this.safeString(depositAddress, "address") );
@@ -2356,8 +2356,8 @@ public class FoxbitCore extends FoxbitApi
         String fee = this.safeString(transaction, "fee", "0");
         String amount = this.safeString(transaction, "amount");
         String currencySymbol = this.safeString(transaction, "currency_symbol");
-        String actualAmount = amount;
-        String currencyCode = (String) this.safeCurrencyCode(currencySymbol);
+        Object actualAmount = amount;
+        String currencyCode = this.safeCurrencyCode(currencySymbol);
         String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         String created_at = this.safeString(transaction, "created_at");
         Object timestamp = this.parseDate(created_at);
@@ -2432,7 +2432,7 @@ public class FoxbitCore extends FoxbitApi
         String reasonType = this.safeString(item, "reason_type");
         Object type = this.parseLedgerEntryType(reasonType);
         String exchangeSymbol = this.safeString(item, "currency_symbol");
-        String currencySymbol = (String) this.safeCurrencyCode(exchangeSymbol);
+        String currencySymbol = this.safeCurrencyCode(exchangeSymbol);
         String direction = "in";
         Double amount = this.safeNumber(item, "amount");
         Object realAmount = amount;

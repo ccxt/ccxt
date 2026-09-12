@@ -755,7 +755,7 @@ public class NdaxCore extends NdaxApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "ProductId");
-        String code = (String) this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
+        String code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
         String ProductType = this.safeString(rawCurrency, "ProductType");
         String type = ((Helpers.isTrue((Helpers.isEqual(ProductType, "NationalCurrency"))))) ? "fiat" : "crypto";
         if (Helpers.isTrue(Helpers.isEqual(ProductType, "Unknown")))
@@ -866,8 +866,8 @@ public class NdaxCore extends NdaxApi
         // const lowercaseId = this.safeStringLower (market, 'symbol');
         String baseId = this.safeString(market, "Product1");
         String quoteId = this.safeString(market, "Product2");
-        String base = (String) this.safeCurrencyCode(this.safeString(market, "Product1Symbol"));
-        String quote = (String) this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
+        String base = this.safeCurrencyCode(this.safeString(market, "Product1Symbol"));
+        String quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
         String sessionStatus = this.safeString(market, "SessionStatus");
         Object isDisable = this.safeValue(market, "IsDisable");
         Boolean sessionRunning = (Helpers.isEqual(sessionStatus, "Running"));
@@ -1094,7 +1094,7 @@ public class NdaxCore extends NdaxApi
             marketId = this.safeString(ticker, "trading_pairs");
         }
         market = this.safeMarket(marketId, market, "_");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String last = this.safeString2(ticker, "LastTradedPx", "last_price");
         String percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
         String change = this.safeString(ticker, "Rolling24HrPxChange");
@@ -1466,7 +1466,7 @@ public class NdaxCore extends NdaxApi
             if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
             {
                 String feeCurrencyId = this.safeString(trade, "FeeProductId");
-                String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
+                String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
                 final Object finalFeeCostString = feeCostString;
                 fee = new java.util.HashMap<String, Object>() {{
                     put( "cost", finalFeeCostString );
@@ -1474,7 +1474,7 @@ public class NdaxCore extends NdaxApi
                 }};
             }
         }
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         final Object finalId = id;
         final Object finalTimestamp = timestamp;
         final Object finalOrderId = orderId;
@@ -1605,7 +1605,7 @@ public class NdaxCore extends NdaxApi
             String currencyId = this.safeString(balance, "ProductId");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(currencyId, null))) && Helpers.isTrue((!Helpers.isEqual(this.currencies_by_id, null)))) && Helpers.isTrue((Helpers.inOp(this.currencies_by_id, currencyId)))))
             {
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "total", this.safeString(balance, "Amount"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "Hold"));
@@ -3069,7 +3069,7 @@ public class NdaxCore extends NdaxApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = null;
         String currencyId = this.safeString(transaction, "ProductId");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String type = null;
         if (Helpers.isTrue(Helpers.inOp(transaction, "DepositId")))
         {

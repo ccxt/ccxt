@@ -859,10 +859,10 @@ public class ModetradeCore extends ModetradeApi
         String marketType = "swap";
         String baseId = this.safeString(parts, 1);
         String quoteId = this.safeString(parts, 2);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         String settleId = this.safeString(parts, 2);
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
@@ -1021,7 +1021,7 @@ public class ModetradeCore extends ModetradeApi
     {
         String currencyId = this.safeString(rawCurrency, "token");
         Object networks = this.safeList(rawCurrency, "chain_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Object minPrecision = null;
         java.util.Map<String, Object> resultingNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
@@ -1088,7 +1088,7 @@ public class ModetradeCore extends ModetradeApi
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             String feeCurrencyId = this.safeString(item, feeTokenKey);
-            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1498,9 +1498,9 @@ public class ModetradeCore extends ModetradeApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String amount = this.safeString(income, "funding_fee");
-        String code = (String) this.safeCurrencyCode("USDC");
+        String code = this.safeCurrencyCode("USDC");
         Long timestamp = this.safeInteger(income, "updated_time");
         Double rate = this.safeNumber(income, "funding_rate");
         String paymentType = this.safeString(income, "payment_type");
@@ -3002,7 +3002,7 @@ public class ModetradeCore extends ModetradeApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
-            String code = (String) this.safeCurrencyCode(this.safeString(balance, "token"));
+            String code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "holding"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "frozen"));
@@ -3124,7 +3124,7 @@ public class ModetradeCore extends ModetradeApi
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "token");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Double amount = this.safeNumber(item, "amount");
         String side = this.safeString(item, "token_side");

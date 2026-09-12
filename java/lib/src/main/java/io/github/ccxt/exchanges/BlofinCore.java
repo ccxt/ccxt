@@ -753,9 +753,9 @@ public class BlofinCore extends BlofinApi
         String baseId = this.safeString(market, "baseCurrency");
         String quoteId = this.safeString(market, "quoteCurrency");
         String settleId = this.safeString(market, "settleCurrency", quoteId);
-        String settle = (String) this.safeCurrencyCode(settleId);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String settle = this.safeCurrencyCode(settleId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         if (Helpers.isTrue(swap))
         {
@@ -1389,7 +1389,7 @@ public class BlofinCore extends BlofinApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "instId");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Long fundingTime = this.safeInteger(contract, "fundingTime");
         // > The current interest is 0.
         return new java.util.HashMap<String, Object>() {{
@@ -1797,7 +1797,7 @@ public class BlofinCore extends BlofinApi
         }
         String marketId = this.safeString(order, "instId");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market, "-");
+        String symbol = this.safeSymbol(marketId, market, "-");
         String filled = this.safeString(order, "filledSize");
         String price = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("px", "price", "orderPrice")));
         String average = this.safeString(order, "averagePrice");
@@ -1817,7 +1817,7 @@ public class BlofinCore extends BlofinApi
         {
             String feeCostSigned = Precise.stringAbs(feeCostString);
             String feeCurrencyId = this.safeString(order, "feeCcy", "USDT");
-            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", BlofinCore.this.parseNumber(feeCostSigned) );
                 put( "currency", feeCurrencyCode );
@@ -2533,12 +2533,12 @@ public class BlofinCore extends BlofinApi
             status = this.parseTransactionDepositStatus(this.safeString(transaction, "state"));
         }
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Double amount = this.safeNumber(transaction, "amount");
         String txid = this.safeString(transaction, "txId");
         Long timestamp = this.safeInteger(transaction, "ts");
         String feeCurrencyId = this.safeString(transaction, "feeCurrency");
-        String feeCode = (String) this.safeCurrencyCode(feeCurrencyId);
+        String feeCode = this.safeCurrencyCode(feeCurrencyId);
         Double feeCost = this.safeNumber(transaction, "fee");
         final Object finalId = id;
         final Object finalStatus = status;
@@ -2616,7 +2616,7 @@ public class BlofinCore extends BlofinApi
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Long timestamp = this.safeInteger(item, "ts");
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{

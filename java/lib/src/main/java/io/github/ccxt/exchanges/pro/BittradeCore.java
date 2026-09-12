@@ -572,7 +572,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Object ch = this.safeValue(message, "ch");
         Object parts = Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(orderbook, "nonce"), null)))
         {

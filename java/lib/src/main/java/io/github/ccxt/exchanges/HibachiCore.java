@@ -347,10 +347,10 @@ public class HibachiCore extends HibachiApi
         String marketType = "swap";
         String baseId = this.safeString(market, "underlyingSymbol");
         String quoteId = this.safeString(market, "settlementSymbol");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         String settleId = this.safeString(market, "settlementSymbol");
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Long created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
         final Object finalBase = base;
@@ -477,7 +477,7 @@ public class HibachiCore extends HibachiApi
     put( "withdraw", null );
     put( "info", new java.util.HashMap<String, Object>() {{}} );
 }});
-        String code = (String) this.safeCurrencyCode("USDT");
+        String code = this.safeCurrencyCode("USDT");
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
         {
             final Object finalCode = code;
@@ -514,7 +514,7 @@ public class HibachiCore extends HibachiApi
             put( "info", response );
         }};
         // Hibachi only supports USDT on Arbitrum at this time
-        String code = (String) this.safeCurrencyCode("USDT");
+        String code = this.safeCurrencyCode("USDT");
         Object account = this.account();
         Helpers.addElementToObject(account, "total", this.safeString(response, "balance"));
         Helpers.addElementToObject(account, "free", this.safeString(response, "maximalWithdraw"));

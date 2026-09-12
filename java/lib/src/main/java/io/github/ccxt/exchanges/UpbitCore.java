@@ -510,7 +510,7 @@ public class UpbitCore extends UpbitApi
                 maxWithdrawLimit = maxDailyWithdrawal;
             }
             String currencyId = this.safeString(currencyInfo, "code");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             final Object finalActive = active;
             final Object finalMaxWithdrawLimit = maxWithdrawLimit;
             return new java.util.HashMap<String, Object>() {{
@@ -600,8 +600,8 @@ public class UpbitCore extends UpbitApi
             String marketId = this.safeString(marketInfo, "id");
             String baseId = this.safeString(ask, "currency");
             String quoteId = this.safeString(bid, "currency");
-            String base = (String) this.safeCurrencyCode(baseId);
-            String quote = (String) this.safeCurrencyCode(quoteId);
+            String base = this.safeCurrencyCode(baseId);
+            String quote = this.safeCurrencyCode(quoteId);
             String state = this.safeString(marketInfo, "state");
             String bidFee = this.safeString(response, "bid_fee");
             String askFee = this.safeString(response, "ask_fee");
@@ -703,8 +703,8 @@ public class UpbitCore extends UpbitApi
         var quoteIdbaseIdVariable = Helpers.split(id, "-");
         var quoteId = ((java.util.List<Object>) quoteIdbaseIdVariable).get(0);
         var baseId = ((java.util.List<Object>) quoteIdbaseIdVariable).get(1);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         final Object finalId = id;
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
@@ -771,7 +771,7 @@ public class UpbitCore extends UpbitApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "balance"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -899,7 +899,7 @@ public class UpbitCore extends UpbitApi
             {
                 Object orderbook = Helpers.GetValue(orderbooks, i);
                 String marketId = this.safeString(orderbook, "market");
-                String symbol = (String) this.safeSymbol(marketId, null, "-");
+                String symbol = this.safeSymbol(marketId, null, "-");
                 Long timestamp = this.safeInteger(orderbook, "timestamp");
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "symbol", symbol );
@@ -1527,7 +1527,7 @@ public class UpbitCore extends UpbitApi
 
     }
 
-    public Object calcOrderPrice(Object symbol, Object amount, Object... optionalArgs)
+    public String calcOrderPrice(Object symbol, Object amount, Object... optionalArgs)
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
@@ -1639,7 +1639,7 @@ public class UpbitCore extends UpbitApi
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
                     Helpers.addElementToObject(request, "ord_type", "price");
-                    Object orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                    String orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
                     Helpers.addElementToObject(request, "price", orderPrice);
                 } else
                 {
@@ -1660,7 +1660,7 @@ public class UpbitCore extends UpbitApi
                 Helpers.addElementToObject(request, "ord_type", "best");
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
-                    Object orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                    String orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
                     Helpers.addElementToObject(request, "price", orderPrice);
                 } else
                 {
@@ -1851,7 +1851,7 @@ public class UpbitCore extends UpbitApi
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
                     Helpers.addElementToObject(request, "new_ord_type", "price");
-                    Object orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                    String orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
                     Helpers.addElementToObject(request, "new_price", orderPrice);
                 } else
                 {
@@ -1872,7 +1872,7 @@ public class UpbitCore extends UpbitApi
                 Helpers.addElementToObject(request, "new_ord_type", "best");
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
-                    Object orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                    String orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
                     Helpers.addElementToObject(request, "new_price", orderPrice);
                 } else
                 {
@@ -2224,7 +2224,7 @@ public class UpbitCore extends UpbitApi
             type = "withdrawal";
         }
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         final Object finalType = type;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -2794,7 +2794,7 @@ public class UpbitCore extends UpbitApi
         String address = this.safeString(depositAddress, "deposit_address");
         String tag = this.safeString(depositAddress, "secondary_address");
         String currencyId = this.safeString(depositAddress, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         String networkId = this.safeString(depositAddress, "net_type");
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{

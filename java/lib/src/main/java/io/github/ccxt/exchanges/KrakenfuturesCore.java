@@ -572,8 +572,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 String splitMarket = this.safeString(split, 1);
                 Object baseId = Helpers.slice(((String)splitMarket), 0, Helpers.subtract(((String)((String)splitMarket)).length(), 3));
                 String quoteId = "usd"; // always USD
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 // swap == perpetual
                 String settle = null;
                 Object settleId = null;
@@ -2702,7 +2702,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             String innerStatus = this.safeString(order, "status");
             Object fetchOrderPriceTriggerOptions = this.safeDict(orderDictFromFetchOrder, "priceTriggerOptions", new java.util.HashMap<String, Object>() {{}});
             String fetchOrderTriggerPrice = this.safeString(fetchOrderPriceTriggerOptions, "triggerPrice");
-            String unifiedSymbol = (String) this.safeSymbol(this.safeString(orderDictFromFetchOrder, "symbol"), market);
+            String unifiedSymbol = this.safeSymbol(this.safeString(orderDictFromFetchOrder, "symbol"), market);
             final Object finalOrderDictFromFetchOrder = orderDictFromFetchOrder;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", order );
@@ -3136,7 +3136,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.parse8601(this.safeString(item, "date"));
         String currencyId = this.safeString(item, "asset");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String before = this.safeString(item, "old_balance");
         String after = this.safeString(item, "new_balance");
@@ -3405,7 +3405,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
             Object balance = Helpers.GetValue(balances, currencyId);
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
                 continue;

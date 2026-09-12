@@ -943,8 +943,8 @@ public class PhemexCore extends PhemexApi
         String settleId = this.safeString(market, "settleCurrency");
         Object base = this.safeCurrencyCode(baseId);
         base = Helpers.replace((String)((String)base), (String)" ", (String)""); // replace space for junction codes, eg. `1000 SHIB`
-        String quote = (String) this.safeCurrencyCode(quoteId);
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String settle = this.safeCurrencyCode(settleId);
         Boolean inverse = false;
         if (Helpers.isTrue(!Helpers.isEqual(settleId, quoteId)))
         {
@@ -1084,8 +1084,8 @@ public class PhemexCore extends PhemexApi
         String id = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quoteCurrency");
         String baseId = this.safeString(market, "baseCurrency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         String status = this.safeString(market, "status");
         Object precisionAmount = this.parseSafeNumber(this.safeString(market, "baseTickSize"));
         Object precisionPrice = this.parseSafeNumber(this.safeString(market, "quoteTickSize"));
@@ -1430,7 +1430,7 @@ public class PhemexCore extends PhemexApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "currency");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         String valueScaleString = this.safeString(rawCurrency, "valueScale");
         Object valueScale = Helpers.parseInt(((String)valueScaleString));
         String minValueEv = this.safeString(rawCurrency, "minValueEv");
@@ -3045,7 +3045,7 @@ public class PhemexCore extends PhemexApi
             clientOrderId = null;
         }
         String marketId = this.safeString(order, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         market = this.safeMarket(marketId, market);
         String status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         String side = this.parseOrderSide(this.safeStringLower(order, "side"));
@@ -5056,7 +5056,7 @@ public class PhemexCore extends PhemexApi
                 Object entry = Helpers.GetValue(rows, i);
                 Long timestamp = this.safeInteger(entry, "createTime");
                 String execFee = this.safeString2(entry, "execFeeEv", "execFeeRv");
-                String currencyCode = (String) this.safeCurrencyCode(this.safeString(entry, "currency"));
+                String currencyCode = this.safeCurrencyCode(this.safeString(entry, "currency"));
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", PhemexCore.this.safeString(entry, "symbol") );
@@ -5196,7 +5196,7 @@ public class PhemexCore extends PhemexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Long timestamp = this.safeIntegerProduct(contract, "timestamp", 0.000001);
         Object markEp = this.fromEp(this.safeString(contract, "markEp"), market);
         Object indexEp = this.fromEp(this.safeString(contract, "indexEp"), market);
@@ -5903,7 +5903,7 @@ final Object finalI = i;
         String amountEv = this.safeString(transfer, "amountEv");
         Object amountTransfered = this.fromEv(amountEv);
         String currencyId = this.safeString(transfer, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long side = this.safeInteger(transfer, "side");
         String fromId = null;
         String toId = null;
@@ -6478,9 +6478,9 @@ final Object finalI = i;
         Long requestTime = this.safeInteger(quoteArgs, "requestAt");
         Long timestamp = this.safeInteger(conversion, "createTime", requestTime);
         String fromCoin = this.safeString(conversion, "fromCurrency", this.safeString(fromCurrency, "code"));
-        String fromCode = (String) this.safeCurrencyCode(fromCoin, fromCurrency);
+        String fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
         String toCoin = this.safeString(conversion, "toCurrency", this.safeString(toCurrency, "code"));
-        String toCode = (String) this.safeCurrencyCode(toCoin, toCurrency);
+        String toCode = this.safeCurrencyCode(toCoin, toCurrency);
         Long fromValueScale = this.safeInteger(fromCurrency, "valueScale");
         Long toValueScale = this.safeInteger(toCurrency, "valueScale");
         String fromAmount = this.fromEn(this.safeString(conversion, "fromAmountEv"), fromValueScale);

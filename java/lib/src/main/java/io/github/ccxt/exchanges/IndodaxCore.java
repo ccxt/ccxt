@@ -429,8 +429,8 @@ public class IndodaxCore extends IndodaxApi
                 String id = this.safeString(market, "id");
                 String baseId = this.safeString(market, "traded_currency");
                 String quoteId = this.safeString(market, "base_currency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Long isMaintenance = this.safeInteger(market, "is_maintenance");
                 Boolean inMaintenance = Helpers.isTrue((!Helpers.isEqual(isMaintenance, null))) && Helpers.isTrue((!Helpers.isEqual(isMaintenance, 0)));
     final Object finalBase = base;
@@ -507,7 +507,7 @@ public class IndodaxCore extends IndodaxApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(free, currencyId));
             Helpers.addElementToObject(account, "used", this.safeString(used, currencyId));
@@ -619,7 +619,7 @@ public class IndodaxCore extends IndodaxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "server_time");
         String baseVolume = Helpers.add("vol_", this.safeStringLower(market, "baseId"));
         String quoteVolume = Helpers.add("vol_", this.safeStringLower(market, "quoteId"));
@@ -1733,7 +1733,7 @@ public class IndodaxCore extends IndodaxApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(addressKeys)); i++)
             {
                 Object marketId = Helpers.GetValue(addressKeys, i);
-                String code = (String) this.safeCurrencyCode(marketId);
+                String code = this.safeCurrencyCode(marketId);
                 String address = this.safeString(addresses, marketId);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(address, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
                 {

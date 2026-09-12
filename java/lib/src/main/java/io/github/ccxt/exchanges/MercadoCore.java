@@ -372,8 +372,8 @@ public class MercadoCore extends MercadoApi
                 Object coin = Helpers.GetValue(coins, i);
                 Object baseId = coin;
                 String quoteId = "BRL";
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
                 {
                     continue;
@@ -481,7 +481,7 @@ public class MercadoCore extends MercadoApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "date");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -648,7 +648,7 @@ public class MercadoCore extends MercadoApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.inOp(balances, currencyId)))
             {
                 Object balance = this.safeValue(balances, currencyId, new java.util.HashMap<String, Object>() {{}});

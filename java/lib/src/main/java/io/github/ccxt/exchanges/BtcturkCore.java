@@ -372,8 +372,8 @@ public class BtcturkCore extends BtcturkApi
         String id = this.safeString(entry, "name");
         String baseId = this.safeString(entry, "numerator");
         String quoteId = this.safeString(entry, "denominator");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object filters = this.safeList(entry, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object minPrice = null;
         Object maxPrice = null;
@@ -464,7 +464,7 @@ public class BtcturkCore extends BtcturkApi
         {
             Object entry = Helpers.GetValue(data, i);
             String currencyId = this.safeString(entry, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
             Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
@@ -702,7 +702,7 @@ public class BtcturkCore extends BtcturkApi
         String priceString = this.safeString(trade, "price");
         String amountString = Precise.stringAbs(this.safeString(trade, "amount"));
         String marketId = this.safeString(trade, "pair");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String side = this.safeString2(trade, "side", "orderType");
         Object fee = null;
         String feeAmountString = this.safeString(trade, "fee");
@@ -1183,7 +1183,7 @@ public class BtcturkCore extends BtcturkApi
         String amount = Precise.stringAbs(amountString);
         String remaining = this.safeString(order, "leftAmount");
         String marketId = this.safeString(order, "pairSymbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String side = this.safeString(order, "type");
         String type = this.safeString(order, "method");
         String clientOrderId = this.safeString(order, "orderClientId");

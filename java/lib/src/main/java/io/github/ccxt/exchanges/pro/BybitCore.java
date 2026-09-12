@@ -2777,7 +2777,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object accountType = Helpers.getArg(optionalArgs, 0, null);
         Object account = this.account();
         Object currencyId = this.safeString2(balance, "a", "coin");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        Object code = this.safeCurrencyCode(currencyId);
         Helpers.addElementToObject(account, "free", this.safeStringN(balance, new java.util.ArrayList<Object>(java.util.Arrays.asList("availableToWithdraw", "f", "free"))));
         Object used = this.safeString2(balance, "l", "locked");
         if (Helpers.isTrue(!Helpers.isEqual(used, null)))

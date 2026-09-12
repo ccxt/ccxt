@@ -846,7 +846,7 @@ public class DeriveCore extends DeriveApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "name", null );
@@ -1010,8 +1010,8 @@ public class DeriveCore extends DeriveApi
         Object inverse = null;
         String baseId = this.safeString(market, "base_currency");
         String quoteId = this.safeString(market, "quote_currency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         String marketId = this.safeString(market, "instrument_name");
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         String settleId = null;
@@ -1275,7 +1275,7 @@ public class DeriveCore extends DeriveApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "instrument_name");
         Object timestamp = this.safeIntegerOmitZero(ticker, "timestamp");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Object stats = this.safeDict(ticker, "stats");
         String change = this.safeString(stats, "percent_change");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -1453,7 +1453,7 @@ public class DeriveCore extends DeriveApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "instrument_name");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Long timestamp = this.safeInteger(trade, "timestamp");
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "currency", "USDC" );
@@ -3094,9 +3094,9 @@ public class DeriveCore extends DeriveApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "instrument_name");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String rate = this.safeString(income, "funding");
-        String code = (String) this.safeCurrencyCode("USDC");
+        String code = this.safeCurrencyCode("USDC");
         Long timestamp = this.safeInteger(income, "timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
@@ -3203,7 +3203,7 @@ public class DeriveCore extends DeriveApi
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(collaterals)); j++)
             {
                 Object balance = Helpers.GetValue(collaterals, j);
-                String code = (String) this.safeCurrencyCode(this.safeString(balance, "currency"));
+                String code = this.safeCurrencyCode(this.safeString(balance, "currency"));
                 Object account = this.safeDict(result, code);
                 if (Helpers.isTrue(Helpers.isEqual(account, null)))
                 {

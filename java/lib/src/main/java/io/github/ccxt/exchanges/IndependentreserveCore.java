@@ -452,12 +452,12 @@ public class IndependentreserveCore extends IndependentreserveApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(baseCurrencyIds)); i++)
             {
                 Object baseId = Helpers.GetValue(baseCurrencyIds, i);
-                String base = (String) this.safeCurrencyCode(baseId);
+                String base = this.safeCurrencyCode(baseId);
                 Double minAmount = this.safeNumber(limits, baseId);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(quoteCurrencyIds)); j++)
                 {
                     Object quoteId = Helpers.GetValue(quoteCurrencyIds, j);
-                    String quote = (String) this.safeCurrencyCode(quoteId);
+                    String quote = this.safeCurrencyCode(quoteId);
                     Object id = Helpers.add(Helpers.add(baseId, "/"), quoteId);
     final Object finalBase = base;
                     final Object finalBaseId = baseId;
@@ -526,7 +526,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "CurrencyCode");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "AvailableBalance"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "TotalBalance"));
@@ -1027,7 +1027,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         {
             marketId = Helpers.add(Helpers.add(baseId, "/"), quoteId);
         }
-        String symbol = (String) this.safeSymbol(marketId, market, "/");
+        String symbol = this.safeSymbol(marketId, market, "/");
         String side = this.safeString(trade, "OrderType");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
@@ -1125,7 +1125,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             {
                 Object fee = Helpers.GetValue(rows, i);
                 String currencyId = this.safeString(fee, "CurrencyCode");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Double tradingFee = this.safeNumber(fee, "Fee");
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
@@ -1409,7 +1409,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         String datetime = this.safeString(transaction, "CreatedTimestampUtc");
         String address = this.safeString(destination, "Address");
         String tag = this.safeString(destination, "Tag");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", IndependentreserveCore.this.safeString(transaction, "TransactionGuid") );

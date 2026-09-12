@@ -158,10 +158,10 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         Object id = this.safeString2(trade, "event_id", "tid");
         Object priceString = this.safeString(trade, "price");
         Object amountString = this.safeString2(trade, "quantity", "amount");
-        String side = this.safeStringLower(trade, "side");
+        String side = (String)this.safeStringLower(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            String marketSide = this.safeStringLower(trade, "makerSide");
+            String marketSide = (String)this.safeStringLower(trade, "makerSide");
             if (Helpers.isTrue(Helpers.isEqual(marketSide, "bid")))
             {
                 side = "sell";
@@ -170,8 +170,8 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 side = "buy";
             }
         }
-        String marketId = this.safeStringLower(trade, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String marketId = (String)this.safeStringLower(trade, "symbol");
+        Object symbol = this.safeSymbol(marketId, market);
         final Object finalSide = side;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -259,7 +259,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         //         ]
         //     }
         //
-        String marketId = this.safeStringLower(message, "symbol");
+        String marketId = (String)this.safeStringLower(message, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object trades = this.safeValue(message, "trades");
         if (Helpers.isTrue(!Helpers.isEqual(trades, null)))
@@ -395,7 +395,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         timeframeId = Helpers.slice(timeframeId, 0, timeframeEndIndex);
         Object marketId = ((String)this.safeString(message, "symbol", "")).toLowerCase();
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Object changes = this.safeList(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object timeframe = this.findTimeframe(timeframeId);
         Object ohlcvsBySymbol = this.safeValue(this.ohlcvs, symbol);
@@ -474,7 +474,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
     {
         Boolean isInitial = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "auction_events"))) && Helpers.isTrue((Helpers.inOp(message, "trades")))) && Helpers.isTrue((Helpers.inOp(message, "changes")));
         Object changes = this.safeList(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        String marketId = this.safeStringLower(message, "symbol");
+        String marketId = (String)this.safeStringLower(message, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = (String) Helpers.add("orderbook:", symbol);

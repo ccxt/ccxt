@@ -888,7 +888,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Long datetime = this.safeInteger(income, "created_at");
         Long timestamp = this.parse8601(datetime);
         String currencyId = this.safeString(income, "asset");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
@@ -988,7 +988,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Long datetime = this.safeInteger(transfer, "created_at");
         Long timestamp = this.parse8601(datetime);
         String currencyId = this.safeString(transfer, "asset");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Object fromPorfolio = this.safeDict(transfer, "from_portfolio", new java.util.HashMap<String, Object>() {{}});
         String fromId = this.safeString(fromPorfolio, "id");
         Object toPorfolio = this.safeDict(transfer, "to_portfolio", new java.util.HashMap<String, Object>() {{}});
@@ -1182,7 +1182,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         //
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         String currencyId = this.safeString(network, "asset_name");
-        String currencyCode = (String) this.safeCurrencyCode(currencyId);
+        String currencyCode = this.safeCurrencyCode(currencyId);
         String networkId = this.safeString(network, "network_arn_id");
         String networkIdForCode = this.safeStringN(network, new java.util.ArrayList<Object>(java.util.Arrays.asList("network_name", "display_name", "network_arn_id")), "");
         return this.safeNetwork(new java.util.HashMap<String, Object>() {{
@@ -1930,7 +1930,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         //    }
         //
         String id = this.safeString(currency, "asset_name");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         String statusId = this.safeString(currency, "status");
         final Object finalStatusId = statusId;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -1981,7 +1981,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 Object instrument = Helpers.GetValue(rows, i);
                 String marketId = this.safeString(instrument, "symbol");
-                String symbol = (String) this.safeSymbol(marketId);
+                String symbol = this.safeSymbol(marketId);
                 Object quote = this.safeDict(instrument, "quote", new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(tickers, symbol, this.parseTicker(quote, this.safeMarket(marketId)));
             }
@@ -2140,7 +2140,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         {
             Object rawBalance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(rawBalance, "asset_name");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(rawBalance, "quantity"));
             Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "hold"));

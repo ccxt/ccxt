@@ -719,7 +719,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object first = Helpers.GetValue(data, 0);
         Object marketId = this.safeString(first, "symbol");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});

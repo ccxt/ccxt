@@ -525,8 +525,8 @@ public class BitteamCore extends BitteamApi
         Object parts = Helpers.split(id, "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object active = this.safeValue(market, "active");
         String timeStart = this.safeString(market, "timeStart");
         Long created = this.parse8601(timeStart);
@@ -735,7 +735,7 @@ public class BitteamCore extends BitteamApi
         Object statusesResponse = this.safeValue(this.options, "_temp_currencies_statuses", new java.util.HashMap<String, Object>() {{}});
         String id = this.safeString(currency, "symbol");
         Long numericId = this.safeInteger(currency, "id");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object active = this.safeBool(currency, "active", false);
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         Object txLimits = this.safeValue(currency, "txLimits", new java.util.HashMap<String, Object>() {{}});
@@ -2459,7 +2459,7 @@ public class BitteamCore extends BitteamApi
             String free = this.safeString(currencyBalance, "free");
             String used = this.safeString(currencyBalance, "used");
             String total = this.safeString(currencyBalance, "total");
-            String currencyCode = (String) this.safeCurrencyCode(((String)rawCurrencyId).toLowerCase());
+            String currencyCode = this.safeCurrencyCode(((String)rawCurrencyId).toLowerCase());
             if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
             {
                 Helpers.addElementToObject(balance, currencyCode, new java.util.HashMap<String, Object>() {{
@@ -2655,7 +2655,7 @@ public class BitteamCore extends BitteamApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object currencyObject = this.safeValue(transaction, "currency");
         String currencyId = this.safeString(currencyObject, "symbol");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String id = this.safeString(transaction, "id");
         Object parameters = this.safeValue(transaction, "params");
         String txid = this.safeString(parameters, "tx_id");

@@ -1510,7 +1510,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         if (Helpers.isTrue(!Helpers.isEqual(first, null)))
         {
             Object feeCurrencyId = this.safeString(first, "feeCoin");
-            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
+            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFirst = first;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", Precise.stringAbs(BitgetCore.this.safeString2(finalFirst, "totalFee", "fee")) );
@@ -2862,7 +2862,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 {
                     Object entry = Helpers.GetValue(coins, j);
                     Object currencyId = this.safeString(entry, "coin");
-                    String code = (String) this.safeCurrencyCode(currencyId);
+                    Object code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
                     {
@@ -2885,7 +2885,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             } else
             {
                 Object currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                Object code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
                 {

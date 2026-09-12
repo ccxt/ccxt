@@ -701,7 +701,7 @@ public class BithumbCore extends BithumbApi
                             continue;
                         }
                         Object market = Helpers.GetValue(data, currencyId);
-                        String base = (String) this.safeCurrencyCode(currencyId);
+                        String base = this.safeCurrencyCode(currencyId);
                         Boolean active = true;
                         if (Helpers.isTrue(Helpers.isArray(market)))
                         {
@@ -823,7 +823,7 @@ public class BithumbCore extends BithumbApi
                 Object entry = Helpers.GetValue(response, i);
                 Object account = this.account();
                 String currencyId = this.safeString(entry, "currency");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {
                     continue;
@@ -1080,7 +1080,7 @@ public class BithumbCore extends BithumbApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = (Long) this.safeInteger2(ticker, "date", "trade_timestamp");
         String marketId = this.safeString(ticker, "market");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String close = this.safeString2(ticker, "closing_price", "trade_price");
         String change = this.safeString2(ticker, "signed_change_price", "change_price");
         String percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
@@ -1291,7 +1291,7 @@ public class BithumbCore extends BithumbApi
                             continue;
                         }
                         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-                        String symbol = (String) this.safeSymbol(marketId, market);
+                        String symbol = this.safeSymbol(marketId, market);
                         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                         {
                             continue;
@@ -1342,7 +1342,7 @@ public class BithumbCore extends BithumbApi
                     {
                         Object currencyId = Helpers.GetValue(currencyIds, j);
                         Object ticker = Helpers.GetValue(data, currencyId);
-                        String base = (String) this.safeCurrencyCode(currencyId);
+                        String base = this.safeCurrencyCode(currencyId);
                         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
                         Helpers.addElementToObject(ticker, "date", timestamp);
@@ -2602,8 +2602,8 @@ public class BithumbCore extends BithumbApi
         Object symbol = null;
         String baseId = this.safeString(order, "order_currency");
         String quoteId = this.safeString(order, "payment_currency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && Helpers.isTrue((!Helpers.isEqual(quote, null)))))
         {
             symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -3852,7 +3852,7 @@ public class BithumbCore extends BithumbApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(response, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String address = this.safeString(response, "deposit_address");
         if (Helpers.isTrue(Helpers.isEqual(address, null)))
         {

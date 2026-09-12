@@ -960,7 +960,7 @@ public class ToobitCore extends ToobitApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "coinId");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object rawNetworks = this.safeList(rawCurrency, "chainTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(rawNetworks)); j++)
@@ -1195,10 +1195,10 @@ public class ToobitCore extends ToobitApi
         String quoteId = this.safeString(market, "quoteAsset");
         Object baseParts = Helpers.split(baseId, "-");
         String baseIdClean = (String) Helpers.GetValue(baseParts, 0);
-        String base = (String) this.safeCurrencyCode(baseIdClean);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseIdClean);
+        String quote = this.safeCurrencyCode(quoteId);
         String settleId = this.safeString(market, "marginToken");
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         String status = this.safeString(market, "status");
         Boolean active = (Helpers.isEqual(status, "TRADING"));
         Object filters = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1876,7 +1876,7 @@ public class ToobitCore extends ToobitApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Double nextFundingRate = this.safeNumber(contract, "rate");
         Long nextFundingRateTimestamp = this.safeInteger(contract, "nextFundingTime");
         return new java.util.HashMap<String, Object>() {{
@@ -2023,7 +2023,7 @@ public class ToobitCore extends ToobitApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
-            String code = (String) this.safeCurrencyCode(this.safeString(balance, "asset"));
+            String code = this.safeCurrencyCode(this.safeString(balance, "asset"));
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString2(balance, "free", "availableBalance"));
             Helpers.addElementToObject(account, "total", this.safeString2(balance, "total", "balance"));
@@ -3297,7 +3297,7 @@ public class ToobitCore extends ToobitApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(transaction, "time");
         String currencyId = this.safeString2(transaction, "coin", "coinId");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String feeString = this.safeString(transaction, "fee");
         String feeCoin = this.safeString(transaction, "feeCoinName");
         Object fee = null;

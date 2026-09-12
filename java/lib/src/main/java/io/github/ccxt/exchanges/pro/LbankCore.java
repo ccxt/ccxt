@@ -240,7 +240,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //      }
         //
         Object marketId = this.safeString(message, "pair");
-        String symbol = (String) this.safeSymbol(marketId, null, "_");
+        Object symbol = this.safeSymbol(marketId, null, "_");
         Object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new java.util.HashMap<String, Object>() {{}});
         Object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new java.util.HashMap<String, Object>() {{}});
         Object records = this.safeValue(message, "records");
@@ -375,7 +375,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //     }
         //
         Object marketId = this.safeString(message, "pair");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object parsedTicker = this.parseWsTicker(message, market);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
@@ -410,7 +410,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(ticker, "pair");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Object datetime = this.safeString(ticker, "TS");
         Object tickerData = this.safeValue(ticker, "tick");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -551,7 +551,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //     }
         //
         Object marketId = this.safeString(message, "pair");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -698,7 +698,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //     }
         //
         Object marketId = this.safeString(message, "pair");
-        String symbol = (String) this.safeSymbol(marketId, null, "_");
+        Object symbol = this.safeSymbol(marketId, null, "_");
         Object myOrders = this.orders;
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -772,7 +772,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             type = ((Helpers.isTrue((Helpers.isEqual(exchangeType, "market"))))) ? "market" : "limit";
         }
         Object marketId = this.safeString(order, "pair");
-        String symbol = (String) this.safeSymbol(marketId, market, "_");
+        Object symbol = this.safeSymbol(marketId, market, "_");
         Long timestamp = this.safeInteger(orderUpdate, "updateTime");
         Object status = this.safeString(orderUpdate, "orderStatus");
         Object orderAmount = this.safeString(orderUpdate, "orderAmt");
@@ -876,7 +876,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", datetime);
         Object currencyId = this.safeString(data, "assetCode");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        Object code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(data, "free"));
         Helpers.addElementToObject(account, "used", this.safeString(data, "freeze"));
@@ -1035,7 +1035,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //     }
         //
         Object marketId = this.safeString(message, "pair");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         Object orderBook = this.safeValue(message, "depth", message);
         Object datetime = this.safeString(message, "TS");
         Long timestamp = this.parse8601(datetime);

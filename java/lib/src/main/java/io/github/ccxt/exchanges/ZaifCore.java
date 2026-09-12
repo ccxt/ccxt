@@ -353,8 +353,8 @@ public class ZaifCore extends ZaifApi
         var baseIdquoteIdVariable = Helpers.split(name, "/");
         var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
         var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
@@ -422,7 +422,7 @@ public class ZaifCore extends ZaifApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             String balance = this.safeString(funds, currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", balance);
@@ -511,7 +511,7 @@ public class ZaifCore extends ZaifApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = Precise.stringMul(baseVolume, vwap);
@@ -602,7 +602,7 @@ public class ZaifCore extends ZaifApi
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "currency_pair");
-        String symbol = (String) this.safeSymbol(marketId, market, "_");
+        String symbol = this.safeSymbol(marketId, market, "_");
         final Object finalSide = side;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -792,7 +792,7 @@ public class ZaifCore extends ZaifApi
         side = ((Helpers.isTrue((Helpers.isEqual(side, "bid"))))) ? "buy" : "sell";
         Object timestamp = this.safeTimestamp(order, "timestamp");
         String marketId = this.safeString(order, "currency_pair");
-        String symbol = (String) this.safeSymbol(marketId, market, "_");
+        String symbol = this.safeSymbol(marketId, market, "_");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "amount");
         String id = this.safeString2(order, "id", "order_id");

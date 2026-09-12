@@ -506,7 +506,7 @@ public class Bit2cCore extends Bit2cApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         String averagePrice = this.safeString(ticker, "av");
         String baseVolume = this.safeString(ticker, "a");
         String last = this.safeString(ticker, "ll");
@@ -672,7 +672,7 @@ public class Bit2cCore extends Bit2cApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);
-                String symbol = (String) this.safeSymbol(marketId);
+                String symbol = this.safeSymbol(marketId);
                 Object fee = this.safeValue(fees, marketId);
                 String makerString = this.safeString(fee, "FeeMaker");
                 String takerString = this.safeString(fee, "FeeTaker");
@@ -903,7 +903,7 @@ public class Bit2cCore extends Bit2cApi
             orderUnified = order;
         }
         String id = this.safeString(orderUnified, "id");
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Long timestamp = this.safeIntegerProduct(orderUnified, "created", 1000);
         // status field vary between responses
         // bit2c status type:
@@ -1270,7 +1270,7 @@ public class Bit2cCore extends Bit2cApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
-        String code = (String) this.safeCurrencyCode(null, currency);
+        String code = this.safeCurrencyCode(null, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );

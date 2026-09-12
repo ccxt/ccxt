@@ -641,10 +641,10 @@ public class DydxCore extends DydxApi
         Object parts = Helpers.split(marketId, "-");
         String baseName = this.safeString(parts, 0);
         String baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         String settleId = "USDC";
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Boolean contract = true;
         Boolean swap = true;
@@ -1079,7 +1079,7 @@ public class DydxCore extends DydxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String status = this.parseOrderStatus(this.safeStringUpper(order, "status"));
         String marketId = this.safeString(order, "ticker");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String filled = this.safeString(order, "totalFilled");
         Long timestamp = this.parse8601(this.safeString(order, "updatedAt"));
         String price = this.safeString(order, "price");
@@ -1590,7 +1590,7 @@ public class DydxCore extends DydxApi
 
     }
 
-    public Object pow(Object n, Object m)
+    public String pow(Object n, Object m)
     {
         String r = Precise.stringMul(n, "1");
         Long c = this.parseToInt(m);
@@ -1637,10 +1637,10 @@ public class DydxCore extends DydxApi
         Object priceStr = this.priceToPrecision(symbol, price);
         Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
         Object atomicResolution = Helpers.GetValue(marketInfo, "atomicResolution");
-        Object quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
+        String quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
         String quantums = Precise.stringMul(amountStr, quantumScale);
         Object quantumConversionExponent = Helpers.GetValue(marketInfo, "quantumConversionExponent");
-        Object priceScale = this.pow("10", Precise.stringSub(Precise.stringSub(atomicResolution, quantumConversionExponent), "-6"));
+        String priceScale = this.pow("10", Precise.stringSub(Precise.stringSub(atomicResolution, quantumConversionExponent), "-6"));
         String subticks = Precise.stringMul(priceStr, priceScale);
         Integer clientMetadata = 0;
         Integer conditionalType = 0;
@@ -1768,17 +1768,17 @@ public class DydxCore extends DydxApi
             put( "value", orderPayload );
         }};
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId")));
-        Object walletAddress = this.getWalletAddress();
+        String walletAddress = this.getWalletAddress();
         Object clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
         Object subaccountIdValue = ((Helpers.isTrue((Helpers.isEqual(subaccountId, null))))) ? 0 : subaccountId;
         Object clientOrderIdValue = ((Helpers.isTrue((Helpers.isEqual(clientOrderId, null))))) ? 0 : clientOrderId;
         Object orderFlagValue = ((Helpers.isTrue((Helpers.isEqual(orderFlag, null))))) ? 0 : orderFlag;
         Object clobPairIdValue = ((Helpers.isTrue((Helpers.isEqual(clobPairId, null))))) ? 0 : clobPairId;
-        Object orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
+        String orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(orderId, this.extend(signingPayload, parameters)));
     }
 
-    public Object createOrderIdFromParts(Object address, Object subAccountNumber, Object clientOrderId, Object orderFlags, Object clobPairId)
+    public String createOrderIdFromParts(Object address, Object subAccountNumber, Object clientOrderId, Object orderFlags, Object clobPairId)
     {
         String nameSp = this.safeString(this.options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d");
         Object prefixAddress = Helpers.add(Helpers.add(address, "-"), String.valueOf(subAccountNumber));
@@ -2183,7 +2183,7 @@ public class DydxCore extends DydxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "symbol");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String type = this.safeStringUpper(item, "type");
         String direction = null;
@@ -2483,7 +2483,7 @@ public class DydxCore extends DydxApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(transfer, "id");
         String currencyId = this.safeString(transfer, "symbol");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Double amount = this.safeNumber(transfer, "size");
         Object sender = this.safeDict(transfer, "sender");
         Object recipient = this.safeDict(transfer, "recipient");
@@ -2574,7 +2574,7 @@ public class DydxCore extends DydxApi
         String addressFrom = this.safeString(sender, "address");
         String txid = this.safeString(transaction, "transactionHash");
         String currencyId = this.safeString(transaction, "symbol");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
         Double amount = this.safeNumber(transaction, "size");
         return new java.util.HashMap<String, Object>() {{
@@ -3057,7 +3057,7 @@ public class DydxCore extends DydxApi
         return Helpers.subtract(this.milliseconds(), Helpers.GetValue(this.options, "timeDifference"));
     }
 
-    public Object getWalletAddress()
+    public String getWalletAddress()
     {
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(this.walletAddress, null)) && Helpers.isTrue(!Helpers.isEqual(this.walletAddress, ""))))
         {

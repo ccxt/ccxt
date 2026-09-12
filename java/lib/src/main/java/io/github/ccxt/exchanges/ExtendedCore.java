@@ -706,8 +706,8 @@ public class ExtendedCore extends ExtendedApi
             baseId = Helpers.replace((String)baseId, (String)"SPOT", (String)"");
         }
         String quoteId = this.safeString(market, "collateralAssetName");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         if (Helpers.isTrue(Helpers.isEqual(quoteId, "USD")))
         {
             quote = "USDC";
@@ -881,7 +881,7 @@ public class ExtendedCore extends ExtendedApi
         {
             currencyId = Helpers.replace((String)currencyId, (String)"SPOT", (String)"");
         }
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         if (Helpers.isTrue(Helpers.isEqual(currencyId, "USD")))
         {
             code = "USDC";
@@ -1073,7 +1073,7 @@ public class ExtendedCore extends ExtendedApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Double last = this.safeNumber(ticker, "lastPrice");
         String percentageRaw = this.safeString(ticker, "dailyPriceChangePercentage");
         String percentage = ((Helpers.isTrue((!Helpers.isEqual(percentageRaw, null))))) ? Precise.stringMul(percentageRaw, "100") : null;
@@ -1875,7 +1875,7 @@ public class ExtendedCore extends ExtendedApi
         {
             Object balance = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "availableToWithdraw"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
@@ -2069,7 +2069,7 @@ public class ExtendedCore extends ExtendedApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(item, "time");
         String assetId = this.safeString(item, "asset");
-        Object code = this.getExtendedCurrencyCodeById(assetId, currency);
+        String code = this.getExtendedCurrencyCodeById(assetId, currency);
         java.util.Map<String, Object> ledgerCurrency = (java.util.Map<String, Object>) this.safeCurrency(code, currency);
         String amountString = this.safeString(item, "amount");
         String direction = null;
@@ -2487,7 +2487,7 @@ public class ExtendedCore extends ExtendedApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(transfer, "time");
         String assetId = this.safeString(transfer, "asset");
-        Object code = this.getExtendedCurrencyCodeById(assetId, currency);
+        String code = this.getExtendedCurrencyCodeById(assetId, currency);
         String amountString = this.safeString(transfer, "amount");
         Object amount = ((Helpers.isTrue((Helpers.isEqual(amountString, null))))) ? null : this.parseNumber(Precise.stringAbs(amountString));
         String accountId = this.safeString(transfer, "accountId");
@@ -2524,7 +2524,7 @@ public class ExtendedCore extends ExtendedApi
         }};
     }
 
-    public Object getExtendedCurrencyCodeById(Object assetId, Object... optionalArgs)
+    public String getExtendedCurrencyCodeById(Object assetId, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         if (Helpers.isTrue(Helpers.isEqual(assetId, null)))
@@ -2539,9 +2539,9 @@ public class ExtendedCore extends ExtendedApi
         }
         if (Helpers.isTrue(!Helpers.isEqual(currency, null)))
         {
-            return Helpers.GetValue(currency, "code");
+            return (String) Helpers.GetValue(currency, "code");
         }
-        String code = (String) this.safeCurrencyCode(assetId);
+        String code = this.safeCurrencyCode(assetId);
         if (Helpers.isTrue(Helpers.isEqual(code, "USD")))
         {
             code = "USDC";
@@ -2589,7 +2589,7 @@ public class ExtendedCore extends ExtendedApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(transaction, "time");
         String assetId = this.safeString(transaction, "asset");
-        Object code = this.getExtendedCurrencyCodeById(assetId, currency);
+        String code = this.getExtendedCurrencyCodeById(assetId, currency);
         String amountString = this.safeString(transaction, "amount");
         Object amount = ((Helpers.isTrue((Helpers.isEqual(amountString, null))))) ? null : this.parseNumber(Precise.stringAbs(amountString));
         Object fee = null;

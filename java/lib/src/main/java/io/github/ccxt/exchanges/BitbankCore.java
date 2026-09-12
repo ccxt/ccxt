@@ -384,8 +384,8 @@ public class BitbankCore extends BitbankApi
         String id = this.safeString(entry, "name");
         String baseId = this.safeString(entry, "base_asset");
         String quoteId = this.safeString(entry, "quote_asset");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -443,7 +443,7 @@ public class BitbankCore extends BitbankApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -789,7 +789,7 @@ public class BitbankCore extends BitbankApi
         {
             Object balance = Helpers.GetValue(assets, i);
             String currencyId = this.safeString(balance, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "free_amount"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked_amount"));

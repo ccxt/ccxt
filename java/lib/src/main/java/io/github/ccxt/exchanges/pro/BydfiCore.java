@@ -719,7 +719,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         Object marketId = this.safeString(message, "s");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         Long timestamp = this.safeInteger(message, "E");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -1238,7 +1238,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             {
                 Object balance = Helpers.GetValue(balances, i);
                 Object currencyId = this.safeString(balance, "a");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                Object code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "total", this.safeString(balance, "wb"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "tfm"));

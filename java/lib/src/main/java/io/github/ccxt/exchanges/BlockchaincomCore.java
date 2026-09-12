@@ -361,8 +361,8 @@ public class BlockchaincomCore extends BlockchaincomApi
                 Object market = this.safeValue(markets, marketId);
                 String baseId = this.safeString(market, "base_currency");
                 String quoteId = this.safeString(market, "counter_currency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Double numericId = this.safeNumber(market, "id");
                 Object active = null;
                 String marketState = this.safeString(market, "status");
@@ -552,7 +552,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, "-");
+        String symbol = this.safeSymbol(marketId, market, "-");
         String last = this.safeString(ticker, "last_trade_price");
         String baseVolume = this.safeString(ticker, "volume_24h");
         String open = this.safeString(ticker, "price_24h");
@@ -675,7 +675,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         String state = this.parseOrderState(statusId);
         String side = this.safeStringLower(order, "side");
         String marketId = this.safeString(order, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, "-");
+        String symbol = this.safeSymbol(marketId, market, "-");
         String exchangeOrderId = this.safeString(order, "exOrdId");
         String price = ((Helpers.isTrue((!Helpers.isEqual(type, "market"))))) ? this.safeString(order, "price") : null;
         Double average = this.safeNumber(order, "avgPx");
@@ -1201,7 +1201,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         Double amount = this.safeNumber(transaction, "amount");
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String state = this.safeString(transaction, "state");
         if (Helpers.isTrue(Helpers.inOp(transaction, "depositId")))
         {

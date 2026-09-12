@@ -818,8 +818,8 @@ public class BtseCore extends BtseApi
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseCurrency");
         String quoteId = this.safeString(market, "quoteCurrency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         String maxAmountString = this.safeString(market, "maxOrderSize");
         String minAmountString = this.safeString(market, "minOrderSize");
@@ -1274,7 +1274,7 @@ public class BtseCore extends BtseApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(inUse)); j++)
                 {
                     Object usedRow = Helpers.GetValue(inUse, j);
-                    String usedCode = (String) this.safeCurrencyCode(this.safeString(usedRow, "currency"));
+                    String usedCode = this.safeCurrencyCode(this.safeString(usedRow, "currency"));
                     if (Helpers.isTrue(Helpers.isEqual(usedCode, null)))
                     {
                         continue;
@@ -1284,7 +1284,7 @@ public class BtseCore extends BtseApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(assets)); j++)
                 {
                     Object assetRow = Helpers.GetValue(assets, j);
-                    String code = (String) this.safeCurrencyCode(this.safeString(assetRow, "currency"));
+                    String code = this.safeCurrencyCode(this.safeString(assetRow, "currency"));
                     if (Helpers.isTrue(Helpers.isEqual(code, null)))
                     {
                         continue;
@@ -1296,7 +1296,7 @@ public class BtseCore extends BtseApi
             {
                 // unified wallet row: {"asset": "BTC", "totalAmount": "100.0", "availableAmount": "100.0"}
                 // legacy spot wallet row: {"available": 520.52, "currency": "USD", "total": 5566.5566}
-                String code = (String) this.safeCurrencyCode(this.safeString2(row, "asset", "currency"));
+                String code = this.safeCurrencyCode(this.safeString2(row, "asset", "currency"));
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {
                     continue;
@@ -2316,7 +2316,7 @@ public class BtseCore extends BtseApi
             {
                 Helpers.addElementToObject(request, "postOnly", true);
             }
-            Object timeInForce = this.handleTimeInForce(parameters);
+            String timeInForce = this.handleTimeInForce(parameters);
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
             {
                 Helpers.addElementToObject(request, "timeInForce", timeInForce);
@@ -2583,7 +2583,7 @@ public class BtseCore extends BtseApi
             {
                 Helpers.addElementToObject(request, "postOnly", true);
             }
-            Object timeInForce = this.handleTimeInForce(parameters);
+            String timeInForce = this.handleTimeInForce(parameters);
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
             {
                 Helpers.addElementToObject(request, "timeInForce", timeInForce);
@@ -3591,7 +3591,7 @@ public class BtseCore extends BtseApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString2(transaction, "currency", "asset");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = (Long) this.safeInteger2(transaction, "timestamp", "transactionTime");
         String networkId = this.safeString2(transaction, "currencyNetwork", "cryptoNetwork");
         return new java.util.HashMap<String, Object>() {{
@@ -3729,7 +3729,7 @@ public class BtseCore extends BtseApi
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString2(item, "currency", "asset");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = (Long) this.safeInteger2(item, "timestamp", "transactionTime");
         String type = this.safeString(item, "type");
         return new java.util.HashMap<String, Object>() {{

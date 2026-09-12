@@ -816,7 +816,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                String marketId = this.safeStringLower(market, "id");
+                String marketId = (String)this.safeStringLower(market, "id");
                 ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(marketId, "@aggTrade"));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("trade::", Helpers.GetValue(market, "symbol")));
             }
@@ -1018,7 +1018,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object id = this.safeString2(trade, "t", "a");
         Long timestamp = this.safeInteger(trade, "T");
         Object price = this.safeString2(trade, "L", "p");
-        String amount = null;
+        Object amount = null;
         if (Helpers.isTrue(isPublicTrade))
         {
             amount = this.safeString(trade, "q");
@@ -1037,8 +1037,8 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         }
         Object marketId = this.safeString(trade, "s");
         Object defaultType = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? this.safeString(this.options, "defaultType", "spot") : Helpers.GetValue(market, "type");
-        String symbol = (String) this.safeSymbol(marketId, market, null, defaultType);
-        String side = this.safeStringLower(trade, "S");
+        Object symbol = this.safeSymbol(marketId, market, null, defaultType);
+        String side = (String)this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         Object orderId = this.safeString(trade, "i");
         if (Helpers.isTrue(Helpers.inOp(trade, "m")))
@@ -1054,14 +1054,14 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             Object feeCurrencyId = this.safeString(trade, "N");
-            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
+            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurrencyCode );
             }};
         }
-        String type = this.safeStringLower(trade, "o");
+        String type = (String)this.safeStringLower(trade, "o");
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalSide = side;
         final Object finalPrice = price;
@@ -1415,7 +1415,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbolString);
                 symbolString = Helpers.GetValue(market, "symbol");
                 Object unfiedTimeframe = this.safeString(data, 1);
-                String timeframeId = ((Helpers.isTrue((Helpers.isEqual(unfiedTimeframe, null))))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+                Object timeframeId = ((Helpers.isTrue((Helpers.isEqual(unfiedTimeframe, null))))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
                 ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(Helpers.add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol")), ":"), unfiedTimeframe));
             }
@@ -1485,7 +1485,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbolString);
                 symbolString = Helpers.GetValue(market, "symbol");
                 Object unfiedTimeframe = this.safeString(data, 1);
-                String timeframeId = ((Helpers.isTrue((Helpers.isEqual(unfiedTimeframe, null))))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+                Object timeframeId = ((Helpers.isTrue((Helpers.isEqual(unfiedTimeframe, null))))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
                 ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(Helpers.add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("unsubscribe:ohlcv:", Helpers.GetValue(market, "symbol")), ":"), unfiedTimeframe));
             }
@@ -1845,7 +1845,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         {
             Object entry = Helpers.GetValue(B, i);
             Object currencyId = this.safeString(entry, "a");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(entry, "f"));
             Helpers.addElementToObject(account, "used", this.safeString(entry, "l"));
@@ -2057,7 +2057,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object marketId = this.safeString(position, "s");
         Object contracts = this.safeString(position, "pa");
         String contractsAbs = Precise.stringAbs(this.safeString(position, "pa"));
-        String positionSide = this.safeStringLower(position, "ps");
+        String positionSide = (String)this.safeStringLower(position, "ps");
         Boolean hedged = true;
         if (Helpers.isTrue(Helpers.isEqual(positionSide, "both")))
         {
@@ -2431,7 +2431,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(feeCost, null))) && Helpers.isTrue((Precise.stringGt(feeCost, "0")))))
         {
             Object feeCurrencyId = this.safeString(order, "N");
-            String feeCurrency = (String) this.safeCurrencyCode(feeCurrencyId);
+            Object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );

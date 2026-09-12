@@ -170,7 +170,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object data = this.safeValue(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(this.balance, "info", data);
         Object currencyId = this.safeString(data, "currency");
-        String currencyCode = (String) this.safeCurrencyCode(currencyId);
+        Object currencyCode = this.safeCurrencyCode(currencyId);
         Object balance = this.parseBalance(data);
         if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
         {
@@ -322,7 +322,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object parameters = this.safeValue(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeValue(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "instrument_name");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         Object ticker = this.parseTicker(data);
         Object messageHash = this.safeString(parameters, "channel");
         Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -518,7 +518,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object parts = Helpers.split(channel, ".");
         Object marketId = this.safeString(parts, 1);
         Object interval = this.safeString(parts, 2);
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object trades = this.safeList(parameters, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.trades, symbol), null)))
@@ -780,7 +780,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             descriptor = ((String)interval);
         }
         Object marketId = this.safeString(data, "instrument_name");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         Long timestamp = this.safeInteger(data, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {

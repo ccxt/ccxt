@@ -533,7 +533,7 @@ public class CoincheckCore extends CoincheckApi
         String price = this.safeString(order, "rate");
         Object status = null;
         String marketId = this.safeString(order, "pair");
-        String symbol = (String) this.safeSymbol(marketId, market, "_");
+        String symbol = this.safeSymbol(marketId, market, "_");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
@@ -604,7 +604,7 @@ public class CoincheckCore extends CoincheckApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -1211,7 +1211,7 @@ public class CoincheckCore extends CoincheckApi
         String address = this.safeString(transaction, "address");
         Double amount = this.safeNumber(transaction, "amount");
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Long updated = this.parse8601(this.safeString(transaction, "confirmed_at"));
         Object fee = null;

@@ -359,9 +359,9 @@ public class BtcboxCore extends BtcboxApi
     public Object parseMarket(Object market)
     {
         String baseId = this.safeString(market, "base");
-        String base = (String) this.safeCurrencyCode(baseId);
+        String base = this.safeCurrencyCode(baseId);
         String quoteId = this.safeString(market, "quote");
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
@@ -501,7 +501,7 @@ public class BtcboxCore extends BtcboxApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
