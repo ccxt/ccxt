@@ -328,6 +328,9 @@ def ws_client_has_pending_futures(exchange, url):
     # injector polls this instead of relying on a fixed head-start sleep
     client = exchange.client(url)
     # REST balance snapshots do not wait for WebSocket frames.
+    # Cancelling an asyncio waiter can leave its done Future registered until
+    # Client.future() replaces it. Keep done() so it cannot signal WS readiness.
+    # Normal Client.resolve() removes the entry, as in the other clients.
     for message_hash, future in client.futures.items():
         if not message_hash.endswith(':fetchBalanceSnapshot') and not future.done():
             return True
