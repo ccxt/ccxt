@@ -8547,7 +8547,7 @@ public class Htx extends HtxApi
                 Double fee = this.safeNumber(parameters, "fee");
                 if (Helpers.isTrue(Helpers.isEqual(fee, null)))
                 {
-                    Object currencies = (this.fetchCurrenciesAsync()).join();
+                    Object currencies = (this.fetchCurrencies((Object)(new Object[0]))).join();
                     this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
                     Object targetNetwork = this.safeValue(Helpers.GetValue(currency, "networks"), networkCode, new java.util.HashMap<String, Object>() {{}});
                     fee = this.safeNumber(targetNetwork, "fee");

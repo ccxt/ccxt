@@ -1528,7 +1528,7 @@ public class Whitebit extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             // Fetch both currencies and fees data for comprehensive funding limits
-            var currenciesDatafeesDataVariable = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchCurrenciesAsync(), this.v4PublicGetFee(parameters))))).join();
+            var currenciesDatafeesDataVariable = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchCurrencies(new Object[0]), this.v4PublicGetFee(parameters))))).join();
             var currenciesData = ((java.util.List<Object>) currenciesDatafeesDataVariable).get(0);
             var feesData = ((java.util.List<Object>) currenciesDatafeesDataVariable).get(1);
             //

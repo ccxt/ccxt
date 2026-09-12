@@ -44,43 +44,16 @@ function overwriteFileAndFolder(path: string, content: string) {
     overwriteFile(path, content);
 }
 
-// User-facing typed methods that ship BOTH a typed sync overload
-// (`Balances fetchBalance()`) AND a typed async sibling
-// (`CompletableFuture<Balances> fetchBalanceAsync()`). Internal calls in
-// transpiled exchange files that resolve to the typed sync overload
-// would break the parent's CompletableFuture chain (`.join()` doesn't
-// exist on `Balances`), and inside `Promise.all` they'd silently run
-// synchronously instead of in parallel.
-//
-// Only the ZERO-ARG call shape needs rewriting:
-//   - `this.fetchBalance()`         → Java picks typed sync (more specific
-//     than varargs) → returns `Balances` → `.join()` fails. REWRITE.
-//   - `this.fetchBalance(params)`   → Java transpiler emits `(Object) params`
-//     cast; `Object` not assignable to typed `Map`, so it routes to the
-//     base `fetchBalance(Object... varargs)`. Already correct. DON'T touch.
-//   - `this.fetchBalance(undef)`    → same as above. DON'T touch.
-//
-// Rewriting non-zero-arg calls would break compilation because there is
-// no `fetchBalanceAsync(Object... varargs)` on the base class — only the
-// typed-arity variants exist.
-//
-// Anchored on `this.` so `super.<method>(...)` calls are left alone.
-// Applies only to per-exchange .java output — base `Exchange.java`
-// (which lacks the typed-async siblings) is unaffected because it's
-// emitted via a different code path (`transpileBaseMethods`).
-//
-// Whitelist is the single source of truth in build/generateJavaWrappers.ts.
-// Match both zero-arg `()` and explicit single-null `(null)` (the latter is
-// what `await this.fetchX (undefined)` in TS transpiles to in Java). Both are
-// semantically "all defaults"; both must route through Async to avoid
-// colliding with the typed sync overload's `(List<String>)` etc.
+// Zero-arg `this.fetchBalance()` (or `this.fetchBalance(null)`) on a whitelisted
+// name would bind TypedSurface's fixed-arity default and return a typed value
+// (JLS 15.12.2 phase 1 beats varargs); `new Object[0]` binds only the varargs core.
 const WHITELISTED_ZERO_ARG_CALL_RE = new RegExp(
     '\\bthis\\.(' + [...ZERO_REQUIRED_TYPED_WHITELIST].join('|') + ')\\(\\s*(?:null\\s*)?\\)',
     'g',
 );
 
-function routeWhitelistedInternalCallsToAsync(javaSource: string): string {
-    return javaSource.replace(WHITELISTED_ZERO_ARG_CALL_RE, 'this.$1Async()');
+function routeWhitelistedInternalCallsToVarargs(javaSource: string): string {
+    return javaSource.replace(WHITELISTED_ZERO_ARG_CALL_RE, 'this.$1(new Object[0])');
 }
 
 // Split a comma-separated argument list, respecting nested () [] {} and
@@ -4106,7 +4079,7 @@ class NewTranspiler {
         const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
-        javaSource = routeWhitelistedInternalCallsToAsync(javaSource)
+        javaSource = routeWhitelistedInternalCallsToVarargs(javaSource)
         javaSource = this.redirectToAsyncOnJoin(javaSource, prediction)
 
         if (javaFolder) {

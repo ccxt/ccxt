@@ -20,8 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 // createLimitOrder/... + watch*) are TRANSPILED from that TS class and injected below
 // the marker by build/javaTranspiler.ts (transpileBaseMethods). Everything above the
 // marker is hand-written: the delegating constructors (Java subclasses do not inherit
-// constructors), the WS-snapshot loadOrderBook, and the untyped async aliases for the
-// whitelisted trading methods that moved off BaseExchange.
+// constructors) and the WS-snapshot loadOrderBook.
 // ----------------------------------------------------------------------------
 
 public class Exchange extends BaseExchange implements TypedSurface {
@@ -87,25 +86,6 @@ public class Exchange extends BaseExchange implements TypedSurface {
     public void loadOrderBook(Client client, Object messageHash, Object symbol) {
         loadOrderBook(client, messageHash, symbol, null, null);
     }
-
-    // Untyped async aliases for the whitelisted trading methods that live on this
-    // Exchange tier (moved off BaseExchange). See BaseExchange.java for the full
-    // rationale — these let transpiled exchange code call `this.fetchOrdersAsync()` etc.
-    // and get a CompletableFuture<Object> to chain `.join()` on, without colliding
-    // with the typed sync overload added by the typed wrappers.
-    public java.util.concurrent.CompletableFuture<Object> fetchOrdersAsync(Object... args) { return fetchOrders(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTradesAsync(Object... args) { return fetchMyTrades(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrdersAsync(Object... args) { return fetchOpenOrders(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrdersAsync(Object... args) { return fetchClosedOrders(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrdersAsync(Object... args) { return fetchCanceledOrders(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchTickersAsync(Object... args) { return fetchTickers(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsAsync(Object... args) { return fetchPositions(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchOrdersWsAsync(Object... args) { return fetchOrdersWs(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTradesWsAsync(Object... args) { return fetchMyTradesWs(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrdersWsAsync(Object... args) { return fetchOpenOrdersWs(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrdersWsAsync(Object... args) { return fetchClosedOrdersWs(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchTickersWsAsync(Object... args) { return fetchTickersWs(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsWsAsync(Object... args) { return fetchPositionsWs(args); }
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT

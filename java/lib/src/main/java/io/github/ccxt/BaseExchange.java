@@ -3777,32 +3777,6 @@ public class BaseExchange {
     }
 
     // ------------------------------------------------------------------------
-    // Untyped async aliases for whitelisted user-facing methods.
-    //
-    // Transpiled internal code calls `this.fetchBalanceAsync()` etc. (rewritten from
-    // the zero-arg `this.fetchBalance()` by build/javaTranspiler.ts) and needs a
-    // `CompletableFuture<Object>` to chain `.join()` on; the zero-arg typed defaults
-    // on TypedSurface return typed values and would break that chain.
-    //
-    // Canonical list lives in ZERO_REQUIRED_TYPED_WHITELIST
-    // (build/generateJavaWrappers.ts) — build/javaTranspiler.ts imports it
-    // and `transpileJava` fails loudly if any whitelisted method is missing
-    // an alias below.
-
-    // NOTE: async aliases for the 62 trading methods that moved to the Exchange tier
-    // (fetchOrders/fetchMyTrades/fetchOpenOrders/fetchClosedOrders/fetchCanceledOrders/
-    // fetchTickers/fetchPositions) now live in Exchange.java, since BaseExchange no
-    // longer declares those methods. The *Ws variants below stay because their target
-    // methods (fetchOrdersWs, ...) remain on BaseExchange.
-    public java.util.concurrent.CompletableFuture<Object> fetchBalanceAsync(Object... args) { return fetchBalance(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchTimeAsync(Object... args) { return fetchTime(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchStatusAsync(Object... args) { return fetchStatus(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchAccountsAsync(Object... args) { return fetchAccounts(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchCurrenciesAsync(Object... args) { return fetchCurrencies(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchMarketsAsync(Object... args) { return fetchMarkets(args); }
-    public java.util.concurrent.CompletableFuture<Object> fetchBalanceWsAsync(Object... args) { return fetchBalanceWs(args); }
-
-    // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
 public Object describe()

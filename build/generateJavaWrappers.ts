@@ -161,23 +161,9 @@ interface MethodInfo {
     isWatch: boolean;
 }
 
-// User-facing methods with no required params for which we DO emit typed
-// zero-arg + truncation overloads. The default rule (skip if no required
-// params) protects against collisions with internal `this.method()` and
-// `this.method(null)` calls in transpiled WS code that expect the
-// parent's `Object... varargs` to match. For these methods we've audited
-// the TS sources, confirmed no internal zero-arg call sites remain (the
-// few that existed were updated to pass `params` / `{}`), and the typed
-// overloads are safe to emit.
-//
-// Adding to this list requires:
-//   1. `grep -r "await this\.<method>\s*(\s*)" ts/src/` returns no hits
-//   2. None of the remaining call sites pass `null` literally without an
-//      explicit cast — they should always pass a typed value
-//
-// loadMarkets / loadAccounts / loadTimeDifference / signIn etc. are NOT in
-// this list because their internal call sites are too numerous to refactor
-// (loadMarkets alone has 3000+ `this.loadMarkets()` zero-arg call sites).
+// Zero-required-param methods that get typed zero-arg + truncation defaults.
+// javaTranspiler routes internal `this.<m>()` / `this.<m>(null)` calls on these
+// names to the varargs core (`new Object[0]`) so the typed default never binds.
 export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
     // REST
     'fetchBalance',
@@ -193,12 +179,8 @@ export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
     'fetchAccounts',
     'fetchCurrencies',
     'fetchMarkets',
-    // WebSocket variants — same zero-required-param shape, same typed return.
-    // Only includes methods that exist on at least one exchange's TS source AND
-    // have a base `Object... varargs` definition on Exchange.java (so the
-    // untyped async alias `fetchXWsAsync(Object...)` can delegate to it).
-    // `fetchCurrenciesWs` is excluded because its TS body uses `new Promise()`
-    // which doesn't transpile to Java — no base method, no delegate target.
+    // WebSocket variants with a base `Object...` core. `fetchCurrenciesWs` is
+    // excluded: its TS body uses `new Promise()`, which has no Java core.
     'fetchBalanceWs',
     'fetchOrdersWs',
     'fetchMyTradesWs',
@@ -208,12 +190,8 @@ export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
     'fetchPositionsWs',
 ]);
 
-// WS subscription methods (watch*) with all-optional parameters. They get
-// typed truncation overloads only — NO async siblings (watch* methods ship
-// sync-only by design) and NO base-class alias / regex rewrite (their
-// internal call sites don't trigger overload-resolution collisions; verified
-// via grep over ts/src/pro/*.ts). Keeps the user-facing surface symmetric
-// with their REST `fetch*` counterparts which already get truncations.
+// watch* methods with all-optional parameters: typed truncation overloads only,
+// no async siblings (watch* is sync-only) and no internal-call rewrite.
 const WATCH_ZERO_ARG_WHITELIST = new Set([
     'watchTickers',
     'watchBalance',
@@ -594,8 +572,6 @@ function predictionTierExcludeNames(): Set<string> {
     }
     return exclude;
 }
-const EXCHANGE_BASE_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
-const EXCHANGE_TIER_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
 
 /**
  * Detect whether this module is the process entry point.
@@ -644,30 +620,6 @@ function main() {
     fs.writeFileSync(BASE_PKG + 'TypedSurface.java', generateTypedSurfaceInterface('TypedSurface', restMethods.concat(wsMethods)), 'utf-8');
     fs.writeFileSync(BASE_PKG + 'PredictionTypedSurface.java', generateTypedSurfaceInterface('PredictionTypedSurface', predictionRestMethods), 'utf-8');
     console.log(`Generated TypedSurface (${restMethods.length} REST + ${wsMethods.length} WS methods) and PredictionTypedSurface (${predictionRestMethods.length} methods)`);
-
-    // Safety net: verify an Object... varargs alias exists for every whitelisted
-    // method. Missing aliases produced the silent CI break that motivated this
-    // whitelist; loud-failing here prevents the same trap. The aliases are split
-    // across two tiers after the base/Exchange split: base-infra methods (fetchBalance,
-    // fetchTime, ...) keep their aliases on BaseExchange.java, while the trading methods
-    // that moved to the Exchange tier (fetchOrders, fetchTickers, fetchPositions, ...)
-    // carry their aliases on Exchange.java. Check both.
-    {
-        let src = '';
-        if (fs.existsSync(EXCHANGE_BASE_FILE)) src += fs.readFileSync(EXCHANGE_BASE_FILE, 'utf-8');
-        if (fs.existsSync(EXCHANGE_TIER_FILE)) src += '\n' + fs.readFileSync(EXCHANGE_TIER_FILE, 'utf-8');
-        const missing: string[] = [];
-        for (const m of ZERO_REQUIRED_TYPED_WHITELIST) {
-            const aliasRe = new RegExp(`\\b${m}Async\\s*\\(\\s*Object\\.\\.\\.\\s*\\w+\\s*\\)`);
-            if (!aliasRe.test(src)) missing.push(`${m}Async(Object... args)`);
-        }
-        if (missing.length > 0) {
-            console.error(`\nERROR: BaseExchange.java / Exchange.java are missing untyped async aliases for ${missing.length} whitelisted method(s):`);
-            for (const m of missing) console.error(`  - public CompletableFuture<Object> ${m} { return ${m.replace('Async', '').replace(/\(.*/, '')}(args); }`);
-            console.error(`\nAdd them above the "METHODS BELOW THIS LINE ARE TRANSPILED" marker in the tier that declares the method.`);
-            process.exit(1);
-        }
-    }
 
     console.log('Done!');
 }
