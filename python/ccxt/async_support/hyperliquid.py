@@ -588,7 +588,13 @@ class hyperliquid(Exchange, ImplicitAPI):
                 fetchDexesList = dexesProvided
         else:
             fetchDexesLength = len(fetchDexes)
-            for i in range(1, maxLimit):
+            # index 0 is the null main dex, so the loop runs 1..maxLimit to load
+            # exactly maxLimit dexes. do NOT rewrite self as `i <= maxLimit`: the
+            # python transpiler collapses every for-loop bound to an exclusive
+            # range(), so `<=` silently emits range(1, maxLimit) and loads one dex
+            # too few(build/transpile.ts treats <, <=, > and >= identically)
+            maxIteration = self.sum(maxLimit, 1)
+            for i in range(1, maxIteration):
                 if i >= fetchDexesLength:
                     break
                 dex = self.safe_dict(fetchDexes, i, {})
