@@ -3354,10 +3354,11 @@ export function installJavaLocalTypes (transpiler) {
 //     per-type whitelist of the surviving scan (receiverCallIsSafe) is reused.
 //   - `typeof x === '...'` prints `x instanceof <box>` (inconvertible for the wrong
 //     family) and `delete x[k]` prints a Map receiver cast: both rejected.
-//   - WS/prediction files run build/javaTranspiler.ts#postProcessWsJava, whose
-//     "String type fixes" pass rewrites `String x = this.<m>(...)` / `Helpers.<...>(...)`
-//     back to `Object`: such a declaration — and every read resolving through it — is
-//     declined.
+//   - WS (pro) files run build/javaTranspiler.ts#postProcessWsJava, whose "String type
+//     fixes" pass rewrites `String x = this.<m>(...)` / `Helpers.<...>(...)` back to
+//     `Object`: such a declaration — and every read resolving through it — is declined.
+//     The prediction branch passes prediction=true and skips that revert (SS-08), so
+//     prediction files are NOT declined here.
 //   - pro files: a local that feeds an inherited async call stays Object (the typed REST
 //     wrapper overloads would win Java overload resolution once an argument is a String).
 //
@@ -3400,8 +3401,11 @@ const PRECISE_STRING_STATICS = new Set ([
 // declares an override (census)
 const DATAFLOW_STRING_BASE_METHODS = new Set ([ 'iso8601', 'numberToString' ]);
 
-// the files build/javaTranspiler.ts#createJavaClass runs postProcessWsJava over
-const DATAFLOW_WS_SOURCE_FILE = /[\\/](pro|prediction)[\\/]/;
+// the source files build/javaTranspiler.ts#createJavaClass still runs postProcessWsJava's
+// "String type fixes" revert over — the ws (pro) branch only. The prediction branch skips
+// the revert (SS-08: postProcessWsJava(…, prediction=true)), so a prediction declaration
+// the engine proves String is the FINAL spelling and must never be declined.
+const DATAFLOW_WS_SOURCE_FILE = /[\\/]pro[\\/]/;
 
 // declarations whose full decision is being computed right now (`let a = a;`)
 const dataflowClassifyInProgress = new Set ();
@@ -3716,7 +3720,8 @@ function dataflowEmittedTypeUnchecked (printer, declaration, context) {
 }
 
 // would postProcessWsJava's "String type fixes" pass rewrite this declaration back to
-// `Object`? It matches `String <name> = (this.<m>(|Helpers.)...;` — only a String family
+// `Object`? The pass runs for WS (pro) files only (the prediction branch skips it, SS-08).
+// It matches `String <name> = (this.<m>(|Helpers.)...;` — only a String family
 // value is at risk, and only when its printed form starts with this./Helpers. (a
 // parenthesised initializer prints `(` first and never matches). The exact same test is
 // applied to the printed value by the declaration wrapper.
@@ -4122,7 +4127,7 @@ function dataflowRewriteDeclaration (printer, node, identation, printed) {
     if (info.type === JAVA_DATAFLOW_STRING
         && (value.startsWith ('this.') || value.startsWith ('Helpers.'))
         && DATAFLOW_WS_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
-        return printed; // postProcessWsJava's String pass would revert the spelling
+        return printed; // the ws (pro) String pass would revert the spelling
     }
     return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${value}`;
 }
