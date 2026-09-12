@@ -2260,6 +2260,9 @@
             },
             "fetchTickers": {
                 "compareOHLC": "open is derived from last - priceChange, can fall outside 24h low/high range"
+            },
+            "fetchTrades": {
+                "sideSequence": "exchange itself provides messy order of trades on same ts, eg: https://revx.revolut.com/api/1.0/public/trades/all?symbol=BTC-USDC&limit=1900"
             }
         }
     },

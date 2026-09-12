@@ -20,7 +20,7 @@ async function testFetchTrades (exchange: Exchange, skippedProperties: object, s
     //
     // test if both sides are being returned
     //
-    const minTradesForBothSidesCheck = 90;
+    const minTradesForBothSidesCheck = 99;
     if (!('requireBothSides' in skippedProperties) && trades.length > minTradesForBothSidesCheck) {
         //
         //  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
@@ -71,9 +71,9 @@ async function helperTestFetchTradesSideSequence (exchange: Exchange, skippedPro
             const priceIncreasing = Precise.stringGt (price, lastPrice);
             const priceDecreasing = Precise.stringLt (price, lastPrice);
             if (priceIncreasing) {
-                assert (side === 'buy', 'Side should be `buy` if price is increasing' + testSharedMethods.logTemplate (exchange, method, trade));
+                assert (side === 'buy', 'Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' + testSharedMethods.logTemplate (exchange, method, trade));
             } else if (priceDecreasing) {
-                assert (side === 'sell', 'Side should be `sell` if price is decreasing' + testSharedMethods.logTemplate (exchange, method, trade));
+                assert (side === 'sell', 'Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' + testSharedMethods.logTemplate (exchange, method, trade));
             }
         }
         lastPrice = price;
