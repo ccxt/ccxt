@@ -2793,7 +2793,7 @@ public class CryptocomCore extends CryptocomApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
             Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             Object depositAddresses = depositAddressesRaw;
-            if (Helpers.isTrue(Helpers.inOp(depositAddresses, ((String)network))))
+            if (Helpers.isTrue(Helpers.inOp(depositAddresses, network)))
             {
                 return Helpers.GetValue(depositAddresses, network);
             }

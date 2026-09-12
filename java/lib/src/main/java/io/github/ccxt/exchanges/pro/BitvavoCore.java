@@ -1093,7 +1093,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
     {
         Object symbol = this.safeString(subscription, "symbol");
         Long limit = this.safeInteger(subscription, "limit");
-        if (Helpers.isTrue(Helpers.inOp(this.orderbooks, ((String)symbol))))
+        if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
             ((java.util.Map<String,Object>)this.orderbooks).remove((String)((String)symbol));
         }

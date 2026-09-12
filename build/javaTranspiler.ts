@@ -18,7 +18,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
 ansi.nice
@@ -1143,6 +1143,12 @@ class NewTranspiler {
         // print-order proof sees every other local-typing pass's rewritten declaration text
         // (also applied per worker thread in java-worker.ts)
         patchJavaMapChannelStringCasts(this.transpiler);
+        // SS-06: the four Object-parameter consumers (Helpers.isEqual / isTrue / inOp and
+        // this.safeValue*) take a String directly — drop the redundant `((String)x)`
+        // checkcast at their argument positions when the operand's declaration already
+        // printed `String`. Installed LAST so the print-order proof sees the declaration
+        // text every other local-typing slice rewrote (also applied in java-worker.ts).
+        patchJavaConsumerStringCasts(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a

@@ -5781,3 +5781,182 @@ export function patchJavaMapChannelStringCasts (transpiler) {
     };
     printer._javaSs09Patched = true;
 }
+
+// ===== SS-06: consumer-argument String casts (JAVA-SS6) =====
+//
+// The four consumer calls the safestring campaign calls out — `Helpers.isEqual`,
+// `Helpers.isTrue`, `Helpers.inOp` and `this.safeValue` / `safeValue2` / `safeValueN` —
+// are DECLARED with `Object` parameters in the hand-written base (Helpers.java,
+// BaseExchange.java). Java's widening conversion passes a `String` argument to an
+// `Object` parameter with no cast and no boxing of its own: the call site compiles to
+// the very same `invokestatic`/`invokevirtual` descriptor whether the argument's static
+// type is `String` or `Object`, so there is no String-vs-Object dispatch to be
+// identical about — there is only ONE method per name (verified against the built
+// classes: build/ss06-dispatch-identity/DispatchIdentity.java). No String-typed
+// overload exists, and none is needed: the consumers take the String directly.
+//
+// What does NOT take it directly is the TRANSPILED `((String)x)` wrapper: a TS
+// `x as string` assertion reaches the printer's `printAsExpression`, which emits the
+// checkcast for every StringKeyword assertion unconditionally. When that assertion
+// prints into one of the four consumers, the checkcast cannot be required by the
+// signature (every parameter is `Object`) and, when the operand is a local whose Java
+// declaration printed as `String`, it is a runtime no-op: the local-typing slices only
+// name the type when every reaching value is provably String-or-null, and a checkcast of
+// a String (or of null) neither changes the value nor throws. This hook drops the
+// wrapper for exactly that population, so the consumers take the String directly:
+//
+//     String baseName = this.safeString (symbolParts, 0);
+//     Helpers.inOp (spotCurrencyMapping, ((String)baseName))  ->  Helpers.inOp (spotCurrencyMapping, baseName)
+//
+// The proof is print-order local: the declaration's own printed line is inspected when
+// it is emitted (`String <name> = ` — after every other local-typing slice has had its
+// say, because this hook is installed last and therefore sees their rewritten text) and
+// the as-assertion resolves the operand through the checker to that very declaration
+// (name-equality guarded, so a renamed/captured use can never resolve elsewhere). Java
+// statements print in source order, so the declaration is always recorded before any use
+// of it prints.
+//
+// WS-TIER NOTE: postProcessWsJava (`── String type fixes ──`) re-widens those very
+// declarations back to `Object` when the printed initializer is a `this.<m>(…)` /
+// `Helpers.<m>(…)` call — the legacy blunt safety net of the first Java port (SS-07's
+// slice). It changes the DECLARATION TEXT, never the value: the value proof above is
+// what makes the cast a no-op, so the four WS-tier sites this hook reaches (see
+// build/ss06-consumer-cast-census.mjs) stay value-identical while the declarations are
+// still `Object` in the final text. Once SS-07 retires the revert they line up again.
+//
+// DELIBERATELY NOT TOUCHED (each would need a different slice's proof):
+//   * operand whose declaration did NOT print `String` (still `Object` on every path of
+//     the print — 76 of the 130 argument sites on the base): the cast is not provably a
+//     no-op — the root cause is the local's retyping (SS-02 reassignment, SS-07 pro
+//     tier, SS-08 prediction tier, SS-10 ternary arms). REJECTED here.
+//   * `((String)x).<method>()` receivers inside the arguments (`((String)id).endsWith`):
+//     the cast is load-bearing for the receiver's own type, a different print path
+//     (SS-12). REJECTED here.
+//   * casts under any other callee (isGreaterThan family, GetValue, add, split, …) —
+//     out of this slice's consumer set (the same String-declared-operand proof would
+//     apply, but the slice boundary is the four consumers the campaign named).
+//   * operands that are not plain identifiers (call results, element reads): the
+//     print-order proof resolves an identifier through the checker; anything else would
+//     need the dataflow module's proof (SS-09/SS-11 territory). REJECTED here.
+// The consumer position is read off the AST: the printer SYNTHESIZES the four calls,
+// so the parent of an argument is not a call node for three of the four:
+//   `a in b`                    -> Helpers.inOp(b, a)                        (either operand)
+//   `a == b` / `a != b` / `a === b` / `a !== b`
+//                               -> Helpers.isEqual(a, b) / !Helpers.isEqual(...) (either operand)
+//   truthiness positions (an if/while/do/for condition, a ternary condition, the
+//   operand of `!`, either operand of `&&`/`||`)
+//                               -> Helpers.isTrue(x)
+//   `this.safeValue*(x, (y as string))`
+//                               -> the getter's own direct argument
+// Parenthesized wrappers print as the expression itself, so they are climbed first.
+// Every one of those positions lands in a parameter declared `Object`, so the cast can
+// never be required there; the String-declared operand makes it a no-op.
+function ss06PrintedConsumer (node) {
+    let current = node;
+    let parent = current.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent) && parent.expression === current) {
+        current = parent;
+        parent = current.parent;
+    }
+    if (parent === undefined) {
+        return undefined;
+    }
+    if (ts.isCallExpression (parent) && parent.arguments !== undefined && parent.arguments.indexOf (current) !== -1) {
+        const callee = parent.expression;
+        if (callee !== undefined && ts.isPropertyAccessExpression (callee)
+            && callee.expression !== undefined && callee.expression.kind === ts.SyntaxKind.ThisKeyword
+            && SS06_SAFE_VALUE_METHODS.has (String (callee.name.escapedText))) {
+            return 'safeValue';
+        }
+        return undefined;
+    }
+    if (ts.isBinaryExpression (parent) && (parent.left === current || parent.right === current)) {
+        const operator = parent.operatorToken.kind;
+        if (operator === ts.SyntaxKind.InKeyword) {
+            return 'inOp';
+        }
+        if (operator === ts.SyntaxKind.EqualsEqualsToken || operator === ts.SyntaxKind.EqualsEqualsEqualsToken
+            || operator === ts.SyntaxKind.ExclamationEqualsToken || operator === ts.SyntaxKind.ExclamationEqualsEqualsToken) {
+            return 'isEqual';
+        }
+        if (operator === ts.SyntaxKind.AmpersandAmpersandToken || operator === ts.SyntaxKind.BarBarToken) {
+            return 'isTrue';
+        }
+        return undefined;
+    }
+    if (ts.isPrefixUnaryExpression (parent) && parent.operator === ts.SyntaxKind.ExclamationToken && parent.operand === current) {
+        return 'isTrue';
+    }
+    if (ts.isIfStatement (parent) && parent.expression === current) {
+        return 'isTrue';
+    }
+    if ((ts.isWhileStatement (parent) || ts.isDoStatement (parent) || ts.isForStatement (parent)) && parent.expression === current) {
+        return 'isTrue';
+    }
+    if (ts.isConditionalExpression (parent) && parent.condition === current) {
+        return 'isTrue';
+    }
+    return undefined;
+}
+
+const SS06_SAFE_VALUE_METHODS = new Set ([ 'safeValue', 'safeValue2', 'safeValueN' ]);
+// a single-declarator declaration line whose printed Java type is `String`
+const SS06_STRING_DECLARATION = /^\s*(?:final\s+)?String\s+[A-Za-z_$][A-Za-z0-9_$]*\s*=/;
+
+export function patchJavaConsumerStringCasts (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printAsExpression !== 'function' || printer._javaSs06Patched) {
+        return;
+    }
+    // declaration node -> true once its printed Java declaration is `String <name> = ...`
+    const printedStringDeclarations = new WeakMap ();
+    const upstreamDeclarationList = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamDeclarationList (node, identation);
+        const declarations = node.declarations ?? [];
+        if (declarations.length === 1) {
+            const firstLine = printed.split ('\n')[0];
+            if (SS06_STRING_DECLARATION.test (firstLine)) {
+                printedStringDeclarations.set (declarations[0], true);
+            }
+        }
+        return printed;
+    };
+    const upstreamAsExpression = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        const type = node.type;
+        const consumer = (type !== undefined && type.kind === ts.SyntaxKind.StringKeyword) ? ss06PrintedConsumer (node) : undefined;
+        if (consumer !== undefined) {
+            const identifier = ts.isIdentifier (node.expression) ? node.expression : undefined;
+            let declaration;
+            if (identifier !== undefined) {
+                try {
+                    declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration;
+                } catch (e) {
+                    declaration = undefined;
+                }
+            }
+            // the declaration must still carry this very name (a captured local renamed to
+            // `finalX` resolves to the synthesized `Object finalX = x` bridge instead) and
+            // must have printed `String`; both guards only ever withhold the rewrite
+            const named = declaration !== undefined && declaration.name !== undefined
+                && declaration.name.escapedText === identifier?.escapedText;
+            if (named && printedStringDeclarations.get (declaration) === true) {
+                if (process.env.CCXT_SS06_DEBUG) {
+                    console.error ('[ss06] drop ((String)' + declaration.name.escapedText + ') at consumer '
+                        + consumer + ' — declaration printed `String ' + declaration.name.escapedText + ' = ...`');
+                }
+                return printer.printNode (node.expression, identation);
+            }
+            if (process.env.CCXT_SS06_DEBUG) {
+                const reason = identifier === undefined ? 'operand-not-identifier'
+                    : declaration === undefined ? 'operand-unresolved'
+                        : !named ? 'operand-renamed-or-shadowed'
+                            : 'declaration-not-printed-String';
+                console.error ('[ss06] keep ((String)' + (identifier?.escapedText ?? '?') + ') at consumer ' + consumer + ' — ' + reason);
+            }
+        }
+        return upstreamAsExpression (node, identation);
+    };
+    printer._javaSs06Patched = true;
+}
