@@ -1877,9 +1877,12 @@ public class BaseExchange {
             // with in-flight handleMessage tasks the per-exchange tests still
             // need, causing 15 new exchanges to time out vs the baseline.
             // The leak the close() was meant to fix is slow-drip (virtual
-            // threads ~1KB each); we'll address it via a different mechanism
-            // (e.g. shutdown-on-Exchange.close() only, or a delayed shutdown).
+            // threads ~1KB each) and is now handled by the delayed shutdown
+            // below: scheduleExecutorShutdown() arms a grace-period timer that
+            // lets in-flight frames drain, re-checks liveness before shutting
+            // down, and disarms if the client is re-dialed in the meantime.
         }
+        client.scheduleExecutorShutdown();
     }
 
     /**
@@ -8814,10 +8817,10 @@ public Object describe()
             java.util.List<Object> retryDelayparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
             retryDelay = ((java.util.List<Object>) retryDelayparametersVariable).get(0);
             parameters = ((java.util.List<Object>) retryDelayparametersVariable).get(1);
-            Object fetchData = null;
             Boolean fetchDataCacheEnabled = Helpers.isGreaterThan(this.fetchHistoryCacheSize, 0);
             for (var i = 0; Helpers.isLessThan(i, Helpers.add(retries, 1)); i++)
             {
+                Object fetchData = null;
                 if (Helpers.isTrue(fetchDataCacheEnabled))
                 {
                     fetchData = new java.util.HashMap<String, Object>() {{
@@ -8832,13 +8835,13 @@ public Object describe()
                 {
                     this.setLastRestRequestTimestamp();
                     Object request = this.sign(path, api, method, parameters, headers, body);
-                    if (Helpers.isTrue(Helpers.isTrue(fetchDataCacheEnabled) && Helpers.isTrue((!Helpers.isEqual(fetchData, null)))))
+                    if (Helpers.isTrue(!Helpers.isEqual(fetchData, null)))
                     {
                         Helpers.addElementToObject(fetchData, "request", request);
                     }
                     this.setLastRequest(request);
                     Object response = (this.fetch(Helpers.GetValue(request, "url"), Helpers.GetValue(request, "method"), Helpers.GetValue(request, "headers"), Helpers.GetValue(request, "body"))).join();
-                    if (Helpers.isTrue(Helpers.isTrue(fetchDataCacheEnabled) && Helpers.isTrue((!Helpers.isEqual(fetchData, null)))))
+                    if (Helpers.isTrue(!Helpers.isEqual(fetchData, null)))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(fetchData, "response"), "body", response);
                         this.addFetchCache(fetchData);
@@ -8846,7 +8849,7 @@ public Object describe()
                     return response;
                 } catch(Exception e)
                 {
-                    if (Helpers.isTrue(Helpers.isTrue(fetchDataCacheEnabled) && Helpers.isTrue((!Helpers.isEqual(fetchData, null)))))
+                    if (Helpers.isTrue(!Helpers.isEqual(fetchData, null)))
                     {
                         Helpers.addElementToObject(fetchData, "error", e);
                         this.addFetchCache(fetchData);

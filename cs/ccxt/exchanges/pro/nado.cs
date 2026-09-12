@@ -1400,10 +1400,12 @@ public partial class nado : ccxt.nado
         {
             return null;
         }
-        int length = ((string)value).Length;
-        if (isTrue(isGreaterThan(length, 13)))
+        // keep the string-size reads inline: assigning the size to a standalone
+        // local is the regex transpiler's ARRAY hint and would emit php count()
+        // on a string, breaking every ws parser with a TypeError
+        if (isTrue(isGreaterThan(((string)value).Length, 13)))
         {
-            return this.parseToInt(slice(value, 0, subtract(length, 6)));
+            return this.parseToInt(slice(value, 0, subtract(((string)value).Length, 6)));
         }
         return this.safeInteger(message, key);
     }

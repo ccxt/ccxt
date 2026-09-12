@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -365,7 +369,7 @@ impl BlockchaincomCore {
                 m.insert("info".to_string(), message.clone());
             m
         });
-        let mut balances: Value = self.safe_value_k(message.clone(), "balances", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(message.clone(), "balances", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_182: bool = true;
@@ -861,7 +865,7 @@ impl BlockchaincomCore {
         }  else if is_equal(&event, &Value::Str("rejected".to_string())) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" ".to_string())), &self.json(message.clone()))));
         }  else if is_equal(&event, &Value::Str("snapshot".to_string())) {
-            let mut orders: Value = self.safe_value_k(message.clone(), "orders", &[Value::List(vec![])]);
+            let mut orders: Value = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_183: bool = true;

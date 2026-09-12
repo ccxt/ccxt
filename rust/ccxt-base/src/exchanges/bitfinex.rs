@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct BitfinexCore {
@@ -1873,10 +1877,10 @@ impl BitfinexCore {
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut accountsByType: Value = self.safe_value_k(self.options.clone(), "v2AccountsByType", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "v2AccountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut requestedType: Value = self.safe_string_k(params.clone(), "type", &[Value::Str("exchange".to_string())]);
         let mut accountType: Value = self.safe_string(accountsByType.clone(), requestedType.clone(), &[requestedType.clone()]);
         if is_equal(&accountType, &Value::Null) {
@@ -1946,10 +1950,10 @@ impl BitfinexCore {
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut accountsByType: Value = self.safe_value_k(self.options.clone(), "v2AccountsByType", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "v2AccountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[]);
         if is_equal(&fromId, &Value::Null) {
             let mut keys: Value = object_keys(&accountsByType);
@@ -2210,8 +2214,13 @@ impl BitfinexCore {
         //     ]
         //
         let mut length: Value = get_array_length(&ticker);
-        let mut firstValue: Value = self.safe_number(ticker.clone(), Value::Int(0), &[]);
-        let mut isFetchTicker: bool = !is_equal(&firstValue, &Value::Null); // if it's Nan, then it's string (symbol)
+        // the list shapes (fetchTickers) carry the market id in slot 0, the singular
+        // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
+        // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
+        // look like a number and the whole array would be read off by one.
+        let mut firstValue: Value = self.safe_string(ticker.clone(), Value::Int(0), &[]);
+        let mut hasMarketId: bool = is_true(&(!is_equal(&firstValue, &Value::Null))) && is_true(&(is_true(&Value::Bool(starts_with(&firstValue, &Value::Str("t".to_string())))) || is_true(&Value::Bool(starts_with(&firstValue, &Value::Str("f".to_string()))))));
+        let mut isFetchTicker: bool = !is_true(&hasMarketId);
         let mut symbol: Value = Value::Null;
         let mut minusIndex: Value = Value::Int(0);
         if is_true(&isFetchTicker) {
@@ -2236,7 +2245,9 @@ impl BitfinexCore {
             bid = self.safe_string(ticker.clone(), subtract(&Value::Int(2), &minusIndex), &[]);
             ask = self.safe_string(ticker.clone(), subtract(&Value::Int(5), &minusIndex), &[]);
             change = self.safe_string(ticker.clone(), subtract(&Value::Int(8), &minusIndex), &[]);
-            percentage = self.safe_string(ticker.clone(), subtract(&Value::Int(9), &minusIndex), &[]);
+            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
+            // branch reads at index 6 and scales
+            percentage = crate::precise::Precise::stringMul(&self.safe_string(ticker.clone(), subtract(&Value::Int(9), &minusIndex), &[]), &Value::Str("100".to_string()));
             volume = self.safe_string(ticker.clone(), subtract(&Value::Int(11), &minusIndex), &[]);
             high = self.safe_string(ticker.clone(), subtract(&Value::Int(12), &minusIndex), &[]);
             low = self.safe_string(ticker.clone(), subtract(&Value::Int(13), &minusIndex), &[]);
@@ -3951,10 +3962,10 @@ impl BitfinexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut fiat: Value = self.safe_value_k(self.options.clone(), "fiat", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut fiat: Value = self.safe_dict_k(self.options.clone(), "fiat", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut feeData: Value = self.safe_value(response.clone(), Value::Int(4), &[Value::List(vec![])]);
         let mut makerData: Value = self.safe_value(feeData.clone(), Value::Int(0), &[Value::List(vec![])]);
         let mut takerData: Value = self.safe_value(feeData.clone(), Value::Int(1), &[Value::List(vec![])]);

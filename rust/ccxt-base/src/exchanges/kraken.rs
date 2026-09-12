@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct KrakenCore {
@@ -2019,10 +2023,10 @@ impl KrakenCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut ledger: Value = self.safe_value_k(result.clone(), "ledger", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut ledger: Value = self.safe_dict_k(result.clone(), "ledger", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut keys: Value = object_keys(&ledger);
         let mut items: Value = Value::List(vec![]);
         {
@@ -2330,10 +2334,10 @@ impl KrakenCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut balances: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -2605,10 +2609,10 @@ impl KrakenCore {
 }
 
     pub fn find_market_by_altname_or_id(&self, mut id: Value) -> Value {
-        let mut marketsByAltname: Value = self.safe_value_k(self.options.clone(), "marketsByAltname", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut marketsByAltname: Value = self.safe_dict_k(self.options.clone(), "marketsByAltname", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         if is_true(&Value::Bool(in_op(&marketsByAltname, &id))) {
             return get_value(&marketsByAltname, &id);
         }  else {
@@ -2890,7 +2894,7 @@ impl KrakenCore {
         }
         let mut userref: Value = self.safe_string_k(order.clone(), "userref", &[]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "cl_ord_id", &[userref.clone()]);
-        let mut rawTrades: Value = self.safe_value_k(order.clone(), "trades", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[Value::List(vec![])]);
         let mut trades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -3428,10 +3432,10 @@ impl KrakenCore {
             m
         }), &[params.clone()]);
         let mut response: Value = self.private_post_query_orders(&[__ws_arg_12]).await;
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut orders: Value = Value::List(vec![]);
         let mut orderIds: Value = object_keys(&result);
         {

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct HtxCore {
@@ -5291,13 +5295,13 @@ impl HtxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_766: bool = true;
             while { if !__for_first_766 { i = add(&i, &Value::Int(1)); } __for_first_766 = false; is_less_than(&i, &get_array_length(&data)) } {
-            let mut trades: Value = self.safe_value_k(get_value(&data, &i), "data", &[Value::List(vec![])]);
+            let mut trades: Value = self.safe_list_k(get_value(&data, &i), "data", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_765: bool = true;
@@ -5817,10 +5821,10 @@ impl HtxCore {
         if is_equal(&keysLength, &Value::Int(0)) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" networkCodeToId() - markets need to be loaded at first".to_string()))));
         }
-        let mut uniqueNetworkIds: Value = self.safe_value(get_value(&self.options, &Value::Str("networkChainIdsByNames".to_string())), currencyCode.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut uniqueNetworkIds: Value = self.safe_dict(get_value(&self.options, &Value::Str("networkChainIdsByNames".to_string())), currencyCode.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         if is_true(&Value::Bool(in_op(&uniqueNetworkIds, &networkCode))) {
             return get_value(&uniqueNetworkIds, &networkCode);
         }  else {
@@ -6118,7 +6122,7 @@ impl HtxCore {
                 }
                 result = self.safe_balance(result.clone());
             }  else {
-                let mut balances: Value = self.safe_value_k(data.clone(), "list", &[Value::List(vec![])]);
+                let mut balances: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_773: bool = true;
@@ -7686,10 +7690,10 @@ impl HtxCore {
         })]);
         let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stop-price".to_string())]), &[]);
         if is_equal(&triggerPrice, &Value::Null) {
-            let mut stopOrderTypes: Value = self.safe_value_k(options.clone(), "stopOrderTypes", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut stopOrderTypes: Value = self.safe_dict_k(options.clone(), "stopOrderTypes", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             if is_true(&Value::Bool(in_op(&stopOrderTypes, &orderType))) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a triggerPrice for a trigger order".to_string()))));
             }
@@ -7763,10 +7767,10 @@ impl HtxCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
-        let mut limitOrderTypes: Value = self.safe_value_k(options.clone(), "limitOrderTypes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut limitOrderTypes: Value = self.safe_dict_k(options.clone(), "limitOrderTypes", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         if is_true(&Value::Bool(in_op(&limitOrderTypes, &orderType))) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
@@ -10037,7 +10041,7 @@ impl HtxCore {
             }
         }  else {
             let mut cursor: Value = self.safe_value_k(data.clone(), "current_page", &[]);
-            let mut result: Value = self.safe_value_k(data.clone(), "data", &[Value::List(vec![])]);
+            let mut result: Value = self.safe_list_k(data.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_782: bool = true;
@@ -11052,7 +11056,7 @@ impl HtxCore {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() not support this market type".to_string()))));
             }
         }
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "ts", &[]);
         let mut result: Value = Value::List(vec![]);
         {
@@ -11728,7 +11732,7 @@ impl HtxCore {
     m
 })]);
         }
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut openInterest: Value = self.parse_open_interest(get_value(&data, &Value::Int(0)), &[market.clone()]);
         add_element_to_object(&mut openInterest, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut openInterest, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
@@ -12283,7 +12287,7 @@ impl HtxCore {
         //              "instStatus": "normal"
         //          }
         //
-        let mut chains: Value = self.safe_value_k(fee.clone(), "chains", &[Value::List(vec![])]);
+        let mut chains: Value = self.safe_list_k(fee.clone(), "chains", &[Value::List(vec![])]);
         let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {

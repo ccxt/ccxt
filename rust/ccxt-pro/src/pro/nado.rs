@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -1998,9 +2002,11 @@ impl NadoCore {
         if is_equal(&value, &Value::Null) {
             return Value::Null;
         }
-        let mut length: Value = get_array_length(&value);
-        if is_greater_than(&length, &Value::Int(13)) {
-            return self.parse_to_int(slice(&value, &Value::Int(0), &subtract(&length, &Value::Int(6))));
+        // keep the string-size reads inline: assigning the size to a standalone
+        // local is the regex transpiler's ARRAY hint and would emit php count()
+        // on a string, breaking every ws parser with a TypeError
+        if is_greater_than(&get_array_length(&value), &Value::Int(13)) {
+            return self.parse_to_int(slice(&value, &Value::Int(0), &subtract(&get_array_length(&value), &Value::Int(6))));
         }
         return self.safe_integer(message.clone(), key.clone(), &[]);
 

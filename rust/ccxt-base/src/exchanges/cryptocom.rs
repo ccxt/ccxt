@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct CryptocomCore {
@@ -2183,7 +2187,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut data: Value = self.safe_list_k(responseResult.clone(), "data", &[Value::List(vec![])]);
-        let mut positionBalances: Value = self.safe_value(get_value(&data, &Value::Int(0)), Value::Str("position_balances".to_string()), &[Value::List(vec![])]);
+        let mut positionBalances: Value = self.safe_list(get_value(&data, &Value::Int(0)), Value::Str("position_balances".to_string()), &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());

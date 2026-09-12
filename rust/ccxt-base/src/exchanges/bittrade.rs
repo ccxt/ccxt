@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct BittradeCore {
@@ -1239,7 +1243,7 @@ impl BittradeCore {
         //         ]
         //    }
         //
-        let mut markets: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut numMarkets: Value = get_array_length(&markets);
         if is_less_than(&numMarkets, &Value::Int(1)) {
             panic!("{}", crate::exchange_errors::network_error(add(&add(&self.id, &Value::Str(" fetchMarkets() returned empty response: ".to_string())), &self.json(markets.clone()))));
@@ -1570,7 +1574,7 @@ impl BittradeCore {
         }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.market_get_tickers(&[params.clone()]).await;
-        let mut tickers: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "ts", &[]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1818,13 +1822,13 @@ impl BittradeCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_428: bool = true;
             while { if !__for_first_428 { i = add(&i, &Value::Int(1)); } __for_first_428 = false; is_less_than(&i, &get_array_length(&data)) } {
-            let mut trades: Value = self.safe_value_k(get_value(&data, &i), "data", &[Value::List(vec![])]);
+            let mut trades: Value = self.safe_list_k(get_value(&data, &i), "data", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_427: bool = true;
@@ -2039,7 +2043,7 @@ impl BittradeCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Value = self.safe_value(get_value(&response, &Value::Str("data".to_string())), Value::Str("list".to_string()), &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list(get_value(&response, &Value::Str("data".to_string())), Value::Str("list".to_string()), &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());

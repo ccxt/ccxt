@@ -1113,9 +1113,11 @@ class nado(ccxt.async_support.nado):
         value = self.safe_string(message, key)
         if value is None:
             return None
-        length = len(value)
-        if length > 13:
-            return self.parse_to_int(value[0:length - 6])
+        # keep the string-size reads inline: assigning the size to a standalone
+        # local is the regex transpiler's ARRAY hint and would emit php count()
+        # on a string, breaking every ws parser with a TypeError
+        if len(value) > 13:
+            return self.parse_to_int(value[0:len(value) - 6])
         return self.safe_integer(message, key)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:

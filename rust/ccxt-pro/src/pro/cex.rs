@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -402,7 +406,7 @@ impl CexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut freeBalance: Value = self.safe_value_k(data.clone(), "balance", &[Value::Map({
+        let mut freeBalance: Value = self.safe_dict_k(data.clone(), "balance", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1371,7 +1375,7 @@ impl CexCore {
         //     }
         //
         let mut symbol: Value = self.safe_string_k(message.clone(), "oid", &[]); // symbol is set as requestId in watchOrders
-        let mut rawOrders: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut myOrders: Value = self.orders.clone();
         if is_equal(&myOrders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
@@ -1697,7 +1701,7 @@ impl CexCore {
         //         "pair": "BTC:USD"
         //     }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut pair: Value = self.safe_string_k(message.clone(), "pair", &[]);
         let mut symbol: Value = self.pair_to_symbol(pair.clone());
         let mut messageHash: Value = add(&Value::Str("ohlcv:".to_string()), &symbol);
