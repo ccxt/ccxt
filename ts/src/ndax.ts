@@ -1144,7 +1144,7 @@ export default class ndax extends Exchange {
             id = this.safeString (trade, 0);
             marketId = this.safeString (trade, 1);
             const takerSide = this.safeInteger (trade, 8);
-            side = (takerSide === 1) ? 'buy' : 'sell';
+            side = (takerSide === 0) ? 'buy' : 'sell';
             orderId = this.safeString (trade, 4);
         } else {
             timestamp = this.safeInteger2 (trade, 'TradeTimeMS', 'ReceiveTime');
