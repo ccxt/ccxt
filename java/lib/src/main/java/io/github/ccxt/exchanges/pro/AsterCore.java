@@ -1037,7 +1037,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         }
         Object marketId = this.safeString(trade, "s");
         Object defaultType = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? this.safeString(this.options, "defaultType", "spot") : Helpers.GetValue(market, "type");
-        String symbol = (String) this.safeSymbol(marketId, market, null, defaultType);
+        Object symbol = this.safeSymbol(marketId, market, null, defaultType);
         String side = (String)this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         Object orderId = this.safeString(trade, "i");
@@ -1054,7 +1054,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             Object feeCurrencyId = this.safeString(trade, "N");
-            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
+            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1845,7 +1845,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         {
             Object entry = Helpers.GetValue(B, i);
             Object currencyId = this.safeString(entry, "a");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(entry, "f"));
             Helpers.addElementToObject(account, "used", this.safeString(entry, "l"));
@@ -2431,7 +2431,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(feeCost, null))) && Helpers.isTrue((Precise.stringGt(feeCost, "0")))))
         {
             Object feeCurrencyId = this.safeString(order, "N");
-            String feeCurrency = (String) this.safeCurrencyCode(feeCurrencyId);
+            Object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );

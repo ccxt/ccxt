@@ -899,9 +899,9 @@ public class HitbtcCore extends HitbtcApi
                 String baseId = this.safeString2(market, "base_currency", "underlying");
                 String quoteId = this.safeString(market, "quote_currency");
                 String feeCurrencyId = this.safeString(market, "fee_currency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String feeCurrency = (String) this.safeCurrencyCode(feeCurrencyId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
                 Object settleId = null;
                 Object settle = null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -1066,7 +1066,7 @@ public class HitbtcCore extends HitbtcApi
     public Object parseCurrency(Object currency)
     {
         Object currencyId = Helpers.GetValue(currency, "_coin_id");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Object entry = currency;
         Object rawNetworks = this.safeList(entry, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
@@ -1210,7 +1210,7 @@ public class HitbtcCore extends HitbtcApi
             String address = this.safeString(firstAddress, "address");
             String currencyId = this.safeString(firstAddress, "currency");
             String tag = this.safeString(firstAddress, "payment_id");
-            String parsedCode = (String) this.safeCurrencyCode(currencyId);
+            String parsedCode = this.safeCurrencyCode(currencyId);
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", parsedCode );
@@ -1231,7 +1231,7 @@ public class HitbtcCore extends HitbtcApi
         {
             Object entry = Helpers.GetValue(response, i);
             String currencyId = this.safeString(entry, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(entry, "reserved"));
@@ -1412,7 +1412,7 @@ public class HitbtcCore extends HitbtcApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.parse8601(Helpers.GetValue(ticker, "timestamp"));
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = this.safeString(ticker, "volume_quote");
         String open = this.safeString(ticker, "open");
@@ -1652,7 +1652,7 @@ public class HitbtcCore extends HitbtcApi
         {
             Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
             String feeCurrency = this.safeString(info, "fee_currency");
-            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrency);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrency);
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -1813,7 +1813,7 @@ public class HitbtcCore extends HitbtcApi
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Object nativeVar = this.safeValue(transaction, "native", new java.util.HashMap<String, Object>() {{}});
         String currencyId = this.safeString(nativeVar, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         String txhash = this.safeString(nativeVar, "hash");
         String address = this.safeString(nativeVar, "address");
         Object addressTo = address;
@@ -1974,7 +1974,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object orderbook = this.safeDict(response, marketId, new java.util.HashMap<String, Object>() {{}});
-                String symbol = (String) this.safeSymbol(marketId);
+                String symbol = this.safeSymbol(marketId);
                 Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
                 Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp, "bid", "ask"));
             }
@@ -2032,7 +2032,7 @@ public class HitbtcCore extends HitbtcApi
         Double taker = this.safeNumber(fee, "take_rate");
         Double maker = this.safeNumber(fee, "make_rate");
         String marketId = this.safeString(fee, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -3587,7 +3587,7 @@ public class HitbtcCore extends HitbtcApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(fundingRateData)); j++)
                 {
                     Object entry = Helpers.GetValue(fundingRateData, j);
-                    String symbolInner = (String) this.safeSymbol(Helpers.GetValue(marketInner, "symbol"));
+                    String symbolInner = this.safeSymbol(Helpers.GetValue(marketInner, "symbol"));
                     Double fundingRate = this.safeNumber(entry, "funding_rate");
                     String datetime = this.safeString(entry, "timestamp");
                     ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{

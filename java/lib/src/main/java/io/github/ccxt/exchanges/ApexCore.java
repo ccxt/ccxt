@@ -611,7 +611,7 @@ public class ApexCore extends ApexApi
     public Object parseCurrency(Object currency)
     {
         String currencyId = this.safeString(currency, "token");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         String name = this.safeString(currency, "displayName");
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = Helpers.GetValue(this.options, "_temp_currencies_chains");
@@ -771,9 +771,9 @@ public class ApexCore extends ApexApi
         String quoteId = this.safeString(market, "l2PairId");
         String baseId = this.safeString(market, "baseTokenId");
         String quote = this.safeString(market, "settleAssetId");
-        String base = (String) this.safeCurrencyCode(baseId);
+        String base = this.safeCurrencyCode(baseId);
         String settleId = this.safeString(market, "settleAssetId");
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(baseId, "/"), quote), ":"), settle);
         Object expiry = 0;
         Object takerFee = this.parseNumber("0.0002");
@@ -858,7 +858,7 @@ public class ApexCore extends ApexApi
         Long timestamp = this.milliseconds();
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String last = this.safeString(ticker, "lastPrice");
         String percentage = this.safeString(ticker, "price24hPcnt");
         String quoteVolume = this.safeString(ticker, "turnover24h");
@@ -1243,7 +1243,7 @@ public class ApexCore extends ApexApi
         Long timestamp = this.milliseconds();
         String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "openInterestAmount", ApexCore.this.safeString(interest, "openInterest") );
@@ -1542,7 +1542,7 @@ public class ApexCore extends ApexApi
         return symbol;
     }
 
-    public Object getSeeds()
+    public String getSeeds()
     {
         String seeds = this.safeString(this.options, "seeds");
         if (Helpers.isTrue(Helpers.isEqual(seeds, null)))

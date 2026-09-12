@@ -4868,7 +4868,7 @@ public class BinanceCore extends BinanceApi
         Object entry = rawCurrency;
         String id = this.safeString(entry, "coin");
         String name = this.safeString(entry, "name");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object isFiat = this.safeBool(entry, "isLegalMoney");
         Object networkList = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> fees = new java.util.HashMap<String, Object>() {{}};
@@ -5348,8 +5348,8 @@ public class BinanceCore extends BinanceApi
             quoteId = "USDC";
             stock = true;
         }
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         String contractType = this.safeString(market, "contractType");
         Boolean contract = (Helpers.inOp(market, "contractType"));
         Long expiry = (Long) this.safeInteger2(market, "deliveryDate", "expiryDate");
@@ -5367,7 +5367,7 @@ public class BinanceCore extends BinanceApi
         {
             future = true;
         }
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         Boolean spot = !Helpers.isTrue(contract);
         Object filters = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
@@ -5605,7 +5605,7 @@ public class BinanceCore extends BinanceApi
                 Object entry = Helpers.GetValue(response, i);
                 Object account = this.account();
                 String currencyId = this.safeString(entry, "asset");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isEqual(type, "linear")))
                 {
                     Helpers.addElementToObject(account, "free", this.safeString(entry, "umWalletBalance"));
@@ -5643,7 +5643,7 @@ public class BinanceCore extends BinanceApi
             {
                 Object balance = Helpers.GetValue(balances, i);
                 String currencyId = this.safeString(balance, "asset");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "free"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -5666,8 +5666,8 @@ public class BinanceCore extends BinanceApi
                 Object asset = Helpers.GetValue(assets, i);
                 Object base = this.safeDict(asset, "baseAsset", new java.util.HashMap<String, Object>() {{}});
                 Object quote = this.safeDict(asset, "quoteAsset", new java.util.HashMap<String, Object>() {{}});
-                String baseCode = (String) this.safeCurrencyCode(this.safeString(base, "asset"));
-                String quoteCode = (String) this.safeCurrencyCode(this.safeString(quote, "asset"));
+                String baseCode = this.safeCurrencyCode(this.safeString(base, "asset"));
+                String quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if (Helpers.isTrue(!Helpers.isEqual(baseCode, null)))
                 {
                     result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
@@ -5684,7 +5684,7 @@ public class BinanceCore extends BinanceApi
             {
                 Object entry = Helpers.GetValue(positionAmountVos, i);
                 String currencyId = this.safeString(entry, "asset");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 String usedAndTotal = this.safeString(entry, "amount");
                 Helpers.addElementToObject(account, "total", usedAndTotal);
@@ -5701,7 +5701,7 @@ public class BinanceCore extends BinanceApi
                 Object entry = Helpers.GetValue(response, i);
                 Object account = this.account();
                 String currencyId = this.safeString(entry, "asset");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
                 String frozen = this.safeString(entry, "freeze");
                 String withdrawing = this.safeString(entry, "withdrawing");
@@ -5729,7 +5729,7 @@ public class BinanceCore extends BinanceApi
                     continue;
                 }
                 String currencyId = this.safeString(balance, "asset");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "availableBalance"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "initialMargin"));
@@ -6315,7 +6315,7 @@ public class BinanceCore extends BinanceApi
             marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "bidQty"))))) ? "spot" : "contract";
         }
         String marketId = this.safeString(ticker, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, null, marketType);
+        String symbol = this.safeSymbol(marketId, market, null, marketType);
         String last = this.safeString(ticker, "lastPrice");
         String wAvg = this.safeString(ticker, "weightedAvgPrice");
         Boolean isCoinm = (Helpers.inOp(ticker, "baseVolume"));
@@ -7353,7 +7353,7 @@ public class BinanceCore extends BinanceApi
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(trade, "optionSide"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "option"), true)))))
         {
-            String settle = (String) this.safeCurrencyCode(this.safeString(trade, "quoteAsset", "USDT"));
+            String settle = this.safeCurrencyCode(this.safeString(trade, "quoteAsset", "USDT"));
             takerOrMaker = this.safeStringLower(trade, "liquidity");
             if (Helpers.isTrue(Helpers.inOp(trade, "fee")))
             {
@@ -8797,7 +8797,7 @@ public class BinanceCore extends BinanceApi
         String marketId = this.safeString(order, "symbol");
         Boolean isContract = Helpers.isTrue((Helpers.inOp(order, "positionSide"))) || Helpers.isTrue((Helpers.inOp(order, "cumQuote")));
         String marketType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
-        String symbol = (String) this.safeSymbol(marketId, market, null, marketType);
+        String symbol = this.safeSymbol(marketId, market, null, marketType);
         String filled = this.safeString2(order, "executedQty", "filledQty", "0");
         Long timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"))); // order of the keys matters here
         Object lastTradeTimestamp = null;
@@ -11771,7 +11771,7 @@ public class BinanceCore extends BinanceApi
         String orderId = this.safeString(trade, "transId");
         Long timestamp = this.safeInteger(trade, "operateTime");
         String currencyId = this.safeString(trade, "fromAsset");
-        String tradedCurrency = (String) this.safeCurrencyCode(currencyId);
+        String tradedCurrency = this.safeCurrencyCode(currencyId);
         java.util.Map<String, Object> bnb = (java.util.Map<String, Object>) this.currency("BNB");
         Object earnedCurrency = Helpers.GetValue(bnb, "code");
         Object applicantSymbol = Helpers.add(Helpers.add(earnedCurrency, "/"), tradedCurrency);
@@ -12163,7 +12163,7 @@ public class BinanceCore extends BinanceApi
             txid = Helpers.slice(txid, 18, null);
         }
         String currencyId = this.safeString2(transaction, "coin", "fiatCurrency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Object timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "createTime");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
@@ -12313,7 +12313,7 @@ public class BinanceCore extends BinanceApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(transfer, "tranId", "transactionId");
         String currencyId = this.safeString2(transfer, "asset", "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Double amount = this.safeNumber(transfer, "amount");
         String type = this.safeString(transfer, "type");
         Object fromAccount = null;
@@ -12677,7 +12677,7 @@ public class BinanceCore extends BinanceApi
         String url = this.safeString(response, "url");
         String address = this.safeString(response, "address");
         String currencyId = this.safeString(response, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         // deposit-address endpoint provides only network url (not network ID/CODE)
         // so we should map the url to network (their data is inside currencies)
         Object networkCode = this.getNetworkCodeByNetworkUrl(code, url);
@@ -12807,7 +12807,7 @@ public class BinanceCore extends BinanceApi
             {
                 Object entry = Helpers.GetValue(coins, i);
                 String currencyId = this.safeString(entry, "coin");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object networkList = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
@@ -12817,7 +12817,7 @@ public class BinanceCore extends BinanceApi
                 {
                     Object networkEntry = Helpers.GetValue(networkList, j);
                     String networkId = this.safeString(networkEntry, "network");
-                    String networkCode = (String) this.safeCurrencyCode(networkId);
+                    String networkCode = this.safeCurrencyCode(networkId);
                     Double fee = this.safeNumber(networkEntry, "withdrawFee");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((!Helpers.isEqual(networkCode, null)))))
                     {
@@ -13052,7 +13052,7 @@ public class BinanceCore extends BinanceApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, null, "spot");
+        String symbol = this.safeSymbol(marketId, market, null, "spot");
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -13671,7 +13671,7 @@ public class BinanceCore extends BinanceApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(contract, "time");
         String marketId = this.safeString(contract, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, null, "contract");
+        String symbol = this.safeSymbol(marketId, market, null, "contract");
         Double markPrice = this.safeNumber(contract, "markPrice");
         Double indexPrice = this.safeNumber(contract, "indexPrice");
         Double interestRate = this.safeNumber(contract, "interestRate");
@@ -13717,7 +13717,7 @@ public class BinanceCore extends BinanceApi
         {
             Object entry = Helpers.GetValue(assets, i);
             String currencyId = this.safeString(entry, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             String crossWalletBalance = this.safeString(entry, "crossWalletBalance");
             String crossUnPnl = this.safeString(entry, "crossUnPnl");
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -14369,7 +14369,7 @@ public class BinanceCore extends BinanceApi
                 {
                     Object entry = Helpers.GetValue(entries, i);
                     String marketId = this.safeString(entry, "symbol");
-                    String symbol = (String) this.safeSymbol(marketId, null, null, "contract");
+                    String symbol = this.safeSymbol(marketId, null, null, "contract");
                     Object brackets = this.safeList(entry, "brackets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(brackets)); j++)
@@ -15990,7 +15990,7 @@ final Object finalMarket = market;
             direction = "in";
         }
         String currencyId = this.safeString(item, "asset");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Long timestamp = (Long) this.safeInteger2(item, "createDate", "time");
         String type = this.safeString2(item, "type", "incomeType");
@@ -17974,7 +17974,7 @@ final Object finalMarket = market;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(greeks, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -18437,7 +18437,7 @@ final Object finalMarket = market;
             {
                 Object entry = Helpers.GetValue(assets, i);
                 String id = this.safeString(entry, "asset");
-                String code = (String) this.safeCurrencyCode(id);
+                String code = this.safeCurrencyCode(id);
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     final Object finalCode = code;
@@ -18810,9 +18810,9 @@ final Object finalMarket = market;
         Object toCurrency = Helpers.getArg(optionalArgs, 1, null);
         Long timestamp = this.safeIntegerN(conversion, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "validTimestamp", "createTime")));
         String fromCur = this.safeString2(conversion, "deductedAsset", "fromAsset");
-        String fromCode = (String) this.safeCurrencyCode(fromCur, fromCurrency);
+        String fromCode = this.safeCurrencyCode(fromCur, fromCurrency);
         String to = this.safeString2(conversion, "targetAsset", "toAsset");
-        String toCode = (String) this.safeCurrencyCode(to, toCurrency);
+        String toCode = this.safeCurrencyCode(to, toCurrency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );

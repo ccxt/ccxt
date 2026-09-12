@@ -895,7 +895,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object msg = this.safeString(message, "msg", "");
         Object parts = Helpers.split(msg, "@");
         Object marketId = this.safeString(parts, 2);
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}));
     }
 
@@ -999,7 +999,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         //
         Object data = this.safeDictN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("d", "data", "publicAggreDepths")));
         Object marketId = this.safeString2(message, "s", "symbol");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         String messageHash = (String) Helpers.add("orderbook:", symbol);
         Object subscription = this.safeValue(client.subscriptions, messageHash);
         Long limit = this.safeInteger(subscription, "limit");
@@ -1840,7 +1840,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "timestamp", timestamp);
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "datetime", this.iso8601(timestamp));
         Object currencyId = this.safeString2(data, "currency", "vcoinName");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        Object code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString2(data, "balanceAmount", "availableBalance"));
         Helpers.addElementToObject(account, "used", this.safeString2(data, "frozenBalance", "frozenAmount"));

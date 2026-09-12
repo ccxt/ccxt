@@ -947,7 +947,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object trades = this.safeList(eventVar, "trades");
         Object trade = this.safeDict(trades, 0);
         Object marketId = this.safeString(trade, "product_id");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         String messageHash = (String) Helpers.add("market_trades::", symbol);
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
@@ -1044,7 +1044,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
-            String symbol = (String) this.safeSymbol(marketId);
+            Object symbol = this.safeSymbol(marketId);
             String messageHash = (String) Helpers.add("user::", symbol);
             client.resolve(this.orders, messageHash);
             this.tryResolveUsdc(client, messageHash, this.orders);

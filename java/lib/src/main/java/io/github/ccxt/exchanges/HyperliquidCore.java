@@ -509,7 +509,7 @@ public class HyperliquidCore extends HyperliquidApi
         // const id = i;
         String id = this.safeString(rawCurrency, "index");
         String name = this.safeString(rawCurrency, "name");
-        String code = (String) this.safeCurrencyCode(name);
+        String code = this.safeCurrencyCode(name);
         Helpers.addElementToObject(Helpers.GetValue(this.options, "cachedCurrenciesById"), ((String)id), name);
         final Object finalName = name;
         final Object finalCode = code;
@@ -549,7 +549,7 @@ public class HyperliquidCore extends HyperliquidApi
                 {
                     nameWithoutU = Helpers.add(nameWithoutU, Helpers.GetValue(parts, j));
                 }
-                String baseCode = (String) this.safeCurrencyCode(nameWithoutU);
+                String baseCode = this.safeCurrencyCode(nameWithoutU);
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(this.options, "spotCurrencyMapping"), code, baseCode);
@@ -718,7 +718,7 @@ public class HyperliquidCore extends HyperliquidApi
                         String collateralTokenCode = this.safeString(cachedCurrencies, collateralToken);
                         Helpers.addElementToObject(data, "collateralTokenName", collateralTokenCode);
                         // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
-                        String safeCode = (String) this.safeCurrencyCode(name);
+                        String safeCode = this.safeCurrencyCode(name);
                         Object hip3Code = ((Helpers.isTrue((Helpers.isEqual(safeCode, null))))) ? name : Helpers.replace((String)safeCode, (String)":", (String)"-");
                         Helpers.addElementToObject(Helpers.GetValue(this.options, "hip3TokensByName"), ((String)name), new java.util.HashMap<String, Object>() {{
         put( "quote", collateralTokenCode );
@@ -981,8 +981,8 @@ public class HyperliquidCore extends HyperliquidApi
                 Object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new java.util.HashMap<String, Object>() {{}});
                 String mappedBaseName = this.safeString(spotCurrencyMapping, baseName, baseName);
                 String mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
-                String mappedBase = (String) this.safeCurrencyCode(mappedBaseName);
-                String mappedQuote = (String) this.safeCurrencyCode(mappedQuoteId);
+                String mappedBase = this.safeCurrencyCode(mappedBaseName);
+                String mappedQuote = this.safeCurrencyCode(mappedQuoteId);
                 Object mappedSymbol = Helpers.add(Helpers.add(mappedBase, "/"), mappedQuote);
                 Object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
                 // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
@@ -1093,9 +1093,9 @@ public class HyperliquidCore extends HyperliquidApi
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing base currency")) ;
         }
         base = Helpers.replace((String)base, (String)":", (String)"-"); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String quote = this.safeCurrencyCode(quoteId);
         String baseId = this.safeString(market, "baseId");
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Boolean contract = true;
         Boolean swap = true;
@@ -1283,7 +1283,7 @@ public class HyperliquidCore extends HyperliquidApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
                 {
                     Object balance = Helpers.GetValue(balances, i);
-                    String unifiedCode = (String) this.safeCurrencyCode(this.safeString(balance, "coin"));
+                    String unifiedCode = this.safeCurrencyCode(this.safeString(balance, "coin"));
                     Object code = ((Helpers.isTrue((Helpers.isEqual(isSpot, true))))) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                     Object account = this.account();
                     String total = this.safeString(balance, "total");
@@ -1572,7 +1572,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String base = this.safeString(info, "name");
         Object marketId = this.coinToMarketId(base);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Double funding = this.safeNumber(info, "funding");
         Double markPx = this.safeNumber(info, "markPx");
         Double oraclePx = this.safeNumber(info, "oraclePx");
@@ -4451,7 +4451,7 @@ final Object finalClientOrderId = clientOrderId;
 
     }
 
-    public Object getDexFromSymbols(Object methodName, Object... optionalArgs)
+    public String getDexFromSymbols(Object methodName, Object... optionalArgs)
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
@@ -4516,7 +4516,7 @@ final Object finalClientOrderId = clientOrderId;
                 put( "type", "clearinghouseState" );
                 put( "user", finalUserAddress );
             }};
-            Object dexName = this.getDexFromSymbols("fetchPositions", symbols);
+            String dexName = this.getDexFromSymbols("fetchPositions", symbols);
             if (Helpers.isTrue(!Helpers.isEqual(dexName, null)))
             {
                 Helpers.addElementToObject(request, "dex", dexName);
@@ -5370,7 +5370,7 @@ final Object finalClientOrderId = clientOrderId;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );

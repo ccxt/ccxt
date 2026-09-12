@@ -1017,7 +1017,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             if (Helpers.isTrue(isMargin))
             {
                 Object currencyId = this.safeString(balanceDict, "a");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                Object code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balanceDict, "av"));
                 Helpers.addElementToObject(account, "total", this.safeString(balanceDict, "B"));
@@ -1033,7 +1033,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 {
                     Object currencyId = Helpers.GetValue(keys, j);
                     Object rawBalance = this.safeDict(balanceDict, currencyId, new java.util.HashMap<String, Object>() {{}});
-                    String code = (String) this.safeCurrencyCode(currencyId);
+                    Object code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "free", this.safeString(rawBalance, "available"));
                     Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "freeze"));

@@ -1382,7 +1382,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         {
             Object balance = Helpers.GetValue(positionBalances, i);
             Object currencyId = this.safeString(balance, "instrument_name");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "quantity"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "reserved_qty"));

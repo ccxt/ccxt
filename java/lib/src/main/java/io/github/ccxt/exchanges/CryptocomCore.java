@@ -894,7 +894,7 @@ public class CryptocomCore extends CryptocomApi
     public Object parseCurrency(Object currency)
     {
         String id = this.safeString(currency, "_coin_id");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(currency, "network_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
@@ -1060,8 +1060,8 @@ public class CryptocomCore extends CryptocomApi
                 String baseId = this.safeString(market, "base_ccy");
                 String quoteId = this.safeString(market, "quote_ccy");
                 Object settleId = ((Helpers.isTrue(spot))) ? null : quoteId;
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Object settle = ((Helpers.isTrue(spot))) ? null : this.safeCurrencyCode(settleId);
                 String optionType = (String)this.safeStringLower(market, "put_call");
                 String strike = this.safeString(market, "strike");
@@ -1601,7 +1601,7 @@ public class CryptocomCore extends CryptocomApi
         {
             Object balance = Helpers.GetValue(positionBalances, i);
             String currencyId = this.safeString(balance, "instrument_name");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "quantity"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "reserved_qty"));
@@ -2750,7 +2750,7 @@ public class CryptocomCore extends CryptocomApi
                 Object value = this.safeDict(addresses, i);
                 String addressString = this.safeString(value, "address");
                 String currencyId = this.safeString(value, "currency");
-                String responseCode = (String) this.safeCurrencyCode(currencyId);
+                String responseCode = this.safeCurrencyCode(currencyId);
                 var addresstagVariable = this.parseAddress(addressString);
                 var address = ((java.util.List<Object>) addresstagVariable).get(0);
                 var tag = ((java.util.List<Object>) addresstagVariable).get(1);
@@ -3185,7 +3185,7 @@ public class CryptocomCore extends CryptocomApi
         }
         Long created = this.safeInteger(order, "create_time");
         String marketId = this.safeString(order, "instrument_name");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Object execInst = this.safeValue(order, "exec_inst");
         Object postOnly = null;
         if (Helpers.isTrue(!Helpers.isEqual(execInst, null)))
@@ -3318,7 +3318,7 @@ public class CryptocomCore extends CryptocomApi
         var address = ((java.util.List<Object>) addresstagVariable).get(0);
         var tag = ((java.util.List<Object>) addresstagVariable).get(1);
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(transaction, "create_time");
         Double feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;
@@ -3589,7 +3589,7 @@ public class CryptocomCore extends CryptocomApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(item, "event_timestamp_ms");
         String currencyId = this.safeString(item, "instrument_name");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amount = this.safeString(item, "transaction_qty");
         String direction = null;
@@ -4201,7 +4201,7 @@ public class CryptocomCore extends CryptocomApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "instrument_name");
         market = this.safeMarket(marketId, market, null, "contract");
-        String symbol = (String) this.safeSymbol(marketId, market, null, "contract");
+        String symbol = this.safeSymbol(marketId, market, null, "contract");
         Long timestamp = this.safeInteger(position, "update_timestamp_ms");
         String amount = this.safeString(position, "quantity");
         final Object finalMarket = market;
@@ -4470,7 +4470,7 @@ public class CryptocomCore extends CryptocomApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "instrument_name");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );

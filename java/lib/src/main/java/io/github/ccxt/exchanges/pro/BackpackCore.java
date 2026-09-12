@@ -363,7 +363,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object ticker = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(ticker, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Object parsedTicker = this.parseWsTicker(ticker, market);
         String messageHash = (String) Helpers.add(Helpers.add("ticker", ":"), symbol);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
@@ -391,7 +391,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Object marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Object last = this.safeString(ticker, "c");
         Object open = this.safeString(ticker, "o");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -508,7 +508,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Object parsedBidAsk = this.parseWsBidAsk(data, market);
         String messageHash = (String) Helpers.add(Helpers.add("bidask", ":"), symbol);
         Helpers.addElementToObject(this.bidsasks, symbol, parsedBidAsk);
@@ -1143,7 +1143,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());

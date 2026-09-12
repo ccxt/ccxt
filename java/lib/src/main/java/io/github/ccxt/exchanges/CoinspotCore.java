@@ -609,7 +609,7 @@ public class CoinspotCore extends CoinspotApi
                 {
                     Object currencyId = Helpers.GetValue(currencyIds, j);
                     Object balance = Helpers.GetValue(currencies, currencyId);
-                    String code = (String) this.safeCurrencyCode(currencyId);
+                    String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
                     if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -624,7 +624,7 @@ public class CoinspotCore extends CoinspotApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
             {
                 Object currencyId = Helpers.GetValue(currencyIds, i);
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "total", this.safeString(balances, currencyId));
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -727,7 +727,7 @@ public class CoinspotCore extends CoinspotApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1007,7 +1007,7 @@ public class CoinspotCore extends CoinspotApi
         String side = this.safeString(trade, "side");
         String amountString = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "market");
-        String symbol = (String) this.safeSymbol(marketId, market, "/");
+        String symbol = this.safeSymbol(marketId, market, "/");
         Long solddate = this.safeInteger(trade, "solddate");
         if (Helpers.isTrue(!Helpers.isEqual(solddate, null)))
         {

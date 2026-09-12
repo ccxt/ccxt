@@ -1010,7 +1010,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             // multi-symbol watches share one subscription object without a marketId,
             // in that case the buffered delta message identifies the market
             Object marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
-            String snapshotSymbol = (String) this.safeSymbol(marketId, null, "-");
+            Object snapshotSymbol = this.safeSymbol(marketId, null, "-");
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, snapshotSymbol))))
             {
                 // this snapshot fetch was scheduled before an unsubscribe removed the
@@ -1058,7 +1058,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             return;
         }
         Object marketId = this.safeString(response, "market");
-        String symbol = (String) this.safeSymbol(marketId, null, "-");
+        Object symbol = this.safeSymbol(marketId, null, "-");
         String name = "book";
         Object messageHash = Helpers.add(Helpers.add(name, "@"), marketId);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
@@ -1106,7 +1106,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = this.safeString(marketIds, i);
-            String symbol = (String) this.safeSymbol(marketId, null, "-");
+            Object symbol = this.safeSymbol(marketId, null, "-");
             Object messageHash = Helpers.add(Helpers.add(name, "@"), marketId);
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
             {

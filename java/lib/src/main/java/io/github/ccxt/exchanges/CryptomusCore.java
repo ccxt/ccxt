@@ -408,8 +408,8 @@ public class CryptomusCore extends CryptomusApi
         Object parts = Helpers.split(marketId, "_");
         String baseId = (String) Helpers.GetValue(parts, 0);
         String quoteId = (String) Helpers.GetValue(parts, 1);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object fees = this.safeDict(this.fees, "trading");
         final Object finalMarketId = marketId;
         final Object finalBase = base;
@@ -840,7 +840,7 @@ public class CryptomusCore extends CryptomusApi
         {
             Object balanceEntry = Helpers.GetValue(balance, i);
             String currencyId = this.safeString(balanceEntry, "ticker");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balanceEntry, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(balanceEntry, "held"));

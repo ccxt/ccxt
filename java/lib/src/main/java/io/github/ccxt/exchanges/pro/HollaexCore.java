@@ -522,7 +522,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             Object key = Helpers.GetValue(keys, i);
             Object parts = Helpers.split(key, "_");
             Object currencyId = this.safeString(parts, 0);
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
             {

@@ -821,8 +821,8 @@ public class BittradeCore extends BittradeApi
                 Object market = Helpers.GetValue(markets, i);
                 String baseId = this.safeString(market, "base-currency");
                 String quoteId = this.safeString(market, "quote-currency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 String state = this.safeString(market, "state");
                 String leverageRatio = this.safeString(market, "leverage-ratio", "1");
                 String superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
@@ -935,7 +935,7 @@ public class BittradeCore extends BittradeApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Long timestamp = this.safeInteger(ticker, "ts");
         Object bid = null;
         Object bidVolume = null;
@@ -1189,7 +1189,7 @@ public class BittradeCore extends BittradeApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Long timestamp = (Long) this.safeInteger2(trade, "ts", "created-at");
         String order = this.safeString(trade, "order-id");
         Object side = this.safeString(trade, "direction");
@@ -1206,14 +1206,14 @@ public class BittradeCore extends BittradeApi
         String cost = Precise.stringMul(price, amount);
         Object fee = null;
         Object feeCost = this.safeString(trade, "filled-fees");
-        String feeCurrency = (String) this.safeCurrencyCode(this.safeString(trade, "fee-currency"));
+        String feeCurrency = this.safeCurrencyCode(this.safeString(trade, "fee-currency"));
         String filledPoints = this.safeString(trade, "filled-points");
         if (Helpers.isTrue(!Helpers.isEqual(filledPoints, null)))
         {
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(feeCost, null))) || Helpers.isTrue((Precise.stringEq(feeCost, "0.0")))))
             {
                 feeCost = filledPoints;
-                feeCurrency = (String) this.safeCurrencyCode(this.safeString(trade, "fee-deduct-currency"));
+                feeCurrency = this.safeCurrencyCode(this.safeString(trade, "fee-deduct-currency"));
             }
         }
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -1557,7 +1557,7 @@ public class BittradeCore extends BittradeApi
     public Object parseCurrency(Object currency)
     {
         Object id = this.safeValue(currency, "name");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object depositEnabled = this.safeValue(currency, "deposit-enabled");
         Object withdrawEnabled = this.safeValue(currency, "withdraw-enabled");
         Object countryDisabled = this.safeValue(currency, "country-disabled");
@@ -1607,7 +1607,7 @@ public class BittradeCore extends BittradeApi
         {
             Object balance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(result, code)))))
             {
@@ -2408,7 +2408,7 @@ public class BittradeCore extends BittradeApi
         String tag = this.safeString(depositAddress, "addressTag");
         String currencyId = this.safeString(depositAddress, "currency");
         currency = this.safeCurrency(currencyId, currency);
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String networkId = this.safeString(depositAddress, "chain");
         Object networks = this.safeValue(currency, "networks", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> networksById = this.indexBy(networks, "id");
@@ -2574,7 +2574,7 @@ public class BittradeCore extends BittradeApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(transaction, "created-at");
-        String code = (String) this.safeCurrencyCode(this.safeString(transaction, "currency"));
+        String code = this.safeCurrencyCode(this.safeString(transaction, "currency"));
         String type = this.safeString(transaction, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "withdraw")))
         {

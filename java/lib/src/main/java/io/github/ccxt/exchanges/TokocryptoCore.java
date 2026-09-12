@@ -878,9 +878,9 @@ public class TokocryptoCore extends TokocryptoApi
                 String id = this.safeString(market, "symbol");
                 String lowercaseId = (String)this.safeStringLower(market, "symbol");
                 String settleId = this.safeString(market, "marginAsset");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String settle = (String) this.safeCurrencyCode(settleId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String settle = this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object filters = this.safeValue(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 java.util.Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
@@ -1170,7 +1170,7 @@ public class TokocryptoCore extends TokocryptoApi
         String amount = this.safeString2(trade, "q", "qty");
         String cost = this.safeString2(trade, "quoteQty", "baseQty"); // inverse futures
         String marketId = this.safeString(trade, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String id = this.safeString2(trade, "t", "a");
         id = this.safeString2(trade, "id", "tradeId", id);
         Object side = null;
@@ -1404,7 +1404,7 @@ public class TokocryptoCore extends TokocryptoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(ticker, "closeTime");
         String marketId = this.safeString(ticker, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String last = this.safeString(ticker, "lastPrice");
         Boolean isCoinm = (Helpers.inOp(ticker, "baseVolume"));
         Object baseVolume = null;
@@ -1507,7 +1507,7 @@ public class TokocryptoCore extends TokocryptoApi
      * @param {object} market a unified market structure
      * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
      */
-    public Object getMarketIdByType(Object market)
+    public String getMarketIdByType(Object market)
     {
         if (Helpers.isTrue(this.isNativeMarket(market)))
         {
@@ -1811,7 +1811,7 @@ public class TokocryptoCore extends TokocryptoApi
         {
             Object balance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(balance, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "free"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -1948,7 +1948,7 @@ public class TokocryptoCore extends TokocryptoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String marketId = this.safeString(order, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String filled = this.safeString(order, "executedQty", "0");
         Long timestamp = this.safeInteger(order, "createTime");
         String average = this.safeString(order, "avgPrice");
@@ -2878,7 +2878,7 @@ public class TokocryptoCore extends TokocryptoApi
             txid = Helpers.slice(txid, 18, null);
         }
         String currencyId = this.safeString2(transaction, "coin", "fiatCurrency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Object timestamp = null;
         Long insertTime = this.safeInteger(transaction, "insertTime");
         Long createTime = (Long) this.safeInteger2(transaction, "createTime", "timestamp");

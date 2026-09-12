@@ -1748,7 +1748,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object currencyId = this.safeString2(data, "c", "coin");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        Object code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(data, "availableBalance"));
         Helpers.addElementToObject(account, "used", this.safeString(data, "f"));

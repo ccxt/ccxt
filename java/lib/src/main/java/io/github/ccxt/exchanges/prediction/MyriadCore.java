@@ -1613,7 +1613,7 @@ public class MyriadCore extends MyriadApi
      * @description scales a decimal value by 1e18 and truncates to an integer wei string
      * @returns {string} the integer wei string
      */
-    public Object toOrderbookWei(Object value)
+    public String toOrderbookWei(Object value)
     {
         Object valueStr = this.numberToString(value);
         String scaled = Precise.stringMul(valueStr, "1000000000000000000");
@@ -2520,7 +2520,7 @@ public class MyriadCore extends MyriadApi
 
     }
 
-    public Object hexToDecimalString(Object hexValue)
+    public String hexToDecimalString(Object hexValue)
     {
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
         Object stripped = this.remove0xPrefix(hexValue);

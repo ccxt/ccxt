@@ -1205,8 +1205,8 @@ public class BitstampCore extends BitstampApi
                 var baseIdquoteIdVariable = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")));
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Object settleId = null;
                 String marketTypeRaw = this.safeString(market, "market_type");
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -1426,8 +1426,8 @@ public class BitstampCore extends BitstampApi
             var baseIdquoteIdVariable = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")));
             var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
             var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-            String base = (String) this.safeCurrencyCode(baseId);
-            String quote = (String) this.safeCurrencyCode(quoteId);
+            String base = this.safeCurrencyCode(baseId);
+            String quote = this.safeCurrencyCode(quoteId);
             String description = this.safeString(market, "description");
             if (Helpers.isTrue(Helpers.isEqual(description, null)))
             {
@@ -1532,7 +1532,7 @@ public class BitstampCore extends BitstampApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "pair");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
@@ -2042,7 +2042,7 @@ public class BitstampCore extends BitstampApi
         {
             Object currencyBalance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(currencyBalance, "currency");
-            String currencyCode = (String) this.safeCurrencyCode(currencyId);
+            String currencyCode = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(currencyBalance, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(currencyBalance, "reserved"));
@@ -2257,7 +2257,7 @@ public class BitstampCore extends BitstampApi
         {
             Object id = Helpers.GetValue(ids, i);
             Object fees = this.safeValue(response, i, new java.util.HashMap<String, Object>() {{}});
-            String code = (String) this.safeCurrencyCode(id);
+            String code = this.safeCurrencyCode(id);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(codes, null))) && !Helpers.isTrue(this.inArray(code, codes))))
             {
                 continue;
@@ -2978,7 +2978,7 @@ public class BitstampCore extends BitstampApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.parse8601(this.safeString(transaction, "datetime"));
         Object currencyId = this.getCurrencyIdFromTransaction(transaction);
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String feeCost = this.safeString(transaction, "fee");
         Object feeCurrency = null;
         Object amount = null;
@@ -3172,7 +3172,7 @@ public class BitstampCore extends BitstampApi
         // there is no timestamp from fetchOrder
         Long timestamp = this.parse8601(this.safeString(order, "datetime"));
         String marketId = (String)this.safeStringLower(order, "currency_pair");
-        String symbol = (String) this.safeSymbol(marketId, market, "/");
+        String symbol = this.safeSymbol(marketId, market, "/");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String amount = this.safeString(order, "amount");
         Object transactions = this.safeValue(order, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));

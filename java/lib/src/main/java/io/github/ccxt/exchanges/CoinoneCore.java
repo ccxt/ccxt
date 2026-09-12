@@ -477,7 +477,7 @@ public class CoinoneCore extends CoinoneApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Boolean isWithdrawEnabled = Helpers.isEqual(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
         Boolean isDepositEnabled = Helpers.isEqual(this.safeString(rawCurrency, "deposit_status", ""), "normal");
         String type = ((Helpers.isTrue((!Helpers.isEqual(code, "KRW"))))) ? "crypto" : "fiat";
@@ -566,8 +566,8 @@ public class CoinoneCore extends CoinoneApi
                 String id = this.safeString(entry, "id");
                 String baseId = (String)this.safeStringUpper(entry, "target_currency");
                 String quoteId = (String)this.safeStringUpper(entry, "quote_currency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
@@ -636,7 +636,7 @@ public class CoinoneCore extends CoinoneApi
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
             Object balance = Helpers.GetValue(balances, currencyId);
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "avail"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
@@ -909,8 +909,8 @@ public class CoinoneCore extends CoinoneApi
         Object bids = this.safeList(ticker, "best_bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String baseId = this.safeString(ticker, "target_currency");
         String quoteId = this.safeString(ticker, "quote_currency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         final Object finalBase = base;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
@@ -1555,7 +1555,7 @@ public class CoinoneCore extends CoinoneApi
                 Object parts = Helpers.split(key, "_");
                 Object currencyId = this.safeValue(parts, 0);
                 Object secondPart = this.safeValue(parts, 1);
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object depositAddress = this.safeValue(result, code);
                 if (Helpers.isTrue(Helpers.isEqual(depositAddress, null)))
                 {

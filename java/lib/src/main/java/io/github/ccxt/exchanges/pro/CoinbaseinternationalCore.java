@@ -834,7 +834,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         //
         Object type = this.safeString(message, "type");
         Object marketId = this.safeString(message, "product_id");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         Object datetime = this.safeString(message, "time");
         Object channel = this.safeString(message, "channel");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))

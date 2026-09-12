@@ -171,7 +171,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             }
         }
         String marketId = (String)this.safeStringLower(trade, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         final Object finalSide = side;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -395,7 +395,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         timeframeId = Helpers.slice(timeframeId, 0, timeframeEndIndex);
         Object marketId = ((String)this.safeString(message, "symbol", "")).toLowerCase();
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Object changes = this.safeList(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object timeframe = this.findTimeframe(timeframeId);
         Object ohlcvsBySymbol = this.safeValue(this.ohlcvs, symbol);

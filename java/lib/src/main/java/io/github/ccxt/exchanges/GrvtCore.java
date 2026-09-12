@@ -1003,9 +1003,9 @@ public class GrvtCore extends GrvtApi
         String baseId = this.safeString(market, "base");
         String quoteId = this.safeString(market, "quote");
         Object settleId = quoteId;
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         String type = null;
         String typeRaw = this.safeString(market, "kind");
@@ -1119,7 +1119,7 @@ public class GrvtCore extends GrvtApi
         //            },
         //
         String id = this.safeString(rawCurrency, "symbol");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "id", id );
@@ -1806,7 +1806,7 @@ public class GrvtCore extends GrvtApi
         {
             Object balance = Helpers.GetValue(spotBalances, i);
             String currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
             Helpers.addElementToObject(account, "free", availableBalance); // todo: revise after API team clarification
@@ -2096,7 +2096,7 @@ public class GrvtCore extends GrvtApi
         String addressFrom = this.safeString(transaction, "from_account_id");
         String addressTo = this.safeString(transaction, "to_account_id");
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         if (Helpers.isTrue(Helpers.inOp(transaction, "transfer_metadata")))
         {
             Object metaData = this.omitZero(this.safeString(transaction, "transfer_metadata"));
@@ -2374,7 +2374,7 @@ public class GrvtCore extends GrvtApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeIntegerProduct(transfer, "event_time", 0.000001);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );

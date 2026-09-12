@@ -189,7 +189,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         {
             Object balance = Helpers.GetValue(balances, i);
             Object currencyId = this.safeString(balance, "a");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Object free = this.safeString(balance, "F");
             Object used = this.safeString(balance, "L");

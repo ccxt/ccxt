@@ -534,7 +534,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             {
                 return;
             }
-            String legacySymbol = (String) this.safeSymbol(legacyMarketId, null, "_");
+            Object legacySymbol = this.safeSymbol(legacyMarketId, null, "_");
             Object timestampStr = ((String)this.safeString(content, "datetime"));
             if (Helpers.isTrue(Helpers.isEqual(timestampStr, null)))
             {
@@ -556,7 +556,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             return;
         }
         Object marketId = this.safeString(message, "code");
-        String symbol = (String) this.safeSymbol(marketId, null, "-");
+        Object symbol = this.safeSymbol(marketId, null, "-");
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
             return;
@@ -956,7 +956,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         {
             Object asset = Helpers.GetValue(assets, i);
             Object currencyId = this.safeString(asset, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(asset, "balance"));
             Helpers.addElementToObject(account, "used", this.safeString(asset, "locked"));
@@ -1164,7 +1164,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(order, "code");
-        String symbol = (String) this.safeSymbol(marketId, market, "-");
+        Object symbol = this.safeSymbol(marketId, market, "-");
         Long timestamp = this.safeInteger(order, "order_timestamp");
         Object sideId = this.safeString(order, "ask_bid");
         String side = (String)this.safeStringLower(order, "side");

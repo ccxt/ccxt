@@ -2278,8 +2278,8 @@ public class KucoinCore extends KucoinApi
                 var baseIdquoteIdVariable = Helpers.split(id, "-");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
                 Object ticker = this.safeDict(tickersById, id, new java.util.HashMap<String, Object>() {{}});
                 String makerFeeRate = this.safeString(ticker, "makerFeeRate");
@@ -2442,9 +2442,9 @@ public class KucoinCore extends KucoinApi
                 String baseId = this.safeString(market, "baseCurrency");
                 String quoteId = this.safeString(market, "quoteCurrency");
                 String settleId = this.safeString(market, "settleCurrency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String settle = (String) this.safeCurrencyCode(settleId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String settle = this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
                 String type = "swap";
                 if (Helpers.isTrue(future))
@@ -2635,9 +2635,9 @@ public class KucoinCore extends KucoinApi
                 String baseId = this.safeString(market, "baseCurrency");
                 String quoteId = this.safeString(market, "quoteCurrency");
                 String settleId = this.safeString(market, "settlementCurrency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String settle = (String) this.safeCurrencyCode(settleId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String settle = this.safeCurrencyCode(settleId);
                 String hasMargin = this.safeString(market, "marginMode");
                 Object isMarginable = ((Helpers.isTrue((Helpers.isEqual(hasMargin, "1"))))) ? true : false;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -2877,7 +2877,7 @@ public class KucoinCore extends KucoinApi
     {
         Object entry = currency;
         String id = this.safeString(entry, "currency");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList2(entry, "chains", "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object chainsLength = Helpers.getArrayLength(chains);
@@ -3009,7 +3009,7 @@ public class KucoinCore extends KucoinApi
                 Object account = Helpers.GetValue(data, i);
                 String accountId = this.safeString(account, "id");
                 String currencyId = this.safeString(account, "currency");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 String type = (String)this.safeStringLower2(account, "type", "accountType"); // main or trade or unified
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", accountId );
@@ -5426,7 +5426,7 @@ public class KucoinCore extends KucoinApi
         java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarketOrder, false, parameters);
         postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-        Object timeInForce = this.handleTimeInForce(parameters);
+        String timeInForce = this.handleTimeInForce(parameters);
         if (Helpers.isTrue((!Helpers.isEqual(timeInForce, null))))
         {
             parameters = this.omit(parameters, "timeInForce");
@@ -7685,7 +7685,7 @@ public class KucoinCore extends KucoinApi
         // omitZero is called in safeOrder2
         String side = this.safeString(order, "side");
         String feeCurrencyId = this.safeString(order, "feeCurrency");
-        String feeCurrency = (String) this.safeCurrencyCode(feeCurrencyId);
+        String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         Double feeCost = this.safeNumber(order, "fee");
         String amount = this.safeString(order, "size");
         String filled = this.safeString(order, "filledSize");
@@ -9319,7 +9319,7 @@ public class KucoinCore extends KucoinApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Object address = this.safeString(transaction, "address");
         String amount = this.safeString(transaction, "amount");
         Object txid = this.safeString(transaction, "walletTxId");
@@ -9993,8 +9993,8 @@ public class KucoinCore extends KucoinApi
                     Object entry = Helpers.GetValue(assets, i);
                     Object base = this.safeDict(entry, "baseAsset", new java.util.HashMap<String, Object>() {{}});
                     Object quote = this.safeDict(entry, "quoteAsset", new java.util.HashMap<String, Object>() {{}});
-                    String baseCode = (String) this.safeCurrencyCode(this.safeString(base, "currency"));
-                    String quoteCode = (String) this.safeCurrencyCode(this.safeString(quote, "currency"));
+                    String baseCode = this.safeCurrencyCode(this.safeString(base, "currency"));
+                    String quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
                     if (Helpers.isTrue(!Helpers.isEqual(baseCode, null)))
                     {
                         result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
@@ -10012,7 +10012,7 @@ public class KucoinCore extends KucoinApi
                 {
                     Object balance = Helpers.GetValue(accounts, i);
                     String currencyId = this.safeString(balance, "currency");
-                    String codeInner = (String) this.safeCurrencyCode(currencyId);
+                    String codeInner = this.safeCurrencyCode(currencyId);
                     if (Helpers.isTrue(!Helpers.isEqual(codeInner, null)))
                     {
                         Helpers.addElementToObject(result, codeInner, this.parseBalanceHelper(balance));
@@ -10028,7 +10028,7 @@ public class KucoinCore extends KucoinApi
                     if (Helpers.isTrue(Helpers.isEqual(balanceType, type)))
                     {
                         String currencyId = this.safeString(balance, "currency");
-                        String codeInner2 = (String) this.safeCurrencyCode(currencyId);
+                        String codeInner2 = this.safeCurrencyCode(currencyId);
                         Object account = this.account();
                         Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
                         Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
@@ -10100,7 +10100,7 @@ public class KucoinCore extends KucoinApi
             }};
             Object data = this.safeValue(response, "data");
             String currencyId = this.safeString(data, "currency");
-            String currencyCode = (String) this.safeCurrencyCode(currencyId, currency);
+            String currencyCode = this.safeCurrencyCode(currencyId, currency);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(data, "availableBalance"));
             Helpers.addElementToObject(account, "total", this.safeString(data, "accountEquity"));
@@ -10244,7 +10244,7 @@ public class KucoinCore extends KucoinApi
                     {
                         Object currencyEntry = this.safeDict(currencies, j, new java.util.HashMap<String, Object>() {{}});
                         String currencyId = this.safeString(currencyEntry, "currency");
-                        String currencyCode = (String) this.safeCurrencyCode(currencyId);
+                        String currencyCode = this.safeCurrencyCode(currencyId);
                         if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
                         {
                             result = this.mergeBalanceAccount(result, currencyCode, this.parseBalanceHelper(currencyEntry));
@@ -10259,7 +10259,7 @@ public class KucoinCore extends KucoinApi
                 {
                     Object currencyEntry = this.safeDict(currencies, i, new java.util.HashMap<String, Object>() {{}});
                     String currencyId = this.safeString(currencyEntry, "currency");
-                    String currencyCode = (String) this.safeCurrencyCode(currencyId);
+                    String currencyCode = this.safeCurrencyCode(currencyId);
                     if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
                     {
                         Helpers.addElementToObject(result, currencyCode, this.parseBalanceHelper(currencyEntry));
@@ -10768,7 +10768,7 @@ public class KucoinCore extends KucoinApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(item, "id");
         String currencyId = this.safeString(item, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amount = this.safeString(item, "amount");
         Object balanceAfter = this.safeNumberOmitZero(item, "balance");
@@ -11518,7 +11518,7 @@ public class KucoinCore extends KucoinApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object item = Helpers.GetValue(response, i);
-            String code = (String) this.safeCurrencyCode(this.safeString(item, "currency"));
+            String code = this.safeCurrencyCode(this.safeString(item, "currency"));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(codes, null)) || Helpers.isTrue(this.inArray(code, codes))))))
             {
                 if (!Helpers.isTrue((Helpers.inOp(borrowRateHistories, code))))

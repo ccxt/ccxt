@@ -2729,9 +2729,9 @@ public class HtxCore extends HtxApi
                     id = Helpers.add(baseId, quoteId);
                     lowercaseId = ((String)id).toLowerCase();
                 }
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String settle = (String) this.safeCurrencyCode(settleId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String settle = this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object expiry = null;
                 if (Helpers.isTrue(contract))
@@ -3603,7 +3603,7 @@ public class HtxCore extends HtxApi
             feeCost = Precise.stringNeg(this.safeString(trade, "trade_fee"));
         }
         String feeCurrencyId = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee-currency", "fee_asset", "fee_currency")));
-        String feeCurrency = (String) this.safeCurrencyCode(feeCurrencyId);
+        String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         String filledPoints = this.safeString(trade, "filled-points");
         if (Helpers.isTrue(!Helpers.isEqual(filledPoints, null)))
         {
@@ -3613,7 +3613,7 @@ public class HtxCore extends HtxApi
                 if (Helpers.isTrue(!Helpers.isEqual(feeDeductCurrency, null)))
                 {
                     feeCost = filledPoints;
-                    feeCurrency = (String) this.safeCurrencyCode(feeDeductCurrency);
+                    feeCurrency = this.safeCurrencyCode(feeDeductCurrency);
                 }
             }
         }
@@ -4453,7 +4453,7 @@ public class HtxCore extends HtxApi
             Helpers.addElementToObject(this.options, "networkChainIdsByNames", new java.util.HashMap<String, Object>() {{}});
         }
         String currencyId = this.safeString(rawCurrency, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         String assetType = this.safeString(rawCurrency, "assetType");
         String type = ((Helpers.isTrue((Helpers.isEqual(assetType, "1"))))) ? "crypto" : "fiat";
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -4822,7 +4822,7 @@ public class HtxCore extends HtxApi
                 {
                     Object balance = Helpers.GetValue(details, i);
                     String currencyId = this.safeString(balance, "currency");
-                    String code = (String) this.safeCurrencyCode(currencyId);
+                    String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "free", this.safeString(balance, "available_margin"));
                     Helpers.addElementToObject(account, "total", this.safeString(balance, "equity"));
@@ -4845,7 +4845,7 @@ public class HtxCore extends HtxApi
                         {
                             Object balance = Helpers.GetValue(balances, j);
                             String currencyId = this.safeString(balance, "currency");
-                            String code = (String) this.safeCurrencyCode(currencyId);
+                            String code = this.safeCurrencyCode(currencyId);
                             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                             {
                                 Helpers.addElementToObject(subResult, code, this.parseMarginBalanceHelper(balance, code, subResult));
@@ -4866,7 +4866,7 @@ public class HtxCore extends HtxApi
                     {
                         Object balance = Helpers.GetValue(balances, i);
                         String currencyId = this.safeString(balance, "currency");
-                        String code = (String) this.safeCurrencyCode(currencyId);
+                        String code = this.safeCurrencyCode(currencyId);
                         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                         {
                             Helpers.addElementToObject(result, code, this.parseMarginBalanceHelper(balance, code, result));
@@ -4880,7 +4880,7 @@ public class HtxCore extends HtxApi
                 {
                     Object balance = Helpers.GetValue(data, i);
                     String currencyId = this.safeString(balance, "symbol");
-                    String code = (String) this.safeCurrencyCode(currencyId);
+                    String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "free", this.safeString(balance, "margin_available"));
                     Helpers.addElementToObject(account, "used", this.safeString(balance, "margin_frozen"));
@@ -8066,7 +8066,7 @@ public class HtxCore extends HtxApi
         String tag = this.safeString(depositAddress, "addressTag");
         String currencyId = this.safeString(depositAddress, "currency");
         currency = this.safeCurrency(currencyId, currency);
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String note = this.safeString(depositAddress, "note");
         String networkId = this.safeString(depositAddress, "chain");
         this.checkAddress(address);
@@ -8413,7 +8413,7 @@ public class HtxCore extends HtxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(transaction, "created-at");
-        String code = (String) this.safeCurrencyCode(this.safeString(transaction, "currency"));
+        String code = this.safeCurrencyCode(this.safeString(transaction, "currency"));
         String type = this.safeString(transaction, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "withdraw")))
         {
@@ -8622,7 +8622,7 @@ public class HtxCore extends HtxApi
         Object accountsById = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
         String id = this.safeString2(transfer, "transfer_id", "data");
         String currencyId = this.safeString(transfer, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Double amount = this.safeNumber(transfer, "amount");
         Long timestamp = this.safeInteger(transfer, "transfer_time");
         String fromAccountRaw = this.safeString(transfer, "from_account_type");
@@ -8936,7 +8936,7 @@ public class HtxCore extends HtxApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Object currencies = this.safeValue(info, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object baseData = this.safeValue(currencies, 0);
         Object quoteData = this.safeValue(currencies, 1);
@@ -9037,7 +9037,7 @@ public class HtxCore extends HtxApi
                 {
                     Object entry = Helpers.GetValue(data, i);
                     String marketId = this.safeString(entry, "contract_code");
-                    String symbolInner = (String) this.safeSymbol(marketId, market);
+                    String symbolInner = this.safeSymbol(marketId, market);
                     Long timestamp = this.safeInteger(entry, "funding_time");
                     ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                         put( "info", entry );
@@ -9056,7 +9056,7 @@ public class HtxCore extends HtxApi
                     Object entry = Helpers.GetValue(result, i);
                     Helpers.addElementToObject(entry, "current_page", cursor);
                     String marketId = this.safeString(entry, "contract_code");
-                    String symbolInner = (String) this.safeSymbol(marketId);
+                    String symbolInner = this.safeSymbol(marketId);
                     Long timestamp = this.safeInteger(entry, "funding_time");
                     ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                         put( "info", entry );
@@ -9107,7 +9107,7 @@ public class HtxCore extends HtxApi
         String nextFundingTimeString = this.safeString(contract, "next_funding_time");
         String millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         String marketId = this.safeString(contract, "contract_code");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -9864,12 +9864,12 @@ public class HtxCore extends HtxApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "contract_code");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Double amount = this.safeNumber(income, "amount");
         Long timestamp = (Long) this.safeInteger2(income, "ts", "created_time");
         String id = this.safeString(income, "id");
         String currencyId = this.safeStringN(income, new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol", "asset", "currency")));
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
             put( "symbol", symbol );
@@ -10257,7 +10257,7 @@ public class HtxCore extends HtxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String id = this.safeString(item, "transactId");
         String transferType = this.safeString(item, "transferType");

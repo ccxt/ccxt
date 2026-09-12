@@ -532,7 +532,7 @@ public class LunoCore extends LunoApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(Helpers.GetValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawCurrency)); i++)
         {
@@ -631,8 +631,8 @@ public class LunoCore extends LunoApi
                 String id = this.safeString(market, "market_id");
                 String baseId = this.safeString(market, "base_currency");
                 String quoteId = this.safeString(market, "counter_currency");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 String status = this.safeString(market, "trading_status");
                 // Luno's published schedule is categorical, not a single pair. Entry-tier
                 // rates below are read from Luno's own Help Centre fee article for the ZAR
@@ -747,7 +747,7 @@ public class LunoCore extends LunoApi
                 Object account = Helpers.GetValue(wallets, i);
                 String accountId = this.safeString(account, "account_id");
                 String currencyId = this.safeString(account, "asset");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", accountId );
                     put( "type", null );
@@ -772,7 +772,7 @@ public class LunoCore extends LunoApi
         {
             Object wallet = Helpers.GetValue(wallets, i);
             String currencyId = this.safeString(wallet, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             String reserved = this.safeString(wallet, "reserved");
             String unconfirmed = this.safeString(wallet, "unconfirmed");
             String balance = this.safeString(wallet, "balance");
@@ -1113,7 +1113,7 @@ public class LunoCore extends LunoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String marketId = this.safeString(ticker, "pair");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String last = this.safeString(ticker, "last_trade");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1822,7 +1822,7 @@ public class LunoCore extends LunoApi
         String account_id = this.safeString(entry, "account_id");
         Long timestamp = this.safeInteger(entry, "timestamp");
         String currencyId = this.safeString(entry, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String available_delta = this.safeString(entry, "available_delta");
         String balance_delta = this.safeString(entry, "balance_delta");
@@ -2006,7 +2006,7 @@ public class LunoCore extends LunoApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = (String)this.safeStringUpper(depositAddress, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );

@@ -213,7 +213,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "symbol");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object rawTrades = this.safeList(data, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> trades = this.parseTrades(rawTrades, market);
@@ -385,7 +385,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         // current channel is 'l2Orderbook' which returns only snapshots
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "symbol");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         String messageHash = (String) Helpers.add("orderbook::", symbol);
         Long timestamp = this.safeInteger(data, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -802,7 +802,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(data, "availableQuantity"));
             Helpers.addElementToObject(account, "used", this.safeString(data, "lockedQuantity"));
-            String code = (String) this.safeCurrencyCode(assetId);
+            Object code = this.safeCurrencyCode(assetId);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tradingAccountId, null))) && Helpers.isTrue((!Helpers.isEqual(code, null)))))
             {
                 Helpers.addElementToObject(Helpers.GetValue(this.balance, tradingAccountId), code, account);

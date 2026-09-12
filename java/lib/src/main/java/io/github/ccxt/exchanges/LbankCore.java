@@ -590,7 +590,7 @@ public class LbankCore extends LbankApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(Helpers.GetValue(rawCurrency, 0), "assetCode"); // first member is guaranteed
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object networksRaw = rawCurrency;
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networksRaw)); j++)
@@ -706,8 +706,8 @@ public class LbankCore extends LbankApi
                 Object parts = Helpers.split(((String)marketId), "_");
                 String baseId = (String) Helpers.GetValue(parts, 0);
                 String quoteId = (String) Helpers.GetValue(parts, 1);
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -812,9 +812,9 @@ public class LbankCore extends LbankApi
                 String baseId = this.safeString(market, "baseCurrency");
                 String settleId = this.safeString(market, "clearCurrency");
                 Object quoteId = settleId;
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String settle = (String) this.safeCurrencyCode(settleId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String settle = this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -912,7 +912,7 @@ public class LbankCore extends LbankApi
             timestamp = this.safeTimestamp(ticker, "lastTime");
         }
         String marketId = this.safeString(ticker, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Object tickerData = this.safeValue(ticker, "ticker", new java.util.HashMap<String, Object>() {{}});
         market = this.safeMarket(marketId, market);
         Object data = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? ticker : tickerData;
@@ -1285,7 +1285,7 @@ public class LbankCore extends LbankApi
             id = this.safeString(trade, "txUuid");
         }
         String order = this.safeString(trade, "orderUuid");
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Object fee = null;
         String feeCost = this.safeString(trade, "tradeFee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -1584,7 +1584,7 @@ public class LbankCore extends LbankApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
             {
                 Object currencyId = Helpers.GetValue(currencies, i);
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "used", this.safeString(used, currencyId));
                 Helpers.addElementToObject(account, "free", this.safeString(free, currencyId));
@@ -1603,7 +1603,7 @@ public class LbankCore extends LbankApi
             {
                 Object item = Helpers.GetValue(balances, i);
                 String currencyId = this.safeString(item, "asset");
-                String codeInner = (String) this.safeCurrencyCode(currencyId);
+                String codeInner = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(item, "free"));
                 Helpers.addElementToObject(account, "used", this.safeString(item, "locked"));
@@ -1622,7 +1622,7 @@ public class LbankCore extends LbankApi
             {
                 Object item = Helpers.GetValue(data, i);
                 String currencyId = this.safeString(item, "coin");
-                String codeInner = (String) this.safeCurrencyCode(currencyId);
+                String codeInner = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(item, "usableAmt"));
                 Helpers.addElementToObject(account, "used", this.safeString(item, "freezeAmt"));
@@ -1655,7 +1655,7 @@ public class LbankCore extends LbankApi
         // }
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Double markPrice = this.safeNumber(ticker, "markedPrice");
         Double indexPrice = this.safeNumber(ticker, "underlyingPrice");
         Double fundingRate = this.safeNumber(ticker, "fundingRate");
@@ -1854,7 +1854,7 @@ public class LbankCore extends LbankApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "symbol");
-        String symbol = (String) this.safeSymbol(marketId);
+        String symbol = this.safeSymbol(marketId);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -3016,7 +3016,7 @@ public class LbankCore extends LbankApi
         }
         Double amount = this.safeNumber(transaction, "amount");
         String currencyId = this.safeString2(transaction, "coin", "coid");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"), type);
         Object fee = null;
         Double feeCost = this.safeNumber(transaction, "fee");
@@ -3288,7 +3288,7 @@ public class LbankCore extends LbankApi
             {
                 Object entry = Helpers.GetValue(result, i);
                 String currencyId = this.safeString(entry, "coin");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object networkList = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
@@ -3371,7 +3371,7 @@ public class LbankCore extends LbankApi
                 if (Helpers.isTrue(Helpers.isEqual(canWithdraw, "true")))
                 {
                     String currencyId = this.safeString(item, "assetCode");
-                    String codeInner = (String) this.safeCurrencyCode(currencyId);
+                    String codeInner = this.safeCurrencyCode(currencyId);
                     Object network = this.networkIdToCode(this.safeString(item, "chain"), codeInner);
                     if (Helpers.isTrue(Helpers.isEqual(network, null)))
                     {
@@ -3564,7 +3564,7 @@ public class LbankCore extends LbankApi
             if (Helpers.isTrue(Helpers.isEqual(canWithdraw, true)))
             {
                 String currencyId = this.safeString(fee, "assetCode");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(codes, null)) || Helpers.isTrue(this.inArray(code, codes))))))
                 {
                     Double withdrawFee = this.safeNumber(fee, "fee");

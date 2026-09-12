@@ -555,8 +555,8 @@ public class LatokenCore extends LatokenApi
                 Object quoteCurrencyInfo = this.safeDict(quoteCurrency, "info");
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(baseCurrencyInfo, null)) && Helpers.isTrue(!Helpers.isEqual(quoteCurrencyInfo, null))))
                 {
-                    String base = (String) this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
-                    String quote = (String) this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
+                    String base = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
+                    String quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
                     {
                         continue;
@@ -678,7 +678,7 @@ public class LatokenCore extends LatokenApi
     {
         String id = this.safeString(currency, "id");
         String tag = this.safeString(currency, "tag");
-        String code = (String) this.safeCurrencyCode(tag);
+        String code = this.safeCurrencyCode(tag);
         String currencyType = this.safeString(currency, "type");
         Boolean isCrypto = (Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_IEO")));
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -774,7 +774,7 @@ public class LatokenCore extends LatokenApi
                         maxTimestamp = Helpers.mathMax(maxTimestamp, timestamp);
                     }
                 }
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "blocked"));
@@ -1084,8 +1084,8 @@ public class LatokenCore extends LatokenApi
         String takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         String baseId = this.safeString(trade, "baseCurrency");
         String quoteId = this.safeString(trade, "quoteCurrency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets, null))) && Helpers.isTrue((Helpers.inOp(this.markets, symbol)))))
         {
@@ -1418,8 +1418,8 @@ public class LatokenCore extends LatokenApi
         Long timestamp = this.safeInteger(order, "timestamp");
         String baseId = this.safeString(order, "baseCurrency");
         String quoteId = this.safeString(order, "quoteCurrency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && Helpers.isTrue((!Helpers.isEqual(quote, null)))))
         {
@@ -1986,7 +1986,7 @@ public class LatokenCore extends LatokenApi
         String id = this.safeString(transaction, "id");
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Double amount = this.safeNumber(transaction, "amount");
         String addressFrom = this.safeString(transaction, "senderAddress");

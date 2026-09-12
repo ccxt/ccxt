@@ -131,7 +131,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(freeBalance, currencyId));
             Helpers.addElementToObject(account, "used", this.safeString(usedBalance, currencyId));
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 Helpers.addElementToObject(result, code, account);
@@ -491,8 +491,8 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         {
             quoteId = this.safeString(pair, 1);
         }
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        Object base = this.safeCurrencyCode(baseId);
+        Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object timestamp = this.safeInteger(ticker, "timestamp");
         if (Helpers.isTrue(!Helpers.isEqual(timestamp, null)))
@@ -754,8 +754,8 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object datetime = this.safeString(trade, "time");
         Object baseId = this.safeString(trade, "symbol");
         Object quoteId = this.safeString(trade, "symbol2");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        Object base = this.safeCurrencyCode(baseId);
+        Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object amount = this.safeString(trade, "amount");
         if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
@@ -877,8 +877,8 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             baseId = this.safeString(pair, "symbol1");
             quoteId = this.safeString(pair, "symbol2");
         }
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        Object base = this.safeCurrencyCode(baseId);
+        Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
         remains = this.currencyFromPrecision(base, remains);
@@ -990,8 +990,8 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             baseId = this.safeString(order, "symbol1");
             quoteId = this.safeString(order, "symbol2");
         }
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        Object base = this.safeCurrencyCode(baseId);
+        Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(base, null)) && Helpers.isTrue(!Helpers.isEqual(quote, null))))
         {
@@ -1202,8 +1202,8 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object parts = Helpers.split(pair, ":");
         Object baseId = this.safeString(parts, 0);
         Object quoteId = this.safeString(parts, 1);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        Object base = this.safeCurrencyCode(baseId);
+        Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         return symbol;
     }
@@ -1332,8 +1332,8 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object parts = Helpers.split(pair, ":");
         Object baseId = this.safeString(parts, 0);
         Object quoteId = this.safeString(parts, 1);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        Object base = this.safeCurrencyCode(baseId);
+        Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
         String messageHash = (String) Helpers.add("ohlcv:", symbol);

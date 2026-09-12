@@ -774,7 +774,7 @@ public class CoinsphCore extends CoinsphApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "coin");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object isFiat = this.safeBool(rawCurrency, "isLegalMoney");
         Object networkList = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
@@ -995,8 +995,8 @@ public class CoinsphCore extends CoinsphApi
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 java.util.Map<String, Object> limits = this.indexBy(this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList())), "filterType");
                 Object amountLimits = this.safeValue(limits, "LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
                 Object priceLimits = this.safeValue(limits, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
@@ -1673,7 +1673,7 @@ public class CoinsphCore extends CoinsphApi
         {
             Object balance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(balance, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "free"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -2596,7 +2596,7 @@ public class CoinsphCore extends CoinsphApi
         }
         String txid = this.safeString(transaction, "txId");
         String currencyId = this.safeString(transaction, "coin");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Object timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
         Object updated = null;
@@ -2725,7 +2725,7 @@ public class CoinsphCore extends CoinsphApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(depositAddress, "coin");
-        String parsedCurrency = (String) this.safeCurrencyCode(currencyId, currency);
+        String parsedCurrency = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", parsedCurrency );

@@ -958,7 +958,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             {
                 messageHash = "orders:verbose";
             }
-            String symbol = (String) this.safeSymbol(marketId);
+            Object symbol = this.safeSymbol(marketId);
             Object orderId = this.safeString(order, "order_id");
             Object previousOrders = this.safeValue(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
             Object previousOrder = this.safeValue(previousOrders, orderId);
@@ -1670,7 +1670,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(holdingKeys)); i++)
             {
                 Object key = Helpers.GetValue(holdingKeys, i);
-                String code = (String) this.safeCurrencyCode(key);
+                Object code = this.safeCurrencyCode(key);
                 Object newAccount = this.account();
                 Helpers.addElementToObject(newAccount, "total", this.safeString(holding, key));
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -1693,11 +1693,11 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(futuresKeys)); i++)
             {
                 Object key = Helpers.GetValue(futuresKeys, i);
-                String symbol = (String) this.safeSymbol(key);
+                Object symbol = this.safeSymbol(key);
                 Object newAccount = this.account();
                 Object future = this.safeValue(futures, key);
                 Object currencyId = this.safeString(future, "unit");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                Object code = this.safeCurrencyCode(currencyId);
                 Helpers.addElementToObject(newAccount, "free", this.safeString(future, "available"));
                 Helpers.addElementToObject(newAccount, "used", this.safeString(future, "initial_margin"));
                 Helpers.addElementToObject(newAccount, "total", this.safeString(future, "balance"));
@@ -1724,7 +1724,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             {
                 Object key = Helpers.GetValue(flexFuturesKeys, i);
                 Object flexFuture = this.safeValue(flexFutureCurrencies, key);
-                String code = (String) this.safeCurrencyCode(key);
+                Object code = this.safeCurrencyCode(key);
                 Object newAccount = this.account();
                 Helpers.addElementToObject(newAccount, "free", this.safeString(flexFuture, "available"));
                 Helpers.addElementToObject(newAccount, "used", this.safeString(flexFuture, "collateral_value"));

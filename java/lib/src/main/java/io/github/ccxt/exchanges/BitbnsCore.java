@@ -392,8 +392,8 @@ public class BitbnsCore extends BitbnsApi
                 String id = this.safeString(market, "id");
                 String baseId = this.safeString(market, "base");
                 String quoteId = this.safeString(market, "quote");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Object marketPrecision = this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}});
                 Object marketLimits = this.safeDict(market, "limits", new java.util.HashMap<String, Object>() {{}});
                 Object amountLimits = this.safeDict(marketLimits, "amount", new java.util.HashMap<String, Object>() {{}});
@@ -548,7 +548,7 @@ public class BitbnsCore extends BitbnsApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String marketId = this.safeString(ticker, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -657,7 +657,7 @@ public class BitbnsCore extends BitbnsApi
                 {
                     currencyId = "INR";
                 }
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     Helpers.addElementToObject(result, code, account);
@@ -1450,7 +1450,7 @@ public class BitbnsCore extends BitbnsApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "unit");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString2(transaction, "date", "timestamp"));
         String type = this.safeString(transaction, "type");
         String expTime = this.safeString(transaction, "expTime", "");

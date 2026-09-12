@@ -441,7 +441,7 @@ public class RevolutxCore extends RevolutxApi
     public Object parseCurrency(Object currency)
     {
         String id = this.safeString2(currency, "id", "symbol", "");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         String name = this.safeString(currency, "name");
         Object scale = this.safeInteger(currency, "scale");
         String status = this.safeString(currency, "status");
@@ -542,7 +542,7 @@ public class RevolutxCore extends RevolutxApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String tickerSymbol = this.safeString(ticker, "symbol");
-        String symbol = (String) this.safeSymbol(tickerSymbol, market, "/");
+        String symbol = this.safeSymbol(tickerSymbol, market, "/");
         String bid = this.safeString(ticker, "bid");
         String ask = this.safeString(ticker, "ask");
         String last = this.safeString(ticker, "last_price");
@@ -857,7 +857,7 @@ public class RevolutxCore extends RevolutxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(trade, "id");
         String tradeSymbol = this.safeString(trade, "symbol");
-        String symbol = (String) this.safeSymbol(tradeSymbol, market, "/");
+        String symbol = this.safeSymbol(tradeSymbol, market, "/");
         Double price = this.safeNumber(trade, "price");
         Double amount = this.safeNumber(trade, "quantity");
         String side = (String)this.safeStringLower(trade, "side");
@@ -999,7 +999,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Object balance = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
                 String currency = this.safeString(balance, "currency");
-                String code = (String) this.safeCurrencyCode(currency);
+                String code = this.safeCurrencyCode(currency);
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {
                     continue;
@@ -1060,7 +1060,7 @@ public class RevolutxCore extends RevolutxApi
         String orderId = this.safeString2(order, "id", "venue_order_id");
         String clientOrderId = this.safeString(order, "client_order_id");
         String orderSymbol = this.safeString(order, "symbol");
-        String symbol = (String) this.safeSymbol(orderSymbol, market, "/");
+        String symbol = this.safeSymbol(orderSymbol, market, "/");
         String side = (String)this.safeStringLower(order, "side");
         String orderType = (String)this.safeStringLower(order, "type");
         String quantity = this.safeString(order, "quantity");
@@ -1563,7 +1563,7 @@ public class RevolutxCore extends RevolutxApi
         {
             cost = Helpers.multiply(price, amount);
         }
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalCost = cost;

@@ -125,7 +125,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         }
         Object parts = Helpers.split(channel, "_");
         Object marketId = this.safeString(parts, 3);
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         Object nonce = this.safeValue(storedOrderBook, "nonce");
         Object delta = this.safeValue(message, "data");
@@ -524,7 +524,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         }
         Object parts = Helpers.split(channel, "_");
         Object marketId = this.safeString(parts, 3);
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
     }
 

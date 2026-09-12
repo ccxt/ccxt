@@ -801,7 +801,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             String messageHash = (String) Helpers.add("orders:", marketId);
-            String symbol = (String) this.safeSymbol(marketId);
+            Object symbol = this.safeSymbol(marketId);
             Object orderId = this.safeString(message, "order_id");
             Object makerOrderId = this.safeString(message, "maker_order_id");
             Object takerOrderId = this.safeString(message, "taker_order_id");
@@ -914,7 +914,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         Object id = this.safeString(order, "order_id");
         Object clientOrderId = this.safeString(order, "client_oid");
         Object marketId = this.safeString(order, "product_id");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         Object side = this.safeString(order, "side");
         Double price = this.safeNumber(order, "price");
         Object amount = this.safeString2(order, "size", "funds");
@@ -1034,7 +1034,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             return super.parseTicker(ticker, market);
         }
         Object marketId = this.safeString(ticker, "product_id");
-        String symbol = (String) this.safeSymbol(marketId, market, "-");
+        Object symbol = this.safeSymbol(marketId, market, "-");
         Long timestamp = this.parse8601(this.safeString(ticker, "time"));
         Object last = this.safeString(ticker, "price");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{

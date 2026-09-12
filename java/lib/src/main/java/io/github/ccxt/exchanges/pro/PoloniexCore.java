@@ -799,7 +799,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         data = this.safeValue(data, 0);
         Object channel = this.safeString(message, "channel");
         Object marketId = this.safeString(data, "symbol");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
         Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(channel, timeframes);
@@ -1062,7 +1062,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             Object eventType = this.safeString(order, "eventType");
             if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
             {
-                String symbol = (String) this.safeSymbol(marketId);
+                Object symbol = this.safeSymbol(marketId);
                 Object orderId = this.safeString(order, "orderId", "");
                 Object clientOrderId = this.safeString(order, "clientOrderId", "");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(eventType, "place")) || Helpers.isTrue(Helpers.isEqual(eventType, "canceled"))))
@@ -1447,7 +1447,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         {
             Object balance = this.safeValue(response, i);
             Object currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object newAccount = this.account();
             Helpers.addElementToObject(newAccount, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(newAccount, "used", this.safeString(balance, "hold"));

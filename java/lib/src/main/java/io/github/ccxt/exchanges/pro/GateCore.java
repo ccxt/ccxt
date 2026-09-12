@@ -706,7 +706,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         }
         Object marketIdParts = Helpers.split(marketIdWithPrefix, ".");
         Object marketId = this.safeString(marketIdParts, 1);
-        String symbol = (String) this.safeSymbol(marketId, null, "_", "spot");
+        Object symbol = this.safeSymbol(marketId, null, "_", "spot");
         String messageHash = (String) Helpers.add("orderbook:", symbol);
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.orderbooks, symbol), null)))
         {
@@ -801,7 +801,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         Long deltaStart = this.safeInteger(delta, "U");
         Long deltaEnd = this.safeInteger(delta, "u");
         Object marketId = this.safeString(delta, "s");
-        String symbol = (String) this.safeSymbol(marketId, null, "_", marketType);
+        Object symbol = this.safeSymbol(marketId, null, "_", marketType);
         String messageHash = (String) Helpers.add("orderbook:", symbol);
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}));
         Long nonce = this.safeInteger(storedOrderBook, "nonce");
@@ -1374,7 +1374,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object timeframe = this.findTimeframe(timeframeId);
             Object prefix = Helpers.add(timeframe, "_");
             Object marketId = Helpers.replace((String)subscription, (String)prefix, (String)"");
-            String symbol = (String) this.safeSymbol(marketId, null, "_", marketType);
+            Object symbol = this.safeSymbol(marketId, null, "_", marketType);
             Object parsed = this.parseOHLCV(ohlcv);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
@@ -1649,7 +1649,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object rawBalance = Helpers.GetValue(result, i);
             Object account = this.account();
             Object currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Long timestamp = (Long) this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
             Helpers.addElementToObject(this.balance, "timestamp", timestamp);
             Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
@@ -2391,7 +2391,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(payload)); i++)
                     {
                         Object marketType = ((Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(parsedChannel, 0), "futures")))) ? "swap" : Helpers.GetValue(parsedChannel, 0);
-                        String symbol = (String) this.safeSymbol(Helpers.GetValue(payload, i), null, "_", marketType);
+                        Object symbol = this.safeSymbol(Helpers.GetValue(payload, i), null, "_", marketType);
                         Object messageHashSymbol = Helpers.add(Helpers.add(Helpers.GetValue(parsedChannel, 1), ":"), symbol);
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(messageHashSymbol, null))) && Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHashSymbol)))))
                         {

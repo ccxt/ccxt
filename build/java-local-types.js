@@ -22,11 +22,11 @@
 //
 // ===== 1. string-returning method signatures =====
 //
-// JAVA_STRING_RETURN_METHODS is a CLOSED, per-name table (84 names, ~250 generated
-// declarations). A name is listed only when a census of every generated declaration of
-// the name (BaseExchange.java suffix, exchanges/*, exchanges/pro/*,
-// exchanges/prediction/*) proved that EVERY return expression is already string-typed
-// in Java:
+// JAVA_STRING_RETURN_METHODS is a CLOSED, per-name table (99 names, ~380 generated
+// declarations together with the two sibling sets below). A name is listed only when a
+// census of every generated declaration of the name (BaseExchange.java suffix,
+// exchanges/*, exchanges/pro/*, exchanges/prediction/*) proved that EVERY return
+// expression is already string-typed in Java:
 //
 //   * `this.safeString / safeString2 / safeStringN (...)` — hand-written, declared String;
 //   * string literals and `null` (TS `undefined` prints as null for these sync methods);
@@ -37,7 +37,10 @@
 //     (the printer's own cast emits);
 //   * a ternary whose arms are all of the above (null + String unifies to String);
 //   * a `this.<listed name>(...)` or `super.<listed name>(...)` call (fixpoint), which
-//     after this retype returns the same type.
+//     after this retype returns the same type;
+//   * a local identifier whose declaration prints `String` (the local-typing machinery's
+//     own narrowing — e.g. `String suffix = "-spot";`, `String r = Precise.stringMul(...)`,
+//     or any other signature this table has already retyped).
 //
 // Four names (JAVA_STRING_RETURN_METHODS_CASE_CAST) additionally carry a small number of
 // `this.safeStringUpper/Lower (...)` return sites. The C# campaign's equivalent retype
@@ -49,11 +52,19 @@
 // (same corner the C# `string?` retype accepts); every generated caller passes a
 // string-ish value.
 //
+// Three names (JAVA_STRING_RETURN_METHODS_CAST — safeSymbol / safeCurrencyCode /
+// getExtendedCurrencyCodeById) retype the same way but keep their element-read return
+// sites behind the same free `(String)` checkcast (see the section-1b comment above the
+// table): the ~1,000 `(String) this.safeSymbol/safeCurrencyCode(...)` declaration casts
+// the local-typing side emitted are now redundant and gone.
+//
 // The decision is per NAME, so a base virtual and every override always print the same
 // return type (Java requires invariant/covariant compatible returns). Names whose census
-// found any other return shape — a local identifier, `Helpers.add(...)`, a `this.<name>`
-// that is not in the table, a `super.<name>` that is not in the table, a `Precise.string*`
-// outside the String set — stay Object; the census is in the JAVA-15 report.
+// found any other return shape — a local identifier still printed Object, `Helpers.add(...)`
+// with a non-String left operand, a `Helpers.GetValue(...)` read whose field is not a
+// string, a `this.<name>` that is not in the table, a `super.<name>` that is not in the
+// table, a `Precise.string*` outside the String set — stay Object; the census scripts are
+// build/ss11-census.py (SS-11) and the JAVA-15 report.
 //
 // ===== 2. list-returning parse families -> java.util.List<Object> =====
 //
@@ -174,26 +185,61 @@ import { fileURLToPath } from 'node:url';
 
 // every name proved string-returning by the tree census (see the header)
 export const JAVA_STRING_RETURN_METHODS = new Set ([
-    'applyScale', 'convertToInstrumentType', 'convertToX18', 'costToPrecision',
-    'costToPredictionPrecision', 'createOrderNonce', 'currencyFromPrecision',
-    'encodeOrderSide', 'encodeOrderType', 'encodeTriggerPriceType', 'encodeValuesWithJson',
-    'encodeWorkingType', 'feeToPrecision', 'fromEn', 'fromPrecision', 'fromWeiWithDecimals',
-    'futuresRequestId', 'getAccountTypeFromUrl', 'getDexFromHip3Symbol', 'getFutureWsCategory',
-    'getPrivateType', 'getSubAccountId', 'getTifFromRawOrderType', 'getTypeByMarket',
-    'handleTakerOrMaker', 'mapSide', 'mapTimeInForce', 'marketOutcomeToSymbol',
-    'outcomeSearchQuery', 'padHex', 'paraseTransferStatus', 'parseAccountId', 'parseAccountType',
-    'parseDepositStatus', 'parseFundingInterval', 'parseLedgerDirection',
-    'parseLedgerEntryDirection', 'parseLedgerEntryStatus', 'parseLedgerStatus', 'parseLedgerType',
+    'applyScale', 'calcOrderPrice', 'convertToInstrumentType', 'convertToX18',
+    'costToPrecision', 'costToPredictionPrecision', 'createAuthToken',
+    'createOrderAppendix', 'createOrderIdFromParts', 'createOrderNonce',
+    'currencyFromPrecision', 'encodeMarginMode', 'encodeOrderSide', 'encodeOrderType',
+    'encodeTriggerPriceType', 'encodeValuesWithJson', 'encodeWorkingType',
+    'feeToPrecision', 'fromEn', 'fromPrecision', 'fromWeiWithDecimals',
+    'futuresRequestId', 'generateClientOrderId', 'getAccountTypeFromUrl',
+    'getDexFromHip3Symbol', 'getDexFromSymbols', 'getFutureWsCategory',
+    'getMarketIdByType', 'getMyTradesMessageHashSuffix', 'getPrivateType',
+    'getProductGroupFromMarket', 'getSeeds', 'getSubAccountId',
+    'getTifFromRawOrderType', 'getTypeByMarket', 'getWalletAddress',
+    'handleTakerOrMaker', 'handleTimeInForce', 'hexToDecimalString', 'mapSide',
+    'mapTimeInForce', 'marketOutcomeToSymbol', 'oath', 'outcomeSearchQuery', 'padHex',
+    'paraseTransferStatus', 'parseAccountId', 'parseAccountType', 'parseDepositStatus',
+    'parseFundingInterval', 'parseLedgerDirection', 'parseLedgerEntryDirection',
+    'parseLedgerEntryStatus', 'parseLedgerStatus', 'parseLedgerType',
     'parseMarginModeType', 'parseMarginStatus', 'parseMarginType', 'parseMarketType',
-    'parseOrderSide', 'parseOrderState', 'parseOrderTimeInForce', 'parseOrderTimeInForceInteger',
-    'parseOrderTypeByMarket', 'parseOrderTypeInteger', 'parseStatus', 'parseTakerOrMaker',
-    'parseTradeSide', 'parseTradeType', 'parseTradingOrderStatus', 'parseTransactionDepositStatus',
-    'parseTransactionState', 'parseTransactionStatus', 'parseTransactionType',
+    'parseOrderSide', 'parseOrderState', 'parseOrderTimeInForce',
+    'parseOrderTimeInForceInteger', 'parseOrderTypeByMarket', 'parseOrderTypeInteger',
+    'parseStatus', 'parseTakerOrMaker', 'parseTradeSide', 'parseTradeType',
+    'parseTradingOrderStatus', 'parseTransactionDepositStatus', 'parseTransactionState',
+    'parseTransactionStatus', 'parseTransactionType',
     'parseTransactionWithdrawalStatus', 'parseTransferStatus', 'parseType', 'parseUnits',
-    'parseValueToPricision', 'parseWithdrawalStatus', 'parseWsOrderSide', 'parseWsOrderStatus',
-    'parseWsOrderType', 'parseWsPositionSide', 'parseWsTimeInForce', 'scaleNumber', 'shortenSlug',
-    'signCancelAll', 'signClobOrder', 'signOrderbookTypedData', 'symbol', 'tokenIdToSymbol',
-    'typeToTradeType', 'walletAddressFromKeys', 'walletAddressOrUndefined',
+    'parseValueToPricision', 'parseWithdrawalStatus', 'parseWsOrderSide',
+    'parseWsOrderStatus', 'parseWsOrderType', 'parseWsPositionSide', 'parseWsTimeInForce',
+    'pow', 'prepareMessage', 'scaleNumber', 'shortenSlug', 'signCancelAll',
+    'signClobOrder', 'signL1AndPrepareTxInfo', 'signOrderbookTypedData', 'symbol',
+    'toOrderbookWei', 'tokenIdToSymbol', 'typeToTradeType', 'walletAddressFromKeys',
+    'walletAddressOrUndefined',
+]);
+
+// ===== 1b. string-returning names whose retype keeps a (String) checkcast =====
+//
+// The three names below have the SAME retyped signature and the same call-site
+// behaviour as JAVA_STRING_RETURN_METHODS (locals fed by them need no cast), but their
+// return expressions cannot all be typed by the printer alone, so the producer return
+// sites carry the `(String)` checkcast that every call site used to carry (the local
+// machinery's cast family, see LOCAL_THIS_RETURN_TYPES):
+//
+//   * safeSymbol (1 decl, BaseExchange)      -> Helpers.GetValue(market, "symbol")
+//   * safeCurrencyCode (2 decls, base + kraken) -> Helpers.GetValue(currency, "code")
+//   * getExtendedCurrencyCodeById (1 decl, extended) -> Helpers.GetValue(currency, "code")
+//
+// Every return path of every declaration is the market/currency row's own string field
+// (`market['symbol']` / `currency['code']`) or null/undefined when the key is absent —
+// the same runtime box the callers' ~1,000 `(String) this.<name>(...)` declarations
+// already checkcast today (see the section 3 cast-family paragraph); the retype moves
+// that checkcast to the ONE producer return site.
+//   * element read       -> prints Helpers.GetValue(...) -> (String) return checkcast
+//   * kraken's `return currencyId` sits under its own `if (currencyId === undefined)`
+//     guard and hands back the null the guard matched -> (String) cast on null
+//   * every other return expression (kraken's Helpers.add chain, `super.safeCurrencyCode`,
+//     the safeString reads, the `code` local) already prints String — no cast.
+export const JAVA_STRING_RETURN_METHODS_CAST = new Set ([
+    'getExtendedCurrencyCodeById', 'safeCurrencyCode', 'safeSymbol',
 ]);
 
 // listed names that additionally carry `this.safeStringUpper/Lower (...)` return sites
@@ -211,8 +257,17 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
 
 // one name in both tables is a hard bug: the fixed per-name return type would differ
 for (const name of JAVA_LIST_RETURN_METHODS) {
-    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)
+        || JAVA_STRING_RETURN_METHODS_CAST.has (name)) {
         throw new Error ('java-local-types: ' + name + ' listed as both string and list returning');
+    }
+}
+// JAVA_STRING_RETURN_METHODS_CAST is a sibling set with the same retype semantics (its
+// names are listed only there — the pure table's no-cast invariant must stay true), so a
+// name in both is a config bug
+for (const name of JAVA_STRING_RETURN_METHODS_CAST) {
+    if (JAVA_STRING_RETURN_METHODS.has (name)) {
+        throw new Error ('java-local-types: ' + name + ' listed as both no-cast and cast string return');
     }
 }
 
@@ -716,7 +771,8 @@ function isProvablyStringExpression (printer, node, selfName, narrowed) {
             if (SAFE_STRING_ACCESSORS.has (name) || name === 'iso8601') {
                 return true; // hand-written BaseExchange declarations, `public String`
             }
-            if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+            if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)
+                || JAVA_STRING_RETURN_METHODS_CAST.has (name)) {
                 return resolvesToMethodNamed (printer, node, name);
             }
             return isBaseDeclaration (printer, node) && baseMethodReturnsString (printer, node, name);
@@ -1100,7 +1156,8 @@ function javaMethodReturnType (printer, node, own) {
         return undefined;
     }
     const name = node.name.escapedText;
-    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)
+        || JAVA_STRING_RETURN_METHODS_CAST.has (name)) {
         return 'String';
     }
     if (JAVA_LIST_RETURN_METHODS.has (name)) {
@@ -1110,6 +1167,53 @@ function javaMethodReturnType (printer, node, own) {
 }
 
 // ===== return-statement casts =====
+
+// `return X;` under an enclosing `if (X === undefined|null)` guard hands back the null
+// the guard matched (`currencyId === undefined` prints Helpers.isEqual(currencyId, null))
+function guardedNullReturn (node, expression) {
+    const name = expression.escapedText;
+    const isNullTest = (cond) => {
+        if (cond === undefined) {
+            return false;
+        }
+        if (cond.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            return isNullTest (cond.expression);
+        }
+        if (cond.kind !== ts.SyntaxKind.BinaryExpression) {
+            return false;
+        }
+        const operator = cond.operatorToken.kind;
+        if (operator !== ts.SyntaxKind.EqualsEqualsEqualsToken
+            && operator !== ts.SyntaxKind.EqualsEqualsToken) {
+            return false;
+        }
+        const isNullish = (side) => side !== undefined
+            && (side.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (side) && side.escapedText === 'undefined'));
+        const isName = (side) => side !== undefined && ts.isIdentifier (side) && side.escapedText === name;
+        return (isName (cond.left) && isNullish (cond.right)) || (isName (cond.right) && isNullish (cond.left));
+    };
+    let child = node;
+    let parent = node.parent;
+    while (parent !== undefined) {
+        if (ts.isBlock (parent)) {
+            child = parent;
+            parent = parent.parent;
+            continue;
+        }
+        if (ts.isIfStatement (parent)) {
+            if (parent.thenStatement === child && isNullTest (parent.expression)) {
+                return true;
+            }
+            return false;
+        }
+        if (ts.isSourceFile (parent) || ts.isFunctionLike (parent)) {
+            return false;
+        }
+        child = parent;
+        parent = parent.parent;
+    }
+    return false;
+}
 
 // the printed return payload this module knows how to cast, or undefined
 function returnCastFor (printer, node, methodName) {
@@ -1126,6 +1230,23 @@ function returnCastFor (printer, node, methodName) {
                 return '(String)';
             }
         }
+        return undefined;
+    }
+    if (JAVA_STRING_RETURN_METHODS_CAST.has (methodName)) {
+        // an element read (`market['symbol']` / `currency['code']`) prints
+        // Helpers.GetValue(...) — an Object box that is the row's string field or null
+        // on every shipment path (the same box the callers' (String) declarations
+        // already checkcast)
+        if (ts.isElementAccessExpression (expression)) {
+            return '(String)';
+        }
+        // `return currencyId;` under `if (currencyId === undefined)` returns the null
+        // the guard matched
+        if (ts.isIdentifier (expression) && guardedNullReturn (node, expression)) {
+            return '(String)';
+        }
+        // every other shape already prints String (census: the safeString reads and the
+        // Helpers.add / super.<name> chains of these declarations)
         return undefined;
     }
     if (JAVA_LIST_RETURN_METHODS.has (methodName)) {
@@ -1250,7 +1371,8 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         return receiverMethodLocalType (initializer);
     }
     const name = initializer.expression.name.escapedText;
-    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)
+        || JAVA_STRING_RETURN_METHODS_CAST.has (name)) {
         // the signature hook retypes real method declarations by name; a field of the
         // same name would print an untyped call and could not hold a String result
         return resolvesToMethodNamed (printer, initializer, name) ? { type: 'String' } : undefined;
@@ -1330,7 +1452,8 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 if (name === 'parse8601') {
                     return false;
                 }
-                if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+                if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)
+                    || JAVA_STRING_RETURN_METHODS_CAST.has (name)) {
                     return true;
                 }
                 if (name === 'iso8601') {
@@ -2969,7 +3092,8 @@ export function installJavaLocalTypes (transpiler) {
             return printed;
         }
         const methodName = method.name.escapedText;
-        if (!JAVA_STRING_RETURN_METHODS_CASE_CAST.has (methodName) && !JAVA_LIST_RETURN_METHODS.has (methodName)) {
+        if (!JAVA_STRING_RETURN_METHODS_CASE_CAST.has (methodName) && !JAVA_LIST_RETURN_METHODS.has (methodName)
+            && !JAVA_STRING_RETURN_METHODS_CAST.has (methodName)) {
             return printed;
         }
         const cast = returnCastFor (printer, node, methodName);
@@ -3071,7 +3195,8 @@ export function installJavaLocalTypes (transpiler) {
         // declaration got; calls to retyped signatures (and the hand-written
         // parse8601/iso8601) need none
         const accessor = LOCAL_THIS_RETURN_TYPES[call];
-        const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType)
+        const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType
+                && !JAVA_STRING_RETURN_METHODS_CAST.has (call))
             || (javaType === JAVA_STRUCTURE_TYPE && STRUCTURE_THIS_RETURN_TYPES[call] !== undefined)
             || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'))
             || (javaType === 'String' && (JAVA_STRING_RETURN_METHODS_CASE_CAST.has (call)

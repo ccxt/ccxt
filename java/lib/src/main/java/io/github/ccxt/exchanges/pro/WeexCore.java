@@ -2093,7 +2093,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         {
             Object entry = this.safeDict(balanceUpdates, i);
             Object currencyId = this.safeString(entry, "coin");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString2(entry, "available", "amount"));
             Helpers.addElementToObject(account, "used", this.safeString(entry, "frozen"));

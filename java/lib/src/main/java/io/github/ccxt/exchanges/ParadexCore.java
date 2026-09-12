@@ -904,10 +904,10 @@ public class ParadexCore extends ParadexApi
         String marketId = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quote_currency");
         String baseId = this.safeString(market, "base_currency");
-        String quote = (String) this.safeCurrencyCode(quoteId);
-        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
         String settleId = this.safeString(market, "settlement_currency");
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Long expiry = this.safeInteger(market, "expiry_at");
         String optionType = this.safeString(market, "option_type");
@@ -1701,7 +1701,7 @@ public class ParadexCore extends ParadexApi
         Boolean isTaker = Helpers.isEqual(liability, "taker");
         String takerOrMaker = ((Helpers.isTrue((isTaker)))) ? "taker" : "maker";
         String currencyId = this.safeString(trade, "fee_currency");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -3047,7 +3047,7 @@ public class ParadexCore extends ParadexApi
         {
             Object balance = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "size"));
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -3640,7 +3640,7 @@ public class ParadexCore extends ParadexApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "token");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(transfer, "created_at");
         String kind = this.safeString(transfer, "kind");
         String fromAccount = null;
@@ -3693,7 +3693,7 @@ public class ParadexCore extends ParadexApi
         String address = this.safeString(transaction, "account");
         String txid = this.safeString(transaction, "txn_hash");
         String currencyId = this.safeString(transaction, "token");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(transaction, "created_at");
         Long updated = this.safeInteger(transaction, "last_updated_at");
         String type = this.safeString(transaction, "kind");
@@ -3892,7 +3892,7 @@ public class ParadexCore extends ParadexApi
         }};
     }
 
-    public Object encodeMarginMode(Object mode)
+    public String encodeMarginMode(Object mode)
     {
         java.util.Map<String, Object> modes = new java.util.HashMap<String, Object>() {{
             put( "cross", "CROSS" );

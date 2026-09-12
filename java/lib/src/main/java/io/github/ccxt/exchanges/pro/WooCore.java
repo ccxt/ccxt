@@ -1796,7 +1796,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(balances, key);
-            String code = (String) this.safeCurrencyCode(key);
+            Object code = this.safeCurrencyCode(key);
             Object account = this.account();
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
             {

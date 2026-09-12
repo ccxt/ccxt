@@ -430,7 +430,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         {
             Object balance = Helpers.GetValue(message, i);
             Object currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object currency = this.safeValue(this.currencies, code, new java.util.HashMap<String, Object>() {{}});
             Long scale = this.safeInteger(currency, "valueScale", 8);
             Object account = this.account();

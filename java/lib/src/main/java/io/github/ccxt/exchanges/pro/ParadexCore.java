@@ -679,7 +679,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(contract, "market");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Long timestamp = this.safeInteger(contract, "created_at");
         Object fundingPeriod = this.safeString(contract, "funding_period_hours");
         final Object finalFundingPeriod = fundingPeriod;

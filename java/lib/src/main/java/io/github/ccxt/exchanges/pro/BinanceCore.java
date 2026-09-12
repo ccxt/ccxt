@@ -345,7 +345,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             return null;
         }
         Object safeQuote = ((Helpers.isTrue((Helpers.isEqual(quote, null))))) ? "USDC" : quote;
-        String parsed = (String) this.safeSymbol(stockSymbol, null, "/", "spot");
+        Object parsed = this.safeSymbol(stockSymbol, null, "/", "spot");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(parsed, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(parsed, "/"), 0)))))
         {
             return parsed;
@@ -787,7 +787,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         }
         Object marketId = this.safeString(message, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, "swap");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Object liquidation = this.parseWsLiquidation(message, market);
         Object cache = this.myLiquidations;
         if (Helpers.isTrue(Helpers.isEqual(cache, null)))
@@ -1839,7 +1839,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object marketId = this.safeString(trade, "s");
         String fallbackType = ((Helpers.isTrue((Helpers.inOp(trade, "ps"))))) ? "contract" : "spot";
         Object marketType = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "type") : fallbackType;
-        String symbol = (String) this.safeSymbol(marketId, market, null, marketType);
+        Object symbol = this.safeSymbol(marketId, market, null, marketType);
         String side = (String)this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         Object orderId = this.safeString(trade, "i");
@@ -1856,7 +1856,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             Object feeCurrencyId = this.safeString(trade, "N");
-            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
+            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -2277,7 +2277,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         // BTCUSDT maps to both the spot and the linear swap market
         Object isSpot = this.isSpotUrl(client);
         String marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
-        String symbol = (String) this.safeSymbol(marketId, null, null, marketType);
+        Object symbol = this.safeSymbol(marketId, null, null, marketType);
         String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), unifiedTimeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), unifiedTimeframe);
@@ -3118,7 +3118,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //      }
         //
         Object marketId = this.safeString2(message, "s", "symbol");
-        String symbol = (String) this.safeSymbol(marketId, null, null, marketType);
+        Object symbol = this.safeSymbol(marketId, null, null, marketType);
         Object eventVar = this.safeString(message, "e", "bookTicker");
         if (Helpers.isTrue(Helpers.isEqual(eventVar, "24hrTicker")))
         {
@@ -4417,7 +4417,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         if (Helpers.isTrue(Helpers.isEqual(eventVar, "balanceUpdate")))
         {
             Object currencyId = this.safeString(message, "a");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Object delta = this.safeString(message, "d");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(accountType, null))) && Helpers.isTrue((!Helpers.isEqual(code, null)))) && Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.balance, accountType), code)))))
@@ -4448,7 +4448,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 Object entry = Helpers.GetValue(B, i);
                 Object currencyId = this.safeString(entry, "a");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                Object code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "f"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "l"));
@@ -5622,7 +5622,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object marketId = this.safeString(order, "s");
         // futures user-data events carry the position side field, spot ones do not
         String marketType = ((Helpers.isTrue((Helpers.inOp(order, "ps"))))) ? "contract" : "spot";
-        String symbol = (String) this.safeSymbol(marketId, null, null, marketType);
+        Object symbol = this.safeSymbol(marketId, null, null, marketType);
         Object timestamp = this.safeInteger(order, "O");
         Long T = this.safeInteger(order, "T");
         Object lastTradeTimestamp = null;
@@ -5642,7 +5642,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(feeCost, null))) && Helpers.isTrue((Precise.stringGt(feeCost, "0")))))
         {
             Object feeCurrencyId = this.safeString(order, "N");
-            String feeCurrency = (String) this.safeCurrencyCode(feeCurrencyId);
+            Object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -6837,7 +6837,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         {
             Object entry = Helpers.GetValue(B, i);
             Object currencyId = this.safeString(entry, "a");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 Object account = this.account();

@@ -2105,7 +2105,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         {
             Object balance = Helpers.GetValue(data, i);
             Object currencyId = this.safeString(balance, "a");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "info", balance);
             Helpers.addElementToObject(account, "used", this.safeString(balance, "lk"));

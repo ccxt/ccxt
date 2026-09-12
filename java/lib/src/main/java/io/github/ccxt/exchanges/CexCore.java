@@ -430,7 +430,7 @@ public class CexCore extends CexApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "currency");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Boolean isFiat = (Helpers.isEqual(this.safeBool(rawCurrency, "fiat"), true));
         String type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
         Object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
@@ -540,9 +540,9 @@ public class CexCore extends CexApi
     public Object parseMarket(Object market)
     {
         String baseId = this.safeString(market, "base");
-        String base = (String) this.safeCurrencyCode(baseId);
+        String base = this.safeCurrencyCode(baseId);
         String quoteId = this.safeString(market, "quote");
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object id = Helpers.add(Helpers.add(base, "-"), quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
@@ -717,7 +717,7 @@ public class CexCore extends CexApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "id");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -1198,7 +1198,7 @@ public class CexCore extends CexApi
         {
             Object key = Helpers.GetValue(keys, i);
             Object balance = this.safeDict(response, key, new java.util.HashMap<String, Object>() {{}});
-            String code = (String) this.safeCurrencyCode(key);
+            String code = this.safeCurrencyCode(key);
             java.util.Map<String, Object> account = new java.util.HashMap<String, Object>() {{
                 put( "used", CexCore.this.safeString(balance, "balanceOnHold") );
                 put( "total", CexCore.this.safeString(balance, "balance") );
@@ -1491,7 +1491,7 @@ public class CexCore extends CexApi
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
             String currencyId = this.safeString(order, "feeCurrency");
-            String feeCode = (String) this.safeCurrencyCode(currencyId);
+            String feeCode = this.safeCurrencyCode(currencyId);
             Helpers.addElementToObject(fee, "currency", feeCode);
             Helpers.addElementToObject(fee, "cost", feeAmount);
         }
@@ -1820,7 +1820,7 @@ public class CexCore extends CexApi
         }
         String currencyId = this.safeString(item, "currency");
         currency = this.safeCurrency(currencyId, currency);
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String timestampString = this.safeString(item, "timestamp");
         Long timestamp = this.parse8601(timestampString);
         String type = this.safeString(item, "type");
@@ -1932,7 +1932,7 @@ public class CexCore extends CexApi
         String currencyId = this.safeString(transaction, "currency");
         String direction = this.safeString(transaction, "direction");
         String type = ((Helpers.isTrue((Helpers.isEqual(direction, "withdraw"))))) ? "withdrawal" : "deposit";
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String updatedAt = this.safeString(transaction, "updatedAt");
         Long timestamp = this.parse8601(updatedAt);
         return new java.util.HashMap<String, Object>() {{
@@ -2116,7 +2116,7 @@ public class CexCore extends CexApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "currency");
-        String currencyCode = (String) this.safeCurrencyCode(currencyId, currency);
+        String currencyCode = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", CexCore.this.safeString2(transfer, "transactionId", "clientTxId") );

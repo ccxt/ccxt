@@ -920,9 +920,9 @@ public class PacificaCore extends PacificaApi
             crossMargin = !Helpers.isEqual(isolatedOnly, true);
             isolatedMargin = true;
         }
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         if (Helpers.isTrue(isSwap))
         {
@@ -3650,7 +3650,7 @@ public class PacificaCore extends PacificaApi
         //
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -3983,7 +3983,7 @@ public class PacificaCore extends PacificaApi
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         String amount = this.safeString(income, "amount");
-        String code = (String) this.safeCurrencyCode("USDC");
+        String code = this.safeCurrencyCode("USDC");
         Double rate = this.safeNumber(income, "rate");
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
@@ -4407,7 +4407,7 @@ public class PacificaCore extends PacificaApi
         }
     }
 
-    public Object prepareMessage(Object header, Object payload)
+    public String prepareMessage(Object header, Object payload)
     {
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(header, "type"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(header, "timestamp"), null))) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(header, "expiry_window"), null))))
         {
@@ -4422,7 +4422,7 @@ public class PacificaCore extends PacificaApi
 
     public Object signMessage(Object header, Object payload, Object privateKey)
     {
-        Object message = this.prepareMessage(header, payload);
+        String message = this.prepareMessage(header, payload);
         Object messageBytes = this.encode(message);
         Object secretBytes = this.base58ToBinary(privateKey);
         Object seed = this.arraySlice(secretBytes, 0, 32);

@@ -960,7 +960,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         }
         Object parts = Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Object size = this.safeString(parts, 3);
@@ -1676,7 +1676,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Long created = (Long) this.safeInteger2(order, "orderCreateTime", "created_time");
         Object marketId = this.safeString2(order, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Object amount = this.safeString2(order, "orderSize", "volume");
         Object status = this.parseOrderStatus(this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderStatus", "state", "status"))));
         Object id = this.safeString2(order, "orderId", "order_id");
@@ -2330,7 +2330,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             // spot balance
             Object currencyId = this.safeString(data, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(data, "available"));
             Helpers.addElementToObject(account, "total", this.safeString(data, "balance"));
@@ -2357,7 +2357,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 {
                     Object detail = Helpers.GetValue(details, i);
                     Object currencyId = this.safeString(detail, "currency");
-                    String code = (String) this.safeCurrencyCode(currencyId);
+                    Object code = this.safeCurrencyCode(currencyId);
                     if (Helpers.isTrue(Helpers.isEqual(code, null)))
                     {
                         continue;
@@ -2412,7 +2412,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 //     "isolated_swap": []
                 // }
                 Object marginAsset = this.safeString(first, "margin_asset");
-                String code = (String) this.safeCurrencyCode(marginAsset);
+                Object code = this.safeCurrencyCode(marginAsset);
                 Object marginFrozen = this.safeString(first, "margin_frozen");
                 Object unifiedAccount = this.account();
                 Helpers.addElementToObject(unifiedAccount, "free", this.safeString(first, "withdraw_available"));
@@ -2430,7 +2430,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 {
                     // the cross account is one shared margin balance, keyed by the settle currency
                     Object currencyId = this.safeString2(first, "margin_asset", "margin_account");
-                    String code = (String) this.safeCurrencyCode(currencyId);
+                    Object code = this.safeCurrencyCode(currencyId);
                     if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                     {
                         Object account = this.account();
@@ -2450,7 +2450,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                         Helpers.addElementToObject(account, "free", this.safeString(isolatedBalance, "margin_balance", "margin_available"));
                         Helpers.addElementToObject(account, "used", this.safeString(isolatedBalance, "margin_frozen"));
                         Object currencyId = this.safeString2(isolatedBalance, "margin_asset", "symbol");
-                        String code = (String) this.safeCurrencyCode(currencyId);
+                        Object code = this.safeCurrencyCode(currencyId);
                         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                         {
                             Helpers.addElementToObject(this.balance, code, account);
@@ -2465,7 +2465,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 {
                     Object balance = Helpers.GetValue(data, i);
                     Object currencyId = this.safeString(balance, "symbol");
-                    String code = (String) this.safeCurrencyCode(currencyId);
+                    Object code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "free", this.safeString(balance, "margin_available"));
                     Helpers.addElementToObject(account, "used", this.safeString(balance, "margin_frozen"));
@@ -3218,7 +3218,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             type = this.safeString(orderTypeParts, 1, orderType);
         }
         Object fee = null;
-        String feeCurrency = (String) this.safeCurrencyCode(this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("feeCurrency", "fee_currency", "fee_asset"))));
+        Object feeCurrency = this.safeCurrencyCode(this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("feeCurrency", "fee_currency", "fee_asset"))));
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrency, null)))
         {
             final Object finalFeeCurrency = feeCurrency;

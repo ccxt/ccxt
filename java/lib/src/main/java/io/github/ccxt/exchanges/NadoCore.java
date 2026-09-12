@@ -1945,7 +1945,7 @@ public class NadoCore extends NadoApi
             {
                 Object rawAsset = Helpers.GetValue(assets, i);
                 String assetSymbol = this.safeString(rawAsset, "symbol");
-                String assetCode = (String) this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
+                String assetCode = this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
                 if (Helpers.isTrue(Helpers.isEqual(assetCode, null)))
                 {
                     continue;
@@ -1983,8 +1983,8 @@ public class NadoCore extends NadoApi
                 }
                 String rawBaseId = this.safeString(market, "symbol");
                 String rawQuoteId = this.safeString(pair, "quote", "USDT0");
-                String base = (String) this.safeCurrencyCode(this.removeMarketSuffix(rawBaseId));
-                String quote = (String) this.safeCurrencyCode(rawQuoteId);
+                String base = this.safeCurrencyCode(this.removeMarketSuffix(rawBaseId));
+                String quote = this.safeCurrencyCode(rawQuoteId);
                 Object baseAsset = this.safeDict(assetsByCode, base, asset);
                 Object quoteAsset = this.safeDict(assetsByCode, quote);
                 String baseId = this.safeString(baseAsset, "product_id", rawBaseId);
@@ -2948,7 +2948,7 @@ public class NadoCore extends NadoApi
         Object canWithdraw = this.safeBool(rawCurrency, "can_withdraw", false);
         String id = this.safeString(rawCurrency, "product_id");
         String currencyId = this.safeString(rawCurrency, "symbol");
-        String code = (String) this.safeCurrencyCode(this.removeMarketSuffix(currencyId));
+        String code = this.safeCurrencyCode(this.removeMarketSuffix(currencyId));
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "name", NadoCore.this.safeString(rawCurrency, "name") );
@@ -2999,7 +2999,7 @@ public class NadoCore extends NadoApi
         {
             Object rawBalance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(rawBalance, "product_id");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isEqual(code, "0")))
             {
                 code = "USDT0";
@@ -3053,7 +3053,7 @@ public class NadoCore extends NadoApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "product_id");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Object timestamp = this.safeTimestamp(transaction, "timestamp");
         Object preBalance = this.safeDict(transaction, "pre_balance", new java.util.HashMap<String, Object>() {{}});
         Object postBalance = this.safeDict(transaction, "post_balance", new java.util.HashMap<String, Object>() {{}});
@@ -3463,7 +3463,7 @@ public class NadoCore extends NadoApi
         return Precise.stringAdd(highBits, this.numberToString(entropy));
     }
 
-    public Object createOrderAppendix(Object isTriggerOrder, Object... optionalArgs)
+    public String createOrderAppendix(Object isTriggerOrder, Object... optionalArgs)
     {
         // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
