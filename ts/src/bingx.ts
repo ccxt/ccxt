@@ -1585,10 +1585,8 @@ export default class bingx extends Exchange {
                 // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
                 amount = this.safeString (trade, 'volume');
             } else {
-                // private trade returns num of contracts instead of base currency (as the order-related methods do)
-                const contractSize = this.safeString (market['info'], 'tradeMinQuantity');
-                const volume = this.safeString (trade, 'volume');
-                amount = Precise.stringMul (volume, contractSize);
+                // inverse volume is the number of contracts; safeTrade applies contractSize when calculating cost
+                amount = this.safeString (trade, 'volume');
             }
         }
         return this.safeTrade ({
