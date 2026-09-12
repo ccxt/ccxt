@@ -2939,16 +2939,14 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        let result: List = [];
+        const rawTrades: List = [];
         for (let i = 0; i < data.length; i++) {
             const trades = this.safeList (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
-                const trade = this.parseTrade (trades[j], market);
-                result.push (trade);
+                rawTrades.push (trades[j]);
             }
         }
-        result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
+        return this.parseTradesDirectional (rawTrades, market, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
