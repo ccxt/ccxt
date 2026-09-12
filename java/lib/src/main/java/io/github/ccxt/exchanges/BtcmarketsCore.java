@@ -1091,7 +1091,7 @@ public class BtcmarketsCore extends BtcmarketsApi
                 put( "currency", feeCurrencyCode );
             }};
         }
-        String takerOrMaker = (String)this.safeStringLower(trade, "liquidityType");
+        String takerOrMaker = this.safeStringLower(trade, "liquidityType");
         final Object finalMarket = market;
         final Object finalSide = side;
         final Object finalFee = fee;
@@ -1452,7 +1452,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         {
             side = "sell";
         }
-        String type = (String)this.safeStringLower(order, "type");
+        String type = this.safeStringLower(order, "type");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "amount");
         String remaining = this.safeString(order, "openAmount");

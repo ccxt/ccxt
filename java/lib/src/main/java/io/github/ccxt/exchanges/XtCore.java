@@ -2921,7 +2921,7 @@ public class XtCore extends XtApi
             takerOrMaker = "taker"; // public trades always taker
         } else
         {
-            String takerMaker = (String)this.safeStringLower(trade, "takerMaker");
+            String takerMaker = this.safeStringLower(trade, "takerMaker");
             if (Helpers.isTrue(!Helpers.isEqual(takerMaker, null)))
             {
                 takerOrMaker = takerMaker;
@@ -2933,7 +2933,7 @@ public class XtCore extends XtApi
                     takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
                 }
             }
-            String orderSide = (String)this.safeStringLower(trade, "orderSide");
+            String orderSide = this.safeStringLower(trade, "orderSide");
             if (Helpers.isTrue(!Helpers.isEqual(orderSide, null)))
             {
                 side = orderSide;
@@ -3342,7 +3342,7 @@ public class XtCore extends XtApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "origQty", XtCore.this.amountToPrecision(symbol, amount) );
             }};
-            String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+            String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             Boolean postOnly = null;
             java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(timeInForce, "GTX"), parameters);
             postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
@@ -4854,7 +4854,7 @@ public class XtCore extends XtApi
             }
             postOnly = (Helpers.isEqual(timeInForce, "PO"));
         }
-        String side = (String)this.safeStringLower2(order, "side", "orderSide");
+        String side = this.safeStringLower2(order, "side", "orderSide");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             // the stop loss and take profit entries carry only the position
@@ -6927,7 +6927,7 @@ final Object finalMarket = market;
             {
                 marginMode = "ISOLATED";
             }
-            String posSide = (String)this.safeStringUpper(parameters, "positionSide");
+            String posSide = this.safeStringUpper(parameters, "positionSide");
             this.checkRequiredArgument("setMarginMode", posSide, "positionSide", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT")));
             parameters = this.omit(parameters, "positionSide");
             final Object finalMarginMode = marginMode;
@@ -7114,7 +7114,7 @@ final Object finalMarket = market;
         // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
         //
         //
-        String status = (String)this.safeStringUpper2(response, "msgInfo", "mc");
+        String status = this.safeStringUpper2(response, "msgInfo", "mc");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(status, null)) && Helpers.isTrue(!Helpers.isEqual(status, "SUCCESS"))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

@@ -129,6 +129,6 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
             put( "spot", "TRADE" );
             put( "funding", "MAIN" );
         }};
-        return (String) this.safeStringUpper(transferTypes, transferType, transferType);
+        return this.safeStringUpper(transferTypes, transferType, transferType);
     }
 }

@@ -2496,7 +2496,7 @@ public class DeribitCore extends DeribitApi
             }
         }
         String status = this.parseOrderStatus(this.safeString(order, "order_state"));
-        String side = (String)this.safeStringLower(order, "direction");
+        String side = this.safeStringLower(order, "direction");
         String feeCostString = this.safeString(order, "commission");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
@@ -2646,7 +2646,7 @@ public class DeribitCore extends DeribitApi
                 put( "type", finalType );
             }};
             String trigger = this.safeString(parameters, "trigger", "last_price");
-            String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+            String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             Object reduceOnly = this.safeValue2(parameters, "reduceOnly", "reduce_only");
             // only stop loss sell orders are allowed when price crossed from above
             Object stopLossPrice = this.safeValue(parameters, "stopLossPrice");

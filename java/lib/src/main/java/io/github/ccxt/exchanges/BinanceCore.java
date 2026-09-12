@@ -5339,7 +5339,7 @@ public class BinanceCore extends BinanceApi
         }
         Object optionParts = Helpers.split(id, "-");
         String optionBase = this.safeString(optionParts, 0);
-        String lowercaseId = (String)this.safeStringLower(market, "symbol");
+        String lowercaseId = this.safeStringLower(market, "symbol");
         String baseId = this.safeString(market, "baseAsset", optionBase);
         String quoteId = this.safeString(market, "quoteAsset");
         Boolean stock = false;
@@ -8824,8 +8824,8 @@ public class BinanceCore extends BinanceApi
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         String cost = this.safeString2(order, "cummulativeQuoteQty", "cumQuote");
         cost = this.safeString(order, "cumBase", cost);
-        String type = (String)this.safeStringLower2(order, "type", "orderType");
-        String side = (String)this.safeStringLower(order, "side");
+        String type = this.safeStringLower2(order, "type", "orderType");
+        String side = this.safeStringLower(order, "side");
         Object fills = this.safeList2(order, "fills", "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String timeInForce = this.safeString(order, "timeInForce");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTX")))
@@ -11700,7 +11700,7 @@ public class BinanceCore extends BinanceApi
                 Helpers.addElementToObject(request, "startTime", since);
                 Helpers.addElementToObject(request, "endTime", this.sum(since, 7776000000L));
             }
-            String accountType = (String)this.safeStringUpper(parameters, "type");
+            String accountType = this.safeStringUpper(parameters, "type");
             parameters = this.omit(parameters, "type");
             if (Helpers.isTrue(!Helpers.isEqual(accountType, null)))
             {
@@ -14696,7 +14696,7 @@ final Object finalMarket = market;
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "swap");
         Object symbol = Helpers.GetValue(market, "symbol");
-        String side = (String)this.safeStringLower(position, "side");
+        String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "quantity");
         if (Helpers.isTrue(!Helpers.isEqual(side, "long")))
         {
@@ -15502,12 +15502,12 @@ final Object finalMarket = market;
         {
             marginMode = ((Helpers.isTrue(marginModeRaw))) ? "isolated" : "cross";
         }
-        String marginTypeRaw = (String)this.safeStringLower(leverage, "marginType");
+        String marginTypeRaw = this.safeStringLower(leverage, "marginType");
         if (Helpers.isTrue(!Helpers.isEqual(marginTypeRaw, null)))
         {
             marginMode = ((Helpers.isTrue((Helpers.isEqual(marginTypeRaw, "crossed"))))) ? "cross" : "isolated";
         }
-        String side = (String)this.safeStringLower(leverage, "positionSide");
+        String side = this.safeStringLower(leverage, "positionSide");
         Object longLeverage = null;
         Object shortLeverage = null;
         Long leverageValue = this.safeInteger(leverage, "leverage");
@@ -18196,7 +18196,7 @@ final Object finalMarket = market;
         {
             reMarginMode = ((Helpers.isTrue(marginModeRaw))) ? "isolated" : "cross";
         }
-        String marginTypeRaw = (String)this.safeStringLower(marginMode, "marginType");
+        String marginTypeRaw = this.safeStringLower(marginMode, "marginType");
         if (Helpers.isTrue(!Helpers.isEqual(marginTypeRaw, null)))
         {
             reMarginMode = ((Helpers.isTrue((Helpers.isEqual(marginTypeRaw, "crossed"))))) ? "cross" : "isolated";

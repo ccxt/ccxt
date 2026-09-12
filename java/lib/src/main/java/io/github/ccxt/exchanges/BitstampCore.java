@@ -1663,7 +1663,7 @@ public class BitstampCore extends BitstampApi
         //         "eur": 0.0
         //     }
         //
-        String currencyId = (String)this.safeStringLower(transaction, "currency");
+        String currencyId = this.safeStringLower(transaction, "currency");
         if (Helpers.isTrue(!Helpers.isEqual(currencyId, null)))
         {
             return currencyId;
@@ -1787,8 +1787,8 @@ public class BitstampCore extends BitstampApi
         amountString = this.safeString(trade, this.safeString(market, "baseId"), amountString);
         costString = this.safeString(trade, this.safeString(market, "quoteId"), costString);
         // this endpoint is not aligned with "markets" endpoint
-        String baseIdLower = (String)this.safeStringLower(market, "baseId");
-        String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
+        String baseIdLower = this.safeStringLower(market, "baseId");
+        String quoteIdLower = this.safeStringLower(market, "quoteId");
         Object dashedIdLower = Helpers.add(Helpers.add(baseIdLower, "_"), quoteIdLower);
         if (Helpers.isTrue(Helpers.isEqual(priceString, null)))
         {
@@ -3171,7 +3171,7 @@ public class BitstampCore extends BitstampApi
         }
         // there is no timestamp from fetchOrder
         Long timestamp = this.parse8601(this.safeString(order, "datetime"));
-        String marketId = (String)this.safeStringLower(order, "currency_pair");
+        String marketId = this.safeStringLower(order, "currency_pair");
         String symbol = (String) this.safeSymbol(marketId, market, "/");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String amount = this.safeString(order, "amount");

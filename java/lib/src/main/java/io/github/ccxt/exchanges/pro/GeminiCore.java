@@ -158,10 +158,10 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         Object id = this.safeString2(trade, "event_id", "tid");
         Object priceString = this.safeString(trade, "price");
         Object amountString = this.safeString2(trade, "quantity", "amount");
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            String marketSide = (String)this.safeStringLower(trade, "makerSide");
+            String marketSide = this.safeStringLower(trade, "makerSide");
             if (Helpers.isTrue(Helpers.isEqual(marketSide, "bid")))
             {
                 side = "sell";
@@ -170,7 +170,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 side = "buy";
             }
         }
-        String marketId = (String)this.safeStringLower(trade, "symbol");
+        String marketId = this.safeStringLower(trade, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market);
         final Object finalSide = side;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
@@ -259,7 +259,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         //         ]
         //     }
         //
-        String marketId = (String)this.safeStringLower(message, "symbol");
+        String marketId = this.safeStringLower(message, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object trades = this.safeValue(message, "trades");
         if (Helpers.isTrue(!Helpers.isEqual(trades, null)))
@@ -474,7 +474,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
     {
         Boolean isInitial = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "auction_events"))) && Helpers.isTrue((Helpers.inOp(message, "trades")))) && Helpers.isTrue((Helpers.inOp(message, "changes")));
         Object changes = this.safeList(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        String marketId = (String)this.safeStringLower(message, "symbol");
+        String marketId = this.safeStringLower(message, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = (String) Helpers.add("orderbook:", symbol);

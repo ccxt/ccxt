@@ -1979,7 +1979,7 @@ public class PacificaCore extends PacificaApi
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        String tifRaw = (String)this.safeStringUpper(parameters, "timeInForce");
+        String tifRaw = this.safeStringUpper(parameters, "timeInForce");
         Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
         Boolean isTakeProfitOrder = (!Helpers.isEqual(takeProfitPrice, null));
         Boolean isStopLossOrder = (!Helpers.isEqual(stopLossPrice, null));

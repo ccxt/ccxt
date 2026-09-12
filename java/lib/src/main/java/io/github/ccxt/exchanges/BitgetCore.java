@@ -7397,7 +7397,7 @@ final Object finalMinNotional = minNotional;
             }
         }
         Object postOnly = null;
-        String timeInForce = (String)this.safeStringUpper2(order, "force", "timeInForce");
+        String timeInForce = this.safeStringUpper2(order, "force", "timeInForce");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "POST_ONLY")))
         {
             postOnly = true;
@@ -12785,7 +12785,7 @@ final Object finalMinNotional = minNotional;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(transfer, "ts");
-        String status = (String)this.safeStringLower(transfer, "status");
+        String status = this.safeStringLower(transfer, "status");
         String currencyId = this.safeString(transfer, "coin");
         String fromAccountRaw = this.safeString(transfer, "fromType");
         Object accountsById = this.safeValue(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});

@@ -908,11 +908,11 @@ public class BitfinexCore extends BitfinexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object pairObj = Helpers.GetValue(markets, i);
-                String id = (String)this.safeStringUpper(pairObj, 0);
+                String id = this.safeStringUpper(pairObj, 0);
                 Object market = this.safeValue(pairObj, 1, new java.util.HashMap<String, Object>() {{}});
                 Boolean spot = true;
                 String type = null;
-                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, "F0"), 0)))
+                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)id), "F0"), 0)))
                 {
                     spot = false;
                     type = "swap";
@@ -923,15 +923,15 @@ public class BitfinexCore extends BitfinexApi
                 Boolean swap = Helpers.isEqual(type, "swap");
                 Object baseId = null;
                 Object quoteId = null;
-                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, ":"), 0)))
+                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)id), ":"), 0)))
                 {
-                    Object parts = Helpers.split(id, ":");
+                    Object parts = Helpers.split(((String)id), ":");
                     baseId = Helpers.GetValue(parts, 0);
                     quoteId = Helpers.GetValue(parts, 1);
                 } else
                 {
-                    baseId = Helpers.slice(id, 0, 3);
-                    quoteId = Helpers.slice(id, 3, 6);
+                    baseId = Helpers.slice(((String)id), 0, 3);
+                    quoteId = Helpers.slice(((String)id), 3, 6);
                 }
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
@@ -1142,7 +1142,7 @@ public class BitfinexCore extends BitfinexApi
                 // for GOlang transpiler, do with "safe" method
                 Object networksList = this.safeList(indexedNetworks, networkName, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 ((java.util.List<Object>)networksList).add(networkId);
-                Helpers.addElementToObject(indexedNetworks, networkName, networksList);
+                Helpers.addElementToObject(indexedNetworks, ((String)networkName), networksList);
             }
             Object ids = this.safeList(response, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
@@ -1298,9 +1298,9 @@ public class BitfinexCore extends BitfinexApi
                     Helpers.addElementToObject(account, "debt", interest);
                 }
                 String type = this.safeString(balance, 0);
-                String currencyId = (String)this.safeStringLower(balance, 1, "");
-                Object start = Helpers.subtract(currencyId.length(), 2);
-                Boolean isDerivativeCode = Helpers.isEqual(Helpers.slice(currencyId, start, null), "f0");
+                String currencyId = this.safeStringLower(balance, 1, "");
+                Object start = Helpers.subtract(((String)((String)currencyId)).length(), 2);
+                Boolean isDerivativeCode = Helpers.isEqual(Helpers.slice(((String)currencyId), start, null), "f0");
                 // this will only filter the derivative codes if the requestedType is 'derivatives'
                 Boolean derivativeCondition = (!Helpers.isTrue(isDerivative) || Helpers.isTrue(isDerivativeCode));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(accountType, type))) && Helpers.isTrue(derivativeCondition)))
@@ -1602,7 +1602,7 @@ public class BitfinexCore extends BitfinexApi
         // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
         // look like a number and the whole array would be read off by one.
         String firstValue = this.safeString(ticker, 0);
-        Boolean hasMarketId = Helpers.isTrue((!Helpers.isEqual(firstValue, null))) && Helpers.isTrue((Helpers.isTrue(firstValue.startsWith(((String)"t"))) || Helpers.isTrue(firstValue.startsWith(((String)"f")))));
+        Boolean hasMarketId = Helpers.isTrue((!Helpers.isEqual(firstValue, null))) && Helpers.isTrue((Helpers.isTrue(((String)firstValue).startsWith(((String)"t"))) || Helpers.isTrue(((String)firstValue).startsWith(((String)"f")))));
         Boolean isFetchTicker = !Helpers.isTrue(hasMarketId);
         Object symbol = null;
         Integer minusIndex = 0;
@@ -1616,14 +1616,14 @@ public class BitfinexCore extends BitfinexApi
         }
         Boolean isFundingCurrency = Helpers.isGreaterThanOrEqual(length, 17);
         symbol = this.safeSymbol(null, market);
-        String last = null;
-        String bid = null;
-        String ask = null;
-        String change = null;
-        String percentage = null;
-        String volume = null;
-        String high = null;
-        String low = null;
+        Object last = null;
+        Object bid = null;
+        Object ask = null;
+        Object change = null;
+        Object percentage = null;
+        Object volume = null;
+        Object high = null;
+        Object low = null;
         if (Helpers.isTrue(isFundingCurrency))
         {
             // per api docs, they are different array type
@@ -1834,9 +1834,9 @@ public class BitfinexCore extends BitfinexApi
         {
             side = "buy";
         }
-        String orderId = null;
+        Object orderId = null;
         String takerOrMaker = null;
-        String type = null;
+        Object type = null;
         Object fee = null;
         String symbol = (String) this.safeSymbol(null, market);
         Object timestampIndex = ((Helpers.isTrue(isPrivate))) ? 2 : 1;
@@ -2123,7 +2123,7 @@ public class BitfinexCore extends BitfinexApi
             }
         }
         String price = this.safeString(orderList, 16);
-        String triggerPrice = null;
+        Object triggerPrice = null;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(orderType, "EXCHANGE STOP"))) || Helpers.isTrue((Helpers.isEqual(orderType, "EXCHANGE STOP LIMIT")))))
         {
             price = null;
@@ -3125,8 +3125,8 @@ public class BitfinexCore extends BitfinexApi
             //
             Object result = this.safeValue(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String poolAddress = this.safeString(result, 5);
-            String address = ((Helpers.isTrue((Helpers.isEqual(poolAddress, null))))) ? this.safeString(result, 4) : poolAddress;
-            String tag = ((Helpers.isTrue((Helpers.isEqual(poolAddress, null))))) ? null : this.safeString(result, 4);
+            Object address = ((Helpers.isTrue((Helpers.isEqual(poolAddress, null))))) ? this.safeString(result, 4) : poolAddress;
+            Object tag = ((Helpers.isTrue((Helpers.isEqual(poolAddress, null))))) ? null : this.safeString(result, 4);
             this.checkAddress(address);
             return new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
@@ -3218,13 +3218,13 @@ public class BitfinexCore extends BitfinexApi
         Object amount = null;
         Object id = null;
         String status = null;
-        String tag = null;
+        Object tag = null;
         String type = null;
-        String feeCost = null;
-        String txid = null;
-        String addressTo = null;
+        Object feeCost = null;
+        Object txid = null;
+        Object addressTo = null;
         Object network = null;
-        String comment = null;
+        Object comment = null;
         if (Helpers.isTrue(Helpers.isEqual(transactionLength, 8)))
         {
             Object data = this.safeValue(transaction, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -3249,7 +3249,7 @@ public class BitfinexCore extends BitfinexApi
             tag = this.safeString(data, 3);
             type = "withdrawal";
             String networkId = this.safeString(data, 2);
-            network = this.networkIdToCode(networkId.toUpperCase(), code); // withdraw returns in lowercase
+            network = this.networkIdToCode(((String)((String)networkId)).toUpperCase(), code); // withdraw returns in lowercase
         } else if (Helpers.isTrue(Helpers.isEqual(transactionLength, 22)))
         {
             id = this.safeString(transaction, 0);
@@ -3926,7 +3926,7 @@ public class BitfinexCore extends BitfinexApi
         if (Helpers.isTrue(!Helpers.isEqual(description, null)))
         {
             Object parts = Helpers.split(description, " @ ");
-            String first = (String)this.safeStringLower(parts, 0);
+            String first = this.safeStringLower(parts, 0);
             type = this.parseLedgerEntryType(first);
         }
         final Object finalType = type;

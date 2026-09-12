@@ -1267,8 +1267,8 @@ public class DeltaCore extends DeltaApi
         Object quotes = this.safeDict(ticker, "quotes", new java.util.HashMap<String, Object>() {{}});
         // turnover_symbol names the currency turnover is denominated in, and on
         // spot markets that is the base currency rather than the quote
-        String turnoverSymbol = (String)this.safeStringUpper(ticker, "turnover_symbol");
-        String quoteId = (String)this.safeStringUpper(market, "quoteId");
+        String turnoverSymbol = this.safeStringUpper(ticker, "turnover_symbol");
+        String quoteId = this.safeStringUpper(market, "quoteId");
         Boolean baseDenominated = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(turnoverSymbol, null))) && Helpers.isTrue((!Helpers.isEqual(quoteId, null)))) && Helpers.isTrue((!Helpers.isEqual(turnoverSymbol, quoteId)));
         Object quoteVolume = ((Helpers.isTrue(baseDenominated))) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -2977,7 +2977,7 @@ public class DeltaCore extends DeltaApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset_symbol", Helpers.GetValue(currency, "id") );
             }};
-            String networkCode = (String)this.safeStringUpper(parameters, "network");
+            String networkCode = this.safeStringUpper(parameters, "network");
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode, code));

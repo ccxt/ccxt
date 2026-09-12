@@ -744,7 +744,7 @@ public class BlofinCore extends BlofinApi
     public Object parseMarket(Object market)
     {
         String id = this.safeString(market, "instId");
-        String type = (String)this.safeStringLower(market, "instType");
+        String type = this.safeStringLower(market, "instType");
         Boolean spot = (Helpers.isEqual(type, "spot"));
         Boolean future = (Helpers.isEqual(type, "future"));
         Boolean swap = (Helpers.isEqual(type, "swap"));

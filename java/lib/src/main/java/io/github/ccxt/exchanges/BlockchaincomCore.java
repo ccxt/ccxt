@@ -670,10 +670,10 @@ public class BlockchaincomCore extends BlockchaincomApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String clientOrderId = this.safeString(order, "clOrdId");
-        String type = (String)this.safeStringLower(order, "ordType");
+        String type = this.safeStringLower(order, "ordType");
         String statusId = this.safeString(order, "ordStatus");
         String state = this.parseOrderState(statusId);
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         String marketId = this.safeString(order, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market, "-");
         String exchangeOrderId = this.safeString(order, "exOrdId");
@@ -1031,7 +1031,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String orderId = this.safeString(trade, "exOrdId");
         String tradeId = this.safeString(trade, "tradeId");
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         String marketId = this.safeString(trade, "symbol");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");

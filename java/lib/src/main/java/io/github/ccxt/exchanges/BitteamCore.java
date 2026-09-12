@@ -1974,7 +1974,7 @@ public class BitteamCore extends BitteamApi
         //         "lowest_price_24h": 37574.894999
         //     }
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marketId = (String)this.safeStringLower(ticker, "trading_pairs");
+        String marketId = this.safeStringLower(ticker, "trading_pairs");
         market = this.safeMarket(marketId, market);
         String bestBidPrice = null;
         String bestAskPrice = null;

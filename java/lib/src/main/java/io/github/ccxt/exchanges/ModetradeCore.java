@@ -1143,7 +1143,7 @@ public class ModetradeCore extends ModetradeApi
             Helpers.addElementToObject(fee, "cost", feeCost);
         }
         String cost = Precise.stringMul(price, amount);
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
         String takerOrMaker = null;
         if (Helpers.isTrue(isFromFetchOrder))
@@ -1854,14 +1854,14 @@ public class ModetradeCore extends ModetradeApi
         String price = this.safeString2(order, "order_price", "price");
         String amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
         String cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
-        String orderType = (String)this.safeStringLower2(order, "order_type", "type");
+        String orderType = this.safeStringLower2(order, "order_type", "type");
         Object status = this.safeValue2(order, "status", "algoStatus");
         Object success = this.safeBool(order, "success");
         if (Helpers.isTrue(!Helpers.isEqual(success, null)))
         {
             status = ((Helpers.isTrue((success)))) ? "NEW" : "REJECTED";
         }
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         Object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
         Object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
         String remaining = Precise.stringSub(cost, filled);
@@ -1970,7 +1970,7 @@ public class ModetradeCore extends ModetradeApi
         {
             return null;
         }
-        return (String) this.safeStringLower(types, type, type);
+        return this.safeStringLower(types, type, type);
     }
 
     public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
@@ -2019,7 +2019,7 @@ public class ModetradeCore extends ModetradeApi
         String algoType = this.safeString(parameters, "algoType");
         Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(hasStopLoss)) || Helpers.isTrue(hasTakeProfit)) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
         Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
-        String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
+        String timeInForce = this.safeStringLower(parameters, "timeInForce");
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
         String orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
         String priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
@@ -2297,7 +2297,7 @@ public class ModetradeCore extends ModetradeApi
                     Helpers.addElementToObject(request, "side", ((String)side).toUpperCase());
                 }
                 Object orderType = ((String)type).toUpperCase();
-                String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
+                String timeInForce = this.safeStringLower(parameters, "timeInForce");
                 Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
                 Object postOnly = this.isPostOnly(isMarket, null, parameters);
                 if (Helpers.isTrue(postOnly))
@@ -3192,7 +3192,7 @@ public class ModetradeCore extends ModetradeApi
         // example in fetchLedger
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String code = this.safeString(transaction, "token");
-        String movementDirection = (String)this.safeStringLower(transaction, "token_side");
+        String movementDirection = this.safeStringLower(transaction, "token_side");
         if (Helpers.isTrue(Helpers.isEqual(movementDirection, "withdraw")))
         {
             movementDirection = "withdrawal";

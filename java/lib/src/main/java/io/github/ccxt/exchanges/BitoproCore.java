@@ -782,8 +782,8 @@ public class BitoproCore extends BitoproApi
         market = this.safeMarket(marketId, market);
         String symbol = this.safeString(market, "symbol");
         String price = this.safeString(trade, "price");
-        String type = (String)this.safeStringLower(trade, "type");
-        String side = (String)this.safeStringLower(trade, "action");
+        String type = this.safeStringLower(trade, "type");
+        String side = this.safeStringLower(trade, "action");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             Object isBuyer = this.safeBool(trade, "isBuyer");
@@ -1260,7 +1260,7 @@ public class BitoproCore extends BitoproApi
         String symbol = this.safeString(market, "symbol");
         String orderStatus = this.safeString(order, "status");
         String status = this.parseOrderStatus(orderStatus);
-        String type = (String)this.safeStringLower(order, "type");
+        String type = this.safeStringLower(order, "type");
         String average = this.safeString(order, "avgExecutionPrice");
         String filled = this.safeString(order, "executedAmount");
         String remaining = this.safeString(order, "remainingAmount");
@@ -2138,7 +2138,7 @@ final Object finalJ = j;
             if (Helpers.isTrue(Helpers.inOp(parameters, "network")))
             {
                 Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-                String requestedNetwork = (String)this.safeStringUpper(parameters, "network");
+                String requestedNetwork = this.safeStringUpper(parameters, "network");
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
                 String networkId = ((Helpers.isTrue((Helpers.isEqual(requestedNetwork, null))))) ? null : this.safeString(networks, requestedNetwork);
                 if (Helpers.isTrue(Helpers.isEqual(networkId, null)))

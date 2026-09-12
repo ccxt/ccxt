@@ -2420,11 +2420,11 @@ public class BybitCore extends BybitApi
     public Object createExpiredOptionMarket(Object symbol)
     {
         // support expired option contracts
-        String quote = null;
-        String settle = null;
+        Object quote = null;
+        Object settle = null;
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
-        String base = null;
+        Object base = null;
         Object expiry = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
@@ -2645,7 +2645,7 @@ public class BybitCore extends BybitApi
             Object list = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String status = "ok";
             Object eta = null;
-            String url = null;
+            Object url = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(list)); i++)
             {
                 Object eventVar = Helpers.GetValue(list, i);
@@ -3162,7 +3162,7 @@ public class BybitCore extends BybitApi
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseCoin");
                 String quoteId = this.safeString(market, "quoteCoin");
-                String defaultSettledId = ((Helpers.isTrue(linear))) ? quoteId : baseId;
+                Object defaultSettledId = ((Helpers.isTrue(linear))) ? quoteId : baseId;
                 String settleId = this.safeString(market, "settleCoin", defaultSettledId);
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
@@ -4421,7 +4421,7 @@ public class BybitCore extends BybitApi
         String priceString = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("execPrice", "orderPrice", "price")));
         String costString = this.safeString(trade, "execValue");
         Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "execTime", "tradeTime")));
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             Long isBuyer = this.safeInteger(trade, "isBuyer");
@@ -4446,14 +4446,14 @@ public class BybitCore extends BybitApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(lastLiquidityInd, "TAKER"))) || Helpers.isTrue((Helpers.isEqual(lastLiquidityInd, "MAKER")))))
                 {
-                    takerOrMaker = lastLiquidityInd.toLowerCase();
+                    takerOrMaker = ((String)lastLiquidityInd).toLowerCase();
                 } else
                 {
                     takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(lastLiquidityInd, "AddedLiquidity"))))) ? "maker" : "taker";
                 }
             }
         }
-        String orderType = (String)this.safeStringLower(trade, "orderType");
+        String orderType = this.safeStringLower(trade, "orderType");
         if (Helpers.isTrue(Helpers.isEqual(orderType, "unknown")))
         {
             orderType = null;
@@ -4931,7 +4931,7 @@ public class BybitCore extends BybitApi
                 }
             }
             Object accountTypes = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
-            Object unifiedType = this.safeStringUpper(accountTypes, type, type);
+            String unifiedType = this.safeStringUpper(accountTypes, type, type);
             Object marginMode = null;
             java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -5233,11 +5233,11 @@ public class BybitCore extends BybitApi
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
         // see https://github.com/ccxt/ccxt/issues/27725
         String id = this.safeString(order, "orderId");
-        String type = (String)this.safeStringLower(order, "orderType");
+        String type = this.safeStringLower(order, "orderType");
         String price = this.safeString(order, "price");
-        String side = (String)this.safeStringLower(order, "side");
-        String amount = null;
-        String cost = null;
+        String side = this.safeStringLower(order, "side");
+        Object amount = null;
+        Object cost = null;
         Boolean qtyIsQuote = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((Helpers.isEqual(type, "market")))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(marketUnit, "quoteCoin"))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(marketUnit, null))) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))));
         if (Helpers.isTrue(Helpers.isEqual(qtyIsQuote, true)))
         {
@@ -5266,7 +5266,7 @@ public class BybitCore extends BybitApi
             }};
         }
         String clientOrderId = this.safeString(order, "orderLinkId");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(clientOrderId.length(), 1)))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(((String)clientOrderId).length(), 1)))))
         {
             clientOrderId = null;
         }
@@ -5646,7 +5646,7 @@ public class BybitCore extends BybitApi
         {
             Helpers.addElementToObject(request, "side", this.capitalize(side));
             Helpers.addElementToObject(request, "orderType", this.capitalize(lowerCaseType));
-            String timeInForce = (String)this.safeStringLower(parameters, "timeInForce"); // this is same as exchange specific param
+            String timeInForce = this.safeStringLower(parameters, "timeInForce"); // this is same as exchange specific param
             Boolean postOnly = null;
             java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarket, Helpers.isEqual(timeInForce, "postonly"), parameters);
             postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
@@ -6011,7 +6011,7 @@ public class BybitCore extends BybitApi
         {
             Helpers.addElementToObject(request, "price", this.getPrice(symbol, this.numberToString(price)));
         }
-        String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
         Object stopLoss = this.safeValue(parameters, "stopLoss");
@@ -8229,7 +8229,7 @@ public class BybitCore extends BybitApi
         Object amount = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(afterString, null)) && Helpers.isTrue(!Helpers.isEqual(amountString, null))))
         {
-            String difference = ((Helpers.isTrue((Helpers.isEqual(direction, "out"))))) ? amountString : Precise.stringNeg(amountString);
+            Object difference = ((Helpers.isTrue((Helpers.isEqual(direction, "out"))))) ? amountString : Precise.stringNeg(amountString);
             before = this.parseToNumeric(Precise.stringAdd(afterString, difference));
             after = this.parseToNumeric(afterString);
             amount = this.parseToNumeric(Precise.stringAbs(amountString));
@@ -8762,7 +8762,7 @@ public class BybitCore extends BybitApi
                 side = null;
             }
         }
-        String notional = null;
+        Object notional = null;
         String contractSize = this.safeString(market, "contractSize");
         String markPrice = this.safeString(position, "markPrice");
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))

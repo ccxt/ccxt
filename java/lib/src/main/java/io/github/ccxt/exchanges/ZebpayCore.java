@@ -1224,7 +1224,7 @@ public class ZebpayCore extends ZebpayApi
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString2(trade, "amount", "quantity");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
@@ -1355,7 +1355,7 @@ public class ZebpayCore extends ZebpayApi
             } else
             {
                 String marginAsset = this.safeString(parameters, "marginAsset", "INR");
-                String formType = (String)this.safeStringUpper(parameters, "formType", "ORDER_FORM");
+                String formType = this.safeStringUpper(parameters, "formType", "ORDER_FORM");
                 Helpers.addElementToObject(request, "formType", formType);
                 Helpers.addElementToObject(request, "amount", this.parseToNumeric(this.amountToPrecision(Helpers.GetValue(market, "id"), amount)));
                 Helpers.addElementToObject(request, "marginAsset", marginAsset);
@@ -1713,7 +1713,7 @@ public class ZebpayCore extends ZebpayApi
         String amount = this.safeString(order, "amount");
         String clientOrderId = this.safeString(order, "clientOrderId");
         String timeInForce = this.safeString(order, "timeInForce");
-        String status = (String)this.safeStringLower(order, "status");
+        String status = this.safeStringLower(order, "status");
         String orderId = this.safeString(order, "orderId");
         Object parsedOrder = this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", orderId );

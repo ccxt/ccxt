@@ -2674,7 +2674,7 @@ public class BittradeCore extends BittradeApi
                 Helpers.addElementToObject(request, "addr-tag", tag); // only for XRP?
             }
             Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-            Object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
+            String network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {

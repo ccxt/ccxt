@@ -2327,7 +2327,7 @@ public class ToobitCore extends ToobitApi
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         String rawType = this.safeString(order, "type");
-        String rawSideLower = (String)this.safeStringLower(order, "side");
+        String rawSideLower = this.safeStringLower(order, "side");
         Object reduceOnly = null;
         if (Helpers.isTrue(!Helpers.isEqual(rawSideLower, null)))
         {
@@ -3606,7 +3606,7 @@ public class ToobitCore extends ToobitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(leverage, "symbolId", "symbol");
         Long leverageValue = this.safeInteger(leverage, "leverage");
-        String marginType = (String)this.safeStringLower(leverage, "marginType");
+        String marginType = this.safeStringLower(leverage, "marginType");
         String marginMode = ((Helpers.isTrue((Helpers.isEqual(marginType, "cross"))))) ? "cross" : "isolated";
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
@@ -3687,7 +3687,7 @@ public class ToobitCore extends ToobitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        String side = (String)this.safeStringLower(position, "side");
+        String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "position");
         Long leverage = this.safeInteger(position, "leverage");
         final Object finalMarket = market;

@@ -3471,7 +3471,7 @@ public class NadoCore extends NadoApi
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Object postOnly = this.isPostOnly(false, null, parameters);
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Integer orderType = 0;
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "IOC")))
         {

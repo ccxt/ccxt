@@ -1665,7 +1665,7 @@ public class HashkeyCore extends HashkeyApi
         Long timestamp = (Long) this.safeInteger2(trade, "t", "time");
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        String side = (String)this.safeStringLower(trade, "side"); // swap trades have side param
+        String side = this.safeStringLower(trade, "side"); // swap trades have side param
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             side = this.safeString(Helpers.split(side, "_"), 0);
@@ -4528,7 +4528,7 @@ public class HashkeyCore extends HashkeyApi
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marginMode = (String)this.safeStringLower(leverage, "marginType");
+        String marginMode = this.safeStringLower(leverage, "marginType");
         Double leverageValue = this.safeNumber(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );

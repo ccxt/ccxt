@@ -1067,7 +1067,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object price = this.safeString2(trade, "executedPrice", "price");
         Object amount = this.safeString2(trade, "executedQuantity", "size");
         String cost = Precise.stringMul(price, amount);
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
         Object maker = this.safeBool(trade, "maker");
         String takerOrMaker = null;
@@ -1075,7 +1075,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         {
             takerOrMaker = ((Helpers.isTrue(maker))) ? "maker" : "taker";
         }
-        String type = (String)this.safeStringLower(trade, "type");
+        String type = this.safeStringLower(trade, "type");
         Object fee = null;
         Double feeCost = this.safeNumber(trade, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -1380,8 +1380,8 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             price = avgPrice;
         }
         Object amount = this.safeString(order, "quantity");
-        String side = (String)this.safeStringLower(order, "side");
-        String type = (String)this.safeStringLower(order, "type");
+        String side = this.safeStringLower(order, "side");
+        String type = this.safeStringLower(order, "type");
         Object filled = this.safeString2(order, "totalExecutedQuantity", "executed");
         Object rawStatus = this.safeString2(order, "status", "algoStatus");
         Object status = this.parseOrderStatus(rawStatus);

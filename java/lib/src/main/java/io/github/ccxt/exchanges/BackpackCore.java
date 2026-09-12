@@ -712,7 +712,7 @@ public class BackpackCore extends BackpackApi
         {
             Object network = Helpers.GetValue(networks, j);
             String networkId = this.safeString(network, "blockchain");
-            String networkIdLowerCase = (String)this.safeStringLower(network, "blockchain");
+            String networkIdLowerCase = this.safeStringLower(network, "blockchain");
             Object networkCode = this.networkIdToCode(networkIdLowerCase, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -2007,7 +2007,7 @@ public class BackpackCore extends BackpackApi
         String code = (String) this.safeCurrencyCode(coin, currency);
         Long timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
         Double amount = this.safeNumber(transaction, "quantity");
-        String networkId = (String)this.safeStringLower2(transaction, "source", "blockchain");
+        String networkId = this.safeStringLower2(transaction, "source", "blockchain");
         Object network = this.networkIdToCode(networkId, code);
         String addressTo = this.safeString(transaction, "toAddress");
         String addressFrom = this.safeString(transaction, "fromAddress");
@@ -2618,7 +2618,7 @@ public class BackpackCore extends BackpackApi
         String id = this.safeString(order, "id");
         String clientOrderId = this.safeString(order, "clientId");
         String symbol = (String) this.safeSymbol(this.safeString(order, "symbol"), market);
-        String type = (String)this.safeStringLower(order, "orderType");
+        String type = this.safeStringLower(order, "orderType");
         String timeInForce = this.safeString(order, "timeInForce");
         String side = this.parseOrderSide(this.safeString(order, "side"));
         String amount = this.safeString2(order, "quantity", "triggerQuantity");

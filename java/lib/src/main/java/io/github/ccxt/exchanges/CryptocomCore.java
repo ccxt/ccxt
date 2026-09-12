@@ -1063,7 +1063,7 @@ public class CryptocomCore extends CryptocomApi
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
                 Object settle = ((Helpers.isTrue(spot))) ? null : this.safeCurrencyCode(settleId);
-                String optionType = (String)this.safeStringLower(market, "put_call");
+                String optionType = this.safeStringLower(market, "put_call");
                 String strike = this.safeString(market, "strike");
                 Object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
                 Object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
@@ -1790,7 +1790,7 @@ public class CryptocomCore extends CryptocomApi
         {
             Helpers.addElementToObject(request, "spot_margin", "SPOT");
         }
-        String timeInForce = (String)this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
+        String timeInForce = this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
         if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTC")))
@@ -2067,7 +2067,7 @@ public class CryptocomCore extends CryptocomApi
         }
         String broker = this.safeString(this.options, "broker", "CCXT");
         Helpers.addElementToObject(request, "broker_id", broker);
-        String timeInForce = (String)this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
+        String timeInForce = this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
         if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTC")))
@@ -2789,7 +2789,7 @@ public class CryptocomCore extends CryptocomApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            String network = (String)this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
             Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             Object depositAddresses = depositAddressesRaw;
@@ -4312,7 +4312,7 @@ public class CryptocomCore extends CryptocomApi
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "type", "MARKET" );
             }};
-            String type = (String)this.safeStringUpper(parameters, "type");
+            String type = this.safeStringUpper(parameters, "type");
             String price = this.safeString(parameters, "price");
             if (Helpers.isTrue(!Helpers.isEqual(type, null)))
             {

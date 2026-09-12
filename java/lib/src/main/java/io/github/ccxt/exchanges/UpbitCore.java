@@ -1192,7 +1192,7 @@ public class UpbitCore extends UpbitApi
             timestamp = this.parse8601(this.safeString(trade, "created_at"));
         }
         String side = null;
-        String askOrBid = (String)this.safeStringLower2(trade, "ask_bid", "side");
+        String askOrBid = this.safeStringLower2(trade, "ask_bid", "side");
         if (Helpers.isTrue(Helpers.isEqual(askOrBid, "ask")))
         {
             side = "sell";
@@ -1602,7 +1602,7 @@ public class UpbitCore extends UpbitApi
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             String customType = this.safeString2(parameters, "ordType", "ord_type");
             Object postOnly = this.isPostOnly(Helpers.isEqual(type, "market"), false, parameters);
-            String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+            String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
             Object test = this.safeBool(parameters, "test", false);
             if (Helpers.isTrue(Helpers.isTrue(postOnly) && Helpers.isTrue((!Helpers.isEqual(selfTradePrevention, null)))))
@@ -1820,7 +1820,7 @@ public class UpbitCore extends UpbitApi
             String customType = this.safeString2(parameters, "newOrdType", "new_ord_type");
             String clientOrderId = this.safeString(parameters, "newClientOrderId");
             Object postOnly = this.isPostOnly(Helpers.isEqual(type, "market"), false, parameters);
-            String timeInForce = (String)this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
+            String timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
             String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
             if (Helpers.isTrue(Helpers.isTrue(postOnly) && Helpers.isTrue((!Helpers.isEqual(selfTradePrevention, null)))))
             {
@@ -2340,7 +2340,7 @@ public class UpbitCore extends UpbitApi
         //      }
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "uuid");
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "bid")))
         {
             side = "buy";
@@ -2941,7 +2941,7 @@ public class UpbitCore extends UpbitApi
             {
                 this.checkAddress(address);
                 // 2023-05-23 Change to required parameters for digital assets
-                String network = (String)this.safeStringUpper2(parameters, "network", "net_type");
+                String network = this.safeStringUpper2(parameters, "network", "net_type");
                 if (Helpers.isTrue(Helpers.isEqual(network, null)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a network argument")) ;

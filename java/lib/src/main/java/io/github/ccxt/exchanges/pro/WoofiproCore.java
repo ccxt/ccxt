@@ -657,7 +657,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         Object price = this.safeString2(trade, "executedPrice", "price");
         Object amount = this.safeString2(trade, "executedQuantity", "size");
         String cost = Precise.stringMul(price, amount);
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
         String takerOrMaker = null;
         Object maker = this.safeBool(trade, "maker");
@@ -985,8 +985,8 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             price = avgPrice;
         }
         Object amount = this.safeString(order, "quantity");
-        String side = (String)this.safeStringLower(order, "side");
-        String type = (String)this.safeStringLower(order, "type");
+        String side = this.safeStringLower(order, "side");
+        String type = this.safeStringLower(order, "type");
         Double filled = this.safeNumber(order, "totalExecutedQuantity");
         Object totalExecQuantity = this.safeString(order, "totalExecutedQuantity");
         Object remaining = amount;

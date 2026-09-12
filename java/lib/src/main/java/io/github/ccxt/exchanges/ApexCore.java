@@ -1167,7 +1167,7 @@ public class ApexCore extends ApexApi
         Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "T", "createdAt")));
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "v", "size");
-        String side = (String)this.safeStringLower2(trade, "S", "side");
+        String side = this.safeStringLower2(trade, "S", "side");
         String type = this.safeString(trade, "type");
         String fee = this.safeString(trade, "fee");
         final Object finalMarket = market;
@@ -1409,7 +1409,7 @@ public class ApexCore extends ApexApi
         String amount = this.safeString(order, "size");
         String orderType = this.safeString(order, "type");
         String status = this.safeString(order, "status");
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         Object remaining = this.omitZero(this.safeString(order, "remainingSize"));
         Long lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
@@ -1634,7 +1634,7 @@ public class ApexCore extends ApexApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;
             }
-            String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+            String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             Object postOnly = this.isPostOnly(isMarket, null, parameters);
             if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
             {
@@ -2369,7 +2369,7 @@ public class ApexCore extends ApexApi
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String side = (String)this.safeStringLower(position, "side");
+        String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
         Long timestamp = this.safeInteger(position, "updatedTime");
         Object leverage = 20;

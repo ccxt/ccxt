@@ -2694,7 +2694,7 @@ public class CoinexCore extends CoinexApi
         }
         String marketId = this.safeString(order, "market");
         String defaultType = this.safeString(this.options, "defaultType");
-        Object orderType = this.safeStringLower(order, "market_type", defaultType);
+        String orderType = this.safeStringLower(order, "market_type", defaultType);
         if (Helpers.isTrue(Helpers.isEqual(orderType, "futures")))
         {
             orderType = "swap";
@@ -2809,7 +2809,7 @@ public class CoinexCore extends CoinexApi
         String option = this.safeString(parameters, "option");
         Boolean isMarketOrder = Helpers.isEqual(type, "market");
         Object postOnly = this.isPostOnly(isMarketOrder, Helpers.isEqual(option, "maker_only"), parameters);
-        String timeInForceRaw = (String)this.safeStringUpper(parameters, "timeInForce");
+        String timeInForceRaw = this.safeStringUpper(parameters, "timeInForce");
         Object reduceOnly = this.safeBool(parameters, "reduceOnly");
         if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
@@ -4550,7 +4550,7 @@ final Object finalI = i;
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            String status = (String)this.safeStringLower(response, "message");
+            String status = this.safeStringLower(response, "message");
             String type = ((Helpers.isTrue((Helpers.isEqual(addOrReduce, "reduce"))))) ? "reduce" : "add";
             return this.extend(this.parseMarginModification(data, market), new java.util.HashMap<String, Object>() {{
                 put( "type", type );
@@ -5222,7 +5222,7 @@ final Object finalI = i;
         String type = ((Helpers.isTrue((Helpers.inOp(transaction, "withdraw_id"))))) ? "withdrawal" : "deposit";
         String networkId = this.safeString(transaction, "chain");
         String feeCost = this.safeString(transaction, "tx_fee");
-        String transferMethod = (String)this.safeStringLower2(transaction, "withdraw_method", "deposit_method");
+        String transferMethod = this.safeStringLower2(transaction, "withdraw_method", "deposit_method");
         Boolean intern = Helpers.isEqual(transferMethod, "local");
         Double amount = this.safeNumber(transaction, "actual_amount");
         if (Helpers.isTrue(Helpers.isEqual(amount, null)))

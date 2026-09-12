@@ -1115,7 +1115,7 @@ public class BitbnsCore extends BitbnsApi
         timestamp = (Long) this.safeInteger(trade, "timestamp", timestamp);
         String priceString = this.safeString2(trade, "rate", "price");
         String amountString = this.safeString(trade, "amount");
-        String side = (String)this.safeStringLower(trade, "type");
+        String side = this.safeStringLower(trade, "type");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(side, "buy"), 0)))

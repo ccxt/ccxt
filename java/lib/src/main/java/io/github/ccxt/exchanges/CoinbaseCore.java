@@ -1650,8 +1650,8 @@ public class CoinbaseCore extends CoinbaseApi
             feeCurrencyId = Helpers.GetValue(market, "quote");
         }
         String datetime = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("created_at", "trade_time", "time")));
-        String side = (String)this.safeStringLower2(trade, "resource", "side");
-        String takerOrMaker = (String)this.safeStringLower(trade, "liquidity_indicator");
+        String side = this.safeStringLower2(trade, "resource", "side");
+        String takerOrMaker = this.safeStringLower(trade, "liquidity_indicator");
         final Object finalSymbol = symbol;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
@@ -2012,7 +2012,7 @@ public class CoinbaseCore extends CoinbaseApi
         String quoteId = this.safeString(market, "quote_currency_id");
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        String marketType = (String)this.safeStringLower(market, "product_type");
+        String marketType = this.safeStringLower(market, "product_type");
         Object tradingDisabled = this.safeBool(market, "trading_disabled");
         Object stablePairs = this.safeList(this.options, "stablePairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Double defaultTakerFee = this.safeNumber(Helpers.GetValue(this.fees, "trading"), "taker");

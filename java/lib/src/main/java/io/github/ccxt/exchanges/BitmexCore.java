@@ -2040,7 +2040,7 @@ public class BitmexCore extends BitmexApi
         // For withdrawals, transactTime is submission, timestamp is processed
         Long transactTime = this.parse8601(this.safeString(transaction, "transactTime"));
         Long timestamp = this.parse8601(this.safeString(transaction, "timestamp"));
-        String type = (String)this.safeStringLower(transaction, "transactType");
+        String type = this.safeStringLower(transaction, "transactType");
         // Deposits have no from address or to address, withdrawals have both
         String address = null;
         String addressFrom = null;
@@ -2411,7 +2411,7 @@ public class BitmexCore extends BitmexApi
         Object execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
         String id = this.safeString(trade, "trdMatchID");
         String order = this.safeString(trade, "orderID");
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         Object fee = null;
         Object feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
@@ -2432,7 +2432,7 @@ public class BitmexCore extends BitmexApi
         {
             takerOrMaker = ((Helpers.isTrue(Precise.stringLt(feeCostString, "0")))) ? "maker" : "taker";
         }
-        String type = (String)this.safeStringLower(trade, "ordType");
+        String type = this.safeStringLower(trade, "ordType");
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{

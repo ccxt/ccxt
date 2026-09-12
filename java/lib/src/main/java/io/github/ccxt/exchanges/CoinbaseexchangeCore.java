@@ -850,7 +850,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 Object market = Helpers.GetValue(rawMarkets, i);
                 String id = this.safeString(market, "id");
-                var baseIdquoteIdVariable = Helpers.split(id, "-");
+                var baseIdquoteIdVariable = Helpers.split(((String)id), "-");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
@@ -1117,13 +1117,13 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = null;
-        String bid = null;
-        String ask = null;
-        String last = null;
-        String high = null;
-        String low = null;
-        String open = null;
-        String volume = null;
+        Object bid = null;
+        Object ask = null;
+        Object last = null;
+        Object high = null;
+        Object low = null;
+        Object open = null;
+        Object volume = null;
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
         if (Helpers.isTrue(Helpers.isArray(ticker)))
         {
@@ -1320,10 +1320,10 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Long timestamp = this.parse8601(this.safeString2(trade, "time", "created_at"));
         String marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market, "-");
-        String feeRate = null;
+        Object feeRate = null;
         String takerOrMaker = null;
-        String cost = null;
-        String feeCurrencyId = (String)this.safeStringLower(market, "quoteId");
+        Object cost = null;
+        String feeCurrencyId = this.safeStringLower(market, "quoteId");
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrencyId, null)))
         {
             Object costField = Helpers.add(feeCurrencyId, "_value");
@@ -2275,9 +2275,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
         String code = (String) this.safeCurrencyCode(null, currency);
         Object details = this.safeValue(item, "details", new java.util.HashMap<String, Object>() {{}});
-        String account = null;
-        String referenceAccount = null;
-        String referenceId = null;
+        Object account = null;
+        Object referenceAccount = null;
+        Object referenceId = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "transfer")))
         {
             account = this.safeString(details, "from");

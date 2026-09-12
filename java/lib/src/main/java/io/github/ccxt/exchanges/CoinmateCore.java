@@ -1126,8 +1126,8 @@ public class CoinmateCore extends CoinmateApi
         market = this.safeMarket(marketId, market, "_");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
-        String side = (String)this.safeStringLower2(trade, "type", "tradeType");
-        String type = (String)this.safeStringLower(trade, "orderType");
+        String side = this.safeStringLower2(trade, "type", "tradeType");
+        String type = this.safeStringLower(trade, "orderType");
         String orderId = this.safeString(trade, "orderId");
         String id = this.safeString(trade, "transactionId");
         Long timestamp = (Long) this.safeInteger2(trade, "timestamp", "createdTimestamp");
@@ -1411,7 +1411,7 @@ public class CoinmateCore extends CoinmateApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "id");
         Long timestamp = this.safeInteger(order, "timestamp");
-        String side = (String)this.safeStringLower(order, "type");
+        String side = this.safeStringLower(order, "type");
         String priceString = this.safeString(order, "price");
         String amountString = this.safeString(order, "originalAmount");
         String remainingString = this.safeString2(order, "remainingAmount", "amount");

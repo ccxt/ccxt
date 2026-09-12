@@ -813,7 +813,7 @@ public class HibachiCore extends HibachiApi
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         String status = this.safeString(order, "status");
-        String type = (String)this.safeStringLower(order, "orderType");
+        String type = this.safeStringLower(order, "orderType");
         String price = this.safeString2(order, "price", "avgFillPrice");
         String rawSide = this.safeString(order, "side");
         String side = null;
@@ -1087,7 +1087,7 @@ public class HibachiCore extends HibachiApi
         }};
         Object postOnly = this.isPostOnly(Helpers.isEqual(((String)type).toUpperCase(), "MARKET"), null, parameters);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
+        String timeInForce = this.safeStringLower(parameters, "timeInForce");
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         if (Helpers.isTrue(postOnly))
         {
@@ -2132,7 +2132,7 @@ public class HibachiCore extends HibachiApi
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String side = (String)this.safeStringLower(position, "direction");
+        String side = this.safeStringLower(position, "direction");
         String quantity = this.safeString(position, "quantity");
         String unrealizedFunding = this.safeString(position, "unrealizedFundingPnl", "0");
         String unrealizedTrading = this.safeString(position, "unrealizedTradingPnl", "0");

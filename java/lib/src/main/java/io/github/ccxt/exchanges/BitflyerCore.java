@@ -699,7 +699,7 @@ public class BitflyerCore extends BitflyerApi
         //      },
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(Helpers.isLessThan(side.length(), 1)))
@@ -941,8 +941,8 @@ public class BitflyerCore extends BitflyerApi
         String filled = this.safeString(order, "executed_size");
         String remaining = this.safeString(order, "outstanding_size");
         String status = this.parseOrderStatus(this.safeString(order, "child_order_state"));
-        String type = (String)this.safeStringLower(order, "child_order_type");
-        String side = (String)this.safeStringLower(order, "side");
+        String type = this.safeStringLower(order, "child_order_type");
+        String side = this.safeStringLower(order, "side");
         String marketId = this.safeString(order, "product_code");
         String symbol = (String) this.safeSymbol(marketId, market);
         Object fee = null;

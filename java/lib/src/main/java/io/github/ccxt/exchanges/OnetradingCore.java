@@ -1313,7 +1313,7 @@ public class OnetradingCore extends OnetradingApi
         {
             timestamp = this.parse8601(this.safeString(trade, "time"));
         }
-        String side = (String)this.safeStringLower2(trade, "side", "taker_side");
+        String side = this.safeStringLower2(trade, "side", "taker_side");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         String costString = this.safeString(trade, "volume");
@@ -1515,8 +1515,8 @@ public class OnetradingCore extends OnetradingApi
         String price = this.safeString(rawOrder, "price");
         String amount = this.safeString(rawOrder, "amount");
         String filled = this.safeString(rawOrder, "filled_amount");
-        String side = (String)this.safeStringLower(rawOrder, "side");
-        String type = (String)this.safeStringLower(rawOrder, "type");
+        String side = this.safeStringLower(rawOrder, "side");
+        String type = this.safeStringLower(rawOrder, "type");
         String timeInForce = this.parseTimeInForce(this.safeString(rawOrder, "time_in_force"));
         Object postOnly = this.safeValue(rawOrder, "is_post_only");
         Object rawTrades = this.safeValue(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
