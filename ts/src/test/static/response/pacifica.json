@@ -8,6 +8,31 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "createSubAccount": [
+            {
+                "description": "create a subaccount",
+                "method": "createSubAccount",
+                "input": [
+                    "ccxtsub2",
+                    {
+                        "subAccountAddress": "AubBvFpKrUiVnXpRq7wZYSUnrx4K5yBYepdmZm75iySQ",
+                        "subAccountPrivateKey": "65qLgAgXZ4Vu7PyzLHHiPy77w2ca6ryWZvzS1nNqSK5YWWj3Ekuq74cEFjEh2UHNLd8drM33WK3Vuc2QvpuAkQhN"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": null,
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "success": true,
+                    "data": null,
+                    "error": null,
+                    "code": null
+                }
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer between own accounts",
