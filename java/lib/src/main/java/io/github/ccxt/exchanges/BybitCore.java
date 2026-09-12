@@ -4446,7 +4446,7 @@ public class BybitCore extends BybitApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(lastLiquidityInd, "TAKER"))) || Helpers.isTrue((Helpers.isEqual(lastLiquidityInd, "MAKER")))))
                 {
-                    takerOrMaker = ((String)lastLiquidityInd).toLowerCase();
+                    takerOrMaker = lastLiquidityInd.toLowerCase();
                 } else
                 {
                     takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(lastLiquidityInd, "AddedLiquidity"))))) ? "maker" : "taker";
@@ -5266,7 +5266,7 @@ public class BybitCore extends BybitApi
             }};
         }
         String clientOrderId = this.safeString(order, "orderLinkId");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(((String)clientOrderId).length(), 1)))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(clientOrderId.length(), 1)))))
         {
             clientOrderId = null;
         }

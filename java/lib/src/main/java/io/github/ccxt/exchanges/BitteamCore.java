@@ -522,7 +522,7 @@ public class BitteamCore extends BitteamApi
     {
         String id = this.safeString(market, "name");
         Long numericId = this.safeInteger(market, "id");
-        Object parts = Helpers.split(((String)id), "_");
+        Object parts = Helpers.split(id, "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = (String) this.safeCurrencyCode(baseId);

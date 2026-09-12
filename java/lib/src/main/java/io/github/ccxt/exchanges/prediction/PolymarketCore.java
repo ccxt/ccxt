@@ -3049,7 +3049,7 @@ final Object finalClobTokenId = clobTokenId;
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
-        Object ctLenHex = this.intToBase16(((String)orderTypeString).length());
+        Object ctLenHex = this.intToBase16(orderTypeString.length());
         // assign before padStart so the PHP transpiler's str_pad regex (which only matches a
         // simple identifier) picks it up instead of leaking a padStart() function call
         Object lenHex = Helpers.padStart((String)ctLenHex, ((Number)4).intValue(), ((String)"0").charAt(0));

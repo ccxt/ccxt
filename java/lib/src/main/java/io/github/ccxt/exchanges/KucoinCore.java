@@ -3901,7 +3901,7 @@ public class KucoinCore extends KucoinApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String timestampString = this.safeString(ohlcv, 0);
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(timestampString, null)) && Helpers.isTrue(Helpers.isLessThanOrEqual(((String)timestampString).length(), 10))))
+        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(timestampString, null)) && Helpers.isTrue(Helpers.isLessThanOrEqual(timestampString.length(), 10))))
         {
             // kucoin spot and uta return seconds timestamps
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5)));

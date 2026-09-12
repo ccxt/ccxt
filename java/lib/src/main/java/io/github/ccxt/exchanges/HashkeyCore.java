@@ -1161,7 +1161,7 @@ public class HashkeyCore extends HashkeyApi
         Boolean isSpot = true;
         Boolean isSwap = false;
         Object suffix = "";
-        Object parts = Helpers.split(((String)marketId), "-");
+        Object parts = Helpers.split(marketId, "-");
         String secondPart = this.safeString(parts, 1);
         if (Helpers.isTrue(Helpers.isEqual(secondPart, "PERPETUAL")))
         {
@@ -2851,7 +2851,7 @@ public class HashkeyCore extends HashkeyApi
         String amountString = this.safeString(item, "change");
         Object amount = this.parseNumber(amountString);
         String direction = "in";
-        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)amountString), "-"), 0)))
+        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountString, "-"), 0)))
         {
             direction = "out";
         }
@@ -4698,7 +4698,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
             }
-            side = ((String)side).toUpperCase();
+            side = side.toUpperCase();
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(side, "LONG"))) && Helpers.isTrue((!Helpers.isEqual(side, "SHORT")))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), "Margin() params[\"side\"] must be either long or short")) ;

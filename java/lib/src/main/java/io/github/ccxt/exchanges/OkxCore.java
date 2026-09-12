@@ -3001,7 +3001,7 @@ public class OkxCore extends OkxApi
                 if (Helpers.isTrue(this.isSandboxModeEnabled))
                 {
                     String instFamily = this.safeString(data, "instFamily", "");
-                    if (Helpers.isTrue(((String)instFamily).startsWith(((String)"TEST"))))
+                    if (Helpers.isTrue(instFamily.startsWith(((String)"TEST"))))
                     {
                         continue;
                     }
@@ -3844,7 +3844,7 @@ public class OkxCore extends OkxApi
             Object bar = this.safeString(this.timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(timezone, "UTC"))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(duration, 21600)))))
             {
-                bar = Helpers.add(bar, ((String)timezone).toLowerCase());
+                bar = Helpers.add(bar, timezone.toLowerCase());
             }
             final Object finalBar = bar;
             final Object finalLimit = limit;
@@ -5758,7 +5758,7 @@ public class OkxCore extends OkxApi
             }};
         }
         String clientOrderId = this.safeString(order, "clOrdId");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(((String)clientOrderId).length(), 1)))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(clientOrderId.length(), 1)))))
         {
             clientOrderId = null; // fix empty clientOrderId string
         }
@@ -7165,7 +7165,7 @@ public class OkxCore extends OkxApi
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
                 Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-                network = this.safeString(networks, ((String)network).toUpperCase(), network); // handle ETH>ERC20 alias
+                network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
                 Helpers.addElementToObject(request, "chain", Helpers.add(Helpers.add(Helpers.GetValue(currency, "id"), "-"), network));
                 parameters = this.omit(parameters, "network");
             }

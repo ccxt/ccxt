@@ -540,7 +540,7 @@ public class HyperliquidCore extends HyperliquidApi
         String fullName = this.safeString(rawCurrency, "fullName");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fullName, null)) && Helpers.isTrue(!Helpers.isEqual(name, null))))
         {
-            Boolean isWrapped = Helpers.isTrue(((String)fullName).startsWith(((String)"Unit "))) && Helpers.isTrue(((String)name).startsWith(((String)"U")));
+            Boolean isWrapped = Helpers.isTrue(fullName.startsWith(((String)"Unit "))) && Helpers.isTrue(name.startsWith(((String)"U")));
             if (Helpers.isTrue(isWrapped))
             {
                 Object parts = Helpers.split(name, "U");
@@ -863,7 +863,7 @@ public class HyperliquidCore extends HyperliquidApi
             String decimalPart = this.safeString(priceSplitted, 1, "");
             // Count the number of leading zeros in the decimal part
             Object leadingZeros = 0;
-            while (Helpers.isTrue((Helpers.isLessThanOrEqual(leadingZeros, ((String)decimalPart).length()))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(decimalPart, leadingZeros), "0"))))
+            while (Helpers.isTrue((Helpers.isLessThanOrEqual(leadingZeros, decimalPart.length()))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(decimalPart, leadingZeros), "0"))))
             {
                 leadingZeros = Helpers.add(leadingZeros, 1);
             }
@@ -876,9 +876,9 @@ public class HyperliquidCore extends HyperliquidApi
             // Count the numbers before the decimal separator
             String integerPart = this.safeString(priceSplitted, 0, "");
             // Get significant digits, take the max() of 5 and the integer digits count
-            Object significantDigits = Helpers.mathMax(5, ((String)integerPart).length());
+            Object significantDigits = Helpers.mathMax(5, integerPart.length());
             // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
-            pricePrecision = Helpers.mathMin(Helpers.subtract(maxDecimals, amountPrecision), Helpers.subtract(significantDigits, ((String)integerPart).length()));
+            pricePrecision = Helpers.mathMin(Helpers.subtract(maxDecimals, amountPrecision), Helpers.subtract(significantDigits, integerPart.length()));
         }
         return this.parseToInt(pricePrecision);
     }

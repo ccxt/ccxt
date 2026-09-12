@@ -3978,7 +3978,7 @@ final Object finalNetworkId = networkId;
             for (var i = 0; Helpers.isLessThan(i, linesLength); i++)
             {
                 String line = (String) Helpers.GetValue(lines, i);
-                if (Helpers.isTrue(Helpers.isGreaterThan(((String)line).length(), 0)))
+                if (Helpers.isTrue(Helpers.isGreaterThan(line.length(), 0)))
                 {
                     Object parsed = Helpers.parseJson(line);
                     this.handleCentrifugoFrame(client, parsed);

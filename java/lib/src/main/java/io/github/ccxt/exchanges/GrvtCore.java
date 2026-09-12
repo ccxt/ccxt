@@ -2783,7 +2783,7 @@ public class GrvtCore extends GrvtApi
             Object size = Helpers.GetValue(leg, "size");
             Object sizeParts = Helpers.split(size, ".");
             String sizeDec = this.safeString(sizeParts, 1, "");
-            Object sizeDecLength = Helpers.add(((String)sizeDec).length(), 0); // php tr
+            Object sizeDecLength = Helpers.add(sizeDec.length(), 0); // php tr
             Object sizeDecLengthStr = String.valueOf(sizeDecLength);
             Object sizeInteger = Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)size, (String)".", (String)"")), sizeMultiplier), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(sizeDecLengthStr))))));
             java.util.Map<String, Object> legOrder = new java.util.HashMap<String, Object>() {{
@@ -2797,7 +2797,7 @@ public class GrvtCore extends GrvtApi
                 Object price = Helpers.GetValue(leg, "limit_price");
                 Object limitParts = Helpers.split(price, ".");
                 String limitDec = this.safeString(limitParts, 1, "");
-                Object limitDecLength = Helpers.add(((String)limitDec).length(), 0); // php tr
+                Object limitDecLength = Helpers.add(limitDec.length(), 0); // php tr
                 Object limitDecLengthStr = String.valueOf(limitDecLength);
                 Object powerNum = ((Helpers.isTrue((Helpers.isEqual(limitDecLengthStr, "0"))))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 Object priceInteger = (Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)price, (String)".", (String)"")), this.convertToBigIntCustom(priceMultiplier)), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(powerNum))))));

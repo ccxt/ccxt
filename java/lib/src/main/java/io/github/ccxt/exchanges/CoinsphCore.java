@@ -2589,7 +2589,7 @@ public class CoinsphCore extends CoinsphApi
         String tag = this.safeString(transaction, "addressTag");
         if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(((String)tag).length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(tag.length(), 1)))
             {
                 tag = null;
             }

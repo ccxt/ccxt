@@ -3929,7 +3929,7 @@ public class BitgetCore extends BitgetApi
                     {
                         expiry = this.safeInteger(market, "deliveryTime");
                         expiryDatetime = this.iso8601(expiry);
-                        Object expiryParts = Helpers.split(((String)expiryDatetime), "-");
+                        Object expiryParts = Helpers.split(expiryDatetime, "-");
                         String yearPart = this.safeString(expiryParts, 0, "");
                         String dayPart = this.safeString(expiryParts, 2, "");
                         Object year = Helpers.slice(yearPart, 2, 4);
@@ -4233,7 +4233,7 @@ public class BitgetCore extends BitgetApi
                     {
                         expiry = this.safeInteger(market, "deliveryTime");
                         expiryDatetime = this.iso8601(expiry);
-                        Object expiryParts = Helpers.split(((String)expiryDatetime), "-");
+                        Object expiryParts = Helpers.split(expiryDatetime, "-");
                         String yearPart = this.safeString(expiryParts, 0, "");
                         String dayPart = this.safeString(expiryParts, 2, "");
                         Object year = Helpers.slice(yearPart, 2, 4);

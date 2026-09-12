@@ -12152,7 +12152,7 @@ public class BinanceCore extends BinanceApi
         String tag = this.safeString(transaction, "addressTag"); // set but unused
         if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(((String)tag).length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(tag.length(), 1)))
             {
                 tag = null;
             }
@@ -12682,7 +12682,7 @@ public class BinanceCore extends BinanceApi
         // so we should map the url to network (their data is inside currencies)
         Object networkCode = this.getNetworkCodeByNetworkUrl(code, url);
         String tag = this.safeString(response, "tag", "");
-        if (Helpers.isTrue(Helpers.isEqual(((String)tag).length(), 0)))
+        if (Helpers.isTrue(Helpers.isEqual(tag.length(), 0)))
         {
             tag = null;
         }

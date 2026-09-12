@@ -499,7 +499,7 @@ public class BitoproCore extends BitoproApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
         }
-        Object uppercaseId = ((String)id).toUpperCase();
+        Object uppercaseId = id.toUpperCase();
         String baseId = this.safeString(market, "base");
         String quoteId = this.safeString(market, "quote");
         String base = (String) this.safeCurrencyCode(baseId);

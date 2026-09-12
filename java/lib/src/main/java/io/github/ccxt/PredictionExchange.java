@@ -661,7 +661,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawParts)); i++)
         {
             String w = (String) Helpers.GetValue(rawParts, i);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThan(((String)w).length(), 0)) && !Helpers.isTrue(this.inArray(w, stopWords))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThan(w.length(), 0)) && !Helpers.isTrue(this.inArray(w, stopWords))))
             {
                 ((java.util.List<Object>)parts).add(w);
             }
@@ -799,7 +799,7 @@ public Object describe()
                     String existingId = this.safeString(existing, "outcomeId");
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(existingId, null))) && Helpers.isTrue((!Helpers.isEqual(ocId, null)))) && Helpers.isTrue((!Helpers.isEqual(existingId, ocId)))))
                     {
-                        Object idLen = ((String)ocId).length();
+                        Object idLen = ocId.length();
                         Object suffix = ocId;
                         if (Helpers.isTrue(Helpers.isGreaterThan(idLen, 6)))
                         {
@@ -1031,7 +1031,7 @@ public Object describe()
             String word = (String) Helpers.GetValue(rawWords, i);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
-            if (Helpers.isTrue(Helpers.isEqual(((String)word).length(), 0)))
+            if (Helpers.isTrue(Helpers.isEqual(word.length(), 0)))
             {
                 continue;
             }

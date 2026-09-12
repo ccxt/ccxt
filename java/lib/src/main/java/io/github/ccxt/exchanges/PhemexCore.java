@@ -2867,7 +2867,7 @@ public class PhemexCore extends PhemexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "orderID");
         String clientOrderId = this.safeString(order, "clOrdID");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(((String)clientOrderId).length(), 1)))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(clientOrderId.length(), 1)))))
         {
             clientOrderId = null;
         }
@@ -3040,7 +3040,7 @@ public class PhemexCore extends PhemexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(order, "orderID", "orderId");
         String clientOrderId = this.safeString2(order, "clOrdID", "clOrdId");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(((String)clientOrderId).length(), 1)))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(clientOrderId.length(), 1)))))
         {
             clientOrderId = null;
         }

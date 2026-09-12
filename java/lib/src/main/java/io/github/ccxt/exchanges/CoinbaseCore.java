@@ -986,7 +986,7 @@ public class CoinbaseCore extends CoinbaseApi
         String currencyId = this.safeString(currency, "code", currencyIdV3);
         String typeV3 = this.safeString(account, "name");
         String typeV2 = this.safeString(account, "type");
-        Object parts = Helpers.split(((String)typeV3), " ");
+        Object parts = Helpers.split(typeV3, " ");
         final Object finalActive = active;
         return new java.util.HashMap<String, Object>() {{
             put( "id", CoinbaseCore.this.safeString2(account, "id", "uuid") );
@@ -2395,11 +2395,11 @@ public class CoinbaseCore extends CoinbaseApi
                 String name = this.safeString(currency, "name");
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(this.options, "networks"), code, ((String)((String)name)).toLowerCase());
+                    Helpers.addElementToObject(Helpers.GetValue(this.options, "networks"), code, name.toLowerCase());
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(this.options, "networksById"), code, ((String)((String)name)).toLowerCase());
+                    Helpers.addElementToObject(Helpers.GetValue(this.options, "networksById"), code, name.toLowerCase());
                 }
                 String type = ((Helpers.isTrue((!Helpers.isEqual(assetId, null))))) ? "crypto" : "fiat";
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -2431,7 +2431,7 @@ public class CoinbaseCore extends CoinbaseApi
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(assetId, null)))
                 {
-                    Object lowerCaseName = ((String)((String)name)).toLowerCase();
+                    Object lowerCaseName = name.toLowerCase();
                     if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                     {
                         Helpers.addElementToObject(networks, code, lowerCaseName);

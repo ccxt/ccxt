@@ -432,8 +432,8 @@ public class HollaexCore extends HollaexApi
                 Object market = Helpers.GetValue(pairs, key);
                 String baseId = this.safeString(market, "pair_base");
                 String quoteId = this.safeString(market, "pair_2");
-                Object base = this.commonCurrencyCode(((String)((String)baseId)).toUpperCase());
-                Object quote = this.commonCurrencyCode(((String)((String)quoteId)).toUpperCase());
+                Object base = this.commonCurrencyCode(baseId.toUpperCase());
+                Object quote = this.commonCurrencyCode(quoteId.toUpperCase());
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", HollaexCore.this.safeString(market, "name") );

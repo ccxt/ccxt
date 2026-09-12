@@ -561,7 +561,7 @@ public class LatokenCore extends LatokenApi
                     {
                         continue;
                     }
-                    Object lowercaseQuote = ((String)quote).toLowerCase();
+                    Object lowercaseQuote = quote.toLowerCase();
                     Object capitalizedQuote = this.capitalize(lowercaseQuote);
                     String status = this.safeString(market, "status");
     final Object finalBase = base;
