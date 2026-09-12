@@ -818,7 +818,7 @@ export default class revolutx extends Exchange {
             const trade = this.safeDict (data, i, {});
             result.push (this.parseTrade (trade, market));
         }
-        return this.filterBySymbolSinceLimit (this.sortBy (result, 'timestamp'), symbol, since, limit) as Trade[];
+        return this.parseTradesDirectional (result, market, since, limit);
     }
 
     /**

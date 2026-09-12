@@ -2941,7 +2941,7 @@ export default class htx extends Exchange {
         const data = this.safeList (response, 'data', []);
         const rawTrades: List = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeValue (data[i], 'data', []);
+            const trades = this.safeList (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
                 rawTrades.push (trades[j]);
             }
