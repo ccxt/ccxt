@@ -1639,20 +1639,28 @@ std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any method,
     // Real transport. Mirrors ts/src/base/Exchange.ts fetch()/handleRestResponse():
     // merge default headers -> libcurl -> onRestResponse -> parseJson -> handleErrors
     // -> handleHttpStatusCode -> parsed body (or raw text when it is not JSON).
-    return std::async (std::launch::deferred, [this, target, verb, url, method, headers, body] () -> std::any {
-        if (!this->headers.has_value ()) {
-            this->headers = dict {
+    // launch::async: TS fires fan-outs (binance fetchMarkets awaits
+    // Promise.all([exchangeInfo, fapi, dapi])) CONCURRENTLY — deferred futures
+    // would run them strictly one at a time on the awaiting thread (~3x slower
+    // network phase). Futures are created up front by the generated promiseAll
+    // list, so the requests overlap even though promiseAll awaits in order.
+    return std::async (std::launch::async, [this, target, verb, url, method, headers, body] () -> std::any {
+        // merged headers are built from a LOCAL snapshot: concurrent fetches
+        // (TS promiseAll fan-outs) must not race on the this->headers member
+        // (the only writer is the exchange's own describe/init path, which is
+        // single-threaded and done before any fetch fires)
+        std::any base = this->headers;
+        std::any merged = headers;
+        if (base.has_value () && isDict (base)) {
+            merged = (headers.has_value () && isDict (headers))
+                ? this->deepExtend (base, headers)
+                : base;
+        }
+        if (!(merged.has_value () && isDict (merged))) {
+            merged = dict {
                 { std::string ("User-Agent"),
                   std::string ("ccxt-cpp/0.1.0 (+https://github.com/ccxt/ccxt)") },
             };
-        }
-        std::any merged = headers;
-        if (this->headers.has_value () && isDict (this->headers)) {
-            if (headers.has_value () && isDict (headers)) {
-                merged = this->deepExtend (this->headers, headers);
-            } else {
-                merged = this->headers;
-            }
         }
 
         CURL* curl = curl_easy_init ();
