@@ -17,7 +17,7 @@
             {
                 "description": "with limit",
                 "method": "fetchTrades",
-                "url": "https://api.ndax.io:8443/AP/GetLastTrades?omsId=1&InstrumentId=82",
+                "url": "https://api.ndax.io:8443/AP/GetLastTrades?omsId=1&InstrumentId=82&Count=10",
                 "input": [
                     "BTC/USDT",
                     null,
