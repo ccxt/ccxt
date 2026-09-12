@@ -112,6 +112,17 @@ int main (int argc, char** argv) {
         // load entirely (fetchTime-style calls), --refresh-markets forces a
         // live reload + cache rewrite.
         if (!noMarkets) {
+            const bool phaseTrace = std::getenv ("CCXT_CLI_PHASES") != nullptr;
+            const auto phase = [&] (const char* name) {
+                static std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now ();
+                if (!phaseTrace) return;
+                const auto now = std::chrono::steady_clock::now ();
+                std::cerr << "[phase] " << name << ": "
+                          << std::chrono::duration_cast<std::chrono::milliseconds> (now - last).count ()
+                          << "ms since previous" << std::endl;
+                last = now;
+            };
+            phase ("enter-markets");
             const std::string tier = prediction ? "pred" : (isWsMethod ? "pro" : "rest");
             const char* home = std::getenv ("HOME");
             const std::string cacheDir = (home && *home)
@@ -122,15 +133,19 @@ int main (int argc, char** argv) {
             bool loadedFromCache = false;
             if (!refreshMarkets) {
                 std::ifstream cacheFile (cachePath);
+                phase ("cache-open");
                 if (cacheFile.good ()) {
                     const auto age = std::filesystem::file_time_type::clock::now ()
                         - std::filesystem::last_write_time (cachePath);
                     if (age < std::chrono::minutes (30)) {
                         std::stringstream cacheBuffer;
                         cacheBuffer << cacheFile.rdbuf ();
+                        phase ("cache-read");
                         const std::any cached = parser.parseJson (cacheBuffer.str ());
+                        phase ("parseJson");
                         if (ccxt::isDict (cached)) {
                             exchange->setMarkets (cached, std::any {});
+                            phase ("setMarkets");
                             loadedFromCache = true;
                         }
                     }
@@ -138,9 +153,12 @@ int main (int argc, char** argv) {
             }
             if (!loadedFromCache) {
                 exchange->loadMarkets ().get ();
+                phase ("loadMarkets");
                 std::ofstream cacheFile (cachePath);
                 cacheFile << str (exchange->json (exchange->markets)) << std::endl;
+                phase ("cache-write");
             }
+            phase ("markets-done");
         }
         ccxt::list callArgs;
         for (const auto& a : args) {
