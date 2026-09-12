@@ -2245,7 +2245,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         //     }
         //
         Object id = this.safeString(message, "id");
-        if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, ((String)id)))))
+        if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, id))))
         {
             return;
         }
