@@ -604,7 +604,7 @@ export default class hyperliquid extends Exchange {
             }
         } else {
             const fetchDexesLength = fetchDexes.length;
-            for (let i = 1; i < maxLimit; i++) {
+            for (let i = 1; i <= maxLimit; i++) {
                 if (i >= fetchDexesLength) {
                     break;
                 }
