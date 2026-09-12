@@ -15,6 +15,7 @@ import { Transpiler as OldTranspiler } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import os from 'os';
+import { execFileSync } from 'child_process';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
@@ -4777,7 +4778,245 @@ class NewTranspiler {
     }
 }
 
+// ===== String-typing audit (`--audit-string-types`) =====
+//
+// Two gates over the generated Java tree, run against a base ref (default origin/master):
+//   1. ternary gate: no ADDED ` ? ` line under java/ that is not a retype of a removed line
+//      (same text modulo the declared type token and `(String)`/`(Object)` casts);
+//   2. diff audit: every changed line in a GENERATED file pairs with a removed line as either
+//      a declaration retype (type token moved) or a cast removal — anything else is 'other'
+//      and fails the run.
+// Plus the tree KPIs the typing work is measured by (Object/String safeString locals, casts).
+//   npx tsx build/javaTranspiler.ts --audit-string-types [--base <ref>] [--target <ref>] [--json]
+//   npx tsx build/javaTranspiler.ts --audit-string-types --self-test
+
+const AUDIT_GEN_MARKER = 'IT IS GENERATED AND WILL BE OVERWRITTEN';
+const AUDIT_TYPE_WORDS = ['String', 'Object', 'Boolean', 'Integer', 'Long', 'Double', 'Float', 'Number', 'BigInteger', 'BigDecimal', 'CharSequence', 'String\\[\\]', 'Object\\[\\]', 'List', 'Map', 'Set', 'boolean', 'int', 'long', 'double', 'float', 'char', 'byte', 'short', 'var', 'java\\.util\\.List<Object>', 'java\\.util\\.Map<String, Object>'];
+const AUDIT_TYPE_ALT = AUDIT_TYPE_WORDS.join('|');
+const AUDIT_DECL_RX = new RegExp('^[ \\t]*(?:(?:public|protected|private|static|final)[ \\t]+)*(?:' + AUDIT_TYPE_ALT + ')[ \\t]+(?:\\[[ \\t]*\\])?[A-Za-z_$][A-Za-z0-9_$]*[ \\t]*(?:=|;|\\()');
+const AUDIT_TYPENORM_RX = new RegExp('\\b(?:' + AUDIT_TYPE_ALT + ')\\b', 'g');
+const AUDIT_KPI_RX = {
+    objectLocals: /^[ \t]*Object[ \t]+[A-Za-z_$][A-Za-z0-9_$]*[ \t]*=[ \t]*this\.safeString/gm,
+    stringLocals: /^[ \t]*String[ \t]+[A-Za-z_$][A-Za-z0-9_$]*[ \t]*=[ \t]*this\.safeString/gm,
+    stringCasts: /\(String\)[ \t]*this\.safeString/g,
+    wrappedCasts: /\(\(String\)[ \t]*[A-Za-z_$][A-Za-z0-9_$]*\)/g,
+};
+
+function auditGit (repo: string, args: string[]): string {
+    return execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
+}
+
+// `((String)<balanced-expr>)` -> `<balanced-expr>`; `foo((String)x)` is a call, not a wrapper
+function auditStripWrappedStringCasts (s: string): string {
+    const open = '((String)';
+    for (;;) {
+        let at = -1;
+        for (let k = s.indexOf(open); k !== -1; k = s.indexOf(open, k + 1)) {
+            if (k === 0 || !/[A-Za-z0-9_$]/.test(s[k - 1])) { at = k; break; }
+        }
+        if (at === -1) return s;
+        let depth = 1, j = at + open.length, closed = -1;
+        for (; j < s.length; j++) {
+            const ch = s[j];
+            if (ch === '"') { j++; while (j < s.length && s[j] !== '"') { if (s[j] === '\\') j++; j++; } continue; }
+            if (ch === '(') depth++;
+            else if (ch === ')') { depth--; if (depth === 0) { closed = j; break; } }
+        }
+        if (closed === -1) return s;
+        s = s.slice(0, at) + s.slice(at + open.length, closed) + s.slice(closed + 1);
+    }
+}
+function auditStripCasts (s: string): string {
+    return auditStripWrappedStringCasts(s)
+        .replace(/\(String\)[ \t]*/g, '')
+        .replace(/\(Object\)[ \t]+(?=[A-Za-z_$])/g, '')
+        .replace(/([(,=] ?)\(([A-Za-z_$][A-Za-z0-9_$]*)\)(?=[,;)])/g, '$1$2');
+}
+const auditTypeNorm = (s: string) => s.replace(AUDIT_TYPENORM_RX, '<T>');
+const auditStripEq = (r: string, a: string) => auditStripCasts(r).trim() === auditStripCasts(a).trim();
+const auditTypeEq = (r: string, a: string) => auditTypeNorm(auditStripCasts(r)).trim() === auditTypeNorm(auditStripCasts(a)).trim();
+const auditIsDecl = (s: string) => AUDIT_DECL_RX.test(s);
+const auditTernaryKey = (line: string) => auditStripCasts(line.replace(/^(\s*)(?:Object|String|Long|Double|Boolean|Integer|java\.util\.List<Object>|java\.util\.Map<String, Object>)\s+(?=[A-Za-z_$][A-Za-z0-9_$]*\s*=)/, '$1<T> ')).trim();
+
+function auditParseDiff (repo: string, base: string, target: string | null, scope: string) {
+    const args = ['diff', '--no-color', '-U0', base];
+    if (target) args.push(target);
+    args.push('--', scope);
+    const files = new Map<string, any>();
+    let cur: any = null, hunk: any = null, newLine = 0;
+    for (const raw of auditGit(repo, args).split('\n')) {
+        if (raw.startsWith('+++ ')) {
+            const f = raw.startsWith('+++ b/') ? raw.slice(6) : raw.slice(4).trim();
+            if (!files.has(f)) files.set(f, { path: f, hunks: [] });
+            cur = files.get(f); hunk = null; continue;
+        }
+        if (raw.startsWith('--- ')) continue;
+        if (raw.startsWith('@@')) {
+            const m = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+            newLine = m ? parseInt(m[1], 10) : 0;
+            hunk = { removed: [], added: [] }; cur.hunks.push(hunk); continue;
+        }
+        if (!cur || !hunk) continue;
+        if (raw.startsWith('+')) { hunk.added.push({ text: raw.slice(1), line: newLine }); newLine++; }
+        else if (raw.startsWith('-')) hunk.removed.push({ text: raw.slice(1) });
+        else if (raw.startsWith(' ')) newLine++;
+    }
+    return files;
+}
+
+function auditKpis (repo: string, scopeRel: string) {
+    const out: any = { scope: scopeRel, files: 0, objectLocals: 0, stringLocals: 0, stringCasts: 0, wrappedCasts: 0 };
+    const dir = path.join(repo, scopeRel);
+    if (!fs.existsSync(dir)) return out;
+    const walk = (d: string) => {
+        for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+            const p = path.join(d, e.name);
+            if (e.isDirectory()) walk(p);
+            else if (e.isFile() && e.name.endsWith('.java')) {
+                const text = fs.readFileSync(p, 'utf8');
+                out.files++;
+                for (const k of Object.keys(AUDIT_KPI_RX)) out[k] += (text.match((AUDIT_KPI_RX as any)[k]) ?? []).length;
+            }
+        }
+    };
+    walk(dir);
+    return out;
+}
+
+function auditTernaries (files: Map<string, any>) {
+    const res: any = { addedLines: 0, removedLines: 0, ternaryCount: 0, ternaryLines: [] };
+    for (const [file, info] of files) {
+        const pool = new Map<string, number>();
+        const added: string[] = [];
+        for (const h of info.hunks) {
+            res.addedLines += h.added.length; res.removedLines += h.removed.length;
+            for (const r of h.removed) if (r.text.includes(' ? ')) { const k = auditTernaryKey(r.text); pool.set(k, (pool.get(k) ?? 0) + 1); }
+            for (const a of h.added) if (a.text.includes(' ? ')) added.push(a.text);
+        }
+        for (const text of added) {
+            const k = auditTernaryKey(text); const n = pool.get(k) ?? 0;
+            if (n > 0) { pool.set(k, n - 1); continue; }
+            res.ternaryCount++; res.ternaryLines.push({ file, text });
+        }
+    }
+    return res;
+}
+
+function auditClassify (repo: string, target: string | null, files: Map<string, any>) {
+    const report: any = { files: [], skippedHandwritten: [], totals: { declaration: 0, castRemoval: 0, other: 0 } };
+    const headOf = (file: string) => {
+        try { return target ? auditGit(repo, ['show', `${target}:${file}`]).slice(0, 400) : fs.readFileSync(path.join(repo, file), 'utf8').slice(0, 400); } catch { return ''; }
+    };
+    for (const [file, info] of files) {
+        if (!headOf(file).includes(AUDIT_GEN_MARKER)) { report.skippedHandwritten.push(file); continue; }
+        const rec: any = { path: file, declaration: 0, castRemoval: 0, other: 0, otherLines: [] };
+        for (const h of info.hunks) {
+            const unusedR: number[] = [...h.removed.keys()];
+            const takenA = new Set<number>();
+            const pair = (r: number, a: number, kind: string, text?: string) => {
+                unusedR.splice(unusedR.indexOf(r), 1); takenA.add(a);
+                rec[kind]++; report.totals[kind]++;
+                if (kind === 'other' && text !== undefined) rec.otherLines.push(text);
+            };
+            h.added.forEach((a: any, ai: number) => {
+                const ri = unusedR.find((r) => auditStripEq(h.removed[r].text, a.text));
+                if (ri === undefined) return;
+                if (h.removed[ri].text.trim() === a.text.trim()) pair(ri, ai, auditIsDecl(a.text) ? 'declaration' : 'other', a.text);
+                else pair(ri, ai, 'castRemoval');
+            });
+            h.added.forEach((a: any, ai: number) => {
+                if (takenA.has(ai)) return;
+                const ri = unusedR.find((r) => auditTypeEq(h.removed[r].text, a.text));
+                if (ri !== undefined) pair(ri, ai, 'declaration');
+            });
+            h.added.forEach((a: any, ai: number) => {
+                if (takenA.has(ai) || !unusedR.length) return;
+                const ri = unusedR[0];
+                pair(ri, ai, auditStripEq(h.removed[ri].text, a.text) ? 'castRemoval' : auditTypeEq(h.removed[ri].text, a.text) ? 'declaration' : 'other', a.text);
+            });
+            h.added.forEach((a: any, ai: number) => {
+                if (takenA.has(ai)) return;
+                const kind = auditIsDecl(a.text) ? 'declaration' : 'other';
+                rec[kind]++; report.totals[kind]++;
+                if (kind === 'other') rec.otherLines.push(a.text);
+            });
+        }
+        report.files.push(rec);
+    }
+    return report;
+}
+
+// synthetic repo: the gate must flag an injected ternary and an 'other' edit, and pass a clean retype
+function auditSelfTest (): string[] {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'java-string-audit-'));
+    const problems: string[] = [];
+    const ok = (cond: boolean, msg: string) => { if (!cond) problems.push(msg); };
+    const gc = (args: string[]) => auditGit(tmp, ['-c', 'user.email=audit@test', '-c', 'user.name=audit', ...args]);
+    try {
+        fs.mkdirSync(path.join(tmp, 'java', 'gen'), { recursive: true });
+        const f = path.join(tmp, 'java', 'gen', 'Gen.java');
+        const header = '// PLEASE DO NOT EDIT THIS FILE, IT IS ' + 'GENERATED AND WILL BE OVERWRITTEN:\npackage gen;\nclass Gen {\n';
+        fs.writeFileSync(f, header + '    String a = (String) this.safeString(parsed, "k");\n    Object b = this.safeString(parsed, "k");\n    Object t = flag ? "a" : "b";\n    int c = 1;\n}\n');
+        auditGit(tmp, ['init', '-q']); gc(['add', '-A']); gc(['commit', '-q', '-m', 'base']);
+        const base = auditGit(tmp, ['rev-parse', 'HEAD']).trim();
+        const kpi = auditKpis(tmp, 'java');
+        ok(kpi.objectLocals === 1 && kpi.stringLocals === 0 && kpi.stringCasts === 1, `kpis expected 1/0/1, got ${kpi.objectLocals}/${kpi.stringLocals}/${kpi.stringCasts}`);
+        // clean retype: cast removal + Object->String decl + retyped ternary (not new) -> passes
+        fs.writeFileSync(f, header + '    String a = this.safeString(parsed, "k");\n    String b = this.safeString(parsed, "k");\n    String t = flag ? "a" : "b";\n    int c = 1;\n}\n');
+        let files = auditParseDiff(tmp, base, null, 'java');
+        let t = auditTernaries(files); let r = auditClassify(tmp, null, files);
+        ok(t.ternaryCount === 0, `retyped ternary must not count as new, got ${t.ternaryCount}`);
+        ok(r.totals.castRemoval === 1 && r.totals.declaration === 2 && r.totals.other === 0, `clean retype expected cast=1 decl=2 other=0, got ${r.totals.castRemoval}/${r.totals.declaration}/${r.totals.other}`);
+        // injected ternary + semantic edit -> both gates fail
+        fs.appendFileSync(f, '    String probe = flag ? "x" : "y";\n');
+        fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace('int c = 1;', 'int c = 2;'));
+        files = auditParseDiff(tmp, base, null, 'java');
+        t = auditTernaries(files); r = auditClassify(tmp, null, files);
+        ok(t.ternaryCount === 1, `injected ternary must be flagged, got ${t.ternaryCount}`);
+        ok(r.totals.other >= 1, `semantic edit must be 'other', got ${r.totals.other}`);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+    }
+    return problems;
+}
+
+function runStringTypeAudit (): void {
+    const argv = process.argv.slice(2);
+    const flag = (name: string) => { const i = argv.indexOf(name); return i === -1 ? undefined : argv[i + 1]; };
+    if (argv.includes('--self-test')) {
+        const problems = auditSelfTest();
+        if (problems.length) { console.error('SELF-TEST FAILED:\n  - ' + problems.join('\n  - ')); process.exit(3); }
+        console.log('SELF-TEST PASSED'); return;
+    }
+    const repo = process.cwd();
+    const base = auditGit(repo, ['rev-parse', `${flag('--base') ?? 'origin/master'}^{commit}`]).trim();
+    const target = flag('--target') ?? null;
+    const files = auditParseDiff(repo, base, target, 'java');
+    const ternary = auditTernaries(files);
+    const audit = auditClassify(repo, target, files);
+    const kpis = auditKpis(repo, 'java/lib/src/main');
+    const pass = ternary.ternaryCount === 0 && audit.totals.other === 0;
+    if (argv.includes('--json')) {
+        console.log(JSON.stringify({ base, target, kpis, ternary, audit, pass }, null, 2));
+    } else {
+        console.log(`string-type audit | base=${base.slice(0, 11)} target=${target ?? '<worktree>'}`);
+        console.log(`  kpis java/lib/src/main: Object-safeString-locals=${kpis.objectLocals} String-safeString-locals=${kpis.stringLocals} (String)this.safeString=${kpis.stringCasts} ((String)x)=${kpis.wrappedCasts}`);
+        console.log(`  ternary gate: added=${ternary.addedLines} removed=${ternary.removedLines} new-ternaries=${ternary.ternaryCount}`);
+        for (const t of ternary.ternaryLines.slice(0, 30)) console.log(`    TERNARY ${t.file}: ${t.text.trim().slice(0, 160)}`);
+        console.log(`  diff audit (generated files): declaration=${audit.totals.declaration} cast-removal=${audit.totals.castRemoval} other=${audit.totals.other} (hand-written skipped: ${audit.skippedHandwritten.length})`);
+        for (const f of audit.files.filter((x: any) => x.other > 0).slice(0, 30)) console.log(`    OTHER ${f.path}: ${f.otherLines[0].trim().slice(0, 140)}`);
+        console.log(`  ${pass ? 'PASS' : 'FAIL'}`);
+    }
+    process.exit(pass ? 0 : 1);
+}
+
 async function runMain() {
+    if (process.argv.includes('--audit-string-types')) {
+        runStringTypeAudit();
+        return;
+    }
     const ws = process.argv.includes('--ws')
     // bare prediction-only ids (e.g. `javaTranspiler.ts kalshi`) auto-route to the
     // prediction namespace so scoped CI steps don't need to know it
