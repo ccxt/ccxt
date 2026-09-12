@@ -29,6 +29,7 @@ find_package (OpenSSL REQUIRED)
 add_library (ccxt STATIC
     ccxt/base/helpers.cpp
     ccxt/base/ExchangeBase.cpp
+    ccxt/base/Exchange.SetMarkets.cpp
     ccxt/base/Crypto.cpp
     ccxt/base/Starknet.cpp
     ccxt/base/Number.cpp
@@ -53,6 +54,8 @@ set_source_files_properties (ccxt/base/ExchangeBase.cpp PROPERTIES COMPILE_OPTIO
 # isEqual/safeString/...) that setMarkets-style generated code calls millions
 # of times through std::any; same one-TU -O2 treatment.
 set_source_files_properties (ccxt/base/helpers.cpp PROPERTIES COMPILE_OPTIONS "-O2")
+# the out-of-line setMarkets definition (see Exchange.SetMarkets.cpp)
+set_source_files_properties (ccxt/base/Exchange.SetMarkets.cpp PROPERTIES COMPILE_OPTIONS "-O2")
 target_include_directories (ccxt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries (ccxt PUBLIC Threads::Threads CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
 
@@ -84,7 +87,13 @@ target_compile_options (ccxt-typed-smoke PRIVATE -g0)
 # live-test CLI: ccxt-cli <exchangeId> <method> [args...] -- runs real HTTP calls
 add_executable (ccxt-cli cli/main.cpp)
 target_link_libraries (ccxt-cli PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>")
-target_compile_options (ccxt-cli PRIVATE -g0)
+# -O2 so the inline header machinery (Value.h OrderedMap methods, inline
+# helpers) compiles optimized IN THIS TU: inline definitions are ODR-merged
+# per binary and the first TU's copies win the link — the probe experiment
+# proved a -O0 TU here makes the identical setMarkets 2.4x slower (5.0s vs
+# 1.7s). The real fix is moving those members out-of-line; this holds the
+# fort for the CLI binary specifically.
+target_compile_options (ccxt-cli PRIVATE -g0 -O2)
 
 
 enable_testing ()
