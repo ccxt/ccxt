@@ -1846,6 +1846,21 @@ class testMainClass {
             try {
                 $call_output = $exchange->safe_value($data, 'output');
                 $this->assert_static_request_output($exchange, $type, $skip_keys, $data['url'], $request_url, $call_output, $output);
+                // optional per-test header pinning. only the keys the fixture lists are compared, so a
+                // fixture can pin one auth header without freezing the whole header set. this is the
+                // only cross-language assertion on header *names*, which the php transpiler can
+                // silently corrupt when a header literal contains a local/parameter name of sign ()
+                $stored_headers = $exchange->safe_dict($data, 'headers');
+                if ($stored_headers !== null) {
+                    $sent_headers = ($exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+                    $stored_header_keys = is_array($stored_headers) ? array_keys($stored_headers) : array();
+                    for ($i = 0; $i < count($stored_header_keys); $i++) {
+                        $header_key = $stored_header_keys[$i];
+                        $stored_header_value = $stored_headers[$header_key];
+                        $sent_header_value = $exchange->safe_string($sent_headers, $header_key);
+                        $this->assert_static_error($sent_header_value === $stored_header_value, 'header mismatch for ' . $header_key, $stored_header_value, $sent_header_value);
+                    }
+                }
             } catch(\Throwable $e) {
                 $this->request_tests_failed = true;
                 $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . exception_message($e);

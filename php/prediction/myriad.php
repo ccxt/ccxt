@@ -4036,7 +4036,7 @@ class myriad extends Exchange {
     public function sign(mixed $path, mixed $api = 'myriad', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
-         * builds the request $url and attaches the x-$api-key header for private endpoints
+         * builds the request $url and attaches the apiKey header for private endpoints
          * @param {string} $path the endpoint $path
          * @param {string|string[]} $api the $api group and access level
          * @param {string} $method the http $method
@@ -4071,7 +4071,17 @@ class myriad extends Exchange {
             }
         }
         if (($this->apiKey !== null) && ($this->apiKey !== '')) {
-            $headers = $this->extend($headers, array( 'x-$api-key' => $this->apiKey ));
+            // keep this literal split. the php transpiler prefixes every occurrence of a local or
+            // parameter name with '$' at the text level, including occurrences inside single-quoted
+            // string literals, and this method's second parameter is named after the middle segment
+            // of the header below. collapsing the two halves back into one literal therefore emits a
+            // corrupted header name in php only - every other language stays green, so the
+            // regression would ship silently. pinned by the fixture in
+            // ts/src/test/static/request/prediction/myriad.json
+            $headerKey = 'x-api' . '-key';
+            $headersKey = array();
+            $headersKey[$headerKey] = $this->apiKey;
+            $headers = $this->extend($headers, $headersKey);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
