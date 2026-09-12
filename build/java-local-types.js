@@ -168,7 +168,98 @@
 import ts from 'typescript6';
 import fs from 'node:fs';
 import path from 'node:path';
+import { threadId } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
+
+// ===== SS-15 rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
+//
+// Records, for every local whose initializer is a whole `this.safeString*` family call,
+// the FIRST pipeline rule that rejected a `String` declaration. One JSONL line per event,
+// appended per worker thread under CCXT_SS15_CENSUS_DIR (default /tmp/ss15-census);
+// aggregated into build/ss15-rejection-census.md by build/ss15-census-report.py.
+//
+// Event kinds:
+//   { k:'decl', stage:'hook',  verdict:'reject', reason, ts, line, name, call }
+//       emitted by the javaTranspiler.ts inline safeString hook (the only classifier
+//       for this family); `reason` is the first guard that declined.
+//   { k:'decl', stage:'shape', verdict:'reject', reason:'shape:...', ts, line, name, call }
+//       classifier accepted but the printed declaration did not match the rewrite shape.
+//   { k:'decl', stage:'hook',  verdict:'accept', ts, line, name, call }
+//       classifier accepted and the declaration was printed as `String` (before the
+//       post-processing passes run).
+//   { k:'module', ts, line, name, call, token }   outermost module wrapper: the token
+//       the whole in-pipeline declaration chain produced ('String' | 'Object' | 'other').
+//   { k:'ws-post-string', tier, name, call, var, line }   postPassWsJava content point:
+//       a `String <name> = this.<call>(...)` declaration is present going into the
+//       (SS-15-removed) de-typing point. In the BASELINE census (before the SS-15 fix)
+//       the same scan emitted kind 'revert' — the pass rewrote every one of them back
+//       to `Object` (pro/prediction tiers only).
+export const SS15_CENSUS = process.env.CCXT_SS15_CENSUS === '1';
+const SS15_CENSUS_DIR = process.env.CCXT_SS15_CENSUS_DIR || '/tmp/ss15-census';
+const SS15_SAFESTRING_CALL = /^safeString(2|N|Upper(2|N)?|Lower(2|N)?)?$/;
+let ss15WriterWarned = false;
+let ss15DirReady = false;
+
+export function ss15Record (record) {
+    if (!SS15_CENSUS) {
+        return;
+    }
+    try {
+        if (!ss15DirReady) {
+            fs.mkdirSync (SS15_CENSUS_DIR, { recursive: true });
+            ss15DirReady = true;
+        }
+        fs.appendFileSync (path.join (SS15_CENSUS_DIR, `census-${process.pid}-${threadId}.jsonl`),
+            JSON.stringify (record) + '\n');
+    } catch (e) {
+        if (!ss15WriterWarned) {
+            ss15WriterWarned = true;
+            process.stderr.write ('[ss15-census] write failed: ' + String (e && e.message) + '\n');
+        }
+    }
+}
+
+// source file + 1-based line of a printed declaration (shared by the hook recorder)
+export function ss15TsPosition (declaration) {
+    const sourceFile = declaration.getSourceFile ();
+    const at = sourceFile.getLineAndCharacterOfPosition (declaration.getStart (sourceFile));
+    return { ts: sourceFile.fileName, line: at.line + 1 };
+}
+
+// outermost declaration wrapper, installed last (after the numeric/literal wrappers), so
+// the token it reads is the one every earlier family wrapper produced for the statement.
+// It exists to tell an inline-hook accept (`String`) from a reject (`Object`) without
+// re-running the classifier.
+function patchJavaSs15CensusWrapper (printer) {
+    if (printer._javaSs15CensusPatched) {
+        return;
+    }
+    const original = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = original (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || declaration.initializer === undefined) {
+            return printed;
+        }
+        const initializer = unwrapParens (declaration.initializer);
+        if (initializer === undefined || !isThisCall (initializer)) {
+            return printed;
+        }
+        const call = String (initializer.expression.name.escapedText);
+        if (!SS15_SAFESTRING_CALL.test (call)) {
+            return printed;
+        }
+        const printedName = String (printer.printNode (declaration.name));
+        const at = printed.lastIndexOf (printedName + ' = ');
+        const head = at === -1 ? printed : printed.slice (0, at);
+        const token = /String\s*$/.test (head) ? 'String' : (/Object\s*$/.test (head) ? 'Object' : 'other');
+        const name = ts.isIdentifier (declaration.name) ? String (declaration.name.escapedText) : printedName;
+        const position = ss15TsPosition (declaration);
+        ss15Record ({ k: 'module', ts: position.ts, line: position.line, name, pname: printedName, call, token });
+        return printed;
+    };
+    printer._javaSs15CensusPatched = true;
+}
 
 // ===== tables =====
 
@@ -5103,5 +5194,10 @@ export function installJavaNumericLocalTypes (transpiler) {
         numericDebug (`typed ${declaration.name.escapedText} -> ${javaType}`);
         return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ` + value;
     };
+    // SS-15: the outermost census wrapper (env-gated, inert unless CCXT_SS15_CENSUS=1) —
+    // installed after every family wrapper so it reads the token the whole chain produced
+    if (SS15_CENSUS) {
+        patchJavaSs15CensusWrapper (printer);
+    }
     printer._javaNumericTypesPatched = true;
 }
