@@ -5703,7 +5703,7 @@ ${arms.join('\n')}
                     if self.internals.implicit_api.contains_key(method) {
                         self.call_method(crate::Value::Str(method.to_string()), &args[..]).await
                     } else if self.internals.dispatch_stack.last().map(|name| name == method).unwrap_or(false) {
-                        // dispatch_to_derived is probing this exact override.
+                        // last(), not any(): only the innermost optional probe may miss quietly.
                         crate::Value::Null
                     } else {
                         panic!("{}", crate::error::ExchangeError::new(
