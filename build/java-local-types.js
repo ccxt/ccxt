@@ -5657,10 +5657,6 @@ export function installJavaNumericLocalTypes (transpiler) {
 // x;` inside an object literal) proves a different emitted type, so the receiver check
 // requires the printed identifier to still carry the declaration's own name.
 
-// would postProcessWsJava's "String type fixes" pass rewrite `String <name> = <value>`
-// back to Object? (mirror of the regex in build/javaTranspiler.ts)
-const JAVA_STRING_RECEIVER_WS_REVERT = /^(?:this\.\w+\(|Helpers\.)/;
-
 // is the nearest STATEMENT ancestor of `node` (or anything nested inside it) a
 // `cond ? a : b`? Such a statement's printed lines must not be rewritten by this slice
 // (see javaEmittedStringReceiverText). Conservative: one ternary anywhere in the
@@ -5784,11 +5780,6 @@ function observeJavaStringDeclaration (printer, node, identation, printed) {
     const at = printed.lastIndexOf (marker);
     if (at === -1 || (at > 0 && printed.charAt (at - 1) !== '\n')) {
         return; // the chain left the declaration `Object` (or the marker is not a line start)
-    }
-    const value = printed.slice (at + marker.length);
-    if (JAVA_STRING_RECEIVER_WS_REVERT.test (value)
-        && DATAFLOW_WS_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
-        return; // postProcessWsJava's "String type fixes" pass rewrites it back to Object
     }
     javaEmittedStringLocals.add (declaration);
 }

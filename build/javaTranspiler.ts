@@ -688,7 +688,7 @@ function wsPostProcessReverts (declaration: any): boolean {
 }
 
 // reject the refinement when a later use needs the local to stay `Object`
-function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean, isWsFile: boolean, plusRelaxationAllowed = false): boolean {
+function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean, plusRelaxationAllowed = false): boolean {
     if (SAFESTRING_DEBUG) {
         safeStringRejectReason = undefined;
     }
@@ -735,7 +735,7 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
                 // the measured add-overload identity holds, so the emitted call binds
                 // add(String, ..) with an unchanged value for every reachable input.
                 const provable = isProvablyStringExpression (printer, parent.right, sourceName)
-                    || (!isWsFile && isProvablyStringReassignment (printer, parent.right, sourceName, isWsFile))
+                    || isProvablyStringReassignment (printer, parent.right, sourceName)
                     || (plusRelaxationAllowed && plusWriteRightIsSafe (printer, parent.right, sourceName));
                 if (!provable) {
                     if (SAFESTRING_DEBUG) {
@@ -752,7 +752,7 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
                 // r is a provably non-null String. Other compound operators print numeric
                 // helpers whose Object result cannot assign to a String local.
                 const plusOk = (plusRelaxationAllowed && isProvablyNonNullStringExpression (printer, parent.right, sourceName))
-                    || (!isWsFile && isProvablyNonNullStringOperand (printer, parent.right, sourceName, isWsFile));
+                    || isProvablyNonNullStringOperand (printer, parent.right, sourceName);
                 if (!plusOk) {
                     return SAFESTRING_DEBUG ? safeStringReject (plusRelaxationAllowed ? 'compound-plus-unsafe' : 'compound-plus-ws') : false;
                 }
@@ -869,7 +869,7 @@ function referencedLocalDeclaration (printer: any, identifier: any): any {
 // postProcessWsJava's `String x = this.<m>(` -> Object revert, so only the case family
 // (whose declaration prints a `(String)` prefix that the revert pattern does not match)
 // counts as String there.
-function referencedLocalEmitsString (printer: any, identifier: any, isWsFile: boolean): boolean {
+function referencedLocalEmitsString (printer: any, identifier: any): boolean {
     const declaration = referencedLocalDeclaration (printer, identifier);
     if (declaration === undefined || stringWriteInProgress.has (declaration)) {
         return false;
@@ -889,18 +889,10 @@ function referencedLocalEmitsString (printer: any, identifier: any, isWsFile: bo
     } finally {
         stringWriteInProgress.delete (declaration);
     }
-    if (!isWsFile) {
-        return true;
-    }
-    let initializer = declaration.initializer;
-    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
-        initializer = initializer.expression;
-    }
-    return isBaseStringAccessorCall (printer, initializer)
-        && STRING_CASE_ACCESSORS[String (initializer.expression.name.escapedText)] !== undefined;
+    return true;
 }
 
-function receiverIsProvablyString (printer: any, node: any, sourceName: string, isWsFile: boolean, depth = 0): boolean {
+function receiverIsProvablyString (printer: any, node: any, sourceName: string, depth = 0): boolean {
     if (node === undefined || depth > 3) return false;
     let value = node;
     while (ts.isParenthesizedExpression (value)) value = value.expression;
@@ -908,7 +900,7 @@ function receiverIsProvablyString (printer: any, node: any, sourceName: string, 
         return true;
     }
     if (ts.isIdentifier (value)) {
-        return value.escapedText === sourceName || referencedLocalEmitsString (printer, value, isWsFile);
+        return value.escapedText === sourceName || referencedLocalEmitsString (printer, value);
     }
     if (ts.isAsExpression (value) || ts.isTypeAssertionExpression (value)) {
         return value.type !== undefined && value.type.kind === ts.SyntaxKind.StringKeyword;
@@ -933,7 +925,7 @@ function isStringDeclaredThisCall (printer: any, node: any): boolean {
 
 // a value that is a non-null String on every path: a literal, a literal-led `+` chain,
 // or a never-null String call
-function isProvablyNonNullStringOperand (printer: any, node: any, sourceName: string, isWsFile: boolean, depth = 0): boolean {
+function isProvablyNonNullStringOperand (printer: any, node: any, sourceName: string, depth = 0): boolean {
     if (node === undefined || depth > 3) return false;
     let value = node;
     while (ts.isParenthesizedExpression (value)) value = value.expression;
@@ -941,7 +933,7 @@ function isProvablyNonNullStringOperand (printer: any, node: any, sourceName: st
         return true;
     }
     if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-        return plusChainIsValuePreserving (printer, value, sourceName, isWsFile, depth + 1);
+        return plusChainIsValuePreserving (printer, value, sourceName, depth + 1);
     }
     if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
         const method = String (value.expression.name.escapedText);
@@ -953,7 +945,7 @@ function isProvablyNonNullStringOperand (printer: any, node: any, sourceName: st
 // a `+` chain whose printed Helpers.add(...) calls all return a non-null String from
 // the first `+` on: the left spine starts with a String literal, or with a String local
 // whose first right operand is a provably non-null String
-function plusChainIsValuePreserving (printer: any, node: any, sourceName: string, isWsFile: boolean, depth = 0): boolean {
+function plusChainIsValuePreserving (printer: any, node: any, sourceName: string, depth = 0): boolean {
     if (node === undefined || depth > 3) return false;
     let spine = node;
     for (;;) {
@@ -966,8 +958,8 @@ function plusChainIsValuePreserving (printer: any, node: any, sourceName: string
         if (left.kind === ts.SyntaxKind.StringLiteral || left.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
             return true;
         }
-        if (ts.isIdentifier (left) && (left.escapedText === sourceName || referencedLocalEmitsString (printer, left, isWsFile))) {
-            return isProvablyNonNullStringOperand (printer, spine.right, sourceName, isWsFile, depth + 1);
+        if (ts.isIdentifier (left) && (left.escapedText === sourceName || referencedLocalEmitsString (printer, left))) {
+            return isProvablyNonNullStringOperand (printer, spine.right, sourceName, depth + 1);
         }
         return false;
     }
@@ -975,7 +967,7 @@ function plusChainIsValuePreserving (printer: any, node: any, sourceName: string
 
 // the SS-02 extension of the reassignment acceptance: is the printed Java of this
 // write value provably a String (or null)?
-function isProvablyStringReassignment (printer: any, node: any, sourceName: string, isWsFile: boolean, depth = 0): boolean {
+function isProvablyStringReassignment (printer: any, node: any, sourceName: string, depth = 0): boolean {
     if (node === undefined || depth > 3) {
         return false;
     }
@@ -990,13 +982,13 @@ function isProvablyStringReassignment (printer: any, node: any, sourceName: stri
         return elementAccessHasStringElements (value);
     }
     if (ts.isIdentifier (value)) {
-        return value.escapedText === sourceName || referencedLocalEmitsString (printer, value, isWsFile);
+        return value.escapedText === sourceName || referencedLocalEmitsString (printer, value);
     }
     if (ts.isAsExpression (value) || ts.isTypeAssertionExpression (value)) {
         return value.type !== undefined && value.type.kind === ts.SyntaxKind.StringKeyword;
     }
     if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-        return plusChainIsValuePreserving (printer, value, sourceName, isWsFile, depth);
+        return plusChainIsValuePreserving (printer, value, sourceName, depth);
     }
     if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
         if (value.expression.expression.kind === ts.SyntaxKind.ThisKeyword) {
@@ -1009,7 +1001,7 @@ function isProvablyStringReassignment (printer: any, node: any, sourceName: stri
         if (method === 'toString') {
             return true; // String.valueOf(x) / x.toString() — String for every receiver
         }
-        return receiverIsProvablyString (printer, value.expression.expression, sourceName, isWsFile, depth + 1);
+        return receiverIsProvablyString (printer, value.expression.expression, sourceName, depth + 1);
     }
     return false;
 }
@@ -1029,10 +1021,8 @@ function javaLocalType (printer: any, declaration: any): string | undefined {
     const sourceName = declaration.name.escapedText;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
-    // ws-tier = the pro cores AND the prediction cores (SS-02 reassignment gate)
-    const isWsFile = isProFile || /[\\/]prediction[\\/]/.test (fileName);
     const plusRelaxationAllowed = !wsPostProcessReverts (declaration);
-    if (!isSafeToNarrow (printer, declaration, sourceName, isProFile, isWsFile, plusRelaxationAllowed)) {
+    if (!isSafeToNarrow (printer, declaration, sourceName, isProFile, plusRelaxationAllowed)) {
         if (SAFESTRING_DEBUG) {
             console.error (`[java-safestring] reject ${fileName}:${declaration.getStart ()} ${sourceName} (${safeStringRejectReason ?? 'unknown'})`);
             safeStringRejectReason = undefined;
@@ -1167,7 +1157,7 @@ function ss02FamilyInitializer (declaration: any): any {
 
 // replica of isSafeToNarrow that keeps collecting after the first reject (the engine
 // stops there); a record whose accepted flag disagrees with the real verdict is flagged
-function ss02ScanUses (printer: any, declaration: any, sourceName: string, isProFile: boolean, isWsFile: boolean): any {
+function ss02ScanUses (printer: any, declaration: any, sourceName: string, isProFile: boolean): any {
     const scope = enclosingFunction (declaration);
     const blockers: any[] = [];
     if (scope === undefined) {
@@ -1196,12 +1186,12 @@ function ss02ScanUses (printer: any, declaration: any, sourceName: string, isPro
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
                 const provable = isProvablyStringExpression (printer, parent.right, sourceName)
-                    || (!isWsFile && isProvablyStringReassignment (printer, parent.right, sourceName, isWsFile));
+                    || isProvablyStringReassignment (printer, parent.right, sourceName);
                 if (!provable) {
                     blockers.push ({ reason: 'write', kind: ss02Kind (parent.right), text: ss02Brief (parent.right) });
                 }
             } else if (op === ts.SyntaxKind.PlusEqualsToken) {
-                if (isWsFile || !isProvablyNonNullStringOperand (printer, parent.right, sourceName, isWsFile)) {
+                if (!isProvablyNonNullStringOperand (printer, parent.right, sourceName)) {
                     blockers.push ({ reason: 'compound-write', kind: ss02Kind (op), text: ss02Brief (parent) });
                 }
             } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
@@ -1230,7 +1220,7 @@ function ss02LocalDecision (printer: any, identifier: any): any {
     }
 }
 
-function ss02WriteInfo (printer: any, parent: any, sourceName: string, isWsFile: boolean): any {
+function ss02WriteInfo (printer: any, parent: any, sourceName: string): any {
     let opText = '<op>';
     try { opText = String (parent.operatorToken?.getText?.() ?? '<op>'); } catch (e) {}
     const info: any = {
@@ -1240,13 +1230,12 @@ function ss02WriteInfo (printer: any, parent: any, sourceName: string, isWsFile:
     };
     if (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
         info.provable = isProvablyStringExpression (printer, parent.right, sourceName);
-        info.extended = isProvablyStringReassignment (printer, parent.right, sourceName, isWsFile);
+        info.extended = isProvablyStringReassignment (printer, parent.right, sourceName);
         let right = parent.right;
         while (ts.isParenthesizedExpression (right)) right = right.expression;
         if (ts.isCallExpression (right)) {
             if (isBaseStringAccessorCall (printer, right)) {
                 info.shape = 'base-accessor';
-                info.caseFamily = STRING_CASE_ACCESSORS[String (right.expression.name.escapedText)] !== undefined;
             } else if (ts.isPropertyAccessExpression (right.expression)) {
                 const method = String (right.expression.name.escapedText);
                 const isThis = right.expression.expression.kind === ts.SyntaxKind.ThisKeyword;
@@ -1261,7 +1250,7 @@ function ss02WriteInfo (printer: any, parent: any, sourceName: string, isWsFile:
             info.shape = 'plus';
             info.leftKind = ss02Kind (right.left);
             info.leftText = ss02Brief (right.left, 50);
-            info.leftProvable = plusChainIsValuePreserving (printer, right, sourceName, isWsFile);
+            info.leftProvable = plusChainIsValuePreserving (printer, right, sourceName);
         } else if (ts.isElementAccessExpression (right)) {
             info.shape = 'element-access';
             info.receiver = ss02Brief (right.expression, 40);
@@ -1281,12 +1270,12 @@ function ss02WriteInfo (printer: any, parent: any, sourceName: string, isWsFile:
         }
     } else if (parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken) {
         info.provable = false;
-        info.extended = isProvablyNonNullStringOperand (printer, parent.right, sourceName, isWsFile);
+        info.extended = isProvablyNonNullStringOperand (printer, parent.right, sourceName);
     }
     return info;
 }
 
-function ss02Writes (printer: any, declaration: any, sourceName: string, isWsFile: boolean): any[] {
+function ss02Writes (printer: any, declaration: any, sourceName: string): any[] {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) return [];
     const writes: any[] = [];
@@ -1296,7 +1285,7 @@ function ss02Writes (printer: any, declaration: any, sourceName: string, isWsFil
         if (parent === undefined || !ts.isBinaryExpression (parent) || parent.left !== n) continue;
         const op = parent.operatorToken.kind;
         if (op < ts.SyntaxKind.FirstAssignment || op > ts.SyntaxKind.LastAssignment) continue;
-        writes.push (ss02WriteInfo (printer, parent, sourceName, isWsFile));
+        writes.push (ss02WriteInfo (printer, parent, sourceName));
     }
     return writes;
 }
@@ -1315,10 +1304,9 @@ function ss02Record (printer: any, declaration: any, javaType: string | undefine
         const at = printed.lastIndexOf (marker);
         const value = at === -1 ? undefined : printed.slice (at + marker.length);
         const retyped = javaType !== undefined && value !== undefined && value.startsWith ('this.');
-        const caseAccessor = STRING_CASE_ACCESSORS[candidate.name] !== undefined;
-        const scan = ss02ScanUses (printer, declaration, sourceName, isProFile, isWsFile);
+        const scan = ss02ScanUses (printer, declaration, sourceName, isProFile);
         let realVerdict = false;
-        try { realVerdict = isSafeToNarrow (printer, declaration, sourceName, isProFile, isWsFile); } catch (e) {}
+        try { realVerdict = isSafeToNarrow (printer, declaration, sourceName, isProFile); } catch (e) {}
         ss02Append ({
             file: fileName.replace (/^.*[\\/]ts[\\/]/, 'ts/'),
             name: sourceName,
@@ -1326,12 +1314,11 @@ function ss02Record (printer: any, declaration: any, javaType: string | undefine
             classifies: isBaseStringAccessorCall (printer, candidate.node),
             ws: isWsFile, pro: isProFile, prediction: isPredictionFile,
             verdict: javaType ?? 'Object',
-            retyped, caseAccessor,
-            survivesWsRevert: retyped ? (!isWsFile || caseAccessor || !String (value).startsWith ('this.')) : undefined,
+            retyped,
             accepted: realVerdict,
             mismatch: scan.accepted !== realVerdict,
             blockers: scan.blockers,
-            writes: ss02Writes (printer, declaration, sourceName, isWsFile),
+            writes: ss02Writes (printer, declaration, sourceName),
         });
     } catch (e) {
         ss02Append ({ error: String ((e as any)?.stack ?? e) });
@@ -3599,29 +3586,11 @@ class NewTranspiler {
         // `this.method` → `"method"`). Dispatch dynamically via Helpers.callDynamically.
         content = this.rewriteDelayWithStringCallback(content);
 
-        // ── String type fixes ──
-        // WS-tier revert, applied to the ws (pro) branch above: every `String x = this.<m>(...)`
-        // / `String x = Helpers.<...>(...)` declaration goes back to `Object`.
-        // SS-08: the prediction branch skips this revert. The printer's local-typing hooks
-        // (patchJavaLocalTypes below + build/java-local-types.js) only print a `String x = ...`
-        // declaration after proving every value reaching the local is a String in the printed
-        // Java, and this branch's compile gate proved all 583 declarations they narrow in the
-        // 7 prediction cores compile as `String`. A prediction core's chain is
-        // `<Id>Core extends <Id>Api extends PredictionExchange` (the typed REST-wrapper
-        // subclass sits BELOW the core), so it never inherits typed-wrapper overloads either.
-        // Before SS-08 the revert — plus the dataflow guard that deferred to it — turned 583
-        // locals (521 of them safeString family) back into `Object` on every regeneration.
-        if (!prediction) {
-            content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
-        }
-        // ── String type fixes: revert pass REMOVED (SS-07) ──
-        // This used to rewrite every `String x = this.<m>(...)` / `String x = Helpers.<...>(...)`
-        // declaration in WS + prediction files back to `Object`:
-        //   content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
-        // It predates the Java local-typing layers, which now emit a String declaration only
-        // when every value that can reach the local is provably a String or null. Every
-        // declaration the regex matched was therefore already proven, so the pass only
-        // de-typed the WS tree (pro/prediction now match the REST tier).
+        // ── String type fixes: revert pass REMOVED (SS-07 / SS-15) ──
+        // The pass rewrote every `String x = this.<m>(...)` / `String x = Helpers.<...>(...)`
+        // declaration in pro/prediction files back to `Object`. The local-typing layers emit a
+        // String declaration only when every reaching value is provably String-or-null, so the
+        // pass only de-typed the WS tree; pro/prediction now match the REST tier.
 
         // ── CompletableFuture<Void> → <Object> ──
         content = content.replace(/CompletableFuture<Void>/gm, 'CompletableFuture<Object>');
