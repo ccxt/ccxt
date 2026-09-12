@@ -43,15 +43,11 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJavaLocalTypes (cachedTranspiler);
         patchJavaLiteralLocalTypes (cachedTranspiler);
         installJavaNumericLocalTypes (cachedTranspiler);
-        // SS-12: drop the redundant (String) wrapper on the receiver slot of the
-        // string-method prints when the receiver local is declared String — installed
-        // LAST so its declaration observer sees the final text of the whole chain
-        patchJavaStringReceiverCasts (cachedTranspiler);
-        // SS-09: map put/get channel String casts — same hook as the main thread's
-        // setupTranspiler (installed last so its declaration observer sees the final
-        // declaration text the other slices printed)
-        patchJavaMapChannelStringCasts (cachedTranspiler);
+        // SS-06 / SS-09 / SS-12 cast-removal slices: same order as the main thread's
+        // setupTranspiler so both print paths emit byte-identical Java
         patchJavaConsumerStringCasts (cachedTranspiler);
+        patchJavaMapChannelStringCasts (cachedTranspiler);
+        patchJavaStringReceiverCasts (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

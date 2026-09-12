@@ -18,7 +18,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, SS15_CENSUS, ss15Record, ss15TsPosition, JAVA_STRING_PARAM_POSITIONS } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
 ansi.nice
@@ -273,9 +273,6 @@ function isThisOrSuperCall (node: any): boolean {
 // in ts/src/base/functions/type.ts (an exchange override would be transpiled with its
 // own signature and must not classify)
 function isBaseStringAccessorCall (printer: any, node: any): boolean {
-// `this.safeString(...)` resolving to the base accessor in ts/src/base/functions/type.ts
-// (an exchange override would be transpiled with an `Object` return, so it must not classify)
-function isBaseStringAccessorCall (printer: any, node: any, ss15?: any): boolean {
     if (!isThisCall (node)) {
         return false;
     }
@@ -285,21 +282,6 @@ function isBaseStringAccessorCall (printer: any, node: any, ss15?: any): boolean
     }
     const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
     return declaration !== undefined && ACCESSOR_DECLARATION_FILE.test (declaration.getSourceFile ().fileName);
-    if (declaration === undefined || !ACCESSOR_DECLARATION_FILE.test (declaration.getSourceFile ().fileName)) {
-        if (ss15 !== undefined) {
-            ss15.reason = 'init-not-base-resolved';
-        }
-        return false;
-    }
-    if (defaultIndex !== undefined && node.arguments.length > defaultIndex) {
-        if (!isProvablyStringExpression (printer, node.arguments[defaultIndex], undefined)) {
-            if (ss15 !== undefined) {
-                ss15.reason = 'case-family-default-not-string';
-            }
-            return false;
-        }
-    }
-    return true;
 }
 
 // ===== SS-03: value-identity of the add overload switch (measured) =====
@@ -706,17 +688,12 @@ function wsPostProcessReverts (declaration: any): boolean {
 }
 
 // reject the refinement when a later use needs the local to stay `Object`
-function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean, plusRelaxationAllowed = false): boolean {
+function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean, isWsFile: boolean, plusRelaxationAllowed = false): boolean {
     if (SAFESTRING_DEBUG) {
         safeStringRejectReason = undefined;
     }
-function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean, isWsFile: boolean): boolean {
-function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean, ss15?: any): boolean {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
-        if (ss15 !== undefined) {
-            ss15.reason = 'scope-missing';
-        }
         return false;
     }
     const uses = identifierIndex (scope).get (sourceName) ?? [];
@@ -749,86 +726,38 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
         if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
             return SAFESTRING_DEBUG ? safeStringReject ('destructure') : false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
-                if (ss15 !== undefined) {
-                    ss15.reason = 'use:incr-decr';
-                }
-                return false;
-            }
-        }
-        if (ts.isSpreadElement (parent)) {
-            if (ss15 !== undefined) {
-                ss15.reason = 'use:spread';
-            }
-            return false;
-        }
-        if (ts.isTypeOfExpression (parent)) {
-            if (ss15 !== undefined) {
-                ss15.reason = 'use:typeof';
-            }
-            return false; // `typeof x === 'number'` prints `x instanceof Long`: inconvertible for a String
-        }
-        if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
-            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-            if (ss15 !== undefined) {
-                ss15.reason = 'use:destructuring-write';
-            }
-            return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
         if (ts.isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
-                // SS-03: a write whose printed Java is `Helpers.add(<local>, ..)`, i.e. the
-                // local is the LEFT operand of a `+` inside the RHS. Admitted when the
-                // measured add-overload identity holds (see the SS-03 block above) so the
-                // declaration can be a String: with the local retyped, the emitted call
-                // binds add(String, ..), and its value is unchanged for every reachable
-                // input.
-                if (!isProvablyStringExpression (printer, parent.right, sourceName)
-                    && !(plusRelaxationAllowed && plusWriteRightIsSafe (printer, parent.right, sourceName))) {
+                // SS-02: a reassignment whose RHS is provably a String read/chain (non-ws tiers).
+                // SS-03: a write whose printed Java is `Helpers.add(<local>, ..)` — admitted when
+                // the measured add-overload identity holds, so the emitted call binds
+                // add(String, ..) with an unchanged value for every reachable input.
+                const provable = isProvablyStringExpression (printer, parent.right, sourceName)
+                    || (!isWsFile && isProvablyStringReassignment (printer, parent.right, sourceName, isWsFile))
+                    || (plusRelaxationAllowed && plusWriteRightIsSafe (printer, parent.right, sourceName));
+                if (!provable) {
                     if (SAFESTRING_DEBUG) {
                         const right = unwrapParensAll (parent.right);
                         const isPlus = right !== undefined && ts.isBinaryExpression (right)
                             && right.operatorToken.kind === ts.SyntaxKind.PlusToken;
-                        const safe = isPlus && plusWriteRightIsSafe (printer, parent.right, sourceName);
-                        safeStringReject (isPlus ? ('write-plus-' + (safe ? 'safe' : 'unsafe')) : 'write-rhs');
-                    }
-                // SS-02 extends the acceptance for non-ws tiers only. A ws-tier retype
-                // of a `this.<m>(...)` initializer is reverted by postProcessWsJava
-                // anyway, and retyping it here would pre-empt the slices that give those
-                // locals their surviving spelling (e.g. the messageHash rule and its
-                // `(String)` prefix).
-                const provable = isProvablyStringExpression (printer, parent.right, sourceName)
-                    || (!isWsFile && isProvablyStringReassignment (printer, parent.right, sourceName, isWsFile));
-                if (!provable) {
-                if (!isProvablyStringExpression (printer, parent.right, sourceName)) {
-                    if (ss15 !== undefined) {
-                        ss15.reason = 'use:write-not-string';
+                        safeStringReject (isPlus ? 'write-plus-unsafe' : 'write-rhs');
                     }
                     return false;
                 }
             } else if (op === ts.SyntaxKind.PlusEqualsToken) {
-                // `x += r` prints `x = Helpers.add (x, r)`: with x a String the call
-                // resolves to add(String, ..) -> String, and it returns exactly what the
-                // old add(Object, Object) call returned on every path where r is a
-                // provably non-null String (the Object overload returned null only when
-                // BOTH operands were null). Same non-ws gate as above.
-                if (isWsFile || !isProvablyNonNullStringOperand (printer, parent.right, sourceName, isWsFile)) {
-                    return false;
-                }
-            } else if (op === ts.SyntaxKind.PlusEqualsToken) {
-                // `x += r` prints `x = Helpers.add (x, r)`: same measured identity, with the
-                // whole right operand as the level-0 right (the local itself is on the left
-                // by construction). Other compound operators print numeric helpers whose
-                // Object result cannot assign to a String local.
-                if (!plusRelaxationAllowed || !isProvablyNonNullStringExpression (printer, parent.right, sourceName)) {
+                // `x += r` prints `x = Helpers.add (x, r)`: with x a String the call binds
+                // add(String, ..) -> String, value-identical to add(Object, Object) whenever
+                // r is a provably non-null String. Other compound operators print numeric
+                // helpers whose Object result cannot assign to a String local.
+                const plusOk = (plusRelaxationAllowed && isProvablyNonNullStringExpression (printer, parent.right, sourceName))
+                    || (!isWsFile && isProvablyNonNullStringOperand (printer, parent.right, sourceName, isWsFile));
+                if (!plusOk) {
                     return SAFESTRING_DEBUG ? safeStringReject (plusRelaxationAllowed ? 'compound-plus-unsafe' : 'compound-plus-ws') : false;
                 }
             } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
                 return SAFESTRING_DEBUG ? safeStringReject ('compound-assign') : false;
-                if (ss15 !== undefined) {
-                    ss15.reason = 'use:compound-assign';
-                }
-                return false;
             }
         }
         // A pro core extends the REST *wrapper* class, whose typed overloads
@@ -839,10 +768,6 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
         // binding to the core.
         if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
             return SAFESTRING_DEBUG ? safeStringReject ('pro-async') : false;
-            if (ss15 !== undefined) {
-                ss15.reason = 'use:pro-inherited-async-arg';
-            }
-            return false;
         }
     }
     return true;
@@ -1090,68 +1015,27 @@ function isProvablyStringReassignment (printer: any, node: any, sourceName: stri
 }
 
 function javaLocalType (printer: any, declaration: any): string | undefined {
-// SS-15 census population: declarations whose initializer is a whole `this.safeString*`
-// family call (matched on the SOURCE name, before any printer renaming). Returns the
-// collector object the reason-threading helpers fill, or undefined when the census is
-// off / the declaration is not in the population.
-function ss15HookCensus (declaration: any): any {
-    if (!SS15_CENSUS) {
-        return undefined;
-    }
     let initializer = declaration.initializer;
     while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
         initializer = initializer.expression;
     }
-    if (!isThisCall (initializer)) {
-        return undefined;
-    }
-    const call = String (initializer.expression.name.escapedText);
-    if (!/^safeString(2|N|Upper(2|N)?|Lower(2|N)?)?$/.test (call)) {
-        return undefined;
-    }
-    const position = ss15TsPosition (declaration);
-    const name = ts.isIdentifier (declaration.name) ? String (declaration.name.escapedText) : undefined;
-    return { ts: position.ts, line: position.line, name, call, reason: undefined };
-}
-
-function ss15Reject (ss15: any, reason: string): void {
-    ss15Record ({ k: 'decl', stage: 'hook', verdict: 'reject', reason, ts: ss15.ts, line: ss15.line, name: ss15.name, call: ss15.call });
-}
-
-function javaLocalType (printer: any, declaration: any, ss15?: any): string | undefined {
-    let initializer = declaration.initializer;
-    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
-        initializer = initializer.expression;
-    }
-    if (!isBaseStringAccessorCall (printer, initializer, ss15)) {
-        if (ss15 !== undefined) {
-            ss15Reject (ss15, ss15.reason ?? 'not-base-accessor');
-        }
+    if (!isBaseStringAccessorCall (printer, initializer)) {
         return undefined;
     }
     if (!ts.isIdentifier (declaration.name)) {
-        if (ss15 !== undefined) {
-            ss15Reject (ss15, 'name-not-identifier');
-        }
         return undefined;
     }
     // scan by the SOURCE name: ReservedKeywordsReplacements renames the printed one
     const sourceName = declaration.name.escapedText;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
+    // ws-tier = the pro cores AND the prediction cores (SS-02 reassignment gate)
+    const isWsFile = isProFile || /[\\/]prediction[\\/]/.test (fileName);
     const plusRelaxationAllowed = !wsPostProcessReverts (declaration);
-    if (!isSafeToNarrow (printer, declaration, sourceName, isProFile, plusRelaxationAllowed)) {
+    if (!isSafeToNarrow (printer, declaration, sourceName, isProFile, isWsFile, plusRelaxationAllowed)) {
         if (SAFESTRING_DEBUG) {
             console.error (`[java-safestring] reject ${fileName}:${declaration.getStart ()} ${sourceName} (${safeStringRejectReason ?? 'unknown'})`);
             safeStringRejectReason = undefined;
-        }
-    // ws-tier = the files postProcessWsJava re-runs its `String x = this.<m>(` ->
-    // Object revert on: the pro cores AND the prediction cores
-    const isWsFile = isProFile || /[\\/]prediction[\\/]/.test (fileName);
-    if (!isSafeToNarrow (printer, declaration, sourceName, isProFile, isWsFile)) {
-    if (!isSafeToNarrow (printer, declaration, sourceName, isProFile, ss15)) {
-        if (ss15 !== undefined) {
-            ss15Reject (ss15, ss15.reason ?? 'unknown-narrow-reject');
         }
         return undefined;
     }
@@ -1176,8 +1060,6 @@ export function patchJavaLocalTypes (transpiler: any): void {
         }
         const javaType = javaLocalType (printer, declaration);
         if (SS02_CENSUS) ss02Record (printer, declaration, javaType, printed, identation);
-        const ss15 = SS15_CENSUS ? ss15HookCensus (declaration) : undefined;
-        const javaType = javaLocalType (printer, declaration, ss15);
         if (javaType === undefined) {
             return printed;
         }
@@ -1187,31 +1069,15 @@ export function patchJavaLocalTypes (transpiler: any): void {
         const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name)} = `;
         const at = printed.lastIndexOf (marker);
         if (at === -1) {
-            if (ss15 !== undefined) {
-                ss15Reject (ss15, 'shape:no-marker');
-            }
             return printed;
         }
         const value = printed.slice (at + marker.length);
         if (!value.startsWith ('this.')) {
-            if (ss15 !== undefined) {
-                ss15Reject (ss15, 'shape:not-this');
-            }
             return printed; // unexpected shape — leave it as the printer emitted it
         }
         narrowed.set (declaration, javaType);
-        let initializer = declaration.initializer;
-        while (ts.isParenthesizedExpression (initializer)) {
-            initializer = initializer.expression;
-        }
-        if (ss15 !== undefined) {
-            ss15Record ({ k: 'decl', stage: 'hook', verdict: 'accept', ts: ss15.ts, line: ss15.line, name: ss15.name, call: ss15.call });
-        }
-        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ${accessorCast (initializer)}${value}`;
+        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ${value}`;
     };
-    // `x = this.safeStringUpper(...)` on a narrowed local: the case family is
-    // declared `Object` in Java, so the reassignment needs the same cast the
-    // declaration got (a String-declared accessor needs none).
     // SS-02: `x = recv[key]` with provably String elements prints
     // `Helpers.GetValue(recv, key)`, declared Object, so the write site needs the same
     // `(String)` checkcast such declarations already carry.
@@ -1264,27 +1130,6 @@ export function patchJavaLocalTypes (transpiler: any): void {
             }
             return printed.slice (0, head) + '(String) ' + printed.slice (head);
         }
-        if (!isBaseStringAccessorCall (printer, right)) {
-            return printed;
-        }
-        const symbol = printer.getChecker ().getSymbolAtLocation (node.left);
-        const declaration = symbol?.valueDeclaration;
-        const javaType = (declaration !== undefined) ? narrowed.get (declaration) : undefined;
-        if (javaType === undefined) {
-            return printed;
-        }
-        const cast = accessorCast (right);
-        if (cast === '') {
-            return printed;
-        }
-        const marker = `${printer.printNode (node.left, 0)} = this.`;
-        const at = printed.indexOf (marker);
-        if (at === -1) {
-            return printed;
-        }
-        const head = at + marker.length - 'this.'.length;
-        return printed.slice (0, head) + cast + printed.slice (head);
-        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ${value}`;
     };
     printer._localTypesPatched = true;
 }
@@ -1787,12 +1632,12 @@ class NewTranspiler {
         // method returns those locals rely on, and the conditional-arm restorations —
         // same module, additive section (also applied per worker thread in java-worker.ts)
         installJavaNumericLocalTypes(this.transpiler);
-        // SS-12: drop the redundant (String) wrapper on the receiver slot of the
-        // string-method prints (x.toUpperCase()/x.length()/Helpers.replace((String)x,..))
-        // when the receiver local's emitted Java declaration is `String` — installed
-        // LAST so its declaration observer sees the final text of the whole chain
-        // (also applied per worker thread in java-worker.ts)
-        patchJavaStringReceiverCasts(this.transpiler);
+        // SS-06: the four Object-parameter consumers (Helpers.isEqual / isTrue / inOp and
+        // this.safeValue*) take a String directly — drop the redundant `((String)x)`
+        // checkcast at their argument positions when the operand's declaration already
+        // printed `String`. Installed LAST so the print-order proof sees the declaration
+        // text every other local-typing slice rewrote (also applied in java-worker.ts).
+        patchJavaConsumerStringCasts(this.transpiler);
         // SS-09: the map put/get channel (Helpers.addElementToObject / Helpers.GetValue /
         // put(...) object-literal emits) takes String operands with no cast — drop the
         // redundant ((String)x) checkcast an `x as string` assertion prints at those
@@ -1800,12 +1645,12 @@ class NewTranspiler {
         // print-order proof sees every other local-typing pass's rewritten declaration text
         // (also applied per worker thread in java-worker.ts)
         patchJavaMapChannelStringCasts(this.transpiler);
-        // SS-06: the four Object-parameter consumers (Helpers.isEqual / isTrue / inOp and
-        // this.safeValue*) take a String directly — drop the redundant `((String)x)`
-        // checkcast at their argument positions when the operand's declaration already
-        // printed `String`. Installed LAST so the print-order proof sees the declaration
-        // text every other local-typing slice rewrote (also applied in java-worker.ts).
-        patchJavaConsumerStringCasts(this.transpiler);
+        // SS-12: drop the redundant (String) wrapper on the receiver slot of the
+        // string-method prints (x.toUpperCase()/x.length()/Helpers.replace((String)x,..))
+        // when the receiver local's emitted Java declaration is `String` — installed
+        // LAST so its declaration observer sees the final text of the whole chain
+        // (also applied per worker thread in java-worker.ts)
+        patchJavaStringReceiverCasts(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -2958,7 +2803,7 @@ class NewTranspiler {
             content = content.replace(/extends\s\w+Api/g, `extends ${restTypedFqn}`);
             content = content.replace(/extends\s(\w+)Rest/g, `extends io.github.ccxt.exchanges.$1`);
             content = content.replace(/extends\s(\w+)\b(?!\.)/, `extends ${restTypedFqn}`);
-            content = this.postProcessWsJava(content, name, true, false, 'pro');
+            content = this.postProcessWsJava(content, name);
         } else if (prediction) {
             // prediction merges REST + WS in one class — apply the WS regexes + post-processing
             // (orderbook/side casts, watch(), resolve/append, ...) so the watch* methods compile,
@@ -2967,7 +2812,6 @@ class NewTranspiler {
             // ast-transpiler already handles).
             content = this.regexAll (content, this.getJavaWsRegexes());
             content = this.postProcessWsJava(content, name, true, true, true);
-            content = this.postProcessWsJava(content, name, true, true, 'prediction');
         }
         content = this.addDeprecatedAnnotations(content);
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
@@ -3429,8 +3273,6 @@ class NewTranspiler {
         return lines.join('\n');
     }
 
-    postProcessWsJava(content: string, name: string, isCore = true, skipEffectivelyFinal = false, prediction = false): string {
-    postProcessWsJava(content: string, name: string, isCore = true, skipEffectivelyFinal = false, tier = 'pro'): string {
     // true when the text proves the identifier `name` at offset `pos` is Java-`String`:
     // the NEAREST PRECEDING declaration of `name` inside the same method must be
     // `String ...` AND its value must survive the "String type fixes" revert below
@@ -3494,7 +3336,7 @@ class NewTranspiler {
         return false;
     }
 
-    postProcessWsJava(content: string, name: string, isCore = true, skipEffectivelyFinal = false): string {
+    postProcessWsJava(content: string, name: string, isCore = true, skipEffectivelyFinal = false, prediction = false): string {
         const cap = this.capitalize(name) + (isCore ? 'Core' : ''); // WS classes are now named *Core
 
         // ── Fix broken method references: ClassName."methodName" → "methodName" ──
@@ -3770,22 +3612,29 @@ class NewTranspiler {
         // `this.method` → `"method"`). Dispatch dynamically via Helpers.callDynamically.
         content = this.rewriteDelayWithStringCallback(content);
 
-        // ── String type fixes: revert pass REMOVED (SS-07 / SS-15) ──
-        // The pass rewrote every `String x = this.<m>(...)` / `String x = Helpers.<...>(...)`
-        // declaration in pro/prediction files back to `Object`. Every such declaration is
-        // emitted only after the local-typing layers prove the value String-or-null, so the
-        // pass only de-typed the WS tree; pro/prediction now match the REST tier.
-        // SS-15 census hook: records every `String <name> = this.safeString*(...)` declaration
-        // present at this point (with the pass gone these are the survivors).
-        if (SS15_CENSUS) {
-            const ss15Lines = content.split('\n');
-            for (let i = 0; i < ss15Lines.length; i++) {
-                const m = /^\s*String (\w+) = this\.(safeString\w*)\(/.exec(ss15Lines[i]);
-                if (m !== null) {
-                    ss15Record({ k: 'ws-post-string', tier, name, call: m[2], var: m[1], line: i + 1 });
-                }
-            }
+        // ── String type fixes ──
+        // WS-tier revert, applied to the ws (pro) branch above: every `String x = this.<m>(...)`
+        // / `String x = Helpers.<...>(...)` declaration goes back to `Object`.
+        // SS-08: the prediction branch skips this revert. The printer's local-typing hooks
+        // (patchJavaLocalTypes below + build/java-local-types.js) only print a `String x = ...`
+        // declaration after proving every value reaching the local is a String in the printed
+        // Java, and this branch's compile gate proved all 583 declarations they narrow in the
+        // 7 prediction cores compile as `String`. A prediction core's chain is
+        // `<Id>Core extends <Id>Api extends PredictionExchange` (the typed REST-wrapper
+        // subclass sits BELOW the core), so it never inherits typed-wrapper overloads either.
+        // Before SS-08 the revert — plus the dataflow guard that deferred to it — turned 583
+        // locals (521 of them safeString family) back into `Object` on every regeneration.
+        if (!prediction) {
+            content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
         }
+        // ── String type fixes: revert pass REMOVED (SS-07) ──
+        // This used to rewrite every `String x = this.<m>(...)` / `String x = Helpers.<...>(...)`
+        // declaration in WS + prediction files back to `Object`:
+        //   content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
+        // It predates the Java local-typing layers, which now emit a String declaration only
+        // when every value that can reach the local is provably a String or null. Every
+        // declaration the regex matched was therefore already proven, so the pass only
+        // de-typed the WS tree (pro/prediction now match the REST tier).
 
         // ── CompletableFuture<Void> → <Object> ──
         content = content.replace(/CompletableFuture<Void>/gm, 'CompletableFuture<Object>');
