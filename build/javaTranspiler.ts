@@ -2023,7 +2023,7 @@ class NewTranspiler {
             // effectively-final pass (it conflicts with the REST parse* methods, which the
             // ast-transpiler already handles).
             content = this.regexAll (content, this.getJavaWsRegexes());
-            content = this.postProcessWsJava(content, name, true, true);
+            content = this.postProcessWsJava(content, name, true, true, true);
         }
         content = this.addDeprecatedAnnotations(content);
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
@@ -2477,7 +2477,7 @@ class NewTranspiler {
         return lines.join('\n');
     }
 
-    postProcessWsJava(content: string, name: string, isCore = true, skipEffectivelyFinal = false): string {
+    postProcessWsJava(content: string, name: string, isCore = true, skipEffectivelyFinal = false, prediction = false): string {
         const cap = this.capitalize(name) + (isCore ? 'Core' : ''); // WS classes are now named *Core
 
         // ── Fix broken method references: ClassName."methodName" → "methodName" ──
@@ -2739,7 +2739,20 @@ class NewTranspiler {
         content = this.rewriteDelayWithStringCallback(content);
 
         // ── String type fixes ──
-        content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
+        // WS-tier revert, applied to the ws (pro) branch above: every `String x = this.<m>(...)`
+        // / `String x = Helpers.<...>(...)` declaration goes back to `Object`.
+        // SS-08: the prediction branch skips this revert. The printer's local-typing hooks
+        // (patchJavaLocalTypes below + build/java-local-types.js) only print a `String x = ...`
+        // declaration after proving every value reaching the local is a String in the printed
+        // Java, and this branch's compile gate proved all 583 declarations they narrow in the
+        // 7 prediction cores compile as `String`. A prediction core's chain is
+        // `<Id>Core extends <Id>Api extends PredictionExchange` (the typed REST-wrapper
+        // subclass sits BELOW the core), so it never inherits typed-wrapper overloads either.
+        // Before SS-08 the revert — plus the dataflow guard that deferred to it — turned 583
+        // locals (521 of them safeString family) back into `Object` on every regeneration.
+        if (!prediction) {
+            content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
+        }
 
         // ── CompletableFuture<Void> → <Object> ──
         content = content.replace(/CompletableFuture<Void>/gm, 'CompletableFuture<Object>');
