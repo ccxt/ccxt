@@ -1477,7 +1477,8 @@ public partial class p2b : Exchange
             string? errorCode = this.safeString(response, "errorCode");
             string feedback = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            if (isTrue(isLessThan(code, 400)))
+            string codeAsString = ((object)code).ToString();
+            if (isTrue(isTrue((isLessThan(code, 400))) || !isTrue((inOp(this.httpExceptions, codeAsString)))))
             {
                 throw new ExchangeError ((string)feedback) ;
             }
