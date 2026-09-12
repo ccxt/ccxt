@@ -3022,7 +3022,7 @@ public class BitstampCore extends BitstampApi
             type = "withdrawal";
         }
         Object tag = null;
-        Object address = this.safeString(transaction, "address");
+        String address = this.safeString(transaction, "address");
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
             // dt (destination tag) is embedded into the address field
@@ -3030,7 +3030,7 @@ public class BitstampCore extends BitstampApi
             Object numParts = Helpers.getArrayLength(addressParts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
-                address = Helpers.GetValue(addressParts, 0);
+                address = (String) Helpers.GetValue(addressParts, 0);
                 tag = Helpers.GetValue(addressParts, 1);
             }
         }

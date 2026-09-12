@@ -766,7 +766,7 @@ public class BitbnsCore extends BitbnsApi
             side = "sell";
         }
         String data = this.safeString(order, "data");
-        Object status = this.safeString(order, "status");
+        String status = this.safeString(order, "status");
         if (Helpers.isTrue(Helpers.isEqual(data, "Successfully cancelled the order")))
         {
             status = "cancelled";

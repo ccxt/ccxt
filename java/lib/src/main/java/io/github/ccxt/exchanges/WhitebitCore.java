@@ -1261,7 +1261,7 @@ public class WhitebitCore extends WhitebitApi
                     Helpers.addElementToObject(depositWithdrawFees, code, this.depositWithdrawFee(new java.util.HashMap<String, Object>() {{}}));
                 }
                 Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "info"), entry, feeInfo);
-                Object networkId = this.safeString(splitEntry, 1);
+                String networkId = this.safeString(splitEntry, 1);
                 Object withdraw = this.safeValue(feeInfo, "withdraw");
                 Object deposit = this.safeValue(feeInfo, "deposit");
                 Double withdrawFee = this.safeNumber(withdraw, "fixed");
@@ -3334,7 +3334,7 @@ public class WhitebitCore extends WhitebitApi
         {
             remaining = null;
         }
-        Object amount = this.safeString(order, "amount");
+        String amount = this.safeString(order, "amount");
         String cost = this.safeString(order, "dealMoney");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "buy"))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "market"))) || Helpers.isTrue((Helpers.isEqual(type, "stop market")))))))
         {

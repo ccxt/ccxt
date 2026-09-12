@@ -3583,13 +3583,13 @@ public class HtxCore extends HtxApi
         Object symbol = Helpers.GetValue(market, "symbol");
         Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("ts", "created-at", "created_at", "create_date", "created_time")));
         String order = this.safeString2(trade, "order-id", "order_id");
-        Object side = this.safeString2(trade, "direction", "side");
-        Object type = this.safeString(trade, "type");
+        String side = this.safeString2(trade, "direction", "side");
+        String type = this.safeString(trade, "type");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "-"), 0)))))
         {
             Object typeParts = Helpers.split(type, "-");
-            side = Helpers.GetValue(typeParts, 0);
-            type = Helpers.GetValue(typeParts, 1);
+            side = (String) Helpers.GetValue(typeParts, 0);
+            type = (String) Helpers.GetValue(typeParts, 1);
         }
         String takerOrMaker = (String)this.safeStringLower(trade, "role");
         String priceString = this.safeString2(trade, "price", "trade_price");
@@ -3597,7 +3597,7 @@ public class HtxCore extends HtxApi
         amountString = this.safeString(trade, "trade_volume", amountString);
         String costString = this.safeString(trade, "trade_turnover");
         Object fee = null;
-        Object feeCost = this.safeString(trade, "filled-fees");
+        String feeCost = this.safeString(trade, "filled-fees");
         if (Helpers.isTrue(Helpers.isEqual(feeCost, null)))
         {
             feeCost = Precise.stringNeg(this.safeString(trade, "trade_fee"));
@@ -6318,7 +6318,7 @@ public class HtxCore extends HtxApi
             status = "rejected";
         }
         String id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("algo_id", "id", "order_id_str", "order-id", "order_id")));
-        Object side = this.safeString2(order, "direction", "side");
+        String side = this.safeString2(order, "direction", "side");
         String contractCode = this.safeString(order, "contract_code");
         Boolean isLinearOrder = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contractCode, null))) && Helpers.isTrue((!Helpers.isEqual(market, null)))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)));
         Object type = null;
@@ -6342,7 +6342,7 @@ public class HtxCore extends HtxApi
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(rawType, "-"), 0)))
                 {
                     Object orderType = Helpers.split(rawType, "-");
-                    side = Helpers.GetValue(orderType, 0);
+                    side = (String) Helpers.GetValue(orderType, 0);
                     type = Helpers.GetValue(orderType, 1);
                 } else if (Helpers.isTrue(Helpers.isEqual(type, null)))
                 {

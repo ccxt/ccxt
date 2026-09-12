@@ -774,7 +774,7 @@ public class CoinspotCore extends CoinspotApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> response = (this.publicGetLatest(parameters)).join();
-            Object id = this.safeString(market, "id", "");
+            String id = this.safeString(market, "id", "");
             id = ((String)id).toLowerCase();
             Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
             //

@@ -2914,7 +2914,7 @@ public class LighterCore extends LighterApi
         {
             side = ((Helpers.isTrue(isAsk))) ? "sell" : "buy";
         }
-        Object type = this.safeString(order, "type");
+        String type = this.safeString(order, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
             Long typeAsInteger = this.safeInteger(order, "order_type");

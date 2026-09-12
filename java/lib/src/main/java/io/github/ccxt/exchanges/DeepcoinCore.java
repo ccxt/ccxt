@@ -3898,9 +3898,9 @@ public class DeepcoinCore extends DeepcoinApi
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
         Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-        Object msg = this.safeString(response, "msg");
+        String msg = this.safeString(response, "msg");
         String messageCode = this.safeString(response, "code");
-        Object sCode = this.safeString(data, "sCode");
+        String sCode = this.safeString(data, "sCode");
         String sMsg = this.safeString(data, "sMsg");
         String errorCode = this.safeString(data, "errorCode");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(msg, null))) && Helpers.isTrue((Helpers.isEqual(msg, "")))) && Helpers.isTrue((!Helpers.isEqual(sMsg, null)))))

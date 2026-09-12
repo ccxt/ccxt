@@ -1617,7 +1617,7 @@ public class ApexCore extends ApexApi
             String maker = this.safeString(fees, "maker", "0.0002");
             Object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"))), TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
             Long timeNow = this.milliseconds();
-            Object triggerPrice = this.safeString(parameters, "triggerPrice");
+            String triggerPrice = this.safeString(parameters, "triggerPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
             String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))

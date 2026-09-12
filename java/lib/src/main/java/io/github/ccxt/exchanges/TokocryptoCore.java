@@ -2872,7 +2872,7 @@ public class TokocryptoCore extends TokocryptoApi
                 tag = null;
             }
         }
-        Object txid = this.safeString(transaction, "txId");
+        String txid = this.safeString(transaction, "txId");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(txid, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(txid, "Internal transfer "), 0)))))
         {
             txid = Helpers.slice(txid, 18, null);

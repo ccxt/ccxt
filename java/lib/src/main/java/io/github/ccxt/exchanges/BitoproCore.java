@@ -1247,7 +1247,7 @@ public class BitoproCore extends BitoproApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(order, "id", "orderId");
         Long timestamp = (Long) this.safeInteger2(order, "timestamp", "createdTimestamp");
-        Object side = this.safeString(order, "action");
+        String side = this.safeString(order, "action");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseOrder() returned no side")) ;

@@ -1119,7 +1119,7 @@ public class BitmexCore extends BitmexApi
     {
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "underlying");
-        Object quoteId = this.safeString(market, "quoteCurrency");
+        String quoteId = this.safeString(market, "quoteCurrency");
         String settleId = this.safeString(market, "settlCurrency");
         String settle = (String) this.safeCurrencyCode(settleId);
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
@@ -2060,7 +2060,7 @@ public class BitmexCore extends BitmexApi
         Object amount = this.convertToRealAmount(Helpers.GetValue(currency, "code"), amountStringAbs);
         String feeCostString = this.safeString(transaction, "fee");
         Object feeCost = this.convertToRealAmount(Helpers.GetValue(currency, "code"), feeCostString);
-        Object status = this.safeString(transaction, "transactStatus");
+        String status = this.safeString(transaction, "transactStatus");
         if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
             status = this.parseTransactionStatus(status);

@@ -1743,7 +1743,7 @@ public class DeltaCore extends DeltaApi
         }
         String takerOrMaker = this.safeString(trade, "role");
         Object metaData = this.safeDict(trade, "meta_data", new java.util.HashMap<String, Object>() {{}});
-        Object type = this.safeString(metaData, "order_type");
+        String type = this.safeString(metaData, "order_type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
             type = Helpers.replace((String)type, (String)"_order", (String)"");
@@ -2237,7 +2237,7 @@ public class DeltaCore extends DeltaApi
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? marketId : Helpers.GetValue(market, "symbol");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         String side = this.safeString(order, "side");
-        Object type = this.safeString(order, "order_type");
+        String type = this.safeString(order, "order_type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
             type = Helpers.replace((String)type, (String)"_order", (String)"");

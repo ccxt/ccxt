@@ -2667,7 +2667,7 @@ public class DigifinexCore extends DigifinexApi
         Object lastTradeTimestamp = null;
         String timeInForce = null;
         Object type = null;
-        Object side = this.safeString(order, "type");
+        String side = this.safeString(order, "type");
         String marketId = this.safeString2(order, "symbol", "instrument_id");
         String symbol = (String) this.safeSymbol(marketId, market);
         market = this.market(symbol);
@@ -2719,7 +2719,7 @@ public class DigifinexCore extends DigifinexApi
                 Object numParts = Helpers.getArrayLength(parts);
                 if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
                 {
-                    side = Helpers.GetValue(parts, 0);
+                    side = (String) Helpers.GetValue(parts, 0);
                     type = Helpers.GetValue(parts, 1);
                 } else
                 {

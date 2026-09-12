@@ -2740,7 +2740,7 @@ public class WeexCore extends WeexApi
         {
             Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
         }
-        Object clientOrderId = this.safeString(parameters, "clientOrderId");
+        String clientOrderId = this.safeString(parameters, "clientOrderId");
         parameters = this.omit(parameters, "clientOrderId");
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
         {
@@ -2896,7 +2896,7 @@ public class WeexCore extends WeexApi
             throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price")) ;
         }
         String timeInForce = this.safeString(parameters, "timeInForce");
-        Object clientOrderId = this.safeString(parameters, "clientOrderId");
+        String clientOrderId = this.safeString(parameters, "clientOrderId");
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
         {
             String partner = this.safeString(parameters, "partner", "b-WEEX111125");

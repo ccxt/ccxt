@@ -2083,7 +2083,7 @@ public class GeminiCore extends GeminiApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
             }
-            Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+            String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_order_id")));
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
