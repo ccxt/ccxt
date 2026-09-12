@@ -134,6 +134,7 @@ public interface PredictionTypedSurface {
     CompletableFuture<Object> fetchEvents(Object... optionalArgs);
     CompletableFuture<Object> fetchEvent(String id, Object... optionalArgs);
     CompletableFuture<Object> fetchSettlements(Object... optionalArgs);
+    CompletableFuture<Object> redeem(Object... optionalArgs);
 
     // --- loadMarkets (special: first arg is boolean reload) ---
     @SuppressWarnings("unchecked")
@@ -1648,6 +1649,16 @@ public interface PredictionTypedSurface {
     @SuppressWarnings("unchecked")
     default CompletableFuture<List<PredictionSettlement>> fetchSettlementsAsync(String outcome, Long since, Long limit, Map<String, Object> params) {
         return this.fetchSettlements((Object) outcome, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(res -> Helpers.toTypedList(res, PredictionSettlement::new));
+    }
+
+    @SuppressWarnings("unchecked")
+    default Object redeem(String outcome, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(this.redeem((Object) outcome, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
+        return res;
+    }
+    @SuppressWarnings("unchecked")
+    default CompletableFuture<Object> redeemAsync(String outcome, Map<String, Object> params) {
+        return this.redeem((Object) outcome, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(res -> res);
     }
 
 }

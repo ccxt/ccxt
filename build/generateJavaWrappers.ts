@@ -565,6 +565,20 @@ function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
 // prediction base and add the methods NOT already present. Every prediction exchange extends
 // PredictionExchange, so the abstract core signature resolves on all of them.
 const PREDICTION_BASE_TS = './ts/src/base/PredictionExchange.ts';
+// Prediction methods implemented by some venue but absent from PredictionExchange.ts (its base
+// stub throws NotSupported). `redeem` returns `Promise<any>`, so it cannot be parsed from TS.
+const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
+    'limitless': [{
+        name: 'redeem',
+        javaReturnType: 'Object', isArray: false, elementType: null,
+        requiredParams: [],
+        optionalParams: [
+            { name: 'outcome', javaType: 'String', isOptional: true, defaultValue: null },
+            { name: 'params', javaType: 'Map<String, Object>', isOptional: true, defaultValue: 'null' },
+        ],
+        isWatch: false,
+    }],
+};
 // Exchange-tier method names no prediction venue (or PredictionExchange) implements. Prediction
 // venues extend PredictionExchange (not the Exchange tier), so declaring these would demand a
 // core signature no tier implements — and would re-expose the symbol-based surface
@@ -645,7 +659,8 @@ function main() {
     const predictionRestMethods = toPredictionMethods(restMethods.filter(m => !predictionExclude.has(m.name))).concat(predictionBaseOnlyMethods);
     const wsMethods = methods.filter(m => m.isWatch || isWsApi(m));
     fs.writeFileSync(BASE_PKG + 'TypedSurface.java', generateTypedSurfaceInterface('TypedSurface', restMethods.concat(wsMethods)), 'utf-8');
-    const predictionMethods = predictionRestMethods;
+    const predictionExtra = Object.values(PREDICTION_EXCHANGE_METHODS).flat();
+    const predictionMethods = predictionRestMethods.concat(predictionExtra);
     fs.writeFileSync(BASE_PKG + 'PredictionTypedSurface.java', generateTypedSurfaceInterface('PredictionTypedSurface', predictionMethods), 'utf-8');
     console.log(`Generated TypedSurface (${restMethods.length} REST + ${wsMethods.length} WS methods) and PredictionTypedSurface (${predictionMethods.length} methods)`);
 
