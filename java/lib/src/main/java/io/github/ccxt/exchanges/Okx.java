@@ -7172,7 +7172,7 @@ public class Okx extends OkxApi
             String fee = this.safeString(parameters, "fee");
             if (Helpers.isTrue(Helpers.isEqual(fee, null)))
             {
-                Object currencies = (this.fetchCurrencies((Object)(new Object[0]))).join();
+                Object currencies = (this.fetchCurrencies(new Object[0])).join();
                 this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
                 Object networkCodeResolved = this.networkIdToCode(network, Helpers.GetValue(currency, "code"));
                 Object targetNetwork = ((Helpers.isTrue((Helpers.isEqual(networkCodeResolved, null))))) ? new java.util.HashMap<String, Object>() {{}} : this.safeDict(Helpers.GetValue(currency, "networks"), networkCodeResolved, new java.util.HashMap<String, Object>() {{}});
@@ -8984,7 +8984,7 @@ public class Okx extends OkxApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object accounts = (this.fetchAccounts((Object)(new Object[0]))).join();
+            Object accounts = (this.fetchAccounts(new Object[0])).join();
             Object length = Helpers.getArrayLength(accounts);
             Object selectedAccount = null;
             if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))

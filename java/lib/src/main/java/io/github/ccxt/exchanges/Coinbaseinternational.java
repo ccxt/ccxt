@@ -477,7 +477,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList(defaultPortfolio, parameters));
             }
-            Object accounts = (this.fetchAccounts((Object)(new Object[0]))).join();
+            Object accounts = (this.fetchAccounts(new Object[0])).join();
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
             {
                 Object account = Helpers.GetValue(accounts, i);

@@ -18006,7 +18006,7 @@ final Object finalMarket = market;
             // this method should not be called directly, use loadTradingLimits () instead
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object markets = (this.fetchMarkets((Object)(new Object[0]))).join();
+            Object markets = (this.fetchMarkets(new Object[0])).join();
             java.util.Map<String, Object> tradingLimits = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {

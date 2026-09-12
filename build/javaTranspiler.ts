@@ -3019,10 +3019,13 @@ class NewTranspiler {
                 // method name is only admitted to that table when dropping the cast
                 // still binds the untyped varargs implementation (no typed truncation
                 // overload can steal it).
+                // `new Object[0]` (routeWhitelistedInternalCallsToVarargs) already binds the
+                // varargs core; casting it to (Object) would pass the array as one element.
                 const retyped = JAVA_STRING_PARAM_POSITIONS[methodName] ?? [];
+                const bare = (a: string, k: number) => retyped.includes(k) || a === 'new Object[0]';
                 const argsCast = argsRaw.trim().length === 0
                     ? argsRaw
-                    : this.splitTopLevelArgs(argsRaw).map((a, k) => (retyped.includes(k) ? a.trim() : `(Object)(${a.trim()})`)).join(', ');
+                    : this.splitTopLevelArgs(argsRaw).map((a, k) => (bare(a.trim(), k) ? a.trim() : `(Object)(${a.trim()})`)).join(', ');
                 result += content.substring(lastIdx, match.index);
                 result += `(${receiver}.${methodName}(${argsCast})).join()`;
                 lastIdx = j + 8;

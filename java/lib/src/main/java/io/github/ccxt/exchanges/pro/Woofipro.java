@@ -1262,7 +1262,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         final Object messageHash3 = messageHash2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
-            Object positions = (this.fetchPositions((Object)(new Object[0]))).join();
+            Object positions = (this.fetchPositions(new Object[0])).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             Object cache = this.positions;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
