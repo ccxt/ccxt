@@ -268,7 +268,7 @@ public class TestSharedMethods extends BaseTest {
             return;
         }
         Object logText = logTemplate(exchange, method, entry);
-        Object actualSymbol = exchange.safeString(entry, key);
+        String actualSymbol = exchange.safeString(entry, key);
         if (Helpers.isTrue(!Helpers.isEqual(actualSymbol, null)))
         {
             Assert((actualSymbol instanceof String), Helpers.add("symbol should be either undefined or a string", logText));
@@ -293,7 +293,7 @@ public class TestSharedMethods extends BaseTest {
             return;
         }
         Object logText = logTemplate(exchange, method, entry);
-        Object value = exchange.safeString(entry, key);
+        String value = exchange.safeString(entry, key);
         Assert(Helpers.isTrue(!Helpers.isEqual(value, null)) || Helpers.isTrue(allowNull), Helpers.add("value is null", logText));
         if (Helpers.isTrue(!Helpers.isEqual(value, null)))
         {
@@ -308,7 +308,7 @@ public class TestSharedMethods extends BaseTest {
             return;
         }
         Object logText = logTemplate(exchange, method, entry);
-        Object value = exchange.safeString(entry, key);
+        String value = exchange.safeString(entry, key);
         Assert(Helpers.isTrue(!Helpers.isEqual(value, null)) || Helpers.isTrue(allowNull), Helpers.add("value is null", logText));
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(value, null)) && Helpers.isTrue(!Helpers.isEqual(compareTo, null))))
         {
@@ -323,7 +323,7 @@ public class TestSharedMethods extends BaseTest {
             return;
         }
         Object logText = logTemplate(exchange, method, entry);
-        Object value = exchange.safeString(entry, key);
+        String value = exchange.safeString(entry, key);
         Assert(Helpers.isTrue(!Helpers.isEqual(value, null)) || Helpers.isTrue(allowNull), Helpers.add("value is null", logText));
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(value, null)) && Helpers.isTrue(!Helpers.isEqual(compareTo, null))))
         {
@@ -338,7 +338,7 @@ public class TestSharedMethods extends BaseTest {
             return;
         }
         Object logText = logTemplate(exchange, method, entry);
-        Object value = exchange.safeString(entry, key);
+        String value = exchange.safeString(entry, key);
         Assert(Helpers.isTrue(!Helpers.isEqual(value, null)) || Helpers.isTrue(allowNull), Helpers.add("value is null", logText));
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(value, null)) && Helpers.isTrue(!Helpers.isEqual(compareTo, null))))
         {
@@ -353,7 +353,7 @@ public class TestSharedMethods extends BaseTest {
             return;
         }
         Object logText = logTemplate(exchange, method, entry);
-        Object value = exchange.safeString(entry, key);
+        String value = exchange.safeString(entry, key);
         Assert(Helpers.isTrue(!Helpers.isEqual(value, null)) || Helpers.isTrue(allowNull), Helpers.add("value is null", logText));
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(value, null)) && Helpers.isTrue(!Helpers.isEqual(compareTo, null))))
         {
@@ -368,7 +368,7 @@ public class TestSharedMethods extends BaseTest {
             return;
         }
         Object logText = logTemplate(exchange, method, entry);
-        Object value = exchange.safeString(entry, key);
+        String value = exchange.safeString(entry, key);
         Assert(Helpers.isTrue(!Helpers.isEqual(value, null)) || Helpers.isTrue(allowNull), Helpers.add("value is null", logText));
         if (Helpers.isTrue(!Helpers.isEqual(value, null)))
         {
@@ -599,8 +599,8 @@ public class TestSharedMethods extends BaseTest {
         // note, `strictCheck` is `true` only from "fetchOrder" cases
         Object logText = logTemplate(exchange, method, order);
         Object msg = Helpers.add(Helpers.add(Helpers.add("order should be ", AssertedStatus), ", but it was not Asserted"), logText);
-        Object filled = exchange.safeString(order, "filled");
-        Object amount = exchange.safeString(order, "amount");
+        String filled = exchange.safeString(order, "filled");
+        String amount = exchange.safeString(order, "amount");
         // shorthand variables
         Boolean statusUndefined = (Helpers.isEqual(Helpers.GetValue(order, "status"), null));
         Boolean statusOpen = (Helpers.isEqual(Helpers.GetValue(order, "status"), "open"));
@@ -763,7 +763,7 @@ public class TestSharedMethods extends BaseTest {
             return;
         }
         Object logText = logTemplate(exchange, method, entry);
-        Object ts = exchange.safeString(entry, key);
+        String ts = exchange.safeString(entry, key);
         Assert(Helpers.isEqual(Precise.stringMod(ts, "60000"), "0"), Helpers.add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
     }
     public static Object deepEqual(BaseExchange exchange, Object a, Object b)

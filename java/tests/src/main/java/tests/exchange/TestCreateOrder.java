@@ -190,9 +190,9 @@ public class TestCreateOrder extends BaseTest {
     public Object tcoAssertFilledOrder(BaseExchange exchange, Object market, Object logPrefix, Object skippedProperties, Object createdOrder, Object fetchedOrder, Object requestedSide, Object requestedAmount)
     {
         // test filled amount
-        Object precisionAmount = exchange.safeString(Helpers.GetValue(market, "precision"), "amount");
+        String precisionAmount = exchange.safeString(Helpers.GetValue(market, "precision"), "amount");
         Object entryorderAmountString = exchange.numberToString(requestedAmount);
-        Object filledString = exchange.safeString(fetchedOrder, "filled");
+        String filledString = exchange.safeString(fetchedOrder, "filled");
         Assert(!Helpers.isEqual(filledString, null), Helpers.add(Helpers.add(logPrefix, " order should be filled, but it is not. "), exchange.json(fetchedOrder)));
         // filled amount should be whithin the expected range i.e. if you buy 100 DOGECOIN and amount-precision is 1,
         // and also considering possible roundings in implementation, then filled amount should be between 99 and 101

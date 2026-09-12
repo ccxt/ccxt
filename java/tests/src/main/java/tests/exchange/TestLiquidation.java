@@ -35,10 +35,10 @@ public class TestLiquidation extends BaseTest {
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "price", "0");
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "baseValue", "0");
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "quoteValue", "0");
-        Object contracts = exchange.safeString(entry, "contracts");
-        Object contractSize = exchange.safeString(entry, "contractSize");
-        Object price = exchange.safeString(entry, "price");
-        Object baseValue = exchange.safeString(entry, "baseValue");
+        String contracts = exchange.safeString(entry, "contracts");
+        String contractSize = exchange.safeString(entry, "contractSize");
+        String price = exchange.safeString(entry, "price");
+        String baseValue = exchange.safeString(entry, "baseValue");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contracts, null))) && Helpers.isTrue((!Helpers.isEqual(contracts, "")))) && Helpers.isTrue((!Helpers.isEqual(contractSize, null)))) && Helpers.isTrue((!Helpers.isEqual(contractSize, "")))))
         {
             Assert(Precise.stringEq(baseValue, Precise.stringMul(contracts, contractSize)), Helpers.add("baseValue == contracts * contractSize", logText));
