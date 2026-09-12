@@ -709,7 +709,7 @@ export default class dydx extends Exchange {
         // }
         //
         const rows = this.safeList (response, 'trades', []) as List;
-        return this.parseTrades (rows, market, since, limit);
+        return this.parseTradesDirectional (rows, market, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
