@@ -6,6 +6,31 @@
     "methods": {
         "fetchTradingFees": [
             {
+                "description": "uta inverse fetchTradingFees skips rows whose id is missing from the loaded markets",
+                "method": "fetchTradingFees",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap",
+                        "subType": "inverse",
+                        "symbol": "BTCUSD_CM"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789207541959,
+                    "data": [
+                        {
+                            "makerFeeRate": "0.0002",
+                            "takerFeeRate": "0.0006",
+                            "symbol": "BTCUSD_CM"
+                        }
+                    ]
+                },
+                "parsedResponse": {}
+            },
+            {
                 "description": "uta linear fetchTradingFees single symbol",
                 "method": "fetchTradingFees",
                 "input": [

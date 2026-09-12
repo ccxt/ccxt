@@ -4497,12 +4497,13 @@ export default class bitget extends Exchange {
             for (let i = 0; i < rows.length; i++) {
                 const entry = rows[i];
                 const entryMarketId = this.safeString (entry, 'symbol');
+                if ((entryMarketId === undefined) || (this.markets_by_id === undefined) || !(entryMarketId in this.markets_by_id)) {
+                    continue; // skip ids missing from the loaded market map, a raw id must not become a unified symbol key
+                }
                 const entryMarket = this.safeMarket (entryMarketId, undefined, undefined, marketType);
                 const fee = this.parseTradingFee (entry, entryMarket);
                 const entrySymbol = this.safeString (fee, 'symbol');
-                if (entrySymbol !== undefined) {
-                    utaResult[entrySymbol] = fee;
-                }
+                utaResult[entrySymbol as string] = fee;
             }
             return utaResult;
         }

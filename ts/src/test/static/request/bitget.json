@@ -2571,6 +2571,20 @@
         ],
         "fetchTradingFees": [
             {
+                "description": "uta inverse fetchTradingFees skips rows whose id is missing from the loaded markets",
+                "method": "fetchTradingFees",
+                "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=COIN-FUTURES&symbol=BTCUSD_CM",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap",
+                        "subType": "inverse",
+                        "symbol": "BTCUSD_CM"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "uta linear fetchTradingFees single symbol",
                 "method": "fetchTradingFees",
                 "url": "https://api.bitget.com/api/v3/account/all-fee-rate?category=USDT-FUTURES&symbol=BTCUSDT",
