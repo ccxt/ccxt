@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class FmfwioCore extends FmfwioApi
+public class Fmfwio extends FmfwioApi
 {
-   public FmfwioCore () {
+   public Fmfwio () {
        super();
    }
 
-   public FmfwioCore (Object options) {
+   public Fmfwio (Object options) {
        super(options);
    }
 
@@ -36,8 +36,8 @@ public class FmfwioCore extends FmfwioApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "trading", new java.util.HashMap<String, Object>() {{
-                    put( "maker", FmfwioCore.this.parseNumber("0.005") );
-                    put( "taker", FmfwioCore.this.parseNumber("0.005") );
+                    put( "maker", Fmfwio.this.parseNumber("0.005") );
+                    put( "taker", Fmfwio.this.parseNumber("0.005") );
                 }} );
             }} );
         }});

@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class LunoCore extends io.github.ccxt.exchanges.Luno
+public class Luno extends io.github.ccxt.exchanges.Luno
 {
-   public LunoCore () {
+   public Luno () {
        super();
    }
 
-   public LunoCore (Object options) {
+   public Luno (Object options) {
        super(options);
    }
 
@@ -79,8 +79,8 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
             String messageHash = Helpers.add("trades:", symbol);
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
-                put( "api_key_id", LunoCore.this.apiKey );
-                put( "api_key_secret", LunoCore.this.secret );
+                put( "api_key_id", Luno.this.apiKey );
+                put( "api_key_secret", Luno.this.secret );
             }};
             java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object trades = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
@@ -162,8 +162,8 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             put( "side", null );
             put( "takerOrMaker", null );
             put( "price", null );
-            put( "amount", LunoCore.this.safeString(trade, "base") );
-            put( "cost", LunoCore.this.safeString(trade, "counter") );
+            put( "amount", Luno.this.safeString(trade, "base") );
+            put( "cost", Luno.this.safeString(trade, "counter") );
             put( "fee", null );
         }}, market);
     }
@@ -201,8 +201,8 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
             String messageHash = Helpers.add("orderbook:", symbol);
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
-                put( "api_key_id", LunoCore.this.apiKey );
-                put( "api_key_secret", LunoCore.this.secret );
+                put( "api_key_id", Luno.this.apiKey );
+                put( "api_key_secret", Luno.this.secret );
             }};
             java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
@@ -282,10 +282,10 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         Object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
-            put( "bids", LunoCore.this.sortBy(bids, 0, true) );
-            put( "asks", LunoCore.this.sortBy(asks, 0) );
+            put( "bids", Luno.this.sortBy(bids, 0, true) );
+            put( "asks", Luno.this.sortBy(asks, 0) );
             put( "timestamp", timestamp );
-            put( "datetime", LunoCore.this.iso8601(timestamp) );
+            put( "datetime", Luno.this.iso8601(timestamp) );
             put( "nonce", null );
         }};
     }

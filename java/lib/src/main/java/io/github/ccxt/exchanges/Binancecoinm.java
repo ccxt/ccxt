@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BinancecoinmCore extends BinancecoinmApi
+public class Binancecoinm extends BinancecoinmApi
 {
-   public BinancecoinmCore () {
+   public Binancecoinm () {
        super();
    }
 
-   public BinancecoinmCore (Object options) {
+   public Binancecoinm (Object options) {
        super(options);
    }
 

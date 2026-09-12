@@ -9,13 +9,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class PolymarketCore extends PolymarketApi
+public class Polymarket extends PolymarketApi
 {
-   public PolymarketCore () {
+   public Polymarket () {
        super();
    }
 
-   public PolymarketCore (Object options) {
+   public Polymarket (Object options) {
        super(options);
    }
 
@@ -1177,7 +1177,7 @@ final Object finalClobTokenId = clobTokenId;
                 put( "linear", null );
                 put( "inverse", null );
                 put( "contractSize", null );
-                put( "expiry", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(endDate, null)) && Helpers.isTrue(!Helpers.isEqual(endDate, "")))))) ? PolymarketCore.this.parse8601(endDate) : null );
+                put( "expiry", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(endDate, null)) && Helpers.isTrue(!Helpers.isEqual(endDate, "")))))) ? Polymarket.this.parse8601(endDate) : null );
                 put( "expiryDatetime", endDate );
                 put( "strike", null );
                 put( "optionType", null );
@@ -1531,7 +1531,7 @@ final Object finalClobTokenId = clobTokenId;
                             put( "mid", mid );
                         }} );
                         put( "book", book );
-                        put( "lastTrade", PolymarketCore.this.safeDict(lastTradesByTokenId, finalTokenId, new java.util.HashMap<String, Object>() {{}}) );
+                        put( "lastTrade", Polymarket.this.safeDict(lastTradesByTokenId, finalTokenId, new java.util.HashMap<String, Object>() {{}}) );
                     }};
                     Object ticker = this.parsePredictionTicker(tickerInput, outcomeObj);
                     String symbolKey = this.safeString(ticker, "outcome", tokenId);
@@ -1621,17 +1621,17 @@ final Object finalClobTokenId = clobTokenId;
         final Object finalQuoteVolume = quoteVolume;
         return this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
             put( "outcome", outcome );
-            put( "outcomeId", PolymarketCore.this.safeString(finalMarket, "outcomeId") );
-            put( "label", PolymarketCore.this.safeString(finalMarket, "label") );
-            put( "market", PolymarketCore.this.safeString(finalMarket, "market") );
+            put( "outcomeId", Polymarket.this.safeString(finalMarket, "outcomeId") );
+            put( "label", Polymarket.this.safeString(finalMarket, "label") );
+            put( "market", Polymarket.this.safeString(finalMarket, "market") );
             put( "timestamp", timestamp );
-            put( "datetime", PolymarketCore.this.iso8601(timestamp) );
+            put( "datetime", Polymarket.this.iso8601(timestamp) );
             put( "high", null );
             put( "low", null );
-            put( "bid", PolymarketCore.this.safeNumber(bestBid, "price") );
-            put( "bidVolume", PolymarketCore.this.safeNumber(bestBid, "size") );
-            put( "ask", PolymarketCore.this.safeNumber(bestAsk, "price") );
-            put( "askVolume", PolymarketCore.this.safeNumber(bestAsk, "size") );
+            put( "bid", Polymarket.this.safeNumber(bestBid, "price") );
+            put( "bidVolume", Polymarket.this.safeNumber(bestBid, "size") );
+            put( "ask", Polymarket.this.safeNumber(bestAsk, "price") );
+            put( "askVolume", Polymarket.this.safeNumber(bestAsk, "size") );
             put( "vwap", null );
             put( "open", null );
             put( "close", finalLast );
@@ -1944,13 +1944,13 @@ final Object finalClobTokenId = clobTokenId;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.milliseconds();
         Object openInterest = this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", PolymarketCore.this.safeOutcomeSymbol(null, market) );
+            put( "symbol", Polymarket.this.safeOutcomeSymbol(null, market) );
             put( "openInterestAmount", null );
-            put( "openInterestValue", PolymarketCore.this.safeNumber(interest, "value") );
+            put( "openInterestValue", Polymarket.this.safeNumber(interest, "value") );
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "timestamp", timestamp );
-            put( "datetime", PolymarketCore.this.iso8601(timestamp) );
+            put( "datetime", Polymarket.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
         Helpers.addElementToObject(openInterest, "outcome", this.safeOutcomeSymbol(null, market));
@@ -1988,9 +1988,9 @@ final Object finalClobTokenId = clobTokenId;
             Object rate = ((Helpers.isTrue((!Helpers.isEqual(baseFeeBps, null))))) ? this.parseNumber(Precise.stringDiv(baseFeeBps, "10000")) : null;
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "outcome", PolymarketCore.this.safeOutcomeSymbol(null, ((Object)outcomeObj)) );
-                put( "outcomeId", PolymarketCore.this.safeString(outcomeObj, "outcomeId") );
-                put( "market", PolymarketCore.this.safeString(outcomeObj, "market") );
+                put( "outcome", Polymarket.this.safeOutcomeSymbol(null, ((Object)outcomeObj)) );
+                put( "outcomeId", Polymarket.this.safeString(outcomeObj, "outcomeId") );
+                put( "market", Polymarket.this.safeString(outcomeObj, "market") );
                 put( "maker", rate );
                 put( "taker", rate );
                 put( "percentage", true );
@@ -2114,7 +2114,7 @@ final Object finalClobTokenId = clobTokenId;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object trades = (this.fetchMyTrades(outcome, null, null, parameters)).join();
+            Object trades = (this.fetchMyTrades((Object)(outcome), (Object)(null), (Object)(null), (Object)(parameters))).join();
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
             {
@@ -2175,7 +2175,7 @@ final Object finalClobTokenId = clobTokenId;
             final Object finalFeeRateBps = feeRateBps;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", "USDC" );
-                put( "rate", PolymarketCore.this.parseNumber(Precise.stringDiv(finalFeeRateBps, "10000")) );
+                put( "rate", Polymarket.this.parseNumber(Precise.stringDiv(finalFeeRateBps, "10000")) );
             }};
         }
         final Object finalTimestamp = timestamp;
@@ -2184,12 +2184,12 @@ final Object finalClobTokenId = clobTokenId;
             put( "id", id );
             put( "info", trade );
             put( "timestamp", finalTimestamp );
-            put( "datetime", PolymarketCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Polymarket.this.iso8601(finalTimestamp) );
             put( "outcome", outcome );
             put( "outcomeId", assetId );
-            put( "label", PolymarketCore.this.safeString(mkt, "label") );
-            put( "market", PolymarketCore.this.safeString(mkt, "market") );
-            put( "order", PolymarketCore.this.safeString2(trade, "orderId", "taker_order_id") );
+            put( "label", Polymarket.this.safeString(mkt, "label") );
+            put( "market", Polymarket.this.safeString(mkt, "market") );
+            put( "order", Polymarket.this.safeString2(trade, "orderId", "taker_order_id") );
             put( "type", null );
             put( "side", side );
             put( "takerOrMaker", takerOrMaker );
@@ -2287,7 +2287,7 @@ final Object finalClobTokenId = clobTokenId;
                 throw new ArgumentsRequired(Helpers.add(this.id, " walletAddress is required to fetchPositions")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "user", PolymarketCore.this.walletAddress );
+                put( "user", Polymarket.this.walletAddress );
             }};
             java.util.Map<String, Object> response = (this.dataPublicGetPositions(this.extend(request, parameters))).join();
             Object positions = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2339,7 +2339,7 @@ final Object finalClobTokenId = clobTokenId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object positions = (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(outcome)), parameters)).join();
+            Object positions = (this.fetchPositions((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(outcome))), (Object)(parameters))).join();
             return this.safeDict(positions, 0);
         });
 
@@ -2371,12 +2371,12 @@ final Object finalClobTokenId = clobTokenId;
         final Object finalNotional = notional;
         final Object finalCurPrice = curPrice;
         return this.safePredictionPosition(new java.util.HashMap<String, Object>() {{
-            put( "id", PolymarketCore.this.safeString(position, "id") );
-            put( "outcome", PolymarketCore.this.safeString(marketData, "outcome") );
-            put( "outcomeId", PolymarketCore.this.safeString(marketData, "outcomeId") );
-            put( "market", PolymarketCore.this.safeString(marketData, "market") );
-            put( "label", PolymarketCore.this.safeString(marketData, "label") );
-            put( "event", PolymarketCore.this.safeString(marketData, "event") );
+            put( "id", Polymarket.this.safeString(position, "id") );
+            put( "outcome", Polymarket.this.safeString(marketData, "outcome") );
+            put( "outcomeId", Polymarket.this.safeString(marketData, "outcomeId") );
+            put( "market", Polymarket.this.safeString(marketData, "market") );
+            put( "label", Polymarket.this.safeString(marketData, "label") );
+            put( "event", Polymarket.this.safeString(marketData, "event") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "contracts", finalSize );
@@ -2385,7 +2385,7 @@ final Object finalClobTokenId = clobTokenId;
             put( "notional", finalNotional );
             put( "leverage", 1 );
             put( "unrealizedPnl", null );
-            put( "realizedPnl", PolymarketCore.this.safeNumber(position, "realizedPnl") );
+            put( "realizedPnl", Polymarket.this.safeNumber(position, "realizedPnl") );
             put( "collateral", null );
             put( "entryPrice", entryPrice );
             put( "markPrice", finalCurPrice );
@@ -2504,16 +2504,16 @@ final Object finalClobTokenId = clobTokenId;
             put( "clientOrderId", null );
             put( "info", order );
             put( "timestamp", ts );
-            put( "datetime", PolymarketCore.this.iso8601(ts) );
+            put( "datetime", Polymarket.this.iso8601(ts) );
             put( "lastTradeTimestamp", null );
             put( "status", status );
             put( "outcome", Helpers.GetValue(mkt, "outcome") );
-            put( "outcomeId", PolymarketCore.this.safeString(mkt, "outcomeId") );
-            put( "label", PolymarketCore.this.safeString(mkt, "label") );
-            put( "market", PolymarketCore.this.safeString(mkt, "market") );
+            put( "outcomeId", Polymarket.this.safeString(mkt, "outcomeId") );
+            put( "label", Polymarket.this.safeString(mkt, "label") );
+            put( "market", Polymarket.this.safeString(mkt, "market") );
             put( "type", "limit" );
-            put( "timeInForce", PolymarketCore.this.safeString(order, "time_in_force", "GTC") );
-            put( "postOnly", PolymarketCore.this.safeBool(order, "postOnly") );
+            put( "timeInForce", Polymarket.this.safeString(order, "time_in_force", "GTC") );
+            put( "postOnly", Polymarket.this.safeBool(order, "postOnly") );
             put( "side", side );
             put( "price", price );
             put( "stopPrice", null );
@@ -2639,7 +2639,7 @@ final Object finalClobTokenId = clobTokenId;
                     // a distinct salt per order so two identical orders in one batch don't collide
                     final Object finalI = i;
                     orderParams = this.extend(orderParams, new java.util.HashMap<String, Object>() {{
-                        put( "salt", PolymarketCore.this.numberToString(PolymarketCore.this.sum(batchSalt, finalI)) );
+                        put( "salt", Polymarket.this.numberToString(Polymarket.this.sum(batchSalt, finalI)) );
                     }});
                 }
                 Object built = this.buildClobOrderBody(this.safeString(o, "outcome"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount"), this.safeNumber(o, "price"), orderParams);
@@ -2810,7 +2810,7 @@ final Object finalClobTokenId = clobTokenId;
             put( "deferExec", false );
             put( "postOnly", postOnly );
             put( "order", new java.util.HashMap<String, Object>() {{
-                put( "salt", PolymarketCore.this.parseToInt(salt) );
+                put( "salt", Polymarket.this.parseToInt(salt) );
                 put( "maker", maker );
                 put( "signer", signer );
                 put( "taker", "0x0000000000000000000000000000000000000000" );
@@ -2845,7 +2845,7 @@ final Object finalClobTokenId = clobTokenId;
             Helpers.addElementToObject(requestEcho, "original_size", amount);
         }
         return new java.util.HashMap<String, Object>() {{
-            put( "body", PolymarketCore.this.extend(rest, orderBody) );
+            put( "body", Polymarket.this.extend(rest, orderBody) );
             put( "outcome", outcomeObj );
             put( "request", requestEcho );
         }};
@@ -2870,7 +2870,7 @@ final Object finalClobTokenId = clobTokenId;
             java.util.Map<String, Object> request = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }});
-            return (this.createOrder(outcome, "market", "buy", cost, null, request)).join();
+            return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(request))).join();
         });
 
     }
@@ -3123,7 +3123,7 @@ final Object finalClobTokenId = clobTokenId;
             {
     final Object finalI = i;
                             ((java.util.List<Object>)orders).add(this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
-                    put( "id", PolymarketCore.this.safeString(canceled, finalI) );
+                    put( "id", Polymarket.this.safeString(canceled, finalI) );
                     put( "status", "canceled" );
                     put( "info", response );
                 }}));
@@ -3172,7 +3172,7 @@ final Object finalClobTokenId = clobTokenId;
     final Object finalI = i;
                 final Object finalResponse = response;
                             ((java.util.List<Object>)orders).add(this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
-                    put( "id", PolymarketCore.this.safeString(canceled, finalI) );
+                    put( "id", Polymarket.this.safeString(canceled, finalI) );
                     put( "status", "canceled" );
                     put( "info", finalResponse );
                 }}));
@@ -3446,24 +3446,24 @@ final Object finalClobTokenId = clobTokenId;
         final Object finalSlug = slug;
         final Object finalActive = active;
         return this.extend(new java.util.HashMap<String, Object>() {{
-            put( "id", PolymarketCore.this.safeString(rawEvent, "id") );
+            put( "id", Polymarket.this.safeString(rawEvent, "id") );
             put( "slug", finalSlug );
-            put( "event", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalSlug, null)) && Helpers.isTrue(!Helpers.isEqual(finalSlug, "")))))) ? PolymarketCore.this.shortenSlug(finalSlug) : null );
-            put( "title", PolymarketCore.this.safeString(rawEvent, "title") );
+            put( "event", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalSlug, null)) && Helpers.isTrue(!Helpers.isEqual(finalSlug, "")))))) ? Polymarket.this.shortenSlug(finalSlug) : null );
+            put( "title", Polymarket.this.safeString(rawEvent, "title") );
             put( "tags", parsedTags );
             put( "markets", marketsList );
             put( "active", finalActive );
-            put( "url", PolymarketCore.this.safeString(rawEvent, "url") );
-            put( "image", PolymarketCore.this.safeString2(rawEvent, "image", "image_url") );
-            put( "created", PolymarketCore.this.parse8601(createdAt) );
+            put( "url", Polymarket.this.safeString(rawEvent, "url") );
+            put( "image", Polymarket.this.safeString2(rawEvent, "image", "image_url") );
+            put( "created", Polymarket.this.parse8601(createdAt) );
             put( "createdDatetime", createdAt );
-            put( "end", PolymarketCore.this.parse8601(endDate) );
+            put( "end", Polymarket.this.parse8601(endDate) );
             put( "endDatetime", endDate );
-            put( "category", PolymarketCore.this.safeString(rawEvent, "category") );
-            put( "lastUpdatedAt", PolymarketCore.this.parse8601(updatedAt) );
+            put( "category", Polymarket.this.safeString(rawEvent, "category") );
+            put( "lastUpdatedAt", Polymarket.this.parse8601(updatedAt) );
             put( "lastUpdatedAtDatetime", updatedAt );
-            put( "resolutionSource", PolymarketCore.this.safeString2(rawEvent, "resolutionSource", "resolution_source") );
-            put( "resolved", PolymarketCore.this.safeBool2(rawEvent, "closed", "resolved") );
+            put( "resolutionSource", Polymarket.this.safeString2(rawEvent, "resolutionSource", "resolution_source") );
+            put( "resolved", Polymarket.this.safeBool2(rawEvent, "closed", "resolved") );
             put( "info", rawEvent );
         }});
     }
@@ -3606,7 +3606,7 @@ final Object finalClobTokenId = clobTokenId;
                     put( "POLY_ADDRESS", address );
                     put( "POLY_SIGNATURE", l1signature );
                     put( "POLY_TIMESTAMP", timestamp );
-                    put( "POLY_NONCE", PolymarketCore.this.numberToString(nonce) );
+                    put( "POLY_NONCE", Polymarket.this.numberToString(nonce) );
                 }});
             } else
             {
@@ -3701,7 +3701,7 @@ final Object finalClobTokenId = clobTokenId;
         return new java.util.HashMap<String, Object>() {{
             put( "r", Helpers.add("0x", r) );
             put( "s", Helpers.add("0x", s) );
-            put( "v", PolymarketCore.this.sum(27, Helpers.GetValue(signature, "v")) );
+            put( "v", Polymarket.this.sum(27, Helpers.GetValue(signature, "v")) );
         }};
     }
 
@@ -3823,9 +3823,9 @@ final Object finalClobTokenId = clobTokenId;
         //     { "apiKey": "...", "secret": "...", "passphrase": "..." }
         //
         java.util.Map<String, Object> creds = new java.util.HashMap<String, Object>() {{
-            put( "apiKey", PolymarketCore.this.safeString2(response, "apiKey", "key") );
-            put( "secret", PolymarketCore.this.safeString(response, "secret") );
-            put( "passphrase", PolymarketCore.this.safeString(response, "passphrase") );
+            put( "apiKey", Polymarket.this.safeString2(response, "apiKey", "key") );
+            put( "secret", Polymarket.this.safeString(response, "secret") );
+            put( "passphrase", Polymarket.this.safeString(response, "passphrase") );
         }};
         // cache in options rather than the typed apiKey/secret/password fields so the
         // assignment is valid in the struct-based languages (C#/Go/Java)
@@ -3951,10 +3951,10 @@ final Object finalOutcome = outcome;
             put( "bids", bids );
             put( "asks", asks );
             put( "timestamp", timestamp );
-            put( "datetime", PolymarketCore.this.iso8601(timestamp) );
+            put( "datetime", Polymarket.this.iso8601(timestamp) );
             put( "outcome", finalOutcome );
             put( "outcomeId", tokenId );
-            put( "market", PolymarketCore.this.safeString(outcomeObj, "market") );
+            put( "market", Polymarket.this.safeString(outcomeObj, "market") );
         }}});
         client.resolve(orderbook, Helpers.add("orderbook::", outcome));
         client.resolve(orderbook, Helpers.add("ticker::", outcome));
@@ -4010,17 +4010,17 @@ final Object finalOutcome = outcome;
         Object market = this.safeOutcome(tokenId);
         final Object finalOutcome = outcome;
         Object trade = this.safePredictionTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", PolymarketCore.this.safeString(eventVar, "transaction_hash") );
+            put( "id", Polymarket.this.safeString(eventVar, "transaction_hash") );
             put( "info", eventVar );
             put( "timestamp", timestamp );
-            put( "datetime", PolymarketCore.this.iso8601(timestamp) );
+            put( "datetime", Polymarket.this.iso8601(timestamp) );
             put( "outcome", finalOutcome );
-            put( "outcomeId", PolymarketCore.this.safeString(market, "outcomeId") );
-            put( "label", PolymarketCore.this.safeString(market, "label") );
-            put( "market", PolymarketCore.this.safeString(market, "market") );
+            put( "outcomeId", Polymarket.this.safeString(market, "outcomeId") );
+            put( "label", Polymarket.this.safeString(market, "label") );
+            put( "market", Polymarket.this.safeString(market, "market") );
             put( "order", null );
             put( "type", null );
-            put( "side", PolymarketCore.this.safeStringLower(eventVar, "side") );
+            put( "side", Polymarket.this.safeStringLower(eventVar, "side") );
             put( "takerOrMaker", "taker" );
             put( "price", price );
             put( "amount", amount );
@@ -4192,9 +4192,9 @@ final Object finalOutcome = outcome;
             final Object finalMid = mid;
             return this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
                 put( "outcome", finalOutcome );
-                put( "outcomeId", PolymarketCore.this.safeString(market, "outcomeId") );
-                put( "label", PolymarketCore.this.safeString(market, "label") );
-                put( "market", PolymarketCore.this.safeString(market, "market") );
+                put( "outcomeId", Polymarket.this.safeString(market, "outcomeId") );
+                put( "label", Polymarket.this.safeString(market, "label") );
+                put( "market", Polymarket.this.safeString(market, "market") );
                 put( "timestamp", Helpers.GetValue(orderbook, "timestamp") );
                 put( "datetime", Helpers.GetValue(orderbook, "datetime") );
                 put( "high", null );

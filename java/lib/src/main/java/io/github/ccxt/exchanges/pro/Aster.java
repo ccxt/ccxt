@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class AsterCore extends io.github.ccxt.exchanges.Aster
+public class Aster extends io.github.ccxt.exchanges.Aster
 {
-   public AsterCore () {
+   public Aster () {
        super();
    }
 
-   public AsterCore (Object options) {
+   public Aster (Object options) {
        super(options);
    }
 
@@ -129,7 +129,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets()).join();
             }
             symbol = this.safeSymbol(symbol);
-            Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
         });
 
@@ -311,7 +311,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets()).join();
             }
             symbol = this.safeSymbol(symbol);
-            Object tickers = (this.watchMarkPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.watchMarkPrices((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
         });
 
@@ -525,32 +525,32 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             return this.safeTicker(new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "symbol") );
                 put( "timestamp", timestamp );
-                put( "datetime", AsterCore.this.iso8601(timestamp) );
+                put( "datetime", Aster.this.iso8601(timestamp) );
                 put( "info", message );
-                put( "markPrice", AsterCore.this.safeString(message, "p") );
-                put( "indexPrice", AsterCore.this.safeString(message, "i") );
+                put( "markPrice", Aster.this.safeString(message, "p") );
+                put( "indexPrice", Aster.this.safeString(message, "i") );
             }});
         }
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", AsterCore.this.iso8601(timestamp) );
-            put( "high", AsterCore.this.safeString(message, "h") );
-            put( "low", AsterCore.this.safeString(message, "l") );
+            put( "datetime", Aster.this.iso8601(timestamp) );
+            put( "high", Aster.this.safeString(message, "h") );
+            put( "low", Aster.this.safeString(message, "l") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
-            put( "vwap", AsterCore.this.safeString(message, "w") );
-            put( "open", AsterCore.this.safeString(message, "o") );
+            put( "vwap", Aster.this.safeString(message, "w") );
+            put( "open", Aster.this.safeString(message, "o") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
-            put( "change", AsterCore.this.safeString(message, "p") );
-            put( "percentage", AsterCore.this.safeString(message, "P") );
+            put( "change", Aster.this.safeString(message, "p") );
+            put( "percentage", Aster.this.safeString(message, "P") );
             put( "average", null );
-            put( "baseVolume", AsterCore.this.safeString(message, "v") );
-            put( "quoteVolume", AsterCore.this.safeString(message, "q") );
+            put( "baseVolume", Aster.this.safeString(message, "v") );
+            put( "quoteVolume", Aster.this.safeString(message, "q") );
             put( "info", message );
         }}, market);
     }
@@ -707,11 +707,11 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", bidAskSymbol );
             put( "timestamp", timestamp );
-            put( "datetime", AsterCore.this.iso8601(timestamp) );
-            put( "ask", AsterCore.this.safeString(message, "a") );
-            put( "askVolume", AsterCore.this.safeString(message, "A") );
-            put( "bid", AsterCore.this.safeString(message, "b") );
-            put( "bidVolume", AsterCore.this.safeString(message, "B") );
+            put( "datetime", Aster.this.iso8601(timestamp) );
+            put( "ask", Aster.this.safeString(message, "a") );
+            put( "askVolume", Aster.this.safeString(message, "A") );
+            put( "bid", Aster.this.safeString(message, "b") );
+            put( "bidVolume", Aster.this.safeString(message, "B") );
             put( "info", message );
         }}, market);
     }
@@ -738,7 +738,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTrades");
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1071,7 +1071,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", AsterCore.this.iso8601(timestamp) );
+            put( "datetime", Aster.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
             put( "order", orderId );
@@ -1106,7 +1106,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOrderBook");
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -2078,14 +2078,14 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", AsterCore.this.safeSymbol(marketId, null, null, "swap") );
+            put( "symbol", Aster.this.safeSymbol(marketId, null, null, "swap") );
             put( "notional", null );
-            put( "marginMode", AsterCore.this.safeString(position, "mt") );
+            put( "marginMode", Aster.this.safeString(position, "mt") );
             put( "liquidationPrice", null );
-            put( "entryPrice", AsterCore.this.safeNumber(position, "ep") );
-            put( "unrealizedPnl", AsterCore.this.safeNumber(position, "up") );
+            put( "entryPrice", Aster.this.safeNumber(position, "ep") );
+            put( "unrealizedPnl", Aster.this.safeNumber(position, "up") );
             put( "percentage", null );
-            put( "contracts", AsterCore.this.parseNumber(contractsAbs) );
+            put( "contracts", Aster.this.parseNumber(contractsAbs) );
             put( "contractSize", null );
             put( "markPrice", null );
             put( "side", finalPositionSide );
@@ -2461,24 +2461,24 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "id", AsterCore.this.safeString2(order, "i", "aid") );
+            put( "id", Aster.this.safeString2(order, "i", "aid") );
             put( "clientOrderId", finalClientOrderId );
             put( "timestamp", finalTimestamp );
-            put( "datetime", AsterCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Aster.this.iso8601(finalTimestamp) );
             put( "lastTradeTimestamp", finalLastTradeTimestamp );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "type", AsterCore.this.parseOrderType(AsterCore.this.safeStringLower(order, "o")) );
+            put( "type", Aster.this.parseOrderType(Aster.this.safeStringLower(order, "o")) );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", null );
-            put( "reduceOnly", AsterCore.this.safeBool(order, "R") );
-            put( "side", AsterCore.this.safeStringLower(order, "S") );
-            put( "price", AsterCore.this.safeString(order, "p") );
+            put( "reduceOnly", Aster.this.safeBool(order, "R") );
+            put( "side", Aster.this.safeStringLower(order, "S") );
+            put( "price", Aster.this.safeString(order, "p") );
             put( "stopPrice", stopPrice );
             put( "triggerPrice", stopPrice );
-            put( "amount", AsterCore.this.safeString(order, "q") );
-            put( "cost", AsterCore.this.safeString(order, "Z") );
-            put( "average", AsterCore.this.safeString(order, "ap") );
-            put( "filled", AsterCore.this.safeString(order, "z") );
+            put( "amount", Aster.this.safeString(order, "q") );
+            put( "cost", Aster.this.safeString(order, "Z") );
+            put( "average", Aster.this.safeString(order, "ap") );
+            put( "filled", Aster.this.safeString(order, "z") );
             put( "remaining", null );
             put( "status", status );
             put( "fee", finalFee );

@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BingxCore extends io.github.ccxt.exchanges.Bingx
+public class Bingx extends io.github.ccxt.exchanges.Bingx
 {
-   public BingxCore () {
+   public Bingx () {
        super();
    }
 
-   public BingxCore (Object options) {
+   public Bingx (Object options) {
        super(options);
    }
 
@@ -355,23 +355,23 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", BingxCore.this.iso8601(timestamp) );
-            put( "high", BingxCore.this.safeString(message, "h") );
-            put( "low", BingxCore.this.safeString(message, "l") );
-            put( "bid", BingxCore.this.safeString(message, "B") );
-            put( "bidVolume", BingxCore.this.safeString(message, "b") );
-            put( "ask", BingxCore.this.safeString(message, "A") );
-            put( "askVolume", BingxCore.this.safeString(message, "a") );
+            put( "datetime", Bingx.this.iso8601(timestamp) );
+            put( "high", Bingx.this.safeString(message, "h") );
+            put( "low", Bingx.this.safeString(message, "l") );
+            put( "bid", Bingx.this.safeString(message, "B") );
+            put( "bidVolume", Bingx.this.safeString(message, "b") );
+            put( "ask", Bingx.this.safeString(message, "A") );
+            put( "askVolume", Bingx.this.safeString(message, "a") );
             put( "vwap", null );
-            put( "open", BingxCore.this.safeString(message, "o") );
+            put( "open", Bingx.this.safeString(message, "o") );
             put( "close", close );
             put( "last", close );
             put( "previousClose", null );
-            put( "change", BingxCore.this.safeString(message, "p") );
+            put( "change", Bingx.this.safeString(message, "p") );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", BingxCore.this.safeString(message, "v") );
-            put( "quoteVolume", BingxCore.this.safeString(message, "q") );
+            put( "baseVolume", Bingx.this.safeString(message, "v") );
+            put( "quoteVolume", Bingx.this.safeString(message, "q") );
             put( "info", message );
         }}, market);
     }
@@ -1614,14 +1614,14 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", BingxCore.this.safeSymbol(marketId, null, null, "swap") );
+            put( "symbol", Bingx.this.safeSymbol(marketId, null, null, "swap") );
             put( "notional", null );
             put( "marginMode", finalMarginMode );
             put( "liquidationPrice", null );
-            put( "entryPrice", BingxCore.this.safeNumber(position, "ep") );
-            put( "unrealizedPnl", BingxCore.this.safeNumber(position, "up") );
+            put( "entryPrice", Bingx.this.safeNumber(position, "ep") );
+            put( "unrealizedPnl", Bingx.this.safeNumber(position, "up") );
             put( "percentage", null );
-            put( "contracts", BingxCore.this.parseNumber(contractsAbs) );
+            put( "contracts", Bingx.this.parseNumber(contractsAbs) );
             put( "contractSize", null );
             put( "markPrice", null );
             put( "side", finalPositionSide );

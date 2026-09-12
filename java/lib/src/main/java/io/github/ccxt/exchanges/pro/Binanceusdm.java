@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BinanceusdmCore extends io.github.ccxt.exchanges.Binanceusdm
+public class Binanceusdm extends io.github.ccxt.exchanges.Binanceusdm
 {
-   public BinanceusdmCore () {
+   public Binanceusdm () {
        super();
    }
 
-   public BinanceusdmCore (Object options) {
+   public Binanceusdm (Object options) {
        super(options);
    }
 

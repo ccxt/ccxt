@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class OnetradingCore extends OnetradingApi
+public class Onetrading extends OnetradingApi
 {
-   public OnetradingCore () {
+   public Onetrading () {
        super();
    }
 
-   public OnetradingCore (Object options) {
+   public Onetrading (Object options) {
        super(options);
    }
 
@@ -270,11 +270,11 @@ public class OnetradingCore extends OnetradingApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", OnetradingCore.this.parseNumber("0.0015") );
-                    put( "maker", OnetradingCore.this.parseNumber("0.001") );
+                    put( "taker", Onetrading.this.parseNumber("0.0015") );
+                    put( "maker", Onetrading.this.parseNumber("0.001") );
                     put( "tiers", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
-    put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("0"), OnetradingCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("100"), OnetradingCore.this.parseNumber("0.0013"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("250"), OnetradingCore.this.parseNumber("0.0013"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("1000"), OnetradingCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("5000"), OnetradingCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("10000"), OnetradingCore.this.parseNumber("0.00075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("20000"), OnetradingCore.this.parseNumber("0.00065"))))) );
-    put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("0"), OnetradingCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("100"), OnetradingCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("250"), OnetradingCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("1000"), OnetradingCore.this.parseNumber("0.00075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("5000"), OnetradingCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("10000"), OnetradingCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(OnetradingCore.this.parseNumber("20000"), OnetradingCore.this.parseNumber("0.0005"))))) );
+    put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("0"), Onetrading.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("100"), Onetrading.this.parseNumber("0.0013"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("250"), Onetrading.this.parseNumber("0.0013"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("1000"), Onetrading.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("5000"), Onetrading.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("10000"), Onetrading.this.parseNumber("0.00075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("20000"), Onetrading.this.parseNumber("0.00065"))))) );
+    put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("0"), Onetrading.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("100"), Onetrading.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("250"), Onetrading.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("1000"), Onetrading.this.parseNumber("0.00075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("5000"), Onetrading.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("10000"), Onetrading.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Onetrading.this.parseNumber("20000"), Onetrading.this.parseNumber("0.0005"))))) );
 }})) );
                 }} );
             }} );
@@ -515,11 +515,11 @@ public class OnetradingCore extends OnetradingApi
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
-            put( "name", OnetradingCore.this.safeString(rawCurrency, "name") );
+            put( "name", Onetrading.this.safeString(rawCurrency, "name") );
             put( "info", rawCurrency );
             put( "active", null );
             put( "fee", null );
-            put( "precision", OnetradingCore.this.parseNumber(OnetradingCore.this.parsePrecision(OnetradingCore.this.safeString(rawCurrency, "precision"))) );
+            put( "precision", Onetrading.this.parseNumber(Onetrading.this.parsePrecision(Onetrading.this.safeString(rawCurrency, "precision"))) );
             put( "withdraw", null );
             put( "deposit", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
@@ -647,14 +647,14 @@ public class OnetradingCore extends OnetradingApi
             put( "contract", isPerp );
             put( "linear", ((Helpers.isTrue(isPerp))) ? true : null );
             put( "inverse", ((Helpers.isTrue(isPerp))) ? false : null );
-            put( "contractSize", ((Helpers.isTrue(isPerp))) ? OnetradingCore.this.parseNumber("1") : null );
+            put( "contractSize", ((Helpers.isTrue(isPerp))) ? Onetrading.this.parseNumber("1") : null );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", OnetradingCore.this.parseNumber(OnetradingCore.this.parsePrecision(OnetradingCore.this.safeString(market, "amount_precision"))) );
-                put( "price", OnetradingCore.this.parseNumber(OnetradingCore.this.parsePrecision(OnetradingCore.this.safeString(market, "market_precision"))) );
+                put( "amount", Onetrading.this.parseNumber(Onetrading.this.parsePrecision(Onetrading.this.safeString(market, "amount_precision"))) );
+                put( "price", Onetrading.this.parseNumber(Onetrading.this.parsePrecision(Onetrading.this.safeString(market, "market_precision"))) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -670,7 +670,7 @@ public class OnetradingCore extends OnetradingApi
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", OnetradingCore.this.safeNumber(market, "min_size") );
+                    put( "min", Onetrading.this.safeNumber(market, "min_size") );
                     put( "max", null );
                 }} );
             }} );
@@ -787,8 +787,8 @@ public class OnetradingCore extends OnetradingApi
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", spotFees );
         put( "symbol", symbol );
-        put( "maker", OnetradingCore.this.safeNumber(tierObject, "maker_fee") );
-        put( "taker", OnetradingCore.this.safeNumber(tierObject, "taker_fee") );
+        put( "maker", Onetrading.this.safeNumber(tierObject, "maker_fee") );
+        put( "taker", Onetrading.this.safeNumber(tierObject, "taker_fee") );
         put( "percentage", true );
         put( "tierBased", true );
         put( "tiers", spotTiers );
@@ -865,8 +865,8 @@ public class OnetradingCore extends OnetradingApi
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
-        put( "maker", OnetradingCore.this.parseNumber(makerFee) );
-        put( "taker", OnetradingCore.this.parseNumber(takerFee) );
+        put( "maker", Onetrading.this.parseNumber(makerFee) );
+        put( "taker", Onetrading.this.parseNumber(takerFee) );
         put( "percentage", true );
         put( "tierBased", true );
         put( "tiers", null );
@@ -933,12 +933,12 @@ public class OnetradingCore extends OnetradingApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", OnetradingCore.this.iso8601(timestamp) );
-            put( "high", OnetradingCore.this.safeString(ticker, "high") );
-            put( "low", OnetradingCore.this.safeString(ticker, "low") );
-            put( "bid", OnetradingCore.this.safeString(ticker, "best_bid") );
+            put( "datetime", Onetrading.this.iso8601(timestamp) );
+            put( "high", Onetrading.this.safeString(ticker, "high") );
+            put( "low", Onetrading.this.safeString(ticker, "low") );
+            put( "bid", Onetrading.this.safeString(ticker, "best_bid") );
             put( "bidVolume", null );
-            put( "ask", OnetradingCore.this.safeString(ticker, "best_ask") );
+            put( "ask", Onetrading.this.safeString(ticker, "best_ask") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -1340,10 +1340,10 @@ public class OnetradingCore extends OnetradingApi
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", OnetradingCore.this.safeString2(finalTrade, "trade_id", "sequence") );
-            put( "order", OnetradingCore.this.safeString(finalTrade, "order_id") );
+            put( "id", Onetrading.this.safeString2(finalTrade, "trade_id", "sequence") );
+            put( "order", Onetrading.this.safeString(finalTrade, "order_id") );
             put( "timestamp", finalTimestamp );
-            put( "datetime", OnetradingCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Onetrading.this.iso8601(finalTimestamp) );
             put( "symbol", symbol );
             put( "type", null );
             put( "side", side );
@@ -1525,7 +1525,7 @@ public class OnetradingCore extends OnetradingApi
             put( "clientOrderId", clientOrderId );
             put( "info", order );
             put( "timestamp", timestamp );
-            put( "datetime", OnetradingCore.this.iso8601(timestamp) );
+            put( "datetime", Onetrading.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", symbol );
             put( "type", type );
@@ -1533,7 +1533,7 @@ public class OnetradingCore extends OnetradingApi
             put( "postOnly", postOnly );
             put( "side", side );
             put( "price", price );
-            put( "triggerPrice", OnetradingCore.this.safeNumber(rawOrder, "trigger_price") );
+            put( "triggerPrice", Onetrading.this.safeNumber(rawOrder, "trigger_price") );
             put( "amount", amount );
             put( "cost", null );
             put( "average", null );
@@ -1593,7 +1593,7 @@ public class OnetradingCore extends OnetradingApi
                 put( "instrument_code", Helpers.GetValue(market, "id") );
                 put( "type", finalUppercaseType );
                 put( "side", ((String)finalSide).toUpperCase() );
-                put( "amount", OnetradingCore.this.amountToPrecision(symbol, amount) );
+                put( "amount", Onetrading.this.amountToPrecision(symbol, amount) );
             }};
             Boolean priceIsRequired = false;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(uppercaseType, "LIMIT")) || Helpers.isTrue(Helpers.isEqual(uppercaseType, "STOP"))))
@@ -2002,7 +2002,7 @@ public class OnetradingCore extends OnetradingApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "with_cancelled_and_rejected", true );
             }};
-            return (this.fetchOpenOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOpenOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -2184,7 +2184,7 @@ public class OnetradingCore extends OnetradingApi
             this.checkRequiredCredentials();
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Accept", "application/json" );
-                put( "Authorization", Helpers.add("Bearer ", OnetradingCore.this.apiKey) );
+                put( "Authorization", Helpers.add("Bearer ", Onetrading.this.apiKey) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {

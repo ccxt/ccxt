@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class PacificaCore extends PacificaApi
+public class Pacifica extends PacificaApi
 {
-   public PacificaCore () {
+   public Pacifica () {
        super();
    }
 
-   public PacificaCore (Object options) {
+   public Pacifica (Object options) {
        super(options);
    }
 
@@ -419,12 +419,12 @@ public class PacificaCore extends PacificaApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "swap", new java.util.HashMap<String, Object>() {{
-                    put( "taker", PacificaCore.this.parseNumber("0.0004") );
-                    put( "maker", PacificaCore.this.parseNumber("0.00015") );
+                    put( "taker", Pacifica.this.parseNumber("0.0004") );
+                    put( "maker", Pacifica.this.parseNumber("0.00015") );
                 }} );
                 put( "spot", new java.util.HashMap<String, Object>() {{
-                    put( "taker", PacificaCore.this.parseNumber("0.0004") );
-                    put( "maker", PacificaCore.this.parseNumber("0.00015") );
+                    put( "taker", Pacifica.this.parseNumber("0.0004") );
+                    put( "maker", Pacifica.this.parseNumber("0.00015") );
                 }} );
             }} );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
@@ -843,7 +843,7 @@ public class PacificaCore extends PacificaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object markets = (this.fetchMarkets(parameters)).join();
+            Object markets = (this.fetchMarkets((Object)(parameters))).join();
             return this.filterBy(markets, "type", "swap");
         });
 
@@ -987,15 +987,15 @@ public class PacificaCore extends PacificaApi
                     put( "max", null );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", PacificaCore.this.safeNumber(market, "min_tick") );
-                    put( "max", PacificaCore.this.safeNumber(market, "max_tick") );
+                    put( "min", Pacifica.this.safeNumber(market, "min_tick") );
+                    put( "max", Pacifica.this.safeNumber(market, "max_tick") );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", PacificaCore.this.safeNumber(market, "min_order_size") );
-                    put( "max", PacificaCore.this.safeNumber(market, "max_order_size") );
+                    put( "min", Pacifica.this.safeNumber(market, "min_order_size") );
+                    put( "max", Pacifica.this.safeNumber(market, "max_order_size") );
                 }} );
             }} );
-            put( "created", PacificaCore.this.safeInteger(market, "created_at") );
+            put( "created", Pacifica.this.safeInteger(market, "created_at") );
             put( "marginModes", new java.util.HashMap<String, Object>() {{
                 put( "cross", finalCrossMargin );
                 put( "isolated", finalIsolatedMargin );
@@ -1153,10 +1153,10 @@ public class PacificaCore extends PacificaApi
         Object leverageLimits = this.safeDict(marketLimits, "leverage", new java.util.HashMap<String, Object>() {{}});
         return new java.util.HashMap<String, Object>() {{
             put( "info", market );
-            put( "symbol", PacificaCore.this.safeString(market, "symbol") );
-            put( "marginMode", PacificaCore.this.handleOption("fetchLeverage", "defaultMarginMode", "cross") );
-            put( "longLeverage", PacificaCore.this.safeInteger(leverageLimits, "max") );
-            put( "shortLeverage", PacificaCore.this.safeInteger(leverageLimits, "max") );
+            put( "symbol", Pacifica.this.safeString(market, "symbol") );
+            put( "marginMode", Pacifica.this.handleOption("fetchLeverage", "defaultMarginMode", "cross") );
+            put( "longLeverage", Pacifica.this.safeInteger(leverageLimits, "max") );
+            put( "shortLeverage", Pacifica.this.safeInteger(leverageLimits, "max") );
         }};
     }
 
@@ -1290,7 +1290,7 @@ public class PacificaCore extends PacificaApi
                 // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
                 return new java.util.HashMap<String, Object>() {{
                     put( "symbol", symbol );
-                    put( "marginMode", PacificaCore.this.handleOption("fetchMarginMode", "defaultMarginMode", "cross") );
+                    put( "marginMode", Pacifica.this.handleOption("fetchMarginMode", "defaultMarginMode", "cross") );
                 }};
             } else
             {
@@ -1390,8 +1390,8 @@ public class PacificaCore extends PacificaApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object levels = this.safeList(data, "l", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
-                put( "bids", PacificaCore.this.safeList(levels, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
-                put( "asks", PacificaCore.this.safeList(levels, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
+                put( "bids", Pacifica.this.safeList(levels, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
+                put( "asks", Pacifica.this.safeList(levels, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
             }};
             Long timestamp = this.safeInteger(data, "t");
             return this.parseOrderBook(result, this.safeSymbol(null, market), timestamp, "bids", "asks", "p", "a");
@@ -1477,10 +1477,10 @@ public class PacificaCore extends PacificaApi
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
-            put( "datetime", PacificaCore.this.iso8601(timestamp) );
+            put( "datetime", Pacifica.this.iso8601(timestamp) );
             put( "fundingRate", funding );
             put( "fundingTimestamp", fundingTimestamp );
-            put( "fundingDatetime", PacificaCore.this.iso8601(fundingTimestamp) );
+            put( "fundingDatetime", Pacifica.this.iso8601(fundingTimestamp) );
             put( "nextFundingRate", nextFundingRate );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
@@ -1829,7 +1829,7 @@ public class PacificaCore extends PacificaApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", PacificaCore.this.iso8601(timestamp) );
+            put( "datetime", Pacifica.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
             put( "order", finalOrderId );
@@ -1971,7 +1971,7 @@ public class PacificaCore extends PacificaApi
         final Object finalSide = side;
         java.util.Map<String, Object> sigPayload = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
-            put( "side", PacificaCore.this.mapSide(finalSide) );
+            put( "side", Pacifica.this.mapSide(finalSide) );
         }};
         String operationType = null;
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
@@ -2004,8 +2004,8 @@ public class PacificaCore extends PacificaApi
             final Object finalAmount = amount;
             final Object finalTriggerPrice = triggerPrice;
             java.util.Map<String, Object> stopPayload = new java.util.HashMap<String, Object>() {{
-                put( "amount", PacificaCore.this.amountToPrecision(symbol, finalAmount) );
-                put( "stop_price", PacificaCore.this.priceToPrecision(symbol, finalTriggerPrice) );
+                put( "amount", Pacifica.this.amountToPrecision(symbol, finalAmount) );
+                put( "stop_price", Pacifica.this.priceToPrecision(symbol, finalTriggerPrice) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(stopClientOrderId, null)))
             {
@@ -2032,7 +2032,7 @@ public class PacificaCore extends PacificaApi
         {
             final Object finalTakeProfitPrice = takeProfitPrice;
             java.util.Map<String, Object> tpPayload = new java.util.HashMap<String, Object>() {{
-                put( "stop_price", PacificaCore.this.priceToPrecision(symbol, finalTakeProfitPrice) );
+                put( "stop_price", Pacifica.this.priceToPrecision(symbol, finalTakeProfitPrice) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
@@ -2044,7 +2044,7 @@ public class PacificaCore extends PacificaApi
         {
             final Object finalStopLossPrice = stopLossPrice;
             java.util.Map<String, Object> slPayload = new java.util.HashMap<String, Object>() {{
-                put( "stop_price", PacificaCore.this.priceToPrecision(symbol, finalStopLossPrice) );
+                put( "stop_price", Pacifica.this.priceToPrecision(symbol, finalStopLossPrice) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
@@ -2556,7 +2556,7 @@ public class PacificaCore extends PacificaApi
         Object priceNormalized = this.priceToPrecision(symbol, price);
         Object amountNormalized = this.amountToPrecision(symbol, amount);
         java.util.Map<String, Object> sigPayload = new java.util.HashMap<String, Object>() {{
-            put( "symbol", PacificaCore.this.safeString(market, "id") );
+            put( "symbol", Pacifica.this.safeString(market, "id") );
             put( "price", priceNormalized );
             put( "amount", amountNormalized );
         }};
@@ -2650,9 +2650,9 @@ public class PacificaCore extends PacificaApi
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
-                    put( "fundingRate", PacificaCore.this.safeNumber(entry, "funding_rate") );
+                    put( "fundingRate", Pacifica.this.safeNumber(entry, "funding_rate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", PacificaCore.this.iso8601(timestamp) );
+                    put( "datetime", Pacifica.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(result, "timestamp");
@@ -2745,12 +2745,12 @@ public class PacificaCore extends PacificaApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", PacificaCore.this.iso8601(timestamp) );
-            put( "previousClose", PacificaCore.this.safeNumber(ticker, "yesterday_price") );
-            put( "close", PacificaCore.this.safeNumber(ticker, "mid") );
+            put( "datetime", Pacifica.this.iso8601(timestamp) );
+            put( "previousClose", Pacifica.this.safeNumber(ticker, "yesterday_price") );
+            put( "close", Pacifica.this.safeNumber(ticker, "mid") );
             put( "bid", null );
             put( "ask", null );
-            put( "quoteVolume", PacificaCore.this.safeNumber(ticker, "volume_24h") );
+            put( "quoteVolume", Pacifica.this.safeNumber(ticker, "volume_24h") );
             put( "info", ticker );
         }}, market);
     }
@@ -2780,7 +2780,7 @@ public class PacificaCore extends PacificaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchOrders(symbol, null, null, parameters)).join(); // don't filter here because we don't want to catch open orders
+            Object orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("closed")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         });
@@ -2812,7 +2812,7 @@ public class PacificaCore extends PacificaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchOrders(symbol, null, null, parameters)).join(); // don't filter here because we don't want to catch open orders
+            Object orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("canceled")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         });
@@ -2844,7 +2844,7 @@ public class PacificaCore extends PacificaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchOrders(symbol, null, null, parameters)).join(); // don't filter here because we don't want to catch open orders
+            Object orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("canceled", "closed", "rejected")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         });
@@ -3277,26 +3277,26 @@ public class PacificaCore extends PacificaApi
         final Object finalSide = side;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", PacificaCore.this.safeString2(order, "order_id", "i") );
-            put( "clientOrderId", PacificaCore.this.safeString2(order, "client_order_id", "I") );
+            put( "id", Pacifica.this.safeString2(order, "order_id", "i") );
+            put( "clientOrderId", Pacifica.this.safeString2(order, "client_order_id", "I") );
             put( "timestamp", timestamp );
-            put( "datetime", PacificaCore.this.iso8601(timestamp) );
+            put( "datetime", Pacifica.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", PacificaCore.this.safeInteger2(order, "updated_at", "ut") );
+            put( "lastUpdateTimestamp", Pacifica.this.safeInteger2(order, "updated_at", "ut") );
             put( "symbol", symbol );
-            put( "type", PacificaCore.this.parseOrderType(PacificaCore.this.safeStringLower2(order, "order_type", "ot")) );
+            put( "type", Pacifica.this.parseOrderType(Pacifica.this.safeStringLower2(order, "order_type", "ot")) );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "reduceOnly", PacificaCore.this.safeBool2(order, "reduce_only", "r") );
+            put( "reduceOnly", Pacifica.this.safeBool2(order, "reduce_only", "r") );
             put( "side", finalSide );
-            put( "price", PacificaCore.this.safeString2(order, "price", "lp") );
-            put( "triggerPrice", PacificaCore.this.safeNumber2(order, "stop_price", "sp") );
+            put( "price", Pacifica.this.safeString2(order, "price", "lp") );
+            put( "triggerPrice", Pacifica.this.safeNumber2(order, "stop_price", "sp") );
             put( "amount", totalAmount );
             put( "cost", null );
-            put( "average", PacificaCore.this.safeString2(order, "average_filled_price", "p") );
+            put( "average", Pacifica.this.safeString2(order, "average_filled_price", "p") );
             put( "filled", filledAmount );
             put( "remaining", remaining );
-            put( "status", PacificaCore.this.parseOrderStatus(status) );
+            put( "status", Pacifica.this.parseOrderStatus(status) );
             put( "fee", null );
             put( "trades", null );
         }}, market);
@@ -3318,7 +3318,7 @@ public class PacificaCore extends PacificaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object positions = (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object positions = (this.fetchPositions((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(positions, 0, new java.util.HashMap<String, Object>() {{}});
         });
 
@@ -3421,13 +3421,13 @@ public class PacificaCore extends PacificaApi
             put( "id", null );
             put( "symbol", symbol );
             put( "timestamp", createdAt );
-            put( "datetime", PacificaCore.this.iso8601(createdAt) );
+            put( "datetime", Pacifica.this.iso8601(createdAt) );
             put( "isolated", isIsolated );
             put( "hedged", null );
             put( "side", finalSide );
-            put( "contracts", PacificaCore.this.safeNumber(position, "amount") );
+            put( "contracts", Pacifica.this.safeNumber(position, "amount") );
             put( "contractSize", null );
-            put( "entryPrice", PacificaCore.this.safeNumber(position, "entry_price") );
+            put( "entryPrice", Pacifica.this.safeNumber(position, "entry_price") );
             put( "markPrice", null );
             put( "notional", null );
             put( "leverage", null );
@@ -3654,8 +3654,8 @@ public class PacificaCore extends PacificaApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", PacificaCore.this.safeNumber(fee, "maker_fee") );
-            put( "taker", PacificaCore.this.safeNumber(fee, "taker_fee") );
+            put( "maker", Pacifica.this.safeNumber(fee, "maker_fee") );
+            put( "taker", Pacifica.this.safeNumber(fee, "taker_fee") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -3708,7 +3708,7 @@ public class PacificaCore extends PacificaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object ois = (this.fetchOpenInterests(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object ois = (this.fetchOpenInterests((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(ois, symbol);
         });
 
@@ -3750,11 +3750,11 @@ public class PacificaCore extends PacificaApi
         final Object finalOpenInterest = openInterest;
         final Object finalInterestValue = interestValue;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", PacificaCore.this.safeSymbol(finalSymbol) );
-            put( "openInterestAmount", PacificaCore.this.parseNumber(finalOpenInterest) );
-            put( "openInterestValue", PacificaCore.this.parseNumber(finalInterestValue) );
+            put( "symbol", Pacifica.this.safeSymbol(finalSymbol) );
+            put( "openInterestAmount", Pacifica.this.parseNumber(finalOpenInterest) );
+            put( "openInterestValue", Pacifica.this.parseNumber(finalInterestValue) );
             put( "timestamp", timestamp );
-            put( "datetime", PacificaCore.this.iso8601(timestamp) );
+            put( "datetime", Pacifica.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -3852,13 +3852,13 @@ public class PacificaCore extends PacificaApi
             put( "account", null );
             put( "referenceAccount", null );
             put( "referenceId", null );
-            put( "type", PacificaCore.this.parseLedgerEntryType(type) );
+            put( "type", Pacifica.this.parseLedgerEntryType(type) );
             put( "currency", null );
-            put( "amount", PacificaCore.this.parseNumber(amount) );
+            put( "amount", Pacifica.this.parseNumber(amount) );
             put( "timestamp", timestamp );
-            put( "datetime", PacificaCore.this.iso8601(timestamp) );
+            put( "datetime", Pacifica.this.iso8601(timestamp) );
             put( "before", null );
-            put( "after", PacificaCore.this.parseNumber(balance) );
+            put( "after", Pacifica.this.parseNumber(balance) );
             put( "status", null );
             put( "fee", null );
         }}, currency);
@@ -3990,9 +3990,9 @@ public class PacificaCore extends PacificaApi
             put( "symbol", symbol );
             put( "code", code );
             put( "timestamp", timestamp );
-            put( "datetime", PacificaCore.this.iso8601(timestamp) );
+            put( "datetime", Pacifica.this.iso8601(timestamp) );
             put( "id", id );
-            put( "amount", PacificaCore.this.parseNumber(amount) );
+            put( "amount", Pacifica.this.parseNumber(amount) );
             put( "rate", rate );
         }};
     }
@@ -4024,7 +4024,7 @@ public class PacificaCore extends PacificaApi
             String operationType = "transfer_funds";
             java.util.Map<String, Object> sigPayload = new java.util.HashMap<String, Object>() {{
                 put( "to_account", toAccount );
-                put( "amount", PacificaCore.this.numberToString(amount) );
+                put( "amount", Pacifica.this.numberToString(amount) );
             }};
             Object request = this.postActionRequest(operationType, sigPayload, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiryWindow")));
@@ -4043,7 +4043,7 @@ public class PacificaCore extends PacificaApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.extend(this.parseTransfer(data, currency), new java.util.HashMap<String, Object>() {{
                 put( "amount", amount );
-                put( "fromAccount", PacificaCore.this.safeString(request, "account") );
+                put( "fromAccount", Pacifica.this.safeString(request, "account") );
                 put( "toAccount", toAccount );
             }});
         });
@@ -4076,7 +4076,7 @@ public class PacificaCore extends PacificaApi
             put( "id", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", PacificaCore.this.safeCurrencyCode(null, currency) );
+            put( "currency", Pacifica.this.safeCurrencyCode(null, currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );

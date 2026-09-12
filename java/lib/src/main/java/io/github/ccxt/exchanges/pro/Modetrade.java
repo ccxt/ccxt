@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
+public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 {
-   public ModetradeCore () {
+   public Modetrade () {
        super();
    }
 
-   public ModetradeCore (Object options) {
+   public Modetrade (Object options) {
        super(options);
    }
 
@@ -231,25 +231,25 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", ModetradeCore.this.safeSymbol(null, market) );
+            put( "symbol", Modetrade.this.safeSymbol(null, market) );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", ModetradeCore.this.safeString(ticker, "high") );
-            put( "low", ModetradeCore.this.safeString(ticker, "low") );
+            put( "high", Modetrade.this.safeString(ticker, "high") );
+            put( "low", Modetrade.this.safeString(ticker, "low") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", ModetradeCore.this.safeString(ticker, "open") );
-            put( "close", ModetradeCore.this.safeString(ticker, "close") );
+            put( "open", Modetrade.this.safeString(ticker, "open") );
+            put( "close", Modetrade.this.safeString(ticker, "close") );
             put( "last", null );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", ModetradeCore.this.safeString(ticker, "volume") );
-            put( "quoteVolume", ModetradeCore.this.safeString(ticker, "amount") );
+            put( "baseVolume", Modetrade.this.safeString(ticker, "volume") );
+            put( "quoteVolume", Modetrade.this.safeString(ticker, "amount") );
             put( "info", ticker );
         }}, market);
     }
@@ -437,11 +437,11 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", ModetradeCore.this.iso8601(timestamp) );
-            put( "ask", ModetradeCore.this.safeString(ticker, "ask") );
-            put( "askVolume", ModetradeCore.this.safeString(ticker, "askSize") );
-            put( "bid", ModetradeCore.this.safeString(ticker, "bid") );
-            put( "bidVolume", ModetradeCore.this.safeString(ticker, "bidSize") );
+            put( "datetime", Modetrade.this.iso8601(timestamp) );
+            put( "ask", Modetrade.this.safeString(ticker, "ask") );
+            put( "askVolume", Modetrade.this.safeString(ticker, "askSize") );
+            put( "bid", Modetrade.this.safeString(ticker, "bid") );
+            put( "bidVolume", Modetrade.this.safeString(ticker, "bidSize") );
             put( "info", ticker );
         }}, market);
     }
@@ -675,23 +675,23 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             final Object finalFeeValue = feeValue;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeValue );
-                put( "currency", ModetradeCore.this.safeCurrencyCode(ModetradeCore.this.safeString(trade, "feeAsset")) );
+                put( "currency", Modetrade.this.safeCurrencyCode(Modetrade.this.safeString(trade, "feeAsset")) );
             }};
         }
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", ModetradeCore.this.safeString(trade, "tradeId") );
+            put( "id", Modetrade.this.safeString(trade, "tradeId") );
             put( "timestamp", timestamp );
-            put( "datetime", ModetradeCore.this.iso8601(timestamp) );
+            put( "datetime", Modetrade.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "side", side );
             put( "price", price );
             put( "amount", amount );
             put( "cost", cost );
-            put( "order", ModetradeCore.this.safeString(trade, "orderId") );
+            put( "order", Modetrade.this.safeString(trade, "orderId") );
             put( "takerOrMaker", finalTakerOrMaker );
-            put( "type", ModetradeCore.this.safeStringLower(trade, "type") );
+            put( "type", Modetrade.this.safeStringLower(trade, "type") );
             put( "fee", finalFee );
             put( "info", trade );
         }}, market);
@@ -752,7 +752,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "event", eventVar );
                     put( "params", new java.util.HashMap<String, Object>() {{
-                        put( "orderly_key", ModetradeCore.this.apiKey );
+                        put( "orderly_key", Modetrade.this.apiKey );
                         put( "sign", signature );
                         put( "timestamp", ts );
                     }} );
@@ -977,8 +977,8 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object symbol = Helpers.GetValue(market, "symbol");
         Long timestamp = this.safeInteger(order, "timestamp");
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
-            put( "cost", ModetradeCore.this.safeString(order, "totalFee") );
-            put( "currency", ModetradeCore.this.safeString(order, "feeAsset") );
+            put( "cost", Modetrade.this.safeString(order, "totalFee") );
+            put( "currency", Modetrade.this.safeString(order, "feeAsset") );
         }};
         String priceString = this.safeString(order, "price");
         Object price = this.safeNumber(order, "price");
@@ -1010,7 +1010,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", ModetradeCore.this.iso8601(timestamp) );
+            put( "datetime", Modetrade.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", timestamp );
             put( "type", type );
             put( "timeInForce", null );
@@ -1390,23 +1390,23 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", ModetradeCore.this.safeString(finalMarket, "symbol") );
+            put( "symbol", Modetrade.this.safeString(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", ModetradeCore.this.iso8601(timestamp) );
+            put( "datetime", Modetrade.this.iso8601(timestamp) );
             put( "lastUpdateTimestamp", null );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "entryPrice", ModetradeCore.this.parseNumber(entryPrice) );
-            put( "notional", ModetradeCore.this.parseNumber(notional) );
+            put( "entryPrice", Modetrade.this.parseNumber(entryPrice) );
+            put( "notional", Modetrade.this.parseNumber(notional) );
             put( "leverage", null );
-            put( "unrealizedPnl", ModetradeCore.this.parseNumber(unrealisedPnl) );
-            put( "contracts", ModetradeCore.this.parseNumber(finalSize) );
-            put( "contractSize", ModetradeCore.this.parseNumber(contractSize) );
+            put( "unrealizedPnl", Modetrade.this.parseNumber(unrealisedPnl) );
+            put( "contracts", Modetrade.this.parseNumber(finalSize) );
+            put( "contractSize", Modetrade.this.parseNumber(contractSize) );
             put( "marginRatio", null );
-            put( "liquidationPrice", ModetradeCore.this.safeNumber(position, "estLiqPrice") );
-            put( "markPrice", ModetradeCore.this.parseNumber(markPrice) );
+            put( "liquidationPrice", Modetrade.this.safeNumber(position, "estLiqPrice") );
+            put( "markPrice", Modetrade.this.parseNumber(markPrice) );
             put( "lastPrice", null );
             put( "collateral", null );
             put( "marginMode", "cross" );

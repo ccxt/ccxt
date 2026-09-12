@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class GateeuCore extends GateeuApi
+public class Gateeu extends GateeuApi
 {
-   public GateeuCore () {
+   public Gateeu () {
        super();
    }
 
-   public GateeuCore (Object options) {
+   public Gateeu (Object options) {
        super(options);
    }
 

@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BackpackCore extends io.github.ccxt.exchanges.Backpack
+public class Backpack extends io.github.ccxt.exchanges.Backpack
 {
-   public BackpackCore () {
+   public Backpack () {
        super();
    }
 
-   public BackpackCore (Object options) {
+   public Backpack (Object options) {
        super(options);
    }
 
@@ -114,7 +114,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
                 put( "params", topics );
-                put( "signature", new java.util.ArrayList<Object>(java.util.Arrays.asList(BackpackCore.this.apiKey, signature, ts, recvWindow)) );
+                put( "signature", new java.util.ArrayList<Object>(java.util.Arrays.asList(Backpack.this.apiKey, signature, ts, recvWindow)) );
             }};
             java.util.Map<String, Object> message = this.deepExtend(request, parameters);
             if (Helpers.isTrue(unwatch))
@@ -397,9 +397,9 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BackpackCore.this.iso8601(timestamp) );
-            put( "high", BackpackCore.this.safeNumber(ticker, "h") );
-            put( "low", BackpackCore.this.safeNumber(ticker, "l") );
+            put( "datetime", Backpack.this.iso8601(timestamp) );
+            put( "high", Backpack.this.safeNumber(ticker, "h") );
+            put( "low", Backpack.this.safeNumber(ticker, "l") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
@@ -412,8 +412,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", BackpackCore.this.safeString(ticker, "v") );
-            put( "quoteVolume", BackpackCore.this.safeString(ticker, "V") );
+            put( "baseVolume", Backpack.this.safeString(ticker, "v") );
+            put( "quoteVolume", Backpack.this.safeString(ticker, "V") );
             put( "info", ticker );
         }}, market);
     }
@@ -543,7 +543,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BackpackCore.this.iso8601(timestamp) );
+            put( "datetime", Backpack.this.iso8601(timestamp) );
             put( "ask", ask );
             put( "askVolume", askVolume );
             put( "bid", bid );
@@ -782,7 +782,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -988,7 +988,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             put( "info", trade );
             put( "id", id );
             put( "timestamp", timestamp );
-            put( "datetime", BackpackCore.this.iso8601(timestamp) );
+            put( "datetime", Backpack.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "order", finalOrderId );
             put( "type", null );
@@ -1021,7 +1021,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1421,7 +1421,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", BackpackCore.this.iso8601(timestamp) );
+            put( "datetime", Backpack.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "status", status );
             put( "symbol", symbol );
@@ -1672,7 +1672,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             put( "side", finalSide );
             put( "hedged", finalHedged );
             put( "timestamp", timestamp );
-            put( "datetime", BackpackCore.this.iso8601(timestamp) );
+            put( "datetime", Backpack.this.iso8601(timestamp) );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", maintenanceMarginPercentage );
             put( "collateral", null );

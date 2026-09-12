@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
+public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 {
-   public BydfiCore () {
+   public Bydfi () {
        super();
    }
 
-   public BydfiCore (Object options) {
+   public Bydfi (Object options) {
        super(options);
    }
 
@@ -91,7 +91,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
     public Object ping(Client client)
     {
         return new java.util.HashMap<String, Object>() {{
-            put( "id", BydfiCore.this.requestId() );
+            put( "id", Bydfi.this.requestId() );
             put( "method", "ping" );
         }};
     }
@@ -160,7 +160,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                     put( "id", id );
                     put( "method", "LOGIN" );
                     put( "params", new java.util.HashMap<String, Object>() {{
-                        put( "apiKey", BydfiCore.this.apiKey );
+                        put( "apiKey", Bydfi.this.apiKey );
                         put( "timestamp", timestamp );
                         put( "sign", signature );
                     }} );
@@ -576,7 +576,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -758,7 +758,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             {
                 symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol));
             }
-            return (this.watchOrdersForSymbols((java.util.List<String>)(symbols), since, limit, parameters)).join();
+            return (this.watchOrdersForSymbols((Object)((java.util.List<String>)(symbols)), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -906,30 +906,30 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         final Object finalFee = fee;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", BydfiCore.this.safeString(order, "o") );
-            put( "clientOrderId", BydfiCore.this.safeString(order, "cid") );
+            put( "id", Bydfi.this.safeString(order, "o") );
+            put( "clientOrderId", Bydfi.this.safeString(order, "cid") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", null );
-            put( "status", BydfiCore.this.parseOrderStatus(rawStatus) );
+            put( "status", Bydfi.this.parseOrderStatus(rawStatus) );
             put( "symbol", Helpers.GetValue(finalMarket_2, "symbol") );
-            put( "type", BydfiCore.this.parseOrderType(rawType) );
+            put( "type", Bydfi.this.parseOrderType(rawType) );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "reduceOnly", BydfiCore.this.safeBool(order, "ro") );
-            put( "side", BydfiCore.this.safeStringLower(order, "S") );
-            put( "price", BydfiCore.this.safeString(order, "p") );
+            put( "reduceOnly", Bydfi.this.safeBool(order, "ro") );
+            put( "side", Bydfi.this.safeStringLower(order, "S") );
+            put( "price", Bydfi.this.safeString(order, "p") );
             put( "triggerPrice", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-            put( "amount", BydfiCore.this.safeString(order, "v") );
-            put( "filled", BydfiCore.this.safeString(order, "ev") );
-            put( "remaining", BydfiCore.this.safeString(order, "qty") );
+            put( "amount", Bydfi.this.safeString(order, "v") );
+            put( "filled", Bydfi.this.safeString(order, "ev") );
+            put( "remaining", Bydfi.this.safeString(order, "qty") );
             put( "cost", null );
             put( "trades", null );
             put( "fee", finalFee );
-            put( "average", BydfiCore.this.omitZero(BydfiCore.this.safeString(order, "ap")) );
+            put( "average", Bydfi.this.omitZero(Bydfi.this.safeString(order, "ap")) );
         }}, market);
     }
 
@@ -1076,30 +1076,30 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         final Object finalPositionMode = positionMode;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", BydfiCore.this.safeString(position, "id") );
+            put( "id", Bydfi.this.safeString(position, "id") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "entryPrice", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "ap")) );
+            put( "entryPrice", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "ap")) );
             put( "markPrice", null );
             put( "lastPrice", null );
             put( "notional", null );
             put( "collateral", null );
             put( "unrealizedPnl", null );
-            put( "realizedPnl", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "rp")) );
-            put( "side", BydfiCore.this.parseWsPositionSide(rawPositionSide) );
-            put( "contracts", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "v")) );
-            put( "contractSize", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "uq")) );
+            put( "realizedPnl", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "rp")) );
+            put( "side", Bydfi.this.parseWsPositionSide(rawPositionSide) );
+            put( "contracts", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "v")) );
+            put( "contractSize", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "uq")) );
             put( "timestamp", null );
             put( "datetime", null );
             put( "lastUpdateTimestamp", null );
             put( "hedged", (!Helpers.isEqual(finalPositionMode, "ONEWAY")) );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "pm")) );
+            put( "initialMargin", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "pm")) );
             put( "initialMarginPercentage", null );
-            put( "leverage", BydfiCore.this.safeInteger(position, "l") );
-            put( "liquidationPrice", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "lq")) );
+            put( "leverage", Bydfi.this.safeInteger(position, "l") );
+            put( "liquidationPrice", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "lq")) );
             put( "marginRatio", null );
-            put( "marginMode", BydfiCore.this.safeStringLower(position, "mt") );
+            put( "marginMode", Bydfi.this.safeStringLower(position, "mt") );
             put( "percentage", null );
         }});
     }
@@ -1232,7 +1232,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );
-                put( "datetime", BydfiCore.this.iso8601(timestamp) );
+                put( "datetime", Bydfi.this.iso8601(timestamp) );
             }};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
             {

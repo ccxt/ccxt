@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class DeribitCore extends io.github.ccxt.exchanges.Deribit
+public class Deribit extends io.github.ccxt.exchanges.Deribit
 {
-   public DeribitCore () {
+   public Deribit () {
        super();
    }
 
-   public DeribitCore (Object options) {
+   public Deribit (Object options) {
        super(options);
    }
 
@@ -113,7 +113,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", channels );
                 }} );
-                put( "id", DeribitCore.this.requestId() );
+                put( "id", Deribit.this.requestId() );
             }};
             java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
@@ -220,7 +220,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.add(Helpers.add(Helpers.add("ticker.", Helpers.GetValue(market, "id")), "."), finalInterval))) );
                 }} );
-                put( "id", DeribitCore.this.requestId() );
+                put( "id", Deribit.this.requestId() );
             }};
             java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, channel, request, channel, request)).join();
@@ -273,7 +273,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", channels );
                 }} );
-                put( "id", DeribitCore.this.requestId() );
+                put( "id", Deribit.this.requestId() );
             }};
             java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object newTickers = (this.watchMultiple(url, channels, request, channels, request)).join();
@@ -363,7 +363,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", channels );
                 }} );
-                put( "id", DeribitCore.this.requestId() );
+                put( "id", Deribit.this.requestId() );
             }};
             java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object newTickers = (this.watchMultiple(url, channels, request, channels, request)).join();
@@ -416,11 +416,11 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", DeribitCore.this.iso8601(timestamp) );
-            put( "ask", DeribitCore.this.safeString(ticker, "best_ask_price") );
-            put( "askVolume", DeribitCore.this.safeString(ticker, "best_ask_amount") );
-            put( "bid", DeribitCore.this.safeString(ticker, "best_bid_price") );
-            put( "bidVolume", DeribitCore.this.safeString(ticker, "best_bid_amount") );
+            put( "datetime", Deribit.this.iso8601(timestamp) );
+            put( "ask", Deribit.this.safeString(ticker, "best_ask_price") );
+            put( "askVolume", Deribit.this.safeString(ticker, "best_ask_amount") );
+            put( "bid", Deribit.this.safeString(ticker, "best_bid_price") );
+            put( "bidVolume", Deribit.this.safeString(ticker, "best_bid_amount") );
             put( "info", ticker );
         }}, market);
     }
@@ -446,7 +446,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTrades");
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -575,7 +575,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(channel)) );
                 }} );
-                put( "id", DeribitCore.this.requestId() );
+                put( "id", Deribit.this.requestId() );
             }};
             java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object trades = (this.watch(url, channel, request, channel, request)).join();
@@ -658,7 +658,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOrderBook");
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -881,7 +881,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(channel)) );
                 }} );
-                put( "id", DeribitCore.this.requestId() );
+                put( "id", Deribit.this.requestId() );
             }};
             java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, channel, request, channel, request)).join();
@@ -1140,7 +1140,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", rawSubscriptions );
                 }} );
-                put( "id", DeribitCore.this.requestId() );
+                put( "id", Deribit.this.requestId() );
             }};
             java.util.Map<String, Object> extendedRequest = this.deepExtend(request, parameters);
             Object maxMessageByteLimit = Helpers.subtract(32768, 1); // 'Message Too Big: limit 32768B'
@@ -1237,7 +1237,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 put( "book", "handleOrderBook");
                 put( "trades", "handleTrades");
                 put( "chart", "handleOHLCV");
-                put( "user", DeribitCore.this.safeValue(userHandlers, DeribitCore.this.safeString(parts, 1)) );
+                put( "user", Deribit.this.safeValue(userHandlers, Deribit.this.safeString(parts, 1)) );
             }};
             Object handler = this.safeValue(handlers, channelId);
             if (Helpers.isTrue(!Helpers.isEqual(handler, null)))
@@ -1304,7 +1304,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                     put( "method", "public/auth" );
                     put( "params", new java.util.HashMap<String, Object>() {{
                         put( "grant_type", "client_signature" );
-                        put( "client_id", DeribitCore.this.apiKey );
+                        put( "client_id", Deribit.this.apiKey );
                         put( "timestamp", time );
                         put( "signature", signature );
                         put( "nonce", nonce );

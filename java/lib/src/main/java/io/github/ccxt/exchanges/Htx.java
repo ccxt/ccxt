@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class HtxCore extends HtxApi
+public class Htx extends HtxApi
 {
-   public HtxCore () {
+   public Htx () {
        super();
    }
 
-   public HtxCore (Object options) {
+   public Htx (Object options) {
        super(options);
    }
 
@@ -24,7 +24,7 @@ public class HtxCore extends HtxApi
             put( "name", "HTX" );
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("CN")) );
             put( "rateLimit", 100 );
-            put( "userAgent", Helpers.GetValue(HtxCore.this.userAgents, "chrome100") );
+            put( "userAgent", Helpers.GetValue(Htx.this.userAgents, "chrome100") );
             put( "certified", true );
             put( "version", "v1" );
             put( "hostname", "api.huobi.pro" );
@@ -1661,8 +1661,8 @@ public class HtxCore extends HtxApi
                     put( "feeSide", "get" );
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "maker", HtxCore.this.parseNumber("0.002") );
-                    put( "taker", HtxCore.this.parseNumber("0.002") );
+                    put( "maker", Htx.this.parseNumber("0.002") );
+                    put( "taker", Htx.this.parseNumber("0.002") );
                 }} );
             }} );
             put( "exceptions", new java.util.HashMap<String, Object>() {{
@@ -2297,9 +2297,9 @@ public class HtxCore extends HtxApi
         String marketId = this.safeString(fee, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", HtxCore.this.safeSymbol(marketId, market) );
-            put( "maker", HtxCore.this.safeNumber(fee, "actualMakerRate") );
-            put( "taker", HtxCore.this.safeNumber(fee, "actualTakerRate") );
+            put( "symbol", Htx.this.safeSymbol(marketId, market) );
+            put( "maker", Htx.this.safeNumber(fee, "actualMakerRate") );
+            put( "taker", Htx.this.safeNumber(fee, "actualTakerRate") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -2447,8 +2447,8 @@ public class HtxCore extends HtxApi
             put( "info", limits );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", HtxCore.this.safeNumber(limits, "limit-order-must-greater-than") );
-                    put( "max", HtxCore.this.safeNumber(limits, "limit-order-must-less-than") );
+                    put( "min", Htx.this.safeNumber(limits, "limit-order-must-greater-than") );
+                    put( "max", Htx.this.safeNumber(limits, "limit-order-must-less-than") );
                 }} );
             }} );
         }};
@@ -2855,7 +2855,7 @@ public class HtxCore extends HtxApi
                     put( "maker", finalMaker );
                     put( "contractSize", contractSize );
                     put( "expiry", finalExpiry );
-                    put( "expiryDatetime", HtxCore.this.iso8601(finalExpiry) );
+                    put( "expiryDatetime", Htx.this.iso8601(finalExpiry) );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
@@ -2865,9 +2865,9 @@ public class HtxCore extends HtxApi
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", HtxCore.this.parseNumber("1") );
-                            put( "max", HtxCore.this.parseNumber(leverageRatio) );
-                            put( "superMax", HtxCore.this.parseNumber(superLeverageRatio) );
+                            put( "min", Htx.this.parseNumber("1") );
+                            put( "max", Htx.this.parseNumber(leverageRatio) );
+                            put( "superMax", Htx.this.parseNumber(superLeverageRatio) );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
                             put( "min", finalMinAmount );
@@ -3029,9 +3029,9 @@ public class HtxCore extends HtxApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
-            put( "high", HtxCore.this.safeString(ticker, "high") );
-            put( "low", HtxCore.this.safeString(ticker, "low") );
+            put( "datetime", Htx.this.iso8601(timestamp) );
+            put( "high", Htx.this.safeString(ticker, "high") );
+            put( "low", Htx.this.safeString(ticker, "low") );
             put( "bid", finalBid );
             put( "bidVolume", finalBidVolume );
             put( "ask", finalAsk );
@@ -3648,7 +3648,7 @@ public class HtxCore extends HtxApi
             put( "info", trade );
             put( "order", order );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "type", finalType );
             put( "side", finalSide );
@@ -4109,7 +4109,7 @@ public class HtxCore extends HtxApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "period", HtxCore.this.safeString(HtxCore.this.timeframes, timeframe, timeframe) );
+                put( "period", Htx.this.safeString(Htx.this.timeframes, timeframe, timeframe) );
             }};
             String priceType = this.safeString2(parameters, "priceType", "price");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("priceType", "price")));
@@ -4314,7 +4314,7 @@ public class HtxCore extends HtxApi
         Object type = this.safeValue(accountsById, typeId, typeId);
         return new java.util.HashMap<String, Object>() {{
             put( "info", account );
-            put( "id", HtxCore.this.safeString(account, "id") );
+            put( "id", Htx.this.safeString(account, "id") );
             put( "type", type );
             put( "code", null );
         }};
@@ -4486,19 +4486,19 @@ public class HtxCore extends HtxApi
     put( "network", finalNetworkCode );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", HtxCore.this.safeNumber(chainEntry, "minDepositAmt") );
+            put( "min", Htx.this.safeNumber(chainEntry, "minDepositAmt") );
             put( "max", null );
         }} );
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", HtxCore.this.safeNumber(chainEntry, "minWithdrawAmt") );
-            put( "max", HtxCore.this.safeNumber(chainEntry, "maxWithdrawAmt") );
+            put( "min", Htx.this.safeNumber(chainEntry, "minWithdrawAmt") );
+            put( "max", Htx.this.safeNumber(chainEntry, "maxWithdrawAmt") );
         }} );
     }} );
     put( "active", null );
-    put( "deposit", Helpers.isEqual(HtxCore.this.safeString(chainEntry, "depositStatus"), "allowed") );
-    put( "withdraw", Helpers.isEqual(HtxCore.this.safeString(chainEntry, "withdrawStatus"), "allowed") );
-    put( "fee", HtxCore.this.safeNumber(chainEntry, "transactFeeWithdraw") );
-    put( "precision", HtxCore.this.parseNumber(HtxCore.this.parsePrecision(HtxCore.this.safeString(chainEntry, "withdrawPrecision"))) );
+    put( "deposit", Helpers.isEqual(Htx.this.safeString(chainEntry, "depositStatus"), "allowed") );
+    put( "withdraw", Helpers.isEqual(Htx.this.safeString(chainEntry, "withdrawStatus"), "allowed") );
+    put( "fee", Htx.this.safeNumber(chainEntry, "transactFeeWithdraw") );
+    put( "precision", Htx.this.parseNumber(Htx.this.parsePrecision(Htx.this.safeString(chainEntry, "withdrawPrecision"))) );
 }});
             }
         }
@@ -4507,7 +4507,7 @@ public class HtxCore extends HtxApi
             put( "info", rawCurrency );
             put( "code", finalCode );
             put( "id", currencyId );
-            put( "active", Helpers.isEqual(HtxCore.this.safeString(rawCurrency, "instStatus"), "normal") );
+            put( "active", Helpers.isEqual(Htx.this.safeString(rawCurrency, "instStatus"), "normal") );
             put( "deposit", null );
             put( "withdraw", null );
             put( "fee", null );
@@ -6412,17 +6412,17 @@ public class HtxCore extends HtxApi
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", finalType );
-            put( "timeInForce", HtxCore.this.safeStringUpper(order, "time_in_force") );
+            put( "timeInForce", Htx.this.safeStringUpper(order, "time_in_force") );
             put( "postOnly", null );
             put( "side", finalSide );
             put( "price", price );
-            put( "triggerPrice", HtxCore.this.safeString2(order, "stop-price", "trigger_price") );
-            put( "stopLossPrice", HtxCore.this.safeString2(order, "sl_trigger_price", "sl_order_price") );
-            put( "takeProfitPrice", HtxCore.this.safeString2(order, "tp_trigger_price", "tp_order_price") );
+            put( "triggerPrice", Htx.this.safeString2(order, "stop-price", "trigger_price") );
+            put( "stopLossPrice", Htx.this.safeString2(order, "sl_trigger_price", "sl_order_price") );
+            put( "takeProfitPrice", Htx.this.safeString2(order, "tp_trigger_price", "tp_order_price") );
             put( "average", average );
             put( "cost", finalCost );
             put( "amount", finalAmount );
@@ -6461,7 +6461,7 @@ public class HtxCore extends HtxApi
                 throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -6499,7 +6499,7 @@ public class HtxCore extends HtxApi
             }
             Helpers.addElementToObject(parameters, "trailingPercent", trailingPercent);
             Helpers.addElementToObject(parameters, "trailingTriggerPrice", trailingTriggerPrice);
-            return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -6701,7 +6701,7 @@ public class HtxCore extends HtxApi
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "contract_code", Helpers.GetValue(market, "id") );
-            put( "volume", HtxCore.this.amountToPrecision(symbol, amount) );
+            put( "volume", Htx.this.amountToPrecision(symbol, amount) );
         }};
         Boolean postOnly = false;
         java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, "post_only"), parameters);
@@ -7102,7 +7102,7 @@ public class HtxCore extends HtxApi
                 final Object finalResponse = response;
                 return this.safeOrder(new java.util.HashMap<String, Object>() {{
                     put( "info", finalResponse );
-                    put( "id", HtxCore.this.safeString(finalResponse, "data") );
+                    put( "id", Htx.this.safeString(finalResponse, "data") );
                     put( "timestamp", null );
                     put( "datetime", null );
                     put( "lastTradeTimestamp", null );
@@ -7433,7 +7433,7 @@ public class HtxCore extends HtxApi
                     {
                         final Object finalMarket = market;
                         java.util.Map<String, Object> requestItem = new java.util.HashMap<String, Object>() {{
-                            put( "contract_code", HtxCore.this.safeString(finalMarket, "id") );
+                            put( "contract_code", Htx.this.safeString(finalMarket, "id") );
                         }};
                         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
                         {
@@ -7850,9 +7850,9 @@ public class HtxCore extends HtxApi
             Object order = Helpers.GetValue(data, i);
             ((java.util.List<Object>)result).add(this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", order );
-                put( "id", HtxCore.this.safeString(order, "order_id") );
+                put( "id", Htx.this.safeString(order, "order_id") );
                 put( "status", "canceled" );
-                put( "clientOrderId", HtxCore.this.safeString(order, "client_order_id") );
+                put( "clientOrderId", Htx.this.safeString(order, "client_order_id") );
             }}));
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(success)); i++)
@@ -7869,9 +7869,9 @@ public class HtxCore extends HtxApi
             Object order = Helpers.GetValue(failed, i);
             ((java.util.List<Object>)result).add(this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", order );
-                put( "id", HtxCore.this.safeString2(order, "order-id", "order_id") );
+                put( "id", Htx.this.safeString2(order, "order-id", "order_id") );
                 put( "status", "failed" );
-                put( "clientOrderId", HtxCore.this.safeString(order, "client-order-id") );
+                put( "clientOrderId", Htx.this.safeString(order, "client-order-id") );
             }}));
         }
         return result;
@@ -8033,7 +8033,7 @@ public class HtxCore extends HtxApi
             }
             final Object finalTimeout = timeout;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? ((Object) HtxCore.this.parseToInt(Helpers.divide(finalTimeout, 1000))) : 0 );
+                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? ((Object) Htx.this.parseToInt(Helpers.divide(finalTimeout, 1000))) : 0 );
             }};
             java.util.Map<String, Object> response = (this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, parameters))).join();
             //
@@ -8074,7 +8074,7 @@ public class HtxCore extends HtxApi
             put( "currency", code );
             put( "address", address );
             put( "tag", tag );
-            put( "network", HtxCore.this.networkIdToCode(networkId, code) );
+            put( "network", Htx.this.networkIdToCode(networkId, code) );
             put( "note", note );
             put( "info", depositAddress );
         }};
@@ -8442,27 +8442,27 @@ public class HtxCore extends HtxApi
         final Object finalFeeCost = feeCost;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", HtxCore.this.safeString2(transaction, "id", "data") );
+            put( "id", Htx.this.safeString2(transaction, "id", "data") );
             put( "txid", finalTxHash );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
-            put( "network", HtxCore.this.networkIdToCode(finalNetworkId, code) );
-            put( "address", HtxCore.this.safeString(transaction, "address") );
+            put( "datetime", Htx.this.iso8601(timestamp) );
+            put( "network", Htx.this.networkIdToCode(finalNetworkId, code) );
+            put( "address", Htx.this.safeString(transaction, "address") );
             put( "addressTo", null );
             put( "addressFrom", null );
-            put( "tag", HtxCore.this.safeString(transaction, "address-tag") );
+            put( "tag", Htx.this.safeString(transaction, "address-tag") );
             put( "tagTo", null );
             put( "tagFrom", null );
             put( "type", finalType );
-            put( "amount", HtxCore.this.safeNumber(transaction, "amount") );
+            put( "amount", Htx.this.safeNumber(transaction, "amount") );
             put( "currency", code );
-            put( "status", HtxCore.this.parseTransactionStatus(HtxCore.this.safeString(transaction, "state")) );
-            put( "updated", HtxCore.this.safeInteger(transaction, "updated-at") );
+            put( "status", Htx.this.parseTransactionStatus(Htx.this.safeString(transaction, "state")) );
+            put( "updated", Htx.this.safeInteger(transaction, "updated-at") );
             put( "comment", null );
             put( "internal", intern );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", HtxCore.this.parseNumber(finalFeeCost) );
+                put( "cost", Htx.this.parseNumber(finalFeeCost) );
                 put( "rate", null );
             }} );
         }};
@@ -8646,7 +8646,7 @@ public class HtxCore extends HtxApi
             put( "info", transfer );
             put( "id", id );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
             put( "currency", code );
             put( "amount", amount );
             put( "fromAccount", fromAccount );
@@ -8944,10 +8944,10 @@ public class HtxCore extends HtxApi
         String quoteId = this.safeString(quoteData, "currency");
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
-            put( "base", HtxCore.this.safeCurrencyCode(baseId) );
-            put( "baseRate", HtxCore.this.safeNumber(baseData, "actual-rate") );
-            put( "quote", HtxCore.this.safeCurrencyCode(quoteId) );
-            put( "quoteRate", HtxCore.this.safeNumber(quoteData, "actual-rate") );
+            put( "base", Htx.this.safeCurrencyCode(baseId) );
+            put( "baseRate", Htx.this.safeNumber(baseData, "actual-rate") );
+            put( "quote", Htx.this.safeCurrencyCode(quoteId) );
+            put( "quoteRate", Htx.this.safeNumber(quoteData, "actual-rate") );
             put( "period", 86400000 );
             put( "timestamp", null );
             put( "datetime", null );
@@ -9042,9 +9042,9 @@ public class HtxCore extends HtxApi
                     ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                         put( "info", entry );
                         put( "symbol", symbolInner );
-                        put( "fundingRate", HtxCore.this.safeNumber(entry, "funding_rate") );
+                        put( "fundingRate", Htx.this.safeNumber(entry, "funding_rate") );
                         put( "timestamp", timestamp );
-                        put( "datetime", HtxCore.this.iso8601(timestamp) );
+                        put( "datetime", Htx.this.iso8601(timestamp) );
                     }});
                 }
             } else
@@ -9061,9 +9061,9 @@ public class HtxCore extends HtxApi
                     ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                         put( "info", entry );
                         put( "symbol", symbolInner );
-                        put( "fundingRate", HtxCore.this.safeNumber(entry, "funding_rate") );
+                        put( "fundingRate", Htx.this.safeNumber(entry, "funding_rate") );
                         put( "timestamp", timestamp );
-                        put( "datetime", HtxCore.this.iso8601(timestamp) );
+                        put( "datetime", Htx.this.iso8601(timestamp) );
                     }});
                 }
             }
@@ -9117,16 +9117,16 @@ public class HtxCore extends HtxApi
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", HtxCore.this.safeNumber(contract, "funding_rate") );
+            put( "fundingRate", Htx.this.safeNumber(contract, "funding_rate") );
             put( "fundingTimestamp", fundingTimestamp );
-            put( "fundingDatetime", HtxCore.this.iso8601(fundingTimestamp) );
+            put( "fundingDatetime", Htx.this.iso8601(fundingTimestamp) );
             put( "nextFundingRate", nextFundingRate );
             put( "nextFundingTimestamp", nextFundingTimestamp );
-            put( "nextFundingDatetime", HtxCore.this.iso8601(nextFundingTimestamp) );
+            put( "nextFundingDatetime", Htx.this.iso8601(nextFundingTimestamp) );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
-            put( "interval", HtxCore.this.parseFundingInterval(millisecondsInterval) );
+            put( "interval", Htx.this.parseFundingInterval(millisecondsInterval) );
         }};
     }
 
@@ -9401,13 +9401,13 @@ public class HtxCore extends HtxApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", symbol );
-            put( "currency", HtxCore.this.safeCurrencyCode(HtxCore.this.safeString(info, "currency")) );
-            put( "interest", HtxCore.this.safeNumber(info, "interest-amount") );
-            put( "interestRate", HtxCore.this.safeNumber(info, "interest-rate") );
-            put( "amountBorrowed", HtxCore.this.safeNumber(info, "loan-amount") );
+            put( "currency", Htx.this.safeCurrencyCode(Htx.this.safeString(info, "currency")) );
+            put( "interest", Htx.this.safeNumber(info, "interest-amount") );
+            put( "interestRate", Htx.this.safeNumber(info, "interest-rate") );
+            put( "amountBorrowed", Htx.this.safeNumber(info, "loan-amount") );
             put( "marginMode", marginMode );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
         }};
     }
 
@@ -9452,7 +9452,7 @@ public class HtxCore extends HtxApi
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "SignatureMethod", "HmacSHA256" );
                     put( "SignatureVersion", "2" );
-                    put( "AccessKeyId", HtxCore.this.apiKey );
+                    put( "AccessKeyId", Htx.this.apiKey );
                     put( "Timestamp", timestamp );
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(method, "POST")))
@@ -9497,7 +9497,7 @@ public class HtxCore extends HtxApi
                 }
             }
             url = Helpers.add(this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), new java.util.HashMap<String, Object>() {{
-    put( "hostname", HtxCore.this.hostname );
+    put( "hostname", Htx.this.hostname );
 }}), url);
         } else
         {
@@ -9557,7 +9557,7 @@ public class HtxCore extends HtxApi
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "SignatureMethod", "HmacSHA256" );
                     put( "SignatureVersion", "2" );
-                    put( "AccessKeyId", HtxCore.this.apiKey );
+                    put( "AccessKeyId", Htx.this.apiKey );
                     put( "Timestamp", timestamp );
                 }};
                 // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
@@ -9875,7 +9875,7 @@ public class HtxCore extends HtxApi
             put( "symbol", symbol );
             put( "code", code );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
             put( "id", id );
             put( "amount", amount );
         }};
@@ -10010,28 +10010,28 @@ public class HtxCore extends HtxApi
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
-            put( "contracts", HtxCore.this.parseNumber(contracts) );
+            put( "contracts", Htx.this.parseNumber(contracts) );
             put( "contractSize", contractSize );
             put( "entryPrice", entryPrice );
-            put( "collateral", HtxCore.this.parseNumber(collateral) );
+            put( "collateral", Htx.this.parseNumber(collateral) );
             put( "side", finalSide );
             put( "unrealizedPnl", unrealizedProfit );
-            put( "leverage", HtxCore.this.parseNumber(leverage) );
-            put( "percentage", HtxCore.this.parseNumber(percentage) );
+            put( "leverage", Htx.this.parseNumber(leverage) );
+            put( "percentage", Htx.this.parseNumber(percentage) );
             put( "marginMode", finalMarginMode );
-            put( "notional", HtxCore.this.parseNumber(finalNotional) );
-            put( "markPrice", HtxCore.this.safeNumber(position, "mark_price") );
-            put( "lastPrice", HtxCore.this.parseNumber(lastPrice) );
-            put( "liquidationPrice", HtxCore.this.safeNumber(position, "liquidation_price") );
-            put( "initialMargin", HtxCore.this.parseNumber(initialMargin) );
-            put( "initialMarginPercentage", HtxCore.this.parseNumber(intialMarginPercentage) );
-            put( "maintenanceMargin", HtxCore.this.parseNumber(finalMaintenanceMargin) );
+            put( "notional", Htx.this.parseNumber(finalNotional) );
+            put( "markPrice", Htx.this.safeNumber(position, "mark_price") );
+            put( "lastPrice", Htx.this.parseNumber(lastPrice) );
+            put( "liquidationPrice", Htx.this.safeNumber(position, "liquidation_price") );
+            put( "initialMargin", Htx.this.parseNumber(initialMargin) );
+            put( "initialMarginPercentage", Htx.this.parseNumber(intialMarginPercentage) );
+            put( "maintenanceMargin", Htx.this.parseNumber(finalMaintenanceMargin) );
             put( "maintenanceMarginPercentage", finalMaintenanceMarginPercentageResult );
-            put( "marginRatio", HtxCore.this.parseNumber(finalMarginRatio) );
+            put( "marginRatio", Htx.this.parseNumber(finalMarginRatio) );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
             put( "hedged", null );
-            put( "lastUpdateTimestamp", HtxCore.this.safeInteger(position, "updated_time") );
+            put( "lastUpdateTimestamp", Htx.this.safeInteger(position, "updated_time") );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
         }});
@@ -10111,7 +10111,7 @@ public class HtxCore extends HtxApi
                 Object parsed = this.parsePosition(position);
                 ((java.util.List<Object>)result).add(this.extend(parsed, new java.util.HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
-                    put( "datetime", HtxCore.this.iso8601(timestamp) );
+                    put( "datetime", Htx.this.iso8601(timestamp) );
                 }}));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -10266,15 +10266,15 @@ public class HtxCore extends HtxApi
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
             put( "id", id );
-            put( "direction", HtxCore.this.safeString(item, "direction") );
+            put( "direction", Htx.this.safeString(item, "direction") );
             put( "account", account );
             put( "referenceId", id );
             put( "referenceAccount", account );
-            put( "type", HtxCore.this.parseLedgerEntryType(transferType) );
+            put( "type", Htx.this.parseLedgerEntryType(transferType) );
             put( "currency", code );
-            put( "amount", HtxCore.this.safeNumber(item, "transactAmt") );
+            put( "amount", Htx.this.safeNumber(item, "transactAmt") );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
             put( "before", null );
             put( "after", null );
             put( "status", null );
@@ -10448,13 +10448,13 @@ public class HtxCore extends HtxApi
                 Object bracket = Helpers.GetValue(ladders, k);
                 String adjustFactor = this.safeString(bracket, "adjust_factor");
                 ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                    put( "tier", HtxCore.this.safeInteger(bracket, "ladder") );
-                    put( "symbol", HtxCore.this.safeSymbol(marketId, market, null, "swap") );
-                    put( "currency", HtxCore.this.safeCurrencyCode(currencyId) );
-                    put( "minNotional", HtxCore.this.safeNumber(bracket, "min_size") );
-                    put( "maxNotional", HtxCore.this.safeNumber(bracket, "max_size") );
-                    put( "maintenanceMarginRate", HtxCore.this.parseNumber(Precise.stringDiv(adjustFactor, leverage)) );
-                    put( "maxLeverage", HtxCore.this.parseNumber(leverage) );
+                    put( "tier", Htx.this.safeInteger(bracket, "ladder") );
+                    put( "symbol", Htx.this.safeSymbol(marketId, market, null, "swap") );
+                    put( "currency", Htx.this.safeCurrencyCode(currencyId) );
+                    put( "minNotional", Htx.this.safeNumber(bracket, "min_size") );
+                    put( "maxNotional", Htx.this.safeNumber(bracket, "max_size") );
+                    put( "maintenanceMarginRate", Htx.this.parseNumber(Precise.stringDiv(adjustFactor, leverage)) );
+                    put( "maxLeverage", Htx.this.parseNumber(leverage) );
                     put( "info", bracket );
                 }});
             }
@@ -10767,7 +10767,7 @@ public class HtxCore extends HtxApi
                 Object result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 return this.extend(this.parseOpenInterest(result, market), new java.util.HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
-                    put( "datetime", HtxCore.this.iso8601(timestamp) );
+                    put( "datetime", Htx.this.iso8601(timestamp) );
                 }});
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -10834,13 +10834,13 @@ public class HtxCore extends HtxApi
         Double value = this.safeNumber(interest, "value");
         String marketId = this.safeString(interest, "contract_code");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", HtxCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Htx.this.safeSymbol(marketId, market) );
             put( "baseVolume", amount );
             put( "quoteVolume", value );
             put( "openInterestAmount", amount );
             put( "openInterestValue", value );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -10871,7 +10871,7 @@ public class HtxCore extends HtxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "amount", HtxCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Htx.this.currencyToPrecision(code, amount) );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.privatePostMarginOrders(this.extend(request, parameters))).join();
@@ -10915,7 +10915,7 @@ public class HtxCore extends HtxApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "amount", HtxCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Htx.this.currencyToPrecision(code, amount) );
             }};
             java.util.Map<String, Object> response = (this.privatePostCrossMarginOrders(this.extend(request, parameters))).join();
             //
@@ -10959,7 +10959,7 @@ public class HtxCore extends HtxApi
             Object accountId = (this.fetchAccountIdByType("spot", "isolated", symbol, parameters)).join();
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "amount", HtxCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Htx.this.currencyToPrecision(code, amount) );
                 put( "accountId", accountId );
             }};
             java.util.Map<String, Object> response = (this.v2PrivatePostAccountRepayment(this.extend(request, parameters))).join();
@@ -11009,7 +11009,7 @@ public class HtxCore extends HtxApi
             Object accountId = (this.fetchAccountIdByType("spot", "cross", null, parameters)).join();
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "amount", HtxCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Htx.this.currencyToPrecision(code, amount) );
                 put( "accountId", accountId );
             }};
             java.util.Map<String, Object> response = (this.v2PrivatePostAccountRepayment(this.extend(request, parameters))).join();
@@ -11060,12 +11060,12 @@ public class HtxCore extends HtxApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(info, "repayTime");
         return new java.util.HashMap<String, Object>() {{
-            put( "id", HtxCore.this.safeString2(info, "repayId", "data") );
-            put( "currency", HtxCore.this.safeCurrencyCode(null, currency) );
+            put( "id", Htx.this.safeString2(info, "repayId", "data") );
+            put( "currency", Htx.this.safeCurrencyCode(null, currency) );
             put( "amount", null );
             put( "symbol", null );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
             put( "info", info );
         }};
     }
@@ -11427,7 +11427,7 @@ public class HtxCore extends HtxApi
                 Long timestamp = this.safeInteger(settlement, "settlement_time");
                 java.util.Map<String, Object> timestampDetails = new java.util.HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
-                    put( "datetime", HtxCore.this.iso8601(timestamp) );
+                    put( "datetime", Htx.this.iso8601(timestamp) );
                 }};
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(list)); j++)
                 {
@@ -11482,10 +11482,10 @@ public class HtxCore extends HtxApi
         String marketId = this.safeString(settlement, "contract_code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", settlement );
-            put( "symbol", HtxCore.this.safeSymbol(marketId, market) );
-            put( "price", HtxCore.this.safeNumber(settlement, "settlement_price") );
+            put( "symbol", Htx.this.safeSymbol(marketId, market) );
+            put( "price", Htx.this.safeNumber(settlement, "settlement_price") );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
         }};
     }
 
@@ -11621,15 +11621,15 @@ public class HtxCore extends HtxApi
         Long timestamp = (Long) this.safeInteger2(liquidation, "created_at", "liquidation_time");
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
-            put( "symbol", HtxCore.this.safeSymbol(marketId, market) );
-            put( "contracts", HtxCore.this.safeNumber(liquidation, "volume") );
-            put( "contractSize", HtxCore.this.safeNumber(market, "contractSize") );
-            put( "price", HtxCore.this.safeNumber2(liquidation, "price", "bankrupt_price") );
-            put( "side", HtxCore.this.safeStringLower2(liquidation, "direction", "side") );
-            put( "baseValue", HtxCore.this.safeNumber(liquidation, "amount") );
-            put( "quoteValue", HtxCore.this.safeNumber(liquidation, "trade_turnover") );
+            put( "symbol", Htx.this.safeSymbol(marketId, market) );
+            put( "contracts", Htx.this.safeNumber(liquidation, "volume") );
+            put( "contractSize", Htx.this.safeNumber(market, "contractSize") );
+            put( "price", Htx.this.safeNumber2(liquidation, "price", "bankrupt_price") );
+            put( "side", Htx.this.safeStringLower2(liquidation, "direction", "side") );
+            put( "baseValue", Htx.this.safeNumber(liquidation, "amount") );
+            put( "quoteValue", Htx.this.safeNumber(liquidation, "trade_turnover") );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
         }});
     }
 
@@ -11896,12 +11896,12 @@ public class HtxCore extends HtxApi
         Long timestamp = this.safeInteger(info, "created_time");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", HtxCore.this.safeSymbol(marketId, market, null, "contract") );
-            put( "rank", HtxCore.this.safeInteger(info, "adl_risk_percent") );
+            put( "symbol", Htx.this.safeSymbol(marketId, market, null, "contract") );
+            put( "rank", Htx.this.safeInteger(info, "adl_risk_percent") );
             put( "rating", null );
             put( "percentage", null );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
         }};
     }
 }

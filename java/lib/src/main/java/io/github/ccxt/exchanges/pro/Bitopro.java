@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
+public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 {
-   public BitoproCore () {
+   public Bitopro () {
        super();
    }
 
-   public BitoproCore (Object options) {
+   public Bitopro (Object options) {
        super(options);
    }
 
@@ -392,7 +392,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             put( "info", trade );
             put( "order", orderId );
             put( "timestamp", timestamp );
-            put( "datetime", BitoproCore.this.iso8601(timestamp) );
+            put( "datetime", Bitopro.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "takerOrMaker", finalTakerOrMaker );
             put( "type", type );
@@ -480,7 +480,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Long nonce = this.milliseconds();
         Object rawData = this.json(new java.util.HashMap<String, Object>() {{
             put( "nonce", nonce );
-            put( "identity", BitoproCore.this.login );
+            put( "identity", Bitopro.this.login );
         }});
         Object payload = this.stringToBase64(rawData);
         Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
@@ -496,7 +496,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object originalHeaders = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "ws"), "options"), "headers");
         java.util.Map<String, Object> headers = new java.util.HashMap<String, Object>() {{
             put( "X-BITOPRO-API", "ccxt" );
-            put( "X-BITOPRO-APIKEY", BitoproCore.this.apiKey );
+            put( "X-BITOPRO-APIKEY", Bitopro.this.apiKey );
             put( "X-BITOPRO-PAYLOAD", payload );
             put( "X-BITOPRO-SIGNATURE", signature );
         }};

@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BitstampCore extends BitstampApi
+public class Bitstamp extends BitstampApi
 {
-   public BitstampCore () {
+   public Bitstamp () {
        super();
    }
 
-   public BitstampCore (Object options) {
+   public Bitstamp (Object options) {
        super(options);
    }
 
@@ -25,7 +25,7 @@ public class BitstampCore extends BitstampApi
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("GB")) );
             put( "rateLimit", 75 );
             put( "version", "v2" );
-            put( "userAgent", Helpers.GetValue(BitstampCore.this.userAgents, "chrome") );
+            put( "userAgent", Helpers.GetValue(Bitstamp.this.userAgents, "chrome") );
             put( "pro", true );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", true );
@@ -996,11 +996,11 @@ public class BitstampCore extends BitstampApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", BitstampCore.this.parseNumber("0.004") );
-                    put( "maker", BitstampCore.this.parseNumber("0.004") );
+                    put( "taker", Bitstamp.this.parseNumber("0.004") );
+                    put( "maker", Bitstamp.this.parseNumber("0.004") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("0"), BitstampCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("10000"), BitstampCore.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("100000"), BitstampCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("500000"), BitstampCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("1500000"), BitstampCore.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("5000000"), BitstampCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("20000000"), BitstampCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("50000000"), BitstampCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("100000000"), BitstampCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("250000000"), BitstampCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("1000000000"), BitstampCore.this.parseNumber("0.0003"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("0"), BitstampCore.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("10000"), BitstampCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("100000"), BitstampCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("500000"), BitstampCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("1500000"), BitstampCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("5000000"), BitstampCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("20000000"), BitstampCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("50000000"), BitstampCore.this.parseNumber("0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("100000000"), BitstampCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("250000000"), BitstampCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitstampCore.this.parseNumber("1000000000"), BitstampCore.this.parseNumber("0"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("0"), Bitstamp.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("10000"), Bitstamp.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("100000"), Bitstamp.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("500000"), Bitstamp.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("1500000"), Bitstamp.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("5000000"), Bitstamp.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("20000000"), Bitstamp.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("50000000"), Bitstamp.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("100000000"), Bitstamp.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("250000000"), Bitstamp.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("1000000000"), Bitstamp.this.parseNumber("0.0003"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("0"), Bitstamp.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("10000"), Bitstamp.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("100000"), Bitstamp.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("500000"), Bitstamp.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("1500000"), Bitstamp.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("5000000"), Bitstamp.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("20000000"), Bitstamp.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("50000000"), Bitstamp.this.parseNumber("0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("100000000"), Bitstamp.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("250000000"), Bitstamp.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitstamp.this.parseNumber("1000000000"), Bitstamp.this.parseNumber("0"))))) );
                     }} );
                 }} );
                 put( "funding", new java.util.HashMap<String, Object>() {{
@@ -1237,7 +1237,7 @@ public class BitstampCore extends BitstampApi
                 final Object finalType = type;
                 final Object finalSubType = subType;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
-                    put( "id", BitstampCore.this.safeString(market, "market_symbol") );
+                    put( "id", Bitstamp.this.safeString(market, "market_symbol") );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
                     put( "quote", quote );
@@ -1252,7 +1252,7 @@ public class BitstampCore extends BitstampApi
                     put( "future", false );
                     put( "swap", !Helpers.isTrue(isSpot) );
                     put( "option", false );
-                    put( "active", (Helpers.isEqual(BitstampCore.this.safeString(market, "trading"), "Enabled")) );
+                    put( "active", (Helpers.isEqual(Bitstamp.this.safeString(market, "trading"), "Enabled")) );
                     put( "contract", !Helpers.isTrue(isSpot) );
                     put( "linear", ((Helpers.isTrue(isSpot))) ? null : true );
                     put( "inverse", ((Helpers.isTrue(isSpot))) ? null : false );
@@ -1262,8 +1262,8 @@ public class BitstampCore extends BitstampApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", BitstampCore.this.parseNumber(BitstampCore.this.parsePrecision(BitstampCore.this.safeString(market, "base_decimals"))) );
-                        put( "price", BitstampCore.this.parseNumber(BitstampCore.this.parsePrecision(BitstampCore.this.safeString(market, "counter_decimals"))) );
+                        put( "amount", Bitstamp.this.parseNumber(Bitstamp.this.parsePrecision(Bitstamp.this.safeString(market, "base_decimals"))) );
+                        put( "price", Bitstamp.this.parseNumber(Bitstamp.this.parsePrecision(Bitstamp.this.safeString(market, "counter_decimals"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -1271,16 +1271,16 @@ public class BitstampCore extends BitstampApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitstampCore.this.safeNumber(market, "minimum_order_amount") );
-                            put( "max", BitstampCore.this.safeNumber(market, "maximum_order_amount") );
+                            put( "min", Bitstamp.this.safeNumber(market, "minimum_order_amount") );
+                            put( "max", Bitstamp.this.safeNumber(market, "maximum_order_amount") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitstampCore.this.safeNumber(market, "minimum_order_value") );
-                            put( "max", BitstampCore.this.safeNumber(market, "maximum_order_value") );
+                            put( "min", Bitstamp.this.safeNumber(market, "minimum_order_value") );
+                            put( "max", Bitstamp.this.safeNumber(market, "maximum_order_value") );
                         }} );
                     }} );
                     put( "created", null );
@@ -1311,7 +1311,7 @@ public class BitstampCore extends BitstampApi
             put( "active", true );
             put( "deposit", null );
             put( "withdraw", null );
-            put( "fee", BitstampCore.this.safeNumber(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(description, "fees"), "funding"), "withdraw"), code) );
+            put( "fee", Bitstamp.this.safeNumber(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(description, "fees"), "funding"), "withdraw"), code) );
             put( "precision", tickSize );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
@@ -1541,15 +1541,15 @@ public class BitstampCore extends BitstampApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BitstampCore.this.iso8601(timestamp) );
-            put( "high", BitstampCore.this.safeString(ticker, "high") );
-            put( "low", BitstampCore.this.safeString(ticker, "low") );
-            put( "bid", BitstampCore.this.safeString(ticker, "bid") );
+            put( "datetime", Bitstamp.this.iso8601(timestamp) );
+            put( "high", Bitstamp.this.safeString(ticker, "high") );
+            put( "low", Bitstamp.this.safeString(ticker, "low") );
+            put( "bid", Bitstamp.this.safeString(ticker, "bid") );
             put( "bidVolume", null );
-            put( "ask", BitstampCore.this.safeString(ticker, "ask") );
+            put( "ask", Bitstamp.this.safeString(ticker, "ask") );
             put( "askVolume", null );
             put( "vwap", vwap );
-            put( "open", BitstampCore.this.safeString(ticker, "open") );
+            put( "open", Bitstamp.this.safeString(ticker, "open") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
@@ -1871,7 +1871,7 @@ public class BitstampCore extends BitstampApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BitstampCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Bitstamp.this.iso8601(finalTimestamp) );
             put( "symbol", finalSymbol );
             put( "order", orderId );
             put( "type", type );
@@ -1980,7 +1980,7 @@ public class BitstampCore extends BitstampApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
-                put( "step", BitstampCore.this.safeString(BitstampCore.this.timeframes, timeframe, timeframe) );
+                put( "step", Bitstamp.this.safeString(Bitstamp.this.timeframes, timeframe, timeframe) );
             }};
             int duration = this.parseTimeframe(timeframe);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -2146,9 +2146,9 @@ public class BitstampCore extends BitstampApi
         Object fees = this.safeDict(fee, "fees", new java.util.HashMap<String, Object>() {{}});
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", BitstampCore.this.safeSymbol(marketId, market) );
-            put( "maker", BitstampCore.this.safeNumber(fees, "maker") );
-            put( "taker", BitstampCore.this.safeNumber(fees, "taker") );
+            put( "symbol", Bitstamp.this.safeSymbol(marketId, market) );
+            put( "maker", Bitstamp.this.safeNumber(fees, "maker") );
+            put( "taker", Bitstamp.this.safeNumber(fees, "taker") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -2265,9 +2265,9 @@ public class BitstampCore extends BitstampApi
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
-    put( "withdraw_fee", BitstampCore.this.safeNumber(fees, "fee") );
+    put( "withdraw_fee", Bitstamp.this.safeNumber(fees, "fee") );
     put( "deposit", new java.util.HashMap<String, Object>() {{}} );
-    put( "info", BitstampCore.this.safeDict(currencies, id) );
+    put( "info", Bitstamp.this.safeDict(currencies, id) );
 }});
             }
         }
@@ -2375,7 +2375,7 @@ public class BitstampCore extends BitstampApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
-                put( "amount", BitstampCore.this.amountToPrecision(symbol, amount) );
+                put( "amount", Bitstamp.this.amountToPrecision(symbol, amount) );
             }};
             String clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -2453,8 +2453,8 @@ public class BitstampCore extends BitstampApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "amount", BitstampCore.this.amountToPrecision(symbol, amount) );
-                put( "price", BitstampCore.this.priceToPrecision(symbol, price) );
+                put( "amount", Bitstamp.this.amountToPrecision(symbol, amount) );
+                put( "price", Bitstamp.this.priceToPrecision(symbol, price) );
             }};
             String clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -2799,9 +2799,9 @@ public class BitstampCore extends BitstampApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", null );
-            put( "fundingRate", BitstampCore.this.safeNumber(contract, "funding_rate") );
+            put( "fundingRate", Bitstamp.this.safeNumber(contract, "funding_rate") );
             put( "timestamp", timestamp );
-            put( "datetime", BitstampCore.this.iso8601(timestamp) );
+            put( "datetime", Bitstamp.this.iso8601(timestamp) );
         }};
     }
 
@@ -3058,15 +3058,15 @@ public class BitstampCore extends BitstampApi
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", BitstampCore.this.safeString(transaction, "id") );
-            put( "txid", BitstampCore.this.safeString(transaction, "transaction_id") );
+            put( "id", Bitstamp.this.safeString(transaction, "id") );
+            put( "txid", Bitstamp.this.safeString(transaction, "transaction_id") );
             put( "type", finalType );
             put( "currency", finalCode );
             put( "network", null );
-            put( "amount", BitstampCore.this.parseNumber(finalAmount) );
+            put( "amount", Bitstamp.this.parseNumber(finalAmount) );
             put( "status", finalStatus );
             put( "timestamp", timestamp );
-            put( "datetime", BitstampCore.this.iso8601(timestamp) );
+            put( "datetime", Bitstamp.this.iso8601(timestamp) );
             put( "address", finalAddress );
             put( "addressFrom", null );
             put( "addressTo", finalAddress );
@@ -3181,7 +3181,7 @@ public class BitstampCore extends BitstampApi
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
-            put( "datetime", BitstampCore.this.iso8601(timestamp) );
+            put( "datetime", Bitstamp.this.iso8601(timestamp) );
             put( "timestamp", timestamp );
             put( "lastTradeTimestamp", null );
             put( "status", status );
@@ -3276,7 +3276,7 @@ public class BitstampCore extends BitstampApi
                 put( "referenceId", Helpers.GetValue(parsedTrade, "order") );
                 put( "referenceAccount", null );
                 put( "type", finalType );
-                put( "currency", BitstampCore.this.safeString(finalMarket, "base") );
+                put( "currency", Bitstamp.this.safeString(finalMarket, "base") );
                 put( "amount", Helpers.GetValue(parsedTrade, "amount") );
                 put( "before", null );
                 put( "after", null );
@@ -3413,22 +3413,22 @@ public class BitstampCore extends BitstampApi
         String marketId = this.safeString(fundingRate, "market");
         return new java.util.HashMap<String, Object>() {{
             put( "info", fundingRate );
-            put( "symbol", BitstampCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Bitstamp.this.safeSymbol(marketId, market) );
             put( "markPrice", null );
             put( "indexPrice", null );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", currentTime );
-            put( "datetime", BitstampCore.this.iso8601(currentTime) );
+            put( "datetime", Bitstamp.this.iso8601(currentTime) );
             put( "previousFundingRate", null );
             put( "nextFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "nextFundingTimestamp", null );
             put( "previousFundingDatetime", null );
             put( "nextFundingDatetime", null );
-            put( "fundingRate", BitstampCore.this.safeNumber(fundingRate, "funding_rate") );
+            put( "fundingRate", Bitstamp.this.safeNumber(fundingRate, "funding_rate") );
             put( "fundingTimestamp", nextFundingRateTimestamp );
-            put( "fundingDatetime", BitstampCore.this.iso8601(nextFundingRateTimestamp) );
+            put( "fundingDatetime", Bitstamp.this.iso8601(nextFundingRateTimestamp) );
             put( "interval", null );
         }};
     }
@@ -3632,7 +3632,7 @@ public class BitstampCore extends BitstampApi
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "amount", BitstampCore.this.parseToNumeric(BitstampCore.this.currencyToPrecision(code, amount)) );
+                put( "amount", Bitstamp.this.parseToNumeric(Bitstamp.this.currencyToPrecision(code, amount)) );
                 put( "currency", ((String)Helpers.GetValue(currency, "id")).toUpperCase() );
             }};
             Object response = null;
@@ -3681,7 +3681,7 @@ public class BitstampCore extends BitstampApi
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
-            put( "status", BitstampCore.this.parseTransferStatus(status) );
+            put( "status", Bitstamp.this.parseTransferStatus(status) );
         }};
         return result;
     }

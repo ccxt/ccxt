@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class GrvtCore extends io.github.ccxt.exchanges.Grvt
+public class Grvt extends io.github.ccxt.exchanges.Grvt
 {
-   public GrvtCore () {
+   public Grvt () {
        super();
    }
 
-   public GrvtCore (Object options) {
+   public Grvt (Object options) {
        super(options);
    }
 
@@ -134,7 +134,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
                 put( "params", request );
-                put( "id", GrvtCore.this.requestId() );
+                put( "id", Grvt.this.requestId() );
             }};
             String apiPart = ((Helpers.isTrue(publicOrPrivate))) ? "publicMarket" : "privateTrading";
             return (this.watchMultiple(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes, null)).join();
@@ -173,9 +173,9 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             }
             symbol = this.symbol(symbol);
             final Object finalSymbol = symbol;
-            Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(finalSymbol)), this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(finalSymbol))), (Object)(this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "callerMethodName", "watchTicker" );
-            }}))).join();
+            }})))).join();
             return Helpers.GetValue(tickers, symbol);
         });
 
@@ -356,7 +356,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -623,7 +623,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }

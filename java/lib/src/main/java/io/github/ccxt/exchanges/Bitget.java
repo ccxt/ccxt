@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BitgetCore extends BitgetApi
+public class Bitget extends BitgetApi
 {
-   public BitgetCore () {
+   public Bitget () {
        super();
    }
 
-   public BitgetCore (Object options) {
+   public Bitget (Object options) {
        super(options);
    }
 
@@ -2656,12 +2656,12 @@ public class BitgetCore extends BitgetApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "spot", new java.util.HashMap<String, Object>() {{
-                    put( "taker", BitgetCore.this.parseNumber("0.002") );
-                    put( "maker", BitgetCore.this.parseNumber("0.002") );
+                    put( "taker", Bitget.this.parseNumber("0.002") );
+                    put( "maker", Bitget.this.parseNumber("0.002") );
                 }} );
                 put( "swap", new java.util.HashMap<String, Object>() {{
-                    put( "taker", BitgetCore.this.parseNumber("0.0006") );
-                    put( "maker", BitgetCore.this.parseNumber("0.0004") );
+                    put( "taker", Bitget.this.parseNumber("0.0006") );
+                    put( "maker", Bitget.this.parseNumber("0.0004") );
                 }} );
             }} );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
@@ -4013,8 +4013,8 @@ public class BitgetCore extends BitgetApi
                     put( "contract", finalContract );
                     put( "linear", finalLinear );
                     put( "inverse", finalInverse );
-                    put( "taker", BitgetCore.this.safeNumber(market, "takerFeeRate") );
-                    put( "maker", BitgetCore.this.safeNumber(market, "makerFeeRate") );
+                    put( "taker", Bitget.this.safeNumber(market, "takerFeeRate") );
+                    put( "maker", Bitget.this.safeNumber(market, "makerFeeRate") );
                     put( "contractSize", contractSize );
                     put( "expiry", finalExpiry );
                     put( "expiryDatetime", finalExpiryDatetime );
@@ -4026,12 +4026,12 @@ public class BitgetCore extends BitgetApi
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitgetCore.this.safeNumber(market, "minLever") );
-                            put( "max", BitgetCore.this.safeNumber(market, "maxLever") );
+                            put( "min", Bitget.this.safeNumber(market, "minLever") );
+                            put( "max", Bitget.this.safeNumber(market, "maxLever") );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitgetCore.this.safeNumber2(market, "minTradeNum", "minTradeAmount") );
-                            put( "max", BitgetCore.this.safeNumber(market, "maxTradeAmount") );
+                            put( "min", Bitget.this.safeNumber2(market, "minTradeNum", "minTradeAmount") );
+                            put( "max", Bitget.this.safeNumber(market, "maxTradeAmount") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
@@ -4042,7 +4042,7 @@ public class BitgetCore extends BitgetApi
                             put( "max", null );
                         }} );
                     }} );
-                    put( "created", BitgetCore.this.safeInteger(market, "launchTime") );
+                    put( "created", Bitget.this.safeInteger(market, "launchTime") );
                     put( "info", market );
                 }}));
             }
@@ -4299,8 +4299,8 @@ public class BitgetCore extends BitgetApi
                     put( "contract", finalContract );
                     put( "linear", finalLinear );
                     put( "inverse", finalInverse );
-                    put( "taker", BitgetCore.this.safeNumber(market, "takerFeeRate") );
-                    put( "maker", BitgetCore.this.safeNumber(market, "makerFeeRate") );
+                    put( "taker", Bitget.this.safeNumber(market, "takerFeeRate") );
+                    put( "maker", Bitget.this.safeNumber(market, "makerFeeRate") );
                     put( "contractSize", contractSize );
                     put( "expiry", finalExpiry );
                     put( "expiryDatetime", finalExpiryDatetime );
@@ -4312,23 +4312,23 @@ public class BitgetCore extends BitgetApi
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitgetCore.this.safeNumber(market, "minLeverage") );
-                            put( "max", BitgetCore.this.safeNumber(market, "maxLeverage") );
+                            put( "min", Bitget.this.safeNumber(market, "minLeverage") );
+                            put( "max", Bitget.this.safeNumber(market, "maxLeverage") );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitgetCore.this.safeNumber(market, "minOrderQty") );
-                            put( "max", BitgetCore.this.safeNumber(market, "maxOrderQty") );
+                            put( "min", Bitget.this.safeNumber(market, "minOrderQty") );
+                            put( "max", Bitget.this.safeNumber(market, "maxOrderQty") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitgetCore.this.safeNumber(market, "minOrderAmount") );
+                            put( "min", Bitget.this.safeNumber(market, "minOrderAmount") );
                             put( "max", null );
                         }} );
                     }} );
-                    put( "created", BitgetCore.this.safeInteger(market, "launchTime") );
+                    put( "created", Bitget.this.safeInteger(market, "launchTime") );
                     put( "info", market );
                 }}));
             }
@@ -4428,19 +4428,19 @@ public class BitgetCore extends BitgetApi
     put( "network", finalNetwork );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", BitgetCore.this.safeNumber(chain, "minWithdrawAmount") );
+            put( "min", Bitget.this.safeNumber(chain, "minWithdrawAmount") );
             put( "max", null );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", BitgetCore.this.safeNumber(chain, "minDepositAmount") );
+            put( "min", Bitget.this.safeNumber(chain, "minDepositAmount") );
             put( "max", null );
         }} );
     }} );
     put( "active", null );
     put( "withdraw", withdrawable );
     put( "deposit", rechargeable );
-    put( "fee", BitgetCore.this.safeNumber(chain, "withdrawFee") );
-    put( "precision", BitgetCore.this.parseNumber(BitgetCore.this.parsePrecision(BitgetCore.this.safeString(chain, "withdrawMinScale"))) );
+    put( "fee", Bitget.this.safeNumber(chain, "withdrawFee") );
+    put( "precision", Bitget.this.parseNumber(Bitget.this.parsePrecision(Bitget.this.safeString(chain, "withdrawMinScale"))) );
 }});
         }
         Boolean active = Helpers.isTrue((Helpers.isEqual(withdraw, true))) && Helpers.isTrue((Helpers.isEqual(deposit, true)));
@@ -4699,13 +4699,13 @@ public class BitgetCore extends BitgetApi
             String marketId = this.safeString(item, "symbol");
 final Object finalMinNotional = minNotional;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", BitgetCore.this.safeInteger2(item, "level", "tier") );
-                put( "symbol", BitgetCore.this.safeSymbol(marketId, market) );
-                put( "currency", BitgetCore.this.safeCurrencyCode(currencyId) );
+                put( "tier", Bitget.this.safeInteger2(item, "level", "tier") );
+                put( "symbol", Bitget.this.safeSymbol(marketId, market) );
+                put( "currency", Bitget.this.safeCurrencyCode(currencyId) );
                 put( "minNotional", finalMinNotional );
                 put( "maxNotional", maxNotional );
-                put( "maintenanceMarginRate", BitgetCore.this.safeNumberN(item, new java.util.ArrayList<Object>(java.util.Arrays.asList("keepMarginRate", "maintainMarginRate", "mmr"))) );
-                put( "maxLeverage", BitgetCore.this.safeNumber(item, "leverage") );
+                put( "maintenanceMarginRate", Bitget.this.safeNumberN(item, new java.util.ArrayList<Object>(java.util.Arrays.asList("keepMarginRate", "maintainMarginRate", "mmr"))) );
+                put( "maxLeverage", Bitget.this.safeNumber(item, "leverage") );
                 put( "info", item );
             }});
             minNotional = maxNotional;
@@ -4771,7 +4771,7 @@ final Object finalMinNotional = minNotional;
             final Object finalSince = since;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "startTime", finalSince );
-                put( "endTime", BitgetCore.this.milliseconds() );
+                put( "endTime", Bitget.this.milliseconds() );
             }};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -4894,7 +4894,7 @@ final Object finalMinNotional = minNotional;
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "address", address );
                 put( "chain", networkId );
-                put( "size", BitgetCore.this.currencyToPrecision(code, amount, finalNetworkCode) );
+                put( "size", Bitget.this.currencyToPrecision(code, amount, finalNetworkCode) );
                 put( "transferType", "on_chain" );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
@@ -5002,7 +5002,7 @@ final Object finalMinNotional = minNotional;
             final Object finalSince = since;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "startTime", finalSince );
-                put( "endTime", BitgetCore.this.milliseconds() );
+                put( "endTime", Bitget.this.milliseconds() );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(currency, null)))
             {
@@ -5159,7 +5159,7 @@ final Object finalMinNotional = minNotional;
             final Object finalFeeCostAbsString = feeCostAbsString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", BitgetCore.this.parseNumber(finalFeeCostAbsString) );
+                put( "cost", Bitget.this.parseNumber(finalFeeCostAbsString) );
             }};
             amountString = Precise.stringSub(amountString, feeCostAbsString);
         }
@@ -5167,20 +5167,20 @@ final Object finalMinNotional = minNotional;
         final Object finalAmountString = amountString;
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", BitgetCore.this.safeString(transaction, "orderId") );
+            put( "id", Bitget.this.safeString(transaction, "orderId") );
             put( "info", transaction );
             put( "txid", finalTxid );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
-            put( "network", BitgetCore.this.networkIdToCode(networkId, code) );
-            put( "addressFrom", BitgetCore.this.safeString(transaction, "fromAddress") );
-            put( "address", BitgetCore.this.safeString(transaction, "toAddress") );
-            put( "addressTo", BitgetCore.this.safeString(transaction, "toAddress") );
-            put( "amount", BitgetCore.this.parseNumber(finalAmountString) );
-            put( "type", BitgetCore.this.parseTransactionType(BitgetCore.this.safeString(transaction, "type")) );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
+            put( "network", Bitget.this.networkIdToCode(networkId, code) );
+            put( "addressFrom", Bitget.this.safeString(transaction, "fromAddress") );
+            put( "address", Bitget.this.safeString(transaction, "toAddress") );
+            put( "addressTo", Bitget.this.safeString(transaction, "toAddress") );
+            put( "amount", Bitget.this.parseNumber(finalAmountString) );
+            put( "type", Bitget.this.parseTransactionType(Bitget.this.safeString(transaction, "type")) );
             put( "currency", code );
-            put( "status", BitgetCore.this.parseTransactionStatus(status) );
-            put( "updated", BitgetCore.this.safeInteger2(transaction, "uTime", "updatedTime") );
+            put( "status", Bitget.this.parseTransactionStatus(status) );
+            put( "updated", Bitget.this.safeInteger2(transaction, "uTime", "updatedTime") );
             put( "tagFrom", null );
             put( "tag", tag );
             put( "tagTo", tag );
@@ -5303,8 +5303,8 @@ final Object finalMinNotional = minNotional;
             put( "info", depositAddress );
             put( "currency", parsedCurrency );
             put( "network", finalNetwork );
-            put( "address", BitgetCore.this.safeString(depositAddress, "address") );
-            put( "tag", BitgetCore.this.safeString(depositAddress, "tag") );
+            put( "address", Bitget.this.safeString(depositAddress, "address") );
+            put( "tag", Bitget.this.safeString(depositAddress, "tag") );
         }};
     }
 
@@ -5519,26 +5519,26 @@ final Object finalMinNotional = minNotional;
         final Object finalMarketType = marketType;
         final Object finalMarkPrice = markPrice;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", BitgetCore.this.safeSymbol(marketId, market, null, finalMarketType) );
+            put( "symbol", Bitget.this.safeSymbol(marketId, market, null, finalMarketType) );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
-            put( "high", BitgetCore.this.safeString2(ticker, "high24h", "highPrice24h") );
-            put( "low", BitgetCore.this.safeString2(ticker, "low24h", "lowPrice24h") );
-            put( "bid", BitgetCore.this.safeString2(ticker, "bidPr", "bid1Price") );
-            put( "bidVolume", BitgetCore.this.safeString2(ticker, "bidSz", "bid1Size") );
-            put( "ask", BitgetCore.this.safeString2(ticker, "askPr", "ask1Price") );
-            put( "askVolume", BitgetCore.this.safeString2(ticker, "askSz", "ask1Size") );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
+            put( "high", Bitget.this.safeString2(ticker, "high24h", "highPrice24h") );
+            put( "low", Bitget.this.safeString2(ticker, "low24h", "lowPrice24h") );
+            put( "bid", Bitget.this.safeString2(ticker, "bidPr", "bid1Price") );
+            put( "bidVolume", Bitget.this.safeString2(ticker, "bidSz", "bid1Size") );
+            put( "ask", Bitget.this.safeString2(ticker, "askPr", "ask1Price") );
+            put( "askVolume", Bitget.this.safeString2(ticker, "askSz", "ask1Size") );
             put( "vwap", null );
-            put( "open", BitgetCore.this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("open", "open24h", "openPrice24h"))) );
+            put( "open", Bitget.this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("open", "open24h", "openPrice24h"))) );
             put( "close", close );
             put( "last", close );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", percentage );
             put( "average", null );
-            put( "baseVolume", BitgetCore.this.safeString2(ticker, "baseVolume", "volume24h") );
-            put( "quoteVolume", BitgetCore.this.safeString2(ticker, "quoteVolume", "turnover24h") );
-            put( "indexPrice", BitgetCore.this.safeString(ticker, "indexPrice") );
+            put( "baseVolume", Bitget.this.safeString2(ticker, "baseVolume", "volume24h") );
+            put( "quoteVolume", Bitget.this.safeString2(ticker, "quoteVolume", "turnover24h") );
+            put( "indexPrice", Bitget.this.safeString(ticker, "indexPrice") );
             put( "markPrice", finalMarkPrice );
             put( "info", ticker );
         }}, market);
@@ -6099,17 +6099,17 @@ final Object finalMinNotional = minNotional;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", BitgetCore.this.safeString2(trade, "tradeId", "execId") );
-            put( "order", BitgetCore.this.safeString(trade, "orderId") );
+            put( "id", Bitget.this.safeString2(trade, "tradeId", "execId") );
+            put( "order", Bitget.this.safeString(trade, "orderId") );
             put( "symbol", symbol );
-            put( "side", BitgetCore.this.safeStringLower(trade, "side") );
-            put( "type", BitgetCore.this.safeString(trade, "orderType") );
-            put( "takerOrMaker", BitgetCore.this.safeString(trade, "tradeScope") );
-            put( "price", BitgetCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("priceAvg", "price", "execPrice"))) );
-            put( "amount", BitgetCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("baseVolume", "size", "execQty"))) );
-            put( "cost", BitgetCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("quoteVolume", "amount", "execValue"))) );
+            put( "side", Bitget.this.safeStringLower(trade, "side") );
+            put( "type", Bitget.this.safeString(trade, "orderType") );
+            put( "takerOrMaker", Bitget.this.safeString(trade, "tradeScope") );
+            put( "price", Bitget.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("priceAvg", "price", "execPrice"))) );
+            put( "amount", Bitget.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("baseVolume", "size", "execQty"))) );
+            put( "cost", Bitget.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("quoteVolume", "amount", "execValue"))) );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "fee", finalFee );
         }}, market);
     }
@@ -6502,9 +6502,9 @@ final Object finalMinNotional = minNotional;
         String marketId = this.safeString(data, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", BitgetCore.this.safeSymbol(marketId, market) );
-            put( "maker", BitgetCore.this.safeNumber(data, "makerFeeRate") );
-            put( "taker", BitgetCore.this.safeNumber(data, "takerFeeRate") );
+            put( "symbol", Bitget.this.safeSymbol(marketId, market) );
+            put( "maker", Bitget.this.safeNumber(data, "makerFeeRate") );
+            put( "taker", Bitget.this.safeNumber(data, "takerFeeRate") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -7333,8 +7333,8 @@ final Object finalMinNotional = minNotional;
         {
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", order );
-                put( "id", BitgetCore.this.safeString(order, "orderId") );
-                put( "clientOrderId", BitgetCore.this.safeString2(order, "clientOrderId", "clientOid") );
+                put( "id", Bitget.this.safeString(order, "orderId") );
+                put( "clientOrderId", Bitget.this.safeString2(order, "clientOrderId", "clientOid") );
                 put( "status", "rejected" );
             }}, market);
         }
@@ -7358,7 +7358,7 @@ final Object finalMinNotional = minNotional;
             final Object finalFeeCostString = feeCostString;
             final Object finalMarket = market;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", BitgetCore.this.parseNumber(Precise.stringNeg(finalFeeCostString)) );
+                put( "cost", Bitget.this.parseNumber(Precise.stringNeg(finalFeeCostString)) );
                 put( "currency", Helpers.GetValue(finalMarket, "settle") );
             }};
         }
@@ -7370,7 +7370,7 @@ final Object finalMinNotional = minNotional;
             String utaFee = this.safeString(feeResult, "fee");
             final Object finalMarket_2 = market;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", BitgetCore.this.parseNumber(Precise.stringNeg(utaFee)) );
+                put( "cost", Bitget.this.parseNumber(Precise.stringNeg(utaFee)) );
                 put( "currency", Helpers.GetValue(finalMarket_2, "settle") );
             }};
         } else
@@ -7391,8 +7391,8 @@ final Object finalMinNotional = minNotional;
                 }
                 final Object finalFeeObject = feeObject;
                 fee = new java.util.HashMap<String, Object>() {{
-                    put( "cost", BitgetCore.this.parseNumber(Precise.stringNeg(BitgetCore.this.safeString(finalFeeObject, "totalFee"))) );
-                    put( "currency", BitgetCore.this.safeCurrencyCode(BitgetCore.this.safeString(finalFeeObject, "feeCoinCode")) );
+                    put( "cost", Bitget.this.parseNumber(Precise.stringNeg(Bitget.this.safeString(finalFeeObject, "totalFee"))) );
+                    put( "currency", Bitget.this.safeCurrencyCode(Bitget.this.safeString(finalFeeObject, "feeCoinCode")) );
                 }};
             }
         }
@@ -7461,10 +7461,10 @@ final Object finalMinNotional = minNotional;
         final Object finalFee = fee;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", BitgetCore.this.safeString2(order, "orderId", "data") );
-            put( "clientOrderId", BitgetCore.this.safeString2(order, "clientOrderId", "clientOid") );
+            put( "id", Bitget.this.safeString2(order, "orderId", "data") );
+            put( "clientOrderId", Bitget.this.safeString2(order, "clientOrderId", "clientOid") );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", updateTimestamp );
             put( "lastUpdateTimestamp", updateTimestamp );
             put( "symbol", Helpers.GetValue(finalMarket_3, "symbol") );
@@ -7472,17 +7472,17 @@ final Object finalMinNotional = minNotional;
             put( "side", finalSide );
             put( "price", finalPrice );
             put( "amount", finalSize );
-            put( "cost", BitgetCore.this.safeString2(order, "quoteVolume", "quoteSize") );
+            put( "cost", Bitget.this.safeString2(order, "quoteVolume", "quoteSize") );
             put( "average", finalAverage );
             put( "filled", finalFilled );
             put( "remaining", null );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", finalPostOnly );
             put( "reduceOnly", finalReduceOnly );
-            put( "triggerPrice", BitgetCore.this.safeNumber(order, "triggerPrice") );
-            put( "takeProfitPrice", BitgetCore.this.safeNumberN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("presetStopSurplusPrice", "stopSurplusTriggerPrice", "takeProfit"))) );
-            put( "stopLossPrice", BitgetCore.this.safeNumberN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("presetStopLossPrice", "stopLossTriggerPrice", "stopLoss"))) );
-            put( "status", BitgetCore.this.parseOrderStatus(rawStatus) );
+            put( "triggerPrice", Bitget.this.safeNumber(order, "triggerPrice") );
+            put( "takeProfitPrice", Bitget.this.safeNumberN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("presetStopSurplusPrice", "stopSurplusTriggerPrice", "takeProfit"))) );
+            put( "stopLossPrice", Bitget.this.safeNumberN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("presetStopLossPrice", "stopLossTriggerPrice", "stopLoss"))) );
+            put( "status", Bitget.this.parseOrderStatus(rawStatus) );
             put( "fee", finalFee );
             put( "trades", null );
         }}, market);
@@ -7518,7 +7518,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "createMarketBuyOrderRequiresPrice", false );
             }};
-            return (this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -7688,7 +7688,7 @@ final Object finalMinNotional = minNotional;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "category", finalProductType );
             put( "symbol", Helpers.GetValue(market, "id") );
-            put( "qty", BitgetCore.this.amountToPrecision(symbol, amount) );
+            put( "qty", Bitget.this.amountToPrecision(symbol, amount) );
             put( "side", finalSide );
         }};
         String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
@@ -9119,9 +9119,9 @@ final Object finalMinNotional = minNotional;
                     final Object finalResponse = response;
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", finalResponse );
-        put( "symbol", BitgetCore.this.safeSymbol(marketId, null, null, "spot") );
+        put( "symbol", Bitget.this.safeSymbol(marketId, null, null, "spot") );
         put( "timestamp", timestamp );
-        put( "datetime", BitgetCore.this.iso8601(timestamp) );
+        put( "datetime", Bitget.this.iso8601(timestamp) );
     }})));
                 }
             } else
@@ -9847,7 +9847,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
+            Object orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBy(orders, "status", "closed");
         });
 
@@ -9889,7 +9889,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
+            Object orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBy(orders, "status", "canceled");
         });
 
@@ -10605,14 +10605,14 @@ final Object finalMinNotional = minNotional;
         final Object finalDirection = direction;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", BitgetCore.this.safeString(item, "billId") );
+            put( "id", Bitget.this.safeString(item, "billId") );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "direction", finalDirection );
             put( "account", null );
             put( "referenceId", null );
             put( "referenceAccount", null );
-            put( "type", BitgetCore.this.parseLedgerType(BitgetCore.this.safeString(item, "businessType")) );
+            put( "type", Bitget.this.parseLedgerType(Bitget.this.safeString(item, "businessType")) );
             put( "currency", code );
             put( "amount", amount );
             put( "before", null );
@@ -11506,31 +11506,31 @@ final Object finalMinNotional = minNotional;
         final Object finalInitialMargin = initialMargin;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", BitgetCore.this.safeString2(position, "orderId", "positionId") );
+            put( "id", Bitget.this.safeString2(position, "orderId", "positionId") );
             put( "symbol", symbol );
-            put( "notional", BitgetCore.this.parseNumber(notional) );
+            put( "notional", Bitget.this.parseNumber(notional) );
             put( "marginMode", finalMarginMode );
             put( "liquidationPrice", finalLiquidationPrice );
-            put( "entryPrice", BitgetCore.this.parseNumber(entryPrice) );
-            put( "unrealizedPnl", BitgetCore.this.parseNumber(unrealizedPnl) );
-            put( "realizedPnl", BitgetCore.this.safeNumberN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("pnl", "curRealisedPnl", "cumRealisedPnl"))) );
-            put( "percentage", BitgetCore.this.parseNumber(percentage) );
+            put( "entryPrice", Bitget.this.parseNumber(entryPrice) );
+            put( "unrealizedPnl", Bitget.this.parseNumber(unrealizedPnl) );
+            put( "realizedPnl", Bitget.this.safeNumberN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("pnl", "curRealisedPnl", "cumRealisedPnl"))) );
+            put( "percentage", Bitget.this.parseNumber(percentage) );
             put( "contracts", finalContracts );
             put( "contractSize", contractSizeNumber );
-            put( "markPrice", BitgetCore.this.parseNumber(markPrice) );
-            put( "lastPrice", BitgetCore.this.safeNumber2(position, "closeAvgPrice", "closePriceAvg") );
+            put( "markPrice", Bitget.this.parseNumber(markPrice) );
+            put( "lastPrice", Bitget.this.safeNumber2(position, "closeAvgPrice", "closePriceAvg") );
             put( "side", finalSide );
             put( "hedged", finalHedged );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", BitgetCore.this.safeInteger2(position, "utime", "updatedTime") );
-            put( "maintenanceMargin", BitgetCore.this.parseNumber(maintenanceMargin) );
-            put( "maintenanceMarginPercentage", BitgetCore.this.parseNumber(maintenanceMarginPercentage) );
-            put( "collateral", BitgetCore.this.parseNumber(finalCollateral) );
-            put( "initialMargin", BitgetCore.this.parseNumber(finalInitialMargin) );
-            put( "initialMarginPercentage", BitgetCore.this.parseNumber(initialMarginPercentage) );
-            put( "leverage", BitgetCore.this.parseNumber(leverage) );
-            put( "marginRatio", BitgetCore.this.safeNumber2(position, "marginRatio", "mmr") );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
+            put( "lastUpdateTimestamp", Bitget.this.safeInteger2(position, "utime", "updatedTime") );
+            put( "maintenanceMargin", Bitget.this.parseNumber(maintenanceMargin) );
+            put( "maintenanceMarginPercentage", Bitget.this.parseNumber(maintenanceMarginPercentage) );
+            put( "collateral", Bitget.this.parseNumber(finalCollateral) );
+            put( "initialMargin", Bitget.this.parseNumber(finalInitialMargin) );
+            put( "initialMarginPercentage", Bitget.this.parseNumber(initialMarginPercentage) );
+            put( "leverage", Bitget.this.parseNumber(leverage) );
+            put( "marginRatio", Bitget.this.safeNumber2(position, "marginRatio", "mmr") );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
         }});
@@ -11649,9 +11649,9 @@ final Object finalMinNotional = minNotional;
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", symbolInner );
-                    put( "fundingRate", BitgetCore.this.safeNumber(entry, "fundingRate") );
+                    put( "fundingRate", Bitget.this.safeNumber(entry, "fundingRate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", BitgetCore.this.iso8601(timestamp) );
+                    put( "datetime", Bitget.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -11851,7 +11851,7 @@ final Object finalMinNotional = minNotional;
             parameters = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "method", "publicMixGetV2MixMarketCurrentFundRate" );
             }}, parameters);
-            return (this.fetchFundingRates(symbols, parameters)).join();
+            return (this.fetchFundingRates((Object)(symbols), (Object)(parameters))).join();
         });
 
     }
@@ -11936,10 +11936,10 @@ final Object finalMinNotional = minNotional;
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
-            put( "fundingRate", BitgetCore.this.safeNumber(contract, "fundingRate") );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
+            put( "fundingRate", Bitget.this.safeNumber(contract, "fundingRate") );
             put( "fundingTimestamp", fundingTimestamp );
-            put( "fundingDatetime", BitgetCore.this.iso8601(fundingTimestamp) );
+            put( "fundingDatetime", Bitget.this.iso8601(fundingTimestamp) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
@@ -12074,12 +12074,12 @@ final Object finalMinNotional = minNotional;
         Long timestamp = (Long) this.safeInteger2(contract, "cTime", "ts");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", BitgetCore.this.safeSymbol(marketId, market, null, "swap") );
+            put( "symbol", Bitget.this.safeSymbol(marketId, market, null, "swap") );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
-            put( "code", BitgetCore.this.safeCurrencyCode(currencyId) );
-            put( "amount", BitgetCore.this.safeNumber(contract, "amount") );
-            put( "id", BitgetCore.this.safeString2(contract, "billId", "id") );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
+            put( "code", Bitget.this.safeCurrencyCode(currencyId) );
+            put( "amount", Bitget.this.safeNumber(contract, "amount") );
+            put( "id", Bitget.this.safeString2(contract, "billId", "id") );
         }};
     }
 
@@ -12128,7 +12128,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "marginCoin", Helpers.GetValue(market, "settleId") );
-                put( "amount", BitgetCore.this.amountToPrecision(symbol, amount) );
+                put( "amount", Bitget.this.amountToPrecision(symbol, amount) );
                 put( "holdSide", holdSide );
                 put( "productType", finalProductType );
             }};
@@ -12143,7 +12143,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             return this.extend(this.parseMarginModification(response, market), new java.util.HashMap<String, Object>() {{
-                put( "amount", BitgetCore.this.parseNumber(amount) );
+                put( "amount", Bitget.this.parseNumber(amount) );
                 put( "type", type );
             }});
         });
@@ -12167,12 +12167,12 @@ final Object finalMinNotional = minNotional;
         String status = ((Helpers.isTrue((Helpers.isEqual(errorCode, "00000"))))) ? "ok" : "failed";
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", BitgetCore.this.safeString(market, "symbol") );
+            put( "symbol", Bitget.this.safeString(market, "symbol") );
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );
             put( "total", null );
-            put( "code", BitgetCore.this.safeString(market, "settle") );
+            put( "code", Bitget.this.safeString(market, "settle") );
             put( "status", status );
             put( "timestamp", null );
             put( "datetime", null );
@@ -12308,10 +12308,10 @@ final Object finalMinNotional = minNotional;
         String shortLevKey = ((Helpers.isTrue(isCrossMarginMode))) ? "crossedMarginLeverage" : "isolatedShortLever";
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", BitgetCore.this.safeString(market, "symbol") );
+            put( "symbol", Bitget.this.safeString(market, "symbol") );
             put( "marginMode", ((Helpers.isTrue(isCrossMarginMode))) ? "cross" : "isolated" );
-            put( "longLeverage", BitgetCore.this.safeInteger(leverage, longLevKey) );
-            put( "shortLeverage", BitgetCore.this.safeInteger(leverage, shortLevKey) );
+            put( "longLeverage", Bitget.this.safeInteger(leverage, longLevKey) );
+            put( "shortLeverage", Bitget.this.safeInteger(leverage, shortLevKey) );
         }};
     }
 
@@ -12351,7 +12351,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "leverage", BitgetCore.this.numberToString(leverage) );
+                put( "leverage", Bitget.this.numberToString(leverage) );
             }};
             Object uta = null;
             java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
@@ -12592,11 +12592,11 @@ final Object finalMinNotional = minNotional;
         Long timestamp = this.safeInteger(interest, "ts");
         String marketId = this.safeString(Helpers.GetValue(data, 0), "symbol");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", BitgetCore.this.safeSymbol(marketId, market, null, "contract") );
-            put( "openInterestAmount", BitgetCore.this.safeNumber2(Helpers.GetValue(data, 0), "size", "openInterest") );
+            put( "symbol", Bitget.this.safeSymbol(marketId, market, null, "contract") );
+            put( "openInterestAmount", Bitget.this.safeNumber2(Helpers.GetValue(data, 0), "size", "openInterest") );
             put( "openInterestValue", null );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -12794,14 +12794,14 @@ final Object finalMinNotional = minNotional;
         String toAccount = this.safeString(accountsById, toAccountRaw, toAccountRaw);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", BitgetCore.this.safeString(transfer, "transferId") );
+            put( "id", Bitget.this.safeString(transfer, "transferId") );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
-            put( "currency", BitgetCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", BitgetCore.this.safeNumber(transfer, "size") );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
+            put( "currency", Bitget.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Bitget.this.safeNumber(transfer, "size") );
             put( "fromAccount", fromAccount );
             put( "toAccount", toAccount );
-            put( "status", BitgetCore.this.parseTransferStatus(status) );
+            put( "status", Bitget.this.parseTransferStatus(status) );
         }};
     }
 
@@ -12866,7 +12866,7 @@ final Object finalMinNotional = minNotional;
         put( "percentage", null );
     }} );
     put( "withdraw", new java.util.HashMap<String, Object>() {{
-        put( "fee", BitgetCore.this.safeNumber(chain, "withdrawFee") );
+        put( "fee", Bitget.this.safeNumber(chain, "withdrawFee") );
         put( "percentage", false );
     }} );
 }});
@@ -12959,7 +12959,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
-                put( "borrowAmount", BitgetCore.this.currencyToPrecision(code, amount) );
+                put( "borrowAmount", Bitget.this.currencyToPrecision(code, amount) );
             }};
             java.util.Map<String, Object> response = (this.privateMarginPostV2MarginCrossedAccountBorrow(this.extend(request, parameters))).join();
             //
@@ -13005,7 +13005,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
-                put( "borrowAmount", BitgetCore.this.currencyToPrecision(code, amount) );
+                put( "borrowAmount", Bitget.this.currencyToPrecision(code, amount) );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.privateMarginPostV2MarginIsolatedAccountBorrow(this.extend(request, parameters))).join();
@@ -13053,7 +13053,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
-                put( "repayAmount", BitgetCore.this.currencyToPrecision(code, amount) );
+                put( "repayAmount", Bitget.this.currencyToPrecision(code, amount) );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.privateMarginPostV2MarginIsolatedAccountRepay(this.extend(request, parameters))).join();
@@ -13100,7 +13100,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
-                put( "repayAmount", BitgetCore.this.currencyToPrecision(code, amount) );
+                put( "repayAmount", Bitget.this.currencyToPrecision(code, amount) );
             }};
             java.util.Map<String, Object> response = (this.privateMarginPostV2MarginCrossedAccountRepay(this.extend(request, parameters))).join();
             //
@@ -13172,9 +13172,9 @@ final Object finalMinNotional = minNotional;
         }
         final Object finalSymbol = symbol;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", BitgetCore.this.safeString2(info, "loanId", "repayId") );
-            put( "currency", BitgetCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", BitgetCore.this.safeNumber2(info, "borrowAmount", "repayAmount") );
+            put( "id", Bitget.this.safeString2(info, "loanId", "repayId") );
+            put( "currency", Bitget.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Bitget.this.safeNumber2(info, "borrowAmount", "repayAmount") );
             put( "symbol", finalSymbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -13362,14 +13362,14 @@ final Object finalMinNotional = minNotional;
         String quoteValueString = Precise.stringAdd(liquidationFee, totalDebt);
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
-            put( "symbol", BitgetCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Bitget.this.safeSymbol(marketId, market) );
             put( "contracts", null );
             put( "contractSize", null );
             put( "price", null );
             put( "baseValue", null );
-            put( "quoteValue", BitgetCore.this.parseNumber(quoteValueString) );
+            put( "quoteValue", Bitget.this.parseNumber(quoteValueString) );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
         }});
     }
 
@@ -13491,13 +13491,13 @@ final Object finalMinNotional = minNotional;
         Long timestamp = this.safeInteger(info, "timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
-            put( "base", BitgetCore.this.safeCurrencyCode(baseId) );
-            put( "baseRate", BitgetCore.this.safeNumber(info, "baseDailyInterestRate") );
-            put( "quote", BitgetCore.this.safeCurrencyCode(quoteId) );
-            put( "quoteRate", BitgetCore.this.safeNumber(info, "quoteDailyInterestRate") );
+            put( "base", Bitget.this.safeCurrencyCode(baseId) );
+            put( "baseRate", Bitget.this.safeNumber(info, "baseDailyInterestRate") );
+            put( "quote", Bitget.this.safeCurrencyCode(quoteId) );
+            put( "quoteRate", Bitget.this.safeNumber(info, "quoteDailyInterestRate") );
             put( "period", 86400000 );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "info", info );
         }};
     }
@@ -13623,11 +13623,11 @@ final Object finalMinNotional = minNotional;
         String currencyId = this.safeString(info, "coin");
         Long timestamp = this.safeInteger(info, "timestamp");
         return new java.util.HashMap<String, Object>() {{
-            put( "currency", BitgetCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "rate", BitgetCore.this.safeNumber2(info, "dailyInterestRate", "dailyInterest") );
+            put( "currency", Bitget.this.safeCurrencyCode(currencyId, currency) );
+            put( "rate", Bitget.this.safeNumber2(info, "dailyInterestRate", "dailyInterest") );
             put( "period", 86400000 );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "info", info );
         }};
     }
@@ -13804,14 +13804,14 @@ final Object finalMinNotional = minNotional;
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", BitgetCore.this.safeString(finalMarket, "symbol") );
-            put( "currency", BitgetCore.this.safeCurrencyCode(BitgetCore.this.safeString(info, "interestCoin")) );
-            put( "interest", BitgetCore.this.safeNumber(info, "interestAmount") );
-            put( "interestRate", BitgetCore.this.safeNumber(info, "dailyInterestRate") );
+            put( "symbol", Bitget.this.safeString(finalMarket, "symbol") );
+            put( "currency", Bitget.this.safeCurrencyCode(Bitget.this.safeString(info, "interestCoin")) );
+            put( "interest", Bitget.this.safeNumber(info, "interestAmount") );
+            put( "interestRate", Bitget.this.safeNumber(info, "dailyInterestRate") );
             put( "amountBorrowed", null );
             put( "marginMode", marginMode );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
         }};
     }
 
@@ -13995,7 +13995,7 @@ final Object finalMinNotional = minNotional;
         final Object finalMarginType = marginType;
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", BitgetCore.this.safeString(market, "symbol") );
+            put( "symbol", Bitget.this.safeString(market, "symbol") );
             put( "marginMode", finalMarginType );
         }};
     }
@@ -14100,7 +14100,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "fromCoin", fromCode );
                 put( "toCoin", toCode );
-                put( "fromCoinSize", BitgetCore.this.numberToString(amount) );
+                put( "fromCoinSize", Bitget.this.numberToString(amount) );
             }};
             java.util.Map<String, Object> response = (this.privateConvertGetV2ConvertQuotedPrice(this.extend(request, parameters))).join();
             //
@@ -14171,7 +14171,7 @@ final Object finalMinNotional = minNotional;
                 put( "traceId", id );
                 put( "fromCoin", fromCode );
                 put( "toCoin", toCode );
-                put( "fromCoinSize", BitgetCore.this.numberToString(amount) );
+                put( "fromCoinSize", Bitget.this.numberToString(amount) );
                 put( "toCoinSize", finalToAmount );
                 put( "cnvtPrice", finalPrice );
             }};
@@ -14321,14 +14321,14 @@ final Object finalMinNotional = minNotional;
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
-            put( "id", BitgetCore.this.safeString2(conversion, "id", "traceId") );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
+            put( "id", Bitget.this.safeString2(conversion, "id", "traceId") );
             put( "fromCurrency", fromCode );
-            put( "fromAmount", BitgetCore.this.safeNumber(conversion, "fromCoinSize") );
+            put( "fromAmount", Bitget.this.safeNumber(conversion, "fromCoinSize") );
             put( "toCurrency", toCode );
-            put( "toAmount", BitgetCore.this.safeNumber(conversion, "toCoinSize") );
-            put( "price", BitgetCore.this.safeNumber(conversion, "cnvtPrice") );
-            put( "fee", BitgetCore.this.safeNumber(conversion, "fee") );
+            put( "toAmount", Bitget.this.safeNumber(conversion, "toCoinSize") );
+            put( "price", Bitget.this.safeNumber(conversion, "cnvtPrice") );
+            put( "fee", Bitget.this.safeNumber(conversion, "fee") );
         }};
     }
 
@@ -14385,13 +14385,13 @@ final Object finalMinNotional = minNotional;
         put( "name", null );
         put( "active", null );
         put( "deposit", null );
-        put( "withdraw", BitgetCore.this.safeNumber(entry, "available") );
+        put( "withdraw", Bitget.this.safeNumber(entry, "available") );
         put( "fee", null );
         put( "precision", null );
         put( "limits", new java.util.HashMap<String, Object>() {{
             put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", BitgetCore.this.safeNumber(entry, "minAmount") );
-                put( "max", BitgetCore.this.safeNumber(entry, "maxAmount") );
+                put( "min", Bitget.this.safeNumber(entry, "minAmount") );
+                put( "max", Bitget.this.safeNumber(entry, "maxAmount") );
             }} );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
                 put( "min", null );
@@ -14516,11 +14516,11 @@ final Object finalMinNotional = minNotional;
         Object timestamp = this.safeIntegerOmitZero(info, "ts");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", BitgetCore.this.safeSymbol(marketId, market, null, "contract") );
+            put( "symbol", Bitget.this.safeSymbol(marketId, market, null, "contract") );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "timeframe", null );
-            put( "longShortRatio", BitgetCore.this.safeNumber2(info, "longShortRatio", "longShortAccountRatio") );
+            put( "longShortRatio", Bitget.this.safeNumber2(info, "longShortRatio", "longShortAccountRatio") );
         }};
     }
 
@@ -14637,10 +14637,10 @@ final Object finalMinNotional = minNotional;
             String broker = this.safeString(this.options, "broker");
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{
-                put( "ACCESS-KEY", BitgetCore.this.apiKey );
+                put( "ACCESS-KEY", Bitget.this.apiKey );
                 put( "ACCESS-SIGN", signature );
                 put( "ACCESS-TIMESTAMP", finalTimestamp );
-                put( "ACCESS-PASSPHRASE", BitgetCore.this.password );
+                put( "ACCESS-PASSPHRASE", Bitget.this.password );
                 put( "X-CHANNEL-API-CODE", broker );
             }};
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))

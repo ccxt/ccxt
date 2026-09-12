@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class WeexCore extends io.github.ccxt.exchanges.Weex
+public class Weex extends io.github.ccxt.exchanges.Weex
 {
-   public WeexCore () {
+   public Weex () {
        super();
    }
 
-   public WeexCore (Object options) {
+   public Weex (Object options) {
        super(options);
    }
 
@@ -179,10 +179,10 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 put( "options", new java.util.HashMap<String, Object>() {{
                     put( "headers", new java.util.HashMap<String, Object>() {{
                         put( "User-Agent", userAgent );
-                        put( "ACCESS-KEY", WeexCore.this.apiKey );
+                        put( "ACCESS-KEY", Weex.this.apiKey );
                         put( "ACCESS-SIGN", signature );
-                        put( "ACCESS-PASSPHRASE", WeexCore.this.password );
-                        put( "ACCESS-TIMESTAMP", WeexCore.this.numberToString(timestamp) );
+                        put( "ACCESS-PASSPHRASE", Weex.this.password );
+                        put( "ACCESS-TIMESTAMP", Weex.this.numberToString(timestamp) );
                     }} );
                 }} );
             }} );
@@ -225,7 +225,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
         });
 
@@ -421,25 +421,25 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
-            put( "high", WeexCore.this.safeString(ticker, "h") );
-            put( "low", WeexCore.this.safeString(ticker, "l") );
-            put( "bid", WeexCore.this.safeString(ticker, "b") );
-            put( "bidVolume", WeexCore.this.safeString(ticker, "B") );
-            put( "ask", WeexCore.this.safeString(ticker, "a") );
-            put( "askVolume", WeexCore.this.safeString(ticker, "A") );
-            put( "vwap", WeexCore.this.safeString(ticker, "w") );
-            put( "open", WeexCore.this.safeString(ticker, "o") );
+            put( "datetime", Weex.this.iso8601(timestamp) );
+            put( "high", Weex.this.safeString(ticker, "h") );
+            put( "low", Weex.this.safeString(ticker, "l") );
+            put( "bid", Weex.this.safeString(ticker, "b") );
+            put( "bidVolume", Weex.this.safeString(ticker, "B") );
+            put( "ask", Weex.this.safeString(ticker, "a") );
+            put( "askVolume", Weex.this.safeString(ticker, "A") );
+            put( "vwap", Weex.this.safeString(ticker, "w") );
+            put( "open", Weex.this.safeString(ticker, "o") );
             put( "close", close );
             put( "last", close );
-            put( "previousClose", WeexCore.this.safeString(ticker, "x") );
-            put( "change", WeexCore.this.safeString(ticker, "p") );
-            put( "percentage", WeexCore.this.safeString(ticker, "P") );
-            put( "average", WeexCore.this.safeString(ticker, "w") );
-            put( "baseVolume", WeexCore.this.safeString(ticker, "v") );
-            put( "quoteVolume", WeexCore.this.safeString(ticker, "q") );
-            put( "markPrice", WeexCore.this.safeString(ticker, "m") );
-            put( "indexPrice", WeexCore.this.safeString(ticker, "i") );
+            put( "previousClose", Weex.this.safeString(ticker, "x") );
+            put( "change", Weex.this.safeString(ticker, "p") );
+            put( "percentage", Weex.this.safeString(ticker, "P") );
+            put( "average", Weex.this.safeString(ticker, "w") );
+            put( "baseVolume", Weex.this.safeString(ticker, "v") );
+            put( "quoteVolume", Weex.this.safeString(ticker, "q") );
+            put( "markPrice", Weex.this.safeString(ticker, "m") );
+            put( "indexPrice", Weex.this.safeString(ticker, "i") );
             put( "info", ticker );
         }}, market);
     }
@@ -464,7 +464,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -669,17 +669,17 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         final Object finalTakerOrMaker = takerOrMaker;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", WeexCore.this.safeString(trade, "t") );
+            put( "id", Weex.this.safeString(trade, "t") );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
+            put( "datetime", Weex.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "order", null );
             put( "type", null );
             put( "side", finalSide );
             put( "takerOrMaker", finalTakerOrMaker );
-            put( "price", WeexCore.this.safeString(trade, "p") );
-            put( "amount", WeexCore.this.safeString(trade, "q") );
-            put( "cost", WeexCore.this.safeString(trade, "v") );
+            put( "price", Weex.this.safeString(trade, "p") );
+            put( "amount", Weex.this.safeString(trade, "q") );
+            put( "cost", Weex.this.safeString(trade, "v") );
             put( "fee", null );
         }}, market);
     }
@@ -982,7 +982,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "callerMethodName", "watchOrderBook" );
             }});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1319,11 +1319,11 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
-            put( "ask", WeexCore.this.safeString(message, "a") );
-            put( "askVolume", WeexCore.this.safeString(message, "A") );
-            put( "bid", WeexCore.this.safeString(message, "b") );
-            put( "bidVolume", WeexCore.this.safeString(message, "B") );
+            put( "datetime", Weex.this.iso8601(timestamp) );
+            put( "ask", Weex.this.safeString(message, "a") );
+            put( "askVolume", Weex.this.safeString(message, "A") );
+            put( "bid", Weex.this.safeString(message, "b") );
+            put( "bidVolume", Weex.this.safeString(message, "B") );
             put( "info", message );
         }}, market);
     }
@@ -1565,17 +1565,17 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", WeexCore.this.safeString(trade, "id") );
+            put( "id", Weex.this.safeString(trade, "id") );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
+            put( "datetime", Weex.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(marketResolved, "symbol") );
-            put( "order", WeexCore.this.safeString(trade, "orderId") );
-            put( "type", WeexCore.this.safeString(trade, "type") );
+            put( "order", Weex.this.safeString(trade, "orderId") );
+            put( "type", Weex.this.safeString(trade, "type") );
             put( "side", finalSide );
-            put( "takerOrMaker", WeexCore.this.safeStringLower(trade, "direction") );
+            put( "takerOrMaker", Weex.this.safeStringLower(trade, "direction") );
             put( "price", null );
-            put( "amount", WeexCore.this.safeString(trade, "fillSize") );
-            put( "cost", WeexCore.this.safeString(trade, "fillValue") );
+            put( "amount", Weex.this.safeString(trade, "fillSize") );
+            put( "cost", Weex.this.safeString(trade, "fillValue") );
             put( "fee", finalFee );
         }});
     }
@@ -1899,26 +1899,26 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         final Object finalStopLossPrice = stopLossPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", WeexCore.this.safeString(order, "id") );
-            put( "clientOrderId", WeexCore.this.safeString(order, "clientOrderId") );
+            put( "id", Weex.this.safeString(order, "id") );
+            put( "clientOrderId", Weex.this.safeString(order, "clientOrderId") );
             put( "symbol", Helpers.GetValue(marketResolved, "symbol") );
-            put( "type", WeexCore.this.parseOrderType(finalRawType) );
-            put( "timeInForce", WeexCore.this.safeString(order, "timeInForce") );
+            put( "type", Weex.this.parseOrderType(finalRawType) );
+            put( "timeInForce", Weex.this.safeString(order, "timeInForce") );
             put( "postOnly", null );
-            put( "reduceOnly", WeexCore.this.safeBool(order, "reduceOnly") );
+            put( "reduceOnly", Weex.this.safeBool(order, "reduceOnly") );
             put( "side", finalSide );
-            put( "amount", WeexCore.this.safeString(order, "size") );
-            put( "price", WeexCore.this.safeString(order, "price") );
+            put( "amount", Weex.this.safeString(order, "size") );
+            put( "price", Weex.this.safeString(order, "price") );
             put( "triggerPrice", triggerPrice );
-            put( "cost", WeexCore.this.safeString(order, "cumFillValue") );
-            put( "filled", WeexCore.this.safeString(order, "cumFillSize") );
+            put( "cost", Weex.this.safeString(order, "cumFillValue") );
+            put( "filled", Weex.this.safeString(order, "cumFillSize") );
             put( "remaining", null );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
+            put( "datetime", Weex.this.iso8601(timestamp) );
             put( "fee", finalFee );
-            put( "status", WeexCore.this.parseOrderStatus(rawStatus) );
+            put( "status", Weex.this.parseOrderStatus(rawStatus) );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", WeexCore.this.safeInteger(order, "updatedTime") );
+            put( "lastUpdateTimestamp", Weex.this.safeInteger(order, "updatedTime") );
             put( "average", null );
             put( "trades", null );
             put( "stopLossPrice", finalStopLossPrice );
@@ -2340,7 +2340,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             //     { "type": "ping", "time": "1776172740000" } - private
             //
             java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{
-                put( "id", WeexCore.this.requestId() );
+                put( "id", Weex.this.requestId() );
                 put( "method", "PONG" );
             }};
             (client.send(response)).join();

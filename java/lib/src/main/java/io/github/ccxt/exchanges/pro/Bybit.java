@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BybitCore extends io.github.ccxt.exchanges.Bybit
+public class Bybit extends io.github.ccxt.exchanges.Bybit
 {
-   public BybitCore () {
+   public Bybit () {
        super();
    }
 
-   public BybitCore (Object options) {
+   public Bybit (Object options) {
        super(options);
    }
 
@@ -316,8 +316,8 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 put( "reqId", requestId );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(orderRequest)) );
                 put( "header", new java.util.HashMap<String, Object>() {{
-                    put( "X-BAPI-TIMESTAMP", String.valueOf(BybitCore.this.milliseconds()) );
-                    put( "X-BAPI-RECV-WINDOW", String.valueOf(Helpers.GetValue(BybitCore.this.options, "recvWindow")) );
+                    put( "X-BAPI-TIMESTAMP", String.valueOf(Bybit.this.milliseconds()) );
+                    put( "X-BAPI-RECV-WINDOW", String.valueOf(Helpers.GetValue(Bybit.this.options, "recvWindow")) );
                 }} );
             }};
             return (this.watch(url, requestId, request, requestId, true)).join();
@@ -371,8 +371,8 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 put( "reqId", requestId );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(orderRequest)) );
                 put( "header", new java.util.HashMap<String, Object>() {{
-                    put( "X-BAPI-TIMESTAMP", String.valueOf(BybitCore.this.milliseconds()) );
-                    put( "X-BAPI-RECV-WINDOW", String.valueOf(Helpers.GetValue(BybitCore.this.options, "recvWindow")) );
+                    put( "X-BAPI-TIMESTAMP", String.valueOf(Bybit.this.milliseconds()) );
+                    put( "X-BAPI-RECV-WINDOW", String.valueOf(Helpers.GetValue(Bybit.this.options, "recvWindow")) );
                 }} );
             }};
             return (this.watch(url, requestId, request, requestId, true)).join();
@@ -421,8 +421,8 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 put( "reqId", requestId );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(orderRequest)) );
                 put( "header", new java.util.HashMap<String, Object>() {{
-                    put( "X-BAPI-TIMESTAMP", String.valueOf(BybitCore.this.milliseconds()) );
-                    put( "X-BAPI-RECV-WINDOW", String.valueOf(Helpers.GetValue(BybitCore.this.options, "recvWindow")) );
+                    put( "X-BAPI-TIMESTAMP", String.valueOf(Bybit.this.milliseconds()) );
+                    put( "X-BAPI-RECV-WINDOW", String.valueOf(Helpers.GetValue(Bybit.this.options, "recvWindow")) );
                 }} );
             }};
             return (this.watch(url, requestId, request, requestId, true)).join();
@@ -782,13 +782,13 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object bestBid = this.safeList(bids, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object bestAsk = this.safeList(asks, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", BybitCore.this.safeString(market, "symbol") );
+            put( "symbol", Bybit.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
-            put( "ask", BybitCore.this.safeNumber(bestAsk, 0) );
-            put( "askVolume", BybitCore.this.safeNumber(bestAsk, 1) );
-            put( "bid", BybitCore.this.safeNumber(bestBid, 0) );
-            put( "bidVolume", BybitCore.this.safeNumber(bestBid, 1) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
+            put( "ask", Bybit.this.safeNumber(bestAsk, 0) );
+            put( "askVolume", Bybit.this.safeNumber(bestAsk, 1) );
+            put( "bid", Bybit.this.safeNumber(bestBid, 0) );
+            put( "bidVolume", Bybit.this.safeNumber(bestBid, 1) );
             put( "info", orderbook );
         }}, market);
     }
@@ -1046,7 +1046,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1301,7 +1301,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1530,7 +1530,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "order", orderId );
             put( "type", null );
@@ -2206,14 +2206,14 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "contracts", BybitCore.this.safeNumber2(liquidation, "size", "v") );
-            put( "contractSize", BybitCore.this.safeNumber(finalMarket, "contractSize") );
-            put( "price", BybitCore.this.safeNumber2(liquidation, "price", "p") );
-            put( "side", BybitCore.this.safeStringLower2(liquidation, "side", "S") );
+            put( "contracts", Bybit.this.safeNumber2(liquidation, "size", "v") );
+            put( "contractSize", Bybit.this.safeNumber(finalMarket, "contractSize") );
+            put( "price", Bybit.this.safeNumber2(liquidation, "price", "p") );
+            put( "side", Bybit.this.safeStringLower2(liquidation, "side", "S") );
             put( "baseValue", null );
             put( "quoteValue", null );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
         }});
     }
 
@@ -2823,7 +2823,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
-                put( "req_id", BybitCore.this.requestId() );
+                put( "req_id", Bybit.this.requestId() );
                 put( "args", topics );
             }};
             java.util.Map<String, Object> message = this.extend(request, parameters);
@@ -2878,7 +2878,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "hex");
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "op", "auth" );
-                    put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(BybitCore.this.apiKey, expires, signature)) );
+                    put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(Bybit.this.apiKey, expires, signature)) );
                 }};
                 java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
@@ -3083,7 +3083,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
     public Object ping(Client client)
     {
         return new java.util.HashMap<String, Object>() {{
-            put( "req_id", BybitCore.this.requestId() );
+            put( "req_id", Bybit.this.requestId() );
             put( "op", "ping" );
         }};
     }

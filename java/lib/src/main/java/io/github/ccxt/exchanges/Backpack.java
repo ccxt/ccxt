@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BackpackCore extends BackpackApi
+public class Backpack extends BackpackApi
 {
-   public BackpackCore () {
+   public Backpack () {
        super();
    }
 
-   public BackpackCore (Object options) {
+   public Backpack (Object options) {
        super(options);
    }
 
@@ -722,18 +722,18 @@ public class BackpackCore extends BackpackApi
     put( "network", finalNetworkCode );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", BackpackCore.this.safeNumber(network, "minimumWithdrawal") );
-            put( "max", BackpackCore.this.parseNumber(BackpackCore.this.omitZero(BackpackCore.this.safeString(network, "maximumWithdrawal"))) );
+            put( "min", Backpack.this.safeNumber(network, "minimumWithdrawal") );
+            put( "max", Backpack.this.parseNumber(Backpack.this.omitZero(Backpack.this.safeString(network, "maximumWithdrawal"))) );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", BackpackCore.this.safeNumber(network, "minimumDeposit") );
+            put( "min", Backpack.this.safeNumber(network, "minimumDeposit") );
             put( "max", null );
         }} );
     }} );
     put( "active", null );
-    put( "deposit", BackpackCore.this.safeBool(network, "depositEnabled") );
-    put( "withdraw", BackpackCore.this.safeBool(network, "withdrawEnabled") );
-    put( "fee", BackpackCore.this.safeNumber(network, "withdrawalFee") );
+    put( "deposit", Backpack.this.safeBool(network, "depositEnabled") );
+    put( "withdraw", Backpack.this.safeBool(network, "withdrawEnabled") );
+    put( "fee", Backpack.this.safeNumber(network, "withdrawalFee") );
     put( "precision", null );
     put( "info", network );
 }});
@@ -756,7 +756,7 @@ public class BackpackCore extends BackpackApi
             put( "code", code );
             put( "precision", null );
             put( "type", "crypto" );
-            put( "name", BackpackCore.this.safeString(rawCurrency, "displayName") );
+            put( "name", Backpack.this.safeString(rawCurrency, "displayName") );
             put( "active", finalActive );
             put( "deposit", finalDeposit );
             put( "withdraw", finalWithdraw );
@@ -983,7 +983,7 @@ public class BackpackCore extends BackpackApi
                     put( "max", null );
                 }} );
             }} );
-            put( "created", BackpackCore.this.parse8601(BackpackCore.this.safeString(market, "createdAt")) );
+            put( "created", Backpack.this.parse8601(Backpack.this.safeString(market, "createdAt")) );
             put( "info", market );
         }});
     }
@@ -1313,18 +1313,18 @@ public class BackpackCore extends BackpackApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
-            put( "markPrice", BackpackCore.this.safeNumber(contract, "markPrice") );
-            put( "indexPrice", BackpackCore.this.safeNumber(contract, "indexPrice") );
+            put( "markPrice", Backpack.this.safeNumber(contract, "markPrice") );
+            put( "indexPrice", Backpack.this.safeNumber(contract, "indexPrice") );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", BackpackCore.this.safeNumber(contract, "fundingRate") );
+            put( "fundingRate", Backpack.this.safeNumber(contract, "fundingRate") );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", nextFundingTimestamp );
-            put( "nextFundingDatetime", BackpackCore.this.iso8601(nextFundingTimestamp) );
+            put( "nextFundingDatetime", Backpack.this.iso8601(nextFundingTimestamp) );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
@@ -1381,11 +1381,11 @@ public class BackpackCore extends BackpackApi
         Long timestamp = this.safeInteger(interest, "timestamp");
         Double openInterest = this.safeNumber(interest, "openInterest");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", BackpackCore.this.safeString(market, "symbol") );
+            put( "symbol", Backpack.this.safeString(market, "symbol") );
             put( "openInterestAmount", null );
             put( "openInterestValue", openInterest );
             put( "timestamp", timestamp );
-            put( "datetime", BackpackCore.this.iso8601(timestamp) );
+            put( "datetime", Backpack.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -1446,7 +1446,7 @@ public class BackpackCore extends BackpackApi
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", rate );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
-                    put( "fundingRate", BackpackCore.this.safeNumber(rate, "fundingRate") );
+                    put( "fundingRate", Backpack.this.safeNumber(rate, "fundingRate") );
                     put( "timestamp", timestamp );
                     put( "datetime", datetime );
                 }});
@@ -1639,7 +1639,7 @@ public class BackpackCore extends BackpackApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BackpackCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Backpack.this.iso8601(finalTimestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "id", id );
             put( "order", orderId );
@@ -1903,7 +1903,7 @@ public class BackpackCore extends BackpackApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
-                put( "quantity", BackpackCore.this.numberToString(amount) );
+                put( "quantity", Backpack.this.numberToString(amount) );
                 put( "address", address );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
@@ -2029,7 +2029,7 @@ public class BackpackCore extends BackpackApi
             put( "id", id );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", BackpackCore.this.iso8601(timestamp) );
+            put( "datetime", Backpack.this.iso8601(timestamp) );
             put( "network", network );
             put( "address", null );
             put( "addressTo", addressTo );
@@ -2094,7 +2094,7 @@ public class BackpackCore extends BackpackApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             final Object finalNetworkCode = networkCode;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "blockchain", BackpackCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
+                put( "blockchain", Backpack.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }};
             java.util.Map<String, Object> response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, parameters))).join();
             return this.parseDepositAddress(response, currency);
@@ -2228,8 +2228,8 @@ public class BackpackCore extends BackpackApi
         final Object finalType = type;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
-            put( "side", BackpackCore.this.encodeOrderSide(finalSide) );
-            put( "orderType", BackpackCore.this.capitalize(finalType) );
+            put( "side", Backpack.this.encodeOrderSide(finalSide) );
+            put( "orderType", Backpack.this.capitalize(finalType) );
         }};
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         Boolean isTriggerOrder = !Helpers.isEqual(triggerPrice, null);
@@ -2637,7 +2637,7 @@ public class BackpackCore extends BackpackApi
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BackpackCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Backpack.this.iso8601(finalTimestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", symbol );
             put( "type", type );
@@ -2780,12 +2780,12 @@ public class BackpackCore extends BackpackApi
             put( "info", position );
             put( "id", id );
             put( "symbol", symbol );
-            put( "timestamp", BackpackCore.this.parse8601(BackpackCore.this.safeString(position, "timestamp")) );
-            put( "datetime", BackpackCore.this.iso8601(BackpackCore.this.parse8601(BackpackCore.this.safeString(position, "timestamp"))) );
+            put( "timestamp", Backpack.this.parse8601(Backpack.this.safeString(position, "timestamp")) );
+            put( "datetime", Backpack.this.iso8601(Backpack.this.parse8601(Backpack.this.safeString(position, "timestamp"))) );
             put( "lastUpdateTimestamp", null );
             put( "hedged", finalHedged );
             put( "side", finalSide );
-            put( "contracts", BackpackCore.this.safeString(position, "netExposureQuantity") );
+            put( "contracts", Backpack.this.safeString(position, "netExposureQuantity") );
             put( "contractSize", null );
             put( "entryPrice", entryPrice );
             put( "markPrice", markPrice );
@@ -2794,9 +2794,9 @@ public class BackpackCore extends BackpackApi
             put( "leverage", null );
             put( "collateral", null );
             put( "initialMargin", null );
-            put( "initialMarginPercentage", BackpackCore.this.safeString(position, "imf") );
+            put( "initialMarginPercentage", Backpack.this.safeString(position, "imf") );
             put( "maintenanceMargin", null );
-            put( "maintenanceMarginPercentage", BackpackCore.this.safeString(position, "mmf") );
+            put( "maintenanceMarginPercentage", Backpack.this.safeString(position, "mmf") );
             put( "realizedPnl", realizedPnl );
             put( "unrealizedPnl", unrealizedPnl );
             put( "liquidationPrice", liquidationPrice );
@@ -2874,7 +2874,7 @@ public class BackpackCore extends BackpackApi
             put( "symbol", symbol );
             put( "code", null );
             put( "timestamp", timestamp );
-            put( "datetime", BackpackCore.this.iso8601(timestamp) );
+            put( "datetime", Backpack.this.iso8601(timestamp) );
             put( "id", id );
             put( "amount", amount );
             put( "rate", rate );
@@ -2923,7 +2923,7 @@ public class BackpackCore extends BackpackApi
             headers = new java.util.HashMap<String, Object>() {{
                 put( "X-Timestamp", ts );
                 put( "X-Window", recvWindow );
-                put( "X-API-Key", BackpackCore.this.apiKey );
+                put( "X-API-Key", Backpack.this.apiKey );
                 put( "X-Signature", signature );
                 put( "X-Broker-Id", "1400" );
             }};

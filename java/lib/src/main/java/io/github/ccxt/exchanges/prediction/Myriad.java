@@ -9,13 +9,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class MyriadCore extends MyriadApi
+public class Myriad extends MyriadApi
 {
-   public MyriadCore () {
+   public Myriad () {
        super();
    }
 
-   public MyriadCore (Object options) {
+   public Myriad (Object options) {
        super(options);
    }
 
@@ -798,9 +798,9 @@ public class MyriadCore extends MyriadApi
             put( "contracts", shares );
             put( "side", "long" );
             put( "notional", value );
-            put( "markPrice", MyriadCore.this.safeNumber(position, "price") );
+            put( "markPrice", Myriad.this.safeNumber(position, "price") );
             put( "unrealizedPnl", profit );
-            put( "percentage", MyriadCore.this.parseNumber(finalPercentage) );
+            put( "percentage", Myriad.this.parseNumber(finalPercentage) );
             put( "marginMode", "cash" );
             put( "hedged", false );
         }});
@@ -833,11 +833,11 @@ public class MyriadCore extends MyriadApi
             Object sideStr = ((String)((String)side)).toLowerCase();
             final Object finalSideStr = sideStr;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "market_id", MyriadCore.this.parseToInt(marketId) );
-                put( "network_id", MyriadCore.this.parseToInt(networkId) );
+                put( "market_id", Myriad.this.parseToInt(marketId) );
+                put( "network_id", Myriad.this.parseToInt(networkId) );
                 put( "outcome_id", outcomeId );
                 put( "action", finalSideStr );
-                put( "slippage", MyriadCore.this.safeNumber(parameters, "slippage", 0.005) );
+                put( "slippage", Myriad.this.safeNumber(parameters, "slippage", 0.005) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(sideStr, "buy")))
             {
@@ -902,17 +902,17 @@ public class MyriadCore extends MyriadApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
-            put( "outcome", MyriadCore.this.safeString(market, "outcome") );
-            put( "side", MyriadCore.this.safeStringLower(quote, "action") );
-            put( "value", MyriadCore.this.safeNumber(quote, "value") );
-            put( "shares", MyriadCore.this.safeNumber(quote, "shares") );
-            put( "sharesThreshold", MyriadCore.this.safeNumber(quote, "shares_threshold") );
-            put( "priceAverage", MyriadCore.this.safeNumber(quote, "price_average") );
-            put( "priceBefore", MyriadCore.this.safeNumber(quote, "price_before") );
-            put( "priceAfter", MyriadCore.this.safeNumber(quote, "price_after") );
-            put( "netAmount", MyriadCore.this.safeNumber(quote, "net_amount") );
-            put( "fees", MyriadCore.this.safeDict(quote, "fees") );
-            put( "calldata", MyriadCore.this.safeString(quote, "calldata") );
+            put( "outcome", Myriad.this.safeString(market, "outcome") );
+            put( "side", Myriad.this.safeStringLower(quote, "action") );
+            put( "value", Myriad.this.safeNumber(quote, "value") );
+            put( "shares", Myriad.this.safeNumber(quote, "shares") );
+            put( "sharesThreshold", Myriad.this.safeNumber(quote, "shares_threshold") );
+            put( "priceAverage", Myriad.this.safeNumber(quote, "price_average") );
+            put( "priceBefore", Myriad.this.safeNumber(quote, "price_before") );
+            put( "priceAfter", Myriad.this.safeNumber(quote, "price_after") );
+            put( "netAmount", Myriad.this.safeNumber(quote, "net_amount") );
+            put( "fees", Myriad.this.safeDict(quote, "fees") );
+            put( "calldata", Myriad.this.safeString(quote, "calldata") );
             put( "info", quote );
         }};
     }
@@ -1081,8 +1081,8 @@ public class MyriadCore extends MyriadApi
             String timeInForce = this.safeString(built, "timeInForce");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order", order );
-                put( "signature", MyriadCore.this.safeString(built, "signature") );
-                put( "network_id", MyriadCore.this.parseToInt(networkId) );
+                put( "signature", Myriad.this.safeString(built, "signature") );
+                put( "network_id", Myriad.this.parseToInt(networkId) );
                 put( "time_in_force", timeInForce );
             }};
             java.util.Map<String, Object> response = (this.myriadPublicPostOrders(request)).join();
@@ -1094,15 +1094,15 @@ public class MyriadCore extends MyriadApi
             //     }
             //
             java.util.Map<String, Object> orderForResponse = new java.util.HashMap<String, Object>() {{
-                put( "trader", MyriadCore.this.safeString(order, "trader") );
-                put( "marketId", MyriadCore.this.safeString(order, "marketId") );
-                put( "outcomeId", MyriadCore.this.safeNumber(order, "outcomeId") );
-                put( "side", MyriadCore.this.safeNumber(order, "side") );
-                put( "amount", MyriadCore.this.safeString(order, "amount") );
-                put( "price", MyriadCore.this.safeString(order, "price") );
-                put( "minFillAmount", MyriadCore.this.safeString(order, "minFillAmount") );
-                put( "nonce", MyriadCore.this.safeString(order, "nonce") );
-                put( "expiration", MyriadCore.this.safeString(order, "expiration") );
+                put( "trader", Myriad.this.safeString(order, "trader") );
+                put( "marketId", Myriad.this.safeString(order, "marketId") );
+                put( "outcomeId", Myriad.this.safeNumber(order, "outcomeId") );
+                put( "side", Myriad.this.safeNumber(order, "side") );
+                put( "amount", Myriad.this.safeString(order, "amount") );
+                put( "price", Myriad.this.safeString(order, "price") );
+                put( "minFillAmount", Myriad.this.safeString(order, "minFillAmount") );
+                put( "nonce", Myriad.this.safeString(order, "nonce") );
+                put( "expiration", Myriad.this.safeString(order, "expiration") );
             }};
             java.util.Map<String, Object> wrapper = this.extend(response, new java.util.HashMap<String, Object>() {{
                 put( "order", orderForResponse );
@@ -1212,8 +1212,8 @@ public class MyriadCore extends MyriadApi
         java.util.Map<String, Object> order = new java.util.HashMap<String, Object>() {{
             put( "trader", trader );
             put( "marketId", marketId );
-            put( "outcomeId", MyriadCore.this.parseToNumeric(outcomeId) );
-            put( "side", MyriadCore.this.parseToNumeric(finalSideInt) );
+            put( "outcomeId", Myriad.this.parseToNumeric(outcomeId) );
+            put( "side", Myriad.this.parseToNumeric(finalSideInt) );
             put( "amount", amountWei );
             put( "price", finalPriceWei );
             put( "minFillAmount", minFillAmount );
@@ -1301,7 +1301,7 @@ public class MyriadCore extends MyriadApi
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.loadOutcome(outcome)).join();
-            (this.cancelOrder(id, outcome, parameters)).join();
+            (this.cancelOrder((Object)(id), (Object)(outcome), (Object)(parameters))).join();
             return (this.createOrderbookOrder(outcome, type, side, amount, price, parameters)).join();
         });
 
@@ -1416,7 +1416,7 @@ public class MyriadCore extends MyriadApi
                 put( "enableAmm", true );
                 put( "costDenominated", true );
             }});
-            return (this.createOrder(outcome, "market", "buy", cost, null, request)).join();
+            return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(request))).join();
         });
 
     }
@@ -1443,7 +1443,7 @@ public class MyriadCore extends MyriadApi
         java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
             put( "name", domainName );
             put( "version", domainVersion );
-            put( "chainId", MyriadCore.this.parseToInt(networkId) );
+            put( "chainId", Myriad.this.parseToInt(networkId) );
             put( "verifyingContract", finalExchangeAddress );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, types, message);
@@ -1544,14 +1544,14 @@ public class MyriadCore extends MyriadApi
         final Object finalSigner = signer;
         return new java.util.HashMap<String, Object>() {{
             put( "trader", finalSigner );
-            put( "marketId", MyriadCore.this.safeString(rawOrder, "marketId") );
-            put( "outcomeId", MyriadCore.this.safeInteger(rawOrder, "outcomeId", 0) );
-            put( "side", MyriadCore.this.safeInteger(rawOrder, "side", 0) );
-            put( "amount", MyriadCore.this.safeString(rawOrder, "amount") );
-            put( "price", MyriadCore.this.safeString(rawOrder, "price") );
-            put( "minFillAmount", MyriadCore.this.safeString(rawOrder, "minFillAmount", "0") );
-            put( "nonce", MyriadCore.this.safeString(rawOrder, "nonce") );
-            put( "expiration", MyriadCore.this.safeString(rawOrder, "expiration", "0") );
+            put( "marketId", Myriad.this.safeString(rawOrder, "marketId") );
+            put( "outcomeId", Myriad.this.safeInteger(rawOrder, "outcomeId", 0) );
+            put( "side", Myriad.this.safeInteger(rawOrder, "side", 0) );
+            put( "amount", Myriad.this.safeString(rawOrder, "amount") );
+            put( "price", Myriad.this.safeString(rawOrder, "price") );
+            put( "minFillAmount", Myriad.this.safeString(rawOrder, "minFillAmount", "0") );
+            put( "nonce", Myriad.this.safeString(rawOrder, "nonce") );
+            put( "expiration", Myriad.this.safeString(rawOrder, "expiration", "0") );
         }};
     }
 
@@ -1577,7 +1577,7 @@ public class MyriadCore extends MyriadApi
             return new java.util.HashMap<String, Object>() {{
                 put( "orderHash", id );
                 put( "order", finalRawOrder );
-                put( "networkId", MyriadCore.this.safeString2(parameters, "networkId", "network_id") );
+                put( "networkId", Myriad.this.safeString2(parameters, "networkId", "network_id") );
             }};
         }
         Object orderResponsesById = this.safeDict(parameters, "orderResponses");
@@ -1692,12 +1692,12 @@ public class MyriadCore extends MyriadApi
             put( "clientOrderId", null );
             put( "info", order );
             put( "timestamp", timestamp );
-            put( "datetime", MyriadCore.this.iso8601(timestamp) );
+            put( "datetime", Myriad.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "outcome", finalOutcome );
-            put( "outcomeId", MyriadCore.this.safeString2(finalOutcomeObj, "outcomeId", "id") );
-            put( "label", MyriadCore.this.safeString(finalOutcomeObj, "label") );
-            put( "market", MyriadCore.this.safeString(finalOutcomeObj, "market") );
+            put( "outcomeId", Myriad.this.safeString2(finalOutcomeObj, "outcomeId", "id") );
+            put( "label", Myriad.this.safeString(finalOutcomeObj, "label") );
+            put( "market", Myriad.this.safeString(finalOutcomeObj, "market") );
             put( "type", ((Helpers.isTrue(isMarketTif))) ? "market" : "limit" );
             put( "timeInForce", finalTif );
             put( "postOnly", (Helpers.isEqual(finalTif, "PO")) );
@@ -1769,11 +1769,11 @@ public class MyriadCore extends MyriadApi
         final Object finalAmountStr = amountStr;
         final Object finalCostStr = costStr;
         return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", MyriadCore.this.safeString2(trade, "txId", "id") );
+            put( "id", Myriad.this.safeString2(trade, "txId", "id") );
             put( "clientOrderId", null );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", MyriadCore.this.iso8601(timestamp) );
+            put( "datetime", Myriad.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", timestamp );
             put( "lastUpdateTimestamp", null );
             put( "status", "closed" );
@@ -1784,14 +1784,14 @@ public class MyriadCore extends MyriadApi
             put( "type", "market" );
             put( "timeInForce", "IOC" );
             put( "postOnly", false );
-            put( "side", MyriadCore.this.safeStringLower(trade, "action") );
-            put( "price", MyriadCore.this.parseNumber(finalPriceStr) );
+            put( "side", Myriad.this.safeStringLower(trade, "action") );
+            put( "price", Myriad.this.parseNumber(finalPriceStr) );
             put( "triggerPrice", null );
-            put( "amount", MyriadCore.this.parseNumber(finalAmountStr) );
-            put( "filled", MyriadCore.this.parseNumber(finalAmountStr) );
+            put( "amount", Myriad.this.parseNumber(finalAmountStr) );
+            put( "filled", Myriad.this.parseNumber(finalAmountStr) );
             put( "remaining", 0 );
-            put( "cost", MyriadCore.this.parseNumber(finalCostStr) );
-            put( "average", MyriadCore.this.parseNumber(finalPriceStr) );
+            put( "cost", Myriad.this.parseNumber(finalCostStr) );
+            put( "average", Myriad.this.parseNumber(finalPriceStr) );
             put( "fee", null );
             put( "reduceOnly", null );
             put( "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
@@ -1975,7 +1975,7 @@ public class MyriadCore extends MyriadApi
                 put( "hash", id );
                 put( "order", message );
                 put( "signature", signature );
-                put( "network_id", MyriadCore.this.parseToInt(finalNetworkId) );
+                put( "network_id", Myriad.this.parseToInt(finalNetworkId) );
             }};
             java.util.Map<String, Object> response = (this.myriadPublicDeleteOrdersHash(this.extend(request, parameters))).join();
             //
@@ -2041,10 +2041,10 @@ public class MyriadCore extends MyriadApi
             final Object finalNetworkId = networkId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "trader", trader );
-                put( "market_id", MyriadCore.this.parseToInt(finalMarketId) );
+                put( "market_id", Myriad.this.parseToInt(finalMarketId) );
                 put( "timestamp", timestamp );
                 put( "signature", signature );
-                put( "network_id", MyriadCore.this.parseToInt(finalNetworkId) );
+                put( "network_id", Myriad.this.parseToInt(finalNetworkId) );
             }};
             java.util.Map<String, Object> response = (this.myriadPublicPostOrdersCancelAll(request)).join();
             //
@@ -2139,7 +2139,7 @@ public class MyriadCore extends MyriadApi
             final Object finalNetworkId = networkId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orders", signedOrders );
-                put( "network_id", MyriadCore.this.parseToInt(finalNetworkId) );
+                put( "network_id", Myriad.this.parseToInt(finalNetworkId) );
             }};
             (this.myriadPublicPostOrdersCancelBatch(this.extend(request, parameters))).join();
             //
@@ -2333,7 +2333,7 @@ public class MyriadCore extends MyriadApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "open" );
             }};
-            return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -2361,7 +2361,7 @@ public class MyriadCore extends MyriadApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "filled" );
             }};
-            return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -2389,7 +2389,7 @@ public class MyriadCore extends MyriadApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "cancelled" );
             }};
-            return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -2419,7 +2419,7 @@ public class MyriadCore extends MyriadApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "filled" );
             }};
-            Object orders = (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
+            Object orders = (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
             java.util.List<Object> trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object ordersLength = Helpers.getArrayLength(orders);
             for (var i = 0; Helpers.isLessThan(i, ordersLength); i++)
@@ -2446,20 +2446,20 @@ public class MyriadCore extends MyriadApi
         final Object finalOrderType = orderType;
         final Object finalPrice = price;
         return this.safePredictionTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", MyriadCore.this.safeString(order, "id") );
-            put( "order", MyriadCore.this.safeString(order, "id") );
-            put( "info", MyriadCore.this.safeDict(order, "info", new java.util.HashMap<String, Object>() {{}}) );
+            put( "id", Myriad.this.safeString(order, "id") );
+            put( "order", Myriad.this.safeString(order, "id") );
+            put( "info", Myriad.this.safeDict(order, "info", new java.util.HashMap<String, Object>() {{}}) );
             put( "timestamp", timestamp );
-            put( "datetime", MyriadCore.this.iso8601(timestamp) );
-            put( "outcome", MyriadCore.this.safeString(order, "outcome") );
-            put( "outcomeId", MyriadCore.this.safeString(order, "outcomeId") );
-            put( "label", MyriadCore.this.safeString(order, "label") );
-            put( "market", MyriadCore.this.safeString(order, "market") );
+            put( "datetime", Myriad.this.iso8601(timestamp) );
+            put( "outcome", Myriad.this.safeString(order, "outcome") );
+            put( "outcomeId", Myriad.this.safeString(order, "outcomeId") );
+            put( "label", Myriad.this.safeString(order, "label") );
+            put( "market", Myriad.this.safeString(order, "market") );
             put( "type", finalOrderType );
-            put( "side", MyriadCore.this.safeString(order, "side") );
+            put( "side", Myriad.this.safeString(order, "side") );
             put( "takerOrMaker", null );
             put( "price", finalPrice );
-            put( "amount", MyriadCore.this.safeNumber(order, "filled") );
+            put( "amount", Myriad.this.safeNumber(order, "filled") );
             put( "cost", null );
             put( "fee", null );
         }});
@@ -2569,18 +2569,18 @@ public class MyriadCore extends MyriadApi
         return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
             put( "id", txHash );
             put( "clientOrderId", null );
-            put( "info", MyriadCore.this.extend(new java.util.HashMap<String, Object>() {{
+            put( "info", Myriad.this.extend(new java.util.HashMap<String, Object>() {{
                 put( "transactionHash", txHash );
-            }}, MyriadCore.this.safeDict(quote, "info", new java.util.HashMap<String, Object>() {{}})) );
-            put( "outcome", MyriadCore.this.safeString(market, "outcome") );
-            put( "outcomeId", MyriadCore.this.safeString(market, "id") );
-            put( "label", MyriadCore.this.safeString(market, "label") );
-            put( "market", MyriadCore.this.safeString(market, "market") );
+            }}, Myriad.this.safeDict(quote, "info", new java.util.HashMap<String, Object>() {{}})) );
+            put( "outcome", Myriad.this.safeString(market, "outcome") );
+            put( "outcomeId", Myriad.this.safeString(market, "id") );
+            put( "label", Myriad.this.safeString(market, "label") );
+            put( "market", Myriad.this.safeString(market, "market") );
             put( "type", "market" );
             put( "side", side );
-            put( "price", MyriadCore.this.safeNumber(quote, "priceAverage") );
-            put( "amount", MyriadCore.this.safeNumber(quote, "shares") );
-            put( "cost", MyriadCore.this.safeNumber(quote, "value") );
+            put( "price", Myriad.this.safeNumber(quote, "priceAverage") );
+            put( "amount", Myriad.this.safeNumber(quote, "shares") );
+            put( "cost", Myriad.this.safeNumber(quote, "value") );
             put( "status", "closed" );
             put( "fee", null );
         }}, market);
@@ -2606,23 +2606,23 @@ public class MyriadCore extends MyriadApi
             put( "id", Helpers.GetValue(market, "id") );
             put( "slug", slug );
             put( "event", Helpers.GetValue(market, "market") );
-            put( "title", MyriadCore.this.safeString2(raw, "title", "shortName") );
-            put( "description", MyriadCore.this.safeString(raw, "description") );
+            put( "title", Myriad.this.safeString2(raw, "title", "shortName") );
+            put( "description", Myriad.this.safeString(raw, "description") );
             put( "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList(market)) );
-            put( "volume", MyriadCore.this.safeNumber2(raw, "volumeNotional24h", "volume24h") );
-            put( "liquidity", MyriadCore.this.safeNumber(raw, "liquidity") );
+            put( "volume", Myriad.this.safeNumber2(raw, "volumeNotional24h", "volume24h") );
+            put( "liquidity", Myriad.this.safeNumber(raw, "liquidity") );
             put( "url", null );
-            put( "image", MyriadCore.this.safeString(raw, "imageUrl") );
+            put( "image", Myriad.this.safeString(raw, "imageUrl") );
             put( "active", (Helpers.isEqual(finalState, "open")) );
             put( "resolved", (Helpers.isEqual(finalState, "resolved")) );
             put( "category", null );
-            put( "tags", MyriadCore.this.safeList(raw, "topics") );
-            put( "created", MyriadCore.this.parse8601(MyriadCore.this.safeString(raw, "publishedAt")) );
-            put( "createdDatetime", MyriadCore.this.safeString(raw, "publishedAt") );
-            put( "end", ((Helpers.isTrue((!Helpers.isEqual(finalEndDate, null))))) ? MyriadCore.this.parse8601(finalEndDate) : null );
+            put( "tags", Myriad.this.safeList(raw, "topics") );
+            put( "created", Myriad.this.parse8601(Myriad.this.safeString(raw, "publishedAt")) );
+            put( "createdDatetime", Myriad.this.safeString(raw, "publishedAt") );
+            put( "end", ((Helpers.isTrue((!Helpers.isEqual(finalEndDate, null))))) ? Myriad.this.parse8601(finalEndDate) : null );
             put( "endDatetime", finalEndDate );
             put( "lastUpdatedAt", null );
-            put( "resolutionSource", MyriadCore.this.safeString(raw, "resolutionSource") );
+            put( "resolutionSource", Myriad.this.safeString(raw, "resolutionSource") );
             put( "info", raw );
         }};
     }
@@ -2720,7 +2720,7 @@ final Object finalNetworkId = networkId;
                     put( "outcomePrice", price );
                     put( "volume24h", volume24h );
                     put( "state", finalState );
-                    put( "tradingModel", MyriadCore.this.safeString(raw, "tradingModel", "amm") );
+                    put( "tradingModel", Myriad.this.safeString(raw, "tradingModel", "amm") );
                     put( "tokenAddress", tokenAddress );
                     put( "tokenDecimals", tokenDecimals );
                 }} );
@@ -2760,7 +2760,7 @@ final Object finalNetworkId = networkId;
             put( "linear", null );
             put( "inverse", null );
             put( "contractSize", null );
-            put( "expiry", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalEndDate, null)) && Helpers.isTrue(!Helpers.isEqual(finalEndDate, "")))))) ? MyriadCore.this.parse8601(finalEndDate) : null );
+            put( "expiry", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalEndDate, null)) && Helpers.isTrue(!Helpers.isEqual(finalEndDate, "")))))) ? Myriad.this.parse8601(finalEndDate) : null );
             put( "expiryDatetime", finalEndDate );
             put( "strike", null );
             put( "optionType", null );
@@ -2792,7 +2792,7 @@ final Object finalNetworkId = networkId;
                 }} );
             }} );
             put( "outcomes", outcomes );
-            put( "info", MyriadCore.this.extend(raw, new java.util.HashMap<String, Object>() {{
+            put( "info", Myriad.this.extend(raw, new java.util.HashMap<String, Object>() {{
                 put( "networkId", finalNetworkId );
                 put( "marketId", marketId );
                 put( "slug", slug );
@@ -2922,8 +2922,8 @@ final Object finalNetworkId = networkId;
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "id", MyriadCore.this.safeString(info, "marketId") );
-                put( "network_id", MyriadCore.this.safeString(info, "networkId") );
+                put( "id", Myriad.this.safeString(info, "marketId") );
+                put( "network_id", Myriad.this.safeString(info, "networkId") );
             }};
             java.util.Map<String, Object> response = (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
             //
@@ -2939,10 +2939,10 @@ final Object finalNetworkId = networkId;
             Object sell = this.safeDict(fees, "sell", new java.util.HashMap<String, Object>() {{}});
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "outcome", MyriadCore.this.safeOutcomeSymbol(null, ((Object)outcomeObj)) );
-                put( "outcomeId", MyriadCore.this.safeString(outcomeObj, "outcomeId") );
-                put( "maker", MyriadCore.this.safeNumber(sell, "fee") );
-                put( "taker", MyriadCore.this.safeNumber(buy, "fee") );
+                put( "outcome", Myriad.this.safeOutcomeSymbol(null, ((Object)outcomeObj)) );
+                put( "outcomeId", Myriad.this.safeString(outcomeObj, "outcomeId") );
+                put( "maker", Myriad.this.safeNumber(sell, "fee") );
+                put( "taker", Myriad.this.safeNumber(buy, "fee") );
                 put( "percentage", true );
                 put( "tierBased", false );
             }};
@@ -3072,12 +3072,12 @@ final Object finalNetworkId = networkId;
         final Object finalChange = change;
         final Object finalPercentage = percentage;
         return this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
-            put( "outcome", MyriadCore.this.safeString(finalMarket, "outcome") );
-            put( "outcomeId", MyriadCore.this.safeString(finalMarket, "id") );
-            put( "label", MyriadCore.this.safeString(finalMarket, "label") );
-            put( "market", MyriadCore.this.safeString(finalMarket, "market") );
+            put( "outcome", Myriad.this.safeString(finalMarket, "outcome") );
+            put( "outcomeId", Myriad.this.safeString(finalMarket, "id") );
+            put( "label", Myriad.this.safeString(finalMarket, "label") );
+            put( "market", Myriad.this.safeString(finalMarket, "market") );
             put( "timestamp", now );
-            put( "datetime", MyriadCore.this.iso8601(now) );
+            put( "datetime", Myriad.this.iso8601(now) );
             put( "high", null );
             put( "low", null );
             put( "bid", finalPrice );
@@ -3092,8 +3092,8 @@ final Object finalNetworkId = networkId;
             put( "change", finalChange );
             put( "percentage", finalPercentage );
             put( "average", finalPrice );
-            put( "baseVolume", MyriadCore.this.safeNumber(raw, "volumeNotional24h") );
-            put( "quoteVolume", MyriadCore.this.safeNumber(raw, "volume24h") );
+            put( "baseVolume", Myriad.this.safeNumber(raw, "volumeNotional24h") );
+            put( "quoteVolume", Myriad.this.safeNumber(raw, "volume24h") );
             put( "info", raw );
         }}, market);
     }
@@ -3253,11 +3253,11 @@ final Object finalNetworkId = networkId;
                 ((java.util.List<Object>)asks).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(ask, synthSize)));
             }
             java.util.Map<String, Object> orderbook = new java.util.HashMap<String, Object>() {{
-                put( "outcome", MyriadCore.this.safeOutcomeSymbol(outcome, outcomeObj) );
+                put( "outcome", Myriad.this.safeOutcomeSymbol(outcome, outcomeObj) );
                 put( "bids", bids );
                 put( "asks", asks );
                 put( "timestamp", timestamp );
-                put( "datetime", MyriadCore.this.iso8601(timestamp) );
+                put( "datetime", Myriad.this.iso8601(timestamp) );
                 put( "nonce", null );
             }};
             return this.safePredictionOrderBook(orderbook, outcomeObj);
@@ -3297,10 +3297,10 @@ final Object finalNetworkId = networkId;
         Long timestamp = this.milliseconds();
         return new java.util.HashMap<String, Object>() {{
             put( "outcome", outcome );
-            put( "bids", MyriadCore.this.sortBy(bids, 0, true) );
-            put( "asks", MyriadCore.this.sortBy(asks, 0) );
+            put( "bids", Myriad.this.sortBy(bids, 0, true) );
+            put( "asks", Myriad.this.sortBy(asks, 0) );
             put( "timestamp", timestamp );
-            put( "datetime", MyriadCore.this.iso8601(timestamp) );
+            put( "datetime", Myriad.this.iso8601(timestamp) );
             put( "nonce", null );
         }};
     }
@@ -3517,8 +3517,8 @@ final Object finalNetworkId = networkId;
                 Object firstOutcome = Helpers.GetValue(grouped, 0);
                 Object info = this.safeDict(firstOutcome, "info", new java.util.HashMap<String, Object>() {{}});
                 ((java.util.List<Object>)promises).add(this.myriadPublicGetMarketsId(this.extend(new java.util.HashMap<String, Object>() {{
-                    put( "id", MyriadCore.this.safeString(info, "marketId") );
-                    put( "network_id", MyriadCore.this.safeString(info, "networkId") );
+                    put( "id", Myriad.this.safeString(info, "marketId") );
+                    put( "network_id", Myriad.this.safeString(info, "networkId") );
                 }}, parameters)));
             }
             Object responses = (Helpers.promiseAll(promises)).join();
@@ -3646,21 +3646,21 @@ final Object finalNetworkId = networkId;
         final Object finalAmountStr = amountStr;
         final Object finalCostStr = costStr;
         return this.safePredictionTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", MyriadCore.this.safeString(trade, "txId") );
+            put( "id", Myriad.this.safeString(trade, "txId") );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", MyriadCore.this.iso8601(timestamp) );
-            put( "outcome", MyriadCore.this.safeString(market, "outcome") );
-            put( "outcomeId", MyriadCore.this.safeString(market, "id") );
-            put( "label", MyriadCore.this.safeString(market, "label") );
-            put( "market", MyriadCore.this.safeString(market, "market") );
+            put( "datetime", Myriad.this.iso8601(timestamp) );
+            put( "outcome", Myriad.this.safeString(market, "outcome") );
+            put( "outcomeId", Myriad.this.safeString(market, "id") );
+            put( "label", Myriad.this.safeString(market, "label") );
+            put( "market", Myriad.this.safeString(market, "market") );
             put( "order", null );
             put( "type", null );
-            put( "side", MyriadCore.this.safeString(trade, "action") );
+            put( "side", Myriad.this.safeString(trade, "action") );
             put( "takerOrMaker", "taker" );
-            put( "price", MyriadCore.this.parseNumber(finalPriceStr) );
-            put( "amount", MyriadCore.this.parseNumber(finalAmountStr) );
-            put( "cost", MyriadCore.this.parseNumber(finalCostStr) );
+            put( "price", Myriad.this.parseNumber(finalPriceStr) );
+            put( "amount", Myriad.this.parseNumber(finalAmountStr) );
+            put( "cost", Myriad.this.parseNumber(finalCostStr) );
             put( "fee", null );
         }}, market);
     }
@@ -3836,26 +3836,26 @@ final Object finalNetworkId = networkId;
         final Object finalQuestionSlug = questionSlug;
         final Object finalEndDate = endDate;
         return this.extend(rawEvent, new java.util.HashMap<String, Object>() {{
-            put( "id", MyriadCore.this.safeString(rawEvent, "id") );
+            put( "id", Myriad.this.safeString(rawEvent, "id") );
             put( "slug", finalQuestionSlug );
-            put( "event", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalQuestionSlug, null)) && Helpers.isTrue(!Helpers.isEqual(finalQuestionSlug, "")))))) ? MyriadCore.this.shortenSlug(finalQuestionSlug) : null );
-            put( "title", MyriadCore.this.safeString(rawEvent, "title") );
-            put( "description", MyriadCore.this.safeString(rawEvent, "description") );
+            put( "event", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalQuestionSlug, null)) && Helpers.isTrue(!Helpers.isEqual(finalQuestionSlug, "")))))) ? Myriad.this.shortenSlug(finalQuestionSlug) : null );
+            put( "title", Myriad.this.safeString(rawEvent, "title") );
+            put( "description", Myriad.this.safeString(rawEvent, "description") );
             put( "markets", marketsList );
-            put( "volume", MyriadCore.this.safeNumber2(rawEvent, "volumeNotional24h", "volume24h") );
-            put( "liquidity", MyriadCore.this.safeNumber(rawEvent, "liquidity") );
-            put( "url", MyriadCore.this.safeString(rawEvent, "url") );
-            put( "image", MyriadCore.this.safeString(rawEvent, "imageUrl", MyriadCore.this.safeString(rawEvent, "image")) );
-            put( "active", MyriadCore.this.safeBool(rawEvent, "active") );
-            put( "resolved", MyriadCore.this.safeBool(rawEvent, "resolved", false) );
-            put( "category", MyriadCore.this.safeString(rawEvent, "category") );
-            put( "tags", MyriadCore.this.safeList(rawEvent, "tags") );
-            put( "created", MyriadCore.this.parse8601(MyriadCore.this.safeString(rawEvent, "createdAt")) );
-            put( "createdDatetime", MyriadCore.this.safeString(rawEvent, "createdAt") );
-            put( "end", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalEndDate, null)) && Helpers.isTrue(!Helpers.isEqual(finalEndDate, "")))))) ? MyriadCore.this.parse8601(finalEndDate) : null );
+            put( "volume", Myriad.this.safeNumber2(rawEvent, "volumeNotional24h", "volume24h") );
+            put( "liquidity", Myriad.this.safeNumber(rawEvent, "liquidity") );
+            put( "url", Myriad.this.safeString(rawEvent, "url") );
+            put( "image", Myriad.this.safeString(rawEvent, "imageUrl", Myriad.this.safeString(rawEvent, "image")) );
+            put( "active", Myriad.this.safeBool(rawEvent, "active") );
+            put( "resolved", Myriad.this.safeBool(rawEvent, "resolved", false) );
+            put( "category", Myriad.this.safeString(rawEvent, "category") );
+            put( "tags", Myriad.this.safeList(rawEvent, "tags") );
+            put( "created", Myriad.this.parse8601(Myriad.this.safeString(rawEvent, "createdAt")) );
+            put( "createdDatetime", Myriad.this.safeString(rawEvent, "createdAt") );
+            put( "end", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalEndDate, null)) && Helpers.isTrue(!Helpers.isEqual(finalEndDate, "")))))) ? Myriad.this.parse8601(finalEndDate) : null );
             put( "endDatetime", finalEndDate );
-            put( "lastUpdatedAt", MyriadCore.this.parse8601(MyriadCore.this.safeString(rawEvent, "updatedAt")) );
-            put( "resolutionSource", MyriadCore.this.safeString(rawEvent, "resolutionSource") );
+            put( "lastUpdatedAt", Myriad.this.parse8601(Myriad.this.safeString(rawEvent, "updatedAt")) );
+            put( "resolutionSource", Myriad.this.safeString(rawEvent, "resolutionSource") );
             put( "info", rawEvent );
         }});
     }
@@ -4099,7 +4099,7 @@ final Object finalNetworkId = networkId;
 
             // the order book channel streams deltas only, so seed the live book from the REST snapshot
             Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object snapshot = (this.fetchOrderBook(outcome, limit)).join();
+            Object snapshot = (this.fetchOrderBook((Object)(outcome), (Object)(limit))).join();
             Object orderbook = this.orderBook(new java.util.HashMap<String, Object>() {{}});
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);
@@ -4255,21 +4255,21 @@ final Object finalNetworkId = networkId;
             put( "id", txHash );
             put( "info", data );
             put( "timestamp", ts );
-            put( "datetime", MyriadCore.this.iso8601(ts) );
+            put( "datetime", Myriad.this.iso8601(ts) );
             put( "outcome", finalSym );
-            put( "outcomeId", MyriadCore.this.safeString2(outcomeObj, "outcomeId", "id") );
-            put( "label", MyriadCore.this.safeString(outcomeObj, "label") );
-            put( "market", MyriadCore.this.safeString(outcomeObj, "market") );
-            put( "order", MyriadCore.this.safeString(taker, "orderHash") );
+            put( "outcomeId", Myriad.this.safeString2(outcomeObj, "outcomeId", "id") );
+            put( "label", Myriad.this.safeString(outcomeObj, "label") );
+            put( "market", Myriad.this.safeString(outcomeObj, "market") );
+            put( "order", Myriad.this.safeString(taker, "orderHash") );
             put( "type", null );
-            put( "side", MyriadCore.this.safeStringLower(taker, "side") );
+            put( "side", Myriad.this.safeStringLower(taker, "side") );
             put( "takerOrMaker", "taker" );
-            put( "price", MyriadCore.this.safeNumber(taker, "averagePrice") );
-            put( "amount", MyriadCore.this.safeNumber(taker, "totalAmount") );
+            put( "price", Myriad.this.safeNumber(taker, "averagePrice") );
+            put( "amount", Myriad.this.safeNumber(taker, "totalAmount") );
             put( "cost", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "cost", MyriadCore.this.safeNumber(fees, "total") );
-                put( "currency", MyriadCore.this.safeString(market, "quote") );
+                put( "cost", Myriad.this.safeNumber(fees, "total") );
+                put( "currency", Myriad.this.safeString(market, "quote") );
             }} );
         }}, market);
         if (Helpers.isTrue(Helpers.isEqual(this.trades, null)))
@@ -4310,21 +4310,21 @@ final Object finalNetworkId = networkId;
                         put( "id", txHash );
                         put( "info", maker );
                         put( "timestamp", ts );
-                        put( "datetime", MyriadCore.this.iso8601(ts) );
+                        put( "datetime", Myriad.this.iso8601(ts) );
                         put( "outcome", makerSym );
-                        put( "outcomeId", MyriadCore.this.safeString(makerOutcomeObj, "id") );
-                        put( "label", MyriadCore.this.safeString(makerOutcomeObj, "label") );
-                        put( "market", MyriadCore.this.safeString(makerOutcomeObj, "market") );
-                        put( "order", MyriadCore.this.safeString(maker, "orderHash") );
+                        put( "outcomeId", Myriad.this.safeString(makerOutcomeObj, "id") );
+                        put( "label", Myriad.this.safeString(makerOutcomeObj, "label") );
+                        put( "market", Myriad.this.safeString(makerOutcomeObj, "market") );
+                        put( "order", Myriad.this.safeString(maker, "orderHash") );
                         put( "type", null );
-                        put( "side", MyriadCore.this.safeStringLower(maker, "side") );
+                        put( "side", Myriad.this.safeStringLower(maker, "side") );
                         put( "takerOrMaker", "maker" );
-                        put( "price", MyriadCore.this.safeNumber(maker, "price") );
-                        put( "amount", MyriadCore.this.safeNumber(maker, "amount") );
+                        put( "price", Myriad.this.safeNumber(maker, "price") );
+                        put( "amount", Myriad.this.safeNumber(maker, "amount") );
                         put( "cost", null );
                         put( "fee", new java.util.HashMap<String, Object>() {{
-                            put( "cost", MyriadCore.this.safeNumber(makerFees, "total") );
-                            put( "currency", MyriadCore.this.safeString(makerMarket, "quote") );
+                            put( "cost", Myriad.this.safeNumber(makerFees, "total") );
+                            put( "currency", Myriad.this.safeString(makerMarket, "quote") );
                         }} );
                     }}, makerMarket);
                     ((java.util.List<Object>)myLegs).add(makerTrade);
@@ -4491,16 +4491,16 @@ final Object finalNetworkId = networkId;
             final Object finalSym = sym;
             Object ticker = this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
                 put( "outcome", finalSym );
-                put( "outcomeId", MyriadCore.this.safeString2(outcomeObj, "outcomeId", "id") );
-                put( "label", MyriadCore.this.safeString(outcomeObj, "label") );
-                put( "market", MyriadCore.this.safeString(outcomeObj, "market") );
+                put( "outcomeId", Myriad.this.safeString2(outcomeObj, "outcomeId", "id") );
+                put( "label", Myriad.this.safeString(outcomeObj, "label") );
+                put( "market", Myriad.this.safeString(outcomeObj, "market") );
                 put( "timestamp", ts );
-                put( "datetime", MyriadCore.this.iso8601(ts) );
+                put( "datetime", Myriad.this.iso8601(ts) );
                 put( "high", null );
                 put( "low", null );
-                put( "bid", MyriadCore.this.fromWei(MyriadCore.this.safeString(oc, "bestBid")) );
+                put( "bid", Myriad.this.fromWei(Myriad.this.safeString(oc, "bestBid")) );
                 put( "bidVolume", null );
-                put( "ask", MyriadCore.this.fromWei(MyriadCore.this.safeString(oc, "bestAsk")) );
+                put( "ask", Myriad.this.fromWei(Myriad.this.safeString(oc, "bestAsk")) );
                 put( "askVolume", null );
                 put( "vwap", null );
                 put( "open", null );
@@ -4579,18 +4579,18 @@ final Object finalNetworkId = networkId;
         final Object finalSym = sym;
         final Object finalTif = tif;
         Object parsed = this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", MyriadCore.this.safeString(data, "orderHash") );
+            put( "id", Myriad.this.safeString(data, "orderHash") );
             put( "clientOrderId", null );
             put( "info", data );
             put( "timestamp", timestamp );
-            put( "datetime", MyriadCore.this.iso8601(timestamp) );
+            put( "datetime", Myriad.this.iso8601(timestamp) );
             put( "outcome", finalSym );
-            put( "outcomeId", MyriadCore.this.safeString2(outcomeObj, "outcomeId", "id") );
-            put( "label", MyriadCore.this.safeString(outcomeObj, "label") );
-            put( "market", MyriadCore.this.safeString(outcomeObj, "market") );
+            put( "outcomeId", Myriad.this.safeString2(outcomeObj, "outcomeId", "id") );
+            put( "label", Myriad.this.safeString(outcomeObj, "label") );
+            put( "market", Myriad.this.safeString(outcomeObj, "market") );
             put( "type", ((Helpers.isTrue(isMarketTif))) ? "market" : "limit" );
             put( "timeInForce", finalTif );
-            put( "side", MyriadCore.this.safeStringLower(data, "side") );
+            put( "side", Myriad.this.safeStringLower(data, "side") );
             put( "price", price );
             put( "amount", amount );
             put( "filled", filled );
@@ -4670,9 +4670,9 @@ final Object finalNetworkId = networkId;
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object positions = (this.fetchPositions(null, (Object) new java.util.HashMap<String, Object>() {{
+            Object positions = (this.fetchPositions((Object)(null), (Object)((Object) new java.util.HashMap<String, Object>() {{
                 put( "address", trader );
-            }})).join();
+            }}))).join();
             java.util.Map<String, Object> balances = new java.util.HashMap<String, Object>() {{}};
             Object positionsLength = Helpers.getArrayLength(positions);
             for (var i = 0; Helpers.isLessThan(i, positionsLength); i++)
@@ -4734,10 +4734,10 @@ final Object finalNetworkId = networkId;
             put( "id", finalPosId );
             put( "outcome", sym );
             put( "outcomeId", finalPosId );
-            put( "label", MyriadCore.this.safeString(outcomeObj, "label") );
-            put( "market", MyriadCore.this.safeString(outcomeObj, "market") );
+            put( "label", Myriad.this.safeString(outcomeObj, "label") );
+            put( "market", Myriad.this.safeString(outcomeObj, "market") );
             put( "timestamp", ts );
-            put( "datetime", MyriadCore.this.iso8601(ts) );
+            put( "datetime", Myriad.this.iso8601(ts) );
             put( "side", "long" );
             put( "contracts", finalContracts );
             put( "entryPrice", null );

@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BybiteuCore extends io.github.ccxt.exchanges.Bybiteu
+public class Bybiteu extends io.github.ccxt.exchanges.Bybiteu
 {
-   public BybiteuCore () {
+   public Bybiteu () {
        super();
    }
 
-   public BybiteuCore (Object options) {
+   public Bybiteu (Object options) {
        super(options);
    }
 

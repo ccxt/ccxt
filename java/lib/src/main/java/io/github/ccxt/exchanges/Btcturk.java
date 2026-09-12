@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BtcturkCore extends BtcturkApi
+public class Btcturk extends BtcturkApi
 {
-   public BtcturkCore () {
+   public Btcturk () {
        super();
    }
 
-   public BtcturkCore (Object options) {
+   public Btcturk (Object options) {
        super(options);
    }
 
@@ -287,8 +287,8 @@ public class BtcturkCore extends BtcturkApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "trading", new java.util.HashMap<String, Object>() {{
-                    put( "maker", BtcturkCore.this.parseNumber("0.0005") );
-                    put( "taker", BtcturkCore.this.parseNumber("0.0009") );
+                    put( "maker", Btcturk.this.parseNumber("0.0005") );
+                    put( "taker", Btcturk.this.parseNumber("0.0009") );
                 }} );
             }} );
             put( "exceptions", new java.util.HashMap<String, Object>() {{
@@ -426,8 +426,8 @@ public class BtcturkCore extends BtcturkApi
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", BtcturkCore.this.parseNumber(BtcturkCore.this.parsePrecision(BtcturkCore.this.safeString(entry, "numeratorScale"))) );
-                put( "price", BtcturkCore.this.parseNumber(BtcturkCore.this.parsePrecision(BtcturkCore.this.safeString(entry, "denominatorScale"))) );
+                put( "amount", Btcturk.this.parseNumber(Btcturk.this.parsePrecision(Btcturk.this.safeString(entry, "numeratorScale"))) );
+                put( "price", Btcturk.this.parseNumber(Btcturk.this.parsePrecision(Btcturk.this.safeString(entry, "denominatorScale"))) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -592,22 +592,22 @@ public class BtcturkCore extends BtcturkApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BtcturkCore.this.iso8601(timestamp) );
-            put( "high", BtcturkCore.this.safeString(ticker, "high") );
-            put( "low", BtcturkCore.this.safeString(ticker, "low") );
-            put( "bid", BtcturkCore.this.safeString(ticker, "bid") );
+            put( "datetime", Btcturk.this.iso8601(timestamp) );
+            put( "high", Btcturk.this.safeString(ticker, "high") );
+            put( "low", Btcturk.this.safeString(ticker, "low") );
+            put( "bid", Btcturk.this.safeString(ticker, "bid") );
             put( "bidVolume", null );
-            put( "ask", BtcturkCore.this.safeString(ticker, "ask") );
+            put( "ask", Btcturk.this.safeString(ticker, "ask") );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", BtcturkCore.this.safeString(ticker, "open") );
+            put( "open", Btcturk.this.safeString(ticker, "open") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
-            put( "change", BtcturkCore.this.safeString(ticker, "daily") );
-            put( "percentage", BtcturkCore.this.safeString(ticker, "dailyPercent") );
-            put( "average", BtcturkCore.this.safeString(ticker, "average") );
-            put( "baseVolume", BtcturkCore.this.safeString(ticker, "volume") );
+            put( "change", Btcturk.this.safeString(ticker, "daily") );
+            put( "percentage", Btcturk.this.safeString(ticker, "dailyPercent") );
+            put( "average", Btcturk.this.safeString(ticker, "average") );
+            put( "baseVolume", Btcturk.this.safeString(ticker, "volume") );
             put( "quoteVolume", null );
             put( "info", ticker );
         }}, market);
@@ -659,7 +659,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(tickers, symbol);
         });
 
@@ -712,7 +712,7 @@ public class BtcturkCore extends BtcturkApi
             final Object finalFeeAmountString = feeAmountString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", Precise.stringAbs(finalFeeAmountString) );
-                put( "currency", BtcturkCore.this.safeCurrencyCode(feeCurrency) );
+                put( "currency", Btcturk.this.safeCurrencyCode(feeCurrency) );
             }};
         }
         final Object finalFee = fee;
@@ -721,7 +721,7 @@ public class BtcturkCore extends BtcturkApi
             put( "id", id );
             put( "order", order );
             put( "timestamp", timestamp );
-            put( "datetime", BtcturkCore.this.iso8601(timestamp) );
+            put( "datetime", Btcturk.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "type", null );
             put( "side", side );
@@ -840,7 +840,7 @@ public class BtcturkCore extends BtcturkApi
             final Object finalTimeframe = timeframe;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "resolution", BtcturkCore.this.safeValue(BtcturkCore.this.timeframes, finalTimeframe, finalTimeframe) );
+                put( "resolution", Btcturk.this.safeValue(Btcturk.this.timeframes, finalTimeframe, finalTimeframe) );
             }};
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Helpers.addElementToObject(request, "to", this.parseToInt((Helpers.divide(until, 1000))));
@@ -928,12 +928,12 @@ public class BtcturkCore extends BtcturkApi
         {
             final Object finalI = i;
             java.util.Map<String, Object> ohlcv = new java.util.HashMap<String, Object>() {{
-                put( "timestamp", BtcturkCore.this.safeInteger(timestamp, finalI) );
-                put( "high", BtcturkCore.this.safeNumber(high, finalI) );
-                put( "open", BtcturkCore.this.safeNumber(open, finalI) );
-                put( "low", BtcturkCore.this.safeNumber(low, finalI) );
-                put( "close", BtcturkCore.this.safeNumber(close, finalI) );
-                put( "volume", BtcturkCore.this.safeNumber(volume, finalI) );
+                put( "timestamp", Btcturk.this.safeInteger(timestamp, finalI) );
+                put( "high", Btcturk.this.safeNumber(high, finalI) );
+                put( "open", Btcturk.this.safeNumber(open, finalI) );
+                put( "low", Btcturk.this.safeNumber(low, finalI) );
+                put( "close", Btcturk.this.safeNumber(close, finalI) );
+                put( "volume", Btcturk.this.safeNumber(volume, finalI) );
             }};
             ((java.util.List<Object>)results).add(this.parseOHLCV(ohlcv, market));
         }
@@ -971,7 +971,7 @@ public class BtcturkCore extends BtcturkApi
                 put( "orderType", side );
                 put( "orderMethod", finalType );
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
-                put( "quantity", BtcturkCore.this.amountToPrecision(symbol, amount) );
+                put( "quantity", Btcturk.this.amountToPrecision(symbol, amount) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(type, "market")))
             {
@@ -1204,7 +1204,7 @@ public class BtcturkCore extends BtcturkApi
             put( "type", type );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", BtcturkCore.this.iso8601(timestamp) );
+            put( "datetime", Btcturk.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "fee", null );
         }}, market);
@@ -1306,9 +1306,9 @@ public class BtcturkCore extends BtcturkApi
             Object secret = this.base64ToBinary(this.secret);
             Object auth = Helpers.add(this.apiKey, nonce);
             headers = new java.util.HashMap<String, Object>() {{
-                put( "X-PCK", BtcturkCore.this.apiKey );
+                put( "X-PCK", Btcturk.this.apiKey );
                 put( "X-Stamp", nonce );
-                put( "X-Signature", BtcturkCore.this.hmac(BtcturkCore.this.encode(auth), secret, sha256(), "base64") );
+                put( "X-Signature", Btcturk.this.hmac(Btcturk.this.encode(auth), secret, sha256(), "base64") );
                 put( "Content-Type", "application/json" );
             }};
         }

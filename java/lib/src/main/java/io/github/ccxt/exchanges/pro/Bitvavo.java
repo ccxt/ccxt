@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
+public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 {
-   public BitvavoCore () {
+   public Bitvavo () {
        super();
    }
 
-   public BitvavoCore (Object options) {
+   public Bitvavo (Object options) {
        super(options);
    }
 
@@ -286,11 +286,11 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BitvavoCore.this.iso8601(timestamp) );
-            put( "ask", BitvavoCore.this.safeNumber(ticker, "ask") );
-            put( "askVolume", BitvavoCore.this.safeNumber(ticker, "askSize") );
-            put( "bid", BitvavoCore.this.safeNumber(ticker, "bid") );
-            put( "bidVolume", BitvavoCore.this.safeNumber(ticker, "bidSize") );
+            put( "datetime", Bitvavo.this.iso8601(timestamp) );
+            put( "ask", Bitvavo.this.safeNumber(ticker, "ask") );
+            put( "askVolume", Bitvavo.this.safeNumber(ticker, "askSize") );
+            put( "bid", Bitvavo.this.safeNumber(ticker, "bid") );
+            put( "bidVolume", Bitvavo.this.safeNumber(ticker, "bidSize") );
             put( "info", ticker );
         }}, market);
     }
@@ -2239,7 +2239,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 String action = "authenticate";
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "action", action );
-                    put( "key", BitvavoCore.this.apiKey );
+                    put( "key", Bitvavo.this.apiKey );
                     put( "signature", signature );
                     put( "timestamp", timestamp );
                 }};

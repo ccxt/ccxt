@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
+public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
 {
-   public HyperliquidCore () {
+   public Hyperliquid () {
        super();
    }
 
-   public HyperliquidCore (Object options) {
+   public Hyperliquid (Object options) {
        super(options);
    }
 
@@ -141,7 +141,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
             var order = ((java.util.List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((java.util.List<Object>) orderglobalParamsVariable).get(1);
-            Object orders = (this.createOrdersWs(new java.util.ArrayList<Object>(java.util.Arrays.asList(((Object)order))), globalParams)).join();
+            Object orders = (this.createOrdersWs((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(((Object)order)))), (Object)(globalParams))).join();
             Object ordersLength = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isEqual(ordersLength, 0)))
             {
@@ -273,7 +273,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object orders = (this.cancelOrdersWs(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), symbol, parameters)).join();
+            Object orders = (this.cancelOrdersWs((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
             return this.safeDict(orders, 0);
         });
 
@@ -391,8 +391,8 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object symbol = Helpers.GetValue(market, "symbol");
         Object rawData = this.safeList(entry, "levels", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> data = new java.util.HashMap<String, Object>() {{
-            put( "bids", HyperliquidCore.this.safeList(rawData, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
-            put( "asks", HyperliquidCore.this.safeList(rawData, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
+            put( "bids", Hyperliquid.this.safeList(rawData, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
+            put( "asks", Hyperliquid.this.safeList(rawData, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
         }};
         Long timestamp = this.safeInteger(entry, "time");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz");
@@ -710,7 +710,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 Object symbol = Helpers.GetValue(market, "symbol");
                 final Object finalMids = mids;
                 Object ticker = this.parseWsTicker(new java.util.HashMap<String, Object>() {{
-                    put( "price", HyperliquidCore.this.safeNumber(finalMids, name) );
+                    put( "price", Hyperliquid.this.safeNumber(finalMids, name) );
                 }}, market);
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
             }
@@ -1013,10 +1013,10 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", HyperliquidCore.this.iso8601(timestamp) );
+            put( "datetime", Hyperliquid.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
-            put( "order", HyperliquidCore.this.safeString(trade, "oid") );
+            put( "order", Hyperliquid.this.safeString(trade, "oid") );
             put( "type", null );
             put( "side", finalSide );
             put( "takerOrMaker", null );

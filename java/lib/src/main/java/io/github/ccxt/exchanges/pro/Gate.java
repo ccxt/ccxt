@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class GateCore extends io.github.ccxt.exchanges.Gate
+public class Gate extends io.github.ccxt.exchanges.Gate
 {
-   public GateCore () {
+   public Gate () {
        super();
    }
 
-   public GateCore (Object options) {
+   public Gate (Object options) {
        super(options);
    }
 
@@ -431,7 +431,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchOrdersByStatusWs("open", symbol, since, limit, parameters)).join();
+            return (this.fetchOrdersByStatusWs((Object)("open"), (Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -456,7 +456,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchOrdersByStatusWs("finished", symbol, since, limit, parameters)).join();
+            return (this.fetchOrdersByStatusWs((Object)("finished"), (Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -920,7 +920,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTicker");
-            Object result = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object result = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(result, symbol);
         });
 
@@ -1135,7 +1135,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -2112,7 +2112,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchMyLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchMyLiquidationsForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -2296,14 +2296,14 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         final Object finalMarket = market;
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
-            put( "symbol", GateCore.this.safeSymbol(marketId, finalMarket) );
-            put( "contracts", GateCore.this.parseNumber(amount) );
-            put( "contractSize", GateCore.this.safeNumber(finalMarket, "contractSize") );
-            put( "price", GateCore.this.safeNumber(liquidation, "fill_price") );
+            put( "symbol", Gate.this.safeSymbol(marketId, finalMarket) );
+            put( "contracts", Gate.this.parseNumber(amount) );
+            put( "contractSize", Gate.this.safeNumber(finalMarket, "contractSize") );
+            put( "price", Gate.this.safeNumber(liquidation, "fill_price") );
             put( "baseValue", null );
             put( "quoteValue", null );
             put( "timestamp", timestamp );
-            put( "datetime", GateCore.this.iso8601(timestamp) );
+            put( "datetime", Gate.this.iso8601(timestamp) );
         }});
     }
 
@@ -2853,7 +2853,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
                 put( "req_id", finalRequestId );
                 put( "timestamp", String.valueOf(time) );
-                put( "api_key", GateCore.this.apiKey );
+                put( "api_key", Gate.this.apiKey );
                 put( "signature", signature );
                 put( "req_param", reqParams );
             }};
@@ -2907,7 +2907,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512(), "hex");
             java.util.Map<String, Object> auth = new java.util.HashMap<String, Object>() {{
                 put( "method", "api_key" );
-                put( "KEY", GateCore.this.apiKey );
+                put( "KEY", Gate.this.apiKey );
                 put( "SIGN", signature );
             }};
             Object requestId = this.requestId();

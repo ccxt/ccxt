@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
+public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 {
-   public BitmexCore () {
+   public Bitmex () {
        super();
    }
 
-   public BitmexCore (Object options) {
+   public Bitmex (Object options) {
        super(options);
    }
 
@@ -83,7 +83,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
         });
 
@@ -415,7 +415,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchLiquidationsForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -771,7 +771,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -795,7 +795,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "op", "authKeyExpires" );
-                    put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(BitmexCore.this.apiKey, timestamp, signature)) );
+                    put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitmex.this.apiKey, timestamp, signature)) );
                 }};
                 java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
@@ -1465,7 +1465,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }

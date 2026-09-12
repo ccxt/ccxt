@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class WoofiproCore extends WoofiproApi
+public class Woofipro extends WoofiproApi
 {
-   public WoofiproCore () {
+   public Woofipro () {
        super();
    }
 
-   public WoofiproCore (Object options) {
+   public Woofipro (Object options) {
        super(options);
    }
 
@@ -653,8 +653,8 @@ public class WoofiproCore extends WoofiproApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "maker", WoofiproCore.this.parseNumber("0.0002") );
-                    put( "taker", WoofiproCore.this.parseNumber("0.0005") );
+                    put( "maker", Woofipro.this.parseNumber("0.0002") );
+                    put( "taker", Woofipro.this.parseNumber("0.0005") );
                 }} );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
@@ -932,14 +932,14 @@ public class WoofiproCore extends WoofiproApi
             put( "contract", true );
             put( "linear", true );
             put( "inverse", false );
-            put( "contractSize", WoofiproCore.this.parseNumber("1") );
+            put( "contractSize", Woofipro.this.parseNumber("1") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", WoofiproCore.this.safeNumber(market, "base_tick") );
-                put( "price", WoofiproCore.this.safeNumber(market, "quote_tick") );
+                put( "amount", Woofipro.this.safeNumber(market, "base_tick") );
+                put( "price", Woofipro.this.safeNumber(market, "quote_tick") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -947,19 +947,19 @@ public class WoofiproCore extends WoofiproApi
                     put( "max", null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", WoofiproCore.this.safeNumber(market, "base_min") );
-                    put( "max", WoofiproCore.this.safeNumber(market, "base_max") );
+                    put( "min", Woofipro.this.safeNumber(market, "base_min") );
+                    put( "max", Woofipro.this.safeNumber(market, "base_max") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", WoofiproCore.this.safeNumber(market, "quote_min") );
-                    put( "max", WoofiproCore.this.safeNumber(market, "quote_max") );
+                    put( "min", Woofipro.this.safeNumber(market, "quote_min") );
+                    put( "max", Woofipro.this.safeNumber(market, "quote_max") );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", WoofiproCore.this.safeNumber(market, "min_notional") );
+                    put( "min", Woofipro.this.safeNumber(market, "min_notional") );
                     put( "max", null );
                 }} );
             }} );
-            put( "created", WoofiproCore.this.safeInteger(market, "created_time") );
+            put( "created", Woofipro.this.safeInteger(market, "created_time") );
             put( "info", market );
         }});
     }
@@ -1121,8 +1121,8 @@ public class WoofiproCore extends WoofiproApi
     put( "active", null );
     put( "deposit", null );
     put( "withdraw", null );
-    put( "fee", WoofiproCore.this.safeNumber(networkEntry, "withdrawal_fee") );
-    put( "precision", WoofiproCore.this.parseNumber(WoofiproCore.this.parsePrecision(WoofiproCore.this.safeString(networkEntry, "decimals"))) );
+    put( "fee", Woofipro.this.safeNumber(networkEntry, "withdrawal_fee") );
+    put( "precision", Woofipro.this.parseNumber(Woofipro.this.parsePrecision(Woofipro.this.safeString(networkEntry, "decimals"))) );
     put( "info", new java.util.HashMap<String, Object>() {{
         put( "network", networkEntry );
         put( "networkRow", networkRow );
@@ -1146,7 +1146,7 @@ public class WoofiproCore extends WoofiproApi
                     put( "max", null );
                 }} );
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
-                    put( "min", WoofiproCore.this.safeNumber(token, "minimum_withdraw_amount") );
+                    put( "min", Woofipro.this.safeNumber(token, "minimum_withdraw_amount") );
                     put( "max", null );
                 }} );
             }} );
@@ -1229,7 +1229,7 @@ public class WoofiproCore extends WoofiproApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "side", side );
             put( "price", price );
@@ -1325,20 +1325,20 @@ public class WoofiproCore extends WoofiproApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "markPrice", null );
             put( "indexPrice", null );
-            put( "interestRate", WoofiproCore.this.parseNumber("0") );
+            put( "interestRate", Woofipro.this.parseNumber("0") );
             put( "estimatedSettlePrice", null );
             put( "timestamp", estFundingRateTimestamp );
-            put( "datetime", WoofiproCore.this.iso8601(estFundingRateTimestamp) );
-            put( "fundingRate", WoofiproCore.this.safeNumber(fundingRate, "est_funding_rate") );
+            put( "datetime", Woofipro.this.iso8601(estFundingRateTimestamp) );
+            put( "fundingRate", Woofipro.this.safeNumber(fundingRate, "est_funding_rate") );
             put( "fundingTimestamp", nextFundingTimestamp );
-            put( "fundingDatetime", WoofiproCore.this.iso8601(nextFundingTimestamp) );
+            put( "fundingDatetime", Woofipro.this.iso8601(nextFundingTimestamp) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
-            put( "previousFundingRate", WoofiproCore.this.safeNumber(fundingRate, "last_funding_rate") );
+            put( "previousFundingRate", Woofipro.this.safeNumber(fundingRate, "last_funding_rate") );
             put( "previousFundingTimestamp", lastFundingRateTimestamp );
-            put( "previousFundingDatetime", WoofiproCore.this.iso8601(lastFundingRateTimestamp) );
-            put( "interval", WoofiproCore.this.parseFundingInterval(millisecondsInterval) );
+            put( "previousFundingDatetime", Woofipro.this.iso8601(lastFundingRateTimestamp) );
+            put( "interval", Woofipro.this.parseFundingInterval(millisecondsInterval) );
         }};
     }
 
@@ -1369,7 +1369,7 @@ public class WoofiproCore extends WoofiproApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchFundingRate(symbol, parameters)).join();
+            return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
         });
 
     }
@@ -1493,25 +1493,25 @@ public class WoofiproCore extends WoofiproApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
-            put( "high", WoofiproCore.this.safeString(ticker, "24h_high") );
-            put( "low", WoofiproCore.this.safeString(ticker, "24h_low") );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
+            put( "high", Woofipro.this.safeString(ticker, "24h_high") );
+            put( "low", Woofipro.this.safeString(ticker, "24h_low") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", WoofiproCore.this.safeString(ticker, "24h_open") );
-            put( "close", WoofiproCore.this.safeString(ticker, "24h_close") );
-            put( "last", WoofiproCore.this.safeString(ticker, "24h_close") );
+            put( "open", Woofipro.this.safeString(ticker, "24h_open") );
+            put( "close", Woofipro.this.safeString(ticker, "24h_close") );
+            put( "last", Woofipro.this.safeString(ticker, "24h_close") );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", WoofiproCore.this.safeString(ticker, "24h_volume") );
-            put( "quoteVolume", WoofiproCore.this.safeString(ticker, "24h_amount") );
-            put( "indexPrice", WoofiproCore.this.safeString(ticker, "index_price") );
-            put( "markPrice", WoofiproCore.this.safeString(ticker, "mark_price") );
+            put( "baseVolume", Woofipro.this.safeString(ticker, "24h_volume") );
+            put( "quoteVolume", Woofipro.this.safeString(ticker, "24h_amount") );
+            put( "indexPrice", Woofipro.this.safeString(ticker, "index_price") );
+            put( "markPrice", Woofipro.this.safeString(ticker, "mark_price") );
             put( "info", ticker );
         }}, market);
     }
@@ -1664,7 +1664,7 @@ public class WoofiproCore extends WoofiproApi
             put( "openInterestAmount", amount );
             put( "openInterestValue", null );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -1852,10 +1852,10 @@ public class WoofiproCore extends WoofiproApi
                 Long timestamp = this.safeInteger(entry, "funding_rate_timestamp");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", WoofiproCore.this.safeSymbol(marketId) );
-                    put( "fundingRate", WoofiproCore.this.safeNumber(entry, "funding_rate") );
+                    put( "symbol", Woofipro.this.safeSymbol(marketId) );
+                    put( "fundingRate", Woofipro.this.safeNumber(entry, "funding_rate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+                    put( "datetime", Woofipro.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -1893,9 +1893,9 @@ public class WoofiproCore extends WoofiproApi
             put( "symbol", symbol );
             put( "code", code );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
             put( "id", null );
-            put( "amount", WoofiproCore.this.parseNumber(finalAmount) );
+            put( "amount", Woofipro.this.parseNumber(finalAmount) );
             put( "rate", rate );
         }};
     }
@@ -2042,8 +2042,8 @@ public class WoofiproCore extends WoofiproApi
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
-        put( "maker", WoofiproCore.this.parseNumber(Precise.stringDiv(maker, "10000")) );
-        put( "taker", WoofiproCore.this.parseNumber(Precise.stringDiv(taker, "10000")) );
+        put( "maker", Woofipro.this.parseNumber(Precise.stringDiv(maker, "10000")) );
+        put( "taker", Woofipro.this.parseNumber(Precise.stringDiv(taker, "10000")) );
         put( "percentage", true );
         put( "tierBased", true );
     }});
@@ -2142,7 +2142,7 @@ public class WoofiproCore extends WoofiproApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "type", WoofiproCore.this.safeString(WoofiproCore.this.timeframes, timeframe, timeframe) );
+                put( "type", Woofipro.this.safeString(Woofipro.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -2272,15 +2272,15 @@ public class WoofiproCore extends WoofiproApi
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "status", WoofiproCore.this.parseOrderStatus(finalStatus) );
+            put( "status", Woofipro.this.parseOrderStatus(finalStatus) );
             put( "symbol", symbol );
-            put( "type", WoofiproCore.this.parseOrderType(orderType) );
-            put( "timeInForce", WoofiproCore.this.parseTimeInForce(orderType) );
+            put( "type", Woofipro.this.parseOrderType(orderType) );
+            put( "timeInForce", Woofipro.this.parseTimeInForce(orderType) );
             put( "postOnly", null );
-            put( "reduceOnly", WoofiproCore.this.safeBool(order, "reduce_only") );
+            put( "reduceOnly", Woofipro.this.safeBool(order, "reduce_only") );
             put( "side", side );
             put( "price", price );
             put( "triggerPrice", triggerPrice );
@@ -2440,7 +2440,7 @@ public class WoofiproCore extends WoofiproApi
                 java.util.Map<String, Object> stopLossOrder = new java.util.HashMap<String, Object>() {{
                     put( "side", closeSide );
                     put( "algo_type", "TP_SL" );
-                    put( "trigger_price", WoofiproCore.this.priceToPrecision(symbol, stopLossPrice) );
+                    put( "trigger_price", Woofipro.this.priceToPrecision(symbol, stopLossPrice) );
                     put( "type", "LIMIT" );
                     put( "reduce_only", true );
                 }};
@@ -2452,7 +2452,7 @@ public class WoofiproCore extends WoofiproApi
                 java.util.Map<String, Object> takeProfitOrder = new java.util.HashMap<String, Object>() {{
                     put( "side", closeSide );
                     put( "algo_type", "TP_SL" );
-                    put( "trigger_price", WoofiproCore.this.priceToPrecision(symbol, takeProfitPrice) );
+                    put( "trigger_price", Woofipro.this.priceToPrecision(symbol, takeProfitPrice) );
                     put( "type", "LIMIT" );
                     put( "reduce_only", true );
                 }};
@@ -2739,7 +2739,7 @@ public class WoofiproCore extends WoofiproApi
             }
             final Object finalMarket = market;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", WoofiproCore.this.safeString(finalMarket, "id") );
+                put( "symbol", Woofipro.this.safeString(finalMarket, "id") );
             }};
             String clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
@@ -3162,7 +3162,7 @@ public class WoofiproCore extends WoofiproApi
             java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "INCOMPLETE" );
             }});
-            return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
         });
 
     }
@@ -3200,7 +3200,7 @@ public class WoofiproCore extends WoofiproApi
             java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "COMPLETED" );
             }});
-            return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
         });
 
     }
@@ -3495,20 +3495,20 @@ public class WoofiproCore extends WoofiproApi
         Long timestamp = this.safeInteger(item, "created_time");
         Object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
-            put( "id", WoofiproCore.this.safeString(item, "id") );
+            put( "id", Woofipro.this.safeString(item, "id") );
             put( "currency", code );
-            put( "account", WoofiproCore.this.safeString(item, "account") );
+            put( "account", Woofipro.this.safeString(item, "account") );
             put( "referenceAccount", null );
-            put( "referenceId", WoofiproCore.this.safeString(item, "tx_id") );
-            put( "status", WoofiproCore.this.parseTransactionStatus(WoofiproCore.this.safeString(item, "status")) );
+            put( "referenceId", Woofipro.this.safeString(item, "tx_id") );
+            put( "status", Woofipro.this.parseTransactionStatus(Woofipro.this.safeString(item, "status")) );
             put( "amount", amount );
             put( "before", null );
             put( "after", null );
             put( "fee", fee );
             put( "direction", direction );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
-            put( "type", WoofiproCore.this.parseLedgerEntryType(WoofiproCore.this.safeString(item, "type")) );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
+            put( "type", Woofipro.this.parseLedgerEntryType(Woofipro.this.safeString(item, "type")) );
             put( "info", item );
         }}, currency);
     }
@@ -3567,21 +3567,21 @@ public class WoofiproCore extends WoofiproApi
         final Object finalMovementDirection = movementDirection;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", WoofiproCore.this.safeString2(transaction, "id", "withdraw_id") );
-            put( "txid", WoofiproCore.this.safeString(transaction, "tx_id") );
+            put( "id", Woofipro.this.safeString2(transaction, "id", "withdraw_id") );
+            put( "txid", Woofipro.this.safeString(transaction, "tx_id") );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
             put( "address", null );
             put( "addressFrom", addressFrom );
             put( "addressTo", addressTo );
-            put( "tag", WoofiproCore.this.safeString(transaction, "extra") );
+            put( "tag", Woofipro.this.safeString(transaction, "extra") );
             put( "tagFrom", null );
             put( "tagTo", null );
             put( "type", finalMovementDirection );
-            put( "amount", WoofiproCore.this.safeNumber(transaction, "amount") );
+            put( "amount", Woofipro.this.safeNumber(transaction, "amount") );
             put( "currency", code );
-            put( "status", WoofiproCore.this.parseTransactionStatus(WoofiproCore.this.safeString(transaction, "status")) );
-            put( "updated", WoofiproCore.this.safeInteger(transaction, "updated_time") );
+            put( "status", Woofipro.this.parseTransactionStatus(Woofipro.this.safeString(transaction, "status")) );
+            put( "updated", Woofipro.this.safeInteger(transaction, "updated_time") );
             put( "comment", null );
             put( "internal", null );
             put( "fee", fee );
@@ -3624,7 +3624,7 @@ public class WoofiproCore extends WoofiproApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "side", "DEPOSIT" );
             }};
-            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -3652,7 +3652,7 @@ public class WoofiproCore extends WoofiproApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "side", "WITHDRAW" );
             }};
-            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -3819,8 +3819,8 @@ public class WoofiproCore extends WoofiproApi
             }};
             final Object finalCode = code;
             java.util.Map<String, Object> withdrawRequest = new java.util.HashMap<String, Object>() {{
-                put( "brokerId", WoofiproCore.this.safeString(WoofiproCore.this.options, "keyBrokerId", "woofi_pro") );
-                put( "chainId", WoofiproCore.this.parseToInt(chainId) );
+                put( "brokerId", Woofipro.this.safeString(Woofipro.this.options, "keyBrokerId", "woofi_pro") );
+                put( "chainId", Woofipro.this.parseToInt(chainId) );
                 put( "receiver", address );
                 put( "token", finalCode );
                 put( "amount", String.valueOf(amount) );
@@ -3867,7 +3867,7 @@ public class WoofiproCore extends WoofiproApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "marginMode", WoofiproCore.this.safeStringLower(marginMode, "default_margin_mode") );
+            put( "marginMode", Woofipro.this.safeStringLower(marginMode, "default_margin_mode") );
         }};
     }
 
@@ -3932,7 +3932,7 @@ public class WoofiproCore extends WoofiproApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object marginModes = (this.fetchMarginModes(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+            Object marginModes = (this.fetchMarginModes((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
             Object marginMode = this.safeDict(marginModes, Helpers.GetValue(market, "symbol"));
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
             {
@@ -4004,15 +4004,15 @@ public class WoofiproCore extends WoofiproApi
         final Object finalSuccess = success;
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", WoofiproCore.this.safeString(market, "symbol") );
+            put( "symbol", Woofipro.this.safeString(market, "symbol") );
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );
             put( "total", null );
-            put( "code", WoofiproCore.this.safeString(market, "settle") );
+            put( "code", Woofipro.this.safeString(market, "settle") );
             put( "status", ((Helpers.isTrue((Helpers.isEqual(finalSuccess, true))))) ? "ok" : "failed" );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
         }};
     }
 
@@ -4042,7 +4042,7 @@ public class WoofiproCore extends WoofiproApi
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "amount", WoofiproCore.this.numberToString(amount) );
+                put( "amount", Woofipro.this.numberToString(amount) );
                 put( "type", finalType );
             }};
             java.util.Map<String, Object> response = (this.v1PrivatePostPositionMargin(this.extend(request, parameters))).join();
@@ -4108,7 +4108,7 @@ public class WoofiproCore extends WoofiproApi
         Long leverageValue = this.safeInteger(leverage, "max_leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", WoofiproCore.this.safeString(market, "symbol") );
+            put( "symbol", Woofipro.this.safeString(market, "symbol") );
             put( "marginMode", null );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
@@ -4252,23 +4252,23 @@ public class WoofiproCore extends WoofiproApi
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", WoofiproCore.this.safeString(finalMarket, "symbol") );
+            put( "symbol", Woofipro.this.safeString(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
             put( "lastUpdateTimestamp", null );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "entryPrice", WoofiproCore.this.parseNumber(entryPrice) );
-            put( "notional", WoofiproCore.this.parseNumber(notional) );
+            put( "entryPrice", Woofipro.this.parseNumber(entryPrice) );
+            put( "notional", Woofipro.this.parseNumber(notional) );
             put( "leverage", null );
-            put( "unrealizedPnl", WoofiproCore.this.parseNumber(unrealisedPnl) );
-            put( "contracts", WoofiproCore.this.parseNumber(finalSize) );
-            put( "contractSize", WoofiproCore.this.parseNumber(contractSize) );
+            put( "unrealizedPnl", Woofipro.this.parseNumber(unrealisedPnl) );
+            put( "contracts", Woofipro.this.parseNumber(finalSize) );
+            put( "contractSize", Woofipro.this.parseNumber(contractSize) );
             put( "marginRatio", null );
-            put( "liquidationPrice", WoofiproCore.this.safeNumber(position, "est_liq_price") );
-            put( "markPrice", WoofiproCore.this.parseNumber(markPrice) );
+            put( "liquidationPrice", Woofipro.this.safeNumber(position, "est_liq_price") );
+            put( "markPrice", Woofipro.this.parseNumber(markPrice) );
             put( "lastPrice", null );
             put( "collateral", null );
             put( "marginMode", "cross" );
@@ -4462,7 +4462,7 @@ public class WoofiproCore extends WoofiproApi
             final Object finalApiKey = apiKey;
             final Object finalTs = ts;
             headers = new java.util.HashMap<String, Object>() {{
-                put( "orderly-account-id", WoofiproCore.this.accountId );
+                put( "orderly-account-id", Woofipro.this.accountId );
                 put( "orderly-key", finalApiKey );
                 put( "orderly-timestamp", finalTs );
             }};

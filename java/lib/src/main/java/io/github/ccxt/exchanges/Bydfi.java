@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BydfiCore extends BydfiApi
+public class Bydfi extends BydfiApi
 {
-   public BydfiCore () {
+   public Bydfi () {
        super();
    }
 
-   public BydfiCore (Object options) {
+   public Bydfi (Object options) {
        super(options);
    }
 
@@ -666,15 +666,15 @@ public class BydfiCore extends BydfiApi
             put( "inverse", finalInverse );
             put( "taker", taker );
             put( "maker", maker );
-            put( "contractSize", BydfiCore.this.parseNumber(contractSize) );
+            put( "contractSize", Bydfi.this.parseNumber(contractSize) );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", BydfiCore.this.parseNumber(amountPrecision) );
-                put( "price", BydfiCore.this.parseNumber(pricePrecision) );
-                put( "base", BydfiCore.this.parseNumber(basePrecision) );
+                put( "amount", Bydfi.this.parseNumber(amountPrecision) );
+                put( "price", Bydfi.this.parseNumber(pricePrecision) );
+                put( "base", Bydfi.this.parseNumber(basePrecision) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -682,8 +682,8 @@ public class BydfiCore extends BydfiApi
                     put( "max", maxLeverage );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", BydfiCore.this.parseNumber(minAmountString) );
-                    put( "max", BydfiCore.this.parseNumber(maxAmountString) );
+                    put( "min", Bydfi.this.parseNumber(minAmountString) );
+                    put( "max", Bydfi.this.parseNumber(maxAmountString) );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -694,7 +694,7 @@ public class BydfiCore extends BydfiApi
                     put( "max", null );
                 }} );
             }} );
-            put( "created", BydfiCore.this.parse8601(BydfiCore.this.safeString(market, "createdAt")) );
+            put( "created", Bydfi.this.parse8601(Bydfi.this.safeString(market, "createdAt")) );
             put( "info", market );
         }});
     }
@@ -993,15 +993,15 @@ public class BydfiCore extends BydfiApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BydfiCore.this.iso8601(timestamp) );
+            put( "datetime", Bydfi.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket_2, "symbol") );
-            put( "id", BydfiCore.this.safeString(trade, "id") );
+            put( "id", Bydfi.this.safeString(trade, "id") );
             put( "order", finalOrderId );
-            put( "type", BydfiCore.this.parseTradeType(rawType) );
+            put( "type", Bydfi.this.parseTradeType(rawType) );
             put( "side", finalSide );
             put( "takerOrMaker", null );
-            put( "price", BydfiCore.this.safeString2(trade, "price", "dealPrice") );
-            put( "amount", BydfiCore.this.safeString2(trade, "quantity", "dealVolume") );
+            put( "price", Bydfi.this.safeString2(trade, "price", "dealPrice") );
+            put( "amount", Bydfi.this.safeString2(trade, "quantity", "dealVolume") );
             put( "cost", null );
             put( "fee", finalFee );
         }}, market);
@@ -1232,24 +1232,24 @@ public class BydfiCore extends BydfiApi
         String last = this.safeString2(ticker, "last", "c");
         final Object finalMarket = market;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", BydfiCore.this.safeSymbol(marketId, finalMarket) );
+            put( "symbol", Bydfi.this.safeSymbol(marketId, finalMarket) );
             put( "timestamp", timestamp );
-            put( "datetime", BydfiCore.this.iso8601(timestamp) );
-            put( "high", BydfiCore.this.safeString2(ticker, "high", "h") );
-            put( "low", BydfiCore.this.safeString2(ticker, "low", "l") );
+            put( "datetime", Bydfi.this.iso8601(timestamp) );
+            put( "high", Bydfi.this.safeString2(ticker, "high", "h") );
+            put( "low", Bydfi.this.safeString2(ticker, "low", "l") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", BydfiCore.this.safeString2(ticker, "open", "o") );
+            put( "open", Bydfi.this.safeString2(ticker, "open", "o") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", BydfiCore.this.safeString2(ticker, "vol", "v") );
+            put( "baseVolume", Bydfi.this.safeString2(ticker, "vol", "v") );
             put( "quoteVolume", null );
             put( "markPrice", null );
             put( "indexPrice", null );
@@ -1323,13 +1323,13 @@ public class BydfiCore extends BydfiApi
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
-            put( "datetime", BydfiCore.this.iso8601(timestamp) );
-            put( "fundingRate", BydfiCore.this.safeNumber(contract, "lastFundingRate") );
+            put( "datetime", Bydfi.this.iso8601(timestamp) );
+            put( "fundingRate", Bydfi.this.safeNumber(contract, "lastFundingRate") );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", nextFundingTimestamp );
-            put( "nextFundingDatetime", BydfiCore.this.iso8601(nextFundingTimestamp) );
+            put( "nextFundingDatetime", Bydfi.this.iso8601(nextFundingTimestamp) );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
@@ -1423,10 +1423,10 @@ public class BydfiCore extends BydfiApi
         Long timestamp = this.safeInteger(contract, "fundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", BydfiCore.this.safeSymbol(marketId, market) );
-            put( "fundingRate", BydfiCore.this.safeNumber(contract, "fundingRate") );
+            put( "symbol", Bydfi.this.safeSymbol(marketId, market) );
+            put( "fundingRate", Bydfi.this.safeNumber(contract, "fundingRate") );
             put( "timestamp", timestamp );
-            put( "datetime", BydfiCore.this.iso8601(timestamp) );
+            put( "datetime", Bydfi.this.iso8601(timestamp) );
         }};
     }
 
@@ -2315,30 +2315,30 @@ public class BydfiCore extends BydfiApi
         final Object finalPostOnly = postOnly;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", BydfiCore.this.safeString(order, "orderId") );
-            put( "clientOrderId", BydfiCore.this.safeString(order, "clientOrderId") );
+            put( "id", Bydfi.this.safeString(order, "orderId") );
+            put( "clientOrderId", Bydfi.this.safeString(order, "clientOrderId") );
             put( "timestamp", timestamp );
-            put( "datetime", BydfiCore.this.iso8601(timestamp) );
+            put( "datetime", Bydfi.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", BydfiCore.this.safeInteger2(order, "updateTime", "mtime") );
-            put( "status", BydfiCore.this.parseOrderStatus(rawStatus) );
+            put( "lastUpdateTimestamp", Bydfi.this.safeInteger2(order, "updateTime", "mtime") );
+            put( "status", Bydfi.this.parseOrderStatus(rawStatus) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "type", BydfiCore.this.parseOrderType(finalRawType) );
+            put( "type", Bydfi.this.parseOrderType(finalRawType) );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", finalPostOnly );
-            put( "reduceOnly", BydfiCore.this.safeBool(order, "reduceOnly") );
-            put( "side", BydfiCore.this.safeStringLower(order, "side") );
-            put( "price", BydfiCore.this.safeString(order, "price") );
+            put( "reduceOnly", Bydfi.this.safeBool(order, "reduceOnly") );
+            put( "side", Bydfi.this.safeStringLower(order, "side") );
+            put( "price", Bydfi.this.safeString(order, "price") );
             put( "triggerPrice", stopPrice );
             put( "stopLossPrice", ((Helpers.isTrue(isStopLossOrder))) ? stopPrice : null );
             put( "takeProfitPrice", ((Helpers.isTrue(isTakeProfitOrder))) ? stopPrice : null );
-            put( "amount", BydfiCore.this.safeString(order, "origQty") );
-            put( "filled", BydfiCore.this.safeString(order, "executedQty") );
+            put( "amount", Bydfi.this.safeString(order, "origQty") );
+            put( "filled", Bydfi.this.safeString(order, "executedQty") );
             put( "remaining", null );
             put( "cost", null );
             put( "trades", null );
             put( "fee", fee );
-            put( "average", BydfiCore.this.omitZero(BydfiCore.this.safeString(order, "avgPrice")) );
+            put( "average", Bydfi.this.omitZero(Bydfi.this.safeString(order, "avgPrice")) );
         }}, market);
     }
 
@@ -2486,10 +2486,10 @@ public class BydfiCore extends BydfiApi
         String marketId = this.safeString(leverage, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", BydfiCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Bydfi.this.safeSymbol(marketId, market) );
             put( "marginMode", null );
-            put( "longLeverage", BydfiCore.this.safeInteger(leverage, "leverage") );
-            put( "shortLeverage", BydfiCore.this.safeInteger(leverage, "leverage") );
+            put( "longLeverage", Bydfi.this.safeInteger(leverage, "leverage") );
+            put( "shortLeverage", Bydfi.this.safeInteger(leverage, "leverage") );
         }};
     }
 
@@ -2677,28 +2677,28 @@ public class BydfiCore extends BydfiApi
         final Object finalHedged = hedged;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", BydfiCore.this.safeString(position, "id") );
+            put( "id", Bydfi.this.safeString(position, "id") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "entryPrice", BydfiCore.this.parseNumber(BydfiCore.this.safeString2(position, "avgOpenPositionPrice", "avgPrice")) );
-            put( "markPrice", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "markPrice")) );
-            put( "lastPrice", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "avgClosePositionPrice")) );
-            put( "notional", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "closePositionCost")) );
+            put( "entryPrice", Bydfi.this.parseNumber(Bydfi.this.safeString2(position, "avgOpenPositionPrice", "avgPrice")) );
+            put( "markPrice", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "markPrice")) );
+            put( "lastPrice", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "avgClosePositionPrice")) );
+            put( "notional", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "closePositionCost")) );
             put( "collateral", null );
-            put( "unrealizedPnl", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "unPnl")) );
-            put( "realizedPnl", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "positionProfits")) );
+            put( "unrealizedPnl", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "unPnl")) );
+            put( "realizedPnl", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "positionProfits")) );
             put( "side", finalPositionSide );
-            put( "contracts", BydfiCore.this.parseNumber(finalContracts) );
-            put( "contractSize", BydfiCore.this.parseNumber(contractSize) );
+            put( "contracts", Bydfi.this.parseNumber(finalContracts) );
+            put( "contractSize", Bydfi.this.parseNumber(contractSize) );
             put( "timestamp", timestamp );
-            put( "datetime", BydfiCore.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", BydfiCore.this.safeInteger(position, "updateTime") );
+            put( "datetime", Bydfi.this.iso8601(timestamp) );
+            put( "lastUpdateTimestamp", Bydfi.this.safeInteger(position, "updateTime") );
             put( "hedged", finalHedged );
-            put( "maintenanceMargin", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "mm")) );
+            put( "maintenanceMargin", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "mm")) );
             put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "im")) );
+            put( "initialMargin", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "im")) );
             put( "initialMarginPercentage", null );
-            put( "leverage", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "leverage")) );
-            put( "liquidationPrice", BydfiCore.this.parseNumber(BydfiCore.this.safeString(position, "liqPrice")) );
+            put( "leverage", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "leverage")) );
+            put( "liquidationPrice", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "liqPrice")) );
             put( "marginRatio", null );
             put( "marginMode", null );
             put( "percentage", null );
@@ -2917,8 +2917,8 @@ public class BydfiCore extends BydfiApi
         String marketId = this.safeString(marginMode, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", BydfiCore.this.safeSymbol(marketId, market) );
-            put( "marginMode", BydfiCore.this.safeStringLower(marginMode, "marginType") );
+            put( "symbol", Bydfi.this.safeSymbol(marketId, market) );
+            put( "marginMode", Bydfi.this.safeStringLower(marginMode, "marginType") );
         }};
     }
 
@@ -3216,7 +3216,7 @@ public class BydfiCore extends BydfiApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
-            put( "datetime", BydfiCore.this.iso8601(timestamp) );
+            put( "datetime", Bydfi.this.iso8601(timestamp) );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
@@ -3262,7 +3262,7 @@ public class BydfiCore extends BydfiApi
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
-                put( "amount", BydfiCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Bydfi.this.currencyToPrecision(code, amount) );
                 put( "fromType", fromId );
                 put( "toType", toId );
             }};
@@ -3413,14 +3413,14 @@ public class BydfiCore extends BydfiApi
         String currencyId = this.safeString(transfer, "asset");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", BydfiCore.this.safeString(transfer, "txId") );
+            put( "id", Bydfi.this.safeString(transfer, "txId") );
             put( "timestamp", timestamp );
-            put( "datetime", BydfiCore.this.iso8601(timestamp) );
-            put( "currency", BydfiCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", BydfiCore.this.safeNumber(transfer, "amount") );
+            put( "datetime", Bydfi.this.iso8601(timestamp) );
+            put( "currency", Bydfi.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Bydfi.this.safeNumber(transfer, "amount") );
             put( "fromAccount", fromAccount );
             put( "toAccount", toAccount );
-            put( "status", BydfiCore.this.paraseTransferStatus(status) );
+            put( "status", Bydfi.this.paraseTransferStatus(status) );
         }};
     }
 
@@ -3634,22 +3634,22 @@ public class BydfiCore extends BydfiApi
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", BydfiCore.this.safeString(transaction, "orderId") );
-            put( "txid", BydfiCore.this.safeString(transaction, "txId") );
+            put( "id", Bydfi.this.safeString(transaction, "orderId") );
+            put( "txid", Bydfi.this.safeString(transaction, "txId") );
             put( "type", null );
             put( "currency", code );
-            put( "network", BydfiCore.this.networkIdToCode(BydfiCore.this.safeString(transaction, "network"), code) );
-            put( "amount", BydfiCore.this.safeNumber(transaction, "amount") );
-            put( "status", BydfiCore.this.parseTransactionStatus(rawStatus) );
+            put( "network", Bydfi.this.networkIdToCode(Bydfi.this.safeString(transaction, "network"), code) );
+            put( "amount", Bydfi.this.safeNumber(transaction, "amount") );
+            put( "status", Bydfi.this.parseTransactionStatus(rawStatus) );
             put( "timestamp", timestamp );
-            put( "datetime", BydfiCore.this.iso8601(timestamp) );
-            put( "address", BydfiCore.this.safeString(transaction, "address") );
+            put( "datetime", Bydfi.this.iso8601(timestamp) );
+            put( "address", Bydfi.this.safeString(transaction, "address") );
             put( "addressFrom", null );
             put( "addressTo", null );
-            put( "tag", BydfiCore.this.safeString(transaction, "addressTag") );
+            put( "tag", Bydfi.this.safeString(transaction, "addressTag") );
             put( "tagFrom", null );
             put( "tagTo", null );
-            put( "updated", BydfiCore.this.safeInteger(transaction, "finishTime") );
+            put( "updated", Bydfi.this.safeInteger(transaction, "finishTime") );
             put( "comment", null );
             put( "fee", finalFee );
             put( "internal", false );
@@ -3694,7 +3694,7 @@ public class BydfiCore extends BydfiApi
                 Object payload = Helpers.add(Helpers.add(this.apiKey, timestamp), query);
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 headers = new java.util.HashMap<String, Object>() {{
-                    put( "X-API-KEY", BydfiCore.this.apiKey );
+                    put( "X-API-KEY", Bydfi.this.apiKey );
                     put( "X-API-TIMESTAMP", timestamp );
                     put( "X-API-SIGNATURE", signature );
                 }};
@@ -3705,7 +3705,7 @@ public class BydfiCore extends BydfiApi
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
-                    put( "X-API-KEY", BydfiCore.this.apiKey );
+                    put( "X-API-KEY", Bydfi.this.apiKey );
                     put( "X-API-TIMESTAMP", timestamp );
                     put( "X-API-SIGNATURE", signature );
                 }};

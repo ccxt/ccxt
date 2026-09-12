@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BlofinCore extends io.github.ccxt.exchanges.Blofin
+public class Blofin extends io.github.ccxt.exchanges.Blofin
 {
-   public BlofinCore () {
+   public Blofin () {
        super();
    }
 
-   public BlofinCore (Object options) {
+   public Blofin (Object options) {
        super(options);
    }
 
@@ -106,7 +106,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTrades");
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -210,7 +210,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOrderBook");
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -324,7 +324,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTicker");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object result = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object result = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(result, symbol);
         });
 
@@ -473,11 +473,11 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BlofinCore.this.iso8601(timestamp) );
-            put( "ask", BlofinCore.this.safeString(ticker, "askPrice") );
-            put( "askVolume", BlofinCore.this.safeString(ticker, "askSize") );
-            put( "bid", BlofinCore.this.safeString(ticker, "bidPrice") );
-            put( "bidVolume", BlofinCore.this.safeString(ticker, "bidSize") );
+            put( "datetime", Blofin.this.iso8601(timestamp) );
+            put( "ask", Blofin.this.safeString(ticker, "askPrice") );
+            put( "askVolume", Blofin.this.safeString(ticker, "askSize") );
+            put( "bid", Blofin.this.safeString(ticker, "bidPrice") );
+            put( "bidVolume", Blofin.this.safeString(ticker, "bidSize") );
             put( "info", ticker );
         }}, market);
     }
@@ -680,7 +680,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOrders");
             Object symbolsArray = ((Helpers.isTrue((!Helpers.isEqual(symbol, null))))) ? new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) : new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            return (this.watchOrdersForSymbols(symbolsArray, since, limit, parameters)).join();
+            return (this.watchOrdersForSymbols((Object)(symbolsArray), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1071,8 +1071,8 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "op", "login" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
-        put( "apiKey", BlofinCore.this.apiKey );
-        put( "passphrase", BlofinCore.this.password );
+        put( "apiKey", Blofin.this.apiKey );
+        put( "passphrase", Blofin.this.password );
         put( "timestamp", timestamp );
         put( "nonce", nonce );
         put( "sign", signature );

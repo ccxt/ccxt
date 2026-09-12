@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class CoinspotCore extends CoinspotApi
+public class Coinspot extends CoinspotApi
 {
-   public CoinspotCore () {
+   public Coinspot () {
        super();
    }
 
-   public CoinspotCore (Object options) {
+   public Coinspot (Object options) {
        super(options);
    }
 
@@ -364,7 +364,7 @@ public class CoinspotCore extends CoinspotApi
                 }} );
             }} );
             put( "markets", new java.util.HashMap<String, Object>() {{
-                put( "BTC/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "BTC/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "btc" );
                     put( "symbol", "BTC/AUD" );
                     put( "base", "BTC" );
@@ -374,7 +374,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "BTC/USDT", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "BTC/USDT", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "btc" );
                     put( "symbol", "BTC/USDT" );
                     put( "base", "BTC" );
@@ -384,7 +384,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "USDT/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "USDT/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "usdt" );
                     put( "symbol", "USDT/AUD" );
                     put( "base", "USDT" );
@@ -394,7 +394,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "ETH/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "ETH/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "eth" );
                     put( "symbol", "ETH/AUD" );
                     put( "base", "ETH" );
@@ -404,7 +404,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "ADA/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "ADA/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "ada" );
                     put( "symbol", "ADA/AUD" );
                     put( "base", "ADA" );
@@ -414,7 +414,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "SOL/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "SOL/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "sol" );
                     put( "symbol", "SOL/AUD" );
                     put( "base", "SOL" );
@@ -424,7 +424,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "XRP/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "XRP/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "xrp" );
                     put( "symbol", "XRP/AUD" );
                     put( "base", "XRP" );
@@ -434,7 +434,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "DOGE/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "DOGE/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "doge" );
                     put( "symbol", "DOGE/AUD" );
                     put( "base", "DOGE" );
@@ -444,7 +444,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "LTC/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "LTC/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "ltc" );
                     put( "symbol", "LTC/AUD" );
                     put( "base", "LTC" );
@@ -454,7 +454,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "XLM/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "XLM/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "xlm" );
                     put( "symbol", "XLM/AUD" );
                     put( "base", "XLM" );
@@ -464,7 +464,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "TRX/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "TRX/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "trx" );
                     put( "symbol", "TRX/AUD" );
                     put( "base", "TRX" );
@@ -474,7 +474,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "EOS/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "EOS/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "eos" );
                     put( "symbol", "EOS/AUD" );
                     put( "base", "EOS" );
@@ -484,7 +484,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "A/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "A/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "eos" );
                     put( "symbol", "A/AUD" );
                     put( "base", "A" );
@@ -494,7 +494,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "NEO/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "NEO/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "neo" );
                     put( "symbol", "NEO/AUD" );
                     put( "base", "NEO" );
@@ -504,7 +504,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "POWR/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "POWR/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "powr" );
                     put( "symbol", "POWR/AUD" );
                     put( "base", "POWR" );
@@ -514,7 +514,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "GAS/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "GAS/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "gas" );
                     put( "symbol", "GAS/AUD" );
                     put( "base", "GAS" );
@@ -524,7 +524,7 @@ public class CoinspotCore extends CoinspotApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "RHOC/AUD", CoinspotCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "RHOC/AUD", Coinspot.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "rhoc" );
                     put( "symbol", "RHOC/AUD" );
                     put( "base", "RHOC" );
@@ -735,9 +735,9 @@ public class CoinspotCore extends CoinspotApi
             put( "datetime", null );
             put( "high", null );
             put( "low", null );
-            put( "bid", CoinspotCore.this.safeString(ticker, "bid") );
+            put( "bid", Coinspot.this.safeString(ticker, "bid") );
             put( "bidVolume", null );
-            put( "ask", CoinspotCore.this.safeString(ticker, "ask") );
+            put( "ask", Coinspot.this.safeString(ticker, "ask") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -1024,8 +1024,8 @@ public class CoinspotCore extends CoinspotApi
             String feeCost = Precise.stringAdd(audfeeExGst, audGst);
             String feeCurrencyId = "AUD";
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", CoinspotCore.this.parseNumber(feeCost) );
-                put( "currency", CoinspotCore.this.safeCurrencyCode(feeCurrencyId) );
+                put( "cost", Coinspot.this.parseNumber(feeCost) );
+                put( "currency", Coinspot.this.safeCurrencyCode(feeCurrencyId) );
             }};
         }
         final Object finalTimestamp = timestamp;
@@ -1036,14 +1036,14 @@ public class CoinspotCore extends CoinspotApi
             put( "id", null );
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
-            put( "datetime", CoinspotCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Coinspot.this.iso8601(finalTimestamp) );
             put( "order", null );
             put( "type", null );
             put( "side", side );
             put( "takerOrMaker", null );
-            put( "price", CoinspotCore.this.parseNumber(finalPriceString) );
-            put( "amount", CoinspotCore.this.parseNumber(amountString) );
-            put( "cost", CoinspotCore.this.parseNumber(costString) );
+            put( "price", Coinspot.this.parseNumber(finalPriceString) );
+            put( "amount", Coinspot.this.parseNumber(amountString) );
+            put( "cost", Coinspot.this.parseNumber(costString) );
             put( "fee", finalFee );
         }}, market);
     }
@@ -1195,8 +1195,8 @@ public class CoinspotCore extends CoinspotApi
             final Object finalBody = body;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
-                put( "key", CoinspotCore.this.apiKey );
-                put( "sign", CoinspotCore.this.hmac(CoinspotCore.this.encode(finalBody), CoinspotCore.this.encode(CoinspotCore.this.secret), sha512()) );
+                put( "key", Coinspot.this.apiKey );
+                put( "sign", Coinspot.this.hmac(Coinspot.this.encode(finalBody), Coinspot.this.encode(Coinspot.this.secret), sha512()) );
             }};
         }
         final Object finalBody_2 = body;

@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class CoinoneCore extends CoinoneApi
+public class Coinone extends CoinoneApi
 {
-   public CoinoneCore () {
+   public Coinone () {
        super();
    }
 
-   public CoinoneCore (Object options) {
+   public Coinone (Object options) {
        super(options);
    }
 
@@ -486,19 +486,19 @@ public class CoinoneCore extends CoinoneApi
             put( "id", id );
             put( "code", finalCode );
             put( "info", rawCurrency );
-            put( "name", CoinoneCore.this.safeString(rawCurrency, "name") );
+            put( "name", Coinone.this.safeString(rawCurrency, "name") );
             put( "active", null );
             put( "deposit", isDepositEnabled );
             put( "withdraw", isWithdrawEnabled );
-            put( "fee", CoinoneCore.this.safeNumber(rawCurrency, "withdrawal_fee") );
-            put( "precision", CoinoneCore.this.parseNumber(CoinoneCore.this.parsePrecision(CoinoneCore.this.safeString(rawCurrency, "max_precision"))) );
+            put( "fee", Coinone.this.safeNumber(rawCurrency, "withdrawal_fee") );
+            put( "precision", Coinone.this.parseNumber(Coinone.this.parsePrecision(Coinone.this.safeString(rawCurrency, "max_precision"))) );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
-                    put( "min", CoinoneCore.this.safeNumber(rawCurrency, "withdrawal_min_amount") );
+                    put( "min", Coinone.this.safeNumber(rawCurrency, "withdrawal_min_amount") );
                     put( "max", null );
                 }} );
             }} );
@@ -594,9 +594,9 @@ public class CoinoneCore extends CoinoneApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", CoinoneCore.this.parseNumber("1e-4") );
-                        put( "price", CoinoneCore.this.parseNumber("1e-4") );
-                        put( "cost", CoinoneCore.this.parseNumber("1e-8") );
+                        put( "amount", Coinone.this.parseNumber("1e-4") );
+                        put( "price", Coinone.this.parseNumber("1e-4") );
+                        put( "cost", Coinone.this.parseNumber("1e-8") );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -915,23 +915,23 @@ public class CoinoneCore extends CoinoneApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
             put( "timestamp", timestamp );
-            put( "datetime", CoinoneCore.this.iso8601(timestamp) );
-            put( "high", CoinoneCore.this.safeString(ticker, "high") );
-            put( "low", CoinoneCore.this.safeString(ticker, "low") );
-            put( "bid", CoinoneCore.this.safeString(bids, "price") );
-            put( "bidVolume", CoinoneCore.this.safeString(bids, "qty") );
-            put( "ask", CoinoneCore.this.safeString(asks, "price") );
-            put( "askVolume", CoinoneCore.this.safeString(asks, "qty") );
+            put( "datetime", Coinone.this.iso8601(timestamp) );
+            put( "high", Coinone.this.safeString(ticker, "high") );
+            put( "low", Coinone.this.safeString(ticker, "low") );
+            put( "bid", Coinone.this.safeString(bids, "price") );
+            put( "bidVolume", Coinone.this.safeString(bids, "qty") );
+            put( "ask", Coinone.this.safeString(asks, "price") );
+            put( "askVolume", Coinone.this.safeString(asks, "qty") );
             put( "vwap", null );
-            put( "open", CoinoneCore.this.safeString(ticker, "first") );
+            put( "open", Coinone.this.safeString(ticker, "first") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", CoinoneCore.this.safeString(ticker, "target_volume") );
-            put( "quoteVolume", CoinoneCore.this.safeString(ticker, "quote_volume") );
+            put( "baseVolume", Coinone.this.safeString(ticker, "target_volume") );
+            put( "quoteVolume", Coinone.this.safeString(ticker, "quote_volume") );
             put( "info", ticker );
         }}, market);
     }
@@ -993,10 +993,10 @@ public class CoinoneCore extends CoinoneApi
         final Object finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", CoinoneCore.this.safeString(trade, "id") );
+            put( "id", Coinone.this.safeString(trade, "id") );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", CoinoneCore.this.iso8601(timestamp) );
+            put( "datetime", Coinone.this.iso8601(timestamp) );
             put( "order", orderId );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", null );
@@ -1111,8 +1111,8 @@ public class CoinoneCore extends CoinoneApi
                 put( "target_currency", Helpers.GetValue(market, "baseId") );
                 put( "type", finalOrderType );
                 put( "side", orderSide );
-                put( "price", CoinoneCore.this.priceToPrecision(symbol, finalPrice) );
-                put( "qty", CoinoneCore.this.amountToPrecision(symbol, amount) );
+                put( "price", Coinone.this.priceToPrecision(symbol, finalPrice) );
+                put( "qty", Coinone.this.amountToPrecision(symbol, amount) );
             }};
             java.util.Map<String, Object> response = (this.v2_1PrivatePostOrderLimit(this.extend(request, parameters))).join();
             //
@@ -1301,7 +1301,7 @@ public class CoinoneCore extends CoinoneApi
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
-                put( "rate", CoinoneCore.this.safeString2(order, "feeRate", "fee_rate") );
+                put( "rate", Coinone.this.safeString2(order, "feeRate", "fee_rate") );
                 put( "currency", feeCurrencyCode );
             }};
         }
@@ -1317,19 +1317,19 @@ public class CoinoneCore extends CoinoneApi
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", finalTimestamp );
-            put( "datetime", CoinoneCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Coinone.this.iso8601(finalTimestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", finalSymbol );
             put( "type", "limit" );
             put( "timeInForce", null );
             put( "postOnly", null );
             put( "side", finalSide );
-            put( "price", CoinoneCore.this.safeString(order, "price") );
+            put( "price", Coinone.this.safeString(order, "price") );
             put( "triggerPrice", null );
             put( "cost", null );
-            put( "average", CoinoneCore.this.safeString2(order, "averageExecutedPrice", "average_executed_price") );
+            put( "average", Coinone.this.safeString2(order, "averageExecutedPrice", "average_executed_price") );
             put( "amount", finalAmountString );
-            put( "filled", CoinoneCore.this.safeString2(order, "executedQty", "executed_qty") );
+            put( "filled", Coinone.this.safeString2(order, "executedQty", "executed_qty") );
             put( "remaining", finalRemainingString );
             put( "status", finalStatus );
             put( "fee", finalFee );
@@ -1493,7 +1493,7 @@ public class CoinoneCore extends CoinoneApi
                 put( "price", finalPrice );
                 put( "qty", finalQty );
                 put( "is_ask", finalIsAsk );
-                put( "currency", CoinoneCore.this.marketId(finalSymbol) );
+                put( "currency", Coinone.this.marketId(finalSymbol) );
             }};
             java.util.Map<String, Object> response = (this.v2PrivatePostOrderCancel(this.extend(request, parameters))).join();
             //
@@ -1631,7 +1631,7 @@ public class CoinoneCore extends CoinoneApi
             }
             final Object finalNonce = nonce;
             Object json = this.json(this.extend(new java.util.HashMap<String, Object>() {{
-                put( "access_token", CoinoneCore.this.apiKey );
+                put( "access_token", Coinone.this.apiKey );
                 put( "nonce", finalNonce );
             }}, parameters));
             Object payload = this.stringToBase64(json);

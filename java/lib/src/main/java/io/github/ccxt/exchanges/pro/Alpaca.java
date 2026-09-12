@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
+public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 {
-   public AlpacaCore () {
+   public Alpaca () {
        super();
    }
 
-   public AlpacaCore (Object options) {
+   public Alpaca (Object options) {
        super(options);
    }
 
@@ -145,15 +145,15 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         String marketId = this.safeString(ticker, "S");
         String datetime = this.safeString(ticker, "t");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", AlpacaCore.this.safeSymbol(marketId, market) );
-            put( "timestamp", AlpacaCore.this.parse8601(datetime) );
+            put( "symbol", Alpaca.this.safeSymbol(marketId, market) );
+            put( "timestamp", Alpaca.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "high", null );
             put( "low", null );
-            put( "bid", AlpacaCore.this.safeString(ticker, "bp") );
-            put( "bidVolume", AlpacaCore.this.safeString(ticker, "bs") );
-            put( "ask", AlpacaCore.this.safeString(ticker, "ap") );
-            put( "askVolume", AlpacaCore.this.safeString(ticker, "as") );
+            put( "bid", Alpaca.this.safeString(ticker, "bp") );
+            put( "bidVolume", Alpaca.this.safeString(ticker, "bs") );
+            put( "ask", Alpaca.this.safeString(ticker, "ap") );
+            put( "askVolume", Alpaca.this.safeString(ticker, "as") );
             put( "vwap", null );
             put( "open", null );
             put( "close", null );
@@ -706,17 +706,17 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         }
         final Object finalType = type;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", AlpacaCore.this.safeString(trade, "i") );
+            put( "id", Alpaca.this.safeString(trade, "i") );
             put( "info", trade );
-            put( "timestamp", AlpacaCore.this.parse8601(datetime) );
+            put( "timestamp", Alpaca.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "symbol", AlpacaCore.this.safeSymbol(marketId, null, "/") );
-            put( "order", AlpacaCore.this.safeString(trade, "id") );
+            put( "symbol", Alpaca.this.safeSymbol(marketId, null, "/") );
+            put( "order", Alpaca.this.safeString(trade, "id") );
             put( "type", finalType );
-            put( "side", AlpacaCore.this.safeString(trade, "side") );
+            put( "side", Alpaca.this.safeString(trade, "side") );
             put( "takerOrMaker", ((Helpers.isTrue((Helpers.isEqual(finalType, "market"))))) ? "taker" : "maker" );
-            put( "price", AlpacaCore.this.safeString(trade, "filled_avg_price") );
-            put( "amount", AlpacaCore.this.safeString(trade, "filled_qty") );
+            put( "price", Alpaca.this.safeString(trade, "filled_avg_price") );
+            put( "amount", Alpaca.this.safeString(trade, "filled_qty") );
             put( "cost", null );
             put( "fee", null );
         }}, market);
@@ -737,8 +737,8 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             {
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "action", "auth" );
-                    put( "key", AlpacaCore.this.apiKey );
-                    put( "secret", AlpacaCore.this.secret );
+                    put( "key", Alpaca.this.apiKey );
+                    put( "secret", Alpaca.this.secret );
                 }};
                 if (Helpers.isTrue(Helpers.isEqual(url, Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "trading"))))
                 {
@@ -746,8 +746,8 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
                     request = ((Object)new java.util.HashMap<String, Object>() {{
                         put( "action", "authenticate" );
                         put( "data", new java.util.HashMap<String, Object>() {{
-                            put( "key_id", AlpacaCore.this.apiKey );
-                            put( "secret_key", AlpacaCore.this.secret );
+                            put( "key_id", Alpaca.this.apiKey );
+                            put( "secret_key", Alpaca.this.secret );
                         }} );
                     }});
                 }

@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class PoloniexCore extends PoloniexApi
+public class Poloniex extends PoloniexApi
 {
-   public PoloniexCore () {
+   public Poloniex () {
        super();
    }
 
-   public PoloniexCore (Object options) {
+   public Poloniex (Object options) {
        super(options);
    }
 
@@ -478,8 +478,8 @@ public class PoloniexCore extends PoloniexApi
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "feeSide", "get" );
-                    put( "maker", PoloniexCore.this.parseNumber("0.0009") );
-                    put( "taker", PoloniexCore.this.parseNumber("0.0009") );
+                    put( "maker", Poloniex.this.parseNumber("0.0009") );
+                    put( "taker", Poloniex.this.parseNumber("0.0009") );
                 }} );
                 put( "funding", new java.util.HashMap<String, Object>() {{}} );
             }} );
@@ -887,7 +887,7 @@ public class PoloniexCore extends PoloniexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "interval", PoloniexCore.this.safeString(PoloniexCore.this.timeframes, timeframe, timeframe) );
+                put( "interval", Poloniex.this.safeString(Poloniex.this.timeframes, timeframe, timeframe) );
             }};
             String keyStart = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "startTime" : "sTime";
             String keyEnd = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "endTime" : "eTime";
@@ -1132,12 +1132,12 @@ public class PoloniexCore extends PoloniexApi
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", PoloniexCore.this.parseNumber(PoloniexCore.this.parsePrecision(PoloniexCore.this.safeString(symbolTradeLimit, "quantityScale"))) );
-                put( "price", PoloniexCore.this.parseNumber(PoloniexCore.this.parsePrecision(PoloniexCore.this.safeString(symbolTradeLimit, "priceScale"))) );
+                put( "amount", Poloniex.this.parseNumber(Poloniex.this.parsePrecision(Poloniex.this.safeString(symbolTradeLimit, "quantityScale"))) );
+                put( "price", Poloniex.this.parseNumber(Poloniex.this.parsePrecision(Poloniex.this.safeString(symbolTradeLimit, "priceScale"))) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", PoloniexCore.this.safeNumber(symbolTradeLimit, "minQuantity") );
+                    put( "min", Poloniex.this.safeNumber(symbolTradeLimit, "minQuantity") );
                     put( "max", null );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
@@ -1145,11 +1145,11 @@ public class PoloniexCore extends PoloniexApi
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", PoloniexCore.this.safeNumber(symbolTradeLimit, "minAmount") );
+                    put( "min", Poloniex.this.safeNumber(symbolTradeLimit, "minAmount") );
                     put( "max", null );
                 }} );
             }} );
-            put( "created", PoloniexCore.this.safeInteger(market, "tradableStartTime") );
+            put( "created", Poloniex.this.safeInteger(market, "tradableStartTime") );
             put( "info", market );
         }});
     }
@@ -1238,36 +1238,36 @@ public class PoloniexCore extends PoloniexApi
             put( "contract", true );
             put( "linear", linear );
             put( "inverse", !Helpers.isTrue(linear) );
-            put( "contractSize", PoloniexCore.this.safeNumber(market, "ctVal") );
+            put( "contractSize", Poloniex.this.safeNumber(market, "ctVal") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
-            put( "taker", PoloniexCore.this.safeNumber(market, "tFee") );
-            put( "maker", PoloniexCore.this.safeNumber(market, "mFee") );
+            put( "taker", Poloniex.this.safeNumber(market, "tFee") );
+            put( "maker", Poloniex.this.safeNumber(market, "mFee") );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", PoloniexCore.this.safeNumber(market, "lotSz") );
-                put( "price", PoloniexCore.this.safeNumber(market, "tSz") );
+                put( "amount", Poloniex.this.safeNumber(market, "lotSz") );
+                put( "price", Poloniex.this.safeNumber(market, "tSz") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", PoloniexCore.this.safeNumber(market, "minSz") );
-                    put( "max", PoloniexCore.this.safeNumber(market, "limitMaxQty") );
+                    put( "min", Poloniex.this.safeNumber(market, "minSz") );
+                    put( "max", Poloniex.this.safeNumber(market, "limitMaxQty") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", PoloniexCore.this.safeNumber(market, "minPx") );
-                    put( "max", PoloniexCore.this.safeNumber(market, "maxPx") );
+                    put( "min", Poloniex.this.safeNumber(market, "minPx") );
+                    put( "max", Poloniex.this.safeNumber(market, "maxPx") );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "leverage", new java.util.HashMap<String, Object>() {{
-                    put( "max", PoloniexCore.this.safeNumber(market, "maxLever") );
+                    put( "max", Poloniex.this.safeNumber(market, "maxLever") );
                     put( "min", null );
                 }} );
             }} );
-            put( "created", PoloniexCore.this.safeInteger(market, "oDate") );
+            put( "created", Poloniex.this.safeInteger(market, "oDate") );
             put( "info", market );
         }});
     }
@@ -1359,24 +1359,24 @@ public class PoloniexCore extends PoloniexApi
             put( "id", marketId );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", PoloniexCore.this.iso8601(timestamp) );
-            put( "high", PoloniexCore.this.safeString2(ticker, "high", "h") );
-            put( "low", PoloniexCore.this.safeString2(ticker, "low", "l") );
-            put( "bid", PoloniexCore.this.safeString2(ticker, "bid", "bPx") );
-            put( "bidVolume", PoloniexCore.this.safeString2(ticker, "bidQuantity", "bSz") );
-            put( "ask", PoloniexCore.this.safeString2(ticker, "ask", "aPx") );
-            put( "askVolume", PoloniexCore.this.safeString2(ticker, "askQuantity", "aSz") );
+            put( "datetime", Poloniex.this.iso8601(timestamp) );
+            put( "high", Poloniex.this.safeString2(ticker, "high", "h") );
+            put( "low", Poloniex.this.safeString2(ticker, "low", "l") );
+            put( "bid", Poloniex.this.safeString2(ticker, "bid", "bPx") );
+            put( "bidVolume", Poloniex.this.safeString2(ticker, "bidQuantity", "bSz") );
+            put( "ask", Poloniex.this.safeString2(ticker, "ask", "aPx") );
+            put( "askVolume", Poloniex.this.safeString2(ticker, "askQuantity", "aSz") );
             put( "vwap", null );
-            put( "open", PoloniexCore.this.safeString2(ticker, "open", "o") );
-            put( "close", PoloniexCore.this.safeString2(ticker, "close", "c") );
+            put( "open", Poloniex.this.safeString2(ticker, "open", "o") );
+            put( "close", Poloniex.this.safeString2(ticker, "close", "c") );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", percentage );
             put( "average", null );
             put( "baseVolume", finalBaseVolume );
-            put( "quoteVolume", PoloniexCore.this.safeString2(ticker, "amount", "amt") );
-            put( "markPrice", PoloniexCore.this.safeString2(ticker, "markPrice", "mPx") );
-            put( "indexPrice", PoloniexCore.this.safeString(ticker, "iPx") );
+            put( "quoteVolume", Poloniex.this.safeString2(ticker, "amount", "amt") );
+            put( "markPrice", Poloniex.this.safeString2(ticker, "markPrice", "mPx") );
+            put( "indexPrice", Poloniex.this.safeString(ticker, "iPx") );
             put( "info", ticker );
         }}, market);
     }
@@ -1551,13 +1551,13 @@ public class PoloniexCore extends PoloniexApi
     put( "name", null );
     put( "code", finalNetworkCode );
     put( "active", null );
-    put( "fee", PoloniexCore.this.safeNumber(chain, "withdrawFee") );
-    put( "deposit", PoloniexCore.this.safeBool(chain, "depositEnable") );
-    put( "withdraw", PoloniexCore.this.safeBool(chain, "withdrawalEnable") );
-    put( "precision", PoloniexCore.this.parseNumber(PoloniexCore.this.parsePrecision(PoloniexCore.this.safeString(chain, "decimals"))) );
+    put( "fee", Poloniex.this.safeNumber(chain, "withdrawFee") );
+    put( "deposit", Poloniex.this.safeBool(chain, "depositEnable") );
+    put( "withdraw", Poloniex.this.safeBool(chain, "withdrawalEnable") );
+    put( "precision", Poloniex.this.parseNumber(Poloniex.this.parsePrecision(Poloniex.this.safeString(chain, "decimals"))) );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", PoloniexCore.this.safeNumber(chain, "withdrawMin") );
+            put( "min", Poloniex.this.safeNumber(chain, "withdrawMin") );
             put( "max", null );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
@@ -1570,7 +1570,7 @@ public class PoloniexCore extends PoloniexApi
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
-            put( "name", PoloniexCore.this.safeString(entry, "name") );
+            put( "name", Poloniex.this.safeString(entry, "name") );
             put( "code", code );
             put( "type", null );
             put( "precision", null );
@@ -1581,7 +1581,7 @@ public class PoloniexCore extends PoloniexApi
             put( "active", null );
             put( "fee", null );
             put( "limits", null );
-            put( "margin", PoloniexCore.this.safeBool(entry, "supportBorrow") );
+            put( "margin", Poloniex.this.safeBool(entry, "supportBorrow") );
         }});
     }
 
@@ -1608,7 +1608,7 @@ public class PoloniexCore extends PoloniexApi
             }};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+                Object tickers = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
                 return this.safeDict(tickers, symbol);
             }
             java.util.Map<String, Object> response = (this.publicGetMarketsSymbolTicker24h(this.extend(request, parameters))).join();
@@ -1765,12 +1765,12 @@ public class PoloniexCore extends PoloniexApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", PoloniexCore.this.iso8601(timestamp) );
+            put( "datetime", Poloniex.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "order", orderId );
-            put( "type", PoloniexCore.this.safeStringLower2(trade, "ordType", "type") );
+            put( "type", Poloniex.this.safeStringLower2(trade, "ordType", "type") );
             put( "side", side );
-            put( "takerOrMaker", PoloniexCore.this.safeStringLower2(trade, "matchRole", "role") );
+            put( "takerOrMaker", Poloniex.this.safeStringLower2(trade, "matchRole", "role") );
             put( "price", priceString );
             put( "amount", amountString );
             put( "cost", costString );
@@ -2149,18 +2149,18 @@ public class PoloniexCore extends PoloniexApi
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", finalTimestamp );
-            put( "datetime", PoloniexCore.this.iso8601(finalTimestamp) );
-            put( "lastTradeTimestamp", PoloniexCore.this.safeInteger(order, "updateTime") );
+            put( "datetime", Poloniex.this.iso8601(finalTimestamp) );
+            put( "lastTradeTimestamp", Poloniex.this.safeInteger(order, "updateTime") );
             put( "status", status );
             put( "symbol", symbol );
             put( "type", type );
-            put( "timeInForce", PoloniexCore.this.safeString(order, "timeInForce") );
+            put( "timeInForce", Poloniex.this.safeString(order, "timeInForce") );
             put( "postOnly", Helpers.isEqual(finalRawType, "LIMIT_MAKER") );
             put( "side", finalSide );
             put( "price", price );
-            put( "triggerPrice", PoloniexCore.this.safeString2(order, "triggerPrice", "stopPrice") );
-            put( "cost", PoloniexCore.this.safeString(order, "execAmt") );
-            put( "average", PoloniexCore.this.safeString2(order, "avgPrice", "avgPx") );
+            put( "triggerPrice", Poloniex.this.safeString2(order, "triggerPrice", "stopPrice") );
+            put( "cost", Poloniex.this.safeString(order, "execAmt") );
+            put( "average", Poloniex.this.safeString2(order, "avgPrice", "avgPx") );
             put( "amount", amount );
             put( "filled", filled );
             put( "remaining", null );
@@ -2891,7 +2891,7 @@ public class PoloniexCore extends PoloniexApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object orders = (this.fetchOpenOrders(symbol, null, null, parameters)).join();
+            Object orders = (this.fetchOpenOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join();
             java.util.Map<String, Object> indexed = this.indexBy(orders, "id");
             return ((Helpers.isTrue((Helpers.inOp(indexed, id))))) ? "open" : "closed";
         });
@@ -3121,8 +3121,8 @@ public class PoloniexCore extends PoloniexApi
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
-        put( "maker", PoloniexCore.this.safeNumber(response, "makerRate") );
-        put( "taker", PoloniexCore.this.safeNumber(response, "takerRate") );
+        put( "maker", Poloniex.this.safeNumber(response, "makerRate") );
+        put( "taker", Poloniex.this.safeNumber(response, "takerRate") );
         put( "percentage", true );
         put( "tierBased", true );
     }});
@@ -3217,10 +3217,10 @@ public class PoloniexCore extends PoloniexApi
             }
             return new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "symbol") );
-                put( "bids", PoloniexCore.this.sortBy(bidsResult, 0, true) );
-                put( "asks", PoloniexCore.this.sortBy(asksResult, 0) );
+                put( "bids", Poloniex.this.sortBy(bidsResult, 0, true) );
+                put( "asks", Poloniex.this.sortBy(asksResult, 0) );
                 put( "timestamp", timestamp );
-                put( "datetime", PoloniexCore.this.iso8601(timestamp) );
+                put( "datetime", Poloniex.this.iso8601(timestamp) );
                 put( "nonce", null );
             }};
         });
@@ -3356,7 +3356,7 @@ public class PoloniexCore extends PoloniexApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "currency", Helpers.GetValue(currency, "code") );
-            put( "network", PoloniexCore.this.safeString(finalNetworkEntry, "network") );
+            put( "network", Poloniex.this.safeString(finalNetworkEntry, "network") );
             put( "address", finalAddress );
             put( "tag", finalTag );
         }};
@@ -3386,7 +3386,7 @@ public class PoloniexCore extends PoloniexApi
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, fromAccount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "amount", PoloniexCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Poloniex.this.currencyToPrecision(code, amount) );
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "fromAccount", fromId );
                 put( "toAccount", toId );
@@ -3412,10 +3412,10 @@ public class PoloniexCore extends PoloniexApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", PoloniexCore.this.safeString(transfer, "transferId") );
+            put( "id", Poloniex.this.safeString(transfer, "transferId") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", PoloniexCore.this.safeString(currency, "id") );
+            put( "currency", Poloniex.this.safeString(currency, "id") );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
@@ -3449,7 +3449,7 @@ public class PoloniexCore extends PoloniexApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
-                put( "amount", PoloniexCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Poloniex.this.currencyToPrecision(code, amount) );
                 put( "address", address );
             }};
             String networkCode = null;
@@ -3920,7 +3920,7 @@ public class PoloniexCore extends PoloniexApi
             put( "info", finalTransaction );
             put( "id", id );
             put( "currency", code );
-            put( "amount", PoloniexCore.this.parseNumber(finalAmountString) );
+            put( "amount", Poloniex.this.parseNumber(finalAmountString) );
             put( "network", null );
             put( "address", address );
             put( "addressTo", null );
@@ -3933,12 +3933,12 @@ public class PoloniexCore extends PoloniexApi
             put( "updated", null );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", PoloniexCore.this.iso8601(timestamp) );
+            put( "datetime", Poloniex.this.iso8601(timestamp) );
             put( "comment", null );
             put( "internal", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", PoloniexCore.this.parseNumber(feeCostString) );
+                put( "cost", Poloniex.this.parseNumber(feeCostString) );
                 put( "rate", null );
             }} );
         }};
@@ -4106,7 +4106,7 @@ public class PoloniexCore extends PoloniexApi
         final Object finalShortLeverage = shortLeverage;
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", PoloniexCore.this.safeSymbol(finalMarketId, market) );
+            put( "symbol", Poloniex.this.safeSymbol(finalMarketId, market) );
             put( "marginMode", finalMarginMode );
             put( "longLeverage", finalLongLeverage );
             put( "shortLeverage", finalShortLeverage );
@@ -4295,28 +4295,28 @@ public class PoloniexCore extends PoloniexApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "notional", notional );
             put( "marginMode", marginMode );
-            put( "liquidationPrice", PoloniexCore.this.safeNumber(position, "liqPx") );
-            put( "entryPrice", PoloniexCore.this.safeNumber(position, "openAvgPx") );
-            put( "unrealizedPnl", PoloniexCore.this.safeNumber(position, "upl") );
+            put( "liquidationPrice", Poloniex.this.safeNumber(position, "liqPx") );
+            put( "entryPrice", Poloniex.this.safeNumber(position, "openAvgPx") );
+            put( "unrealizedPnl", Poloniex.this.safeNumber(position, "upl") );
             put( "percentage", null );
-            put( "contracts", PoloniexCore.this.safeNumber(position, "qty") );
+            put( "contracts", Poloniex.this.safeNumber(position, "qty") );
             put( "contractSize", null );
-            put( "markPrice", PoloniexCore.this.safeNumber(position, "markPx") );
+            put( "markPrice", Poloniex.this.safeNumber(position, "markPx") );
             put( "lastPrice", null );
-            put( "side", PoloniexCore.this.safeStringLower(position, "posSide") );
+            put( "side", Poloniex.this.safeStringLower(position, "posSide") );
             put( "hedged", null );
             put( "timestamp", timestamp );
-            put( "datetime", PoloniexCore.this.iso8601(timestamp) );
+            put( "datetime", Poloniex.this.iso8601(timestamp) );
             put( "lastUpdateTimestamp", null );
-            put( "maintenanceMargin", PoloniexCore.this.safeNumber(position, "mm") );
+            put( "maintenanceMargin", Poloniex.this.safeNumber(position, "mm") );
             put( "maintenanceMarginPercentage", null );
             put( "collateral", collateral );
             put( "initialMargin", initialMargin );
             put( "initialMarginPercentage", null );
             put( "leverage", Helpers.parseInt(leverage) );
-            put( "marginRatio", PoloniexCore.this.safeNumber(position, "mgnRatio") );
-            put( "stopLossPrice", PoloniexCore.this.safeNumber(position, "slTrgPx") );
-            put( "takeProfitPrice", PoloniexCore.this.safeNumber(position, "tpTrgPx") );
+            put( "marginRatio", Poloniex.this.safeNumber(position, "mgnRatio") );
+            put( "stopLossPrice", Poloniex.this.safeNumber(position, "slTrgPx") );
+            put( "takeProfitPrice", Poloniex.this.safeNumber(position, "tpTrgPx") );
         }});
     }
 
@@ -4380,7 +4380,7 @@ public class PoloniexCore extends PoloniexApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", type );
             put( "marginMode", null );
-            put( "amount", PoloniexCore.this.safeNumber(data, "amt") );
+            put( "amount", Poloniex.this.safeNumber(data, "amt") );
             put( "total", null );
             put( "code", null );
             put( "status", "ok" );
@@ -4490,7 +4490,7 @@ public class PoloniexCore extends PoloniexApi
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
-                put( "key", PoloniexCore.this.apiKey );
+                put( "key", Poloniex.this.apiKey );
                 put( "signTimestamp", timestamp );
                 put( "signature", signature );
             }};

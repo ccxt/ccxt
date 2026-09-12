@@ -6,9 +6,9 @@
 // -------------------------------------------------------------------------------
 
 package io.github.ccxt.api;
-import io.github.ccxt.exchanges.BybitCore;
+import io.github.ccxt.exchanges.Bybit;
 
-public class BybiteuApi extends BybitCore
+public class BybiteuApi extends Bybit
 {
 
     public BybiteuApi () {

@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class P2bCore extends io.github.ccxt.exchanges.P2b
+public class P2b extends io.github.ccxt.exchanges.P2b
 {
-   public P2bCore () {
+   public P2b () {
        super();
    }
 
-   public P2bCore (Object options) {
+   public P2b (Object options) {
        super(options);
    }
 
@@ -62,7 +62,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
                 put( "watchTickers", new java.util.HashMap<String, Object>() {{
                     put( "name", "state" );
                 }} );
-                put( "tickerSubs", P2bCore.this.createSafeDictionary() );
+                put( "tickerSubs", P2b.this.createSafeDictionary() );
             }} );
             put( "streaming", new java.util.HashMap<String, Object>() {{
                 put( "ping", "ping");
@@ -90,7 +90,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", request );
-                put( "id", P2bCore.this.milliseconds() );
+                put( "id", P2b.this.milliseconds() );
             }};
             java.util.Map<String, Object> query = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, query, messageHash, null)).join();
@@ -220,7 +220,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", Helpers.add(finalName, ".subscribe") );
                 put( "params", args );
-                put( "id", P2bCore.this.milliseconds() );
+                put( "id", P2b.this.milliseconds() );
             }};
             (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             return this.filterByArray(this.tickers, "symbol", symbols);
@@ -247,7 +247,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -289,7 +289,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "deals.subscribe" );
                 put( "params", marketIds );
-                put( "id", P2bCore.this.milliseconds() );
+                put( "id", P2b.this.milliseconds() );
             }};
             java.util.Map<String, Object> query = this.extend(subscribe, parameters);
             Object trades = (this.watchMultiple(url, messageHashes, query, messageHashes, null)).join();
@@ -611,7 +611,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         return new java.util.HashMap<String, Object>() {{
             put( "method", "server.ping" );
             put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
-            put( "id", P2bCore.this.milliseconds() );
+            put( "id", P2b.this.milliseconds() );
         }};
     }
 

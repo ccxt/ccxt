@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class GeminiCore extends io.github.ccxt.exchanges.Gemini
+public class Gemini extends io.github.ccxt.exchanges.Gemini
 {
-   public GeminiCore () {
+   public Gemini () {
        super();
    }
 
-   public GeminiCore (Object options) {
+   public Gemini (Object options) {
        super(options);
    }
 
@@ -178,7 +178,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             put( "order", null );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", GeminiCore.this.iso8601(timestamp) );
+            put( "datetime", Gemini.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "type", null );
             put( "side", finalSide );
@@ -347,7 +347,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 put( "type", "subscribe" );
                 put( "subscriptions", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "name", Helpers.add("candles_", timeframeId) );
-        put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(GeminiCore.this.safeStringUpper(market, "id"))) );
+        put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(Gemini.this.safeStringUpper(market, "id"))) );
     }})) );
             }};
             String messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol")), ":"), timeframeId);
@@ -925,25 +925,25 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         final Object finalTimeInForce = timeInForce;
         final Object finalPostOnly = postOnly;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", GeminiCore.this.safeString(order, "order_id") );
-            put( "clientOrderId", GeminiCore.this.safeString(order, "client_order_id") );
+            put( "id", Gemini.this.safeString(order, "order_id") );
+            put( "clientOrderId", Gemini.this.safeString(order, "client_order_id") );
             put( "info", order );
             put( "timestamp", timestamp );
-            put( "datetime", GeminiCore.this.iso8601(timestamp) );
+            put( "datetime", Gemini.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "status", GeminiCore.this.parseWsOrderStatus(status) );
-            put( "symbol", GeminiCore.this.safeSymbol(marketId, market) );
-            put( "type", GeminiCore.this.parseWsOrderType(typeId) );
+            put( "status", Gemini.this.parseWsOrderStatus(status) );
+            put( "symbol", Gemini.this.safeSymbol(marketId, market) );
+            put( "type", Gemini.this.parseWsOrderType(typeId) );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", finalPostOnly );
-            put( "side", GeminiCore.this.safeString(order, "side") );
-            put( "price", GeminiCore.this.safeNumber(order, "price") );
+            put( "side", Gemini.this.safeString(order, "side") );
+            put( "price", Gemini.this.safeNumber(order, "price") );
             put( "stopPrice", null );
-            put( "average", GeminiCore.this.safeNumber(order, "avg_execution_price") );
+            put( "average", Gemini.this.safeNumber(order, "avg_execution_price") );
             put( "cost", null );
-            put( "amount", GeminiCore.this.safeNumber(order, "original_amount") );
-            put( "filled", GeminiCore.this.safeNumber(order, "executed_amount") );
-            put( "remaining", GeminiCore.this.safeNumber(order, "remaining_amount") );
+            put( "amount", Gemini.this.safeNumber(order, "original_amount") );
+            put( "filled", Gemini.this.safeNumber(order, "executed_amount") );
+            put( "remaining", Gemini.this.safeNumber(order, "remaining_amount") );
             put( "fee", null );
             put( "trades", null );
         }}, market);
@@ -1115,7 +1115,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             Object request = Helpers.slice(url, startIndex, endIndex);
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
                 put( "request", request );
-                put( "nonce", GeminiCore.this.nonce() );
+                put( "nonce", Gemini.this.nonce() );
             }};
             Object b64 = this.stringToBase64(this.json(payload));
             Object signature = this.hmac(this.encode(b64), this.encode(this.secret), sha384(), "hex");
@@ -1130,7 +1130,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             this.extendExchangeOptions(defaultOptions);
             Object originalHeaders = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "ws"), "options"), "headers");
             java.util.Map<String, Object> headers = new java.util.HashMap<String, Object>() {{
-                put( "X-GEMINI-APIKEY", GeminiCore.this.apiKey );
+                put( "X-GEMINI-APIKEY", Gemini.this.apiKey );
                 put( "X-GEMINI-PAYLOAD", b64 );
                 put( "X-GEMINI-SIGNATURE", signature );
             }};

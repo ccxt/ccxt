@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BlofinCore extends BlofinApi
+public class Blofin extends BlofinApi
 {
-   public BlofinCore () {
+   public Blofin () {
        super();
    }
 
-   public BlofinCore (Object options) {
+   public Blofin (Object options) {
        super(options);
    }
 
@@ -502,8 +502,8 @@ public class BlofinCore extends BlofinApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "swap", new java.util.HashMap<String, Object>() {{
-                    put( "taker", BlofinCore.this.parseNumber("0.00060") );
-                    put( "maker", BlofinCore.this.parseNumber("0.00020") );
+                    put( "taker", Blofin.this.parseNumber("0.00060") );
+                    put( "maker", Blofin.this.parseNumber("0.00020") );
                 }} );
             }} );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
@@ -803,23 +803,23 @@ public class BlofinCore extends BlofinApi
             put( "contract", contract );
             put( "linear", ((Helpers.isTrue(contract))) ? (Helpers.isEqual(finalContractType, "linear")) : null );
             put( "inverse", ((Helpers.isTrue(contract))) ? (Helpers.isEqual(finalContractType, "inverse")) : null );
-            put( "contractSize", ((Helpers.isTrue(contract))) ? BlofinCore.this.safeNumber(market, "contractValue") : null );
+            put( "contractSize", ((Helpers.isTrue(contract))) ? Blofin.this.safeNumber(market, "contractValue") : null );
             put( "expiry", expiry );
             put( "expiryDatetime", expiry );
             put( "strike", strikePrice );
             put( "optionType", optionType );
-            put( "created", BlofinCore.this.safeInteger(market, "listTime") );
+            put( "created", Blofin.this.safeInteger(market, "listTime") );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", BlofinCore.this.safeNumber(market, "lotSize") );
-                put( "price", BlofinCore.this.parseNumber(tickSize) );
+                put( "amount", Blofin.this.safeNumber(market, "lotSize") );
+                put( "price", Blofin.this.parseNumber(tickSize) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
-                    put( "min", BlofinCore.this.parseNumber("1") );
-                    put( "max", BlofinCore.this.parseNumber(finalMaxLeverage) );
+                    put( "min", Blofin.this.parseNumber("1") );
+                    put( "max", Blofin.this.parseNumber(finalMaxLeverage) );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", BlofinCore.this.safeNumber(market, "minSize") );
+                    put( "min", Blofin.this.safeNumber(market, "minSize") );
                     put( "max", maxLimitAmount );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
@@ -931,13 +931,13 @@ public class BlofinCore extends BlofinApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BlofinCore.this.iso8601(timestamp) );
+            put( "datetime", Blofin.this.iso8601(timestamp) );
             put( "high", high );
             put( "low", low );
-            put( "bid", BlofinCore.this.safeString(ticker, "bidPrice") );
-            put( "bidVolume", BlofinCore.this.safeString(ticker, "bidSize") );
-            put( "ask", BlofinCore.this.safeString(ticker, "askPrice") );
-            put( "askVolume", BlofinCore.this.safeString(ticker, "askSize") );
+            put( "bid", Blofin.this.safeString(ticker, "bidPrice") );
+            put( "bidVolume", Blofin.this.safeString(ticker, "bidSize") );
+            put( "ask", Blofin.this.safeString(ticker, "askPrice") );
+            put( "askVolume", Blofin.this.safeString(ticker, "askSize") );
             put( "vwap", null );
             put( "open", open );
             put( "close", last );
@@ -948,8 +948,8 @@ public class BlofinCore extends BlofinApi
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-            put( "indexPrice", BlofinCore.this.safeString(ticker, "indexPrice") );
-            put( "markPrice", BlofinCore.this.safeString(ticker, "markPrice") );
+            put( "indexPrice", Blofin.this.safeString(ticker, "indexPrice") );
+            put( "markPrice", Blofin.this.safeString(ticker, "markPrice") );
             put( "info", ticker );
         }}, market);
     }
@@ -1131,18 +1131,18 @@ public class BlofinCore extends BlofinApi
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", trade );
                 put( "timestamp", timestamp );
-                put( "datetime", BlofinCore.this.iso8601(timestamp) );
+                put( "datetime", Blofin.this.iso8601(timestamp) );
                 put( "symbol", spotSymbol );
                 put( "id", id );
                 put( "order", orderId );
                 put( "type", null );
                 put( "takerOrMaker", null );
                 put( "side", side );
-                put( "price", BlofinCore.this.parseNumber(price) );
-                put( "amount", BlofinCore.this.parseNumber(amount) );
+                put( "price", Blofin.this.parseNumber(price) );
+                put( "amount", Blofin.this.parseNumber(amount) );
                 put( "cost", cost );
                 put( "fee", new java.util.HashMap<String, Object>() {{
-                    put( "cost", BlofinCore.this.parseNumber(finalFeeCost_2) );
+                    put( "cost", Blofin.this.parseNumber(finalFeeCost_2) );
                     put( "currency", finalFeeCurrency_2 );
                 }} );
             }};
@@ -1153,7 +1153,7 @@ public class BlofinCore extends BlofinApi
             return this.safeTrade(new java.util.HashMap<String, Object>() {{
                 put( "info", trade );
                 put( "timestamp", timestamp );
-                put( "datetime", BlofinCore.this.iso8601(timestamp) );
+                put( "datetime", Blofin.this.iso8601(timestamp) );
                 put( "symbol", symbol );
                 put( "id", id );
                 put( "order", orderId );
@@ -1285,7 +1285,7 @@ public class BlofinCore extends BlofinApi
             final Object finalLimit = limit;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
-                put( "bar", BlofinCore.this.safeString(BlofinCore.this.timeframes, timeframe, timeframe) );
+                put( "bar", Blofin.this.safeString(Blofin.this.timeframes, timeframe, timeframe) );
                 put( "limit", finalLimit );
             }};
             Long until = this.safeInteger(parameters, "until");
@@ -1367,9 +1367,9 @@ public class BlofinCore extends BlofinApi
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", rate );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
-                    put( "fundingRate", BlofinCore.this.safeNumber(rate, "fundingRate") );
+                    put( "fundingRate", Blofin.this.safeNumber(rate, "fundingRate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", BlofinCore.this.iso8601(timestamp) );
+                    put( "datetime", Blofin.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -1397,13 +1397,13 @@ public class BlofinCore extends BlofinApi
             put( "symbol", symbol );
             put( "markPrice", null );
             put( "indexPrice", null );
-            put( "interestRate", BlofinCore.this.parseNumber("0") );
+            put( "interestRate", Blofin.this.parseNumber("0") );
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", BlofinCore.this.safeNumber(contract, "fundingRate") );
+            put( "fundingRate", Blofin.this.safeNumber(contract, "fundingRate") );
             put( "fundingTimestamp", fundingTime );
-            put( "fundingDatetime", BlofinCore.this.iso8601(fundingTime) );
+            put( "fundingDatetime", Blofin.this.iso8601(fundingTime) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
@@ -1578,9 +1578,9 @@ public class BlofinCore extends BlofinApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", BlofinCore.this.safeSymbol(null, market) );
-            put( "maker", BlofinCore.this.parseNumber(Precise.stringNeg(BlofinCore.this.safeString2(fee, "maker", "makerU"))) );
-            put( "taker", BlofinCore.this.parseNumber(Precise.stringNeg(BlofinCore.this.safeString2(fee, "taker", "takerU"))) );
+            put( "symbol", Blofin.this.safeSymbol(null, market) );
+            put( "maker", Blofin.this.parseNumber(Precise.stringNeg(Blofin.this.safeString2(fee, "maker", "makerU"))) );
+            put( "taker", Blofin.this.parseNumber(Precise.stringNeg(Blofin.this.safeString2(fee, "taker", "takerU"))) );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -1646,8 +1646,8 @@ public class BlofinCore extends BlofinApi
             put( "instId", Helpers.GetValue(market, "id") );
             put( "side", finalSide );
             put( "orderType", finalType );
-            put( "size", BlofinCore.this.amountToPrecision(symbol, amount) );
-            put( "brokerId", BlofinCore.this.safeString(BlofinCore.this.options, "brokerId", "ec6dd3a7dd982d0b") );
+            put( "size", Blofin.this.amountToPrecision(symbol, amount) );
+            put( "brokerId", Blofin.this.safeString(Blofin.this.options, "brokerId", "ec6dd3a7dd982d0b") );
         }};
         Object marginMode = null;
         java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters, "cross");
@@ -1819,7 +1819,7 @@ public class BlofinCore extends BlofinApi
             String feeCurrencyId = this.safeString(order, "feeCcy", "USDT");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", BlofinCore.this.parseNumber(feeCostSigned) );
+                put( "cost", Blofin.this.parseNumber(feeCostSigned) );
                 put( "currency", feeCurrencyCode );
             }};
         }
@@ -1846,7 +1846,7 @@ public class BlofinCore extends BlofinApi
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", BlofinCore.this.iso8601(timestamp) );
+            put( "datetime", Blofin.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", lastTradeTimestamp );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
             put( "symbol", symbol );
@@ -1975,8 +1975,8 @@ public class BlofinCore extends BlofinApi
             put( "instId", Helpers.GetValue(market, "id") );
             put( "side", finalSide );
             put( "positionSide", finalPositionSide );
-            put( "brokerId", BlofinCore.this.safeString(BlofinCore.this.options, "brokerId", "ec6dd3a7dd982d0b") );
-            put( "reduceOnly", BlofinCore.this.safeBool(finalParameters, "reduceOnly", true) );
+            put( "brokerId", Blofin.this.safeString(Blofin.this.options, "brokerId", "ec6dd3a7dd982d0b") );
+            put( "reduceOnly", Blofin.this.safeBool(finalParameters, "reduceOnly", true) );
         }};
         if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
         {
@@ -2082,7 +2082,7 @@ public class BlofinCore extends BlofinApi
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "clientOrderId", "stop", "trigger", "tpsl")));
             if (Helpers.isTrue(Helpers.isEqual(isTpsl, true)))
             {
-                Object tpslResponse = (this.cancelOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), symbol, parameters)).join();
+                Object tpslResponse = (this.cancelOrders((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
                 Object first = this.safeDict(tpslResponse, 0);
                 return first;
             } else if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
@@ -2560,7 +2560,7 @@ public class BlofinCore extends BlofinApi
             put( "updated", null );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", BlofinCore.this.iso8601(timestamp) );
+            put( "datetime", Blofin.this.iso8601(timestamp) );
             put( "internal", null );
             put( "comment", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
@@ -2621,16 +2621,16 @@ public class BlofinCore extends BlofinApi
         Long timestamp = this.safeInteger(item, "ts");
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", BlofinCore.this.safeString(item, "transferId") );
+            put( "id", Blofin.this.safeString(item, "transferId") );
             put( "direction", null );
             put( "account", null );
-            put( "referenceId", BlofinCore.this.safeString(item, "clientId") );
+            put( "referenceId", Blofin.this.safeString(item, "clientId") );
             put( "referenceAccount", null );
-            put( "type", BlofinCore.this.parseLedgerEntryType(BlofinCore.this.safeString(item, "type")) );
+            put( "type", Blofin.this.parseLedgerEntryType(Blofin.this.safeString(item, "type")) );
             put( "currency", code );
-            put( "amount", BlofinCore.this.safeNumber(item, "amount") );
+            put( "amount", Blofin.this.safeNumber(item, "amount") );
             put( "timestamp", timestamp );
-            put( "datetime", BlofinCore.this.iso8601(timestamp) );
+            put( "datetime", Blofin.this.iso8601(timestamp) );
             put( "before", null );
             put( "after", null );
             put( "status", "ok" );
@@ -2782,7 +2782,7 @@ public class BlofinCore extends BlofinApi
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "amount", BlofinCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Blofin.this.currencyToPrecision(code, amount) );
                 put( "fromAccount", fromId );
                 put( "toAccount", toId );
             }};
@@ -3091,26 +3091,26 @@ public class BlofinCore extends BlofinApi
             put( "notional", notional );
             put( "marginMode", finalMarginMode );
             put( "liquidationPrice", liquidationPrice );
-            put( "entryPrice", BlofinCore.this.parseNumber(entryPriceString) );
-            put( "exitPrice", BlofinCore.this.safeNumber(position, "closeAveragePrice") );
-            put( "unrealizedPnl", BlofinCore.this.parseNumber(unrealizedPnlString) );
-            put( "realizedPnl", BlofinCore.this.safeNumber(position, "realizedPnl") );
+            put( "entryPrice", Blofin.this.parseNumber(entryPriceString) );
+            put( "exitPrice", Blofin.this.safeNumber(position, "closeAveragePrice") );
+            put( "unrealizedPnl", Blofin.this.parseNumber(unrealizedPnlString) );
+            put( "realizedPnl", Blofin.this.safeNumber(position, "realizedPnl") );
             put( "percentage", percentage );
             put( "contracts", contracts );
             put( "contractSize", contractSize );
-            put( "markPrice", BlofinCore.this.parseNumber(markPriceString) );
+            put( "markPrice", Blofin.this.parseNumber(markPriceString) );
             put( "lastPrice", null );
             put( "side", finalSide );
             put( "hedged", hedged );
             put( "timestamp", timestamp );
-            put( "datetime", BlofinCore.this.iso8601(timestamp) );
+            put( "datetime", Blofin.this.iso8601(timestamp) );
             put( "lastUpdateTimestamp", null );
             put( "maintenanceMargin", maintenanceMargin );
             put( "maintenanceMarginPercentage", maintenanceMarginPercentage );
-            put( "collateral", BlofinCore.this.parseNumber(finalCollateralString) );
-            put( "initialMargin", BlofinCore.this.parseNumber(finalInitialMarginString) );
-            put( "initialMarginPercentage", BlofinCore.this.parseNumber(finalInitialMarginPercentage) );
-            put( "leverage", BlofinCore.this.parseNumber(leverageString) );
+            put( "collateral", Blofin.this.parseNumber(finalCollateralString) );
+            put( "initialMargin", Blofin.this.parseNumber(finalInitialMarginString) );
+            put( "initialMarginPercentage", Blofin.this.parseNumber(finalInitialMarginPercentage) );
+            put( "leverage", Blofin.this.parseNumber(leverageString) );
             put( "marginRatio", marginRatio );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
@@ -3258,8 +3258,8 @@ public class BlofinCore extends BlofinApi
         Long leverageValue = this.safeInteger(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", BlofinCore.this.safeSymbol(marketId, market) );
-            put( "marginMode", BlofinCore.this.safeStringLower(leverage, "marginMode") );
+            put( "symbol", Blofin.this.safeSymbol(marketId, market) );
+            put( "marginMode", Blofin.this.safeStringLower(leverage, "marginMode") );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
         }};
@@ -3480,8 +3480,8 @@ public class BlofinCore extends BlofinApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", BlofinCore.this.safeString(market, "symbol") );
-            put( "marginMode", BlofinCore.this.safeString(marginMode, "marginMode") );
+            put( "symbol", Blofin.this.safeString(market, "symbol") );
+            put( "marginMode", Blofin.this.safeString(marginMode, "marginMode") );
         }};
     }
 
@@ -3691,12 +3691,12 @@ public class BlofinCore extends BlofinApi
         Object timestamp = this.safeIntegerOmitZero(info, "createTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", BlofinCore.this.safeSymbol(marketId, market, null, "contract") );
-            put( "rank", BlofinCore.this.safeInteger(info, "adl") );
+            put( "symbol", Blofin.this.safeSymbol(marketId, market, null, "contract") );
+            put( "rank", Blofin.this.safeInteger(info, "adl") );
             put( "rating", null );
             put( "percentage", null );
             put( "timestamp", timestamp );
-            put( "datetime", BlofinCore.this.iso8601(timestamp) );
+            put( "datetime", Blofin.this.iso8601(timestamp) );
         }};
     }
 
@@ -3762,8 +3762,8 @@ public class BlofinCore extends BlofinApi
             this.checkRequiredCredentials();
             Object timestamp = String.valueOf(this.milliseconds());
             headers = new java.util.HashMap<String, Object>() {{
-                put( "ACCESS-KEY", BlofinCore.this.apiKey );
-                put( "ACCESS-PASSPHRASE", BlofinCore.this.password );
+                put( "ACCESS-KEY", Blofin.this.apiKey );
+                put( "ACCESS-PASSPHRASE", Blofin.this.password );
                 put( "ACCESS-TIMESTAMP", timestamp );
                 put( "ACCESS-NONCE", timestamp );
             }};

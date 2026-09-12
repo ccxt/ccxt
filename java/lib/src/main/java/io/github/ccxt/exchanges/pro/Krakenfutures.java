@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
+public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 {
-   public KrakenfuturesCore () {
+   public Krakenfutures () {
        super();
    }
 
-   public KrakenfuturesCore (Object options) {
+   public Krakenfutures (Object options) {
        super(options);
    }
 
@@ -96,7 +96,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             {
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "event", "challenge" );
-                    put( "api_key", KrakenfuturesCore.this.apiKey );
+                    put( "api_key", Krakenfutures.this.apiKey );
                 }};
                 java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
@@ -203,9 +203,9 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "feed", name );
-                put( "api_key", KrakenfuturesCore.this.apiKey );
-                put( "original_challenge", Helpers.GetValue(KrakenfuturesCore.this.options, "challenge") );
-                put( "signed_challenge", Helpers.GetValue(KrakenfuturesCore.this.options, "signedChallenge") );
+                put( "api_key", Krakenfutures.this.apiKey );
+                put( "original_challenge", Helpers.GetValue(Krakenfutures.this.options, "challenge") );
+                put( "signed_challenge", Helpers.GetValue(Krakenfutures.this.options, "signedChallenge") );
             }};
             java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
@@ -233,7 +233,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
         });
 
@@ -319,7 +319,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -372,7 +372,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -525,24 +525,24 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", KrakenfuturesCore.this.safeSymbol(marketId) );
+            put( "symbol", Krakenfutures.this.safeSymbol(marketId) );
             put( "notional", null );
             put( "marginMode", null );
-            put( "liquidationPrice", KrakenfuturesCore.this.safeNumber(position, "liquidation_threshold") );
-            put( "entryPrice", KrakenfuturesCore.this.safeNumber(position, "entry_price") );
-            put( "unrealizedPnl", KrakenfuturesCore.this.safeNumber(position, "pnl") );
-            put( "percentage", KrakenfuturesCore.this.safeNumber(position, "return_on_equity") );
-            put( "contracts", KrakenfuturesCore.this.parseNumber(Precise.stringAbs(balanceString)) );
+            put( "liquidationPrice", Krakenfutures.this.safeNumber(position, "liquidation_threshold") );
+            put( "entryPrice", Krakenfutures.this.safeNumber(position, "entry_price") );
+            put( "unrealizedPnl", Krakenfutures.this.safeNumber(position, "pnl") );
+            put( "percentage", Krakenfutures.this.safeNumber(position, "return_on_equity") );
+            put( "contracts", Krakenfutures.this.parseNumber(Precise.stringAbs(balanceString)) );
             put( "contractSize", null );
-            put( "markPrice", KrakenfuturesCore.this.safeNumber(position, "mark_price") );
+            put( "markPrice", Krakenfutures.this.safeNumber(position, "mark_price") );
             put( "side", finalSide );
             put( "hedged", hedged );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "maintenanceMargin", KrakenfuturesCore.this.safeNumber(position, "maintenance_margin") );
+            put( "maintenanceMargin", Krakenfutures.this.safeNumber(position, "maintenance_margin") );
             put( "maintenanceMarginPercentage", null );
             put( "collateral", null );
-            put( "initialMargin", KrakenfuturesCore.this.safeNumber(position, "initial_margin") );
+            put( "initialMargin", Krakenfutures.this.safeNumber(position, "initial_margin") );
             put( "initialMarginPercentage", null );
             put( "leverage", null );
             put( "marginRatio", null );
@@ -798,16 +798,16 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", KrakenfuturesCore.this.safeString(trade, "uid") );
-            put( "symbol", KrakenfuturesCore.this.safeString(finalMarket, "symbol") );
+            put( "id", Krakenfutures.this.safeString(trade, "uid") );
+            put( "symbol", Krakenfutures.this.safeString(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", KrakenfuturesCore.this.iso8601(timestamp) );
+            put( "datetime", Krakenfutures.this.iso8601(timestamp) );
             put( "order", null );
-            put( "type", KrakenfuturesCore.this.safeString(trade, "type") );
-            put( "side", KrakenfuturesCore.this.safeString(trade, "side") );
+            put( "type", Krakenfutures.this.safeString(trade, "type") );
+            put( "side", Krakenfutures.this.safeString(trade, "side") );
             put( "takerOrMaker", "taker" );
-            put( "price", KrakenfuturesCore.this.safeString2(trade, "price", "limit_price") );
-            put( "amount", KrakenfuturesCore.this.safeString2(trade, "filled", "qty") );
+            put( "price", Krakenfutures.this.safeString2(trade, "price", "limit_price") );
+            put( "amount", Krakenfutures.this.safeString2(trade, "filled", "qty") );
             put( "cost", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "rate", null );
@@ -852,21 +852,21 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         String marketId = this.safeString(trade, "symbol");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", KrakenfuturesCore.this.safeString(trade, "tradeId") );
-            put( "symbol", KrakenfuturesCore.this.safeSymbol(marketId, market) );
+            put( "id", Krakenfutures.this.safeString(trade, "tradeId") );
+            put( "symbol", Krakenfutures.this.safeSymbol(marketId, market) );
             put( "timestamp", timestamp );
-            put( "datetime", KrakenfuturesCore.this.iso8601(timestamp) );
-            put( "order", KrakenfuturesCore.this.safeString(trade, "orderId") );
-            put( "type", KrakenfuturesCore.this.safeStringLower(trade, "type") );
-            put( "side", KrakenfuturesCore.this.safeString(trade, "side") );
-            put( "takerOrMaker", KrakenfuturesCore.this.safeString(trade, "matchRole") );
-            put( "price", KrakenfuturesCore.this.safeString2(trade, "price", "limit_price") );
-            put( "amount", KrakenfuturesCore.this.safeString(trade, "tradeAmount") );
+            put( "datetime", Krakenfutures.this.iso8601(timestamp) );
+            put( "order", Krakenfutures.this.safeString(trade, "orderId") );
+            put( "type", Krakenfutures.this.safeStringLower(trade, "type") );
+            put( "side", Krakenfutures.this.safeString(trade, "side") );
+            put( "takerOrMaker", Krakenfutures.this.safeString(trade, "matchRole") );
+            put( "price", Krakenfutures.this.safeString2(trade, "price", "limit_price") );
+            put( "amount", Krakenfutures.this.safeString(trade, "tradeAmount") );
             put( "cost", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "rate", null );
-                put( "cost", KrakenfuturesCore.this.safeString(trade, "tradeFee") );
-                put( "currency", KrakenfuturesCore.this.safeString(trade, "feeCurrency") );
+                put( "cost", Krakenfutures.this.safeString(trade, "tradeFee") );
+                put( "currency", Krakenfutures.this.safeString(trade, "feeCurrency") );
             }} );
         }}, market);
     }
@@ -1004,7 +1004,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                     Helpers.addElementToObject(previousOrder, "fee", new java.util.HashMap<String, Object>() {{
     put( "rate", null );
     put( "cost", "0" );
-    put( "currency", KrakenfuturesCore.this.numberToString(KrakenfuturesCore.this.safeString(Helpers.GetValue(trade, "fee"), "currency")) );
+    put( "currency", Krakenfutures.this.numberToString(Krakenfutures.this.safeString(Helpers.GetValue(trade, "fee"), "currency")) );
 }});
                 }
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), null))) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(Helpers.GetValue(trade, "fee"), "cost"), null)))))
@@ -1209,24 +1209,24 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         final Object finalStatus = status;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "symbol", KrakenfuturesCore.this.safeSymbol(marketId, market) );
-            put( "id", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "order_id") );
+            put( "symbol", Krakenfutures.this.safeSymbol(marketId, market) );
+            put( "id", Krakenfutures.this.safeString(finalUnparsedOrder, "order_id") );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", KrakenfuturesCore.this.iso8601(timestamp) );
+            put( "datetime", Krakenfutures.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "type", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "type") );
+            put( "type", Krakenfutures.this.safeString(finalUnparsedOrder, "type") );
             put( "timeInForce", null );
             put( "postOnly", null );
             put( "side", ((Helpers.isTrue((Helpers.isEqual(finalDirection, 0))))) ? "buy" : "sell" );
-            put( "price", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "limit_price") );
-            put( "stopPrice", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "stop_price") );
-            put( "triggerPrice", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "stop_price") );
+            put( "price", Krakenfutures.this.safeString(finalUnparsedOrder, "limit_price") );
+            put( "stopPrice", Krakenfutures.this.safeString(finalUnparsedOrder, "stop_price") );
+            put( "triggerPrice", Krakenfutures.this.safeString(finalUnparsedOrder, "stop_price") );
             put( "amount", null );
             put( "cost", null );
             put( "average", null );
-            put( "filled", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "filled") );
-            put( "remaining", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "qty") );
+            put( "filled", Krakenfutures.this.safeString(finalUnparsedOrder, "filled") );
+            put( "remaining", Krakenfutures.this.safeString(finalUnparsedOrder, "qty") );
             put( "status", finalStatus );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "rate", null );
@@ -1377,25 +1377,25 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             put( "info", ticker );
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", KrakenfuturesCore.this.iso8601(timestamp) );
+            put( "datetime", Krakenfutures.this.iso8601(timestamp) );
             put( "high", null );
             put( "low", null );
-            put( "bid", KrakenfuturesCore.this.safeString(ticker, "bid") );
-            put( "bidVolume", KrakenfuturesCore.this.safeString(ticker, "bid_size") );
-            put( "ask", KrakenfuturesCore.this.safeString(ticker, "ask") );
-            put( "askVolume", KrakenfuturesCore.this.safeString(ticker, "ask_size") );
+            put( "bid", Krakenfutures.this.safeString(ticker, "bid") );
+            put( "bidVolume", Krakenfutures.this.safeString(ticker, "bid_size") );
+            put( "ask", Krakenfutures.this.safeString(ticker, "ask") );
+            put( "askVolume", Krakenfutures.this.safeString(ticker, "ask_size") );
             put( "vwap", null );
             put( "open", null );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
-            put( "change", KrakenfuturesCore.this.safeString(ticker, "change") );
+            put( "change", Krakenfutures.this.safeString(ticker, "change") );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", KrakenfuturesCore.this.safeString(ticker, "volume") );
-            put( "quoteVolume", KrakenfuturesCore.this.safeString(ticker, "volumeQuote") );
-            put( "markPrice", KrakenfuturesCore.this.safeString(ticker, "markPrice") );
-            put( "indexPrice", KrakenfuturesCore.this.safeString(ticker, "index") );
+            put( "baseVolume", Krakenfutures.this.safeString(ticker, "volume") );
+            put( "quoteVolume", Krakenfutures.this.safeString(ticker, "volumeQuote") );
+            put( "markPrice", Krakenfutures.this.safeString(ticker, "markPrice") );
+            put( "indexPrice", Krakenfutures.this.safeString(ticker, "index") );
         }});
     }
 
@@ -1665,7 +1665,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             java.util.Map<String, Object> holdingResult = new java.util.HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );
-                put( "datetime", KrakenfuturesCore.this.iso8601(timestamp) );
+                put( "datetime", Krakenfutures.this.iso8601(timestamp) );
             }};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(holdingKeys)); i++)
             {
@@ -1688,7 +1688,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             java.util.Map<String, Object> futuresResult = new java.util.HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );
-                put( "datetime", KrakenfuturesCore.this.iso8601(timestamp) );
+                put( "datetime", Krakenfutures.this.iso8601(timestamp) );
             }};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(futuresKeys)); i++)
             {
@@ -1718,7 +1718,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             java.util.Map<String, Object> flexFuturesResult = new java.util.HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );
-                put( "datetime", KrakenfuturesCore.this.iso8601(timestamp) );
+                put( "datetime", Krakenfutures.this.iso8601(timestamp) );
             }};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(flexFuturesKeys)); i++)
             {
@@ -1827,20 +1827,20 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         final Object finalIsBuy = isBuy;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", KrakenfuturesCore.this.safeString(trade, "fill_id") );
+            put( "id", Krakenfutures.this.safeString(trade, "fill_id") );
             put( "timestamp", timestamp );
-            put( "datetime", KrakenfuturesCore.this.iso8601(timestamp) );
-            put( "symbol", KrakenfuturesCore.this.safeString(finalMarket, "symbol") );
-            put( "order", KrakenfuturesCore.this.safeString(trade, "order_id") );
-            put( "type", KrakenfuturesCore.this.safeString(trade, "type") );
+            put( "datetime", Krakenfutures.this.iso8601(timestamp) );
+            put( "symbol", Krakenfutures.this.safeString(finalMarket, "symbol") );
+            put( "order", Krakenfutures.this.safeString(trade, "order_id") );
+            put( "type", Krakenfutures.this.safeString(trade, "type") );
             put( "side", ((Helpers.isTrue((Helpers.isEqual(finalIsBuy, true))))) ? "buy" : "sell" );
-            put( "takerOrMaker", KrakenfuturesCore.this.safeString(trade, "fill_type") );
-            put( "price", KrakenfuturesCore.this.safeString(trade, "price") );
-            put( "amount", KrakenfuturesCore.this.safeString(trade, "qty") );
+            put( "takerOrMaker", Krakenfutures.this.safeString(trade, "fill_type") );
+            put( "price", Krakenfutures.this.safeString(trade, "price") );
+            put( "amount", Krakenfutures.this.safeString(trade, "qty") );
             put( "cost", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "currency", KrakenfuturesCore.this.safeCurrencyCode(feeCurrencyId) );
-                put( "cost", KrakenfuturesCore.this.safeString(trade, "fee_paid") );
+                put( "currency", Krakenfutures.this.safeCurrencyCode(feeCurrencyId) );
+                put( "cost", Krakenfutures.this.safeString(trade, "fee_paid") );
                 put( "rate", null );
             }} );
         }});

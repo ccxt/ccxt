@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbaseinternational
+public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinternational
 {
-   public CoinbaseinternationalCore () {
+   public Coinbaseinternational () {
        super();
    }
 
-   public CoinbaseinternationalCore (Object options) {
+   public Coinbaseinternational (Object options) {
        super(options);
    }
 
@@ -138,8 +138,8 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
                 put( "type", "SUBSCRIBE" );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalName)) );
                 put( "time", finalTimestamp );
-                put( "key", CoinbaseinternationalCore.this.apiKey );
-                put( "passphrase", CoinbaseinternationalCore.this.password );
+                put( "key", Coinbaseinternational.this.apiKey );
+                put( "passphrase", Coinbaseinternational.this.password );
                 put( "signature", signature );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(productIds, null)))
@@ -208,8 +208,8 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
                 put( "time", finalTimestamp );
                 put( "product_ids", productIds );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalName)) );
-                put( "key", CoinbaseinternationalCore.this.apiKey );
-                put( "passphrase", CoinbaseinternationalCore.this.password );
+                put( "key", Coinbaseinternational.this.apiKey );
+                put( "passphrase", Coinbaseinternational.this.password );
                 put( "signature", signature );
             }};
             return (this.watchMultiple(url, messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
@@ -449,8 +449,8 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         String datetime = this.safeString(ticker, "time");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
-            put( "symbol", CoinbaseinternationalCore.this.safeSymbol(marketId, market, "-") );
-            put( "timestamp", CoinbaseinternationalCore.this.parse8601(datetime) );
+            put( "symbol", Coinbaseinternational.this.safeSymbol(marketId, market, "-") );
+            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "high", null );
             put( "low", null );
@@ -466,8 +466,8 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", CoinbaseinternationalCore.this.safeString2(ticker, "total_24_hour_quantity", "total24_hour_quantity") );
-            put( "quoteVolume", CoinbaseinternationalCore.this.safeString2(ticker, "total_24_hour_volume", "total24_hour_volume") );
+            put( "baseVolume", Coinbaseinternational.this.safeString2(ticker, "total_24_hour_quantity", "total24_hour_quantity") );
+            put( "quoteVolume", Coinbaseinternational.this.safeString2(ticker, "total_24_hour_volume", "total24_hour_volume") );
         }});
     }
 
@@ -523,13 +523,13 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         String marketId = this.safeString(ticker, "product_id");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
-            put( "symbol", CoinbaseinternationalCore.this.safeSymbol(marketId, market) );
-            put( "timestamp", CoinbaseinternationalCore.this.parse8601(datetime) );
+            put( "symbol", Coinbaseinternational.this.safeSymbol(marketId, market) );
+            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "bid", CoinbaseinternationalCore.this.safeNumber(ticker, "bid_price") );
-            put( "bidVolume", CoinbaseinternationalCore.this.safeNumber(ticker, "bid_qty") );
-            put( "ask", CoinbaseinternationalCore.this.safeNumber(ticker, "ask_price") );
-            put( "askVolume", CoinbaseinternationalCore.this.safeNumber(ticker, "ask_qty") );
+            put( "bid", Coinbaseinternational.this.safeNumber(ticker, "bid_price") );
+            put( "bidVolume", Coinbaseinternational.this.safeNumber(ticker, "bid_qty") );
+            put( "ask", Coinbaseinternational.this.safeNumber(ticker, "ask_price") );
+            put( "askVolume", Coinbaseinternational.this.safeNumber(ticker, "ask_qty") );
             put( "high", null );
             put( "low", null );
             put( "open", null );
@@ -645,7 +645,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -736,16 +736,16 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         String datetime = this.safeString(trade, "time");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", CoinbaseinternationalCore.this.safeString(trade, "match_id") );
+            put( "id", Coinbaseinternational.this.safeString(trade, "match_id") );
             put( "order", null );
-            put( "timestamp", CoinbaseinternationalCore.this.parse8601(datetime) );
+            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "symbol", CoinbaseinternationalCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Coinbaseinternational.this.safeSymbol(marketId, market) );
             put( "type", null );
-            put( "side", CoinbaseinternationalCore.this.safeStringLower(trade, "agressor_side") );
+            put( "side", Coinbaseinternational.this.safeStringLower(trade, "agressor_side") );
             put( "takerOrMaker", null );
-            put( "price", CoinbaseinternationalCore.this.safeString(trade, "trade_price") );
-            put( "amount", CoinbaseinternationalCore.this.safeString(trade, "trade_qty") );
+            put( "price", Coinbaseinternational.this.safeString(trade, "trade_price") );
+            put( "amount", Coinbaseinternational.this.safeString(trade, "trade_qty") );
             put( "cost", null );
             put( "fee", null );
         }});
@@ -768,7 +768,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }

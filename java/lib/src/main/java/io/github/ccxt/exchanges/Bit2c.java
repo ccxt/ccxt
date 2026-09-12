@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class Bit2cCore extends Bit2cApi
+public class Bit2c extends Bit2cApi
 {
-   public Bit2cCore () {
+   public Bit2c () {
        super();
    }
 
-   public Bit2cCore (Object options) {
+   public Bit2c (Object options) {
        super(options);
    }
 
@@ -218,7 +218,7 @@ public class Bit2cCore extends Bit2cApi
                 }} );
             }} );
             put( "markets", new java.util.HashMap<String, Object>() {{
-                put( "BTC/NIS", Bit2cCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "BTC/NIS", Bit2c.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "BtcNis" );
                     put( "symbol", "BTC/NIS" );
                     put( "base", "BTC" );
@@ -228,7 +228,7 @@ public class Bit2cCore extends Bit2cApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "ETH/NIS", Bit2cCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "ETH/NIS", Bit2c.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "EthNis" );
                     put( "symbol", "ETH/NIS" );
                     put( "base", "ETH" );
@@ -238,7 +238,7 @@ public class Bit2cCore extends Bit2cApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "LTC/NIS", Bit2cCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "LTC/NIS", Bit2c.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "LtcNis" );
                     put( "symbol", "LTC/NIS" );
                     put( "base", "LTC" );
@@ -248,7 +248,7 @@ public class Bit2cCore extends Bit2cApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "USDC/NIS", Bit2cCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "USDC/NIS", Bit2c.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "UsdcNis" );
                     put( "symbol", "USDC/NIS" );
                     put( "base", "USDC" );
@@ -263,11 +263,11 @@ public class Bit2cCore extends Bit2cApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "maker", Bit2cCore.this.parseNumber("0.025") );
-                    put( "taker", Bit2cCore.this.parseNumber("0.03") );
+                    put( "maker", Bit2c.this.parseNumber("0.025") );
+                    put( "taker", Bit2c.this.parseNumber("0.03") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("0"), Bit2cCore.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("20000"), Bit2cCore.this.parseNumber("0.0275"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("50000"), Bit2cCore.this.parseNumber("0.025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("75000"), Bit2cCore.this.parseNumber("0.0225"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("100000"), Bit2cCore.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("250000"), Bit2cCore.this.parseNumber("0.015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("500000"), Bit2cCore.this.parseNumber("0.0125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("750000"), Bit2cCore.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("1000000"), Bit2cCore.this.parseNumber("0.008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("2000000"), Bit2cCore.this.parseNumber("0.006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("3000000"), Bit2cCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("4000000"), Bit2cCore.this.parseNumber("0.002"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("0"), Bit2cCore.this.parseNumber("0.025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("20000"), Bit2cCore.this.parseNumber("0.0225"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("50000"), Bit2cCore.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("75000"), Bit2cCore.this.parseNumber("0.0175"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("100000"), Bit2cCore.this.parseNumber("0.015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("250000"), Bit2cCore.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("500000"), Bit2cCore.this.parseNumber("0.0075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("750000"), Bit2cCore.this.parseNumber("0.005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("1000000"), Bit2cCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("2000000"), Bit2cCore.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("3000000"), Bit2cCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2cCore.this.parseNumber("4000000"), Bit2cCore.this.parseNumber("0.001"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("0"), Bit2c.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("20000"), Bit2c.this.parseNumber("0.0275"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("50000"), Bit2c.this.parseNumber("0.025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("75000"), Bit2c.this.parseNumber("0.0225"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("100000"), Bit2c.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("250000"), Bit2c.this.parseNumber("0.015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("500000"), Bit2c.this.parseNumber("0.0125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("750000"), Bit2c.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("1000000"), Bit2c.this.parseNumber("0.008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("2000000"), Bit2c.this.parseNumber("0.006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("3000000"), Bit2c.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("4000000"), Bit2c.this.parseNumber("0.002"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("0"), Bit2c.this.parseNumber("0.025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("20000"), Bit2c.this.parseNumber("0.0225"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("50000"), Bit2c.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("75000"), Bit2c.this.parseNumber("0.0175"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("100000"), Bit2c.this.parseNumber("0.015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("250000"), Bit2c.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("500000"), Bit2c.this.parseNumber("0.0075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("750000"), Bit2c.this.parseNumber("0.005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("1000000"), Bit2c.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("2000000"), Bit2c.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("3000000"), Bit2c.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bit2c.this.parseNumber("4000000"), Bit2c.this.parseNumber("0.001"))))) );
                     }} );
                 }} );
             }} );
@@ -516,9 +516,9 @@ public class Bit2cCore extends Bit2cApi
             put( "datetime", null );
             put( "high", null );
             put( "low", null );
-            put( "bid", Bit2cCore.this.safeString(ticker, "h") );
+            put( "bid", Bit2c.this.safeString(ticker, "h") );
             put( "bidVolume", null );
-            put( "ask", Bit2cCore.this.safeString(ticker, "l") );
+            put( "ask", Bit2c.this.safeString(ticker, "l") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -973,7 +973,7 @@ public class Bit2cCore extends Bit2cApi
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", Bit2cCore.this.iso8601(timestamp) );
+            put( "datetime", Bit2c.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "status", finalStatus );
             put( "symbol", symbol );
@@ -1202,7 +1202,7 @@ public class Bit2cCore extends Bit2cApi
             put( "info", trade );
             put( "id", finalId );
             put( "timestamp", finalTimestamp );
-            put( "datetime", Bit2cCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Bit2c.this.iso8601(finalTimestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "order", finalOrderId );
             put( "type", null );
@@ -1317,7 +1317,7 @@ public class Bit2cCore extends Bit2cApi
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512(), "base64");
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
-                put( "key", Bit2cCore.this.apiKey );
+                put( "key", Bit2c.this.apiKey );
                 put( "sign", signature );
             }};
         }

@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BitbankCore extends BitbankApi
+public class Bitbank extends BitbankApi
 {
-   public BitbankCore () {
+   public Bitbank () {
        super();
    }
 
-   public BitbankCore (Object options) {
+   public Bitbank (Object options) {
        super(options);
    }
 
@@ -402,20 +402,20 @@ public class BitbankCore extends BitbankApi
             put( "swap", false );
             put( "future", false );
             put( "option", false );
-            put( "active", BitbankCore.this.safeValue(entry, "is_enabled") );
+            put( "active", Bitbank.this.safeValue(entry, "is_enabled") );
             put( "contract", false );
             put( "linear", null );
             put( "inverse", null );
-            put( "taker", BitbankCore.this.safeNumber(entry, "taker_fee_rate_quote") );
-            put( "maker", BitbankCore.this.safeNumber(entry, "maker_fee_rate_quote") );
+            put( "taker", Bitbank.this.safeNumber(entry, "taker_fee_rate_quote") );
+            put( "maker", Bitbank.this.safeNumber(entry, "maker_fee_rate_quote") );
             put( "contractSize", null );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", BitbankCore.this.parseNumber(BitbankCore.this.parsePrecision(BitbankCore.this.safeString(entry, "amount_digits"))) );
-                put( "price", BitbankCore.this.parseNumber(BitbankCore.this.parsePrecision(BitbankCore.this.safeString(entry, "price_digits"))) );
+                put( "amount", Bitbank.this.parseNumber(Bitbank.this.parsePrecision(Bitbank.this.safeString(entry, "amount_digits"))) );
+                put( "price", Bitbank.this.parseNumber(Bitbank.this.parsePrecision(Bitbank.this.safeString(entry, "price_digits"))) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -423,8 +423,8 @@ public class BitbankCore extends BitbankApi
                     put( "max", null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", BitbankCore.this.safeNumber(entry, "unit_amount") );
-                    put( "max", BitbankCore.this.safeNumber(entry, "limit_max_amount") );
+                    put( "min", Bitbank.this.safeNumber(entry, "unit_amount") );
+                    put( "max", Bitbank.this.safeNumber(entry, "limit_max_amount") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -449,12 +449,12 @@ public class BitbankCore extends BitbankApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BitbankCore.this.iso8601(timestamp) );
-            put( "high", BitbankCore.this.safeString(ticker, "high") );
-            put( "low", BitbankCore.this.safeString(ticker, "low") );
-            put( "bid", BitbankCore.this.safeString(ticker, "buy") );
+            put( "datetime", Bitbank.this.iso8601(timestamp) );
+            put( "high", Bitbank.this.safeString(ticker, "high") );
+            put( "low", Bitbank.this.safeString(ticker, "low") );
+            put( "bid", Bitbank.this.safeString(ticker, "buy") );
             put( "bidVolume", null );
-            put( "ask", BitbankCore.this.safeString(ticker, "sell") );
+            put( "ask", Bitbank.this.safeString(ticker, "sell") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -464,7 +464,7 @@ public class BitbankCore extends BitbankApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", BitbankCore.this.safeString(ticker, "vol") );
+            put( "baseVolume", Bitbank.this.safeString(ticker, "vol") );
             put( "quoteVolume", null );
             put( "info", ticker );
         }}, market);
@@ -571,7 +571,7 @@ public class BitbankCore extends BitbankApi
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "timestamp", timestamp );
-            put( "datetime", BitbankCore.this.iso8601(timestamp) );
+            put( "datetime", Bitbank.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket_2, "symbol") );
             put( "id", id );
             put( "order", orderId );
@@ -680,8 +680,8 @@ public class BitbankCore extends BitbankApi
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", pair );
         put( "symbol", symbol );
-        put( "maker", BitbankCore.this.safeNumber(pair, "maker_fee_rate_quote") );
-        put( "taker", BitbankCore.this.safeNumber(pair, "taker_fee_rate_quote") );
+        put( "maker", Bitbank.this.safeNumber(pair, "maker_fee_rate_quote") );
+        put( "taker", Bitbank.this.safeNumber(pair, "taker_fee_rate_quote") );
         put( "percentage", true );
         put( "tierBased", false );
     }});
@@ -745,8 +745,8 @@ public class BitbankCore extends BitbankApi
             final Object finalSince = since;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
-                put( "candletype", BitbankCore.this.safeString(BitbankCore.this.timeframes, timeframe, timeframe) );
-                put( "yyyymmdd", BitbankCore.this.yyyymmdd(finalSince, "") );
+                put( "candletype", Bitbank.this.safeString(Bitbank.this.timeframes, timeframe, timeframe) );
+                put( "yyyymmdd", Bitbank.this.yyyymmdd(finalSince, "") );
             }};
             java.util.Map<String, Object> response = (this.publicGetPairCandlestickCandletypeYyyymmdd(this.extend(request, parameters))).join();
             //
@@ -890,7 +890,7 @@ public class BitbankCore extends BitbankApi
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
-            put( "datetime", BitbankCore.this.iso8601(timestamp) );
+            put( "datetime", Bitbank.this.iso8601(timestamp) );
             put( "timestamp", timestamp );
             put( "lastTradeTimestamp", null );
             put( "status", status );
@@ -940,7 +940,7 @@ public class BitbankCore extends BitbankApi
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
-                put( "amount", BitbankCore.this.amountToPrecision(symbol, amount) );
+                put( "amount", Bitbank.this.amountToPrecision(symbol, amount) );
                 put( "side", side );
                 put( "type", finalType );
             }};
@@ -1361,8 +1361,8 @@ public class BitbankCore extends BitbankApi
             final Object finalAuth = auth;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
-                put( "ACCESS-KEY", BitbankCore.this.apiKey );
-                put( "ACCESS-SIGNATURE", BitbankCore.this.hmac(BitbankCore.this.encode(finalAuth), BitbankCore.this.encode(BitbankCore.this.secret), sha256()) );
+                put( "ACCESS-KEY", Bitbank.this.apiKey );
+                put( "ACCESS-SIGNATURE", Bitbank.this.hmac(Bitbank.this.encode(finalAuth), Bitbank.this.encode(Bitbank.this.secret), sha256()) );
             }};
             if (Helpers.isTrue(isTimeWindow))
             {

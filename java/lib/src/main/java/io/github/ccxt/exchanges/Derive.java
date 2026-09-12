@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class DeriveCore extends DeriveApi
+public class Derive extends DeriveApi
 {
-   public DeriveCore () {
+   public Derive () {
        super();
    }
 
-   public DeriveCore (Object options) {
+   public Derive (Object options) {
        super(options);
    }
 
@@ -1087,20 +1087,20 @@ public class DeriveCore extends DeriveApi
             put( "swap", finalSwap );
             put( "future", false );
             put( "option", finalOption );
-            put( "active", DeriveCore.this.safeBool(market, "is_active") );
+            put( "active", Derive.this.safeBool(market, "is_active") );
             put( "contract", isContract );
             put( "linear", finalLinear );
             put( "inverse", finalInverse );
             put( "contractSize", contractSize );
             put( "expiry", finalExpiry );
-            put( "expiryDatetime", DeriveCore.this.iso8601(finalExpiry) );
-            put( "taker", DeriveCore.this.safeNumber(market, "taker_fee_rate") );
-            put( "maker", DeriveCore.this.safeNumber(market, "maker_fee_rate") );
+            put( "expiryDatetime", Derive.this.iso8601(finalExpiry) );
+            put( "taker", Derive.this.safeNumber(market, "taker_fee_rate") );
+            put( "maker", Derive.this.safeNumber(market, "maker_fee_rate") );
             put( "strike", finalStrike );
             put( "optionType", finalOptionType );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", DeriveCore.this.safeNumber(market, "amount_step") );
-                put( "price", DeriveCore.this.safeNumber(market, "tick_size") );
+                put( "amount", Derive.this.safeNumber(market, "amount_step") );
+                put( "price", Derive.this.safeNumber(market, "tick_size") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -1108,8 +1108,8 @@ public class DeriveCore extends DeriveApi
                     put( "max", null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", DeriveCore.this.safeNumber(market, "minimum_amount") );
-                    put( "max", DeriveCore.this.safeNumber(market, "maximum_amount") );
+                    put( "min", Derive.this.safeNumber(market, "minimum_amount") );
+                    put( "max", Derive.this.safeNumber(market, "maximum_amount") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -1281,13 +1281,13 @@ public class DeriveCore extends DeriveApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", DeriveCore.this.iso8601(timestamp) );
-            put( "high", DeriveCore.this.safeString(stats, "high") );
-            put( "low", DeriveCore.this.safeString(stats, "low") );
-            put( "bid", DeriveCore.this.safeString(ticker, "best_bid_price") );
-            put( "bidVolume", DeriveCore.this.safeString(ticker, "best_bid_amount") );
-            put( "ask", DeriveCore.this.safeString(ticker, "best_ask_price") );
-            put( "askVolume", DeriveCore.this.safeString(ticker, "best_ask_amount") );
+            put( "datetime", Derive.this.iso8601(timestamp) );
+            put( "high", Derive.this.safeString(stats, "high") );
+            put( "low", Derive.this.safeString(stats, "low") );
+            put( "bid", Derive.this.safeString(ticker, "best_bid_price") );
+            put( "bidVolume", Derive.this.safeString(ticker, "best_bid_amount") );
+            put( "ask", Derive.this.safeString(ticker, "best_ask_price") );
+            put( "askVolume", Derive.this.safeString(ticker, "best_ask_amount") );
             put( "vwap", null );
             put( "open", null );
             put( "close", null );
@@ -1298,8 +1298,8 @@ public class DeriveCore extends DeriveApi
             put( "average", null );
             put( "baseVolume", null );
             put( "quoteVolume", null );
-            put( "indexPrice", DeriveCore.this.safeString(ticker, "index_price") );
-            put( "markPrice", DeriveCore.this.safeString(ticker, "mark_price") );
+            put( "indexPrice", Derive.this.safeString(ticker, "index_price") );
+            put( "markPrice", Derive.this.safeString(ticker, "mark_price") );
             put( "info", ticker );
         }}, market);
     }
@@ -1457,21 +1457,21 @@ public class DeriveCore extends DeriveApi
         Long timestamp = this.safeInteger(trade, "timestamp");
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "currency", "USDC" );
-            put( "cost", DeriveCore.this.safeString(trade, "trade_fee") );
+            put( "cost", Derive.this.safeString(trade, "trade_fee") );
         }};
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", DeriveCore.this.safeString(trade, "trade_id") );
-            put( "order", DeriveCore.this.safeString(trade, "order_id") );
+            put( "id", Derive.this.safeString(trade, "trade_id") );
+            put( "order", Derive.this.safeString(trade, "order_id") );
             put( "symbol", symbol );
-            put( "side", DeriveCore.this.safeStringLower(trade, "direction") );
+            put( "side", Derive.this.safeStringLower(trade, "direction") );
             put( "type", null );
-            put( "takerOrMaker", DeriveCore.this.safeString(trade, "liquidity_role") );
-            put( "price", DeriveCore.this.safeString(trade, "trade_price") );
-            put( "amount", DeriveCore.this.safeString(trade, "trade_amount") );
+            put( "takerOrMaker", Derive.this.safeString(trade, "liquidity_role") );
+            put( "price", Derive.this.safeString(trade, "trade_price") );
+            put( "amount", Derive.this.safeString(trade, "trade_amount") );
             put( "cost", null );
             put( "timestamp", timestamp );
-            put( "datetime", DeriveCore.this.iso8601(timestamp) );
+            put( "datetime", Derive.this.iso8601(timestamp) );
             put( "fee", fee );
         }}, market);
     }
@@ -1538,9 +1538,9 @@ public class DeriveCore extends DeriveApi
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
-                    put( "fundingRate", DeriveCore.this.safeNumber(entry, "funding_rate") );
+                    put( "fundingRate", Derive.this.safeNumber(entry, "funding_rate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", DeriveCore.this.iso8601(timestamp) );
+                    put( "datetime", Derive.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -1564,7 +1564,7 @@ public class DeriveCore extends DeriveApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.fetchFundingRateHistory(symbol, null, 1, parameters)).join();
+            Object response = (this.fetchFundingRateHistory((Object)(symbol), (Object)(null), (Object)(1), (Object)(parameters))).join();
             //
             // [
             //     {
@@ -1599,9 +1599,9 @@ public class DeriveCore extends DeriveApi
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", DeriveCore.this.safeNumber(contract, "fundingRate") );
+            put( "fundingRate", Derive.this.safeNumber(contract, "fundingRate") );
             put( "fundingTimestamp", fundingTimestamp );
-            put( "fundingDatetime", DeriveCore.this.iso8601(fundingTimestamp) );
+            put( "fundingDatetime", Derive.this.iso8601(fundingTimestamp) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
@@ -1741,8 +1741,8 @@ public class DeriveCore extends DeriveApi
                 put( "max_fee", maxFeeString );
                 put( "subaccount_id", finalSubaccountId );
                 put( "signature_expiry_sec", signatureExpiry );
-                put( "referral_code", DeriveCore.this.safeString(DeriveCore.this.options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749") );
-                put( "signer", DeriveCore.this.walletAddress );
+                put( "referral_code", Derive.this.safeString(Derive.this.options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749") );
+                put( "signer", Derive.this.walletAddress );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(reduceOnly, null)))
             {
@@ -1936,7 +1936,7 @@ public class DeriveCore extends DeriveApi
                 put( "max_fee", maxFeeString );
                 put( "subaccount_id", finalSubaccountId );
                 put( "signature_expiry_sec", signatureExpiry );
-                put( "signer", DeriveCore.this.walletAddress );
+                put( "signer", Derive.this.walletAddress );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(reduceOnly, null)))
             {
@@ -2377,7 +2377,7 @@ public class DeriveCore extends DeriveApi
             java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "open" );
             }});
-            return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
         });
 
     }
@@ -2410,7 +2410,7 @@ public class DeriveCore extends DeriveApi
             java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "filled" );
             }});
-            return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
         });
 
     }
@@ -2443,7 +2443,7 @@ public class DeriveCore extends DeriveApi
             java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "cancelled" );
             }});
-            return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
         });
 
     }
@@ -2585,17 +2585,17 @@ public class DeriveCore extends DeriveApi
         final Object finalStopLossPrice = stopLossPrice;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", orderId );
-            put( "clientOrderId", DeriveCore.this.safeString(finalOrder, "label") );
+            put( "clientOrderId", Derive.this.safeString(finalOrder, "label") );
             put( "timestamp", timestamp );
-            put( "datetime", DeriveCore.this.iso8601(timestamp) );
+            put( "datetime", Derive.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "status", DeriveCore.this.parseOrderStatus(status) );
+            put( "status", Derive.this.parseOrderStatus(status) );
             put( "symbol", symbol );
             put( "type", orderType );
-            put( "timeInForce", DeriveCore.this.parseTimeInForce(timeInForce) );
+            put( "timeInForce", Derive.this.parseTimeInForce(timeInForce) );
             put( "postOnly", null );
-            put( "reduceOnly", DeriveCore.this.safeBool(finalOrder, "reduce_only") );
+            put( "reduceOnly", Derive.this.safeBool(finalOrder, "reduce_only") );
             put( "side", finalSide );
             put( "price", price );
             put( "triggerPrice", finalTriggerPrice );
@@ -2950,23 +2950,23 @@ public class DeriveCore extends DeriveApi
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", DeriveCore.this.safeString(finalMarket, "symbol") );
+            put( "symbol", Derive.this.safeString(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", DeriveCore.this.iso8601(timestamp) );
+            put( "datetime", Derive.this.iso8601(timestamp) );
             put( "lastUpdateTimestamp", null );
-            put( "initialMargin", DeriveCore.this.safeNumber(position, "initial_margin") );
+            put( "initialMargin", Derive.this.safeNumber(position, "initial_margin") );
             put( "initialMarginPercentage", null );
-            put( "maintenanceMargin", DeriveCore.this.safeNumber(position, "maintenance_margin") );
+            put( "maintenanceMargin", Derive.this.safeNumber(position, "maintenance_margin") );
             put( "maintenanceMarginPercentage", null );
             put( "entryPrice", null );
-            put( "notional", DeriveCore.this.parseNumber(notional) );
-            put( "leverage", DeriveCore.this.safeNumber(position, "leverage") );
-            put( "unrealizedPnl", DeriveCore.this.parseNumber(unrealisedPnl) );
-            put( "contracts", DeriveCore.this.parseNumber(finalSize) );
-            put( "contractSize", DeriveCore.this.parseNumber(contractSize) );
+            put( "notional", Derive.this.parseNumber(notional) );
+            put( "leverage", Derive.this.safeNumber(position, "leverage") );
+            put( "unrealizedPnl", Derive.this.parseNumber(unrealisedPnl) );
+            put( "contracts", Derive.this.parseNumber(finalSize) );
+            put( "contractSize", Derive.this.parseNumber(contractSize) );
             put( "marginRatio", null );
-            put( "liquidationPrice", DeriveCore.this.safeNumber(position, "liquidation_price") );
-            put( "markPrice", DeriveCore.this.parseNumber(markPrice) );
+            put( "liquidationPrice", Derive.this.safeNumber(position, "liquidation_price") );
+            put( "markPrice", Derive.this.parseNumber(markPrice) );
             put( "lastPrice", null );
             put( "collateral", null );
             put( "marginMode", null );
@@ -3103,7 +3103,7 @@ public class DeriveCore extends DeriveApi
             put( "symbol", symbol );
             put( "code", code );
             put( "timestamp", timestamp );
-            put( "datetime", DeriveCore.this.iso8601(timestamp) );
+            put( "datetime", Derive.this.iso8601(timestamp) );
             put( "id", null );
             put( "amount", null );
             put( "rate", rate );
@@ -3378,7 +3378,7 @@ public class DeriveCore extends DeriveApi
             put( "id", null );
             put( "txid", finalTxId );
             put( "timestamp", timestamp );
-            put( "datetime", DeriveCore.this.iso8601(timestamp) );
+            put( "datetime", Derive.this.iso8601(timestamp) );
             put( "address", null );
             put( "addressFrom", null );
             put( "addressTo", null );
@@ -3386,9 +3386,9 @@ public class DeriveCore extends DeriveApi
             put( "tagFrom", null );
             put( "tagTo", null );
             put( "type", null );
-            put( "amount", DeriveCore.this.safeNumber(transaction, "amount") );
+            put( "amount", Derive.this.safeNumber(transaction, "amount") );
             put( "currency", code );
-            put( "status", DeriveCore.this.parseTransactionStatus(DeriveCore.this.safeString(transaction, "tx_status")) );
+            put( "status", Derive.this.parseTransactionStatus(Derive.this.safeString(transaction, "tx_status")) );
             put( "updated", null );
             put( "comment", null );
             put( "internal", null );

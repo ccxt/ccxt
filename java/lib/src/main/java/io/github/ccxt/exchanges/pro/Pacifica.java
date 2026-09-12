@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
+public class Pacifica extends io.github.ccxt.exchanges.Pacifica
 {
-   public PacificaCore () {
+   public Pacifica () {
        super();
    }
 
-   public PacificaCore (Object options) {
+   public Pacifica (Object options) {
        super(options);
    }
 
@@ -643,8 +643,8 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         Object symbol = Helpers.GetValue(market, "symbol");
         Object levels = this.safeList(entry, "l", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
-            put( "bids", PacificaCore.this.safeList(levels, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
-            put( "asks", PacificaCore.this.safeList(levels, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
+            put( "bids", Pacifica.this.safeList(levels, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
+            put( "asks", Pacifica.this.safeList(levels, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
         }};
         Long timestamp = this.safeInteger(entry, "t");
         Object snapshot = this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a");
@@ -679,7 +679,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
         });
 
@@ -1177,10 +1177,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", PacificaCore.this.iso8601(timestamp) );
+            put( "datetime", Pacifica.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
-            put( "order", PacificaCore.this.safeString(trade, "i") );
+            put( "order", Pacifica.this.safeString(trade, "i") );
             put( "type", null );
             put( "side", finalSide );
             put( "takerOrMaker", finalTakerOrMaker );

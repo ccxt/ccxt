@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class GateeuCore extends io.github.ccxt.exchanges.Gateeu
+public class Gateeu extends io.github.ccxt.exchanges.Gateeu
 {
-   public GateeuCore () {
+   public Gateeu () {
        super();
    }
 
-   public GateeuCore (Object options) {
+   public Gateeu (Object options) {
        super(options);
    }
 

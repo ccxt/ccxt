@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
+public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 {
-   public WhitebitCore () {
+   public Whitebit () {
        super();
    }
 
-   public WhitebitCore (Object options) {
+   public Whitebit (Object options) {
        super(options);
    }
 
@@ -640,7 +640,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", WhitebitCore.this.iso8601(timestamp) );
+            put( "datetime", Whitebit.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "order", orderId );
             put( "type", null );
@@ -802,7 +802,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             final Object finalDealFee = dealFee;
             final Object finalMarket = market;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", WhitebitCore.this.parseNumber(finalDealFee) );
+                put( "cost", Whitebit.this.parseNumber(finalDealFee) );
                 put( "currency", Helpers.GetValue(finalMarket, "quote") );
             }};
         }
@@ -831,7 +831,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", WhitebitCore.this.iso8601(timestamp) );
+            put( "datetime", Whitebit.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", lastTradeTimestamp );
             put( "type", finalType );
             put( "timeInForce", null );

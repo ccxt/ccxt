@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class PhemexCore extends io.github.ccxt.exchanges.Phemex
+public class Phemex extends io.github.ccxt.exchanges.Phemex
 {
-   public PhemexCore () {
+   public Phemex () {
        super();
    }
 
-   public PhemexCore (Object options) {
+   public Phemex (Object options) {
        super(options);
    }
 
@@ -152,9 +152,9 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", PhemexCore.this.iso8601(timestamp) );
-            put( "high", PhemexCore.this.parseNumber(PhemexCore.this.fromEp(PhemexCore.this.safeString(ticker, "high"), finalMarket)) );
-            put( "low", PhemexCore.this.parseNumber(PhemexCore.this.fromEp(PhemexCore.this.safeString(ticker, "low"), finalMarket)) );
+            put( "datetime", Phemex.this.iso8601(timestamp) );
+            put( "high", Phemex.this.parseNumber(Phemex.this.fromEp(Phemex.this.safeString(ticker, "high"), finalMarket)) );
+            put( "low", Phemex.this.parseNumber(Phemex.this.fromEp(Phemex.this.safeString(ticker, "low"), finalMarket)) );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
@@ -169,8 +169,8 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             put( "average", finalAverage );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-            put( "markPrice", PhemexCore.this.parseNumber(PhemexCore.this.fromEp(PhemexCore.this.safeString(ticker, "markPrice"), finalMarket)) );
-            put( "indexPrice", PhemexCore.this.parseNumber(PhemexCore.this.fromEp(PhemexCore.this.safeString(ticker, "indexPrice"), finalMarket)) );
+            put( "markPrice", Phemex.this.parseNumber(Phemex.this.fromEp(Phemex.this.safeString(ticker, "markPrice"), finalMarket)) );
+            put( "indexPrice", Phemex.this.parseNumber(Phemex.this.fromEp(Phemex.this.safeString(ticker, "indexPrice"), finalMarket)) );
             put( "info", ticker );
         }});
     }
@@ -221,8 +221,8 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", PhemexCore.this.parseNumber(PhemexCore.this.fromEp(PhemexCore.this.safeString(ticker, 2), finalMarket)) );
-            put( "low", PhemexCore.this.parseNumber(PhemexCore.this.fromEp(PhemexCore.this.safeString(ticker, 3), finalMarket)) );
+            put( "high", Phemex.this.parseNumber(Phemex.this.fromEp(Phemex.this.safeString(ticker, 2), finalMarket)) );
+            put( "low", Phemex.this.parseNumber(Phemex.this.fromEp(Phemex.this.safeString(ticker, 3), finalMarket)) );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
@@ -815,7 +815,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
                 put( "id", requestId );
-                put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), PhemexCore.this.safeInteger(PhemexCore.this.timeframes, timeframe))) );
+                put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), Phemex.this.safeInteger(Phemex.this.timeframes, timeframe))) );
             }};
             java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
@@ -1564,7 +1564,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
-            put( "datetime", PhemexCore.this.iso8601(timestamp) );
+            put( "datetime", Phemex.this.iso8601(timestamp) );
             put( "timestamp", timestamp );
             put( "lastTradeTimestamp", finalLastTradeTimestamp );
             put( "symbol", symbol );
@@ -1814,7 +1814,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                 String method = "user.auth";
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "method", method );
-                    put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList("API", PhemexCore.this.apiKey, signature, expiration)) );
+                    put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList("API", Phemex.this.apiKey, signature, expiration)) );
                     put( "id", requestId );
                 }};
                 Object subscriptionHash = String.valueOf(requestId);

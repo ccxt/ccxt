@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class MexcCore extends io.github.ccxt.exchanges.Mexc
+public class Mexc extends io.github.ccxt.exchanges.Mexc
 {
-   public MexcCore () {
+   public Mexc () {
        super();
    }
 
-   public MexcCore (Object options) {
+   public Mexc (Object options) {
        super(options);
    }
 
@@ -411,25 +411,25 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         String price = this.safeString(ticker, "p");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
-            put( "symbol", MexcCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Mexc.this.safeSymbol(marketId, market) );
             put( "timestamp", timestamp );
-            put( "datetime", MexcCore.this.iso8601(timestamp) );
+            put( "datetime", Mexc.this.iso8601(timestamp) );
             put( "open", null );
-            put( "high", MexcCore.this.safeNumber(ticker, "h") );
-            put( "low", MexcCore.this.safeNumber(ticker, "l") );
+            put( "high", Mexc.this.safeNumber(ticker, "h") );
+            put( "low", Mexc.this.safeNumber(ticker, "l") );
             put( "close", price );
             put( "last", price );
-            put( "bid", MexcCore.this.safeNumber2(ticker, "b", "bidPrice") );
-            put( "bidVolume", MexcCore.this.safeNumber2(ticker, "B", "bidQuantity") );
-            put( "ask", MexcCore.this.safeNumber2(ticker, "a", "askPrice") );
-            put( "askVolume", MexcCore.this.safeNumber2(ticker, "A", "askQuantity") );
+            put( "bid", Mexc.this.safeNumber2(ticker, "b", "bidPrice") );
+            put( "bidVolume", Mexc.this.safeNumber2(ticker, "B", "bidQuantity") );
+            put( "ask", Mexc.this.safeNumber2(ticker, "a", "askPrice") );
+            put( "askVolume", Mexc.this.safeNumber2(ticker, "A", "askQuantity") );
             put( "vwap", null );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", MexcCore.this.safeNumber(ticker, "tr") );
+            put( "percentage", Mexc.this.safeNumber(ticker, "tr") );
             put( "average", null );
-            put( "baseVolume", MexcCore.this.safeNumber(ticker, "v") );
-            put( "quoteVolume", MexcCore.this.safeNumber(ticker, "q") );
+            put( "baseVolume", Mexc.this.safeNumber(ticker, "v") );
+            put( "quoteVolume", Mexc.this.safeNumber(ticker, "q") );
         }}, market);
     }
 
@@ -533,11 +533,11 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", MexcCore.this.iso8601(timestamp) );
-            put( "ask", MexcCore.this.safeNumber(data, "a") );
-            put( "askVolume", MexcCore.this.safeNumber(data, "A") );
-            put( "bid", MexcCore.this.safeNumber(data, "b") );
-            put( "bidVolume", MexcCore.this.safeNumber(data, "B") );
+            put( "datetime", Mexc.this.iso8601(timestamp) );
+            put( "ask", Mexc.this.safeNumber(data, "a") );
+            put( "askVolume", Mexc.this.safeNumber(data, "A") );
+            put( "bid", Mexc.this.safeNumber(data, "b") );
+            put( "bidVolume", Mexc.this.safeNumber(data, "B") );
             put( "info", ticker );
         }}, market);
     }
@@ -611,7 +611,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", channel );
                 put( "param", new java.util.HashMap<String, Object>() {{
-                    put( "apiKey", MexcCore.this.apiKey );
+                    put( "apiKey", Mexc.this.apiKey );
                     put( "signature", signature );
                     put( "reqTime", timestamp );
                 }} );
@@ -1412,19 +1412,19 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalTradeId );
-            put( "order", MexcCore.this.safeString2(trade, "i", "orderId") );
+            put( "order", Mexc.this.safeString2(trade, "i", "orderId") );
             put( "timestamp", finalTimestamp );
-            put( "datetime", MexcCore.this.iso8601(finalTimestamp) );
-            put( "symbol", MexcCore.this.safeSymbol(null, market) );
+            put( "datetime", Mexc.this.iso8601(finalTimestamp) );
+            put( "symbol", Mexc.this.safeSymbol(null, market) );
             put( "type", null );
             put( "side", side );
             put( "takerOrMaker", ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(finalIsMaker, null)) && Helpers.isTrue(!Helpers.isEqual(finalIsMaker, null))) && Helpers.isTrue(!Helpers.isEqual(finalIsMaker, 0)))))) ? "maker" : "taker" );
             put( "price", priceString );
             put( "amount", amountString );
-            put( "cost", MexcCore.this.safeString(trade, "amount") );
+            put( "cost", Mexc.this.safeString(trade, "amount") );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "cost", feeAmount );
-                put( "currency", MexcCore.this.safeCurrencyCode(feeCurrencyId) );
+                put( "currency", Mexc.this.safeCurrencyCode(feeCurrencyId) );
             }} );
         }}, market);
     }
@@ -1682,24 +1682,24 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         final Object finalSide = side;
         final Object finalFee = fee;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", MexcCore.this.safeString(order, "id") );
-            put( "clientOrderId", MexcCore.this.safeString(order, "clientId") );
+            put( "id", Mexc.this.safeString(order, "id") );
+            put( "clientOrderId", Mexc.this.safeString(order, "clientId") );
             put( "timestamp", timestamp );
-            put( "datetime", MexcCore.this.iso8601(timestamp) );
+            put( "datetime", Mexc.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "status", MexcCore.this.parseWsOrderStatus(status, market) );
-            put( "symbol", MexcCore.this.safeSymbol(null, market) );
-            put( "type", MexcCore.this.parseWsOrderType(type) );
-            put( "timeInForce", MexcCore.this.parseWsTimeInForce(type) );
+            put( "status", Mexc.this.parseWsOrderStatus(status, market) );
+            put( "symbol", Mexc.this.safeSymbol(null, market) );
+            put( "type", Mexc.this.parseWsOrderType(type) );
+            put( "timeInForce", Mexc.this.parseWsTimeInForce(type) );
             put( "side", ((Helpers.isTrue((Helpers.isEqual(finalSide, "1"))))) ? "buy" : "sell" );
-            put( "price", MexcCore.this.safeString(order, "price") );
-            put( "stopPrice", MexcCore.this.safeString2(order, "triggerPrice", "P") );
-            put( "triggerPrice", MexcCore.this.safeString2(order, "triggerPrice", "P") );
-            put( "average", MexcCore.this.safeString(order, "avgPrice") );
-            put( "amount", MexcCore.this.safeString(order, "quantity") );
-            put( "cost", MexcCore.this.safeString(order, "amount") );
-            put( "filled", MexcCore.this.safeString(order, "cumulativeQuantity") );
-            put( "remaining", MexcCore.this.safeString(order, "remainQuantity") );
+            put( "price", Mexc.this.safeString(order, "price") );
+            put( "stopPrice", Mexc.this.safeString2(order, "triggerPrice", "P") );
+            put( "triggerPrice", Mexc.this.safeString2(order, "triggerPrice", "P") );
+            put( "average", Mexc.this.safeString(order, "avgPrice") );
+            put( "amount", Mexc.this.safeString(order, "quantity") );
+            put( "cost", Mexc.this.safeString(order, "amount") );
+            put( "filled", Mexc.this.safeString(order, "cumulativeQuantity") );
+            put( "remaining", Mexc.this.safeString(order, "remainQuantity") );
             put( "fee", finalFee );
             put( "trades", null );
             put( "info", order );

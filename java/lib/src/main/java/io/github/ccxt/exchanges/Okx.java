@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class OkxCore extends OkxApi
+public class Okx extends OkxApi
 {
-   public OkxCore () {
+   public Okx () {
        super();
    }
 
-   public OkxCore (Object options) {
+   public Okx (Object options) {
        super(options);
    }
 
@@ -1620,20 +1620,20 @@ public class OkxCore extends OkxApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "trading", new java.util.HashMap<String, Object>() {{
-                    put( "taker", OkxCore.this.parseNumber("0.0015") );
-                    put( "maker", OkxCore.this.parseNumber("0.0010") );
+                    put( "taker", Okx.this.parseNumber("0.0015") );
+                    put( "maker", Okx.this.parseNumber("0.0010") );
                 }} );
                 put( "spot", new java.util.HashMap<String, Object>() {{
-                    put( "taker", OkxCore.this.parseNumber("0.0015") );
-                    put( "maker", OkxCore.this.parseNumber("0.0010") );
+                    put( "taker", Okx.this.parseNumber("0.0015") );
+                    put( "maker", Okx.this.parseNumber("0.0010") );
                 }} );
                 put( "future", new java.util.HashMap<String, Object>() {{
-                    put( "taker", OkxCore.this.parseNumber("0.0005") );
-                    put( "maker", OkxCore.this.parseNumber("0.0002") );
+                    put( "taker", Okx.this.parseNumber("0.0005") );
+                    put( "maker", Okx.this.parseNumber("0.0002") );
                 }} );
                 put( "swap", new java.util.HashMap<String, Object>() {{
-                    put( "taker", OkxCore.this.parseNumber("0.00050") );
-                    put( "maker", OkxCore.this.parseNumber("0.00020") );
+                    put( "taker", Okx.this.parseNumber("0.00050") );
+                    put( "maker", Okx.this.parseNumber("0.00020") );
                 }} );
             }} );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
@@ -2351,30 +2351,30 @@ public class OkxCore extends OkxApi
                 }} );
             }} );
             put( "currencies", new java.util.HashMap<String, Object>() {{
-                put( "USD", OkxCore.this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+                put( "USD", Okx.this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "USD" );
                     put( "code", "USD" );
-                    put( "precision", OkxCore.this.parseNumber("0.0001") );
+                    put( "precision", Okx.this.parseNumber("0.0001") );
                 }}) );
-                put( "EUR", OkxCore.this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+                put( "EUR", Okx.this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "EUR" );
                     put( "code", "EUR" );
-                    put( "precision", OkxCore.this.parseNumber("0.0001") );
+                    put( "precision", Okx.this.parseNumber("0.0001") );
                 }}) );
-                put( "AED", OkxCore.this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+                put( "AED", Okx.this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "AED" );
                     put( "code", "AED" );
-                    put( "precision", OkxCore.this.parseNumber("0.0001") );
+                    put( "precision", Okx.this.parseNumber("0.0001") );
                 }}) );
-                put( "GBP", OkxCore.this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+                put( "GBP", Okx.this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "GBP" );
                     put( "code", "GBP" );
-                    put( "precision", OkxCore.this.parseNumber("0.0001") );
+                    put( "precision", Okx.this.parseNumber("0.0001") );
                 }}) );
-                put( "AUD", OkxCore.this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+                put( "AUD", Okx.this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "AUD" );
                     put( "code", "AUD" );
-                    put( "precision", OkxCore.this.parseNumber("0.0001") );
+                    put( "precision", Okx.this.parseNumber("0.0001") );
                 }}) );
             }} );
             put( "commonCurrencies", new java.util.HashMap<String, Object>() {{
@@ -2447,11 +2447,11 @@ public class OkxCore extends OkxApi
             put( "option", true );
             put( "margin", false );
             put( "contract", true );
-            put( "contractSize", OkxCore.this.parseNumber("1") );
+            put( "contractSize", Okx.this.parseNumber("1") );
             put( "expiry", timestamp );
             put( "expiryDatetime", datetime );
             put( "optionType", ((Helpers.isTrue((Helpers.isEqual(finalOptionType, "C"))))) ? "call" : "put" );
-            put( "strike", OkxCore.this.parseNumber(strike) );
+            put( "strike", Okx.this.parseNumber(strike) );
             put( "precision", new java.util.HashMap<String, Object>() {{
                 put( "amount", null );
                 put( "price", null );
@@ -2892,24 +2892,24 @@ public class OkxCore extends OkxApi
             put( "contract", contract );
             put( "linear", ((Helpers.isTrue(contract))) ? quoteEqualSettle : null );
             put( "inverse", ((Helpers.isTrue(contract))) ? baseEqualSettle : null );
-            put( "contractSize", ((Helpers.isTrue(contract))) ? OkxCore.this.safeNumber(market, "ctVal") : null );
+            put( "contractSize", ((Helpers.isTrue(contract))) ? Okx.this.safeNumber(market, "ctVal") : null );
             put( "expiry", finalExpiry );
-            put( "expiryDatetime", OkxCore.this.iso8601(finalExpiry) );
-            put( "strike", OkxCore.this.parseNumber(finalStrikePrice) );
+            put( "expiryDatetime", Okx.this.iso8601(finalExpiry) );
+            put( "strike", Okx.this.parseNumber(finalStrikePrice) );
             put( "optionType", finalOptionType );
-            put( "created", OkxCore.this.safeInteger2(market, "contTdSwTime", "listTime") );
+            put( "created", Okx.this.safeInteger2(market, "contTdSwTime", "listTime") );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", OkxCore.this.safeNumber(market, "lotSz") );
-                put( "price", OkxCore.this.safeNumber(market, "tickSz") );
+                put( "amount", Okx.this.safeNumber(market, "lotSz") );
+                put( "price", Okx.this.safeNumber(market, "tickSz") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
-                    put( "min", OkxCore.this.parseNumber("1") );
-                    put( "max", OkxCore.this.parseNumber(finalMaxLeverage) );
+                    put( "min", Okx.this.parseNumber("1") );
+                    put( "max", Okx.this.parseNumber(finalMaxLeverage) );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", OkxCore.this.safeNumber(market, "minSz") );
-                    put( "max", OkxCore.this.safeNumber(market, "maxLmtSz") );
+                    put( "min", Okx.this.safeNumber(market, "minSz") );
+                    put( "max", Okx.this.safeNumber(market, "maxLmtSz") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -2932,7 +2932,7 @@ public class OkxCore extends OkxApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "instType", OkxCore.this.convertToInstrumentType(finalType) );
+                put( "instType", Okx.this.convertToInstrumentType(finalType) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(type, "option")))
             {
@@ -3125,14 +3125,14 @@ public class OkxCore extends OkxApi
     put( "id", finalNetworkId );
     put( "network", finalNetworkCode );
     put( "active", null );
-    put( "deposit", OkxCore.this.safeBool(chain, "canDep") );
-    put( "withdraw", OkxCore.this.safeBool(chain, "canWd") );
-    put( "fee", OkxCore.this.safeNumber(chain, "fee") );
-    put( "precision", OkxCore.this.parseNumber(OkxCore.this.parsePrecision(OkxCore.this.safeString(chain, "wdTickSz"))) );
+    put( "deposit", Okx.this.safeBool(chain, "canDep") );
+    put( "withdraw", Okx.this.safeBool(chain, "canWd") );
+    put( "fee", Okx.this.safeNumber(chain, "fee") );
+    put( "precision", Okx.this.parseNumber(Okx.this.parsePrecision(Okx.this.safeString(chain, "wdTickSz"))) );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", OkxCore.this.safeNumber(chain, "minWd") );
-            put( "max", OkxCore.this.safeNumber(chain, "maxWd") );
+            put( "min", Okx.this.safeNumber(chain, "minWd") );
+            put( "max", Okx.this.safeNumber(chain, "maxWd") );
         }} );
     }} );
     put( "info", chain );
@@ -3144,7 +3144,7 @@ public class OkxCore extends OkxApi
             put( "info", chains );
             put( "code", code );
             put( "id", currencyId );
-            put( "name", OkxCore.this.safeString(firstChain, "name") );
+            put( "name", Okx.this.safeString(firstChain, "name") );
             put( "active", null );
             put( "deposit", null );
             put( "withdraw", null );
@@ -3311,13 +3311,13 @@ public class OkxCore extends OkxApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
             put( "high", high );
             put( "low", low );
-            put( "bid", OkxCore.this.safeString(ticker, "bidPx") );
-            put( "bidVolume", OkxCore.this.safeString(ticker, "bidSz") );
-            put( "ask", OkxCore.this.safeString(ticker, "askPx") );
-            put( "askVolume", OkxCore.this.safeString(ticker, "askSz") );
+            put( "bid", Okx.this.safeString(ticker, "bidPx") );
+            put( "bidVolume", Okx.this.safeString(ticker, "bidSz") );
+            put( "ask", Okx.this.safeString(ticker, "askPx") );
+            put( "askVolume", Okx.this.safeString(ticker, "askSz") );
             put( "vwap", null );
             put( "open", open );
             put( "close", last );
@@ -3328,8 +3328,8 @@ public class OkxCore extends OkxApi
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-            put( "markPrice", OkxCore.this.safeString(ticker, "markPx") );
-            put( "indexPrice", OkxCore.this.safeString(ticker, "idxPx") );
+            put( "markPrice", Okx.this.safeString(ticker, "markPx") );
+            put( "indexPrice", Okx.this.safeString(ticker, "idxPx") );
             put( "info", ticker );
         }}, market);
     }
@@ -3419,7 +3419,7 @@ public class OkxCore extends OkxApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "instType", OkxCore.this.convertToInstrumentType(finalMarketType) );
+                put( "instType", Okx.this.convertToInstrumentType(finalMarketType) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(marketType, "option")))
             {
@@ -3538,7 +3538,7 @@ public class OkxCore extends OkxApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "instType", OkxCore.this.convertToInstrumentType(finalMarketType) );
+                put( "instType", Okx.this.convertToInstrumentType(finalMarketType) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(marketType, "option")))
             {
@@ -3645,7 +3645,7 @@ public class OkxCore extends OkxApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
             put( "order", orderId );
@@ -4012,10 +4012,10 @@ public class OkxCore extends OkxApi
                 Long timestamp = this.safeInteger(rate, "fundingTime");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", rate );
-                    put( "symbol", OkxCore.this.safeSymbol(OkxCore.this.safeString(rate, "instId")) );
-                    put( "fundingRate", OkxCore.this.safeNumber(rate, "realizedRate") );
+                    put( "symbol", Okx.this.safeSymbol(Okx.this.safeString(rate, "instId")) );
+                    put( "fundingRate", Okx.this.safeNumber(rate, "realizedRate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", OkxCore.this.iso8601(timestamp) );
+                    put( "datetime", Okx.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -4114,9 +4114,9 @@ public class OkxCore extends OkxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", OkxCore.this.safeSymbol(null, market) );
-            put( "maker", OkxCore.this.parseNumber(Precise.stringNeg(OkxCore.this.safeString2(fee, "maker", "makerU"))) );
-            put( "taker", OkxCore.this.parseNumber(Precise.stringNeg(OkxCore.this.safeString2(fee, "taker", "takerU"))) );
+            put( "symbol", Okx.this.safeSymbol(null, market) );
+            put( "maker", Okx.this.parseNumber(Precise.stringNeg(Okx.this.safeString2(fee, "maker", "makerU"))) );
+            put( "taker", Okx.this.parseNumber(Precise.stringNeg(Okx.this.safeString2(fee, "taker", "takerU"))) );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -4143,7 +4143,7 @@ public class OkxCore extends OkxApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "instType", OkxCore.this.convertToInstrumentType(Helpers.GetValue(market, "type")) );
+                put( "instType", Okx.this.convertToInstrumentType(Helpers.GetValue(market, "type")) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
@@ -4349,7 +4349,7 @@ public class OkxCore extends OkxApi
                 put( "createMarketBuyOrderRequiresPrice", false );
                 put( "tgtCcy", "quote_ccy" );
             }};
-            return (this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -4383,7 +4383,7 @@ public class OkxCore extends OkxApi
                 put( "createMarketBuyOrderRequiresPrice", false );
                 put( "tgtCcy", "quote_ccy" );
             }};
-            return (this.createOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -5140,7 +5140,7 @@ public class OkxCore extends OkxApi
             Boolean isTrigger = Helpers.isTrue((!Helpers.isEqual(trigger, null))) && Helpers.isTrue((!Helpers.isEqual(trigger, false)));
             if (Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue((Helpers.isEqual(trailing, true)))))
             {
-                Object orderInner = (this.cancelOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), symbol, parameters)).join();
+                Object orderInner = (this.cancelOrders((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
                 return this.safeDict(orderInner, 0);
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -5690,8 +5690,8 @@ public class OkxCore extends OkxApi
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(scode, null))) && Helpers.isTrue((!Helpers.isEqual(scode, "0")))))
         {
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
-                put( "id", OkxCore.this.safeString(order, "ordId") );
-                put( "clientOrderId", OkxCore.this.safeString(order, "clOrdId") );
+                put( "id", Okx.this.safeString(order, "ordId") );
+                put( "clientOrderId", Okx.this.safeString(order, "clOrdId") );
                 put( "status", "rejected" );
                 put( "info", order );
             }});
@@ -5753,7 +5753,7 @@ public class OkxCore extends OkxApi
             String feeCurrencyId = this.safeString(order, "feeCcy");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", OkxCore.this.parseNumber(feeCostSigned) );
+                put( "cost", Okx.this.parseNumber(feeCostSigned) );
                 put( "currency", feeCurrencyCode );
             }};
         }
@@ -5784,7 +5784,7 @@ public class OkxCore extends OkxApi
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", lastTradeTimestamp );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
             put( "symbol", symbol );
@@ -5795,7 +5795,7 @@ public class OkxCore extends OkxApi
             put( "price", price );
             put( "stopLossPrice", stopLossPrice );
             put( "takeProfitPrice", takeProfitPrice );
-            put( "triggerPrice", OkxCore.this.safeNumberN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPx", "moveTriggerPx"))) );
+            put( "triggerPrice", Okx.this.safeNumberN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPx", "moveTriggerPx"))) );
             put( "average", average );
             put( "cost", finalCost );
             put( "amount", finalAmount );
@@ -6678,7 +6678,7 @@ public class OkxCore extends OkxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ordId", id );
             }};
-            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -6892,7 +6892,7 @@ public class OkxCore extends OkxApi
         {
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", OkxCore.this.parseNumber(Precise.stringNeg(finalFeeCostString)) );
+                put( "cost", Okx.this.parseNumber(Precise.stringNeg(finalFeeCostString)) );
                 put( "currency", code );
             }};
         }
@@ -6901,18 +6901,18 @@ public class OkxCore extends OkxApi
         final Object finalFee = fee;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", OkxCore.this.safeString(item, "billId") );
+            put( "id", Okx.this.safeString(item, "billId") );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
             put( "account", null );
-            put( "referenceId", OkxCore.this.safeString(item, "ordId") );
+            put( "referenceId", Okx.this.safeString(item, "ordId") );
             put( "referenceAccount", null );
-            put( "type", OkxCore.this.parseLedgerEntryType(OkxCore.this.safeString(item, "type")) );
+            put( "type", Okx.this.parseLedgerEntryType(Okx.this.safeString(item, "type")) );
             put( "currency", code );
             put( "symbol", symbol );
-            put( "amount", OkxCore.this.safeNumber(item, "balChg") );
+            put( "amount", Okx.this.safeNumber(item, "balChg") );
             put( "before", null );
-            put( "after", OkxCore.this.safeNumber(item, "bal") );
+            put( "after", Okx.this.safeNumber(item, "bal") );
             put( "status", "ok" );
             put( "fee", finalFee );
         }}, currency);
@@ -7159,7 +7159,7 @@ public class OkxCore extends OkxApi
                 put( "ccy", Helpers.GetValue(currency, "id") );
                 put( "toAddr", finalAddress );
                 put( "dest", "4" );
-                put( "amt", OkxCore.this.numberToString(amount) );
+                put( "amt", Okx.this.numberToString(amount) );
             }};
             String network = this.safeString(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
@@ -7648,7 +7648,7 @@ public class OkxCore extends OkxApi
             put( "updated", null );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
             put( "internal", null );
             put( "comment", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
@@ -7748,7 +7748,7 @@ public class OkxCore extends OkxApi
         final Object finalShortLeverage = shortLeverage;
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", OkxCore.this.safeSymbol(finalMarketId, market) );
+            put( "symbol", Okx.this.safeSymbol(finalMarketId, market) );
             put( "marginMode", finalMarginMode );
             put( "longLeverage", finalLongLeverage );
             put( "shortLeverage", finalShortLeverage );
@@ -7965,7 +7965,7 @@ public class OkxCore extends OkxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            return (this.fetchPositions((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
         });
 
     }
@@ -8138,30 +8138,30 @@ public class OkxCore extends OkxApi
         final Object finalInitialMarginPercentage = initialMarginPercentage;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", OkxCore.this.safeString(position, "posId") );
+            put( "id", Okx.this.safeString(position, "posId") );
             put( "symbol", symbol );
             put( "notional", notional );
             put( "marginMode", finalMarginMode );
             put( "liquidationPrice", liquidationPrice );
-            put( "entryPrice", OkxCore.this.parseNumber(entryPriceString) );
-            put( "unrealizedPnl", OkxCore.this.parseNumber(unrealizedPnlString) );
-            put( "realizedPnl", OkxCore.this.safeNumber(position, "realizedPnl") );
+            put( "entryPrice", Okx.this.parseNumber(entryPriceString) );
+            put( "unrealizedPnl", Okx.this.parseNumber(unrealizedPnlString) );
+            put( "realizedPnl", Okx.this.safeNumber(position, "realizedPnl") );
             put( "percentage", percentage );
             put( "contracts", contracts );
             put( "contractSize", contractSize );
-            put( "markPrice", OkxCore.this.parseNumber(markPriceString) );
-            put( "lastPrice", OkxCore.this.safeNumber(position, "closeAvgPx") );
+            put( "markPrice", Okx.this.parseNumber(markPriceString) );
+            put( "lastPrice", Okx.this.safeNumber(position, "closeAvgPx") );
             put( "side", finalSide );
             put( "hedged", hedged );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", OkxCore.this.safeInteger(position, "uTime") );
+            put( "datetime", Okx.this.iso8601(timestamp) );
+            put( "lastUpdateTimestamp", Okx.this.safeInteger(position, "uTime") );
             put( "maintenanceMargin", maintenanceMargin );
             put( "maintenanceMarginPercentage", maintenanceMarginPercentage );
-            put( "collateral", OkxCore.this.parseNumber(finalCollateralString) );
-            put( "initialMargin", OkxCore.this.parseNumber(finalInitialMarginString) );
-            put( "initialMarginPercentage", OkxCore.this.parseNumber(finalInitialMarginPercentage) );
-            put( "leverage", OkxCore.this.parseNumber(leverageString) );
+            put( "collateral", Okx.this.parseNumber(finalCollateralString) );
+            put( "initialMargin", Okx.this.parseNumber(finalInitialMarginString) );
+            put( "initialMarginPercentage", Okx.this.parseNumber(finalInitialMarginPercentage) );
+            put( "leverage", Okx.this.parseNumber(leverageString) );
             put( "marginRatio", marginRatio );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
@@ -8198,7 +8198,7 @@ public class OkxCore extends OkxApi
             final Object finalToId = toId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
-                put( "amt", OkxCore.this.currencyToPrecision(code, amount) );
+                put( "amt", Okx.this.currencyToPrecision(code, amount) );
                 put( "type", "0" );
                 put( "from", finalFromId );
                 put( "to", finalToId );
@@ -8314,12 +8314,12 @@ public class OkxCore extends OkxApi
             put( "info", transfer );
             put( "id", id );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
             put( "currency", code );
             put( "amount", finalAmount );
-            put( "fromAccount", ((Helpers.isTrue((Helpers.isEqual(finalFromAccountId, null))))) ? null : OkxCore.this.safeString(accountsById, finalFromAccountId) );
-            put( "toAccount", ((Helpers.isTrue((Helpers.isEqual(finalToAccountId, null))))) ? null : OkxCore.this.safeString(accountsById, finalToAccountId) );
-            put( "status", OkxCore.this.parseTransferStatus(OkxCore.this.safeString(transfer, "state")) );
+            put( "fromAccount", ((Helpers.isTrue((Helpers.isEqual(finalFromAccountId, null))))) ? null : Okx.this.safeString(accountsById, finalFromAccountId) );
+            put( "toAccount", ((Helpers.isTrue((Helpers.isEqual(finalToAccountId, null))))) ? null : Okx.this.safeString(accountsById, finalToAccountId) );
+            put( "status", Okx.this.parseTransferStatus(Okx.this.safeString(transfer, "state")) );
         }};
     }
 
@@ -8518,8 +8518,8 @@ public class OkxCore extends OkxApi
             String timestamp = this.iso8601(this.nonce());
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{
-                put( "OK-ACCESS-KEY", OkxCore.this.apiKey );
-                put( "OK-ACCESS-PASSPHRASE", OkxCore.this.password );
+                put( "OK-ACCESS-KEY", Okx.this.apiKey );
+                put( "OK-ACCESS-PASSPHRASE", Okx.this.password );
                 put( "OK-ACCESS-TIMESTAMP", finalTimestamp );
             }};
             Object auth = Helpers.add(Helpers.add(timestamp, method), request);
@@ -8601,20 +8601,20 @@ public class OkxCore extends OkxApi
             put( "symbol", symbol );
             put( "markPrice", null );
             put( "indexPrice", null );
-            put( "interestRate", OkxCore.this.parseNumber("0") );
+            put( "interestRate", Okx.this.parseNumber("0") );
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", OkxCore.this.safeNumber(contract, "fundingRate") );
+            put( "fundingRate", Okx.this.safeNumber(contract, "fundingRate") );
             put( "fundingTimestamp", fundingTime );
-            put( "fundingDatetime", OkxCore.this.iso8601(fundingTime) );
+            put( "fundingDatetime", Okx.this.iso8601(fundingTime) );
             put( "nextFundingRate", nextFundingRate );
             put( "nextFundingTimestamp", nextFundingRateTimestamp );
-            put( "nextFundingDatetime", OkxCore.this.iso8601(nextFundingRateTimestamp) );
+            put( "nextFundingDatetime", Okx.this.iso8601(nextFundingRateTimestamp) );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
-            put( "interval", OkxCore.this.parseFundingInterval(millisecondsInterval) );
+            put( "interval", Okx.this.parseFundingInterval(millisecondsInterval) );
         }};
     }
 
@@ -8646,7 +8646,7 @@ public class OkxCore extends OkxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchFundingRate(symbol, parameters)).join();
+            return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
         });
 
     }
@@ -8874,9 +8874,9 @@ public class OkxCore extends OkxApi
                     put( "symbol", Helpers.GetValue(marketInner, "symbol") );
                     put( "code", code );
                     put( "timestamp", timestamp );
-                    put( "datetime", OkxCore.this.iso8601(timestamp) );
-                    put( "id", OkxCore.this.safeString(entry, "billId") );
-                    put( "amount", OkxCore.this.parseNumber(finalAmount) );
+                    put( "datetime", Okx.this.iso8601(timestamp) );
+                    put( "id", Okx.this.safeString(entry, "billId") );
+                    put( "amount", Okx.this.parseNumber(finalAmount) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(result, "timestamp");
@@ -9233,11 +9233,11 @@ public class OkxCore extends OkxApi
         String ccy = this.safeString(info, "ccy");
         Long timestamp = this.safeInteger(info, "ts");
         return new java.util.HashMap<String, Object>() {{
-            put( "currency", OkxCore.this.safeCurrencyCode(ccy) );
-            put( "rate", OkxCore.this.safeNumber2(info, "interestRate", "rate") );
+            put( "currency", Okx.this.safeCurrencyCode(ccy) );
+            put( "rate", Okx.this.safeNumber2(info, "interestRate", "rate") );
             put( "period", 3600000 );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
             put( "info", info );
         }};
     }
@@ -9509,12 +9509,12 @@ public class OkxCore extends OkxApi
             put( "symbol", Helpers.GetValue(responseMarket, "symbol") );
             put( "type", finalType );
             put( "marginMode", "isolated" );
-            put( "amount", OkxCore.this.parseNumber(amount) );
+            put( "amount", Okx.this.parseNumber(amount) );
             put( "code", code );
             put( "total", null );
             put( "status", null );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
         }};
     }
 
@@ -9671,13 +9671,13 @@ public class OkxCore extends OkxApi
             Object tier = Helpers.GetValue(info, i);
             String marketId = this.safeString(tier, "instId");
             ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", OkxCore.this.safeInteger(tier, "tier") );
-                put( "symbol", OkxCore.this.safeSymbol(marketId, market) );
-                put( "currency", OkxCore.this.safeString(market, "quote") );
-                put( "minNotional", OkxCore.this.safeNumber(tier, "minSz") );
-                put( "maxNotional", OkxCore.this.safeNumber(tier, "maxSz") );
-                put( "maintenanceMarginRate", OkxCore.this.safeNumber(tier, "mmr") );
-                put( "maxLeverage", OkxCore.this.safeNumber(tier, "maxLever") );
+                put( "tier", Okx.this.safeInteger(tier, "tier") );
+                put( "symbol", Okx.this.safeSymbol(marketId, market) );
+                put( "currency", Okx.this.safeString(market, "quote") );
+                put( "minNotional", Okx.this.safeNumber(tier, "minSz") );
+                put( "maxNotional", Okx.this.safeNumber(tier, "maxSz") );
+                put( "maintenanceMarginRate", Okx.this.safeNumber(tier, "mmr") );
+                put( "maxLeverage", Okx.this.safeNumber(tier, "maxLever") );
                 put( "info", tier );
             }});
         }
@@ -9782,14 +9782,14 @@ public class OkxCore extends OkxApi
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", OkxCore.this.safeString(finalMarket, "symbol") );
-            put( "currency", OkxCore.this.safeCurrencyCode(OkxCore.this.safeString(info, "ccy")) );
-            put( "interest", OkxCore.this.safeNumber(info, "interest") );
-            put( "interestRate", OkxCore.this.safeNumber(info, "interestRate") );
-            put( "amountBorrowed", OkxCore.this.safeNumber(info, "liab") );
-            put( "marginMode", OkxCore.this.safeString(info, "mgnMode") );
+            put( "symbol", Okx.this.safeString(finalMarket, "symbol") );
+            put( "currency", Okx.this.safeCurrencyCode(Okx.this.safeString(info, "ccy")) );
+            put( "interest", Okx.this.safeNumber(info, "interest") );
+            put( "interestRate", Okx.this.safeNumber(info, "interestRate") );
+            put( "amountBorrowed", Okx.this.safeNumber(info, "liab") );
+            put( "marginMode", Okx.this.safeString(info, "mgnMode") );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
         }};
     }
 
@@ -9816,7 +9816,7 @@ public class OkxCore extends OkxApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
-                put( "amt", OkxCore.this.currencyToPrecision(code, amount) );
+                put( "amt", Okx.this.currencyToPrecision(code, amount) );
                 put( "side", "borrow" );
             }};
             java.util.Map<String, Object> response = (this.privatePostAccountBorrowRepay(this.extend(request, parameters))).join();
@@ -9873,7 +9873,7 @@ public class OkxCore extends OkxApi
             final Object finalId = id;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
-                put( "amt", OkxCore.this.currencyToPrecision(code, amount) );
+                put( "amt", Okx.this.currencyToPrecision(code, amount) );
                 put( "side", "repay" );
                 put( "ordId", finalId );
             }};
@@ -9917,8 +9917,8 @@ public class OkxCore extends OkxApi
         String currencyId = this.safeString(info, "ccy");
         return new java.util.HashMap<String, Object>() {{
             put( "id", null );
-            put( "currency", OkxCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", OkxCore.this.safeNumber(info, "amt") );
+            put( "currency", Okx.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Okx.this.safeNumber(info, "amt") );
             put( "symbol", null );
             put( "timestamp", null );
             put( "datetime", null );
@@ -10208,13 +10208,13 @@ public class OkxCore extends OkxApi
         final Object finalOpenInterestAmount = openInterestAmount;
         final Object finalOpenInterestValue = openInterestValue;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", OkxCore.this.safeSymbol(id) );
+            put( "symbol", Okx.this.safeSymbol(id) );
             put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", finalQuoteVolume );
             put( "openInterestAmount", finalOpenInterestAmount );
             put( "openInterestValue", finalOpenInterestValue );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -10427,7 +10427,7 @@ public class OkxCore extends OkxApi
             }
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "instType", OkxCore.this.convertToInstrumentType(finalType) );
+                put( "instType", Okx.this.convertToInstrumentType(finalType) );
                 put( "uly", Helpers.add(Helpers.add(Helpers.GetValue(market, "baseId"), "-"), Helpers.GetValue(market, "quoteId")) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -10477,8 +10477,8 @@ public class OkxCore extends OkxApi
         String marketId = this.safeString(settlement, "insId");
         return new java.util.HashMap<String, Object>() {{
             put( "info", settlement );
-            put( "symbol", OkxCore.this.safeSymbol(marketId, market) );
-            put( "price", OkxCore.this.safeNumber(settlement, "px") );
+            put( "symbol", Okx.this.safeSymbol(marketId, market) );
+            put( "price", Okx.this.safeNumber(settlement, "px") );
             put( "timestamp", null );
             put( "datetime", null );
         }};
@@ -10509,7 +10509,7 @@ public class OkxCore extends OkxApi
                 Object settlement = this.parseSettlement(Helpers.GetValue(details, j), market);
                 ((java.util.List<Object>)result).add(this.extend(settlement, new java.util.HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
-                    put( "datetime", OkxCore.this.iso8601(timestamp) );
+                    put( "datetime", Okx.this.iso8601(timestamp) );
                 }}));
             }
         }
@@ -10549,7 +10549,7 @@ public class OkxCore extends OkxApi
             }
             final Object finalMarketType = marketType;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "instType", OkxCore.this.convertToInstrumentType(finalMarketType) );
+                put( "instType", Okx.this.convertToInstrumentType(finalMarketType) );
             }};
             java.util.Map<String, Object> response = (this.publicGetPublicUnderlying(this.extend(request, parameters))).join();
             //
@@ -10595,7 +10595,7 @@ public class OkxCore extends OkxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "uly", Helpers.GetValue(Helpers.GetValue(market, "info"), "uly") );
                 put( "instFamily", Helpers.GetValue(Helpers.GetValue(market, "info"), "instFamily") );
-                put( "expTime", OkxCore.this.safeString(optionParts, 2) );
+                put( "expTime", Okx.this.safeString(optionParts, 2) );
             }};
             java.util.Map<String, Object> response = (this.publicGetPublicOptSummary(this.extend(request, parameters))).join();
             //
@@ -10770,17 +10770,17 @@ public class OkxCore extends OkxApi
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
-            put( "delta", OkxCore.this.safeNumber(greeks, "delta") );
-            put( "gamma", OkxCore.this.safeNumber(greeks, "gamma") );
-            put( "theta", OkxCore.this.safeNumber(greeks, "theta") );
-            put( "vega", OkxCore.this.safeNumber(greeks, "vega") );
+            put( "datetime", Okx.this.iso8601(timestamp) );
+            put( "delta", Okx.this.safeNumber(greeks, "delta") );
+            put( "gamma", Okx.this.safeNumber(greeks, "gamma") );
+            put( "theta", Okx.this.safeNumber(greeks, "theta") );
+            put( "vega", Okx.this.safeNumber(greeks, "vega") );
             put( "rho", null );
             put( "bidSize", null );
             put( "askSize", null );
-            put( "bidImpliedVolatility", OkxCore.this.safeNumber(greeks, "bidVol") );
-            put( "askImpliedVolatility", OkxCore.this.safeNumber(greeks, "askVol") );
-            put( "markImpliedVolatility", OkxCore.this.safeNumber(greeks, "markVol") );
+            put( "bidImpliedVolatility", Okx.this.safeNumber(greeks, "bidVol") );
+            put( "askImpliedVolatility", Okx.this.safeNumber(greeks, "askVol") );
+            put( "markImpliedVolatility", Okx.this.safeNumber(greeks, "markVol") );
             put( "bidPrice", null );
             put( "askPrice", null );
             put( "markPrice", null );
@@ -11025,18 +11025,18 @@ public class OkxCore extends OkxApi
             put( "currency", null );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
             put( "impliedVolatility", null );
             put( "openInterest", null );
-            put( "bidPrice", OkxCore.this.safeNumber(chain, "bidPx") );
-            put( "askPrice", OkxCore.this.safeNumber(chain, "askPx") );
+            put( "bidPrice", Okx.this.safeNumber(chain, "bidPx") );
+            put( "askPrice", Okx.this.safeNumber(chain, "askPx") );
             put( "midPrice", null );
             put( "markPrice", null );
-            put( "lastPrice", OkxCore.this.safeNumber(chain, "last") );
+            put( "lastPrice", Okx.this.safeNumber(chain, "last") );
             put( "underlyingPrice", null );
             put( "change", null );
             put( "percentage", null );
-            put( "baseVolume", OkxCore.this.safeNumber(chain, "volCcy24h") );
+            put( "baseVolume", Okx.this.safeNumber(chain, "volCcy24h") );
             put( "quoteVolume", null );
         }};
     }
@@ -11067,7 +11067,7 @@ public class OkxCore extends OkxApi
                 put( "baseCcy", ((String)fromCode).toUpperCase() );
                 put( "quoteCcy", ((String)toCode).toUpperCase() );
                 put( "rfqSzCcy", ((String)fromCode).toUpperCase() );
-                put( "rfqSz", OkxCore.this.numberToString(amount) );
+                put( "rfqSz", Okx.this.numberToString(amount) );
                 put( "side", "sell" );
             }};
             java.util.Map<String, Object> response = (this.privatePostAssetConvertEstimateQuote(this.extend(request, parameters))).join();
@@ -11133,7 +11133,7 @@ public class OkxCore extends OkxApi
                 put( "baseCcy", fromCode );
                 put( "quoteCcy", toCode );
                 put( "szCcy", fromCode );
-                put( "sz", OkxCore.this.numberToString(amount) );
+                put( "sz", Okx.this.numberToString(amount) );
                 put( "side", "sell" );
             }};
             java.util.Map<String, Object> response = (this.privatePostAssetConvertTrade(this.extend(request, parameters))).join();
@@ -11364,13 +11364,13 @@ public class OkxCore extends OkxApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
-            put( "id", OkxCore.this.safeStringN(conversion, new java.util.ArrayList<Object>(java.util.Arrays.asList("clQReqId", "tradeId", "quoteId"))) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
+            put( "id", Okx.this.safeStringN(conversion, new java.util.ArrayList<Object>(java.util.Arrays.asList("clQReqId", "tradeId", "quoteId"))) );
             put( "fromCurrency", fromCode );
-            put( "fromAmount", OkxCore.this.safeNumber2(conversion, "baseSz", "fillBaseSz") );
+            put( "fromAmount", Okx.this.safeNumber2(conversion, "baseSz", "fillBaseSz") );
             put( "toCurrency", toCode );
-            put( "toAmount", OkxCore.this.safeNumber2(conversion, "quoteSz", "fillQuoteSz") );
-            put( "price", OkxCore.this.safeNumber2(conversion, "cnvtPx", "fillPx") );
+            put( "toAmount", Okx.this.safeNumber2(conversion, "quoteSz", "fillQuoteSz") );
+            put( "price", Okx.this.safeNumber2(conversion, "cnvtPx", "fillPx") );
             put( "fee", null );
         }};
     }
@@ -11431,8 +11431,8 @@ public class OkxCore extends OkxApi
         put( "precision", null );
         put( "limits", new java.util.HashMap<String, Object>() {{
             put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", OkxCore.this.safeNumber(entry, "min") );
-                put( "max", OkxCore.this.safeNumber(entry, "max") );
+                put( "min", Okx.this.safeNumber(entry, "min") );
+                put( "max", Okx.this.safeNumber(entry, "max") );
             }} );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
                 put( "min", null );
@@ -11796,8 +11796,8 @@ public class OkxCore extends OkxApi
             {
                 Object entry = Helpers.GetValue(data, i);
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
-                    put( "timestamp", OkxCore.this.safeString(entry, 0) );
-                    put( "longShortRatio", OkxCore.this.safeString(entry, 1) );
+                    put( "timestamp", Okx.this.safeString(entry, 0) );
+                    put( "longShortRatio", Okx.this.safeString(entry, 1) );
                 }});
             }
             return this.parseLongShortRatioHistory(result, market);
@@ -11819,9 +11819,9 @@ public class OkxCore extends OkxApi
             put( "info", info );
             put( "symbol", finalSymbol );
             put( "timestamp", timestamp );
-            put( "datetime", OkxCore.this.iso8601(timestamp) );
+            put( "datetime", Okx.this.iso8601(timestamp) );
             put( "timeframe", null );
-            put( "longShortRatio", OkxCore.this.safeNumber(info, "longShortRatio") );
+            put( "longShortRatio", Okx.this.safeNumber(info, "longShortRatio") );
         }};
     }
 }

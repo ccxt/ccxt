@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class HyperliquidCore extends HyperliquidApi
+public class Hyperliquid extends HyperliquidApi
 {
-   public HyperliquidCore () {
+   public Hyperliquid () {
        super();
    }
 
-   public HyperliquidCore (Object options) {
+   public Hyperliquid (Object options) {
        super(options);
    }
 
@@ -183,12 +183,12 @@ public class HyperliquidCore extends HyperliquidApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "swap", new java.util.HashMap<String, Object>() {{
-                    put( "taker", HyperliquidCore.this.parseNumber("0.00045") );
-                    put( "maker", HyperliquidCore.this.parseNumber("0.00015") );
+                    put( "taker", Hyperliquid.this.parseNumber("0.00045") );
+                    put( "maker", Hyperliquid.this.parseNumber("0.00015") );
                 }} );
                 put( "spot", new java.util.HashMap<String, Object>() {{
-                    put( "taker", HyperliquidCore.this.parseNumber("0.0007") );
-                    put( "maker", HyperliquidCore.this.parseNumber("0.0004") );
+                    put( "taker", Hyperliquid.this.parseNumber("0.0007") );
+                    put( "maker", Hyperliquid.this.parseNumber("0.0004") );
                 }} );
             }} );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
@@ -425,7 +425,7 @@ public class HyperliquidCore extends HyperliquidApi
             final Object finalStatus = status;
             return new java.util.HashMap<String, Object>() {{
                 put( "status", ((Helpers.isTrue((Helpers.isEqual(finalStatus, null))))) ? "ok" : "maintenance" );
-                put( "updated", HyperliquidCore.this.safeInteger(response, "time") );
+                put( "updated", Hyperliquid.this.safeInteger(response, "time") );
                 put( "eta", null );
                 put( "url", null );
                 put( "info", response );
@@ -517,7 +517,7 @@ public class HyperliquidCore extends HyperliquidApi
             put( "id", id );
             put( "name", finalName );
             put( "code", finalCode );
-            put( "precision", HyperliquidCore.this.parsePrecision(HyperliquidCore.this.safeString(rawCurrency, "weiDecimals")) );
+            put( "precision", Hyperliquid.this.parsePrecision(Hyperliquid.this.safeString(rawCurrency, "weiDecimals")) );
             put( "info", rawCurrency );
             put( "active", null );
             put( "deposit", null );
@@ -690,7 +690,7 @@ public class HyperliquidCore extends HyperliquidApi
                 final Object finalI = i;
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "type", "metaAndAssetCtxs" );
-                    put( "dex", HyperliquidCore.this.safeString(finalFetchDexesList, finalI) );
+                    put( "dex", Hyperliquid.this.safeString(finalFetchDexesList, finalI) );
                 }};
                 ((java.util.List<Object>)rawPromises).add(this.publicPostInfo(this.extend(request, parameters)));
             }
@@ -1035,8 +1035,8 @@ public class HyperliquidCore extends HyperliquidApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", HyperliquidCore.this.parseNumber(HyperliquidCore.this.parsePrecision(amountPrecisionStr)) );
-                        put( "price", HyperliquidCore.this.parseNumber(HyperliquidCore.this.parsePrecision(pricePrecisionStr)) );
+                        put( "amount", Hyperliquid.this.parseNumber(Hyperliquid.this.parsePrecision(amountPrecisionStr)) );
+                        put( "price", Hyperliquid.this.parseNumber(Hyperliquid.this.parsePrecision(pricePrecisionStr)) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -1052,12 +1052,12 @@ public class HyperliquidCore extends HyperliquidApi
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", HyperliquidCore.this.parseNumber("10") );
+                            put( "min", Hyperliquid.this.parseNumber("10") );
                             put( "max", null );
                         }} );
                     }} );
                     put( "created", null );
-                    put( "info", HyperliquidCore.this.extend(extraData, market) );
+                    put( "info", Hyperliquid.this.extend(extraData, market) );
                 }};
                 ((java.util.List<Object>)markets).add(this.safeMarketStructure(entry));
             }
@@ -1155,19 +1155,19 @@ public class HyperliquidCore extends HyperliquidApi
             put( "inverse", false );
             put( "taker", taker );
             put( "maker", maker );
-            put( "contractSize", HyperliquidCore.this.parseNumber("1") );
+            put( "contractSize", Hyperliquid.this.parseNumber("1") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", HyperliquidCore.this.parseNumber(HyperliquidCore.this.parsePrecision(amountPrecisionStr)) );
-                put( "price", HyperliquidCore.this.parseNumber(HyperliquidCore.this.parsePrecision(pricePrecisionStr)) );
+                put( "amount", Hyperliquid.this.parseNumber(Hyperliquid.this.parsePrecision(amountPrecisionStr)) );
+                put( "price", Hyperliquid.this.parseNumber(Hyperliquid.this.parsePrecision(pricePrecisionStr)) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", HyperliquidCore.this.safeInteger(market, "maxLeverage") );
+                    put( "max", Hyperliquid.this.safeInteger(market, "maxLeverage") );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -1178,7 +1178,7 @@ public class HyperliquidCore extends HyperliquidApi
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", HyperliquidCore.this.parseNumber("10") );
+                    put( "min", Hyperliquid.this.parseNumber("10") );
                     put( "max", null );
                 }} );
             }} );
@@ -1305,7 +1305,7 @@ public class HyperliquidCore extends HyperliquidApi
             }
             Object data = this.safeDict(response, "marginSummary", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> usdcBalance = new java.util.HashMap<String, Object>() {{
-                put( "total", HyperliquidCore.this.safeNumber(data, "accountValue") );
+                put( "total", Hyperliquid.this.safeNumber(data, "accountValue") );
             }};
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) && Helpers.isTrue((Helpers.isEqual(marginMode, "isolated")))))
             {
@@ -1350,7 +1350,7 @@ public class HyperliquidCore extends HyperliquidApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "l2Book" );
-                put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? HyperliquidCore.this.safeString(market, "baseName") : Helpers.GetValue(market, "id") );
+                put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? Hyperliquid.this.safeString(market, "baseName") : Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             //
@@ -1377,8 +1377,8 @@ public class HyperliquidCore extends HyperliquidApi
             //
             Object data = this.safeList(response, "levels", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
-                put( "bids", HyperliquidCore.this.safeList(data, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
-                put( "asks", HyperliquidCore.this.safeList(data, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
+                put( "bids", Hyperliquid.this.safeList(data, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
+                put( "asks", Hyperliquid.this.safeList(data, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
             }};
             Long timestamp = this.safeInteger(response, "time");
             return this.parseOrderBook(result, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "px", "sz");
@@ -1443,7 +1443,7 @@ public class HyperliquidCore extends HyperliquidApi
                 response = (this.fetchSwapMarkets(parameters)).join();
             } else
             {
-                response = (this.fetchMarkets(parameters)).join();
+                response = (this.fetchMarkets((Object)(parameters))).join();
             }
             // same response as under "fetchMarkets"
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
@@ -1477,7 +1477,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object rates = (this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+            Object rates = (this.fetchFundingRates((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
             Object rate = this.safeDict(rates, Helpers.GetValue(market, "symbol"));
             if (Helpers.isTrue(Helpers.isEqual(rate, null)))
             {
@@ -1594,7 +1594,7 @@ public class HyperliquidCore extends HyperliquidApi
             put( "datetime", null );
             put( "fundingRate", funding );
             put( "fundingTimestamp", fundingTimestamp );
-            put( "fundingDatetime", HyperliquidCore.this.iso8601(fundingTimestamp) );
+            put( "fundingDatetime", Hyperliquid.this.iso8601(fundingTimestamp) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
@@ -1632,12 +1632,12 @@ public class HyperliquidCore extends HyperliquidApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "previousClose", HyperliquidCore.this.safeNumber(ticker, "prevDayPx") );
-            put( "close", HyperliquidCore.this.safeNumber(ticker, "midPx") );
-            put( "last", HyperliquidCore.this.safeNumber(ticker, "price") );
-            put( "bid", HyperliquidCore.this.safeNumber(bidAsk, 0) );
-            put( "ask", HyperliquidCore.this.safeNumber(bidAsk, 1) );
-            put( "quoteVolume", HyperliquidCore.this.safeNumber(ticker, "dayNtlVlm") );
+            put( "previousClose", Hyperliquid.this.safeNumber(ticker, "prevDayPx") );
+            put( "close", Hyperliquid.this.safeNumber(ticker, "midPx") );
+            put( "last", Hyperliquid.this.safeNumber(ticker, "price") );
+            put( "bid", Hyperliquid.this.safeNumber(bidAsk, 0) );
+            put( "ask", Hyperliquid.this.safeNumber(bidAsk, 1) );
+            put( "quoteVolume", Hyperliquid.this.safeNumber(ticker, "dayNtlVlm") );
             put( "info", ticker );
         }}, market);
     }
@@ -1694,8 +1694,8 @@ public class HyperliquidCore extends HyperliquidApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "candleSnapshot" );
                 put( "req", new java.util.HashMap<String, Object>() {{
-                    put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? HyperliquidCore.this.safeString(market, "baseName") : Helpers.GetValue(market, "id") );
-                    put( "interval", HyperliquidCore.this.safeString(HyperliquidCore.this.timeframes, timeframe, timeframe) );
+                    put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? Hyperliquid.this.safeString(market, "baseName") : Helpers.GetValue(market, "id") );
+                    put( "interval", Hyperliquid.this.safeString(Hyperliquid.this.timeframes, timeframe, timeframe) );
                     put( "startTime", finalSince );
                     put( "endTime", until );
                 }} );
@@ -1862,7 +1862,7 @@ public class HyperliquidCore extends HyperliquidApi
         return new java.util.HashMap<String, Object>() {{
             put( "r", Helpers.add("0x", Helpers.GetValue(signature, "r")) );
             put( "s", Helpers.add("0x", Helpers.GetValue(signature, "s")) );
-            put( "v", HyperliquidCore.this.sum(27, Helpers.GetValue(signature, "v")) );
+            put( "v", Hyperliquid.this.sum(27, Helpers.GetValue(signature, "v")) );
         }};
     }
 
@@ -2102,7 +2102,7 @@ public class HyperliquidCore extends HyperliquidApi
             Helpers.addElementToObject(this.options, "refSet", true);
             java.util.Map<String, Object> action = new java.util.HashMap<String, Object>() {{
                 put( "type", "setReferrer" );
-                put( "code", HyperliquidCore.this.safeString(HyperliquidCore.this.options, "ref", "CCXT1") );
+                put( "code", Hyperliquid.this.safeString(Hyperliquid.this.options, "ref", "CCXT1") );
             }};
             Long nonce = this.milliseconds();
             Object signature = this.signL1Action(action, nonce);
@@ -2474,7 +2474,7 @@ public class HyperliquidCore extends HyperliquidApi
             var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
             var order = ((java.util.List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((java.util.List<Object>) orderglobalParamsVariable).get(1);
-            Object orders = (this.createOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(order)), globalParams)).join();
+            Object orders = (this.createOrders((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(order))), (Object)(globalParams))).join();
             return Helpers.GetValue(orders, 0);
         });
 
@@ -2521,10 +2521,10 @@ public class HyperliquidCore extends HyperliquidApi
             Object durationMins = (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(Helpers.divide(duration, 1000), 60))))); // convert from ms to minutes
             final Object finalParameters = parameters;
             java.util.Map<String, Object> orderObj = new java.util.HashMap<String, Object>() {{
-                put( "a", HyperliquidCore.this.parseToInt(Helpers.GetValue(market, "baseId")) );
+                put( "a", Hyperliquid.this.parseToInt(Helpers.GetValue(market, "baseId")) );
                 put( "b", isBuy );
-                put( "s", HyperliquidCore.this.amountToPrecision(symbol, amount) );
-                put( "r", HyperliquidCore.this.safeBool(finalParameters, "reduceOnly", false) );
+                put( "s", Hyperliquid.this.amountToPrecision(symbol, amount) );
+                put( "r", Hyperliquid.this.safeBool(finalParameters, "reduceOnly", false) );
                 put( "m", durationMins );
                 put( "t", randomize );
             }};
@@ -2713,7 +2713,7 @@ public class HyperliquidCore extends HyperliquidApi
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce", "client_id", "reduceOnly", "postOnly")));
         final Object finalPx = px;
         java.util.Map<String, Object> orderObj = new java.util.HashMap<String, Object>() {{
-            put( "a", HyperliquidCore.this.parseToInt(Helpers.GetValue(market, "baseId")) );
+            put( "a", Hyperliquid.this.parseToInt(Helpers.GetValue(market, "baseId")) );
             put( "b", isBuy );
             put( "p", finalPx );
             put( "s", sz );
@@ -2907,7 +2907,7 @@ public class HyperliquidCore extends HyperliquidApi
                 parameters = this.omit(parameters, "twap");
                 return (this.cancelTwapOrder(id, symbol, parameters)).join();
             }
-            Object orders = (this.cancelOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), symbol, parameters)).join();
+            Object orders = (this.cancelOrders((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
             return this.safeDict(orders, 0);
         });
 
@@ -3011,8 +3011,8 @@ public class HyperliquidCore extends HyperliquidApi
             vaultAddress = this.formatVaultAddress(vaultAddress);
             java.util.Map<String, Object> action = new java.util.HashMap<String, Object>() {{
                 put( "type", "twapCancel" );
-                put( "a", HyperliquidCore.this.parseToInt(Helpers.GetValue(market, "baseId")) );
-                put( "t", HyperliquidCore.this.parseToNumeric(id) );
+                put( "a", Hyperliquid.this.parseToInt(Helpers.GetValue(market, "baseId")) );
+                put( "t", Hyperliquid.this.parseToNumeric(id) );
             }};
             Long nonce = this.milliseconds();
             Object signature = this.signL1Action(action, nonce, vaultAddress);
@@ -3384,7 +3384,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             final Object finalPx = px;
             java.util.Map<String, Object> orderReq = new java.util.HashMap<String, Object>() {{
-                put( "a", HyperliquidCore.this.parseToInt(Helpers.GetValue(market, "baseId")) );
+                put( "a", Hyperliquid.this.parseToInt(Helpers.GetValue(market, "baseId")) );
                 put( "b", isBuy );
                 put( "p", finalPx );
                 put( "s", sz );
@@ -3396,7 +3396,7 @@ final Object finalClientOrderId = clientOrderId;
                 Helpers.addElementToObject(orderReq, "c", clientOrderId);
             }
             java.util.Map<String, Object> modifyReq = new java.util.HashMap<String, Object>() {{
-                put( "oid", HyperliquidCore.this.parseToInt(id) );
+                put( "oid", Hyperliquid.this.parseToInt(id) );
                 put( "order", orderReq );
             }};
             ((java.util.List<Object>)modifies).add(modifyReq);
@@ -3464,7 +3464,7 @@ final Object finalClientOrderId = clientOrderId;
             var orderglobalParamsVariable = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, parameters);
             var order = ((java.util.List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((java.util.List<Object>) orderglobalParamsVariable).get(1);
-            Object orders = (this.editOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(order)), globalParams)).join();
+            Object orders = (this.editOrders((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(order))), (Object)(globalParams))).join();
             return Helpers.GetValue(orders, 0);
         });
 
@@ -3618,7 +3618,7 @@ final Object finalClientOrderId = clientOrderId;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "fundingHistory" );
-                put( "coin", HyperliquidCore.this.safeString(market, "baseName") );
+                put( "coin", Hyperliquid.this.safeString(market, "baseName") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -3657,10 +3657,10 @@ final Object finalClientOrderId = clientOrderId;
                 Long timestamp = this.safeInteger(entry, "time");
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", HyperliquidCore.this.safeSymbol(null, market) );
-                    put( "fundingRate", HyperliquidCore.this.safeNumber(entry, "fundingRate") );
+                    put( "symbol", Hyperliquid.this.safeSymbol(null, market) );
+                    put( "fundingRate", Hyperliquid.this.safeNumber(entry, "fundingRate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", HyperliquidCore.this.iso8601(timestamp) );
+                    put( "datetime", Hyperliquid.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(result, "timestamp");
@@ -3793,7 +3793,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchOrders(symbol, null, null, parameters)).join(); // don't filter here because we don't want to catch open orders
+            Object orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("closed")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         });
@@ -3824,7 +3824,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchOrders(symbol, null, null, parameters)).join(); // don't filter here because we don't want to catch open orders
+            Object orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("canceled")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         });
@@ -3855,7 +3855,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchOrders(symbol, null, null, parameters)).join(); // don't filter here because we don't want to catch open orders
+            Object orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("canceled", "closed", "rejected")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         });
@@ -4218,28 +4218,28 @@ final Object finalClientOrderId = clientOrderId;
         final Object finalTakeProfitPrice = takeProfitPrice;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", finalOrder );
-            put( "id", HyperliquidCore.this.safeString(finalEntry, "oid") );
-            put( "clientOrderId", HyperliquidCore.this.safeString(finalEntry, "cloid") );
+            put( "id", Hyperliquid.this.safeString(finalEntry, "oid") );
+            put( "clientOrderId", Hyperliquid.this.safeString(finalEntry, "cloid") );
             put( "timestamp", timestamp );
-            put( "datetime", HyperliquidCore.this.iso8601(timestamp) );
+            put( "datetime", Hyperliquid.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", HyperliquidCore.this.safeInteger(finalOrder, "statusTimestamp") );
+            put( "lastUpdateTimestamp", Hyperliquid.this.safeInteger(finalOrder, "statusTimestamp") );
             put( "symbol", symbol );
-            put( "type", HyperliquidCore.this.parseOrderType(HyperliquidCore.this.safeStringLower(finalEntry, "orderType")) );
+            put( "type", Hyperliquid.this.parseOrderType(Hyperliquid.this.safeStringLower(finalEntry, "orderType")) );
             put( "timeInForce", finalTif );
             put( "postOnly", finalPostOnly );
-            put( "reduceOnly", HyperliquidCore.this.safeBool(finalEntry, "reduceOnly") );
+            put( "reduceOnly", Hyperliquid.this.safeBool(finalEntry, "reduceOnly") );
             put( "side", finalSide );
-            put( "price", HyperliquidCore.this.safeString(finalEntry, "limitPx") );
+            put( "price", Hyperliquid.this.safeString(finalEntry, "limitPx") );
             put( "triggerPrice", finalTriggerPx );
             put( "stopLossPrice", finalStopLossPrice );
             put( "takeProfitPrice", finalTakeProfitPrice );
             put( "amount", totalAmount );
             put( "cost", null );
-            put( "average", HyperliquidCore.this.safeString(finalEntry, "avgPx") );
-            put( "filled", HyperliquidCore.this.safeString(filled, "totalSz", Precise.stringSub(totalAmount, remaining)) );
+            put( "average", Hyperliquid.this.safeString(finalEntry, "avgPx") );
+            put( "filled", Hyperliquid.this.safeString(filled, "totalSz", Precise.stringSub(totalAmount, remaining)) );
             put( "remaining", remaining );
-            put( "status", HyperliquidCore.this.parseOrderStatus(status) );
+            put( "status", Hyperliquid.this.parseOrderStatus(status) );
             put( "fee", null );
             put( "trades", null );
         }}, market);
@@ -4417,10 +4417,10 @@ final Object finalClientOrderId = clientOrderId;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", HyperliquidCore.this.iso8601(timestamp) );
+            put( "datetime", Hyperliquid.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
-            put( "order", HyperliquidCore.this.safeString(trade, "oid") );
+            put( "order", Hyperliquid.this.safeString(trade, "oid") );
             put( "type", null );
             put( "side", finalSide );
             put( "takerOrMaker", finalTakerOrMaker );
@@ -4429,7 +4429,7 @@ final Object finalClientOrderId = clientOrderId;
             put( "cost", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFee );
-                put( "currency", HyperliquidCore.this.safeString(trade, "feeToken") );
+                put( "currency", Hyperliquid.this.safeString(trade, "feeToken") );
                 put( "rate", null );
             }} );
         }}, market);
@@ -4451,7 +4451,7 @@ final Object finalClientOrderId = clientOrderId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object positions = (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object positions = (this.fetchPositions((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(positions, 0, new java.util.HashMap<String, Object>() {{}});
         });
 
@@ -4654,21 +4654,21 @@ final Object finalClientOrderId = clientOrderId;
             put( "isolated", isIsolated );
             put( "hedged", null );
             put( "side", finalSide );
-            put( "contracts", HyperliquidCore.this.parseNumber(finalSize) );
+            put( "contracts", Hyperliquid.this.parseNumber(finalSize) );
             put( "contractSize", null );
-            put( "entryPrice", HyperliquidCore.this.safeNumber(entry, "entryPx") );
+            put( "entryPrice", Hyperliquid.this.safeNumber(entry, "entryPx") );
             put( "markPrice", null );
-            put( "notional", HyperliquidCore.this.safeNumber(entry, "positionValue") );
-            put( "leverage", HyperliquidCore.this.safeNumber(leverage, "value") );
-            put( "collateral", HyperliquidCore.this.parseNumber(marginUsed) );
-            put( "initialMargin", HyperliquidCore.this.parseNumber(finalInitialMargin) );
+            put( "notional", Hyperliquid.this.safeNumber(entry, "positionValue") );
+            put( "leverage", Hyperliquid.this.safeNumber(leverage, "value") );
+            put( "collateral", Hyperliquid.this.parseNumber(marginUsed) );
+            put( "initialMargin", Hyperliquid.this.parseNumber(finalInitialMargin) );
             put( "maintenanceMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMarginPercentage", null );
-            put( "unrealizedPnl", HyperliquidCore.this.parseNumber(rawUnrealizedPnl) );
-            put( "liquidationPrice", HyperliquidCore.this.safeNumber(entry, "liquidationPx") );
+            put( "unrealizedPnl", Hyperliquid.this.parseNumber(rawUnrealizedPnl) );
+            put( "liquidationPrice", Hyperliquid.this.safeNumber(entry, "liquidationPx") );
             put( "marginMode", finalMarginMode );
-            put( "percentage", HyperliquidCore.this.parseNumber(percentage) );
+            put( "percentage", Hyperliquid.this.parseNumber(percentage) );
         }});
     }
 
@@ -4914,7 +4914,7 @@ final Object finalClientOrderId = clientOrderId;
             //     }
             //
             return this.extend(this.parseMarginModification(response, market), new java.util.HashMap<String, Object>() {{
-                put( "code", HyperliquidCore.this.safeString(response, "status") );
+                put( "code", Hyperliquid.this.safeString(response, "status") );
             }});
         });
 
@@ -4930,12 +4930,12 @@ final Object finalClientOrderId = clientOrderId;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", HyperliquidCore.this.safeSymbol(null, market) );
+            put( "symbol", Hyperliquid.this.safeSymbol(null, market) );
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );
             put( "total", null );
-            put( "code", HyperliquidCore.this.safeString(market, "settle") );
+            put( "code", Hyperliquid.this.safeString(market, "settle") );
             put( "status", null );
             put( "timestamp", null );
             put( "datetime", null );
@@ -5081,7 +5081,7 @@ final Object finalClientOrderId = clientOrderId;
                     put( "subAccountUser", finalSubAccountAddress_2 );
                     put( "isDeposit", finalIsDeposit_2 );
                     put( "token", token );
-                    put( "amount", HyperliquidCore.this.numberToString(amount) );
+                    put( "amount", Hyperliquid.this.numberToString(amount) );
                 }};
                 Object sig = this.signL1Action(action, nonce);
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -5107,11 +5107,11 @@ final Object finalClientOrderId = clientOrderId;
             put( "id", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", HyperliquidCore.this.safeCurrencyCode(null, currency) );
+            put( "currency", Hyperliquid.this.safeCurrencyCode(null, currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
-            put( "status", HyperliquidCore.this.safeString(transfer, "status", "ok") );
+            put( "status", Hyperliquid.this.safeString(transfer, "status", "ok") );
         }};
     }
 
@@ -5242,20 +5242,20 @@ final Object finalClientOrderId = clientOrderId;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", null );
-            put( "txid", HyperliquidCore.this.safeString(transaction, "hash") );
+            put( "txid", Hyperliquid.this.safeString(transaction, "hash") );
             put( "timestamp", timestamp );
-            put( "datetime", HyperliquidCore.this.iso8601(timestamp) );
+            put( "datetime", Hyperliquid.this.iso8601(timestamp) );
             put( "network", null );
             put( "address", null );
-            put( "addressTo", HyperliquidCore.this.safeString(delta, "destination") );
-            put( "addressFrom", HyperliquidCore.this.safeString(delta, "user") );
+            put( "addressTo", Hyperliquid.this.safeString(delta, "destination") );
+            put( "addressFrom", Hyperliquid.this.safeString(delta, "user") );
             put( "tag", null );
             put( "tagTo", null );
             put( "tagFrom", null );
             put( "type", null );
-            put( "amount", HyperliquidCore.this.safeNumber(delta, "usdc") );
+            put( "amount", Hyperliquid.this.safeNumber(delta, "usdc") );
             put( "currency", null );
-            put( "status", HyperliquidCore.this.safeString(transaction, "status") );
+            put( "status", Hyperliquid.this.safeString(transaction, "status") );
             put( "updated", null );
             put( "comment", null );
             put( "internal", finalIntern );
@@ -5330,8 +5330,8 @@ final Object finalClientOrderId = clientOrderId;
             //     }
             //
             java.util.Map<String, Object> data = new java.util.HashMap<String, Object>() {{
-                put( "userCrossRate", HyperliquidCore.this.safeString(response, "userCrossRate") );
-                put( "userAddRate", HyperliquidCore.this.safeString(response, "userAddRate") );
+                put( "userCrossRate", Hyperliquid.this.safeString(response, "userCrossRate") );
+                put( "userAddRate", Hyperliquid.this.safeString(response, "userAddRate") );
             }};
             return this.parseTradingFee(data, market);
         });
@@ -5380,8 +5380,8 @@ final Object finalClientOrderId = clientOrderId;
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", HyperliquidCore.this.safeNumber(fee, "userAddRate") );
-            put( "taker", HyperliquidCore.this.safeNumber(fee, "userCrossRate") );
+            put( "maker", Hyperliquid.this.safeNumber(fee, "userAddRate") );
+            put( "taker", Hyperliquid.this.safeNumber(fee, "userCrossRate") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -5481,16 +5481,16 @@ final Object finalClientOrderId = clientOrderId;
         final Object finalFee = fee;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", HyperliquidCore.this.safeString(item, "hash") );
+            put( "id", Hyperliquid.this.safeString(item, "hash") );
             put( "direction", null );
             put( "account", null );
-            put( "referenceAccount", HyperliquidCore.this.safeString(delta, "user") );
-            put( "referenceId", HyperliquidCore.this.safeString(item, "hash") );
-            put( "type", HyperliquidCore.this.parseLedgerEntryType(type) );
+            put( "referenceAccount", Hyperliquid.this.safeString(delta, "user") );
+            put( "referenceId", Hyperliquid.this.safeString(item, "hash") );
+            put( "type", Hyperliquid.this.parseLedgerEntryType(type) );
             put( "currency", null );
-            put( "amount", HyperliquidCore.this.parseNumber(amount) );
+            put( "amount", Hyperliquid.this.parseNumber(amount) );
             put( "timestamp", timestamp );
-            put( "datetime", HyperliquidCore.this.iso8601(timestamp) );
+            put( "datetime", Hyperliquid.this.iso8601(timestamp) );
             put( "before", null );
             put( "after", null );
             put( "status", null );
@@ -5744,7 +5744,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 (this.loadMarkets()).join();
             }
-            Object ois = (this.fetchOpenInterests(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object ois = (this.fetchOpenInterests((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(ois, symbol);
         });
 
@@ -5781,8 +5781,8 @@ final Object finalClientOrderId = clientOrderId;
         final Object finalMarketId = marketId;
         final Object finalInterest = interest;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", HyperliquidCore.this.safeSymbol(finalMarketId) );
-            put( "openInterestAmount", HyperliquidCore.this.safeNumber(finalInterest, "openInterest") );
+            put( "symbol", Hyperliquid.this.safeSymbol(finalMarketId) );
+            put( "openInterestAmount", Hyperliquid.this.safeNumber(finalInterest, "openInterest") );
             put( "openInterestValue", null );
             put( "timestamp", null );
             put( "datetime", null );
@@ -5896,9 +5896,9 @@ final Object finalClientOrderId = clientOrderId;
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "code", code );
             put( "timestamp", timestamp );
-            put( "datetime", HyperliquidCore.this.iso8601(timestamp) );
+            put( "datetime", Hyperliquid.this.iso8601(timestamp) );
             put( "id", id );
-            put( "amount", HyperliquidCore.this.parseNumber(amount) );
+            put( "amount", Hyperliquid.this.parseNumber(amount) );
             put( "rate", rate );
         }};
     }

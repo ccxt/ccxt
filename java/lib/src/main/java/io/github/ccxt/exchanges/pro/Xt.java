@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class XtCore extends io.github.ccxt.exchanges.Xt
+public class Xt extends io.github.ccxt.exchanges.Xt
 {
-   public XtCore () {
+   public Xt () {
        super();
    }
 
-   public XtCore (Object options) {
+   public Xt (Object options) {
        super(options);
    }
 
@@ -952,7 +952,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             final Object finalMarketId = marketId;
             java.util.Map<String, Object> raw = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalMarketId );
-                put( "fundingRate", XtCore.this.safeString(data, "r") );
+                put( "fundingRate", Xt.this.safeString(data, "r") );
             }};
             Object fundingRate = this.parseFundingRate(raw);
             Long timestamp = this.safeInteger(data, "t");
@@ -1549,18 +1549,18 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             put( "info", trade );
             put( "id", null );
             put( "timestamp", timestamp );
-            put( "datetime", XtCore.this.iso8601(timestamp) );
+            put( "datetime", Xt.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "order", XtCore.this.safeString(trade, "i", "orderId") );
-            put( "type", XtCore.this.parseOrderStatus(XtCore.this.safeString(trade, "st", "state")) );
-            put( "side", XtCore.this.safeStringLower(trade, "sd", "orderSide") );
+            put( "order", Xt.this.safeString(trade, "i", "orderId") );
+            put( "type", Xt.this.parseOrderStatus(Xt.this.safeString(trade, "st", "state")) );
+            put( "side", Xt.this.safeStringLower(trade, "sd", "orderSide") );
             put( "takerOrMaker", null );
-            put( "price", XtCore.this.safeNumber(trade, "price") );
-            put( "amount", XtCore.this.safeString(trade, "origQty") );
+            put( "price", Xt.this.safeNumber(trade, "price") );
+            put( "amount", Xt.this.safeString(trade, "origQty") );
             put( "cost", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", null );
-                put( "cost", XtCore.this.safeNumber(trade, "f") );
+                put( "cost", Xt.this.safeNumber(trade, "f") );
                 put( "rate", null );
             }} );
         }}, market);
@@ -1618,29 +1618,29 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", XtCore.this.safeString2(order, "i", "orderId") );
-            put( "clientOrderId", XtCore.this.safeString2(order, "ci", "clientOrderId") );
+            put( "id", Xt.this.safeString2(order, "i", "orderId") );
+            put( "clientOrderId", Xt.this.safeString2(order, "ci", "clientOrderId") );
             put( "timestamp", timestamp );
-            put( "datetime", XtCore.this.iso8601(timestamp) );
+            put( "datetime", Xt.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", Helpers.GetValue(finalMarket, "type") );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "side", XtCore.this.safeStringLower2(order, "sd", "orderSide") );
-            put( "price", XtCore.this.safeNumber2(order, "p", "price") );
+            put( "side", Xt.this.safeStringLower2(order, "sd", "orderSide") );
+            put( "price", Xt.this.safeNumber2(order, "p", "price") );
             put( "stopPrice", null );
             put( "stopLoss", null );
             put( "takeProfit", null );
-            put( "amount", XtCore.this.safeString2(order, "oq", "origQty") );
-            put( "filled", XtCore.this.safeString2(order, "eq", "executedQty") );
-            put( "remaining", XtCore.this.safeString(order, "lq") );
+            put( "amount", Xt.this.safeString2(order, "oq", "origQty") );
+            put( "filled", Xt.this.safeString2(order, "eq", "executedQty") );
+            put( "remaining", Xt.this.safeString(order, "lq") );
             put( "cost", null );
-            put( "average", XtCore.this.safeString2(order, "ap", "avgPrice") );
-            put( "status", XtCore.this.parseOrderStatus(XtCore.this.safeString(order, "st", "state")) );
+            put( "average", Xt.this.safeString2(order, "ap", "avgPrice") );
+            put( "status", Xt.this.parseOrderStatus(Xt.this.safeString(order, "st", "state")) );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", null );
-                put( "cost", XtCore.this.safeNumber(order, "f") );
+                put( "cost", Xt.this.safeNumber(order, "f") );
             }} );
             put( "trades", null );
         }}, market);

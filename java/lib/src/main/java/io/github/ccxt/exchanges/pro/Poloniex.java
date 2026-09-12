@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
+public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 {
-   public PoloniexCore () {
+   public Poloniex () {
        super();
    }
 
-   public PoloniexCore (Object options) {
+   public Poloniex (Object options) {
        super(options);
    }
 
@@ -113,7 +113,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                     put( "event", "subscribe" );
                     put( "channel", new java.util.ArrayList<Object>(java.util.Arrays.asList("auth")) );
                     put( "params", new java.util.HashMap<String, Object>() {{
-                        put( "key", PoloniexCore.this.apiKey );
+                        put( "key", Poloniex.this.apiKey );
                         put( "signTimestamp", timestamp );
                         put( "signature", signature );
                         put( "signatureMethod", "HmacSHA256" );
@@ -346,7 +346,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                 Object clientOrderIds = this.safeValue(parameters, "clientOrderId", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Helpers.addElementToObject(parameters, "clientOrderIds", this.arrayConcat(clientOrderIds, new java.util.ArrayList<Object>(java.util.Arrays.asList(clientOrderId))));
             }
-            Object orders = (this.cancelOrdersWs(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), symbol, parameters)).join();
+            Object orders = (this.cancelOrdersWs((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
             Object order = this.safeDict(orders, 0);
             return order;
         });
@@ -496,7 +496,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(tickers, symbol);
         });
 
@@ -553,7 +553,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -923,21 +923,21 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", PoloniexCore.this.safeString2(trade, "id", "tradeId") );
-            put( "symbol", PoloniexCore.this.safeString(finalMarket, "symbol") );
+            put( "id", Poloniex.this.safeString2(trade, "id", "tradeId") );
+            put( "symbol", Poloniex.this.safeString(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", PoloniexCore.this.iso8601(timestamp) );
-            put( "order", PoloniexCore.this.safeString(trade, "orderId") );
-            put( "type", PoloniexCore.this.safeStringLower(trade, "type") );
-            put( "side", PoloniexCore.this.safeStringLower2(trade, "takerSide", "side") );
+            put( "datetime", Poloniex.this.iso8601(timestamp) );
+            put( "order", Poloniex.this.safeString(trade, "orderId") );
+            put( "type", Poloniex.this.safeStringLower(trade, "type") );
+            put( "side", Poloniex.this.safeStringLower2(trade, "takerSide", "side") );
             put( "takerOrMaker", takerMaker );
-            put( "price", PoloniexCore.this.omitZero(PoloniexCore.this.safeString2(trade, "tradePrice", "price")) );
-            put( "amount", PoloniexCore.this.omitZero(PoloniexCore.this.safeString2(trade, "filledQuantity", "quantity")) );
-            put( "cost", PoloniexCore.this.safeString2(trade, "amount", "filledAmount") );
+            put( "price", Poloniex.this.omitZero(Poloniex.this.safeString2(trade, "tradePrice", "price")) );
+            put( "amount", Poloniex.this.omitZero(Poloniex.this.safeString2(trade, "filledQuantity", "quantity")) );
+            put( "cost", Poloniex.this.safeString2(trade, "amount", "filledAmount") );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "rate", null );
-                put( "cost", PoloniexCore.this.safeString(trade, "tradeFee") );
-                put( "currency", PoloniexCore.this.safeString(trade, "feeCurrency") );
+                put( "cost", Poloniex.this.safeString(trade, "tradeFee") );
+                put( "currency", Poloniex.this.safeString(trade, "feeCurrency") );
             }} );
         }}, market);
     }
@@ -990,21 +990,21 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         String marketId = this.safeString(trade, "symbol");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", PoloniexCore.this.safeString(trade, "tradeId") );
-            put( "symbol", PoloniexCore.this.safeSymbol(marketId, market) );
+            put( "id", Poloniex.this.safeString(trade, "tradeId") );
+            put( "symbol", Poloniex.this.safeSymbol(marketId, market) );
             put( "timestamp", timestamp );
-            put( "datetime", PoloniexCore.this.iso8601(timestamp) );
-            put( "order", PoloniexCore.this.safeString(trade, "orderId") );
-            put( "type", PoloniexCore.this.safeStringLower(trade, "type") );
-            put( "side", PoloniexCore.this.safeString(trade, "side") );
-            put( "takerOrMaker", PoloniexCore.this.safeStringLower(trade, "matchRole") );
-            put( "price", PoloniexCore.this.safeString(trade, "price") );
-            put( "amount", PoloniexCore.this.safeString(trade, "tradeAmount") );
+            put( "datetime", Poloniex.this.iso8601(timestamp) );
+            put( "order", Poloniex.this.safeString(trade, "orderId") );
+            put( "type", Poloniex.this.safeStringLower(trade, "type") );
+            put( "side", Poloniex.this.safeString(trade, "side") );
+            put( "takerOrMaker", Poloniex.this.safeStringLower(trade, "matchRole") );
+            put( "price", Poloniex.this.safeString(trade, "price") );
+            put( "amount", Poloniex.this.safeString(trade, "tradeAmount") );
             put( "cost", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "rate", null );
-                put( "cost", PoloniexCore.this.safeString(trade, "tradeFee") );
-                put( "currency", PoloniexCore.this.safeString(trade, "feeCurrency") );
+                put( "cost", Poloniex.this.safeString(trade, "tradeFee") );
+                put( "currency", Poloniex.this.safeString(trade, "feeCurrency") );
             }} );
         }}, market);
     }
@@ -1122,7 +1122,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                         Helpers.addElementToObject(previousOrder, "fee", new java.util.HashMap<String, Object>() {{
     put( "rate", null );
     put( "cost", 0 );
-    put( "currency", PoloniexCore.this.safeString(Helpers.GetValue(trade, "fee"), "currency") );
+    put( "currency", Poloniex.this.safeString(Helpers.GetValue(trade, "fee"), "currency") );
 }});
                     }
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), null))) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(Helpers.GetValue(trade, "fee"), "cost"), null)))))
@@ -1199,29 +1199,29 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         final Object finalTrades = trades;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "symbol", PoloniexCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Poloniex.this.safeSymbol(marketId, market) );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", PoloniexCore.this.iso8601(timestamp) );
+            put( "datetime", Poloniex.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "type", PoloniexCore.this.safeString(order, "type") );
+            put( "type", Poloniex.this.safeString(order, "type") );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "side", PoloniexCore.this.safeString(order, "side") );
-            put( "price", PoloniexCore.this.safeString(order, "price") );
+            put( "side", Poloniex.this.safeString(order, "side") );
+            put( "price", Poloniex.this.safeString(order, "price") );
             put( "stopPrice", null );
             put( "triggerPrice", null );
-            put( "amount", PoloniexCore.this.safeString(order, "quantity") );
+            put( "amount", Poloniex.this.safeString(order, "quantity") );
             put( "cost", null );
             put( "average", null );
             put( "filled", filledAmount );
-            put( "remaining", PoloniexCore.this.safeString(order, "remaining_size") );
-            put( "status", PoloniexCore.this.parseStatus(status) );
+            put( "remaining", Poloniex.this.safeString(order, "remaining_size") );
+            put( "status", Poloniex.this.parseStatus(status) );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "rate", null );
-                put( "cost", PoloniexCore.this.safeString(order, "tradeFee") );
-                put( "currency", PoloniexCore.this.safeString(order, "feeCurrency") );
+                put( "cost", Poloniex.this.safeString(order, "tradeFee") );
+                put( "currency", Poloniex.this.safeString(order, "feeCurrency") );
             }} );
             put( "trades", finalTrades );
         }});
@@ -1441,7 +1441,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
-            put( "datetime", PoloniexCore.this.iso8601(timestamp) );
+            put( "datetime", Poloniex.this.iso8601(timestamp) );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {

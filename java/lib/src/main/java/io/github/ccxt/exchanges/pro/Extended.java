@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class ExtendedCore extends io.github.ccxt.exchanges.Extended
+public class Extended extends io.github.ccxt.exchanges.Extended
 {
-   public ExtendedCore () {
+   public Extended () {
        super();
    }
 
-   public ExtendedCore (Object options) {
+   public Extended (Object options) {
        super(options);
    }
 
@@ -46,7 +46,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
                 put( "ws", new java.util.HashMap<String, Object>() {{
                     put( "options", new java.util.HashMap<String, Object>() {{
                         put( "headers", new java.util.HashMap<String, Object>() {{
-                            put( "User-Agent", Helpers.GetValue(ExtendedCore.this.userAgents, "chrome") );
+                            put( "User-Agent", Helpers.GetValue(Extended.this.userAgents, "chrome") );
                         }} );
                     }} );
                 }} );
@@ -190,10 +190,10 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
                 Object originalOptions = Helpers.GetValue(Helpers.GetValue(this.options, "ws"), "options");
                 Object originalHeaders = this.safeDict(originalOptions, "headers", new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "options", this.extend(this.extend(new java.util.HashMap<String, Object>() {{}}, originalOptions), new java.util.HashMap<String, Object>() {{
-        put( "headers", ExtendedCore.this.extend(ExtendedCore.this.extend(new java.util.HashMap<String, Object>() {{
-            put( "User-Agent", Helpers.GetValue(ExtendedCore.this.userAgents, "chrome") );
+        put( "headers", Extended.this.extend(Extended.this.extend(new java.util.HashMap<String, Object>() {{
+            put( "User-Agent", Helpers.GetValue(Extended.this.userAgents, "chrome") );
         }}, originalHeaders), new java.util.HashMap<String, Object>() {{
-            put( "X-Api-Key", ExtendedCore.this.apiKey );
+            put( "X-Api-Key", Extended.this.apiKey );
         }}) );
     }}));
                 this.client(url);
@@ -707,10 +707,10 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
-            put( "datetime", ExtendedCore.this.iso8601(timestamp) );
-            put( "fundingRate", ExtendedCore.this.safeNumber(fundingRate, "f") );
+            put( "datetime", Extended.this.iso8601(timestamp) );
+            put( "fundingRate", Extended.this.safeNumber(fundingRate, "f") );
             put( "fundingTimestamp", fundingTimestamp );
-            put( "fundingDatetime", ExtendedCore.this.iso8601(fundingTimestamp) );
+            put( "fundingDatetime", Extended.this.iso8601(fundingTimestamp) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
@@ -786,8 +786,8 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
-            put( "datetime", ExtendedCore.this.iso8601(finalTimestamp) );
-            put( "markPrice", ExtendedCore.this.safeString(data, "p") );
+            put( "datetime", Extended.this.iso8601(finalTimestamp) );
+            put( "markPrice", Extended.this.safeString(data, "p") );
             put( "info", message );
         }}, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);

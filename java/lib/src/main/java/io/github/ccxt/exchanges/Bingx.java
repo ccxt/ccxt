@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BingxCore extends BingxApi
+public class Bingx extends BingxApi
 {
-   public BingxCore () {
+   public Bingx () {
        super();
    }
 
-   public BingxCore (Object options) {
+   public Bingx (Object options) {
        super(options);
    }
 
@@ -165,13 +165,13 @@ public class BingxCore extends BingxApi
                 put( "tierBased", true );
                 put( "spot", new java.util.HashMap<String, Object>() {{
                     put( "feeSide", "get" );
-                    put( "maker", BingxCore.this.parseNumber("0.001") );
-                    put( "taker", BingxCore.this.parseNumber("0.001") );
+                    put( "maker", Bingx.this.parseNumber("0.001") );
+                    put( "taker", Bingx.this.parseNumber("0.001") );
                 }} );
                 put( "swap", new java.util.HashMap<String, Object>() {{
                     put( "feeSide", "quote" );
-                    put( "maker", BingxCore.this.parseNumber("0.0002") );
-                    put( "taker", BingxCore.this.parseNumber("0.0005") );
+                    put( "maker", Bingx.this.parseNumber("0.0002") );
+                    put( "taker", Bingx.this.parseNumber("0.0005") );
                 }} );
             }} );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
@@ -1353,11 +1353,11 @@ public class BingxCore extends BingxApi
             Object networkCode = this.networkIdToCode(network, code);
             java.util.Map<String, Object> limits = new java.util.HashMap<String, Object>() {{
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
-                    put( "min", BingxCore.this.safeNumber(rawNetwork, "withdrawMin") );
-                    put( "max", BingxCore.this.safeNumber(rawNetwork, "withdrawMax") );
+                    put( "min", Bingx.this.safeNumber(rawNetwork, "withdrawMin") );
+                    put( "max", Bingx.this.safeNumber(rawNetwork, "withdrawMax") );
                 }} );
                 put( "deposit", new java.util.HashMap<String, Object>() {{
-                    put( "min", BingxCore.this.safeNumber(rawNetwork, "depositMin") );
+                    put( "min", Bingx.this.safeNumber(rawNetwork, "depositMin") );
                     put( "max", null );
                 }} );
             }};
@@ -1369,10 +1369,10 @@ public class BingxCore extends BingxApi
     put( "info", rawNetwork );
     put( "id", network );
     put( "network", finalNetworkCode );
-    put( "fee", BingxCore.this.safeNumber(rawNetwork, "withdrawFee") );
+    put( "fee", Bingx.this.safeNumber(rawNetwork, "withdrawFee") );
     put( "active", null );
-    put( "deposit", BingxCore.this.safeBool(rawNetwork, "depositEnable") );
-    put( "withdraw", BingxCore.this.safeBool(rawNetwork, "withdrawEnable") );
+    put( "deposit", Bingx.this.safeBool(rawNetwork, "depositEnable") );
+    put( "withdraw", Bingx.this.safeBool(rawNetwork, "withdrawEnable") );
     put( "precision", precision );
     put( "limits", limits );
 }});
@@ -1604,9 +1604,9 @@ public class BingxCore extends BingxApi
             put( "contract", swap );
             put( "linear", isLinear );
             put( "inverse", isInverse );
-            put( "taker", BingxCore.this.safeNumber(fees, "taker") );
-            put( "maker", BingxCore.this.safeNumber(fees, "maker") );
-            put( "feeSide", BingxCore.this.safeString(fees, "feeSide") );
+            put( "taker", Bingx.this.safeNumber(fees, "taker") );
+            put( "maker", Bingx.this.safeNumber(fees, "maker") );
+            put( "feeSide", Bingx.this.safeString(fees, "feeSide") );
             put( "contractSize", finalContractSize );
             put( "expiry", null );
             put( "expiryDatetime", null );
@@ -1630,8 +1630,8 @@ public class BingxCore extends BingxApi
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", BingxCore.this.safeNumberN(market, new java.util.ArrayList<Object>(java.util.Arrays.asList("minNotional", "tradeMinUSDT", "minTradeValue"))) );
-                    put( "max", BingxCore.this.safeNumber(market, "maxNotional") );
+                    put( "min", Bingx.this.safeNumberN(market, new java.util.ArrayList<Object>(java.util.Arrays.asList("minNotional", "tradeMinUSDT", "minTradeValue"))) );
+                    put( "max", Bingx.this.safeNumber(market, "maxNotional") );
                 }} );
             }} );
             put( "created", finalTimeOnline );
@@ -2108,20 +2108,20 @@ public class BingxCore extends BingxApi
         final Object finalTakeOrMaker = takeOrMaker;
         final Object finalAmount = amount;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", BingxCore.this.safeString2(trade, "id", "t") );
+            put( "id", Bingx.this.safeString2(trade, "id", "t") );
             put( "info", trade );
             put( "timestamp", finalTime );
-            put( "datetime", BingxCore.this.iso8601(finalTime) );
-            put( "symbol", BingxCore.this.safeSymbol(marketId, finalMarket, "-") );
-            put( "order", BingxCore.this.safeString2(trade, "orderId", "i") );
-            put( "type", BingxCore.this.safeStringLower(trade, "o") );
-            put( "side", BingxCore.this.parseOrderSide(finalSide) );
+            put( "datetime", Bingx.this.iso8601(finalTime) );
+            put( "symbol", Bingx.this.safeSymbol(marketId, finalMarket, "-") );
+            put( "order", Bingx.this.safeString2(trade, "orderId", "i") );
+            put( "type", Bingx.this.safeStringLower(trade, "o") );
+            put( "side", Bingx.this.parseOrderSide(finalSide) );
             put( "takerOrMaker", finalTakeOrMaker );
-            put( "price", BingxCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "p", "tradePrice"))) );
+            put( "price", Bingx.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "p", "tradePrice"))) );
             put( "amount", finalAmount );
             put( "cost", cost );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "cost", BingxCore.this.parseNumber(Precise.stringAbs(BingxCore.this.safeString2(trade, "commission", "n"))) );
+                put( "cost", Bingx.this.parseNumber(Precise.stringAbs(Bingx.this.safeString2(trade, "commission", "n"))) );
                 put( "currency", currencyCode );
             }} );
         }}, market);
@@ -2386,19 +2386,19 @@ public class BingxCore extends BingxApi
         Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", BingxCore.this.safeSymbol(marketId, market, "-", "swap") );
-            put( "markPrice", BingxCore.this.safeNumber(contract, "markPrice") );
-            put( "indexPrice", BingxCore.this.safeNumber(contract, "indexPrice") );
+            put( "symbol", Bingx.this.safeSymbol(marketId, market, "-", "swap") );
+            put( "markPrice", Bingx.this.safeNumber(contract, "markPrice") );
+            put( "indexPrice", Bingx.this.safeNumber(contract, "indexPrice") );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", BingxCore.this.safeNumber(contract, "lastFundingRate") );
+            put( "fundingRate", Bingx.this.safeNumber(contract, "lastFundingRate") );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", nextFundingTimestamp );
-            put( "nextFundingDatetime", BingxCore.this.iso8601(nextFundingTimestamp) );
+            put( "nextFundingDatetime", Bingx.this.iso8601(nextFundingTimestamp) );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
@@ -2497,10 +2497,10 @@ public class BingxCore extends BingxApi
         Long timestamp = this.safeInteger(contract, "fundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", BingxCore.this.safeSymbol(BingxCore.this.safeString(contract, "symbol"), market, "-", "swap") );
-            put( "fundingRate", BingxCore.this.safeNumber(contract, "fundingRate") );
+            put( "symbol", Bingx.this.safeSymbol(Bingx.this.safeString(contract, "symbol"), market, "-", "swap") );
+            put( "fundingRate", Bingx.this.safeNumber(contract, "fundingRate") );
             put( "timestamp", timestamp );
-            put( "datetime", BingxCore.this.iso8601(timestamp) );
+            put( "datetime", Bingx.this.iso8601(timestamp) );
         }};
     }
 
@@ -2614,12 +2614,12 @@ public class BingxCore extends BingxApi
         Long timestamp = this.safeInteger(income, "time");
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", BingxCore.this.safeSymbol(marketId, market, null, "swap") );
-            put( "code", BingxCore.this.safeCurrencyCode(currencyId) );
+            put( "symbol", Bingx.this.safeSymbol(marketId, market, null, "swap") );
+            put( "code", Bingx.this.safeCurrencyCode(currencyId) );
             put( "timestamp", timestamp );
-            put( "datetime", BingxCore.this.iso8601(timestamp) );
-            put( "id", BingxCore.this.safeString(income, "tranId") );
-            put( "amount", BingxCore.this.safeNumber(income, "income") );
+            put( "datetime", Bingx.this.iso8601(timestamp) );
+            put( "id", Bingx.this.safeString(income, "tranId") );
+            put( "amount", Bingx.this.safeNumber(income, "income") );
             put( "type", "funding" );
         }};
     }
@@ -2733,7 +2733,7 @@ public class BingxCore extends BingxApi
             put( "openInterestAmount", openInterestAmount );
             put( "openInterestValue", openInterestValue );
             put( "timestamp", timestamp );
-            put( "datetime", BingxCore.this.iso8601(timestamp) );
+            put( "datetime", Bingx.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -3132,8 +3132,8 @@ public class BingxCore extends BingxApi
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-            put( "markPrice", BingxCore.this.safeString(ticker, "markPrice") );
-            put( "indexPrice", BingxCore.this.safeString(ticker, "indexPrice") );
+            put( "markPrice", Bingx.this.safeString(ticker, "markPrice") );
+            put( "indexPrice", Bingx.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
         }}, market);
     }
@@ -3610,30 +3610,30 @@ public class BingxCore extends BingxApi
         final Object finalMarginMode = marginMode;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", BingxCore.this.safeString(position, "positionId") );
-            put( "symbol", BingxCore.this.safeSymbol(finalMarketId, market, "-", "swap") );
-            put( "notional", BingxCore.this.safeNumber(position, "positionValue") );
+            put( "id", Bingx.this.safeString(position, "positionId") );
+            put( "symbol", Bingx.this.safeSymbol(finalMarketId, market, "-", "swap") );
+            put( "notional", Bingx.this.safeNumber(position, "positionValue") );
             put( "marginMode", finalMarginMode );
-            put( "liquidationPrice", BingxCore.this.safeNumberOmitZero(position, "liquidationPrice") );
-            put( "entryPrice", BingxCore.this.safeNumber2(position, "avgPrice", "entryPrice") );
-            put( "unrealizedPnl", BingxCore.this.safeNumber(position, "unrealizedProfit") );
-            put( "realizedPnl", BingxCore.this.safeNumber(position, "realisedProfit") );
+            put( "liquidationPrice", Bingx.this.safeNumberOmitZero(position, "liquidationPrice") );
+            put( "entryPrice", Bingx.this.safeNumber2(position, "avgPrice", "entryPrice") );
+            put( "unrealizedPnl", Bingx.this.safeNumber(position, "unrealizedProfit") );
+            put( "realizedPnl", Bingx.this.safeNumber(position, "realisedProfit") );
             put( "percentage", null );
-            put( "contracts", BingxCore.this.safeNumber(position, "positionAmt") );
+            put( "contracts", Bingx.this.safeNumber(position, "positionAmt") );
             put( "contractSize", null );
-            put( "markPrice", BingxCore.this.safeNumber(position, "markPrice") );
+            put( "markPrice", Bingx.this.safeNumber(position, "markPrice") );
             put( "lastPrice", null );
-            put( "side", BingxCore.this.safeStringLower(position, "positionSide") );
+            put( "side", Bingx.this.safeStringLower(position, "positionSide") );
             put( "hedged", null );
             put( "timestamp", timestamp );
-            put( "datetime", BingxCore.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", BingxCore.this.safeInteger(position, "updateTime") );
+            put( "datetime", Bingx.this.iso8601(timestamp) );
+            put( "lastUpdateTimestamp", Bingx.this.safeInteger(position, "updateTime") );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
             put( "collateral", null );
-            put( "initialMargin", BingxCore.this.safeNumber(position, "initialMargin") );
+            put( "initialMargin", Bingx.this.safeNumber(position, "initialMargin") );
             put( "initialMarginPercentage", null );
-            put( "leverage", BingxCore.this.safeNumber(position, "leverage") );
+            put( "leverage", Bingx.this.safeNumber(position, "leverage") );
             put( "marginRatio", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
@@ -3657,7 +3657,7 @@ public class BingxCore extends BingxApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "quoteOrderQty", cost);
-            return (this.createOrder(symbol, "market", side, cost, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -3678,7 +3678,7 @@ public class BingxCore extends BingxApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "quoteOrderQty", cost);
-            return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -3699,7 +3699,7 @@ public class BingxCore extends BingxApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "quoteOrderQty", cost);
-            return (this.createOrder(symbol, "market", "sell", cost, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -3834,8 +3834,8 @@ public class BingxCore extends BingxApi
                     put( "symbol", Helpers.GetValue(request, "symbol") );
                     put( "side", Helpers.GetValue(request, "side") );
                     put( "positionSide", ((Helpers.isTrue((Helpers.isEqual(finalSide, "buy"))))) ? "LONG" : "SHORT" );
-                    put( "triggerPrice", BingxCore.this.parseToNumeric(BingxCore.this.priceToPrecision(symbol, finalTriggerPrice)) );
-                    put( "totalAmount", BingxCore.this.parseToNumeric(BingxCore.this.amountToPrecision(symbol, amount)) );
+                    put( "triggerPrice", Bingx.this.parseToNumeric(Bingx.this.priceToPrecision(symbol, finalTriggerPrice)) );
+                    put( "totalAmount", Bingx.this.parseToNumeric(Bingx.this.amountToPrecision(symbol, amount)) );
                 }};
                 //     {
                 //         "symbol": "LTC-USDT",
@@ -3934,7 +3934,7 @@ public class BingxCore extends BingxApi
                     String slWorkingType = this.safeString(stopLossDict, "workingType", "MARK_PRICE");
                     String slType = this.safeString(stopLossDict, "type", "STOP_MARKET");
                     java.util.Map<String, Object> slRequest = new java.util.HashMap<String, Object>() {{
-                        put( "stopPrice", BingxCore.this.parseToNumeric(BingxCore.this.priceToPrecision(symbol, slTriggerPrice)) );
+                        put( "stopPrice", Bingx.this.parseToNumeric(Bingx.this.priceToPrecision(symbol, slTriggerPrice)) );
                         put( "workingType", slWorkingType );
                         put( "type", slType );
                     }};
@@ -3953,7 +3953,7 @@ public class BingxCore extends BingxApi
                     String tkWorkingType = this.safeString(takeProfitDict, "workingType", "MARK_PRICE");
                     String tpType = this.safeString(takeProfitDict, "type", "TAKE_PROFIT_MARKET");
                     java.util.Map<String, Object> tpRequest = new java.util.HashMap<String, Object>() {{
-                        put( "stopPrice", BingxCore.this.parseToNumeric(BingxCore.this.priceToPrecision(symbol, tkTriggerPrice)) );
+                        put( "stopPrice", Bingx.this.parseToNumeric(Bingx.this.priceToPrecision(symbol, tkTriggerPrice)) );
                         put( "workingType", tkWorkingType );
                         put( "type", tpType );
                     }};
@@ -4700,33 +4700,33 @@ public class BingxCore extends BingxApi
         final Object finalFeeCurrencyCode = feeCurrencyCode;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "id", BingxCore.this.safeStringN(finalOrder, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "i", "mainOrderId"))) );
-            put( "clientOrderId", BingxCore.this.safeStringN(finalOrder, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderID", "clientOrderId", "origClientOrderId", "c"))) );
-            put( "symbol", BingxCore.this.safeSymbol(marketId, finalMarket, "-", marketType) );
+            put( "id", Bingx.this.safeStringN(finalOrder, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "i", "mainOrderId"))) );
+            put( "clientOrderId", Bingx.this.safeStringN(finalOrder, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderID", "clientOrderId", "origClientOrderId", "c"))) );
+            put( "symbol", Bingx.this.safeSymbol(marketId, finalMarket, "-", marketType) );
             put( "timestamp", timestamp );
-            put( "datetime", BingxCore.this.iso8601(timestamp) );
+            put( "datetime", Bingx.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", lastTradeTimestamp );
-            put( "lastUpdateTimestamp", BingxCore.this.safeInteger(finalOrder, "updateTime") );
-            put( "type", BingxCore.this.parseOrderType(rawType) );
-            put( "timeInForce", BingxCore.this.safeString(finalOrder, "timeInForce") );
+            put( "lastUpdateTimestamp", Bingx.this.safeInteger(finalOrder, "updateTime") );
+            put( "type", Bingx.this.parseOrderType(rawType) );
+            put( "timeInForce", Bingx.this.safeString(finalOrder, "timeInForce") );
             put( "postOnly", null );
-            put( "side", BingxCore.this.parseOrderSide(finalSide) );
-            put( "price", BingxCore.this.safeString2(finalOrder, "price", "p") );
+            put( "side", Bingx.this.parseOrderSide(finalSide) );
+            put( "price", Bingx.this.safeString2(finalOrder, "price", "p") );
             put( "triggerPrice", finalTriggerPrice );
             put( "stopLossPrice", finalStopLossPrice );
             put( "takeProfitPrice", finalTakeProfitPrice );
-            put( "average", BingxCore.this.safeString2(finalOrder, "avgPrice", "ap") );
-            put( "cost", BingxCore.this.safeString(finalOrder, "cummulativeQuoteQty") );
-            put( "amount", BingxCore.this.safeStringN(finalOrder, new java.util.ArrayList<Object>(java.util.Arrays.asList("origQty", "q", "quantity", "totalAmount"))) );
-            put( "filled", BingxCore.this.safeString2(finalOrder, "executedQty", "z") );
+            put( "average", Bingx.this.safeString2(finalOrder, "avgPrice", "ap") );
+            put( "cost", Bingx.this.safeString(finalOrder, "cummulativeQuoteQty") );
+            put( "amount", Bingx.this.safeStringN(finalOrder, new java.util.ArrayList<Object>(java.util.Arrays.asList("origQty", "q", "quantity", "totalAmount"))) );
+            put( "filled", Bingx.this.safeString2(finalOrder, "executedQty", "z") );
             put( "remaining", null );
-            put( "status", BingxCore.this.parseOrderStatus(statusId) );
+            put( "status", Bingx.this.parseOrderStatus(statusId) );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", finalFeeCurrencyCode );
                 put( "cost", Precise.stringAbs(feeCost) );
             }} );
             put( "trades", null );
-            put( "reduceOnly", BingxCore.this.safeBool2(finalOrder, "reduceOnly", "ro") );
+            put( "reduceOnly", Bingx.this.safeBool2(finalOrder, "reduceOnly", "ro") );
         }}, market);
     }
 
@@ -5089,7 +5089,7 @@ public class BingxCore extends BingxApi
             Boolean isActive = (Helpers.isGreaterThan(timeout, 0));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", ((Helpers.isTrue((isActive)))) ? "ACTIVATE" : "CLOSE" );
-                put( "timeOut", ((Helpers.isTrue((isActive)))) ? ((Object) (BingxCore.this.parseToInt(Helpers.divide(timeout, 1000)))) : 0 );
+                put( "timeOut", ((Helpers.isTrue((isActive)))) ? ((Object) (Bingx.this.parseToInt(Helpers.divide(timeout, 1000)))) : 0 );
             }};
             Object response = null;
             Object type = null;
@@ -5556,7 +5556,7 @@ public class BingxCore extends BingxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
+            Object orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBy(orders, "status", "closed");
         });
 
@@ -5591,7 +5591,7 @@ public class BingxCore extends BingxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
+            Object orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBy(orders, "status", "canceled");
         });
 
@@ -5742,7 +5742,7 @@ public class BingxCore extends BingxApi
                 put( "fromAccount", finalFromId );
                 put( "toAccount", finalToId );
                 put( "asset", Helpers.GetValue(currency, "id") );
-                put( "amount", BingxCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Bingx.this.currencyToPrecision(code, amount) );
             }};
             java.util.Map<String, Object> response = (this.apiAssetV1PrivatePostTransfer(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
@@ -5759,9 +5759,9 @@ public class BingxCore extends BingxApi
             //
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "id", BingxCore.this.safeString2(data, "transferId", "tranId") );
+                put( "id", Bingx.this.safeString2(data, "transferId", "tranId") );
                 put( "timestamp", timestamp );
-                put( "datetime", BingxCore.this.iso8601(timestamp) );
+                put( "datetime", Bingx.this.iso8601(timestamp) );
                 put( "currency", code );
                 put( "amount", amount );
                 put( "fromAccount", fromAccount );
@@ -5886,12 +5886,12 @@ public class BingxCore extends BingxApi
             put( "info", transfer );
             put( "id", tranId );
             put( "timestamp", timestamp );
-            put( "datetime", BingxCore.this.iso8601(timestamp) );
+            put( "datetime", Bingx.this.iso8601(timestamp) );
             put( "currency", currencyCode );
-            put( "amount", BingxCore.this.safeNumber(transfer, "amount") );
+            put( "amount", Bingx.this.safeNumber(transfer, "amount") );
             put( "fromAccount", fromAccount );
             put( "toAccount", toAccount );
-            put( "status", BingxCore.this.parseTransferStatus(status) );
+            put( "status", Bingx.this.parseTransferStatus(status) );
         }};
     }
 
@@ -6253,12 +6253,12 @@ public class BingxCore extends BingxApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", id );
-            put( "txid", BingxCore.this.safeString(transaction, "txId") );
+            put( "txid", Bingx.this.safeString(transaction, "txId") );
             put( "type", type );
             put( "currency", finalCode );
-            put( "network", BingxCore.this.networkIdToCode(finalNetwork, finalCode) );
-            put( "amount", BingxCore.this.safeNumber(transaction, "amount") );
-            put( "status", BingxCore.this.parseTransactionStatus(BingxCore.this.safeString(transaction, "status")) );
+            put( "network", Bingx.this.networkIdToCode(finalNetwork, finalCode) );
+            put( "amount", Bingx.this.safeNumber(transaction, "amount") );
+            put( "status", Bingx.this.parseTransactionStatus(Bingx.this.safeString(transaction, "status")) );
             put( "timestamp", finalTimestamp );
             put( "datetime", finalDatetime );
             put( "address", address );
@@ -6268,10 +6268,10 @@ public class BingxCore extends BingxApi
             put( "tagFrom", tag );
             put( "tagTo", null );
             put( "updated", null );
-            put( "comment", BingxCore.this.safeString(transaction, "info") );
+            put( "comment", Bingx.this.safeString(transaction, "info") );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", finalCode );
-                put( "cost", BingxCore.this.safeNumber(transaction, "transactionFee") );
+                put( "cost", Bingx.this.safeNumber(transaction, "transactionFee") );
                 put( "rate", null );
             }} );
             put( "internal", null );
@@ -6368,7 +6368,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", 1 );
             }};
-            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
+            return (this.setMargin(symbol, (Object)(amount), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -6382,7 +6382,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", 2 );
             }};
-            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
+            return (this.setMargin(symbol, (Object)(amount), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -6420,7 +6420,7 @@ public class BingxCore extends BingxApi
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "amount", BingxCore.this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount) );
+                put( "amount", Bingx.this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount) );
                 put( "type", finalType );
             }};
             java.util.Map<String, Object> response = (this.swapV2PrivatePostTradePositionMargin(this.extend(request, parameters))).join();
@@ -6452,12 +6452,12 @@ public class BingxCore extends BingxApi
         final Object finalType = type;
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", ((String)BingxCore.this.safeString(market, "symbol")) );
+            put( "symbol", ((String)Bingx.this.safeString(market, "symbol")) );
             put( "type", ((Helpers.isTrue((Helpers.isEqual(finalType, "1"))))) ? "add" : "reduce" );
             put( "marginMode", "isolated" );
-            put( "amount", BingxCore.this.safeNumber(data, "amount") );
-            put( "total", BingxCore.this.safeNumber(data, "margin") );
-            put( "code", BingxCore.this.safeString(market, "settle") );
+            put( "amount", Bingx.this.safeNumber(data, "amount") );
+            put( "total", Bingx.this.safeNumber(data, "margin") );
+            put( "code", Bingx.this.safeString(market, "settle") );
             put( "status", null );
             put( "timestamp", null );
             put( "datetime", null );
@@ -6536,10 +6536,10 @@ public class BingxCore extends BingxApi
         String marketId = this.safeString(leverage, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", BingxCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Bingx.this.safeSymbol(marketId, market) );
             put( "marginMode", null );
-            put( "longLeverage", BingxCore.this.safeInteger(leverage, "longLeverage") );
-            put( "shortLeverage", BingxCore.this.safeInteger(leverage, "shortLeverage") );
+            put( "longLeverage", Bingx.this.safeInteger(leverage, "longLeverage") );
+            put( "shortLeverage", Bingx.this.safeInteger(leverage, "shortLeverage") );
         }};
     }
 
@@ -6719,7 +6719,7 @@ public class BingxCore extends BingxApi
         put( "percentage", null );
     }} );
     put( "withdraw", new java.util.HashMap<String, Object>() {{
-        put( "fee", BingxCore.this.safeNumber(network, "fee") );
+        put( "fee", Bingx.this.safeNumber(network, "fee") );
         put( "percentage", false );
     }} );
 }});
@@ -6753,7 +6753,7 @@ public class BingxCore extends BingxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.fetchCurrencies(parameters)).join();
+            Object response = (this.fetchCurrencies((Object)(parameters))).join();
             java.util.Map<String, Object> depositWithdrawFees = new java.util.HashMap<String, Object>() {{}};
             Object responseCodes = Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseCodes)); i++)
@@ -6816,7 +6816,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "address", address );
-                put( "amount", BingxCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Bingx.this.currencyToPrecision(code, amount) );
                 put( "walletType", finalWalletType );
             }};
             String network = this.safeStringUpper(parameters, "network");
@@ -7028,14 +7028,14 @@ public class BingxCore extends BingxApi
         String quoteValueString = Precise.stringMul(baseValueString, priceString);
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
-            put( "symbol", BingxCore.this.safeSymbol(marketId, market) );
-            put( "contracts", BingxCore.this.parseNumber(contractsString) );
-            put( "contractSize", BingxCore.this.parseNumber(contractSizeString) );
-            put( "price", BingxCore.this.parseNumber(priceString) );
-            put( "baseValue", BingxCore.this.parseNumber(baseValueString) );
-            put( "quoteValue", BingxCore.this.parseNumber(quoteValueString) );
+            put( "symbol", Bingx.this.safeSymbol(marketId, market) );
+            put( "contracts", Bingx.this.parseNumber(contractsString) );
+            put( "contractSize", Bingx.this.parseNumber(contractSizeString) );
+            put( "price", Bingx.this.parseNumber(priceString) );
+            put( "baseValue", Bingx.this.parseNumber(baseValueString) );
+            put( "quoteValue", Bingx.this.parseNumber(quoteValueString) );
             put( "timestamp", timestamp );
-            put( "datetime", BingxCore.this.iso8601(timestamp) );
+            put( "datetime", Bingx.this.iso8601(timestamp) );
         }});
     }
 
@@ -7376,7 +7376,7 @@ public class BingxCore extends BingxApi
         final Object finalMarginType = marginType;
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", BingxCore.this.safeSymbol(marketId, market, "-", "swap") );
+            put( "symbol", Bingx.this.safeSymbol(marketId, market, "-", "swap") );
             put( "marginMode", finalMarginType );
         }};
     }
@@ -7477,8 +7477,8 @@ public class BingxCore extends BingxApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", BingxCore.this.safeNumber(fee, "makerCommissionRate") );
-            put( "taker", BingxCore.this.safeNumber(fee, "takerCommissionRate") );
+            put( "maker", Bingx.this.safeNumber(fee, "makerCommissionRate") );
+            put( "taker", Bingx.this.safeNumber(fee, "takerCommissionRate") );
             put( "percentage", false );
             put( "tierBased", false );
         }};
@@ -7616,12 +7616,12 @@ public class BingxCore extends BingxApi
             market = this.safeMarket(marketId, market, null, "swap");
 final Object finalMarket = market;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", BingxCore.this.safeNumber(tierParts, 1) );
-                put( "symbol", BingxCore.this.safeSymbol(marketId, finalMarket) );
-                put( "currency", BingxCore.this.safeString(finalMarket, "settle") );
-                put( "minNotional", BingxCore.this.safeNumber(tier, "minPositionVal") );
-                put( "maxNotional", BingxCore.this.safeNumber(tier, "maxPositionVal") );
-                put( "maintenanceMarginRate", BingxCore.this.safeNumber(tier, "maintMarginRatio") );
+                put( "tier", Bingx.this.safeNumber(tierParts, 1) );
+                put( "symbol", Bingx.this.safeSymbol(marketId, finalMarket) );
+                put( "currency", Bingx.this.safeString(finalMarket, "settle") );
+                put( "minNotional", Bingx.this.safeNumber(tier, "minPositionVal") );
+                put( "maxNotional", Bingx.this.safeNumber(tier, "maxPositionVal") );
+                put( "maintenanceMarginRate", Bingx.this.safeNumber(tier, "maintMarginRatio") );
                 put( "maxLeverage", null );
                 put( "info", tier );
             }});
@@ -7698,8 +7698,8 @@ final Object finalMarket = market;
             Object encodeRequestSafe = ((Helpers.isTrue((Helpers.isEqual(encodeRequest, null))))) ? "" : encodeRequest;
             Object signature = this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha256());
             headers = new java.util.HashMap<String, Object>() {{
-                put( "X-BX-APIKEY", BingxCore.this.apiKey );
-                put( "X-SOURCE-KEY", BingxCore.this.safeString(BingxCore.this.options, "broker", "CCXT") );
+                put( "X-BX-APIKEY", Bingx.this.apiKey );
+                put( "X-SOURCE-KEY", Bingx.this.safeString(Bingx.this.options, "broker", "CCXT") );
             }};
             if (Helpers.isTrue(isJsonContentType))
             {

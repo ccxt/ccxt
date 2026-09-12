@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class XtCore extends XtApi
+public class Xt extends XtApi
 {
-   public XtCore () {
+   public Xt () {
        super();
    }
 
-   public XtCore (Object options) {
+   public Xt (Object options) {
        super(options);
    }
 
@@ -798,21 +798,21 @@ public class XtCore extends XtApi
                 put( "spot", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "maker", XtCore.this.parseNumber("0.002") );
-                    put( "taker", XtCore.this.parseNumber("0.002") );
+                    put( "maker", Xt.this.parseNumber("0.002") );
+                    put( "taker", Xt.this.parseNumber("0.002") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("0"), XtCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("5000"), XtCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("10000"), XtCore.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("20000"), XtCore.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("50000"), XtCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("150000"), XtCore.this.parseNumber("0.0010"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("300000"), XtCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("600000"), XtCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("1200000"), XtCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("2500000"), XtCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("6000000"), XtCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("15000000"), XtCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("30000000"), XtCore.this.parseNumber("0.0002"))))) );
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("0"), XtCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("5000"), XtCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("10000"), XtCore.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("20000"), XtCore.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("50000"), XtCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("150000"), XtCore.this.parseNumber("0.0010"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("300000"), XtCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("600000"), XtCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("1200000"), XtCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("2500000"), XtCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("6000000"), XtCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("15000000"), XtCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("30000000"), XtCore.this.parseNumber("0.0002"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("0"), Xt.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("5000"), Xt.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("10000"), Xt.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("20000"), Xt.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("50000"), Xt.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("150000"), Xt.this.parseNumber("0.0010"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("300000"), Xt.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("600000"), Xt.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("1200000"), Xt.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("2500000"), Xt.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("6000000"), Xt.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("15000000"), Xt.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("30000000"), Xt.this.parseNumber("0.0002"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("0"), Xt.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("5000"), Xt.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("10000"), Xt.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("20000"), Xt.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("50000"), Xt.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("150000"), Xt.this.parseNumber("0.0010"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("300000"), Xt.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("600000"), Xt.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("1200000"), Xt.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("2500000"), Xt.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("6000000"), Xt.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("15000000"), Xt.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("30000000"), Xt.this.parseNumber("0.0002"))))) );
                     }} );
                 }} );
                 put( "contract", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "maker", XtCore.this.parseNumber("0.0004") );
-                    put( "taker", XtCore.this.parseNumber("0.0006") );
+                    put( "maker", Xt.this.parseNumber("0.0004") );
+                    put( "taker", Xt.this.parseNumber("0.0006") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("0"), XtCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("200000"), XtCore.this.parseNumber("0.00038"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("1000000"), XtCore.this.parseNumber("0.00036"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("5000000"), XtCore.this.parseNumber("0.00034"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("10000000"), XtCore.this.parseNumber("0.00032"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("15000000"), XtCore.this.parseNumber("0.00028"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("30000000"), XtCore.this.parseNumber("0.00024"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("50000000"), XtCore.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("100000000"), XtCore.this.parseNumber("0.00016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("300000000"), XtCore.this.parseNumber("0.00012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("500000000"), XtCore.this.parseNumber("0.00008"))))) );
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("0"), XtCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("200000"), XtCore.this.parseNumber("0.000588"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("1000000"), XtCore.this.parseNumber("0.00057"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("5000000"), XtCore.this.parseNumber("0.00054"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("10000000"), XtCore.this.parseNumber("0.00051"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("15000000"), XtCore.this.parseNumber("0.00048"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("30000000"), XtCore.this.parseNumber("0.00045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("50000000"), XtCore.this.parseNumber("0.00045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("100000000"), XtCore.this.parseNumber("0.00036"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("300000000"), XtCore.this.parseNumber("0.00033"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(XtCore.this.parseNumber("500000000"), XtCore.this.parseNumber("0.0003"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("0"), Xt.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("200000"), Xt.this.parseNumber("0.00038"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("1000000"), Xt.this.parseNumber("0.00036"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("5000000"), Xt.this.parseNumber("0.00034"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("10000000"), Xt.this.parseNumber("0.00032"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("15000000"), Xt.this.parseNumber("0.00028"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("30000000"), Xt.this.parseNumber("0.00024"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("50000000"), Xt.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("100000000"), Xt.this.parseNumber("0.00016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("300000000"), Xt.this.parseNumber("0.00012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("500000000"), Xt.this.parseNumber("0.00008"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("0"), Xt.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("200000"), Xt.this.parseNumber("0.000588"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("1000000"), Xt.this.parseNumber("0.00057"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("5000000"), Xt.this.parseNumber("0.00054"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("10000000"), Xt.this.parseNumber("0.00051"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("15000000"), Xt.this.parseNumber("0.00048"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("30000000"), Xt.this.parseNumber("0.00045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("50000000"), Xt.this.parseNumber("0.00045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("100000000"), Xt.this.parseNumber("0.00036"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("300000000"), Xt.this.parseNumber("0.00033"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Xt.this.parseNumber("500000000"), Xt.this.parseNumber("0.0003"))))) );
                     }} );
                 }} );
             }} );
@@ -1355,17 +1355,17 @@ public class XtCore extends XtApi
         put( "network", finalNetworkCode );
         put( "name", null );
         put( "active", null );
-        put( "fee", XtCore.this.safeNumber(rawNetwork, "withdrawFeeAmount") );
+        put( "fee", Xt.this.safeNumber(rawNetwork, "withdrawFeeAmount") );
         put( "precision", null );
-        put( "deposit", XtCore.this.safeBool(rawNetwork, "depositEnabled") );
-        put( "withdraw", XtCore.this.safeBool(rawNetwork, "withdrawEnabled") );
+        put( "deposit", Xt.this.safeBool(rawNetwork, "depositEnabled") );
+        put( "withdraw", Xt.this.safeBool(rawNetwork, "withdrawEnabled") );
         put( "limits", new java.util.HashMap<String, Object>() {{
             put( "amount", new java.util.HashMap<String, Object>() {{
                 put( "min", null );
                 put( "max", null );
             }} );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", XtCore.this.safeNumber(rawNetwork, "withdrawMinAmount") );
+                put( "min", Xt.this.safeNumber(rawNetwork, "withdrawMinAmount") );
                 put( "max", null );
             }} );
             put( "deposit", new java.util.HashMap<String, Object>() {{
@@ -1393,12 +1393,12 @@ public class XtCore extends XtApi
         put( "info", entry );
         put( "id", currencyId );
         put( "code", finalCode );
-        put( "name", XtCore.this.safeString(entry, "fullName") );
+        put( "name", Xt.this.safeString(entry, "fullName") );
         put( "active", null );
         put( "fee", null );
-        put( "precision", XtCore.this.parseNumber(XtCore.this.parsePrecision(XtCore.this.safeString(entry, "maxPrecision"))) );
-        put( "deposit", Helpers.isEqual(XtCore.this.safeString(entry, "depositStatus"), "1") );
-        put( "withdraw", Helpers.isEqual(XtCore.this.safeString(entry, "withdrawStatus"), "1") );
+        put( "precision", Xt.this.parseNumber(Xt.this.parsePrecision(Xt.this.safeString(entry, "maxPrecision"))) );
+        put( "deposit", Helpers.isEqual(Xt.this.safeString(entry, "depositStatus"), "1") );
+        put( "withdraw", Helpers.isEqual(Xt.this.safeString(entry, "withdrawStatus"), "1") );
         put( "networks", networks );
         put( "type", finalType );
         put( "limits", new java.util.HashMap<String, Object>() {{
@@ -1857,22 +1857,22 @@ public class XtCore extends XtApi
             put( "contract", finalContract );
             put( "linear", finalLinear );
             put( "inverse", finalInverse );
-            put( "taker", XtCore.this.safeNumber2(market, "takerFee", "takerFeeRate") );
-            put( "maker", XtCore.this.safeNumber2(market, "makerFee", "makerFeeRate") );
-            put( "contractSize", XtCore.this.safeNumber(market, "contractSize") );
+            put( "taker", Xt.this.safeNumber2(market, "takerFee", "takerFeeRate") );
+            put( "maker", Xt.this.safeNumber2(market, "makerFee", "makerFeeRate") );
+            put( "contractSize", Xt.this.safeNumber(market, "contractSize") );
             put( "expiry", finalExpiry );
-            put( "expiryDatetime", XtCore.this.iso8601(finalExpiry) );
+            put( "expiryDatetime", Xt.this.iso8601(finalExpiry) );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "price", XtCore.this.parseNumber(XtCore.this.parsePrecision(XtCore.this.safeString(market, "pricePrecision"))) );
+                put( "price", Xt.this.parseNumber(Xt.this.parsePrecision(Xt.this.safeString(market, "pricePrecision"))) );
                 put( "amount", finalAmountPrecision );
-                put( "base", XtCore.this.parseNumber(XtCore.this.parsePrecision(XtCore.this.safeString(market, "baseCoinPrecision"))) );
-                put( "quote", XtCore.this.parseNumber(XtCore.this.parsePrecision(XtCore.this.safeString(market, "quoteCoinPrecision"))) );
+                put( "base", Xt.this.parseNumber(Xt.this.parsePrecision(Xt.this.safeString(market, "baseCoinPrecision"))) );
+                put( "quote", Xt.this.parseNumber(Xt.this.parsePrecision(Xt.this.safeString(market, "quoteCoinPrecision"))) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
-                    put( "min", XtCore.this.parseNumber("1") );
+                    put( "min", Xt.this.parseNumber("1") );
                     put( "max", null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
@@ -1931,7 +1931,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "interval", XtCore.this.safeString(XtCore.this.timeframes, timeframe, timeframe) );
+                put( "interval", Xt.this.safeString(Xt.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -2544,23 +2544,23 @@ public class XtCore extends XtApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", XtCore.this.iso8601(timestamp) );
-            put( "high", XtCore.this.safeNumber(ticker, "h") );
-            put( "low", XtCore.this.safeNumber(ticker, "l") );
-            put( "bid", XtCore.this.safeNumber(ticker, "bp") );
-            put( "bidVolume", XtCore.this.safeNumber(ticker, "bq") );
-            put( "ask", XtCore.this.safeNumber(ticker, "ap") );
-            put( "askVolume", XtCore.this.safeNumber(ticker, "aq") );
+            put( "datetime", Xt.this.iso8601(timestamp) );
+            put( "high", Xt.this.safeNumber(ticker, "h") );
+            put( "low", Xt.this.safeNumber(ticker, "l") );
+            put( "bid", Xt.this.safeNumber(ticker, "bp") );
+            put( "bidVolume", Xt.this.safeNumber(ticker, "bq") );
+            put( "ask", Xt.this.safeNumber(ticker, "ap") );
+            put( "askVolume", Xt.this.safeNumber(ticker, "aq") );
             put( "vwap", null );
-            put( "open", XtCore.this.safeString(ticker, "o") );
-            put( "close", XtCore.this.safeString(ticker, "c") );
-            put( "last", XtCore.this.safeString(ticker, "c") );
+            put( "open", Xt.this.safeString(ticker, "o") );
+            put( "close", Xt.this.safeString(ticker, "c") );
+            put( "last", Xt.this.safeString(ticker, "c") );
             put( "previousClose", null );
-            put( "change", XtCore.this.safeNumber(ticker, "cv") );
-            put( "percentage", XtCore.this.parseNumber(finalPercentage) );
+            put( "change", Xt.this.safeNumber(ticker, "cv") );
+            put( "percentage", Xt.this.parseNumber(finalPercentage) );
             put( "average", null );
-            put( "baseVolume", XtCore.this.safeNumber2(ticker, "a", "q") );
-            put( "quoteVolume", XtCore.this.safeNumber(ticker, "v") );
+            put( "baseVolume", Xt.this.safeNumber2(ticker, "a", "q") );
+            put( "quoteVolume", Xt.this.safeNumber(ticker, "v") );
             put( "info", ticker );
         }}, market);
     }
@@ -2968,20 +2968,20 @@ public class XtCore extends XtApi
         final Object finalAmount = amount;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", XtCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("i", "tradeId", "execId"))) );
+            put( "id", Xt.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("i", "tradeId", "execId"))) );
             put( "timestamp", timestamp );
-            put( "datetime", XtCore.this.iso8601(timestamp) );
+            put( "datetime", Xt.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "order", XtCore.this.safeString2(trade, "orderId", "oi") );
-            put( "type", XtCore.this.safeStringLower(trade, "orderType") );
+            put( "order", Xt.this.safeString2(trade, "orderId", "oi") );
+            put( "type", Xt.this.safeStringLower(trade, "orderType") );
             put( "side", finalSide );
             put( "takerOrMaker", finalTakerOrMaker );
-            put( "price", XtCore.this.safeString2(trade, "p", "price") );
+            put( "price", Xt.this.safeString2(trade, "p", "price") );
             put( "amount", finalAmount );
             put( "cost", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "currency", XtCore.this.safeCurrencyCode(XtCore.this.safeString2(trade, "feeCurrency", "feeCoin")) );
-                put( "cost", XtCore.this.safeString(trade, "fee") );
+                put( "currency", Xt.this.safeCurrencyCode(Xt.this.safeString2(trade, "feeCurrency", "feeCoin")) );
+                put( "cost", Xt.this.safeString(trade, "fee") );
             }} );
         }}, market);
     }
@@ -3164,7 +3164,7 @@ public class XtCore extends XtApi
             {
                 throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            return (this.createOrder(symbol, "market", "buy", cost, 1, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
         });
 
     }
@@ -3340,7 +3340,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "origQty", XtCore.this.amountToPrecision(symbol, amount) );
+                put( "origQty", Xt.this.amountToPrecision(symbol, amount) );
             }};
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             Boolean postOnly = null;
@@ -4878,30 +4878,30 @@ public class XtCore extends XtApi
         final Object finalSide = side;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", XtCore.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "result", "cancelId", "entrustId", "profitId", "trackId"))) );
-            put( "clientOrderId", XtCore.this.safeString2(order, "clientOrderId", "clientModifyId") );
+            put( "id", Xt.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "result", "cancelId", "entrustId", "profitId", "trackId"))) );
+            put( "clientOrderId", Xt.this.safeString2(order, "clientOrderId", "clientModifyId") );
             put( "timestamp", timestamp );
-            put( "datetime", XtCore.this.iso8601(timestamp) );
+            put( "datetime", Xt.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", lastUpdatedTimestamp );
             put( "lastUpdateTimestamp", lastUpdatedTimestamp );
             put( "symbol", symbol );
-            put( "type", XtCore.this.safeStringLower2(order, "type", "orderType") );
+            put( "type", Xt.this.safeStringLower2(order, "type", "orderType") );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", finalPostOnly );
             put( "side", finalSide );
-            put( "price", XtCore.this.safeNumber(order, "price") );
-            put( "triggerPrice", XtCore.this.safeNumber(order, "stopPrice") );
-            put( "stopLoss", XtCore.this.safeNumber(order, "triggerStopPrice") );
-            put( "takeProfit", XtCore.this.safeNumber(order, "triggerProfitPrice") );
+            put( "price", Xt.this.safeNumber(order, "price") );
+            put( "triggerPrice", Xt.this.safeNumber(order, "stopPrice") );
+            put( "stopLoss", Xt.this.safeNumber(order, "triggerStopPrice") );
+            put( "takeProfit", Xt.this.safeNumber(order, "triggerProfitPrice") );
             put( "amount", amount );
             put( "filled", filled );
-            put( "remaining", XtCore.this.safeNumber(order, "leavingQty") );
+            put( "remaining", Xt.this.safeNumber(order, "leavingQty") );
             put( "cost", null );
-            put( "average", XtCore.this.safeNumber(order, "avgPrice") );
-            put( "status", XtCore.this.parseOrderStatus(XtCore.this.safeString(order, "state")) );
+            put( "average", Xt.this.safeNumber(order, "avgPrice") );
+            put( "status", Xt.this.parseOrderStatus(Xt.this.safeString(order, "state")) );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "currency", XtCore.this.safeCurrencyCode(XtCore.this.safeString(order, "feeCurrency")) );
-                put( "cost", XtCore.this.safeNumber(order, "fee") );
+                put( "currency", Xt.this.safeCurrencyCode(Xt.this.safeString(order, "feeCurrency")) );
+                put( "cost", Xt.this.safeNumber(order, "fee") );
             }} );
             put( "trades", null );
         }}, market);
@@ -5039,18 +5039,18 @@ public class XtCore extends XtApi
         final Object finalCurrency = currency;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", XtCore.this.safeString(item, "id") );
+            put( "id", Xt.this.safeString(item, "id") );
             put( "direction", direction );
             put( "account", null );
             put( "referenceId", null );
             put( "referenceAccount", null );
-            put( "type", XtCore.this.parseLedgerEntryType(XtCore.this.safeString(item, "type")) );
-            put( "currency", XtCore.this.safeCurrencyCode(currencyId, finalCurrency) );
-            put( "amount", XtCore.this.safeNumber(item, "amount") );
+            put( "type", Xt.this.parseLedgerEntryType(Xt.this.safeString(item, "type")) );
+            put( "currency", Xt.this.safeCurrencyCode(currencyId, finalCurrency) );
+            put( "amount", Xt.this.safeNumber(item, "amount") );
             put( "timestamp", timestamp );
-            put( "datetime", XtCore.this.iso8601(timestamp) );
+            put( "datetime", Xt.this.iso8601(timestamp) );
             put( "before", null );
-            put( "after", XtCore.this.safeNumber(item, "afterAmount") );
+            put( "after", Xt.this.safeNumber(item, "afterAmount") );
             put( "status", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", null );
@@ -5136,10 +5136,10 @@ public class XtCore extends XtApi
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", XtCore.this.safeCurrencyCode(null, currency) );
+            put( "currency", Xt.this.safeCurrencyCode(null, currency) );
             put( "network", null );
             put( "address", address );
-            put( "tag", XtCore.this.safeString(depositAddress, "memo") );
+            put( "tag", Xt.this.safeString(depositAddress, "memo") );
         }};
     }
 
@@ -5326,7 +5326,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "chain", networkId );
-                put( "amount", XtCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Xt.this.currencyToPrecision(code, amount) );
                 put( "address", address );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
@@ -5403,22 +5403,22 @@ public class XtCore extends XtApi
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", XtCore.this.safeString(transaction, "id") );
-            put( "txid", XtCore.this.safeString(transaction, "transactionId") );
+            put( "id", Xt.this.safeString(transaction, "id") );
+            put( "txid", Xt.this.safeString(transaction, "transactionId") );
             put( "timestamp", timestamp );
-            put( "datetime", XtCore.this.iso8601(timestamp) );
+            put( "datetime", Xt.this.iso8601(timestamp) );
             put( "updated", null );
-            put( "addressFrom", XtCore.this.safeString(transaction, "fromAddr") );
+            put( "addressFrom", Xt.this.safeString(transaction, "fromAddr") );
             put( "addressTo", address );
             put( "address", address );
             put( "tagFrom", null );
             put( "tagTo", null );
             put( "tag", memo );
             put( "type", type );
-            put( "amount", XtCore.this.safeNumber(transaction, "amount") );
+            put( "amount", Xt.this.safeNumber(transaction, "amount") );
             put( "currency", currencyCode );
-            put( "network", XtCore.this.networkIdToCode(networkId, currencyCode) );
-            put( "status", XtCore.this.parseTransactionStatus(XtCore.this.safeString(transaction, "status")) );
+            put( "network", Xt.this.networkIdToCode(networkId, currencyCode) );
+            put( "status", Xt.this.parseTransactionStatus(Xt.this.safeString(transaction, "status")) );
             put( "comment", memo );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", feeCurrency );
@@ -5609,7 +5609,7 @@ public class XtCore extends XtApi
             put( "type", null );
             put( "amount", null );
             put( "code", null );
-            put( "symbol", XtCore.this.safeSymbol(null, market) );
+            put( "symbol", Xt.this.safeSymbol(null, market) );
             put( "status", null );
             put( "marginMode", null );
             put( "total", null );
@@ -5816,13 +5816,13 @@ public class XtCore extends XtApi
             Double minNotional = this.safeNumber(Helpers.GetValue(brackets, Helpers.subtract(i, 1)), "maxNominalValue", 0);
 final Object finalMarket = market;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", XtCore.this.safeInteger(tier, "bracket") );
-                put( "symbol", XtCore.this.safeSymbol(marketId, finalMarket, "_", "contract") );
+                put( "tier", Xt.this.safeInteger(tier, "bracket") );
+                put( "symbol", Xt.this.safeSymbol(marketId, finalMarket, "_", "contract") );
                 put( "currency", Helpers.GetValue(finalMarket, "settle") );
                 put( "minNotional", minNotional );
-                put( "maxNotional", XtCore.this.safeNumber(tier, "maxNominalValue") );
-                put( "maintenanceMarginRate", XtCore.this.safeNumber(tier, "maintMarginRate") );
-                put( "maxLeverage", XtCore.this.safeNumber(tier, "maxLeverage") );
+                put( "maxNotional", Xt.this.safeNumber(tier, "maxNominalValue") );
+                put( "maintenanceMarginRate", Xt.this.safeNumber(tier, "maintMarginRate") );
+                put( "maxLeverage", Xt.this.safeNumber(tier, "maxLeverage") );
                 put( "info", tier );
             }});
         }
@@ -5925,9 +5925,9 @@ final Object finalMarket = market;
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", symbolInner );
-                    put( "fundingRate", XtCore.this.safeNumber(entry, "fundingRate") );
+                    put( "fundingRate", Xt.this.safeNumber(entry, "fundingRate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", XtCore.this.iso8601(timestamp) );
+                    put( "datetime", Xt.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -5951,7 +5951,7 @@ final Object finalMarket = market;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchFundingRate(symbol, parameters)).join();
+            return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
         });
 
     }
@@ -6043,9 +6043,9 @@ final Object finalMarket = market;
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", XtCore.this.safeNumber(contract, "fundingRate") );
+            put( "fundingRate", Xt.this.safeNumber(contract, "fundingRate") );
             put( "fundingTimestamp", timestamp );
-            put( "fundingDatetime", XtCore.this.iso8601(timestamp) );
+            put( "fundingDatetime", Xt.this.iso8601(timestamp) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
@@ -6128,10 +6128,10 @@ final Object finalMarket = market;
         final Object finalMarket = market;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "openInterestAmount", XtCore.this.safeNumber(interest, "openInterest") );
-            put( "openInterestValue", XtCore.this.safeNumber(interest, "openInterestUsd") );
+            put( "openInterestAmount", Xt.this.safeNumber(interest, "openInterest") );
+            put( "openInterestValue", Xt.this.safeNumber(interest, "openInterestUsd") );
             put( "timestamp", timestamp );
-            put( "datetime", XtCore.this.iso8601(timestamp) );
+            put( "datetime", Xt.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -6254,8 +6254,8 @@ final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", XtCore.this.safeNumber(fee, "makerFee") );
-            put( "taker", XtCore.this.safeNumber(fee, "takerFee") );
+            put( "maker", Xt.this.safeNumber(fee, "makerFee") );
+            put( "taker", Xt.this.safeNumber(fee, "takerFee") );
             put( "percentage", null );
             put( "tierBased", true );
         }};
@@ -6371,9 +6371,9 @@ final Object finalMarket = market;
             put( "symbol", symbol );
             put( "code", code );
             put( "timestamp", timestamp );
-            put( "datetime", XtCore.this.iso8601(timestamp) );
-            put( "id", XtCore.this.safeString(contract, "id") );
-            put( "amount", XtCore.this.safeNumber(contract, "cast") );
+            put( "datetime", Xt.this.iso8601(timestamp) );
+            put( "id", Xt.this.safeString(contract, "id") );
+            put( "amount", Xt.this.safeNumber(contract, "cast") );
         }};
     }
 
@@ -6415,8 +6415,8 @@ final Object finalMarket = market;
         }
         final Object finalBreakEntry = breakEntry;
         return this.extend(entry, new java.util.HashMap<String, Object>() {{
-            put( "breakPrice", XtCore.this.safeString(finalBreakEntry, "breakPrice") );
-            put( "calMarkPrice", XtCore.this.safeString(finalBreakEntry, "calMarkPrice") );
+            put( "breakPrice", Xt.this.safeString(finalBreakEntry, "breakPrice") );
+            put( "calMarkPrice", Xt.this.safeString(finalBreakEntry, "calMarkPrice") );
         }});
     }
 
@@ -6788,27 +6788,27 @@ final Object finalMarket = market;
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", XtCore.this.safeString(position, "id") );
+            put( "id", Xt.this.safeString(position, "id") );
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", XtCore.this.iso8601(timestamp) );
+            put( "datetime", Xt.this.iso8601(timestamp) );
             put( "hedged", null );
-            put( "side", XtCore.this.safeStringLower(position, "positionSide") );
-            put( "contracts", XtCore.this.safeNumber2(position, "positionSize", "closePositionSize") );
+            put( "side", Xt.this.safeStringLower(position, "positionSide") );
+            put( "contracts", Xt.this.safeNumber2(position, "positionSize", "closePositionSize") );
             put( "contractSize", Helpers.GetValue(finalMarket, "contractSize") );
-            put( "entryPrice", XtCore.this.safeNumber2(position, "entryPrice", "closeOpenPrice") );
-            put( "markPrice", XtCore.this.safeNumber2(position, "markPrice", "calMarkPrice") );
-            put( "lastPrice", XtCore.this.safeNumber(position, "closePrice") );
+            put( "entryPrice", Xt.this.safeNumber2(position, "entryPrice", "closeOpenPrice") );
+            put( "markPrice", Xt.this.safeNumber2(position, "markPrice", "calMarkPrice") );
+            put( "lastPrice", Xt.this.safeNumber(position, "closePrice") );
             put( "notional", null );
-            put( "leverage", XtCore.this.safeInteger2(position, "leverage", "endLeverage") );
+            put( "leverage", Xt.this.safeInteger2(position, "leverage", "endLeverage") );
             put( "collateral", collateral );
             put( "initialMargin", collateral );
             put( "maintenanceMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMarginPercentage", null );
             put( "unrealizedPnl", null );
-            put( "realizedPnl", XtCore.this.safeNumber2(position, "realizedProfit", "closeProfit") );
-            put( "liquidationPrice", XtCore.this.parseNumber(liquidationPriceString) );
+            put( "realizedPnl", Xt.this.safeNumber2(position, "realizedProfit", "closeProfit") );
+            put( "liquidationPrice", Xt.this.parseNumber(liquidationPriceString) );
             put( "marginMode", marginMode );
             put( "percentage", null );
             put( "marginRatio", null );
@@ -6843,7 +6843,7 @@ final Object finalMarket = market;
             String toAccountId = this.safeString(accountsByType, toAccount, toAccount);
             Object amountString = this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "bizId", XtCore.this.uuid() );
+                put( "bizId", Xt.this.uuid() );
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", amountString );
                 put( "from", fromAccountId );
@@ -6873,7 +6873,7 @@ final Object finalMarket = market;
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", XtCore.this.safeString(transfer, "result") );
+            put( "id", Xt.this.safeString(transfer, "result") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "currency", null );

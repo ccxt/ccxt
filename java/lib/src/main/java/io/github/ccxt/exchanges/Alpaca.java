@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class AlpacaCore extends AlpacaApi
+public class Alpaca extends AlpacaApi
 {
-   public AlpacaCore () {
+   public Alpaca () {
        super();
    }
 
-   public AlpacaCore (Object options) {
+   public Alpaca (Object options) {
        super(options);
    }
 
@@ -506,11 +506,11 @@ public class AlpacaCore extends AlpacaApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "maker", AlpacaCore.this.parseNumber("0.0015") );
-                    put( "taker", AlpacaCore.this.parseNumber("0.0025") );
+                    put( "maker", Alpaca.this.parseNumber("0.0015") );
+                    put( "taker", Alpaca.this.parseNumber("0.0025") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("0"), AlpacaCore.this.parseNumber("0.0025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("100000"), AlpacaCore.this.parseNumber("0.0022"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("500000"), AlpacaCore.this.parseNumber("0.0020"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("1000000"), AlpacaCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("10000000"), AlpacaCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("25000000"), AlpacaCore.this.parseNumber("0.0013"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("50000000"), AlpacaCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("100000000"), AlpacaCore.this.parseNumber("0.001"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("0"), AlpacaCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("100000"), AlpacaCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("500000"), AlpacaCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("1000000"), AlpacaCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("10000000"), AlpacaCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("25000000"), AlpacaCore.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("50000000"), AlpacaCore.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(AlpacaCore.this.parseNumber("100000000"), AlpacaCore.this.parseNumber("0.00"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("0"), Alpaca.this.parseNumber("0.0025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("100000"), Alpaca.this.parseNumber("0.0022"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("500000"), Alpaca.this.parseNumber("0.0020"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("1000000"), Alpaca.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("10000000"), Alpaca.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("25000000"), Alpaca.this.parseNumber("0.0013"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("50000000"), Alpaca.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("100000000"), Alpaca.this.parseNumber("0.001"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("0"), Alpaca.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("100000"), Alpaca.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("500000"), Alpaca.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("1000000"), Alpaca.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("10000000"), Alpaca.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("25000000"), Alpaca.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("50000000"), Alpaca.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Alpaca.this.parseNumber("100000000"), Alpaca.this.parseNumber("0.00"))))) );
                     }} );
                 }} );
             }} );
@@ -1199,7 +1199,7 @@ public class AlpacaCore extends AlpacaApi
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(tickers, symbol);
         });
 
@@ -1309,24 +1309,24 @@ public class AlpacaCore extends AlpacaApi
                 Object ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
-                    put( "timestamp", AlpacaCore.this.parse8601(datetime) );
+                    put( "timestamp", Alpaca.this.parse8601(datetime) );
                     put( "datetime", datetime );
-                    put( "high", AlpacaCore.this.safeString(dailyBar, "h") );
-                    put( "low", AlpacaCore.this.safeString(dailyBar, "l") );
-                    put( "bid", AlpacaCore.this.safeString(latestQuote, "bp") );
-                    put( "bidVolume", AlpacaCore.this.safeString(latestQuote, "bs") );
-                    put( "ask", AlpacaCore.this.safeString(latestQuote, "ap") );
-                    put( "askVolume", AlpacaCore.this.safeString(latestQuote, "as") );
-                    put( "vwap", AlpacaCore.this.safeString(dailyBar, "vw") );
-                    put( "open", AlpacaCore.this.safeString(dailyBar, "o") );
-                    put( "close", AlpacaCore.this.safeString(dailyBar, "c") );
-                    put( "last", AlpacaCore.this.safeString(latestTrade, "p") );
-                    put( "previousClose", AlpacaCore.this.safeString(prevDailyBar, "c") );
+                    put( "high", Alpaca.this.safeString(dailyBar, "h") );
+                    put( "low", Alpaca.this.safeString(dailyBar, "l") );
+                    put( "bid", Alpaca.this.safeString(latestQuote, "bp") );
+                    put( "bidVolume", Alpaca.this.safeString(latestQuote, "bs") );
+                    put( "ask", Alpaca.this.safeString(latestQuote, "ap") );
+                    put( "askVolume", Alpaca.this.safeString(latestQuote, "as") );
+                    put( "vwap", Alpaca.this.safeString(dailyBar, "vw") );
+                    put( "open", Alpaca.this.safeString(dailyBar, "o") );
+                    put( "close", Alpaca.this.safeString(dailyBar, "c") );
+                    put( "last", Alpaca.this.safeString(latestTrade, "p") );
+                    put( "previousClose", Alpaca.this.safeString(prevDailyBar, "c") );
                     put( "change", null );
                     put( "percentage", null );
                     put( "average", null );
-                    put( "baseVolume", AlpacaCore.this.safeString(dailyBar, "v") );
-                    put( "quoteVolume", Precise.stringMul(AlpacaCore.this.safeString(dailyBar, "v"), AlpacaCore.this.safeString(dailyBar, "vw")) );
+                    put( "baseVolume", Alpaca.this.safeString(dailyBar, "v") );
+                    put( "quoteVolume", Precise.stringMul(Alpaca.this.safeString(dailyBar, "v"), Alpaca.this.safeString(dailyBar, "vw")) );
                 }}, market);
                 ((java.util.List<Object>)results).add(ticker);
             }
@@ -1372,7 +1372,7 @@ public class AlpacaCore extends AlpacaApi
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", side, 0, null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -1400,7 +1400,7 @@ public class AlpacaCore extends AlpacaApi
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", "buy", 0, null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -1428,7 +1428,7 @@ public class AlpacaCore extends AlpacaApi
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -1759,7 +1759,7 @@ public class AlpacaCore extends AlpacaApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "open" );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -1788,7 +1788,7 @@ public class AlpacaCore extends AlpacaApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "closed" );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -1930,23 +1930,23 @@ public class AlpacaCore extends AlpacaApi
         final Object finalOrderType = orderType;
         final Object finalFee = fee;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", AlpacaCore.this.safeString(order, "id") );
-            put( "clientOrderId", AlpacaCore.this.safeString(order, "client_order_id") );
+            put( "id", Alpaca.this.safeString(order, "id") );
+            put( "clientOrderId", Alpaca.this.safeString(order, "client_order_id") );
             put( "timestamp", timestamp );
             put( "datetime", datetime );
             put( "lastTradeTimeStamp", null );
             put( "status", status );
             put( "symbol", symbol );
             put( "type", finalOrderType );
-            put( "timeInForce", AlpacaCore.this.parseTimeInForce(AlpacaCore.this.safeString(order, "time_in_force")) );
+            put( "timeInForce", Alpaca.this.parseTimeInForce(Alpaca.this.safeString(order, "time_in_force")) );
             put( "postOnly", null );
-            put( "side", AlpacaCore.this.safeString(order, "side") );
-            put( "price", AlpacaCore.this.safeNumber(order, "limit_price") );
-            put( "triggerPrice", AlpacaCore.this.safeNumber(order, "stop_price") );
+            put( "side", Alpaca.this.safeString(order, "side") );
+            put( "price", Alpaca.this.safeNumber(order, "limit_price") );
+            put( "triggerPrice", Alpaca.this.safeNumber(order, "stop_price") );
             put( "cost", null );
-            put( "average", AlpacaCore.this.safeNumber(order, "filled_avg_price") );
-            put( "amount", AlpacaCore.this.safeNumber(order, "qty") );
-            put( "filled", AlpacaCore.this.safeNumber(order, "filled_qty") );
+            put( "average", Alpaca.this.safeNumber(order, "filled_avg_price") );
+            put( "amount", Alpaca.this.safeNumber(order, "qty") );
+            put( "filled", Alpaca.this.safeNumber(order, "filled_qty") );
             put( "remaining", null );
             put( "trades", null );
             put( "fee", finalFee );
@@ -2102,11 +2102,11 @@ public class AlpacaCore extends AlpacaApi
         final Object finalSide = side;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", AlpacaCore.this.safeString2(trade, "i", "id") );
+            put( "id", Alpaca.this.safeString2(trade, "i", "id") );
             put( "timestamp", timestamp );
-            put( "datetime", AlpacaCore.this.iso8601(timestamp) );
+            put( "datetime", Alpaca.this.iso8601(timestamp) );
             put( "symbol", symbol );
-            put( "order", AlpacaCore.this.safeString(trade, "order_id") );
+            put( "order", Alpaca.this.safeString(trade, "order_id") );
             put( "type", null );
             put( "side", finalSide );
             put( "takerOrMaker", "taker" );
@@ -2173,7 +2173,7 @@ public class AlpacaCore extends AlpacaApi
             put( "info", depositAddress );
             put( "currency", finalParsedCurrency );
             put( "network", null );
-            put( "address", AlpacaCore.this.safeString(depositAddress, "address") );
+            put( "address", Alpaca.this.safeString(depositAddress, "address") );
             put( "tag", null );
         }};
     }
@@ -2214,7 +2214,7 @@ public class AlpacaCore extends AlpacaApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "address", finalAddress );
-                put( "amount", AlpacaCore.this.numberToString(amount) );
+                put( "amount", Alpaca.this.numberToString(amount) );
             }};
             java.util.Map<String, Object> response = (this.traderPrivatePostV2WalletsTransfers(this.extend(request, parameters))).join();
             //
@@ -2509,7 +2509,7 @@ public class AlpacaCore extends AlpacaApi
             String totalFee = Precise.stringAdd(fees, networkFee);
             final Object finalCode = code;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", AlpacaCore.this.parseNumber(totalFee) );
+                put( "cost", Alpaca.this.parseNumber(totalFee) );
                 put( "currency", finalCode );
             }};
         }
@@ -2529,7 +2529,7 @@ public class AlpacaCore extends AlpacaApi
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", AlpacaCore.this.safeString(transaction, "id") );
+            put( "id", Alpaca.this.safeString(transaction, "id") );
             put( "txid", finalTxid );
             put( "timestamp", finalTimestamp );
             put( "datetime", finalDatetime );

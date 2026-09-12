@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BitbnsCore extends BitbnsApi
+public class Bitbns extends BitbnsApi
 {
-   public BitbnsCore () {
+   public Bitbns () {
        super();
    }
 
-   public BitbnsCore (Object options) {
+   public Bitbns (Object options) {
        super(options);
    }
 
@@ -229,8 +229,8 @@ public class BitbnsCore extends BitbnsApi
                     put( "feeSide", "quote" );
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "taker", BitbnsCore.this.parseNumber("0.0025") );
-                    put( "maker", BitbnsCore.this.parseNumber("0.0025") );
+                    put( "taker", Bitbns.this.parseNumber("0.0025") );
+                    put( "maker", Bitbns.this.parseNumber("0.0025") );
                 }} );
             }} );
             put( "precisionMode", TICK_SIZE );
@@ -335,7 +335,7 @@ public class BitbnsCore extends BitbnsApi
             //
             String statusRaw = this.safeString(response, "status");
             return new java.util.HashMap<String, Object>() {{
-                put( "status", BitbnsCore.this.safeString(new java.util.HashMap<String, Object>() {{
+                put( "status", Bitbns.this.safeString(new java.util.HashMap<String, Object>() {{
                     put( "1", "ok" );
                 }}, statusRaw, statusRaw) );
                 put( "updated", null );
@@ -421,7 +421,7 @@ public class BitbnsCore extends BitbnsApi
                     put( "swap", false );
                     put( "future", false );
                     put( "option", false );
-                    put( "active", BitbnsCore.this.safeBool(market, "active") );
+                    put( "active", Bitbns.this.safeBool(market, "active") );
                     put( "contract", false );
                     put( "linear", null );
                     put( "inverse", null );
@@ -431,8 +431,8 @@ public class BitbnsCore extends BitbnsApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", BitbnsCore.this.parseNumber(BitbnsCore.this.parsePrecision(BitbnsCore.this.safeString(marketPrecision, "amount"))) );
-                        put( "price", BitbnsCore.this.parseNumber(BitbnsCore.this.parsePrecision(BitbnsCore.this.safeString(marketPrecision, "price"))) );
+                        put( "amount", Bitbns.this.parseNumber(Bitbns.this.parsePrecision(Bitbns.this.safeString(marketPrecision, "amount"))) );
+                        put( "price", Bitbns.this.parseNumber(Bitbns.this.parsePrecision(Bitbns.this.safeString(marketPrecision, "price"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -440,16 +440,16 @@ public class BitbnsCore extends BitbnsApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitbnsCore.this.safeNumber(amountLimits, "min") );
-                            put( "max", BitbnsCore.this.safeNumber(amountLimits, "max") );
+                            put( "min", Bitbns.this.safeNumber(amountLimits, "min") );
+                            put( "max", Bitbns.this.safeNumber(amountLimits, "max") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitbnsCore.this.safeNumber(priceLimits, "min") );
-                            put( "max", BitbnsCore.this.safeNumber(priceLimits, "max") );
+                            put( "min", Bitbns.this.safeNumber(priceLimits, "min") );
+                            put( "max", Bitbns.this.safeNumber(priceLimits, "max") );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitbnsCore.this.safeNumber(costLimits, "min") );
-                            put( "max", BitbnsCore.this.safeNumber(costLimits, "max") );
+                            put( "min", Bitbns.this.safeNumber(costLimits, "min") );
+                            put( "max", Bitbns.this.safeNumber(costLimits, "max") );
                         }} );
                     }} );
                     put( "created", null );
@@ -553,23 +553,23 @@ public class BitbnsCore extends BitbnsApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BitbnsCore.this.iso8601(timestamp) );
-            put( "high", BitbnsCore.this.safeString(ticker, "high") );
-            put( "low", BitbnsCore.this.safeString(ticker, "low") );
-            put( "bid", BitbnsCore.this.safeString(ticker, "bid") );
-            put( "bidVolume", BitbnsCore.this.safeString(ticker, "bidVolume") );
-            put( "ask", BitbnsCore.this.safeString(ticker, "ask") );
-            put( "askVolume", BitbnsCore.this.safeString(ticker, "askVolume") );
-            put( "vwap", BitbnsCore.this.safeString(ticker, "vwap") );
-            put( "open", BitbnsCore.this.safeString(ticker, "open") );
+            put( "datetime", Bitbns.this.iso8601(timestamp) );
+            put( "high", Bitbns.this.safeString(ticker, "high") );
+            put( "low", Bitbns.this.safeString(ticker, "low") );
+            put( "bid", Bitbns.this.safeString(ticker, "bid") );
+            put( "bidVolume", Bitbns.this.safeString(ticker, "bidVolume") );
+            put( "ask", Bitbns.this.safeString(ticker, "ask") );
+            put( "askVolume", Bitbns.this.safeString(ticker, "askVolume") );
+            put( "vwap", Bitbns.this.safeString(ticker, "vwap") );
+            put( "open", Bitbns.this.safeString(ticker, "open") );
             put( "close", last );
             put( "last", last );
-            put( "previousClose", BitbnsCore.this.safeString(ticker, "previousClose") );
-            put( "change", BitbnsCore.this.safeString(ticker, "change") );
-            put( "percentage", BitbnsCore.this.safeString(ticker, "percentage") );
-            put( "average", BitbnsCore.this.safeString(ticker, "average") );
-            put( "baseVolume", BitbnsCore.this.safeString(ticker, "baseVolume") );
-            put( "quoteVolume", BitbnsCore.this.safeString(ticker, "quoteVolume") );
+            put( "previousClose", Bitbns.this.safeString(ticker, "previousClose") );
+            put( "change", Bitbns.this.safeString(ticker, "change") );
+            put( "percentage", Bitbns.this.safeString(ticker, "percentage") );
+            put( "average", Bitbns.this.safeString(ticker, "average") );
+            put( "baseVolume", Bitbns.this.safeString(ticker, "baseVolume") );
+            put( "quoteVolume", Bitbns.this.safeString(ticker, "quoteVolume") );
             put( "info", ticker );
         }}, market);
     }
@@ -637,7 +637,7 @@ public class BitbnsCore extends BitbnsApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
-            put( "datetime", BitbnsCore.this.iso8601(timestamp) );
+            put( "datetime", Bitbns.this.iso8601(timestamp) );
         }};
         Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(data);
@@ -780,16 +780,16 @@ public class BitbnsCore extends BitbnsApi
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", null );
-            put( "timestamp", BitbnsCore.this.parse8601(datetime) );
+            put( "timestamp", Bitbns.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "lastTradeTimestamp", null );
-            put( "symbol", BitbnsCore.this.safeString(market, "symbol") );
+            put( "symbol", Bitbns.this.safeString(market, "symbol") );
             put( "timeInForce", null );
             put( "postOnly", null );
             put( "side", finalSide );
-            put( "price", BitbnsCore.this.safeString(order, "rate") );
+            put( "price", Bitbns.this.safeString(order, "rate") );
             put( "triggerPrice", triggerPrice );
-            put( "amount", BitbnsCore.this.safeString(order, "btc") );
+            put( "amount", Bitbns.this.safeString(order, "btc") );
             put( "cost", null );
             put( "average", null );
             put( "filled", null );
@@ -849,7 +849,7 @@ public class BitbnsCore extends BitbnsApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "side", ((String)finalSide).toUpperCase() );
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
-                put( "quantity", BitbnsCore.this.amountToPrecision(symbol, amount) );
+                put( "quantity", Bitbns.this.amountToPrecision(symbol, amount) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
@@ -1156,7 +1156,7 @@ public class BitbnsCore extends BitbnsApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BitbnsCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Bitbns.this.iso8601(finalTimestamp) );
             put( "symbol", symbol );
             put( "id", orderId );
             put( "order", orderId );
@@ -1486,7 +1486,7 @@ public class BitbnsCore extends BitbnsApi
             put( "id", null );
             put( "txid", null );
             put( "timestamp", timestamp );
-            put( "datetime", BitbnsCore.this.iso8601(timestamp) );
+            put( "datetime", Bitbns.this.iso8601(timestamp) );
             put( "network", null );
             put( "address", null );
             put( "addressTo", null );
@@ -1574,7 +1574,7 @@ public class BitbnsCore extends BitbnsApi
         {
             this.checkRequiredCredentials();
             headers = new java.util.HashMap<String, Object>() {{
-                put( "X-BITBNS-APIKEY", BitbnsCore.this.apiKey );
+                put( "X-BITBNS-APIKEY", Bitbns.this.apiKey );
             }};
         }
         String baseUrl = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api));

@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class ExtendedCore extends ExtendedApi
+public class Extended extends ExtendedApi
 {
-   public ExtendedCore () {
+   public Extended () {
        super();
    }
 
-   public ExtendedCore (Object options) {
+   public Extended (Object options) {
        super(options);
    }
 
@@ -407,8 +407,8 @@ public class ExtendedCore extends ExtendedApi
                 }} );
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
-                put( "taker", ExtendedCore.this.parseNumber("0.002") );
-                put( "maker", ExtendedCore.this.parseNumber("0.002") );
+                put( "taker", Extended.this.parseNumber("0.002") );
+                put( "maker", Extended.this.parseNumber("0.002") );
             }} );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
                 put( "apiKey", true );
@@ -772,8 +772,8 @@ public class ExtendedCore extends ExtendedApi
             put( "contract", !Helpers.isTrue(finalIsSpot) );
             put( "linear", finalLinear );
             put( "inverse", finalInverse );
-            put( "taker", ExtendedCore.this.safeNumber(ExtendedCore.this.fees, "taker") );
-            put( "maker", ExtendedCore.this.safeNumber(ExtendedCore.this.fees, "maker") );
+            put( "taker", Extended.this.safeNumber(Extended.this.fees, "taker") );
+            put( "maker", Extended.this.safeNumber(Extended.this.fees, "maker") );
             put( "contractSize", finalContractSize );
             put( "expiry", null );
             put( "expiryDatetime", null );
@@ -785,7 +785,7 @@ public class ExtendedCore extends ExtendedApi
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
-                    put( "min", ExtendedCore.this.parseNumber("1") );
+                    put( "min", Extended.this.parseNumber("1") );
                     put( "max", maxLeverage );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
@@ -895,14 +895,14 @@ public class ExtendedCore extends ExtendedApi
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", finalCurrencyId );
             put( "code", finalCode );
-            put( "numericId", ExtendedCore.this.safeInteger(currency, "id") );
+            put( "numericId", Extended.this.safeInteger(currency, "id") );
             put( "name", name );
             put( "active", isActive );
             put( "deposit", true );
             put( "withdraw", true );
             put( "precision", Helpers.mathPow(Double.parseDouble(Helpers.toString(10)), Double.parseDouble(Helpers.toString(Helpers.multiply(finalPrecision, Helpers.opNeg(1))))) );
             put( "type", "other" );
-            put( "margin", ExtendedCore.this.safeBool(currency, "canBeUsedAsCollateral") );
+            put( "margin", Extended.this.safeBool(currency, "canBeUsedAsCollateral") );
             put( "info", currency );
         }});
     }
@@ -1081,24 +1081,24 @@ public class ExtendedCore extends ExtendedApi
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", ExtendedCore.this.safeNumber(ticker, "dailyHigh") );
-            put( "low", ExtendedCore.this.safeNumber(ticker, "dailyLow") );
-            put( "bid", ExtendedCore.this.safeNumber(ticker, "bidPrice") );
+            put( "high", Extended.this.safeNumber(ticker, "dailyHigh") );
+            put( "low", Extended.this.safeNumber(ticker, "dailyLow") );
+            put( "bid", Extended.this.safeNumber(ticker, "bidPrice") );
             put( "bidVolume", null );
-            put( "ask", ExtendedCore.this.safeNumber(ticker, "askPrice") );
+            put( "ask", Extended.this.safeNumber(ticker, "askPrice") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
-            put( "change", ExtendedCore.this.safeNumber(ticker, "dailyPriceChange") );
+            put( "change", Extended.this.safeNumber(ticker, "dailyPriceChange") );
             put( "percentage", percentage );
             put( "average", null );
-            put( "baseVolume", ExtendedCore.this.safeNumber(ticker, "dailyVolumeBase") );
-            put( "quoteVolume", ExtendedCore.this.safeNumber(ticker, "dailyVolume") );
-            put( "markPrice", ExtendedCore.this.safeNumber(ticker, "markPrice") );
-            put( "indexPrice", ExtendedCore.this.safeNumber(ticker, "indexPrice") );
+            put( "baseVolume", Extended.this.safeNumber(ticker, "dailyVolumeBase") );
+            put( "quoteVolume", Extended.this.safeNumber(ticker, "dailyVolume") );
+            put( "markPrice", Extended.this.safeNumber(ticker, "markPrice") );
+            put( "indexPrice", Extended.this.safeNumber(ticker, "indexPrice") );
             put( "info", ticker );
         }}, market);
     }
@@ -1415,10 +1415,10 @@ public class ExtendedCore extends ExtendedApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "code", Helpers.GetValue(finalMarket, "settle") );
             put( "timestamp", timestamp );
-            put( "datetime", ExtendedCore.this.iso8601(timestamp) );
-            put( "id", ExtendedCore.this.safeString(history, "id") );
-            put( "amount", ExtendedCore.this.safeNumber(history, "fundingFee") );
-            put( "rate", ExtendedCore.this.safeNumber(history, "fundingRate") );
+            put( "datetime", Extended.this.iso8601(timestamp) );
+            put( "id", Extended.this.safeString(history, "id") );
+            put( "amount", Extended.this.safeNumber(history, "fundingFee") );
+            put( "rate", Extended.this.safeNumber(history, "fundingRate") );
         }};
     }
 
@@ -1492,18 +1492,18 @@ public class ExtendedCore extends ExtendedApi
         }
         final Object finalTakerOrMaker = takerOrMaker;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", ExtendedCore.this.safeString2(trade, "i", "id") );
+            put( "id", Extended.this.safeString2(trade, "i", "id") );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", ExtendedCore.this.iso8601(timestamp) );
+            put( "datetime", Extended.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "order", ExtendedCore.this.safeString(trade, "orderId") );
+            put( "order", Extended.this.safeString(trade, "orderId") );
             put( "type", null );
             put( "side", side );
             put( "takerOrMaker", finalTakerOrMaker );
             put( "price", priceString );
             put( "amount", amountString );
-            put( "cost", ExtendedCore.this.safeString(trade, "value") );
+            put( "cost", Extended.this.safeString(trade, "value") );
             put( "fee", fee );
         }}, market);
     }
@@ -1556,7 +1556,7 @@ public class ExtendedCore extends ExtendedApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "candleType", finalCandleType );
-                put( "interval", ExtendedCore.this.safeString(ExtendedCore.this.timeframes, timeframe, timeframe) );
+                put( "interval", Extended.this.safeString(Extended.this.timeframes, timeframe, timeframe) );
                 put( "limit", ((Helpers.isTrue((!Helpers.isEqual(finalLimit, null))))) ? finalLimit : 100 );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -1717,9 +1717,9 @@ public class ExtendedCore extends ExtendedApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "fundingRate", ExtendedCore.this.safeNumber(info, "f") );
+            put( "fundingRate", Extended.this.safeNumber(info, "f") );
             put( "timestamp", timestamp );
-            put( "datetime", ExtendedCore.this.iso8601(timestamp) );
+            put( "datetime", Extended.this.iso8601(timestamp) );
         }};
     }
 
@@ -1804,13 +1804,13 @@ public class ExtendedCore extends ExtendedApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(interest, "t");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", ExtendedCore.this.safeString(market, "symbol") );
-            put( "openInterestAmount", ExtendedCore.this.safeNumber(interest, "I") );
-            put( "openInterestValue", ExtendedCore.this.safeNumber(interest, "i") );
-            put( "baseVolume", ExtendedCore.this.safeNumber(interest, "I") );
-            put( "quoteVolume", ExtendedCore.this.safeNumber(interest, "i") );
+            put( "symbol", Extended.this.safeString(market, "symbol") );
+            put( "openInterestAmount", Extended.this.safeNumber(interest, "I") );
+            put( "openInterestValue", Extended.this.safeNumber(interest, "i") );
+            put( "baseVolume", Extended.this.safeNumber(interest, "I") );
+            put( "quoteVolume", Extended.this.safeNumber(interest, "i") );
             put( "timestamp", timestamp );
-            put( "datetime", ExtendedCore.this.iso8601(timestamp) );
+            put( "datetime", Extended.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -1981,7 +1981,7 @@ public class ExtendedCore extends ExtendedApi
         }
         final Object finalType = type;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", ExtendedCore.this.safeString2(account, "accountId", "id") );
+            put( "id", Extended.this.safeString2(account, "accountId", "id") );
             put( "type", finalType );
             put( "code", null );
             put( "info", account );
@@ -2084,7 +2084,7 @@ public class ExtendedCore extends ExtendedApi
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", ExtendedCore.this.parseNumber(Precise.stringAbs(finalFeeCost)) );
+                put( "cost", Extended.this.parseNumber(Precise.stringAbs(finalFeeCost)) );
             }};
         }
         final Object finalDirection = direction;
@@ -2092,19 +2092,19 @@ public class ExtendedCore extends ExtendedApi
         final Object finalFee = fee;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", ExtendedCore.this.safeString(item, "id") );
+            put( "id", Extended.this.safeString(item, "id") );
             put( "timestamp", timestamp );
-            put( "datetime", ExtendedCore.this.iso8601(timestamp) );
+            put( "datetime", Extended.this.iso8601(timestamp) );
             put( "direction", finalDirection );
-            put( "account", ExtendedCore.this.safeString(item, "accountId") );
-            put( "referenceId", ExtendedCore.this.safeString(item, "transactionHash") );
-            put( "referenceAccount", ExtendedCore.this.safeString(item, "counterpartyAccountId") );
-            put( "type", ExtendedCore.this.parseTransactionType(ExtendedCore.this.safeString(item, "type")) );
+            put( "account", Extended.this.safeString(item, "accountId") );
+            put( "referenceId", Extended.this.safeString(item, "transactionHash") );
+            put( "referenceAccount", Extended.this.safeString(item, "counterpartyAccountId") );
+            put( "type", Extended.this.parseTransactionType(Extended.this.safeString(item, "type")) );
             put( "currency", code );
-            put( "amount", ((Helpers.isTrue((Helpers.isEqual(finalAmountString, null))))) ? null : ExtendedCore.this.parseNumber(Precise.stringAbs(finalAmountString)) );
+            put( "amount", ((Helpers.isTrue((Helpers.isEqual(finalAmountString, null))))) ? null : Extended.this.parseNumber(Precise.stringAbs(finalAmountString)) );
             put( "before", null );
             put( "after", null );
-            put( "status", ExtendedCore.this.parseTransactionStatus(ExtendedCore.this.safeString(item, "status")) );
+            put( "status", Extended.this.parseTransactionStatus(Extended.this.safeString(item, "status")) );
             put( "fee", finalFee );
         }}, ledgerCurrency);
     }
@@ -2215,9 +2215,9 @@ public class ExtendedCore extends ExtendedApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchTransactions(code, since, limit, this.extend(new java.util.HashMap<String, Object>() {{
+            return (this.fetchTransactions((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "type", "DEPOSIT" );
-            }}, parameters))).join();
+            }}, parameters)))).join();
         });
 
     }
@@ -2243,9 +2243,9 @@ public class ExtendedCore extends ExtendedApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchTransactions(code, since, limit, this.extend(new java.util.HashMap<String, Object>() {{
+            return (this.fetchTransactions((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "type", "WITHDRAWAL" );
-            }}, parameters))).join();
+            }}, parameters)))).join();
         });
 
     }
@@ -2306,10 +2306,10 @@ public class ExtendedCore extends ExtendedApi
             Long now = this.milliseconds();
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "id", ExtendedCore.this.safeString(response, "data") );
+                put( "id", Extended.this.safeString(response, "data") );
                 put( "txid", null );
                 put( "timestamp", now );
-                put( "datetime", ExtendedCore.this.iso8601(now) );
+                put( "datetime", Extended.this.iso8601(now) );
                 put( "address", address );
                 put( "addressFrom", null );
                 put( "addressTo", address );
@@ -2317,7 +2317,7 @@ public class ExtendedCore extends ExtendedApi
                 put( "tagFrom", null );
                 put( "tagTo", tag );
                 put( "type", "withdrawal" );
-                put( "amount", ExtendedCore.this.parseNumber(amountString) );
+                put( "amount", Extended.this.parseNumber(amountString) );
                 put( "currency", Helpers.GetValue(currency, "code") );
                 put( "status", "pending" );
                 put( "updated", now );
@@ -2469,11 +2469,11 @@ public class ExtendedCore extends ExtendedApi
             final Object finalStatus = status;
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "id", ExtendedCore.this.safeString(data, "id") );
+                put( "id", Extended.this.safeString(data, "id") );
                 put( "timestamp", now );
-                put( "datetime", ExtendedCore.this.iso8601(now) );
+                put( "datetime", Extended.this.iso8601(now) );
                 put( "currency", Helpers.GetValue(currency, "code") );
-                put( "amount", ExtendedCore.this.parseNumber(amountString) );
+                put( "amount", Extended.this.parseNumber(amountString) );
                 put( "fromAccount", finalFromAccount );
                 put( "toAccount", finalToAccount );
                 put( "status", finalStatus );
@@ -2513,9 +2513,9 @@ public class ExtendedCore extends ExtendedApi
         final Object finalStatus = status;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", ExtendedCore.this.safeString(transfer, "id") );
+            put( "id", Extended.this.safeString(transfer, "id") );
             put( "timestamp", timestamp );
-            put( "datetime", ExtendedCore.this.iso8601(timestamp) );
+            put( "datetime", Extended.this.iso8601(timestamp) );
             put( "currency", code );
             put( "amount", amount );
             put( "fromAccount", finalFromAccount );
@@ -2599,7 +2599,7 @@ public class ExtendedCore extends ExtendedApi
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", ExtendedCore.this.parseNumber(Precise.stringAbs(finalFeeCost)) );
+                put( "cost", Extended.this.parseNumber(Precise.stringAbs(finalFeeCost)) );
             }};
         }
         String transactionType = this.parseTransactionType(this.safeString(transaction, "type"));
@@ -2608,10 +2608,10 @@ public class ExtendedCore extends ExtendedApi
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", ExtendedCore.this.safeString(transaction, "id") );
-            put( "txid", ExtendedCore.this.safeString(transaction, "transactionHash") );
+            put( "id", Extended.this.safeString(transaction, "id") );
+            put( "txid", Extended.this.safeString(transaction, "transactionHash") );
             put( "timestamp", timestamp );
-            put( "datetime", ExtendedCore.this.iso8601(timestamp) );
+            put( "datetime", Extended.this.iso8601(timestamp) );
             put( "address", null );
             put( "addressFrom", null );
             put( "addressTo", null );
@@ -2621,7 +2621,7 @@ public class ExtendedCore extends ExtendedApi
             put( "type", finalTransactionType );
             put( "amount", amount );
             put( "currency", code );
-            put( "status", ExtendedCore.this.parseTransactionStatus(ExtendedCore.this.safeString(transaction, "status")) );
+            put( "status", Extended.this.parseTransactionStatus(Extended.this.safeString(transaction, "status")) );
             put( "updated", timestamp );
             put( "fee", finalFee );
             put( "network", network );
@@ -2737,8 +2737,8 @@ public class ExtendedCore extends ExtendedApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "maker", ExtendedCore.this.safeNumber(fee, "makerFeeRate") );
-            put( "taker", ExtendedCore.this.safeNumber(fee, "takerFeeRate") );
+            put( "maker", Extended.this.safeNumber(fee, "makerFeeRate") );
+            put( "taker", Extended.this.safeNumber(fee, "takerFeeRate") );
             put( "percentage", true );
             put( "tierBased", null );
         }};
@@ -2807,7 +2807,7 @@ public class ExtendedCore extends ExtendedApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
-                put( "leverage", ExtendedCore.this.numberToString(leverage) );
+                put( "leverage", Extended.this.numberToString(leverage) );
             }};
             java.util.Map<String, Object> response = (this.v1PrivatePatchUserLeverage(this.extend(request, parameters))).join();
             //
@@ -2919,7 +2919,7 @@ public class ExtendedCore extends ExtendedApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object positions = (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object positions = (this.fetchPositions((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(positions, 0);
         });
 
@@ -3054,33 +3054,33 @@ public class ExtendedCore extends ExtendedApi
         final Object finalLastUpdateTimestamp = lastUpdateTimestamp;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", ExtendedCore.this.safeString(position, "id") );
+            put( "id", Extended.this.safeString(position, "id") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", ExtendedCore.this.iso8601(timestamp) );
+            put( "datetime", Extended.this.iso8601(timestamp) );
             put( "lastUpdateTimestamp", finalLastUpdateTimestamp );
             put( "initialMargin", margin );
             put( "initialMarginPercentage", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "entryPrice", ExtendedCore.this.safeString(position, "openPrice") );
-            put( "notional", ExtendedCore.this.safeString(position, "value") );
-            put( "leverage", ExtendedCore.this.safeString(position, "leverage") );
-            put( "unrealizedPnl", ExtendedCore.this.safeString(position, "unrealisedPnl") );
-            put( "realizedPnl", ExtendedCore.this.safeString(position, "realisedPnl") );
-            put( "contracts", ExtendedCore.this.safeString(position, "size") );
-            put( "contractSize", ExtendedCore.this.safeString(finalMarket, "contractSize") );
+            put( "entryPrice", Extended.this.safeString(position, "openPrice") );
+            put( "notional", Extended.this.safeString(position, "value") );
+            put( "leverage", Extended.this.safeString(position, "leverage") );
+            put( "unrealizedPnl", Extended.this.safeString(position, "unrealisedPnl") );
+            put( "realizedPnl", Extended.this.safeString(position, "realisedPnl") );
+            put( "contracts", Extended.this.safeString(position, "size") );
+            put( "contractSize", Extended.this.safeString(finalMarket, "contractSize") );
             put( "marginRatio", null );
-            put( "liquidationPrice", ExtendedCore.this.safeString(position, "liquidationPrice") );
-            put( "markPrice", ExtendedCore.this.safeString(position, "markPrice") );
-            put( "lastPrice", ExtendedCore.this.safeString(position, "exitPrice") );
+            put( "liquidationPrice", Extended.this.safeString(position, "liquidationPrice") );
+            put( "markPrice", Extended.this.safeString(position, "markPrice") );
+            put( "lastPrice", Extended.this.safeString(position, "exitPrice") );
             put( "collateral", margin );
             put( "marginMode", null );
             put( "side", side );
             put( "percentage", null );
             put( "hedged", null );
-            put( "stopLossPrice", ExtendedCore.this.safeString(position, "slTriggerPrice") );
-            put( "takeProfitPrice", ExtendedCore.this.safeString(position, "tpTriggerPrice") );
+            put( "stopLossPrice", Extended.this.safeString(position, "slTriggerPrice") );
+            put( "takeProfitPrice", Extended.this.safeString(position, "tpTriggerPrice") );
         }});
     }
 
@@ -3152,7 +3152,7 @@ public class ExtendedCore extends ExtendedApi
             put( "quoteAmount", finalCollateralAmount );
             put( "feeAssetId", collateralId );
             put( "feeAmount", feeAmount );
-            put( "expiration", ExtendedCore.this.numberToString(settlementExpiration) );
+            put( "expiration", Extended.this.numberToString(settlementExpiration) );
             put( "salt", nonce );
         }};
         Object msgHash = this.getExtendedOrderMsgHash(settlement);
@@ -3196,8 +3196,8 @@ public class ExtendedCore extends ExtendedApi
         Object msgHash = this.getExtendedWithdrawalMsgHash(settlement, starkKey);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         Helpers.addElementToObject(settlement, "signature", new java.util.HashMap<String, Object>() {{
-    put( "r", ExtendedCore.this.getExtendedSignatureHex(Helpers.GetValue(sig, 0)) );
-    put( "s", ExtendedCore.this.getExtendedSignatureHex(Helpers.GetValue(sig, 1)) );
+    put( "r", Extended.this.getExtendedSignatureHex(Helpers.GetValue(sig, 0)) );
+    put( "s", Extended.this.getExtendedSignatureHex(Helpers.GetValue(sig, 1)) );
 }});
         return settlement;
     }
@@ -3234,8 +3234,8 @@ public class ExtendedCore extends ExtendedApi
         Object msgHash = this.getExtendedTransferMsgHash(settlement);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         Helpers.addElementToObject(settlement, "signature", new java.util.HashMap<String, Object>() {{
-    put( "r", ExtendedCore.this.getExtendedSignatureHex(Helpers.GetValue(sig, 0)) );
-    put( "s", ExtendedCore.this.getExtendedSignatureHex(Helpers.GetValue(sig, 1)) );
+    put( "r", Extended.this.getExtendedSignatureHex(Helpers.GetValue(sig, 0)) );
+    put( "s", Extended.this.getExtendedSignatureHex(Helpers.GetValue(sig, 1)) );
 }});
         return settlement;
     }
@@ -3400,8 +3400,8 @@ public class ExtendedCore extends ExtendedApi
                     String stopLossType = this.safeString(stopLoss, "type");
                     Object stopLossSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), stopLossExecutionPrice, settlementParams);
                     java.util.Map<String, Object> requestStopLoss = new java.util.HashMap<String, Object>() {{
-                        put( "triggerPrice", ExtendedCore.this.priceToPrecision(symbol, stopLossTrigger) );
-                        put( "price", ExtendedCore.this.priceToPrecision(symbol, stopLossExecutionPrice) );
+                        put( "triggerPrice", Extended.this.priceToPrecision(symbol, stopLossTrigger) );
+                        put( "price", Extended.this.priceToPrecision(symbol, stopLossExecutionPrice) );
                         put( "settlement", new java.util.HashMap<String, Object>() {{
                             put( "signature", new java.util.HashMap<String, Object>() {{
                                 put( "r", Helpers.GetValue(stopLossSettlement, "r") );
@@ -3429,8 +3429,8 @@ public class ExtendedCore extends ExtendedApi
                     String takeProfitType = this.safeString(takeProfit, "type");
                     Object takeProfitSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), takeProfitExecutionPrice, settlementParams);
                     java.util.Map<String, Object> requestTakeProfit = new java.util.HashMap<String, Object>() {{
-                        put( "triggerPrice", ExtendedCore.this.priceToPrecision(symbol, takeProfitTrigger) );
-                        put( "price", ExtendedCore.this.priceToPrecision(symbol, takeProfitExecutionPrice) );
+                        put( "triggerPrice", Extended.this.priceToPrecision(symbol, takeProfitTrigger) );
+                        put( "price", Extended.this.priceToPrecision(symbol, takeProfitExecutionPrice) );
                         put( "settlement", new java.util.HashMap<String, Object>() {{
                             put( "signature", new java.util.HashMap<String, Object>() {{
                                 put( "r", Helpers.GetValue(takeProfitSettlement, "r") );
@@ -3461,7 +3461,7 @@ public class ExtendedCore extends ExtendedApi
                     }
                     final Object finalTriggerPriceStr = triggerPriceStr;
                     java.util.Map<String, Object> trigger = new java.util.HashMap<String, Object>() {{
-                        put( "triggerPrice", ExtendedCore.this.priceToPrecision(symbol, finalTriggerPriceStr) );
+                        put( "triggerPrice", Extended.this.priceToPrecision(symbol, finalTriggerPriceStr) );
                     }};
                     Helpers.addElementToObject(trigger, "direction", triggerDirection);
                     Helpers.addElementToObject(request, "type", "CONDITIONAL");
@@ -3471,7 +3471,7 @@ public class ExtendedCore extends ExtendedApi
                     triggerPriceStr = ((Helpers.isTrue(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
                     final Object finalTriggerPriceStr_2 = triggerPriceStr;
                     java.util.Map<String, Object> trigger = new java.util.HashMap<String, Object>() {{
-                        put( "triggerPrice", ExtendedCore.this.priceToPrecision(symbol, finalTriggerPriceStr_2) );
+                        put( "triggerPrice", Extended.this.priceToPrecision(symbol, finalTriggerPriceStr_2) );
                     }};
                     if (Helpers.isTrue(isBuy))
                     {
@@ -3488,7 +3488,7 @@ public class ExtendedCore extends ExtendedApi
             final Object finalParameters = parameters;
             final Object finalNow = now;
             return new java.util.HashMap<String, Object>() {{
-                put( "request", ExtendedCore.this.extend(request, finalParameters) );
+                put( "request", Extended.this.extend(request, finalParameters) );
                 put( "market", market );
                 put( "timestamp", finalNow );
                 put( "clientOrderId", clientOrderId );
@@ -3850,7 +3850,7 @@ public class ExtendedCore extends ExtendedApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "countdownTime", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ((Object) ExtendedCore.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
+                put( "countdownTime", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ((Object) Extended.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
             }};
             String response = (this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters))).join();
             //
@@ -4099,7 +4099,7 @@ public class ExtendedCore extends ExtendedApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object orders = (this.fetchOrders(symbol, since, null, parameters)).join();
+            Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
             Object closedOrders = this.filterBy(orders, "status", "closed");
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         });
@@ -4127,7 +4127,7 @@ public class ExtendedCore extends ExtendedApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object orders = (this.fetchOrders(symbol, since, null, parameters)).join();
+            Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
             Object canceledOrders = this.filterBy(orders, "status", "canceled");
             return this.filterBySymbolSinceLimit(canceledOrders, symbol, since, limit);
         });
@@ -4212,25 +4212,25 @@ public class ExtendedCore extends ExtendedApi
         }};
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", ExtendedCore.this.safeString(order, "id") );
-            put( "clientOrderId", ExtendedCore.this.safeString(order, "externalId") );
+            put( "id", Extended.this.safeString(order, "id") );
+            put( "clientOrderId", Extended.this.safeString(order, "externalId") );
             put( "timestamp", timestamp );
-            put( "datetime", ExtendedCore.this.iso8601(timestamp) );
+            put( "datetime", Extended.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", type );
-            put( "timeInForce", ExtendedCore.this.safeString(order, "timeInForce") );
-            put( "postOnly", ExtendedCore.this.safeBool(order, "postOnly") );
-            put( "reduceOnly", ExtendedCore.this.safeBool(order, "reduceOnly") );
+            put( "timeInForce", Extended.this.safeString(order, "timeInForce") );
+            put( "postOnly", Extended.this.safeBool(order, "postOnly") );
+            put( "reduceOnly", Extended.this.safeBool(order, "reduceOnly") );
             put( "side", side );
-            put( "price", ExtendedCore.this.safeString(order, "price") );
-            put( "triggerPrice", ExtendedCore.this.safeString(trigger, "triggerPrice") );
-            put( "takeProfitPrice", ExtendedCore.this.safeString(takeProfit, "triggerPrice") );
-            put( "stopLossPrice", ExtendedCore.this.safeString(stopLoss, "triggerPrice") );
+            put( "price", Extended.this.safeString(order, "price") );
+            put( "triggerPrice", Extended.this.safeString(trigger, "triggerPrice") );
+            put( "takeProfitPrice", Extended.this.safeString(takeProfit, "triggerPrice") );
+            put( "stopLossPrice", Extended.this.safeString(stopLoss, "triggerPrice") );
             put( "amount", amount );
             put( "cost", null );
-            put( "average", ExtendedCore.this.safeString(order, "averagePrice") );
+            put( "average", Extended.this.safeString(order, "averagePrice") );
             put( "filled", filled );
             put( "remaining", null );
             put( "status", status );
@@ -4390,7 +4390,7 @@ public class ExtendedCore extends ExtendedApi
                 throw new AuthenticationError(Helpers.add(this.id, " sign() requires an apiKey for private endpoints")) ;
             }
             headers = new java.util.HashMap<String, Object>() {{
-                put( "X-Api-Key", ExtendedCore.this.apiKey );
+                put( "X-Api-Key", Extended.this.apiKey );
             }};
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(method, "POST"))) || Helpers.isTrue((Helpers.isEqual(method, "PATCH"))))) && !Helpers.isTrue(queryPost)))
             {

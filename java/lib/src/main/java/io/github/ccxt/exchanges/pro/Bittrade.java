@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
+public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 {
-   public BittradeCore () {
+   public Bittrade () {
        super();
    }
 
-   public BittradeCore (Object options) {
+   public Bittrade (Object options) {
        super(options);
    }
 
@@ -86,7 +86,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             String messageHash = Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".detail");
             String api = this.safeString(this.options, "api", "api");
             java.util.Map<String, Object> hostname = new java.util.HashMap<String, Object>() {{
-                put( "hostname", BittradeCore.this.hostname );
+                put( "hostname", Bittrade.this.hostname );
             }};
             Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
             Object requestId = this.requestId();
@@ -172,7 +172,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             String messageHash = Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
             String api = this.safeString(this.options, "api", "api");
             java.util.Map<String, Object> hostname = new java.util.HashMap<String, Object>() {{
-                put( "hostname", BittradeCore.this.hostname );
+                put( "hostname", Bittrade.this.hostname );
             }};
             Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
             Object requestId = this.requestId();
@@ -276,7 +276,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             String messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
             String api = this.safeString(this.options, "api", "api");
             java.util.Map<String, Object> hostname = new java.util.HashMap<String, Object>() {{
-                put( "hostname", BittradeCore.this.hostname );
+                put( "hostname", Bittrade.this.hostname );
             }};
             Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
             Object requestId = this.requestId();
@@ -376,7 +376,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             String messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".mbp."), String.valueOf(limit));
             String api = this.safeString(this.options, "api", "api");
             java.util.Map<String, Object> hostname = new java.util.HashMap<String, Object>() {{
-                put( "hostname", BittradeCore.this.hostname );
+                put( "hostname", Bittrade.this.hostname );
             }};
             Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
             Object requestId = this.requestId();
@@ -456,7 +456,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
                 Object parameters = this.safeValue(subscription, "params");
                 String api = this.safeString(this.options, "api", "api");
                 java.util.Map<String, Object> hostname = new java.util.HashMap<String, Object>() {{
-                    put( "hostname", BittradeCore.this.hostname );
+                    put( "hostname", Bittrade.this.hostname );
                 }};
                 Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
                 Object requestId = this.requestId();
@@ -700,7 +700,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             //     { ping: 1583491673714 }
             //
             (client.send(new java.util.HashMap<String, Object>() {{
-                put( "pong", BittradeCore.this.safeInteger(message, "ping") );
+                put( "pong", Bittrade.this.safeInteger(message, "ping") );
             }})).join();
             return null;
         });

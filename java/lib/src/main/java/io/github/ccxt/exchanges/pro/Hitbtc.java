@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
+public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
 {
-   public HitbtcCore () {
+   public Hitbtc () {
        super();
    }
 
-   public HitbtcCore (Object options) {
+   public Hitbtc (Object options) {
        super(options);
    }
 
@@ -118,7 +118,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                     put( "method", "login" );
                     put( "params", new java.util.HashMap<String, Object>() {{
                         put( "type", "HS256" );
-                        put( "api_key", HitbtcCore.this.apiKey );
+                        put( "api_key", Hitbtc.this.apiKey );
                         put( "timestamp", timestamp );
                         put( "signature", signature );
                     }} );
@@ -165,7 +165,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             }
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
-                put( "id", HitbtcCore.this.nonce() );
+                put( "id", Hitbtc.this.nonce() );
                 put( "ch", name );
             }};
             java.util.Map<String, Object> request = this.extend(subscribe, parameters);
@@ -203,7 +203,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", parameters );
-                put( "id", HitbtcCore.this.nonce() );
+                put( "id", Hitbtc.this.nonce() );
             }};
             return (this.watch(url, messageHash, subscribe, messageHash, null)).join();
         });
@@ -387,7 +387,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object ticker = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object ticker = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(ticker, symbol);
         });
 
@@ -553,23 +553,23 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", HitbtcCore.this.iso8601(timestamp) );
-            put( "high", HitbtcCore.this.safeString(ticker, "h") );
-            put( "low", HitbtcCore.this.safeString(ticker, "l") );
-            put( "bid", HitbtcCore.this.safeString(ticker, "b") );
-            put( "bidVolume", HitbtcCore.this.safeString(ticker, "B") );
-            put( "ask", HitbtcCore.this.safeString(ticker, "a") );
-            put( "askVolume", HitbtcCore.this.safeString(ticker, "A") );
+            put( "datetime", Hitbtc.this.iso8601(timestamp) );
+            put( "high", Hitbtc.this.safeString(ticker, "h") );
+            put( "low", Hitbtc.this.safeString(ticker, "l") );
+            put( "bid", Hitbtc.this.safeString(ticker, "b") );
+            put( "bidVolume", Hitbtc.this.safeString(ticker, "B") );
+            put( "ask", Hitbtc.this.safeString(ticker, "a") );
+            put( "askVolume", Hitbtc.this.safeString(ticker, "A") );
             put( "vwap", null );
-            put( "open", HitbtcCore.this.safeString(ticker, "o") );
+            put( "open", Hitbtc.this.safeString(ticker, "o") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", HitbtcCore.this.safeString(ticker, "v") );
-            put( "quoteVolume", HitbtcCore.this.safeString(ticker, "q") );
+            put( "baseVolume", Hitbtc.this.safeString(ticker, "v") );
+            put( "quoteVolume", Hitbtc.this.safeString(ticker, "q") );
             put( "info", ticker );
         }}, market);
     }
@@ -668,11 +668,11 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", bidAskSymbol );
             put( "timestamp", timestamp );
-            put( "datetime", HitbtcCore.this.iso8601(timestamp) );
-            put( "ask", HitbtcCore.this.safeString(ticker, "a") );
-            put( "askVolume", HitbtcCore.this.safeString(ticker, "A") );
-            put( "bid", HitbtcCore.this.safeString(ticker, "b") );
-            put( "bidVolume", HitbtcCore.this.safeString(ticker, "B") );
+            put( "datetime", Hitbtc.this.iso8601(timestamp) );
+            put( "ask", Hitbtc.this.safeString(ticker, "a") );
+            put( "askVolume", Hitbtc.this.safeString(ticker, "A") );
+            put( "bid", Hitbtc.this.safeString(ticker, "b") );
+            put( "bidVolume", Hitbtc.this.safeString(ticker, "B") );
             put( "info", ticker );
         }}, market);
     }
@@ -820,16 +820,16 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         Long timestamp = this.safeInteger(trade, "t");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", HitbtcCore.this.safeString(trade, "i") );
+            put( "id", Hitbtc.this.safeString(trade, "i") );
             put( "order", null );
             put( "timestamp", timestamp );
-            put( "datetime", HitbtcCore.this.iso8601(timestamp) );
-            put( "symbol", HitbtcCore.this.safeString(market, "symbol") );
+            put( "datetime", Hitbtc.this.iso8601(timestamp) );
+            put( "symbol", Hitbtc.this.safeString(market, "symbol") );
             put( "type", null );
-            put( "side", HitbtcCore.this.safeString(trade, "s") );
+            put( "side", Hitbtc.this.safeString(trade, "s") );
             put( "takerOrMaker", null );
-            put( "price", HitbtcCore.this.safeString(trade, "p") );
-            put( "amount", HitbtcCore.this.safeString(trade, "q") );
+            put( "price", Hitbtc.this.safeString(trade, "p") );
+            put( "amount", Hitbtc.this.safeString(trade, "q") );
             put( "cost", null );
             put( "fee", null );
         }}, market);
@@ -1149,19 +1149,19 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         String marketId = this.safeString(trade, "symbol");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", HitbtcCore.this.safeString(trade, "trade_id") );
-            put( "order", HitbtcCore.this.safeString(trade, "id") );
+            put( "id", Hitbtc.this.safeString(trade, "trade_id") );
+            put( "order", Hitbtc.this.safeString(trade, "id") );
             put( "timestamp", timestamp );
-            put( "datetime", HitbtcCore.this.iso8601(timestamp) );
-            put( "symbol", HitbtcCore.this.safeMarket(marketId, market) );
+            put( "datetime", Hitbtc.this.iso8601(timestamp) );
+            put( "symbol", Hitbtc.this.safeMarket(marketId, market) );
             put( "type", null );
-            put( "side", HitbtcCore.this.safeString(trade, "side") );
-            put( "takerOrMaker", HitbtcCore.this.safeString(trade, "trade_taker") );
-            put( "price", HitbtcCore.this.safeString(trade, "trade_price") );
-            put( "amount", HitbtcCore.this.safeString(trade, "trade_quantity") );
+            put( "side", Hitbtc.this.safeString(trade, "side") );
+            put( "takerOrMaker", Hitbtc.this.safeString(trade, "trade_taker") );
+            put( "price", Hitbtc.this.safeString(trade, "trade_price") );
+            put( "amount", Hitbtc.this.safeString(trade, "trade_quantity") );
             put( "cost", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "cost", HitbtcCore.this.safeString(trade, "trade_fee") );
+                put( "cost", Hitbtc.this.safeString(trade, "trade_fee") );
                 put( "currency", null );
                 put( "rate", null );
             }} );
@@ -1222,19 +1222,19 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         final Object finalTrades = trades;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", HitbtcCore.this.safeString(order, "id") );
-            put( "clientOrderId", HitbtcCore.this.safeString(order, "client_order_id") );
+            put( "id", Hitbtc.this.safeString(order, "id") );
+            put( "clientOrderId", Hitbtc.this.safeString(order, "client_order_id") );
             put( "timestamp", timestamp );
-            put( "datetime", HitbtcCore.this.iso8601(timestamp) );
+            put( "datetime", Hitbtc.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "price", HitbtcCore.this.safeString(order, "price") );
-            put( "amount", HitbtcCore.this.safeString(order, "quantity") );
-            put( "type", HitbtcCore.this.safeString(order, "type") );
-            put( "side", HitbtcCore.this.safeStringUpper(order, "side") );
-            put( "timeInForce", HitbtcCore.this.safeString(order, "time_in_force") );
-            put( "postOnly", HitbtcCore.this.safeString(order, "post_only") );
-            put( "reduceOnly", HitbtcCore.this.safeValue(order, "reduce_only") );
+            put( "price", Hitbtc.this.safeString(order, "price") );
+            put( "amount", Hitbtc.this.safeString(order, "quantity") );
+            put( "type", Hitbtc.this.safeString(order, "type") );
+            put( "side", Hitbtc.this.safeStringUpper(order, "side") );
+            put( "timeInForce", Hitbtc.this.safeString(order, "time_in_force") );
+            put( "postOnly", Hitbtc.this.safeString(order, "post_only") );
+            put( "reduceOnly", Hitbtc.this.safeValue(order, "reduce_only") );
             put( "filled", null );
             put( "remaining", null );
             put( "cost", null );

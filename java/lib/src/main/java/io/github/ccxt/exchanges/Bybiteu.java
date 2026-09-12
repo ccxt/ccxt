@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BybiteuCore extends BybiteuApi
+public class Bybiteu extends BybiteuApi
 {
-   public BybiteuCore () {
+   public Bybiteu () {
        super();
    }
 
-   public BybiteuCore (Object options) {
+   public Bybiteu (Object options) {
        super(options);
    }
 

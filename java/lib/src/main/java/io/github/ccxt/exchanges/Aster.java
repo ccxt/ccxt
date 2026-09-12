@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class AsterCore extends AsterApi
+public class Aster extends AsterApi
 {
-   public AsterCore () {
+   public Aster () {
        super();
    }
 
-   public AsterCore (Object options) {
+   public Aster (Object options) {
        super(options);
    }
 
@@ -788,8 +788,8 @@ public class AsterCore extends AsterApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "maker", AsterCore.this.parseNumber("0.0001") );
-                    put( "taker", AsterCore.this.parseNumber("0.00035") );
+                    put( "maker", Aster.this.parseNumber("0.0001") );
+                    put( "taker", Aster.this.parseNumber("0.00035") );
                 }} );
             }} );
             put( "features", new java.util.HashMap<String, Object>() {{
@@ -1192,7 +1192,7 @@ public class AsterCore extends AsterApi
             put( "withdraw", null );
             put( "fee", null );
             put( "precision", null );
-            put( "margin", AsterCore.this.safeBool(rawCurrency, "marginAvailable") );
+            put( "margin", Aster.this.safeBool(rawCurrency, "marginAvailable") );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -1422,8 +1422,8 @@ public class AsterCore extends AsterApi
             put( "contract", isContract );
             put( "linear", finalLinear );
             put( "inverse", finalInverse );
-            put( "taker", Helpers.GetValue(Helpers.GetValue(AsterCore.this.fees, "trading"), "taker") );
-            put( "maker", Helpers.GetValue(Helpers.GetValue(AsterCore.this.fees, "trading"), "maker") );
+            put( "taker", Helpers.GetValue(Helpers.GetValue(Aster.this.fees, "trading"), "taker") );
+            put( "maker", Helpers.GetValue(Helpers.GetValue(Aster.this.fees, "trading"), "maker") );
             put( "contractSize", finalContractSize );
             put( "expiry", null );
             put( "expiryDatetime", null );
@@ -1432,8 +1432,8 @@ public class AsterCore extends AsterApi
             put( "precision", new java.util.HashMap<String, Object>() {{
                 put( "amount", amountPrecision );
                 put( "price", finalPricePrecision );
-                put( "base", AsterCore.this.parseNumber(AsterCore.this.parsePrecision(AsterCore.this.safeString(market, "baseAssetPrecision"))) );
-                put( "quote", AsterCore.this.parseNumber(AsterCore.this.parsePrecision(AsterCore.this.safeString(market, "quotePrecision"))) );
+                put( "base", Aster.this.parseNumber(Aster.this.parsePrecision(Aster.this.safeString(market, "baseAssetPrecision"))) );
+                put( "quote", Aster.this.parseNumber(Aster.this.parsePrecision(Aster.this.safeString(market, "quotePrecision"))) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -1441,23 +1441,23 @@ public class AsterCore extends AsterApi
                     put( "max", null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", AsterCore.this.safeNumber(finalFilterLotSize, "minQty") );
-                    put( "max", AsterCore.this.safeNumber(finalFilterLotSize, "maxQty") );
+                    put( "min", Aster.this.safeNumber(finalFilterLotSize, "minQty") );
+                    put( "max", Aster.this.safeNumber(finalFilterLotSize, "maxQty") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", AsterCore.this.safeNumber(filterPrice, "minPrice") );
-                    put( "max", AsterCore.this.safeNumber(filterPrice, "maxPrice") );
+                    put( "min", Aster.this.safeNumber(filterPrice, "minPrice") );
+                    put( "max", Aster.this.safeNumber(filterPrice, "maxPrice") );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", AsterCore.this.safeNumber2(filterNotional, "notional", "minNotional") );
+                    put( "min", Aster.this.safeNumber2(filterNotional, "notional", "minNotional") );
                     put( "max", null );
                 }} );
                 put( "market", new java.util.HashMap<String, Object>() {{
-                    put( "min", AsterCore.this.safeNumber(filterMarketLotSize, "minQty") );
-                    put( "max", AsterCore.this.safeNumber(filterMarketLotSize, "maxQty") );
+                    put( "min", Aster.this.safeNumber(filterMarketLotSize, "minQty") );
+                    put( "max", Aster.this.safeNumber(filterMarketLotSize, "maxQty") );
                 }} );
             }} );
-            put( "created", AsterCore.this.safeInteger2(market, "listingTime", "createTime") );
+            put( "created", Aster.this.safeInteger2(market, "listingTime", "createTime") );
             put( "info", market );
         }});
     }
@@ -1687,9 +1687,9 @@ public class AsterCore extends AsterApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", AsterCore.this.iso8601(timestamp) );
+            put( "datetime", Aster.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "order", AsterCore.this.safeString(trade, "orderId") );
+            put( "order", Aster.this.safeString(trade, "orderId") );
             put( "type", null );
             put( "side", finalSide );
             put( "takerOrMaker", finalTakerOrMaker );
@@ -1697,7 +1697,7 @@ public class AsterCore extends AsterApi
             put( "amount", amountString );
             put( "cost", costString );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "cost", AsterCore.this.parseNumber(Precise.stringAbs(AsterCore.this.safeString(trade, "commission"))) );
+                put( "cost", Aster.this.parseNumber(Precise.stringAbs(Aster.this.safeString(trade, "commission"))) );
                 put( "currency", currencyCode );
             }} );
         }}, market);
@@ -1987,13 +1987,13 @@ public class AsterCore extends AsterApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", AsterCore.this.iso8601(timestamp) );
+            put( "datetime", Aster.this.iso8601(timestamp) );
             put( "high", high );
             put( "low", low );
-            put( "bid", AsterCore.this.safeString(ticker, "bidPrice") );
-            put( "bidVolume", AsterCore.this.safeString(ticker, "bidQty") );
-            put( "ask", AsterCore.this.safeString(ticker, "askPrice") );
-            put( "askVolume", AsterCore.this.safeString(ticker, "askQty") );
+            put( "bid", Aster.this.safeString(ticker, "bidPrice") );
+            put( "bidVolume", Aster.this.safeString(ticker, "bidQty") );
+            put( "ask", Aster.this.safeString(ticker, "askPrice") );
+            put( "askVolume", Aster.this.safeString(ticker, "askQty") );
             put( "vwap", null );
             put( "open", open );
             put( "close", last );
@@ -2226,10 +2226,10 @@ public class AsterCore extends AsterApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(entry, "time");
         return new java.util.HashMap<String, Object>() {{
-            put( "symbol", AsterCore.this.safeString(market, "symbol") );
+            put( "symbol", Aster.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", AsterCore.this.iso8601(timestamp) );
-            put( "price", AsterCore.this.safeNumberOmitZero(entry, "price") );
+            put( "datetime", Aster.this.iso8601(timestamp) );
+            put( "price", Aster.this.safeNumberOmitZero(entry, "price") );
             put( "side", null );
             put( "info", entry );
         }};
@@ -2330,19 +2330,19 @@ public class AsterCore extends AsterApi
         final Object finalIntervalString = intervalString;
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", AsterCore.this.safeSymbol(marketId, market, null, "contract") );
-            put( "markPrice", AsterCore.this.safeNumber(contract, "markPrice") );
-            put( "indexPrice", AsterCore.this.safeNumber(contract, "indexPrice") );
-            put( "interestRate", AsterCore.this.safeNumber(contract, "interestRate") );
-            put( "estimatedSettlePrice", AsterCore.this.safeNumber(contract, "estimatedSettlePrice") );
+            put( "symbol", Aster.this.safeSymbol(marketId, market, null, "contract") );
+            put( "markPrice", Aster.this.safeNumber(contract, "markPrice") );
+            put( "indexPrice", Aster.this.safeNumber(contract, "indexPrice") );
+            put( "interestRate", Aster.this.safeNumber(contract, "interestRate") );
+            put( "estimatedSettlePrice", Aster.this.safeNumber(contract, "estimatedSettlePrice") );
             put( "timestamp", timestamp );
-            put( "datetime", AsterCore.this.iso8601(timestamp) );
-            put( "fundingRate", AsterCore.this.safeNumber(contract, "lastFundingRate") );
+            put( "datetime", Aster.this.iso8601(timestamp) );
+            put( "fundingRate", Aster.this.safeNumber(contract, "lastFundingRate") );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", nextFundingTimestamp );
-            put( "nextFundingDatetime", AsterCore.this.iso8601(nextFundingTimestamp) );
+            put( "nextFundingDatetime", Aster.this.iso8601(nextFundingTimestamp) );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
@@ -2549,10 +2549,10 @@ public class AsterCore extends AsterApi
         Long timestamp = this.safeInteger(contract, "fundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", AsterCore.this.safeSymbol(AsterCore.this.safeString(contract, "symbol"), null, null, "swap") );
-            put( "fundingRate", AsterCore.this.safeNumber(contract, "fundingRate") );
+            put( "symbol", Aster.this.safeSymbol(Aster.this.safeString(contract, "symbol"), null, null, "swap") );
+            put( "fundingRate", Aster.this.safeNumber(contract, "fundingRate") );
             put( "timestamp", timestamp );
-            put( "datetime", AsterCore.this.iso8601(timestamp) );
+            put( "datetime", Aster.this.iso8601(timestamp) );
         }};
     }
 
@@ -2685,7 +2685,7 @@ public class AsterCore extends AsterApi
             //
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "hedged", AsterCore.this.safeBool(response, "dualSidePosition") );
+                put( "hedged", Aster.this.safeBool(response, "dualSidePosition") );
             }};
         });
 
@@ -2732,8 +2732,8 @@ public class AsterCore extends AsterApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", AsterCore.this.safeNumber(fee, "makerCommissionRate") );
-            put( "taker", AsterCore.this.safeNumber(fee, "takerCommissionRate") );
+            put( "maker", Aster.this.safeNumber(fee, "makerCommissionRate") );
+            put( "taker", Aster.this.safeNumber(fee, "takerCommissionRate") );
             put( "percentage", false );
             put( "tierBased", false );
         }};
@@ -2878,28 +2878,28 @@ public class AsterCore extends AsterApi
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "id", AsterCore.this.safeString(order, "orderId") );
-            put( "clientOrderId", AsterCore.this.safeString(order, "clientOrderId") );
-            put( "symbol", AsterCore.this.safeSymbol(marketId, finalMarket) );
+            put( "id", Aster.this.safeString(order, "orderId") );
+            put( "clientOrderId", Aster.this.safeString(order, "clientOrderId") );
+            put( "symbol", Aster.this.safeSymbol(marketId, finalMarket) );
             put( "timestamp", timestamp );
-            put( "datetime", AsterCore.this.iso8601(timestamp) );
+            put( "datetime", Aster.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", AsterCore.this.safeInteger(order, "updateTime") );
-            put( "type", AsterCore.this.parseOrderType(rawType) );
-            put( "timeInForce", AsterCore.this.safeString(order, "timeInForce") );
+            put( "lastUpdateTimestamp", Aster.this.safeInteger(order, "updateTime") );
+            put( "type", Aster.this.parseOrderType(rawType) );
+            put( "timeInForce", Aster.this.safeString(order, "timeInForce") );
             put( "postOnly", null );
             put( "side", side );
-            put( "price", AsterCore.this.safeString(order, "price") );
+            put( "price", Aster.this.safeString(order, "price") );
             put( "triggerPrice", triggerPrice );
-            put( "average", AsterCore.this.safeString(order, "avgPrice") );
-            put( "cost", AsterCore.this.safeString(order, "cumQuote") );
-            put( "amount", AsterCore.this.safeString(order, "origQty") );
-            put( "filled", AsterCore.this.safeString(order, "executedQty") );
+            put( "average", Aster.this.safeString(order, "avgPrice") );
+            put( "cost", Aster.this.safeString(order, "cumQuote") );
+            put( "amount", Aster.this.safeString(order, "origQty") );
+            put( "filled", Aster.this.safeString(order, "executedQty") );
             put( "remaining", null );
-            put( "status", AsterCore.this.parseOrderStatus(statusId) );
+            put( "status", Aster.this.parseOrderStatus(statusId) );
             put( "fee", null );
             put( "trades", null );
-            put( "reduceOnly", AsterCore.this.safeBool2(order, "reduceOnly", "ro") );
+            put( "reduceOnly", Aster.this.safeBool2(order, "reduceOnly", "ro") );
         }}, market);
     }
 
@@ -3887,7 +3887,7 @@ public class AsterCore extends AsterApi
         final Object finalShortLeverage = shortLeverage;
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", AsterCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Aster.this.safeSymbol(marketId, market) );
             put( "marginMode", marginMode );
             put( "longLeverage", finalLongLeverage );
             put( "shortLeverage", finalShortLeverage );
@@ -3967,8 +3967,8 @@ public class AsterCore extends AsterApi
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", AsterCore.this.safeString(finalMarket, "symbol") );
-            put( "marginMode", AsterCore.this.safeStringLower(marginMode, "marginType") );
+            put( "symbol", Aster.this.safeString(finalMarket, "symbol") );
+            put( "marginMode", Aster.this.safeStringLower(marginMode, "marginType") );
         }};
     }
 
@@ -4076,12 +4076,12 @@ public class AsterCore extends AsterApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", ((Helpers.isTrue((Helpers.isEqual(finalRawType, 1))))) ? "add" : "reduce" );
             put( "marginMode", "isolated" );
-            put( "amount", AsterCore.this.safeNumber(data, "amount") );
-            put( "code", AsterCore.this.safeString(data, "asset") );
+            put( "amount", Aster.this.safeNumber(data, "amount") );
+            put( "code", Aster.this.safeString(data, "asset") );
             put( "total", null );
             put( "status", ((Helpers.isTrue((Helpers.isTrue(finalSuccess) || Helpers.isTrue(noErrorCode))))) ? "ok" : "failed" );
             put( "timestamp", timestamp );
-            put( "datetime", AsterCore.this.iso8601(timestamp) );
+            put( "datetime", Aster.this.iso8601(timestamp) );
         }};
     }
 
@@ -4179,12 +4179,12 @@ public class AsterCore extends AsterApi
         Long timestamp = this.safeInteger(income, "time");
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", AsterCore.this.safeSymbol(marketId, market, null, "swap") );
-            put( "code", AsterCore.this.safeCurrencyCode(currencyId) );
+            put( "symbol", Aster.this.safeSymbol(marketId, market, null, "swap") );
+            put( "code", Aster.this.safeCurrencyCode(currencyId) );
             put( "timestamp", timestamp );
-            put( "datetime", AsterCore.this.iso8601(timestamp) );
-            put( "id", AsterCore.this.safeString(income, "tranId") );
-            put( "amount", AsterCore.this.safeNumber(income, "income") );
+            put( "datetime", Aster.this.iso8601(timestamp) );
+            put( "id", Aster.this.safeString(income, "tranId") );
+            put( "amount", Aster.this.safeNumber(income, "income") );
         }};
     }
 
@@ -4272,16 +4272,16 @@ public class AsterCore extends AsterApi
         final Object finalAmount = amount;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", AsterCore.this.safeString(item, "tranId") );
+            put( "id", Aster.this.safeString(item, "tranId") );
             put( "direction", finalDirection );
             put( "account", null );
             put( "referenceAccount", null );
-            put( "referenceId", AsterCore.this.safeString(item, "tradeId") );
-            put( "type", AsterCore.this.parseLedgerEntryType(type) );
+            put( "referenceId", Aster.this.safeString(item, "tradeId") );
+            put( "type", Aster.this.parseLedgerEntryType(type) );
             put( "currency", code );
-            put( "amount", AsterCore.this.parseNumber(finalAmount) );
+            put( "amount", Aster.this.parseNumber(finalAmount) );
             put( "timestamp", timestamp );
-            put( "datetime", AsterCore.this.iso8601(timestamp) );
+            put( "datetime", Aster.this.iso8601(timestamp) );
             put( "before", null );
             put( "after", null );
             put( "status", null );
@@ -4545,19 +4545,19 @@ public class AsterCore extends AsterApi
             put( "contracts", contracts );
             put( "contractSize", contractSize );
             put( "unrealizedPnl", unrealizedPnl );
-            put( "leverage", AsterCore.this.parseNumber(finalLeverageString) );
+            put( "leverage", Aster.this.parseNumber(finalLeverageString) );
             put( "liquidationPrice", liquidationPrice );
             put( "collateral", collateral );
             put( "notional", notional );
             put( "markPrice", markPrice );
             put( "entryPrice", entryPrice );
             put( "timestamp", finalTimestamp );
-            put( "initialMargin", AsterCore.this.parseNumber(finalInitialMarginString) );
-            put( "initialMarginPercentage", AsterCore.this.parseNumber(finalInitialMarginPercentageString) );
+            put( "initialMargin", Aster.this.parseNumber(finalInitialMarginString) );
+            put( "initialMarginPercentage", Aster.this.parseNumber(finalInitialMarginPercentageString) );
             put( "maintenanceMargin", maintenanceMargin );
             put( "maintenanceMarginPercentage", maintenanceMarginPercentage );
             put( "marginRatio", finalMarginRatio );
-            put( "datetime", AsterCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Aster.this.iso8601(finalTimestamp) );
             put( "marginMode", finalMarginMode );
             put( "side", finalSide );
             put( "hedged", hedged );
@@ -4664,7 +4664,7 @@ public class AsterCore extends AsterApi
             }
             if (Helpers.isTrue(Helpers.isEqual(defaultMethod, "positionRisk")))
             {
-                return (this.fetchPositionsRisk(symbols, parameters)).join();
+                return (this.fetchPositionsRisk((Object)(symbols), (Object)(parameters))).join();
             } else if (Helpers.isTrue(Helpers.isEqual(defaultMethod, "account")))
             {
                 return (this.fetchAccountPositions(symbols, parameters)).join();
@@ -4902,14 +4902,14 @@ public class AsterCore extends AsterApi
             put( "id", null );
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
-            put( "datetime", AsterCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Aster.this.iso8601(finalTimestamp) );
             put( "initialMargin", initialMargin );
-            put( "initialMarginPercentage", AsterCore.this.parseNumber(finalInitialMarginPercentageString) );
+            put( "initialMarginPercentage", Aster.this.parseNumber(finalInitialMarginPercentageString) );
             put( "maintenanceMargin", maintenanceMargin );
             put( "maintenanceMarginPercentage", maintenanceMarginPercentage );
             put( "entryPrice", finalEntryPrice );
             put( "notional", notional );
-            put( "leverage", AsterCore.this.parseNumber(finalLeverageString) );
+            put( "leverage", Aster.this.parseNumber(finalLeverageString) );
             put( "unrealizedPnl", unrealizedPnl );
             put( "contracts", contracts );
             put( "contractSize", contractSize );
@@ -5039,7 +5039,7 @@ public class AsterCore extends AsterApi
         java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
             put( "chainId", chainId );
             put( "name", "Aster" );
-            put( "verifyingContract", AsterCore.this.safeString(AsterCore.this.options, "zeroAddress") );
+            put( "verifyingContract", Aster.this.safeString(Aster.this.options, "zeroAddress") );
             put( "version", "1" );
         }};
         java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
@@ -5071,12 +5071,12 @@ public class AsterCore extends AsterApi
         }};
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "type", "Withdraw" );
-            put( "destination", AsterCore.this.safeString(withdrawPayload, "receiver") );
+            put( "destination", Aster.this.safeString(withdrawPayload, "receiver") );
             put( "destination Chain", network );
-            put( "token", AsterCore.this.safeString(withdrawPayload, "asset") );
-            put( "amount", AsterCore.this.safeString(withdrawPayload, "amount") );
-            put( "fee", AsterCore.this.safeString(withdrawPayload, "fee") );
-            put( "nonce", AsterCore.this.safeInteger(withdrawPayload, "userNonce") );
+            put( "token", Aster.this.safeString(withdrawPayload, "asset") );
+            put( "amount", Aster.this.safeString(withdrawPayload, "amount") );
+            put( "fee", Aster.this.safeString(withdrawPayload, "fee") );
+            put( "nonce", Aster.this.safeInteger(withdrawPayload, "userNonce") );
             put( "aster chain", "Mainnet" );
         }};
         Object msg = this.ethEncodeStructuredData(domain, messageTypes, request);
@@ -5158,8 +5158,8 @@ public class AsterCore extends AsterApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", AsterCore.this.safeString(transaction, "withdrawId") );
-            put( "txid", AsterCore.this.safeString(transaction, "hash") );
+            put( "id", Aster.this.safeString(transaction, "withdrawId") );
+            put( "txid", Aster.this.safeString(transaction, "hash") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "network", null );
@@ -5205,7 +5205,7 @@ public class AsterCore extends AsterApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
-                put( "amount", AsterCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Aster.this.currencyToPrecision(code, amount) );
             }};
             String type = null;
             Object fromId = null;
@@ -5245,14 +5245,14 @@ public class AsterCore extends AsterApi
         String currencyId = this.safeString(transfer, "code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", AsterCore.this.safeString(transfer, "tranId") );
+            put( "id", Aster.this.safeString(transfer, "tranId") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", AsterCore.this.safeCurrencyCode(currencyId, currency) );
+            put( "currency", Aster.this.safeCurrencyCode(currencyId, currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
-            put( "status", AsterCore.this.parseTransferStatus(AsterCore.this.safeString(transfer, "status")) );
+            put( "status", Aster.this.parseTransferStatus(Aster.this.safeString(transfer, "status")) );
         }};
     }
 
@@ -5522,10 +5522,10 @@ public class AsterCore extends AsterApi
                 try
                 {
                     java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                        put( "builder", AsterCore.this.safeString(AsterCore.this.options, "builder") );
-                        put( "builderName", AsterCore.this.safeString(AsterCore.this.options, "builderName", "ccxt") );
-                        put( "maxFeeRate", AsterCore.this.safeString(AsterCore.this.options, "builderRate") );
-                        put( "signatureChainId", AsterCore.this.safeInteger(AsterCore.this.options, "v3ChainId", 1666) );
+                        put( "builder", Aster.this.safeString(Aster.this.options, "builder") );
+                        put( "builderName", Aster.this.safeString(Aster.this.options, "builderName", "ccxt") );
+                        put( "maxFeeRate", Aster.this.safeString(Aster.this.options, "builderRate") );
+                        put( "signatureChainId", Aster.this.safeInteger(Aster.this.options, "v3ChainId", 1666) );
                         put( "asterChain", "Mainnet" );
                     }};
                     java.util.Map<String, Object> authResponse = (this.fapiPrivatePostV3ApproveBuilder(this.extend(request, parameters))).join();

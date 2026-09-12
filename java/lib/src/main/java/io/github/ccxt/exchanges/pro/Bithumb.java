@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
+public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 {
-   public BithumbCore () {
+   public Bithumb () {
        super();
    }
 
-   public BithumbCore (Object options) {
+   public Bithumb (Object options) {
        super(options);
    }
 
@@ -122,7 +122,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             {
                 Object marketIdRequest = this.getGen2MarketId(market);
                 request = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
-        put( "ticket", BithumbCore.this.uuid() );
+        put( "ticket", Bithumb.this.uuid() );
     }}, this.extend(new java.util.HashMap<String, Object>() {{
         put( "type", "ticker" );
         put( "codes", new java.util.ArrayList<Object>(java.util.Arrays.asList(marketIdRequest)) );
@@ -201,7 +201,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             if (Helpers.isTrue(isGenerationTwo))
             {
                 message = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
-        put( "ticket", BithumbCore.this.uuid() );
+        put( "ticket", Bithumb.this.uuid() );
     }}, this.extend(new java.util.HashMap<String, Object>() {{
         put( "type", "ticker" );
         put( "codes", streamMarketIds );
@@ -399,25 +399,25 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         String marketId = this.safeString(ticker, "symbol");
         final Object finalTimestamp = timestamp;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", BithumbCore.this.safeSymbol(marketId, market, "_") );
+            put( "symbol", Bithumb.this.safeSymbol(marketId, market, "_") );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BithumbCore.this.iso8601(finalTimestamp) );
-            put( "high", BithumbCore.this.safeString(ticker, "highPrice") );
-            put( "low", BithumbCore.this.safeString(ticker, "lowPrice") );
+            put( "datetime", Bithumb.this.iso8601(finalTimestamp) );
+            put( "high", Bithumb.this.safeString(ticker, "highPrice") );
+            put( "low", Bithumb.this.safeString(ticker, "lowPrice") );
             put( "bid", null );
-            put( "bidVolume", BithumbCore.this.safeString(ticker, "buyVolume") );
+            put( "bidVolume", Bithumb.this.safeString(ticker, "buyVolume") );
             put( "ask", null );
-            put( "askVolume", BithumbCore.this.safeString(ticker, "sellVolume") );
+            put( "askVolume", Bithumb.this.safeString(ticker, "sellVolume") );
             put( "vwap", null );
-            put( "open", BithumbCore.this.safeString(ticker, "openPrice") );
-            put( "close", BithumbCore.this.safeString(ticker, "closePrice") );
+            put( "open", Bithumb.this.safeString(ticker, "openPrice") );
+            put( "close", Bithumb.this.safeString(ticker, "closePrice") );
             put( "last", null );
-            put( "previousClose", BithumbCore.this.safeString(ticker, "prevClosePrice") );
-            put( "change", BithumbCore.this.safeString(ticker, "chgAmt") );
-            put( "percentage", BithumbCore.this.safeString(ticker, "chgRate") );
+            put( "previousClose", Bithumb.this.safeString(ticker, "prevClosePrice") );
+            put( "change", Bithumb.this.safeString(ticker, "chgAmt") );
+            put( "percentage", Bithumb.this.safeString(ticker, "chgRate") );
             put( "average", null );
-            put( "baseVolume", BithumbCore.this.safeString(ticker, "volume") );
-            put( "quoteVolume", BithumbCore.this.safeString(ticker, "value") );
+            put( "baseVolume", Bithumb.this.safeString(ticker, "volume") );
+            put( "quoteVolume", Bithumb.this.safeString(ticker, "value") );
             put( "info", ticker );
         }}, market);
     }
@@ -462,7 +462,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             {
                 Object marketIdRequest = this.getGen2MarketId(market);
                 request = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
-        put( "ticket", BithumbCore.this.uuid() );
+        put( "ticket", Bithumb.this.uuid() );
     }}, this.extend(new java.util.HashMap<String, Object>() {{
         put( "type", "orderbook" );
         put( "codes", new java.util.ArrayList<Object>(java.util.Arrays.asList(marketIdRequest)) );
@@ -674,7 +674,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             {
                 Object marketIdRequest = this.getGen2MarketId(market);
                 request = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
-        put( "ticket", BithumbCore.this.uuid() );
+        put( "ticket", Bithumb.this.uuid() );
     }}, this.extend(new java.util.HashMap<String, Object>() {{
         put( "type", "trade" );
         put( "codes", new java.util.ArrayList<Object>(java.util.Arrays.asList(marketIdRequest)) );
@@ -829,15 +829,15 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             put( "id", null );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BithumbCore.this.iso8601(timestamp) );
-            put( "symbol", BithumbCore.this.safeSymbol(marketId, market, "_") );
+            put( "datetime", Bithumb.this.iso8601(timestamp) );
+            put( "symbol", Bithumb.this.safeSymbol(marketId, market, "_") );
             put( "order", null );
             put( "type", null );
             put( "side", ((Helpers.isTrue((Helpers.isEqual(finalSideId, "1"))))) ? "buy" : "sell" );
             put( "takerOrMaker", null );
-            put( "price", BithumbCore.this.safeString(trade, "contPrice") );
-            put( "amount", BithumbCore.this.safeString(trade, "contQty") );
-            put( "cost", BithumbCore.this.safeString(trade, "contAmt") );
+            put( "price", Bithumb.this.safeString(trade, "contPrice") );
+            put( "amount", Bithumb.this.safeString(trade, "contQty") );
+            put( "cost", Bithumb.this.safeString(trade, "contAmt") );
             put( "fee", null );
         }}, market);
     }
@@ -1015,9 +1015,9 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
-                    put( "access_key", BithumbCore.this.apiKey );
-                    put( "nonce", BithumbCore.this.uuid() );
-                    put( "timestamp", BithumbCore.this.milliseconds() );
+                    put( "access_key", Bithumb.this.apiKey );
+                    put( "nonce", Bithumb.this.uuid() );
+                    put( "timestamp", Bithumb.this.milliseconds() );
                 }};
                 Object jwtToken = jwt(payload, this.encode(this.secret), sha256());
                 Helpers.addElementToObject(wsOptions, "token", jwtToken);
@@ -1222,11 +1222,11 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         final Object finalFee = fee;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", BithumbCore.this.safeString2(order, "uuid", "order_id") );
+            put( "id", Bithumb.this.safeString2(order, "uuid", "order_id") );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", BithumbCore.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", BithumbCore.this.safeInteger(order, "trade_timestamp") );
+            put( "datetime", Bithumb.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", Bithumb.this.safeInteger(order, "trade_timestamp") );
             put( "symbol", symbol );
             put( "type", finalType );
             put( "timeInForce", null );

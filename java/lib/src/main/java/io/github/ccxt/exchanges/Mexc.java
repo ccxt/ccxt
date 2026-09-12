@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class MexcCore extends MexcApi
+public class Mexc extends MexcApi
 {
-   public MexcCore () {
+   public Mexc () {
        super();
    }
 
-   public MexcCore (Object options) {
+   public Mexc (Object options) {
        super(options);
    }
 
@@ -958,8 +958,8 @@ public class MexcCore extends MexcApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "maker", MexcCore.this.parseNumber("0.002") );
-                    put( "taker", MexcCore.this.parseNumber("0.002") );
+                    put( "maker", Mexc.this.parseNumber("0.002") );
+                    put( "taker", Mexc.this.parseNumber("0.002") );
                 }} );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
@@ -1534,17 +1534,17 @@ public class MexcCore extends MexcApi
     put( "id", networkId );
     put( "network", finalNetwork );
     put( "active", null );
-    put( "deposit", MexcCore.this.safeBool(chain, "depositEnable", false) );
-    put( "withdraw", MexcCore.this.safeBool(chain, "withdrawEnable", false) );
-    put( "fee", MexcCore.this.safeNumber(chain, "withdrawFee") );
+    put( "deposit", Mexc.this.safeBool(chain, "depositEnable", false) );
+    put( "withdraw", Mexc.this.safeBool(chain, "withdrawEnable", false) );
+    put( "fee", Mexc.this.safeNumber(chain, "withdrawFee") );
     put( "precision", null );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", MexcCore.this.safeString(chain, "withdrawMin") );
-            put( "max", MexcCore.this.safeString(chain, "withdrawMax") );
+            put( "min", Mexc.this.safeString(chain, "withdrawMin") );
+            put( "max", Mexc.this.safeString(chain, "withdrawMax") );
         }} );
     }} );
-    put( "contract", MexcCore.this.safeString(chain, "contract") );
+    put( "contract", Mexc.this.safeString(chain, "contract") );
 }});
             }
         }
@@ -1552,7 +1552,7 @@ public class MexcCore extends MexcApi
             put( "info", rawCurrency );
             put( "id", id );
             put( "code", code );
-            put( "name", MexcCore.this.safeString(rawCurrency, "name") );
+            put( "name", Mexc.this.safeString(rawCurrency, "name") );
             put( "active", null );
             put( "deposit", null );
             put( "withdraw", null );
@@ -1706,8 +1706,8 @@ public class MexcCore extends MexcApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", MexcCore.this.parseNumber(MexcCore.this.parsePrecision(MexcCore.this.safeString(market, "baseAssetPrecision"))) );
-                        put( "price", MexcCore.this.parseNumber(MexcCore.this.parsePrecision(MexcCore.this.safeString(market, "quoteAssetPrecision"))) );
+                        put( "amount", Mexc.this.parseNumber(Mexc.this.parsePrecision(Mexc.this.safeString(market, "baseAssetPrecision"))) );
+                        put( "price", Mexc.this.parseNumber(Mexc.this.parsePrecision(Mexc.this.safeString(market, "quoteAssetPrecision"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -1715,7 +1715,7 @@ public class MexcCore extends MexcApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", MexcCore.this.safeNumber(market, "baseSizePrecision") );
+                            put( "min", Mexc.this.safeNumber(market, "baseSizePrecision") );
                             put( "max", null );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
@@ -1723,7 +1723,7 @@ public class MexcCore extends MexcApi
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", MexcCore.this.safeNumber(market, "quoteAmountPrecision") );
+                            put( "min", Mexc.this.safeNumber(market, "quoteAmountPrecision") );
                             put( "max", maxQuoteAmount );
                         }} );
                     }} );
@@ -1835,25 +1835,25 @@ public class MexcCore extends MexcApi
                     put( "contract", true );
                     put( "linear", isLinear );
                     put( "inverse", !Helpers.isTrue(isLinear) );
-                    put( "taker", MexcCore.this.safeNumber(market, "takerFeeRate") );
-                    put( "maker", MexcCore.this.safeNumber(market, "makerFeeRate") );
-                    put( "contractSize", MexcCore.this.safeNumber(market, "contractSize") );
+                    put( "taker", Mexc.this.safeNumber(market, "takerFeeRate") );
+                    put( "maker", Mexc.this.safeNumber(market, "makerFeeRate") );
+                    put( "contractSize", Mexc.this.safeNumber(market, "contractSize") );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", MexcCore.this.safeNumber(market, "volUnit") );
-                        put( "price", MexcCore.this.safeNumber(market, "priceUnit") );
+                        put( "amount", Mexc.this.safeNumber(market, "volUnit") );
+                        put( "price", Mexc.this.safeNumber(market, "priceUnit") );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", MexcCore.this.safeNumber(market, "minLeverage") );
-                            put( "max", MexcCore.this.safeNumber(market, "maxLeverage") );
+                            put( "min", Mexc.this.safeNumber(market, "minLeverage") );
+                            put( "max", Mexc.this.safeNumber(market, "maxLeverage") );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", MexcCore.this.safeNumber(market, "minVol") );
-                            put( "max", MexcCore.this.safeNumber(market, "maxVol") );
+                            put( "min", Mexc.this.safeNumber(market, "minVol") );
+                            put( "max", Mexc.this.safeNumber(market, "maxVol") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
@@ -2167,8 +2167,8 @@ public class MexcCore extends MexcApi
                 amountString = this.safeString(trade, "vol");
                 side = this.parseOrderSide(this.safeString(trade, "side"));
                 fee = new java.util.HashMap<String, Object>() {{
-                    put( "cost", MexcCore.this.safeString(trade, "fee") );
-                    put( "currency", MexcCore.this.safeCurrencyCode(MexcCore.this.safeString(trade, "feeCurrency")) );
+                    put( "cost", Mexc.this.safeString(trade, "fee") );
+                    put( "currency", Mexc.this.safeCurrencyCode(Mexc.this.safeString(trade, "feeCurrency")) );
                 }};
                 Boolean isTaker = (Helpers.isEqual(this.safeBool(trade, "taker"), true));
                 takerOrMaker = ((Helpers.isTrue(isTaker))) ? "taker" : "maker";
@@ -2198,8 +2198,8 @@ public class MexcCore extends MexcApi
                 {
                     final Object finalFeeAsset = feeAsset;
                     fee = new java.util.HashMap<String, Object>() {{
-                        put( "cost", MexcCore.this.safeString(trade, "commission") );
-                        put( "currency", MexcCore.this.safeCurrencyCode(finalFeeAsset) );
+                        put( "cost", Mexc.this.safeString(trade, "commission") );
+                        put( "currency", Mexc.this.safeCurrencyCode(finalFeeAsset) );
                     }};
                 }
             }
@@ -2222,7 +2222,7 @@ public class MexcCore extends MexcApi
             put( "id", finalId );
             put( "order", finalOrderId );
             put( "timestamp", finalTimestamp );
-            put( "datetime", MexcCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Mexc.this.iso8601(finalTimestamp) );
             put( "symbol", finalSymbol );
             put( "type", type );
             put( "side", finalSide );
@@ -2656,11 +2656,11 @@ public class MexcCore extends MexcApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", finalTimestamp );
-            put( "datetime", MexcCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Mexc.this.iso8601(finalTimestamp) );
             put( "open", finalOpen );
             put( "high", finalHigh );
             put( "low", finalLow );
-            put( "close", MexcCore.this.safeString(ticker, "lastPrice") );
+            put( "close", Mexc.this.safeString(ticker, "lastPrice") );
             put( "bid", finalBid );
             put( "bidVolume", finalBidVolume );
             put( "ask", finalAsk );
@@ -2753,7 +2753,7 @@ public class MexcCore extends MexcApi
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", "buy", 0, null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -2786,7 +2786,7 @@ public class MexcCore extends MexcApi
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", "sell", 0, null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -3161,8 +3161,8 @@ public class MexcCore extends MexcApi
             //
             Object data = this.safeDict(response, "data");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
-                put( "id", MexcCore.this.safeString(data, "orderId") );
-                put( "timestamp", MexcCore.this.safeInteger(data, "ts") );
+                put( "id", Mexc.this.safeString(data, "orderId") );
+                put( "timestamp", Mexc.this.safeInteger(data, "ts") );
             }}, market);
         });
 
@@ -3221,7 +3221,7 @@ public class MexcCore extends MexcApi
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "batchOrders", MexcCore.this.json(ordersRequests) );
+                put( "batchOrders", Mexc.this.json(ordersRequests) );
             }};
             java.util.List<Object> response = (this.spotPrivatePostBatchOrders(request)).join();
             //
@@ -3851,7 +3851,7 @@ public class MexcCore extends MexcApi
             } else
             {
                 Helpers.addElementToObject(request, "states", state);
-                return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+                return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
             }
         });
 
@@ -3904,7 +3904,7 @@ public class MexcCore extends MexcApi
                 }
                 final Object finalMarket = market;
                 java.util.Map<String, Object> requestInner = new java.util.HashMap<String, Object>() {{
-                    put( "symbol", MexcCore.this.safeString(finalMarket, "id") );
+                    put( "symbol", Mexc.this.safeString(finalMarket, "id") );
                 }};
                 String clientOrderId = this.safeString(parameters, "clientOrderId");
                 if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -4293,7 +4293,7 @@ public class MexcCore extends MexcApi
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", order );
                 put( "status", "rejected" );
-                put( "clientOrderId", MexcCore.this.safeString(order, "newClientOrderId") );
+                put( "clientOrderId", Mexc.this.safeString(order, "newClientOrderId") );
             }});
         }
         Object id = null;
@@ -4323,7 +4323,7 @@ public class MexcCore extends MexcApi
             final Object finalFeeCurrency = feeCurrency;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", finalFeeCurrency );
-                put( "cost", MexcCore.this.parseNumber(feeSum) );
+                put( "cost", Mexc.this.parseNumber(feeSum) );
             }};
         }
         final Object finalId = id;
@@ -4332,22 +4332,22 @@ public class MexcCore extends MexcApi
         final Object finalFee = fee;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", finalId );
-            put( "clientOrderId", MexcCore.this.safeString(order, "clientOrderId") );
+            put( "clientOrderId", Mexc.this.safeString(order, "clientOrderId") );
             put( "timestamp", timestamp );
-            put( "datetime", MexcCore.this.iso8601(timestamp) );
+            put( "datetime", Mexc.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", MexcCore.this.safeInteger(order, "updateTime") );
-            put( "status", MexcCore.this.parseOrderStatus(MexcCore.this.safeString2(order, "status", "state")) );
+            put( "lastUpdateTimestamp", Mexc.this.safeInteger(order, "updateTime") );
+            put( "status", Mexc.this.parseOrderStatus(Mexc.this.safeString2(order, "status", "state")) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "type", MexcCore.this.parseOrderType(typeRaw) );
+            put( "type", Mexc.this.parseOrderType(typeRaw) );
             put( "timeInForce", finalTimeInForce );
-            put( "side", MexcCore.this.parseOrderSide(MexcCore.this.safeString(order, "side")) );
-            put( "price", MexcCore.this.safeNumber(order, "price") );
-            put( "triggerPrice", MexcCore.this.safeNumber2(order, "stopPrice", "triggerPrice") );
-            put( "average", MexcCore.this.safeNumber(order, "dealAvgPrice") );
-            put( "amount", MexcCore.this.safeNumber2(order, "origQty", "vol") );
-            put( "cost", MexcCore.this.safeNumber(order, "cummulativeQuoteQty") );
-            put( "filled", MexcCore.this.safeNumber2(order, "executedQty", "dealVol") );
+            put( "side", Mexc.this.parseOrderSide(Mexc.this.safeString(order, "side")) );
+            put( "price", Mexc.this.safeNumber(order, "price") );
+            put( "triggerPrice", Mexc.this.safeNumber2(order, "stopPrice", "triggerPrice") );
+            put( "average", Mexc.this.safeNumber(order, "dealAvgPrice") );
+            put( "amount", Mexc.this.safeNumber2(order, "origQty", "vol") );
+            put( "cost", Mexc.this.safeNumber(order, "cummulativeQuoteQty") );
+            put( "filled", Mexc.this.safeNumber2(order, "executedQty", "dealVol") );
             put( "remaining", null );
             put( "fee", finalFee );
             put( "trades", null );
@@ -4448,7 +4448,7 @@ public class MexcCore extends MexcApi
                 // wrap the swap asset list so this helper always returns an account
                 // dict with a `balances` array — fetchAccounts reads response['balances']
                 return new java.util.HashMap<String, Object>() {{
-                    put( "balances", MexcCore.this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
+                    put( "balances", Mexc.this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
                 }};
             }
             return null;
@@ -4488,8 +4488,8 @@ public class MexcCore extends MexcApi
                 String currencyId = this.safeString2(account, "asset", "currency");
                 String code = this.safeCurrencyCode(currencyId);
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
-                    put( "id", MexcCore.this.safeString(account, "id") );
-                    put( "type", MexcCore.this.safeString(account, "type") );
+                    put( "id", Mexc.this.safeString(account, "id") );
+                    put( "type", Mexc.this.safeString(account, "type") );
                     put( "code", code );
                     put( "info", account );
                 }});
@@ -4542,8 +4542,8 @@ public class MexcCore extends MexcApi
             return new java.util.HashMap<String, Object>() {{
                 put( "info", data );
                 put( "symbol", symbol );
-                put( "maker", MexcCore.this.safeNumber(data, "makerCommission") );
-                put( "taker", MexcCore.this.safeNumber(data, "takerCommission") );
+                put( "maker", Mexc.this.safeNumber(data, "makerCommission") );
+                put( "taker", Mexc.this.safeNumber(data, "takerCommission") );
                 put( "percentage", null );
                 put( "tierBased", null );
             }};
@@ -5231,9 +5231,9 @@ public class MexcCore extends MexcApi
                     put( "symbol", finalSymbol );
                     put( "code", null );
                     put( "timestamp", timestamp );
-                    put( "datetime", MexcCore.this.iso8601(timestamp) );
-                    put( "id", MexcCore.this.safeNumber(entry, "id") );
-                    put( "amount", MexcCore.this.safeNumber(entry, "funding") );
+                    put( "datetime", Mexc.this.iso8601(timestamp) );
+                    put( "id", Mexc.this.safeNumber(entry, "id") );
+                    put( "amount", Mexc.this.safeNumber(entry, "funding") );
                 }});
             }
             return result;
@@ -5283,10 +5283,10 @@ public class MexcCore extends MexcApi
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
-            put( "datetime", MexcCore.this.iso8601(timestamp) );
+            put( "datetime", Mexc.this.iso8601(timestamp) );
             put( "fundingRate", nextFundingRate );
             put( "fundingTimestamp", nextFundingTimestamp );
-            put( "fundingDatetime", MexcCore.this.iso8601(nextFundingTimestamp) );
+            put( "fundingDatetime", Mexc.this.iso8601(nextFundingTimestamp) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
@@ -5312,7 +5312,7 @@ public class MexcCore extends MexcApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchFundingRate(symbol, parameters)).join();
+            return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
         });
 
     }
@@ -5435,9 +5435,9 @@ public class MexcCore extends MexcApi
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", symbolInner );
-                    put( "fundingRate", MexcCore.this.safeNumber(entry, "fundingRate") );
+                    put( "fundingRate", Mexc.this.safeNumber(entry, "fundingRate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", MexcCore.this.iso8601(timestamp) );
+                    put( "datetime", Mexc.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -5574,12 +5574,12 @@ public class MexcCore extends MexcApi
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "tier", 0 );
-    put( "symbol", MexcCore.this.safeSymbol(marketId, market, null, "contract") );
-    put( "currency", MexcCore.this.safeCurrencyCode(quoteId) );
+    put( "symbol", Mexc.this.safeSymbol(marketId, market, null, "contract") );
+    put( "currency", Mexc.this.safeCurrencyCode(quoteId) );
     put( "minNotional", null );
     put( "maxNotional", null );
     put( "maintenanceMarginRate", null );
-    put( "maxLeverage", MexcCore.this.safeNumber(info, "maxLeverage") );
+    put( "maxLeverage", Mexc.this.safeNumber(info, "maxLeverage") );
     put( "info", info );
 }}));
         }
@@ -5591,11 +5591,11 @@ public class MexcCore extends MexcApi
             Object maxLev = this.parseNumber(Precise.stringDiv("1", initialMarginRate));
 final Object finalRiskIncrVol = riskIncrVol;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", MexcCore.this.parseNumber(Precise.stringDiv(cap, finalRiskIncrVol)) );
-                put( "symbol", MexcCore.this.safeSymbol(marketId, market, null, "contract") );
-                put( "currency", MexcCore.this.safeCurrencyCode(quoteId) );
+                put( "tier", Mexc.this.parseNumber(Precise.stringDiv(cap, finalRiskIncrVol)) );
+                put( "symbol", Mexc.this.safeSymbol(marketId, market, null, "contract") );
+                put( "currency", Mexc.this.safeCurrencyCode(quoteId) );
                 put( "minNotional", minNotional );
-                put( "maxNotional", MexcCore.this.parseNumber(cap) );
+                put( "maxNotional", Mexc.this.parseNumber(cap) );
                 put( "maintenanceMarginRate", mainMarginRate );
                 put( "maxLeverage", maxLev );
                 put( "info", info );
@@ -5625,9 +5625,9 @@ final Object finalRiskIncrVol = riskIncrVol;
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
-            put( "network", MexcCore.this.networkIdToCode(networkId, code) );
+            put( "network", Mexc.this.networkIdToCode(networkId, code) );
             put( "address", address );
-            put( "tag", MexcCore.this.safeString(depositAddress, "memo") );
+            put( "tag", Mexc.this.safeString(depositAddress, "memo") );
         }};
     }
 
@@ -6030,7 +6030,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         {
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", MexcCore.this.parseNumber(finalFeeCostString) );
+                put( "cost", Mexc.this.parseNumber(finalFeeCostString) );
                 put( "currency", code );
             }};
         }
@@ -6049,20 +6049,20 @@ final Object finalRiskIncrVol = riskIncrVol;
             put( "id", finalId );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", MexcCore.this.iso8601(timestamp) );
+            put( "datetime", Mexc.this.iso8601(timestamp) );
             put( "network", finalNetwork );
             put( "address", address );
             put( "addressTo", address );
             put( "addressFrom", null );
-            put( "tag", MexcCore.this.safeString(transaction, "memo") );
+            put( "tag", Mexc.this.safeString(transaction, "memo") );
             put( "tagTo", null );
             put( "tagFrom", null );
             put( "type", finalType );
-            put( "amount", MexcCore.this.parseNumber(finalAmountString) );
+            put( "amount", Mexc.this.parseNumber(finalAmountString) );
             put( "currency", code );
             put( "status", status );
             put( "updated", updated );
-            put( "comment", MexcCore.this.safeString(transaction, "remark") );
+            put( "comment", Mexc.this.safeString(transaction, "remark") );
             put( "internal", null );
             put( "fee", finalFee );
         }};
@@ -6153,7 +6153,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.fetchPositions(null, this.extend(request, parameters))).join();
+            Object response = (this.fetchPositions((Object)(null), (Object)(this.extend(request, parameters)))).join();
             return this.safeValue(response, 0);
         });
 
@@ -6295,26 +6295,26 @@ final Object finalRiskIncrVol = riskIncrVol;
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
-            put( "contracts", MexcCore.this.parseNumber(contracts) );
+            put( "contracts", Mexc.this.parseNumber(contracts) );
             put( "contractSize", null );
             put( "entryPrice", entryPrice );
             put( "collateral", null );
             put( "side", side );
             put( "unrealizedPnl", null );
-            put( "leverage", MexcCore.this.parseNumber(leverage) );
+            put( "leverage", Mexc.this.parseNumber(leverage) );
             put( "percentage", null );
             put( "marginMode", marginType );
             put( "notional", null );
             put( "markPrice", null );
             put( "lastPrice", null );
             put( "liquidationPrice", liquidationPrice );
-            put( "initialMargin", MexcCore.this.parseNumber(initialMargin) );
+            put( "initialMargin", Mexc.this.parseNumber(initialMargin) );
             put( "initialMarginPercentage", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
             put( "marginRatio", null );
             put( "timestamp", timestamp );
-            put( "datetime", MexcCore.this.iso8601(timestamp) );
+            put( "datetime", Mexc.this.iso8601(timestamp) );
             put( "hedged", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
@@ -6643,11 +6643,11 @@ final Object finalRiskIncrVol = riskIncrVol;
             put( "id", id );
             put( "timestamp", finalTimestamp );
             put( "datetime", datetime );
-            put( "currency", MexcCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", MexcCore.this.safeNumber(transfer, "amount") );
-            put( "fromAccount", MexcCore.this.parseAccountId(finalAccountFrom) );
-            put( "toAccount", MexcCore.this.parseAccountId(finalAccountTo) );
-            put( "status", MexcCore.this.parseTransferStatus(MexcCore.this.safeStringN(transfer, new java.util.ArrayList<Object>(java.util.Arrays.asList("transact_state", "state", "status")))) );
+            put( "currency", Mexc.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Mexc.this.safeNumber(transfer, "amount") );
+            put( "fromAccount", Mexc.this.parseAccountId(finalAccountFrom) );
+            put( "toAccount", Mexc.this.parseAccountId(finalAccountTo) );
+            put( "status", Mexc.this.parseTransferStatus(Mexc.this.safeStringN(transfer, new java.util.ArrayList<Object>(java.util.Arrays.asList("transact_state", "state", "status")))) );
         }};
     }
 
@@ -7034,7 +7034,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", new java.util.HashMap<String, Object>() {{
-        put( "fee", MexcCore.this.safeNumber(networkEntry, "withdrawFee") );
+        put( "fee", Mexc.this.safeNumber(networkEntry, "withdrawFee") );
         put( "percentage", null );
     }} );
     put( "deposit", new java.util.HashMap<String, Object>() {{
@@ -7132,7 +7132,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         final Object finalShortLeverage = shortLeverage;
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", MexcCore.this.safeString(market, "symbol") );
+            put( "symbol", Mexc.this.safeString(market, "symbol") );
             put( "marginMode", finalMarginMode );
             put( "longLeverage", finalLongLeverage );
             put( "shortLeverage", finalShortLeverage );
@@ -7350,8 +7350,8 @@ final Object finalRiskIncrVol = riskIncrVol;
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(section, "broker")) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "POST"))) || Helpers.isTrue((Helpers.isEqual(method, "PUT")))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))))
                 {
                     urlParams = new java.util.HashMap<String, Object>() {{
-                        put( "timestamp", MexcCore.this.nonce() );
-                        put( "recvWindow", MexcCore.this.safeInteger(MexcCore.this.options, "recvWindow", 5000) );
+                        put( "timestamp", Mexc.this.nonce() );
+                        put( "recvWindow", Mexc.this.safeInteger(Mexc.this.options, "recvWindow", 5000) );
                     }};
                     body = this.json(parameters);
                 } else
@@ -7372,8 +7372,8 @@ final Object finalRiskIncrVol = riskIncrVol;
                 Object signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256());
                 url = Helpers.add(url, Helpers.add(Helpers.add("&", "signature="), signature));
                 headers = new java.util.HashMap<String, Object>() {{
-                    put( "X-MEXC-APIKEY", MexcCore.this.apiKey );
-                    put( "source", MexcCore.this.safeString(MexcCore.this.options, "broker", "CCXT") );
+                    put( "X-MEXC-APIKEY", Mexc.this.apiKey );
+                    put( "source", Mexc.this.safeString(Mexc.this.options, "broker", "CCXT") );
                 }};
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "POST"))) || Helpers.isTrue((Helpers.isEqual(method, "PUT")))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
@@ -7397,10 +7397,10 @@ final Object finalRiskIncrVol = riskIncrVol;
                 Object timestamp = String.valueOf(this.nonce());
                 Object auth = "";
                 headers = new java.util.HashMap<String, Object>() {{
-                    put( "ApiKey", MexcCore.this.apiKey );
+                    put( "ApiKey", Mexc.this.apiKey );
                     put( "Request-Time", timestamp );
                     put( "Content-Type", "application/json" );
-                    put( "source", MexcCore.this.safeString(MexcCore.this.options, "broker", "CCXT") );
+                    put( "source", Mexc.this.safeString(Mexc.this.options, "broker", "CCXT") );
                 }};
                 if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
                 {

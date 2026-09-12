@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class ToobitCore extends io.github.ccxt.exchanges.Toobit
+public class Toobit extends io.github.ccxt.exchanges.Toobit
 {
-   public ToobitCore () {
+   public Toobit () {
        super();
    }
 
-   public ToobitCore (Object options) {
+   public Toobit (Object options) {
        super(options);
    }
 
@@ -81,7 +81,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
     public Object ping(Client client)
     {
         return new java.util.HashMap<String, Object>() {{
-            put( "ping", ToobitCore.this.milliseconds() );
+            put( "ping", Toobit.this.milliseconds() );
         }};
     }
 
@@ -196,7 +196,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -502,7 +502,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
         });
 
@@ -647,7 +647,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1092,25 +1092,25 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         final Object finalFee = fee;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", ToobitCore.this.safeString(order, "i") );
-            put( "clientOrderId", ToobitCore.this.safeString(order, "c") );
+            put( "id", Toobit.this.safeString(order, "i") );
+            put( "clientOrderId", Toobit.this.safeString(order, "c") );
             put( "timestamp", timestamp );
-            put( "datetime", ToobitCore.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", ToobitCore.this.safeInteger2(order, "U", "E") );
+            put( "datetime", Toobit.this.iso8601(timestamp) );
+            put( "lastUpdateTimestamp", Toobit.this.safeInteger2(order, "U", "E") );
             put( "symbol", symbol );
             put( "type", finalOrderType );
-            put( "timeInForce", ToobitCore.this.safeStringUpper(order, "f") );
+            put( "timeInForce", Toobit.this.safeStringUpper(order, "f") );
             put( "postOnly", null );
-            put( "side", ToobitCore.this.safeStringLower(order, "S") );
-            put( "price", ToobitCore.this.safeString(order, "L") );
+            put( "side", Toobit.this.safeStringLower(order, "S") );
+            put( "price", Toobit.this.safeString(order, "L") );
             put( "stopPrice", null );
             put( "triggerPrice", null );
-            put( "amount", ToobitCore.this.safeString(order, "q") );
+            put( "amount", Toobit.this.safeString(order, "q") );
             put( "cost", null );
-            put( "average", ToobitCore.this.safeString(order, "p") );
-            put( "filled", ToobitCore.this.safeString(order, "z") );
+            put( "average", Toobit.this.safeString(order, "p") );
+            put( "filled", Toobit.this.safeString(order, "z") );
             put( "remaining", null );
-            put( "status", ToobitCore.this.parseOrderStatus(ToobitCore.this.safeString(order, "X")) );
+            put( "status", Toobit.this.parseOrderStatus(Toobit.this.safeString(order, "X")) );
             put( "fee", finalFee );
             put( "trades", null );
         }}, market);
@@ -1202,16 +1202,16 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         String takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", ToobitCore.this.safeString(trade, "T") );
+            put( "id", Toobit.this.safeString(trade, "T") );
             put( "timestamp", ts );
-            put( "datetime", ToobitCore.this.iso8601(ts) );
-            put( "symbol", ToobitCore.this.safeSymbol(marketId, market) );
-            put( "order", ToobitCore.this.safeString(trade, "o") );
+            put( "datetime", Toobit.this.iso8601(ts) );
+            put( "symbol", Toobit.this.safeSymbol(marketId, market) );
+            put( "order", Toobit.this.safeString(trade, "o") );
             put( "type", null );
-            put( "side", ToobitCore.this.safeStringLower(trade, "S") );
+            put( "side", Toobit.this.safeStringLower(trade, "S") );
             put( "takerOrMaker", takerOrMaker );
-            put( "price", ToobitCore.this.safeString(trade, "p") );
-            put( "amount", ToobitCore.this.safeString(trade, "q") );
+            put( "price", Toobit.this.safeString(trade, "p") );
+            put( "amount", Toobit.this.safeString(trade, "q") );
             put( "cost", null );
             put( "fee", null );
         }}, market);
@@ -1411,27 +1411,27 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", ToobitCore.this.safeSymbol(marketId) );
-            put( "notional", ToobitCore.this.omitZero(ToobitCore.this.safeString(position, "pv")) );
-            put( "marginMode", ToobitCore.this.safeStringLower(position, "mt") );
-            put( "liquidationPrice", ToobitCore.this.safeString(position, "f") );
-            put( "entryPrice", ToobitCore.this.safeString(position, "p") );
-            put( "unrealizedPnl", ToobitCore.this.safeString(position, "up") );
-            put( "realizedPnl", ToobitCore.this.safeNumber(position, "r") );
+            put( "symbol", Toobit.this.safeSymbol(marketId) );
+            put( "notional", Toobit.this.omitZero(Toobit.this.safeString(position, "pv")) );
+            put( "marginMode", Toobit.this.safeStringLower(position, "mt") );
+            put( "liquidationPrice", Toobit.this.safeString(position, "f") );
+            put( "entryPrice", Toobit.this.safeString(position, "p") );
+            put( "unrealizedPnl", Toobit.this.safeString(position, "up") );
+            put( "realizedPnl", Toobit.this.safeNumber(position, "r") );
             put( "percentage", null );
             put( "contracts", null );
             put( "contractSize", null );
-            put( "markPrice", ToobitCore.this.safeString(position, "mp") );
-            put( "side", ToobitCore.this.safeStringLower(position, "S") );
+            put( "markPrice", Toobit.this.safeString(position, "mp") );
+            put( "side", Toobit.this.safeStringLower(position, "S") );
             put( "hedged", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "maintenanceMargin", ToobitCore.this.safeString(position, "mm") );
+            put( "maintenanceMargin", Toobit.this.safeString(position, "mm") );
             put( "maintenanceMarginPercentage", null );
             put( "collateral", null );
-            put( "initialMargin", ToobitCore.this.omitZero(ToobitCore.this.safeString(position, "m")) );
+            put( "initialMargin", Toobit.this.omitZero(Toobit.this.safeString(position, "m")) );
             put( "initialMarginPercentage", null );
-            put( "leverage", ToobitCore.this.safeString(position, "v") );
+            put( "leverage", Toobit.this.safeString(position, "v") );
             put( "marginRatio", null );
         }});
     }

@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class OkxusCore extends OkxusApi
+public class Okxus extends OkxusApi
 {
-   public OkxusCore () {
+   public Okxus () {
        super();
    }
 
-   public OkxusCore (Object options) {
+   public Okxus (Object options) {
        super(options);
    }
 

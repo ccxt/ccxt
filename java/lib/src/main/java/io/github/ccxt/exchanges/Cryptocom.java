@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class CryptocomCore extends CryptocomApi
+public class Cryptocom extends CryptocomApi
 {
-   public CryptocomCore () {
+   public Cryptocom () {
        super();
    }
 
-   public CryptocomCore (Object options) {
+   public Cryptocom (Object options) {
        super(options);
    }
 
@@ -607,11 +607,11 @@ public class CryptocomCore extends CryptocomApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "trading", new java.util.HashMap<String, Object>() {{
-                    put( "maker", CryptocomCore.this.parseNumber("0.0025") );
-                    put( "taker", CryptocomCore.this.parseNumber("0.005") );
+                    put( "maker", Cryptocom.this.parseNumber("0.0025") );
+                    put( "taker", Cryptocom.this.parseNumber("0.005") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("0"), CryptocomCore.this.parseNumber("0.0025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("10000"), CryptocomCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("50000"), CryptocomCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("250000"), CryptocomCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("500000"), CryptocomCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("2500000"), CryptocomCore.this.parseNumber("0.00065"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("10000000"), CryptocomCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("25000000"), CryptocomCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("100000000"), CryptocomCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("250000000"), CryptocomCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("500000000"), CryptocomCore.this.parseNumber("0"))))) );
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("0"), CryptocomCore.this.parseNumber("0.005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("10000"), CryptocomCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("50000"), CryptocomCore.this.parseNumber("0.0025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("250000"), CryptocomCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("500000"), CryptocomCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("2500000"), CryptocomCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("10000000"), CryptocomCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("25000000"), CryptocomCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("100000000"), CryptocomCore.this.parseNumber("0.00035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("250000000"), CryptocomCore.this.parseNumber("0.00031"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CryptocomCore.this.parseNumber("500000000"), CryptocomCore.this.parseNumber("0.00025"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("0"), Cryptocom.this.parseNumber("0.0025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("10000"), Cryptocom.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("50000"), Cryptocom.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("250000"), Cryptocom.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("500000"), Cryptocom.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("2500000"), Cryptocom.this.parseNumber("0.00065"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("10000000"), Cryptocom.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("25000000"), Cryptocom.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("100000000"), Cryptocom.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("250000000"), Cryptocom.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("500000000"), Cryptocom.this.parseNumber("0"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("0"), Cryptocom.this.parseNumber("0.005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("10000"), Cryptocom.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("50000"), Cryptocom.this.parseNumber("0.0025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("250000"), Cryptocom.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("500000"), Cryptocom.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("2500000"), Cryptocom.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("10000000"), Cryptocom.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("25000000"), Cryptocom.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("100000000"), Cryptocom.this.parseNumber("0.00035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("250000000"), Cryptocom.this.parseNumber("0.00031"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Cryptocom.this.parseNumber("500000000"), Cryptocom.this.parseNumber("0.00025"))))) );
                     }} );
                 }} );
             }} );
@@ -910,13 +910,13 @@ public class CryptocomCore extends CryptocomApi
     put( "id", networkId );
     put( "network", finalNetwork );
     put( "active", null );
-    put( "deposit", CryptocomCore.this.safeBool(chain, "deposit_enabled", false) );
-    put( "withdraw", CryptocomCore.this.safeBool(chain, "withdraw_enabled", false) );
-    put( "fee", CryptocomCore.this.safeNumber(chain, "withdrawal_fee") );
+    put( "deposit", Cryptocom.this.safeBool(chain, "deposit_enabled", false) );
+    put( "withdraw", Cryptocom.this.safeBool(chain, "withdraw_enabled", false) );
+    put( "fee", Cryptocom.this.safeNumber(chain, "withdrawal_fee") );
     put( "precision", null );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", CryptocomCore.this.safeNumber(chain, "min_withdrawal_amount") );
+            put( "min", Cryptocom.this.safeNumber(chain, "min_withdrawal_amount") );
             put( "max", null );
         }} );
     }} );
@@ -927,7 +927,7 @@ public class CryptocomCore extends CryptocomApi
             put( "info", currency );
             put( "id", id );
             put( "code", code );
-            put( "name", CryptocomCore.this.safeString(currency, "full_name") );
+            put( "name", Cryptocom.this.safeString(currency, "full_name") );
             put( "active", null );
             put( "deposit", null );
             put( "withdraw", null );
@@ -1103,7 +1103,7 @@ public class CryptocomCore extends CryptocomApi
                 final Object finalContract = contract;
                 final Object finalOptionType = optionType;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
-                    put( "id", CryptocomCore.this.safeString(market, "symbol") );
+                    put( "id", Cryptocom.this.safeString(market, "symbol") );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
                     put( "quote", quote );
@@ -1117,23 +1117,23 @@ public class CryptocomCore extends CryptocomApi
                     put( "swap", swap );
                     put( "future", future );
                     put( "option", option );
-                    put( "active", CryptocomCore.this.safeBool(market, "tradable") );
+                    put( "active", Cryptocom.this.safeBool(market, "tradable") );
                     put( "contract", finalContract );
                     put( "linear", isLinear );
                     put( "inverse", isInverse );
-                    put( "contractSize", CryptocomCore.this.safeNumber(market, "contract_size") );
+                    put( "contractSize", Cryptocom.this.safeNumber(market, "contract_size") );
                     put( "expiry", expiry );
-                    put( "expiryDatetime", CryptocomCore.this.iso8601(expiry) );
-                    put( "strike", CryptocomCore.this.parseNumber(strike) );
+                    put( "expiryDatetime", Cryptocom.this.iso8601(expiry) );
+                    put( "strike", Cryptocom.this.parseNumber(strike) );
                     put( "optionType", finalOptionType );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "price", CryptocomCore.this.parseNumber(CryptocomCore.this.safeString(market, "price_tick_size")) );
-                        put( "amount", CryptocomCore.this.parseNumber(CryptocomCore.this.safeString(market, "qty_tick_size")) );
+                        put( "price", Cryptocom.this.parseNumber(Cryptocom.this.safeString(market, "price_tick_size")) );
+                        put( "amount", Cryptocom.this.parseNumber(Cryptocom.this.safeString(market, "qty_tick_size")) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", CryptocomCore.this.parseNumber("1") );
-                            put( "max", CryptocomCore.this.safeNumber(market, "max_leverage") );
+                            put( "min", Cryptocom.this.parseNumber("1") );
+                            put( "max", Cryptocom.this.safeNumber(market, "max_leverage") );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
@@ -1250,7 +1250,7 @@ public class CryptocomCore extends CryptocomApi
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(tickers, symbol);
         });
 
@@ -1475,7 +1475,7 @@ public class CryptocomCore extends CryptocomApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
-                put( "timeframe", CryptocomCore.this.safeString(CryptocomCore.this.timeframes, timeframe, timeframe) );
+                put( "timeframe", Cryptocom.this.safeString(Cryptocom.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -1767,7 +1767,7 @@ public class CryptocomCore extends CryptocomApi
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "instrument_name", Helpers.GetValue(market, "id") );
             put( "side", ((String)((String)finalSide)).toUpperCase() );
-            put( "quantity", CryptocomCore.this.amountToPrecision(symbol, amount) );
+            put( "quantity", Cryptocom.this.amountToPrecision(symbol, amount) );
         }};
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uppercaseType, "LIMIT"))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "STOP_LIMIT")))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
         {
@@ -3002,12 +3002,12 @@ public class CryptocomCore extends CryptocomApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", CryptocomCore.this.iso8601(timestamp) );
-            put( "high", CryptocomCore.this.safeNumber(ticker, "h") );
-            put( "low", CryptocomCore.this.safeNumber(ticker, "l") );
-            put( "bid", CryptocomCore.this.safeNumber(ticker, "b") );
+            put( "datetime", Cryptocom.this.iso8601(timestamp) );
+            put( "high", Cryptocom.this.safeNumber(ticker, "h") );
+            put( "low", Cryptocom.this.safeNumber(ticker, "l") );
+            put( "bid", Cryptocom.this.safeNumber(ticker, "b") );
             put( "bidVolume", null );
-            put( "ask", CryptocomCore.this.safeNumber(ticker, "k") );
+            put( "ask", Cryptocom.this.safeNumber(ticker, "k") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -3015,10 +3015,10 @@ public class CryptocomCore extends CryptocomApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", CryptocomCore.this.safeString(ticker, "c") );
+            put( "percentage", Cryptocom.this.safeString(ticker, "c") );
             put( "average", null );
-            put( "baseVolume", CryptocomCore.this.safeString(ticker, "v") );
-            put( "quoteVolume", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(finalMarket, "quote"), "USD"))))) ? CryptocomCore.this.safeString(ticker, "vv") : null );
+            put( "baseVolume", Cryptocom.this.safeString(ticker, "v") );
+            put( "quoteVolume", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(finalMarket, "quote"), "USD"))))) ? Cryptocom.this.safeString(ticker, "vv") : null );
             put( "info", ticker );
         }}, market);
     }
@@ -3068,20 +3068,20 @@ public class CryptocomCore extends CryptocomApi
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", CryptocomCore.this.safeString2(trade, "d", "trade_id") );
+            put( "id", Cryptocom.this.safeString2(trade, "d", "trade_id") );
             put( "timestamp", timestamp );
-            put( "datetime", CryptocomCore.this.iso8601(timestamp) );
+            put( "datetime", Cryptocom.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "order", CryptocomCore.this.safeString(trade, "order_id") );
-            put( "side", CryptocomCore.this.safeStringLower2(trade, "s", "side") );
-            put( "takerOrMaker", CryptocomCore.this.safeStringLower(trade, "taker_side") );
-            put( "price", CryptocomCore.this.safeNumber2(trade, "p", "traded_price") );
-            put( "amount", CryptocomCore.this.safeNumber2(trade, "q", "traded_quantity") );
+            put( "order", Cryptocom.this.safeString(trade, "order_id") );
+            put( "side", Cryptocom.this.safeStringLower2(trade, "s", "side") );
+            put( "takerOrMaker", Cryptocom.this.safeStringLower(trade, "taker_side") );
+            put( "price", Cryptocom.this.safeNumber2(trade, "p", "traded_price") );
+            put( "amount", Cryptocom.this.safeNumber2(trade, "q", "traded_quantity") );
             put( "cost", null );
             put( "type", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "currency", CryptocomCore.this.safeCurrencyCode(feeCurrency) );
-                put( "cost", CryptocomCore.this.parseNumber(Precise.stringNeg(feeCostString)) );
+                put( "currency", Cryptocom.this.safeCurrencyCode(feeCurrency) );
+                put( "cost", Cryptocom.this.parseNumber(Precise.stringNeg(feeCostString)) );
             }} );
         }}, market);
     }
@@ -3177,8 +3177,8 @@ public class CryptocomCore extends CryptocomApi
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((!Helpers.isEqual(code, 0)))))
         {
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
-                put( "id", CryptocomCore.this.safeString(order, "order_id") );
-                put( "clientOrderId", CryptocomCore.this.safeString(order, "client_oid") );
+                put( "id", Cryptocom.this.safeString(order, "order_id") );
+                put( "clientOrderId", Cryptocom.this.safeString(order, "client_oid") );
                 put( "info", order );
                 put( "status", "rejected" );
             }});
@@ -3205,26 +3205,26 @@ public class CryptocomCore extends CryptocomApi
         final Object finalPostOnly = postOnly;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", CryptocomCore.this.safeString(order, "order_id") );
-            put( "clientOrderId", CryptocomCore.this.safeString(order, "client_oid") );
+            put( "id", Cryptocom.this.safeString(order, "order_id") );
+            put( "clientOrderId", Cryptocom.this.safeString(order, "client_oid") );
             put( "timestamp", created );
-            put( "datetime", CryptocomCore.this.iso8601(created) );
-            put( "lastTradeTimestamp", CryptocomCore.this.safeInteger(order, "update_time") );
-            put( "status", CryptocomCore.this.parseOrderStatus(CryptocomCore.this.safeString(order, "status")) );
+            put( "datetime", Cryptocom.this.iso8601(created) );
+            put( "lastTradeTimestamp", Cryptocom.this.safeInteger(order, "update_time") );
+            put( "status", Cryptocom.this.parseOrderStatus(Cryptocom.this.safeString(order, "status")) );
             put( "symbol", symbol );
-            put( "type", CryptocomCore.this.safeStringLower(order, "order_type") );
-            put( "timeInForce", CryptocomCore.this.parseTimeInForce(CryptocomCore.this.safeString(order, "time_in_force")) );
+            put( "type", Cryptocom.this.safeStringLower(order, "order_type") );
+            put( "timeInForce", Cryptocom.this.parseTimeInForce(Cryptocom.this.safeString(order, "time_in_force")) );
             put( "postOnly", finalPostOnly );
-            put( "side", CryptocomCore.this.safeStringLower(order, "side") );
-            put( "price", CryptocomCore.this.safeNumber(order, "limit_price") );
-            put( "amount", CryptocomCore.this.safeNumber(order, "quantity") );
-            put( "filled", CryptocomCore.this.safeNumber(order, "cumulative_quantity") );
+            put( "side", Cryptocom.this.safeStringLower(order, "side") );
+            put( "price", Cryptocom.this.safeNumber(order, "limit_price") );
+            put( "amount", Cryptocom.this.safeNumber(order, "quantity") );
+            put( "filled", Cryptocom.this.safeNumber(order, "cumulative_quantity") );
             put( "remaining", null );
-            put( "average", CryptocomCore.this.safeNumber(order, "avg_price") );
-            put( "cost", CryptocomCore.this.safeNumber(order, "cumulative_value") );
+            put( "average", Cryptocom.this.safeNumber(order, "avg_price") );
+            put( "cost", Cryptocom.this.safeNumber(order, "cumulative_value") );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "currency", CryptocomCore.this.safeCurrencyCode(feeCurrency) );
-                put( "cost", CryptocomCore.this.safeNumber(order, "cumulative_fee") );
+                put( "currency", Cryptocom.this.safeCurrencyCode(feeCurrency) );
+                put( "cost", Cryptocom.this.safeNumber(order, "cumulative_fee") );
             }} );
             put( "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
         }}, market);
@@ -3335,10 +3335,10 @@ public class CryptocomCore extends CryptocomApi
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", CryptocomCore.this.safeString(transaction, "id") );
-            put( "txid", CryptocomCore.this.safeString(transaction, "txid") );
+            put( "id", Cryptocom.this.safeString(transaction, "id") );
+            put( "txid", Cryptocom.this.safeString(transaction, "txid") );
             put( "timestamp", timestamp );
-            put( "datetime", CryptocomCore.this.iso8601(timestamp) );
+            put( "datetime", Cryptocom.this.iso8601(timestamp) );
             put( "network", null );
             put( "address", address );
             put( "addressTo", address );
@@ -3347,12 +3347,12 @@ public class CryptocomCore extends CryptocomApi
             put( "tagTo", tag );
             put( "tagFrom", null );
             put( "type", finalType );
-            put( "amount", CryptocomCore.this.safeNumber(transaction, "amount") );
+            put( "amount", Cryptocom.this.safeNumber(transaction, "amount") );
             put( "currency", code );
             put( "status", finalStatus );
-            put( "updated", CryptocomCore.this.safeInteger(transaction, "update_time") );
+            put( "updated", Cryptocom.this.safeInteger(transaction, "update_time") );
             put( "internal", null );
-            put( "comment", CryptocomCore.this.safeString(transaction, "client_wid") );
+            put( "comment", Cryptocom.this.safeString(transaction, "client_wid") );
             put( "fee", finalFee );
         }};
     }
@@ -3439,7 +3439,7 @@ public class CryptocomCore extends CryptocomApi
         put( "percentage", null );
     }} );
     put( "withdraw", new java.util.HashMap<String, Object>() {{
-        put( "fee", CryptocomCore.this.safeNumber(networkInfo, "withdrawal_fee") );
+        put( "fee", Cryptocom.this.safeNumber(networkInfo, "withdrawal_fee") );
         put( "percentage", false );
     }} );
 }});
@@ -3605,16 +3605,16 @@ public class CryptocomCore extends CryptocomApi
         final Object finalAmount = amount;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", CryptocomCore.this.safeString(item, "order_id") );
+            put( "id", Cryptocom.this.safeString(item, "order_id") );
             put( "direction", finalDirection );
-            put( "account", CryptocomCore.this.safeString(item, "account_id") );
-            put( "referenceId", CryptocomCore.this.safeString(item, "trade_id") );
-            put( "referenceAccount", CryptocomCore.this.safeString(item, "trade_match_id") );
-            put( "type", CryptocomCore.this.parseLedgerEntryType(CryptocomCore.this.safeString(item, "journal_type")) );
+            put( "account", Cryptocom.this.safeString(item, "account_id") );
+            put( "referenceId", Cryptocom.this.safeString(item, "trade_id") );
+            put( "referenceAccount", Cryptocom.this.safeString(item, "trade_match_id") );
+            put( "type", Cryptocom.this.parseLedgerEntryType(Cryptocom.this.safeString(item, "journal_type")) );
             put( "currency", code );
-            put( "amount", CryptocomCore.this.parseNumber(finalAmount) );
+            put( "amount", Cryptocom.this.parseNumber(finalAmount) );
             put( "timestamp", timestamp );
-            put( "datetime", CryptocomCore.this.iso8601(timestamp) );
+            put( "datetime", Cryptocom.this.iso8601(timestamp) );
             put( "before", null );
             put( "after", null );
             put( "status", null );
@@ -3740,8 +3740,8 @@ public class CryptocomCore extends CryptocomApi
         //     }
         //
         return new java.util.HashMap<String, Object>() {{
-            put( "id", CryptocomCore.this.safeString(account, "uuid") );
-            put( "type", CryptocomCore.this.safeString(account, "label") );
+            put( "id", Cryptocom.this.safeString(account, "uuid") );
+            put( "type", Cryptocom.this.safeString(account, "label") );
             put( "code", null );
             put( "info", account );
         }};
@@ -3831,10 +3831,10 @@ public class CryptocomCore extends CryptocomApi
         String marketId = this.safeString(settlement, "i");
         return new java.util.HashMap<String, Object>() {{
             put( "info", settlement );
-            put( "symbol", CryptocomCore.this.safeSymbol(marketId, market) );
-            put( "price", CryptocomCore.this.safeNumber(settlement, "v") );
+            put( "symbol", Cryptocom.this.safeSymbol(marketId, market) );
+            put( "price", Cryptocom.this.safeNumber(settlement, "v") );
             put( "timestamp", timestamp );
-            put( "datetime", CryptocomCore.this.iso8601(timestamp) );
+            put( "datetime", Cryptocom.this.iso8601(timestamp) );
         }};
     }
 
@@ -3931,16 +3931,16 @@ public class CryptocomCore extends CryptocomApi
         final Object finalFundingTimestamp = fundingTimestamp;
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", CryptocomCore.this.safeSymbol(null, market) );
+            put( "symbol", Cryptocom.this.safeSymbol(null, market) );
             put( "markPrice", null );
             put( "indexPrice", null );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", finalTimestamp );
-            put( "datetime", CryptocomCore.this.iso8601(finalTimestamp) );
-            put( "fundingRate", CryptocomCore.this.safeNumber(contract, "v") );
+            put( "datetime", Cryptocom.this.iso8601(finalTimestamp) );
+            put( "fundingRate", Cryptocom.this.safeNumber(contract, "v") );
             put( "fundingTimestamp", finalFundingTimestamp );
-            put( "fundingDatetime", CryptocomCore.this.iso8601(finalFundingTimestamp) );
+            put( "fundingDatetime", Cryptocom.this.iso8601(finalFundingTimestamp) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
@@ -4039,10 +4039,10 @@ public class CryptocomCore extends CryptocomApi
                 Long timestamp = this.safeInteger(entry, "t");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", CryptocomCore.this.safeSymbol(marketId, market) );
-                    put( "fundingRate", CryptocomCore.this.safeNumber(entry, "v") );
+                    put( "symbol", Cryptocom.this.safeSymbol(marketId, market) );
+                    put( "fundingRate", Cryptocom.this.safeNumber(entry, "v") );
                     put( "timestamp", timestamp );
-                    put( "datetime", CryptocomCore.this.iso8601(timestamp) );
+                    put( "datetime", Cryptocom.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -4210,21 +4210,21 @@ public class CryptocomCore extends CryptocomApi
             put( "id", null );
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", CryptocomCore.this.iso8601(timestamp) );
+            put( "datetime", Cryptocom.this.iso8601(timestamp) );
             put( "hedged", null );
             put( "side", ((Helpers.isTrue(Precise.stringGt(amount, "0")))) ? "long" : "short" );
-            put( "contracts", CryptocomCore.this.parseNumber(Precise.stringAbs(amount)) );
+            put( "contracts", Cryptocom.this.parseNumber(Precise.stringAbs(amount)) );
             put( "contractSize", Helpers.GetValue(finalMarket, "contractSize") );
             put( "entryPrice", null );
             put( "markPrice", null );
             put( "notional", null );
             put( "leverage", null );
-            put( "collateral", CryptocomCore.this.safeNumber(position, "open_pos_cost") );
-            put( "initialMargin", CryptocomCore.this.safeNumber(position, "cost") );
+            put( "collateral", Cryptocom.this.safeNumber(position, "open_pos_cost") );
+            put( "initialMargin", Cryptocom.this.safeNumber(position, "cost") );
             put( "maintenanceMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMarginPercentage", null );
-            put( "unrealizedPnl", CryptocomCore.this.safeNumber(position, "open_position_pnl") );
+            put( "unrealizedPnl", Cryptocom.this.safeNumber(position, "open_position_pnl") );
             put( "liquidationPrice", null );
             put( "marginMode", null );
             put( "percentage", null );
@@ -4449,8 +4449,8 @@ public class CryptocomCore extends CryptocomApi
             java.util.Map<String, Object> tradingFee = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", symbol );
-                put( "maker", CryptocomCore.this.parseNumber(Precise.stringDiv(CryptocomCore.this.safeString(response, makerFeeKey), "10000")) );
-                put( "taker", CryptocomCore.this.parseNumber(Precise.stringDiv(CryptocomCore.this.safeString(response, takerFeeKey), "10000")) );
+                put( "maker", Cryptocom.this.parseNumber(Precise.stringDiv(Cryptocom.this.safeString(response, makerFeeKey), "10000")) );
+                put( "taker", Cryptocom.this.parseNumber(Precise.stringDiv(Cryptocom.this.safeString(response, takerFeeKey), "10000")) );
                 put( "percentage", null );
                 put( "tierBased", null );
             }};
@@ -4474,8 +4474,8 @@ public class CryptocomCore extends CryptocomApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", CryptocomCore.this.parseNumber(Precise.stringDiv(CryptocomCore.this.safeString(fee, "effective_maker_rate_bps"), "10000")) );
-            put( "taker", CryptocomCore.this.parseNumber(Precise.stringDiv(CryptocomCore.this.safeString(fee, "effective_taker_rate_bps"), "10000")) );
+            put( "maker", Cryptocom.this.parseNumber(Precise.stringDiv(Cryptocom.this.safeString(fee, "effective_maker_rate_bps"), "10000")) );
+            put( "taker", Cryptocom.this.parseNumber(Precise.stringDiv(Cryptocom.this.safeString(fee, "effective_taker_rate_bps"), "10000")) );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -4513,7 +4513,7 @@ public class CryptocomCore extends CryptocomApi
                 put( "id", nonce );
                 put( "method", finalPath );
                 put( "params", parameters );
-                put( "api_key", CryptocomCore.this.apiKey );
+                put( "api_key", Cryptocom.this.apiKey );
                 put( "sig", signature );
                 put( "nonce", nonce );
             }});

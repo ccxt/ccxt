@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BtcmarketsCore extends BtcmarketsApi
+public class Btcmarkets extends BtcmarketsApi
 {
-   public BtcmarketsCore () {
+   public Btcmarkets () {
        super();
    }
 
-   public BtcmarketsCore (Object options) {
+   public Btcmarkets (Object options) {
        super(options);
    }
 
@@ -355,14 +355,14 @@ public class BtcmarketsCore extends BtcmarketsApi
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "percentage", true );
                 put( "tierBased", true );
-                put( "maker", BtcmarketsCore.this.parseNumber("-0.0005") );
-                put( "taker", BtcmarketsCore.this.parseNumber("0.0020") );
+                put( "maker", Btcmarkets.this.parseNumber("-0.0005") );
+                put( "taker", Btcmarkets.this.parseNumber("0.0020") );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "fees", new java.util.HashMap<String, Object>() {{
                     put( "AUD", new java.util.HashMap<String, Object>() {{
-                        put( "maker", BtcmarketsCore.this.parseNumber("0.0085") );
-                        put( "taker", BtcmarketsCore.this.parseNumber("0.0085") );
+                        put( "maker", Btcmarkets.this.parseNumber("0.0085") );
+                        put( "taker", Btcmarkets.this.parseNumber("0.0085") );
                     }} );
                 }} );
             }} );
@@ -596,10 +596,10 @@ public class BtcmarketsCore extends BtcmarketsApi
         final Object finalAmount = amount;
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", BtcmarketsCore.this.safeString(transaction, "id") );
+            put( "id", Btcmarkets.this.safeString(transaction, "id") );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", BtcmarketsCore.this.iso8601(timestamp) );
+            put( "datetime", Btcmarkets.this.iso8601(timestamp) );
             put( "network", null );
             put( "address", finalAddress );
             put( "addressTo", addressTo );
@@ -608,15 +608,15 @@ public class BtcmarketsCore extends BtcmarketsApi
             put( "tagTo", tagTo );
             put( "tagFrom", tagFrom );
             put( "type", finalType );
-            put( "amount", BtcmarketsCore.this.parseNumber(finalAmount) );
+            put( "amount", Btcmarkets.this.parseNumber(finalAmount) );
             put( "currency", code );
             put( "status", status );
             put( "updated", lastUpdate );
-            put( "comment", BtcmarketsCore.this.safeString(transaction, "description") );
+            put( "comment", Btcmarkets.this.safeString(transaction, "description") );
             put( "internal", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", BtcmarketsCore.this.parseNumber(finalFee) );
+                put( "cost", Btcmarkets.this.parseNumber(finalFee) );
                 put( "rate", null );
             }} );
             put( "info", transaction );
@@ -706,7 +706,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", BtcmarketsCore.this.parseNumber(BtcmarketsCore.this.parsePrecision(BtcmarketsCore.this.safeString(market, "amountDecimals"))) );
+                put( "amount", Btcmarkets.this.parseNumber(Btcmarkets.this.parsePrecision(Btcmarkets.this.safeString(market, "amountDecimals"))) );
                 put( "price", pricePrecision );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
@@ -846,7 +846,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "marketId", Helpers.GetValue(market, "id") );
-                put( "timeWindow", BtcmarketsCore.this.safeString(BtcmarketsCore.this.timeframes, timeframe, timeframe) );
+                put( "timeWindow", Btcmarkets.this.safeString(Btcmarkets.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -951,12 +951,12 @@ public class BtcmarketsCore extends BtcmarketsApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BtcmarketsCore.this.iso8601(timestamp) );
-            put( "high", BtcmarketsCore.this.safeString(ticker, "high24h") );
-            put( "low", BtcmarketsCore.this.safeString(ticker, "low") );
-            put( "bid", BtcmarketsCore.this.safeString(ticker, "bestBid") );
+            put( "datetime", Btcmarkets.this.iso8601(timestamp) );
+            put( "high", Btcmarkets.this.safeString(ticker, "high24h") );
+            put( "low", Btcmarkets.this.safeString(ticker, "low") );
+            put( "bid", Btcmarkets.this.safeString(ticker, "bestBid") );
             put( "bidVolume", null );
-            put( "ask", BtcmarketsCore.this.safeString(ticker, "bestAsk") );
+            put( "ask", Btcmarkets.this.safeString(ticker, "bestAsk") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -1099,7 +1099,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             put( "info", trade );
             put( "id", id );
             put( "timestamp", timestamp );
-            put( "datetime", BtcmarketsCore.this.iso8601(timestamp) );
+            put( "datetime", Btcmarkets.this.iso8601(timestamp) );
             put( "order", orderId );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", null );
@@ -1181,7 +1181,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             final Object finalSide = side;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "marketId", Helpers.GetValue(market, "id") );
-                put( "amount", BtcmarketsCore.this.amountToPrecision(symbol, amount) );
+                put( "amount", Btcmarkets.this.amountToPrecision(symbol, amount) );
                 put( "side", ((Helpers.isTrue((Helpers.isEqual(finalSide, "buy"))))) ? "Bid" : "Ask" );
             }};
             Object lowercaseType = ((String)type).toLowerCase();
@@ -1468,7 +1468,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", BtcmarketsCore.this.iso8601(timestamp) );
+            put( "datetime", Btcmarkets.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", type );
@@ -1476,7 +1476,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             put( "postOnly", postOnly );
             put( "side", finalSide );
             put( "price", price );
-            put( "triggerPrice", BtcmarketsCore.this.safeNumber(order, "triggerPrice") );
+            put( "triggerPrice", Btcmarkets.this.safeNumber(order, "triggerPrice") );
             put( "cost", null );
             put( "amount", amount );
             put( "filled", null );
@@ -1588,7 +1588,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "open" );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -1613,7 +1613,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+            Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBy(orders, "status", "closed");
         });
 
@@ -1723,7 +1723,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             final Object finalCode = code;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "assetName", Helpers.GetValue(currency, "id") );
-                put( "amount", BtcmarketsCore.this.currencyToPrecision(finalCode, amount) );
+                put( "amount", Btcmarkets.this.currencyToPrecision(finalCode, amount) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(code, "AUD")))
             {
@@ -1792,7 +1792,7 @@ public class BtcmarketsCore extends BtcmarketsApi
                 put( "Accept", "application/json" );
                 put( "Accept-Charset", "UTF-8" );
                 put( "Content-Type", "application/json" );
-                put( "BM-AUTH-APIKEY", BtcmarketsCore.this.apiKey );
+                put( "BM-AUTH-APIKEY", Btcmarkets.this.apiKey );
                 put( "BM-AUTH-TIMESTAMP", nonce );
                 put( "BM-AUTH-SIGNATURE", signature );
             }};

@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class GateCore extends GateApi
+public class Gate extends GateApi
 {
-   public GateCore () {
+   public Gate () {
        super();
    }
 
-   public GateCore (Object options) {
+   public Gate (Object options) {
        super(options);
    }
 
@@ -1810,22 +1810,22 @@ public class GateCore extends GateApi
                     put( "tierBased", true );
                     put( "feeSide", "get" );
                     put( "percentage", true );
-                    put( "maker", GateCore.this.parseNumber("0.002") );
-                    put( "taker", GateCore.this.parseNumber("0.002") );
+                    put( "maker", Gate.this.parseNumber("0.002") );
+                    put( "taker", Gate.this.parseNumber("0.002") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("0"), GateCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("1.5"), GateCore.this.parseNumber("0.00185"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("3"), GateCore.this.parseNumber("0.00175"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("6"), GateCore.this.parseNumber("0.00165"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("12.5"), GateCore.this.parseNumber("0.00155"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("25"), GateCore.this.parseNumber("0.00145"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("75"), GateCore.this.parseNumber("0.00135"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("200"), GateCore.this.parseNumber("0.00125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("500"), GateCore.this.parseNumber("0.00115"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("1250"), GateCore.this.parseNumber("0.00105"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("2500"), GateCore.this.parseNumber("0.00095"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("3000"), GateCore.this.parseNumber("0.00085"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("6000"), GateCore.this.parseNumber("0.00075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("11000"), GateCore.this.parseNumber("0.00065"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("20000"), GateCore.this.parseNumber("0.00055"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("40000"), GateCore.this.parseNumber("0.00055"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("75000"), GateCore.this.parseNumber("0.00055"))))) );
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("0"), GateCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("1.5"), GateCore.this.parseNumber("0.00195"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("3"), GateCore.this.parseNumber("0.00185"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("6"), GateCore.this.parseNumber("0.00175"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("12.5"), GateCore.this.parseNumber("0.00165"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("25"), GateCore.this.parseNumber("0.00155"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("75"), GateCore.this.parseNumber("0.00145"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("200"), GateCore.this.parseNumber("0.00135"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("500"), GateCore.this.parseNumber("0.00125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("1250"), GateCore.this.parseNumber("0.00115"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("2500"), GateCore.this.parseNumber("0.00105"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("3000"), GateCore.this.parseNumber("0.00095"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("6000"), GateCore.this.parseNumber("0.00085"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("11000"), GateCore.this.parseNumber("0.00075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("20000"), GateCore.this.parseNumber("0.00065"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("40000"), GateCore.this.parseNumber("0.00065"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("75000"), GateCore.this.parseNumber("0.00065"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("0"), Gate.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("1.5"), Gate.this.parseNumber("0.00185"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("3"), Gate.this.parseNumber("0.00175"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("6"), Gate.this.parseNumber("0.00165"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("12.5"), Gate.this.parseNumber("0.00155"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("25"), Gate.this.parseNumber("0.00145"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("75"), Gate.this.parseNumber("0.00135"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("200"), Gate.this.parseNumber("0.00125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("500"), Gate.this.parseNumber("0.00115"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("1250"), Gate.this.parseNumber("0.00105"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("2500"), Gate.this.parseNumber("0.00095"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("3000"), Gate.this.parseNumber("0.00085"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("6000"), Gate.this.parseNumber("0.00075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("11000"), Gate.this.parseNumber("0.00065"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("20000"), Gate.this.parseNumber("0.00055"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("40000"), Gate.this.parseNumber("0.00055"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("75000"), Gate.this.parseNumber("0.00055"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("0"), Gate.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("1.5"), Gate.this.parseNumber("0.00195"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("3"), Gate.this.parseNumber("0.00185"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("6"), Gate.this.parseNumber("0.00175"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("12.5"), Gate.this.parseNumber("0.00165"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("25"), Gate.this.parseNumber("0.00155"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("75"), Gate.this.parseNumber("0.00145"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("200"), Gate.this.parseNumber("0.00135"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("500"), Gate.this.parseNumber("0.00125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("1250"), Gate.this.parseNumber("0.00115"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("2500"), Gate.this.parseNumber("0.00105"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("3000"), Gate.this.parseNumber("0.00095"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("6000"), Gate.this.parseNumber("0.00085"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("11000"), Gate.this.parseNumber("0.00075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("20000"), Gate.this.parseNumber("0.00065"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("40000"), Gate.this.parseNumber("0.00065"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("75000"), Gate.this.parseNumber("0.00065"))))) );
                     }} );
                 }} );
                 put( "swap", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "feeSide", "base" );
                     put( "percentage", true );
-                    put( "maker", GateCore.this.parseNumber("0.0") );
-                    put( "taker", GateCore.this.parseNumber("0.0005") );
+                    put( "maker", Gate.this.parseNumber("0.0") );
+                    put( "taker", Gate.this.parseNumber("0.0005") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("0"), GateCore.this.parseNumber("0.0000"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("1.5"), GateCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("3"), GateCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("6"), GateCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("12.5"), GateCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("25"), GateCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("75"), GateCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("200"), GateCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("500"), GateCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("1250"), GateCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("2500"), GateCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("3000"), GateCore.this.parseNumber("-0.00008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("6000"), GateCore.this.parseNumber("-0.01000"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("11000"), GateCore.this.parseNumber("-0.01002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("20000"), GateCore.this.parseNumber("-0.01005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("40000"), GateCore.this.parseNumber("-0.02000"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("75000"), GateCore.this.parseNumber("-0.02005"))))) );
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("0"), GateCore.this.parseNumber("0.00050"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("1.5"), GateCore.this.parseNumber("0.00048"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("3"), GateCore.this.parseNumber("0.00046"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("6"), GateCore.this.parseNumber("0.00044"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("12.5"), GateCore.this.parseNumber("0.00042"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("25"), GateCore.this.parseNumber("0.00040"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("75"), GateCore.this.parseNumber("0.00038"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("200"), GateCore.this.parseNumber("0.00036"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("500"), GateCore.this.parseNumber("0.00034"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("1250"), GateCore.this.parseNumber("0.00032"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("2500"), GateCore.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("3000"), GateCore.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("6000"), GateCore.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("11000"), GateCore.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("20000"), GateCore.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("40000"), GateCore.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(GateCore.this.parseNumber("75000"), GateCore.this.parseNumber("0.00030"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("0"), Gate.this.parseNumber("0.0000"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("1.5"), Gate.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("3"), Gate.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("6"), Gate.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("12.5"), Gate.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("25"), Gate.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("75"), Gate.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("200"), Gate.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("500"), Gate.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("1250"), Gate.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("2500"), Gate.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("3000"), Gate.this.parseNumber("-0.00008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("6000"), Gate.this.parseNumber("-0.01000"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("11000"), Gate.this.parseNumber("-0.01002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("20000"), Gate.this.parseNumber("-0.01005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("40000"), Gate.this.parseNumber("-0.02000"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("75000"), Gate.this.parseNumber("-0.02005"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("0"), Gate.this.parseNumber("0.00050"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("1.5"), Gate.this.parseNumber("0.00048"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("3"), Gate.this.parseNumber("0.00046"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("6"), Gate.this.parseNumber("0.00044"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("12.5"), Gate.this.parseNumber("0.00042"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("25"), Gate.this.parseNumber("0.00040"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("75"), Gate.this.parseNumber("0.00038"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("200"), Gate.this.parseNumber("0.00036"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("500"), Gate.this.parseNumber("0.00034"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("1250"), Gate.this.parseNumber("0.00032"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("2500"), Gate.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("3000"), Gate.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("6000"), Gate.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("11000"), Gate.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("20000"), Gate.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("40000"), Gate.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Gate.this.parseNumber("75000"), Gate.this.parseNumber("0.00030"))))) );
                     }} );
                 }} );
             }} );
@@ -2069,13 +2069,13 @@ public class GateCore extends GateApi
             put( "option", true );
             put( "margin", false );
             put( "contract", true );
-            put( "contractSize", GateCore.this.parseNumber("1") );
+            put( "contractSize", Gate.this.parseNumber("1") );
             put( "expiry", timestamp );
             put( "expiryDatetime", datetime );
             put( "optionType", ((Helpers.isTrue((Helpers.isEqual(finalOptionType, "C"))))) ? "call" : "put" );
-            put( "strike", GateCore.this.parseNumber(strike) );
+            put( "strike", Gate.this.parseNumber(strike) );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", GateCore.this.parseNumber("1") );
+                put( "amount", Gate.this.parseNumber("1") );
                 put( "price", null );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
@@ -2258,8 +2258,8 @@ public class GateCore extends GateApi
                     put( "contract", false );
                     put( "linear", null );
                     put( "inverse", null );
-                    put( "taker", GateCore.this.parseNumber(Precise.stringDiv(takerPercent, "100")) );
-                    put( "maker", GateCore.this.parseNumber(Precise.stringDiv(makerPercent, "100")) );
+                    put( "taker", Gate.this.parseNumber(Precise.stringDiv(takerPercent, "100")) );
+                    put( "maker", Gate.this.parseNumber(Precise.stringDiv(makerPercent, "100")) );
                     put( "contractSize", null );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
@@ -2267,15 +2267,15 @@ public class GateCore extends GateApi
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
                         put( "amount", amountPrecision );
-                        put( "price", GateCore.this.parseNumber(GateCore.this.parsePrecision(GateCore.this.safeString(market, "precision"))) );
+                        put( "price", Gate.this.parseNumber(Gate.this.parsePrecision(Gate.this.safeString(market, "precision"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", GateCore.this.parseNumber("1") );
-                            put( "max", GateCore.this.safeNumber(market, "leverage", 1) );
+                            put( "min", Gate.this.parseNumber("1") );
+                            put( "max", Gate.this.safeNumber(market, "leverage", 1) );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", GateCore.this.safeNumber(spotMarket, "min_base_amount", amountPrecision) );
+                            put( "min", Gate.this.safeNumber(spotMarket, "min_base_amount", amountPrecision) );
                             put( "max", null );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
@@ -2283,8 +2283,8 @@ public class GateCore extends GateApi
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", GateCore.this.safeNumber(market, "min_quote_amount") );
-                            put( "max", ((Helpers.isTrue(finalMargin))) ? GateCore.this.safeNumber(market, "max_quote_amount") : null );
+                            put( "min", Gate.this.safeNumber(market, "min_quote_amount") );
+                            put( "max", ((Helpers.isTrue(finalMargin))) ? Gate.this.safeNumber(market, "max_quote_amount") : null );
                         }} );
                     }} );
                     put( "created", createdTs );
@@ -2521,36 +2521,36 @@ public class GateCore extends GateApi
             put( "contract", true );
             put( "linear", isLinear );
             put( "inverse", !Helpers.isTrue(isLinear) );
-            put( "taker", GateCore.this.parseNumber("0.0005") );
-            put( "maker", GateCore.this.parseNumber("0.0002") );
-            put( "contractSize", GateCore.this.parseNumber(finalContractSize) );
+            put( "taker", Gate.this.parseNumber("0.0005") );
+            put( "maker", Gate.this.parseNumber("0.0002") );
+            put( "contractSize", Gate.this.parseNumber(finalContractSize) );
             put( "expiry", expiry );
-            put( "expiryDatetime", GateCore.this.iso8601(expiry) );
+            put( "expiryDatetime", Gate.this.iso8601(expiry) );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", GateCore.this.parseNumber("1") );
-                put( "price", GateCore.this.safeNumber(market, "order_price_round") );
+                put( "amount", Gate.this.parseNumber("1") );
+                put( "price", Gate.this.safeNumber(market, "order_price_round") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
-                    put( "min", GateCore.this.safeNumber(market, "leverage_min") );
-                    put( "max", GateCore.this.safeNumber(market, "leverage_max") );
+                    put( "min", Gate.this.safeNumber(market, "leverage_min") );
+                    put( "max", Gate.this.safeNumber(market, "leverage_max") );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", GateCore.this.safeNumber(market, "order_size_min") );
-                    put( "max", GateCore.this.safeNumber(market, "order_size_max") );
+                    put( "min", Gate.this.safeNumber(market, "order_size_min") );
+                    put( "max", Gate.this.safeNumber(market, "order_size_max") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", GateCore.this.parseNumber(minPrice) );
-                    put( "max", GateCore.this.parseNumber(maxPrice) );
+                    put( "min", Gate.this.parseNumber(minPrice) );
+                    put( "max", Gate.this.parseNumber(maxPrice) );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
             }} );
-            put( "created", GateCore.this.safeIntegerProduct(market, "create_time", 1000) );
+            put( "created", Gate.this.safeIntegerProduct(market, "create_time", 1000) );
             put( "info", market );
         }};
     }
@@ -2656,16 +2656,16 @@ public class GateCore extends GateApi
                         put( "contract", true );
                         put( "linear", true );
                         put( "inverse", false );
-                        put( "taker", GateCore.this.parseNumber("0.0003") );
-                        put( "maker", GateCore.this.parseNumber("0.0003") );
-                        put( "contractSize", GateCore.this.parseNumber("1") );
+                        put( "taker", Gate.this.parseNumber("0.0003") );
+                        put( "maker", Gate.this.parseNumber("0.0003") );
+                        put( "contractSize", Gate.this.parseNumber("1") );
                         put( "expiry", expiry );
-                        put( "expiryDatetime", GateCore.this.iso8601(expiry) );
-                        put( "strike", GateCore.this.parseNumber(strike) );
+                        put( "expiryDatetime", Gate.this.iso8601(expiry) );
+                        put( "strike", Gate.this.parseNumber(strike) );
                         put( "optionType", optionType );
                         put( "precision", new java.util.HashMap<String, Object>() {{
-                            put( "amount", GateCore.this.parseNumber("1") );
-                            put( "price", GateCore.this.safeNumber(market, "order_price_round") );
+                            put( "amount", Gate.this.parseNumber("1") );
+                            put( "price", Gate.this.safeNumber(market, "order_price_round") );
                         }} );
                         put( "limits", new java.util.HashMap<String, Object>() {{
                             put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -2673,12 +2673,12 @@ public class GateCore extends GateApi
                                 put( "max", null );
                             }} );
                             put( "amount", new java.util.HashMap<String, Object>() {{
-                                put( "min", GateCore.this.safeNumber(market, "order_size_min") );
-                                put( "max", GateCore.this.safeNumber(market, "order_size_max") );
+                                put( "min", Gate.this.safeNumber(market, "order_size_min") );
+                                put( "max", Gate.this.safeNumber(market, "order_size_max") );
                             }} );
                             put( "price", new java.util.HashMap<String, Object>() {{
-                                put( "min", GateCore.this.parseNumber(minPrice) );
-                                put( "max", GateCore.this.parseNumber(maxPrice) );
+                                put( "min", Gate.this.parseNumber(minPrice) );
+                                put( "max", Gate.this.parseNumber(maxPrice) );
                             }} );
                             put( "cost", new java.util.HashMap<String, Object>() {{
                                 put( "min", null );
@@ -2976,10 +2976,10 @@ public class GateCore extends GateApi
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", null );
-    put( "deposit", !Helpers.isEqual(GateCore.this.safeBool(chain, "deposit_disabled"), true) );
-    put( "withdraw", !Helpers.isEqual(GateCore.this.safeBool(chain, "withdraw_disabled"), true) );
+    put( "deposit", !Helpers.isEqual(Gate.this.safeBool(chain, "deposit_disabled"), true) );
+    put( "withdraw", !Helpers.isEqual(Gate.this.safeBool(chain, "withdraw_disabled"), true) );
     put( "fee", null );
-    put( "precision", GateCore.this.parseNumber("0.0001") );
+    put( "precision", Gate.this.parseNumber("0.0001") );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "deposit", new java.util.HashMap<String, Object>() {{
             put( "min", null );
@@ -2996,14 +2996,14 @@ public class GateCore extends GateApi
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "code", code );
-            put( "name", GateCore.this.safeString(rawCurrency, "name") );
+            put( "name", Gate.this.safeString(rawCurrency, "name") );
             put( "type", type );
-            put( "active", !Helpers.isEqual(GateCore.this.safeBool(rawCurrency, "delisted"), true) );
-            put( "deposit", !Helpers.isEqual(GateCore.this.safeBool(rawCurrency, "deposit_disabled"), true) );
-            put( "withdraw", !Helpers.isEqual(GateCore.this.safeBool(rawCurrency, "withdraw_disabled"), true) );
+            put( "active", !Helpers.isEqual(Gate.this.safeBool(rawCurrency, "delisted"), true) );
+            put( "deposit", !Helpers.isEqual(Gate.this.safeBool(rawCurrency, "deposit_disabled"), true) );
+            put( "withdraw", !Helpers.isEqual(Gate.this.safeBool(rawCurrency, "withdraw_disabled"), true) );
             put( "fee", null );
             put( "networks", networks );
-            put( "precision", GateCore.this.parseNumber("0.0001") );
+            put( "precision", Gate.this.parseNumber("0.0001") );
             put( "info", rawCurrency );
         }});
     }
@@ -3230,14 +3230,14 @@ public class GateCore extends GateApi
             put( "datetime", null );
             put( "fundingRate", fundingRate );
             put( "fundingTimestamp", fundingTime );
-            put( "fundingDatetime", GateCore.this.iso8601(fundingTime) );
+            put( "fundingDatetime", Gate.this.iso8601(fundingTime) );
             put( "nextFundingRate", fundingRateIndicative );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
-            put( "interval", GateCore.this.parseFundingInterval(fundingInterval) );
+            put( "interval", Gate.this.parseFundingInterval(fundingInterval) );
         }};
     }
 
@@ -3391,8 +3391,8 @@ public class GateCore extends GateApi
             put( "info", depositAddress );
             put( "currency", code );
             put( "address", address );
-            put( "tag", GateCore.this.safeString(depositAddress, "payment_id") );
-            put( "network", GateCore.this.networkIdToCode(GateCore.this.safeString(depositAddress, "chain"), code) );
+            put( "tag", Gate.this.safeString(depositAddress, "payment_id") );
+            put( "network", Gate.this.networkIdToCode(Gate.this.safeString(depositAddress, "chain"), code) );
         }};
     }
 
@@ -3515,9 +3515,9 @@ public class GateCore extends GateApi
         String makerKey = ((Helpers.isTrue((Helpers.isEqual(contract, true))))) ? "futures_maker_fee" : maker;
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", GateCore.this.safeString(market, "symbol") );
-            put( "maker", GateCore.this.safeNumber(info, makerKey) );
-            put( "taker", GateCore.this.safeNumber(info, takerKey) );
+            put( "symbol", Gate.this.safeString(market, "symbol") );
+            put( "maker", Gate.this.safeNumber(info, makerKey) );
+            put( "taker", Gate.this.safeNumber(info, takerKey) );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -3673,11 +3673,11 @@ public class GateCore extends GateApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "fee", GateCore.this.safeNumber(fee, "withdraw_fix") );
+                put( "fee", Gate.this.safeNumber(fee, "withdraw_fix") );
                 put( "percentage", false );
             }} );
             put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "fee", GateCore.this.safeNumber(fee, "deposit") );
+                put( "fee", Gate.this.safeNumber(fee, "deposit") );
                 put( "percentage", false );
             }} );
             put( "networks", new java.util.HashMap<String, Object>() {{}} );
@@ -3696,7 +3696,7 @@ public class GateCore extends GateApi
                     final Object finalWithdrawFixOnChains = withdrawFixOnChains;
                     Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", new java.util.HashMap<String, Object>() {{
-        put( "fee", GateCore.this.parseNumber(Helpers.GetValue(finalWithdrawFixOnChains, chainKey)) );
+        put( "fee", Gate.this.parseNumber(Helpers.GetValue(finalWithdrawFixOnChains, chainKey)) );
         put( "percentage", false );
     }} );
     put( "deposit", new java.util.HashMap<String, Object>() {{
@@ -3817,12 +3817,12 @@ public class GateCore extends GateApi
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", GateCore.this.safeString(finalMarket, "symbol") );
-            put( "code", GateCore.this.safeString(finalMarket, "settle") );
+            put( "symbol", Gate.this.safeString(finalMarket, "symbol") );
+            put( "code", Gate.this.safeString(finalMarket, "settle") );
             put( "timestamp", timestamp );
-            put( "datetime", GateCore.this.iso8601(timestamp) );
+            put( "datetime", Gate.this.iso8601(timestamp) );
             put( "id", null );
-            put( "amount", GateCore.this.safeNumber(info, "change") );
+            put( "amount", Gate.this.safeNumber(info, "change") );
         }};
     }
 
@@ -4143,7 +4143,7 @@ public class GateCore extends GateApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", GateCore.this.iso8601(timestamp) );
+            put( "datetime", Gate.this.iso8601(timestamp) );
             put( "high", high );
             put( "low", low );
             put( "bid", bid );
@@ -4160,8 +4160,8 @@ public class GateCore extends GateApi
             put( "average", null );
             put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", finalQuoteVolume );
-            put( "markPrice", GateCore.this.safeString(ticker, "mark_price") );
-            put( "indexPrice", GateCore.this.safeString(ticker, "index_price") );
+            put( "markPrice", Gate.this.safeString(ticker, "mark_price") );
+            put( "indexPrice", Gate.this.safeString(ticker, "index_price") );
             put( "info", ticker );
         }}, market);
     }
@@ -4777,9 +4777,9 @@ public class GateCore extends GateApi
                             ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", finalSymbol );
-                    put( "fundingRate", GateCore.this.safeNumber(entry, "r") );
+                    put( "fundingRate", Gate.this.safeNumber(entry, "r") );
                     put( "timestamp", timestamp );
-                    put( "datetime", GateCore.this.iso8601(timestamp) );
+                    put( "datetime", Gate.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -5013,9 +5013,9 @@ public class GateCore extends GateApi
             //          }
             //      ]
             //
-            Object response = (this.fetchMyTrades(symbol, since, limit, new java.util.HashMap<String, Object>() {{
+            Object response = (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
-            }})).join();
+            }}))).join();
             return response;
         });
 
@@ -5364,7 +5364,7 @@ final Object finalPointFee = pointFee;
             put( "info", trade );
             put( "id", id );
             put( "timestamp", finalTimestamp );
-            put( "datetime", GateCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Gate.this.iso8601(finalTimestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "order", orderId );
             put( "type", null );
@@ -5529,7 +5529,7 @@ final Object finalPointFee = pointFee;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "address", address );
-                put( "amount", GateCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Gate.this.currencyToPrecision(code, amount) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
             {
@@ -5687,8 +5687,8 @@ final Object finalPointFee = pointFee;
             put( "id", finalId );
             put( "txid", txid );
             put( "currency", code );
-            put( "amount", GateCore.this.parseNumber(finalAmountString) );
-            put( "network", GateCore.this.networkIdToCode(networkId, code) );
+            put( "amount", Gate.this.parseNumber(finalAmountString) );
+            put( "network", Gate.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "addressTo", null );
             put( "addressFrom", null );
@@ -5698,13 +5698,13 @@ final Object finalPointFee = pointFee;
             put( "status", status );
             put( "type", finalType );
             put( "timestamp", timestamp );
-            put( "datetime", GateCore.this.iso8601(timestamp) );
+            put( "datetime", Gate.this.iso8601(timestamp) );
             put( "updated", null );
             put( "internal", null );
             put( "comment", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", GateCore.this.parseNumber(feeCostString) );
+                put( "cost", Gate.this.parseNumber(feeCostString) );
             }} );
         }};
     }
@@ -6190,7 +6190,7 @@ final Object finalPointFee = pointFee;
                     final Object finalRule = rule;
                     Helpers.addElementToObject(request, "trigger", new java.util.HashMap<String, Object>() {{
     put( "price_type", finalPriceType );
-    put( "price", GateCore.this.priceToPrecision(symbol, finalTriggerOrderPrice) );
+    put( "price", Gate.this.priceToPrecision(symbol, finalTriggerOrderPrice) );
     put( "rule", finalRule );
 }});
                 }
@@ -6228,8 +6228,8 @@ final Object finalPointFee = pointFee;
                     put( "put", new java.util.HashMap<String, Object>() {{
                         put( "type", finalType_2 );
                         put( "side", finalSide_2 );
-                        put( "price", GateCore.this.priceToPrecision(symbol, finalPrice) );
-                        put( "amount", GateCore.this.amountToPrecision(symbol, finalAmount_3) );
+                        put( "price", Gate.this.priceToPrecision(symbol, finalPrice) );
+                        put( "amount", Gate.this.amountToPrecision(symbol, finalAmount_3) );
                         put( "account", finalMarginMode );
                         put( "time_in_force", finalTimeInForce );
                     }} );
@@ -6255,7 +6255,7 @@ final Object finalPointFee = pointFee;
                     final Object finalTriggerOrderPrice = triggerOrderPrice;
                     final Object finalRule = rule;
                     Helpers.addElementToObject(request, "trigger", new java.util.HashMap<String, Object>() {{
-    put( "price", GateCore.this.priceToPrecision(symbol, finalTriggerOrderPrice) );
+    put( "price", Gate.this.priceToPrecision(symbol, finalTriggerOrderPrice) );
     put( "rule", finalRule );
     put( "expiration", expiration );
 }});
@@ -6299,7 +6299,7 @@ final Object finalPointFee = pointFee;
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "createMarketBuyOrderRequiresPrice", false );
             }});
-            return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -6662,10 +6662,10 @@ final Object finalPointFee = pointFee;
         {
             // cancelOrders response
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
-                put( "clientOrderId", GateCore.this.safeString(order, "text") );
+                put( "clientOrderId", Gate.this.safeString(order, "text") );
                 put( "info", order );
                 put( "status", "rejected" );
-                put( "id", GateCore.this.safeString(order, "id") );
+                put( "id", Gate.this.safeString(order, "id") );
             }});
         }
         Object put = this.safeValue2(order, "put", "initial", new java.util.HashMap<String, Object>() {{}});
@@ -6759,7 +6759,7 @@ final Object finalGtFee = gtFee;
         {
 final Object finalFee = fee;
                         ((java.util.List<Object>)fees).add(new java.util.HashMap<String, Object>() {{
-                put( "currency", GateCore.this.safeCurrencyCode(GateCore.this.safeString(order, "fee_currency")) );
+                put( "currency", Gate.this.safeCurrencyCode(Gate.this.safeString(order, "fee_currency")) );
                 put( "cost", finalFee );
             }});
         }
@@ -6768,7 +6768,7 @@ final Object finalFee = fee;
         {
 final Object finalRebate = rebate;
                         ((java.util.List<Object>)fees).add(new java.util.HashMap<String, Object>() {{
-                put( "currency", GateCore.this.safeCurrencyCode(GateCore.this.safeString(order, "rebated_fee_currency")) );
+                put( "currency", Gate.this.safeCurrencyCode(Gate.this.safeString(order, "rebated_fee_currency")) );
                 put( "cost", Precise.stringNeg(finalRebate) );
             }});
         }
@@ -6827,10 +6827,10 @@ final Object finalRebate = rebate;
         final Object finalCost = cost;
         final Object finalRemaining = remaining;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", GateCore.this.safeString(order, "id") );
+            put( "id", Gate.this.safeString(order, "id") );
             put( "clientOrderId", finalClientOrderId );
             put( "timestamp", finalTimestamp );
-            put( "datetime", GateCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Gate.this.iso8601(finalTimestamp) );
             put( "lastTradeTimestamp", finalLastTradeTimestamp );
             put( "status", status );
             put( "symbol", symbol );
@@ -6846,7 +6846,7 @@ final Object finalRebate = rebate;
             put( "cost", Precise.stringAbs(finalCost) );
             put( "filled", null );
             put( "remaining", finalRemaining );
-            put( "fee", ((Helpers.isTrue(multipleFeeCurrencies))) ? null : GateCore.this.safeValue(fees, 0) );
+            put( "fee", ((Helpers.isTrue(multipleFeeCurrencies))) ? null : Gate.this.safeValue(fees, 0) );
             put( "fees", ((Helpers.isTrue(multipleFeeCurrencies))) ? fees : new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             put( "trades", null );
             put( "info", order );
@@ -7589,7 +7589,7 @@ final Object finalRebate = rebate;
                     }};
                     ((java.util.List<Object>)ordersRequests).add(orderItem);
                 }
-                return (this.cancelOrdersForSymbols(ordersRequests, parameters)).join();
+                return (this.cancelOrdersForSymbols((Object)(ordersRequests), (Object)(parameters))).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "settle", settle );
@@ -7855,10 +7855,10 @@ final Object finalRebate = rebate;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
-            put( "id", GateCore.this.safeString(transfer, "tx_id") );
+            put( "id", Gate.this.safeString(transfer, "tx_id") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", GateCore.this.safeCurrencyCode(null, currency) );
+            put( "currency", Gate.this.safeCurrencyCode(null, currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
@@ -8096,26 +8096,26 @@ final Object finalRebate = rebate;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", GateCore.this.safeString(finalMarket, "symbol") );
+            put( "symbol", Gate.this.safeString(finalMarket, "symbol") );
             put( "timestamp", finalTimestamp );
-            put( "datetime", GateCore.this.iso8601(finalTimestamp) );
-            put( "lastUpdateTimestamp", GateCore.this.safeTimestamp2(position, "update_time", "time") );
-            put( "initialMargin", GateCore.this.parseNumber(initialMarginString) );
-            put( "initialMarginPercentage", GateCore.this.parseNumber(Precise.stringDiv(initialMarginString, notional)) );
-            put( "maintenanceMargin", GateCore.this.parseNumber(maintenanceMarginString) );
-            put( "maintenanceMarginPercentage", GateCore.this.parseNumber(Precise.stringDiv(maintenanceMarginString, notional)) );
-            put( "entryPrice", GateCore.this.safeNumber(position, "entry_price") );
-            put( "notional", GateCore.this.parseNumber(notional) );
-            put( "leverage", GateCore.this.safeNumber(position, "leverage") );
-            put( "unrealizedPnl", GateCore.this.parseNumber(finalUnrealisedPnl) );
-            put( "realizedPnl", GateCore.this.safeNumber2(position, "realised_pnl", "pnl") );
-            put( "contracts", GateCore.this.parseNumber(Precise.stringAbs(size)) );
-            put( "contractSize", GateCore.this.safeNumber(finalMarket, "contractSize") );
+            put( "datetime", Gate.this.iso8601(finalTimestamp) );
+            put( "lastUpdateTimestamp", Gate.this.safeTimestamp2(position, "update_time", "time") );
+            put( "initialMargin", Gate.this.parseNumber(initialMarginString) );
+            put( "initialMarginPercentage", Gate.this.parseNumber(Precise.stringDiv(initialMarginString, notional)) );
+            put( "maintenanceMargin", Gate.this.parseNumber(maintenanceMarginString) );
+            put( "maintenanceMarginPercentage", Gate.this.parseNumber(Precise.stringDiv(maintenanceMarginString, notional)) );
+            put( "entryPrice", Gate.this.safeNumber(position, "entry_price") );
+            put( "notional", Gate.this.parseNumber(notional) );
+            put( "leverage", Gate.this.safeNumber(position, "leverage") );
+            put( "unrealizedPnl", Gate.this.parseNumber(finalUnrealisedPnl) );
+            put( "realizedPnl", Gate.this.safeNumber2(position, "realised_pnl", "pnl") );
+            put( "contracts", Gate.this.parseNumber(Precise.stringAbs(size)) );
+            put( "contractSize", Gate.this.safeNumber(finalMarket, "contractSize") );
             put( "marginRatio", null );
-            put( "liquidationPrice", GateCore.this.safeNumber(position, "liq_price") );
-            put( "markPrice", GateCore.this.safeNumber(position, "mark_price") );
+            put( "liquidationPrice", Gate.this.safeNumber(position, "liq_price") );
+            put( "markPrice", Gate.this.safeNumber(position, "mark_price") );
             put( "lastPrice", null );
-            put( "collateral", GateCore.this.parseNumber(finalCollateral) );
+            put( "collateral", Gate.this.parseNumber(finalCollateral) );
             put( "marginMode", finalMarginMode );
             put( "side", finalSide );
             put( "percentage", null );
@@ -8583,13 +8583,13 @@ final Object finalFloor = floor;
             final Object finalMaintenanceMarginRate = maintenanceMarginRate;
             final Object finalInitialMarginRatio = initialMarginRatio;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", GateCore.this.parseNumber(Precise.stringDiv(cap, riskLimitStep)) );
-                put( "symbol", GateCore.this.safeSymbol(marketId, market, null, "contract") );
-                put( "currency", GateCore.this.safeString(market, "settle") );
-                put( "minNotional", GateCore.this.parseNumber(finalFloor) );
-                put( "maxNotional", GateCore.this.parseNumber(cap) );
-                put( "maintenanceMarginRate", GateCore.this.parseNumber(finalMaintenanceMarginRate) );
-                put( "maxLeverage", GateCore.this.parseNumber(Precise.stringDiv("1", finalInitialMarginRatio)) );
+                put( "tier", Gate.this.parseNumber(Precise.stringDiv(cap, riskLimitStep)) );
+                put( "symbol", Gate.this.safeSymbol(marketId, market, null, "contract") );
+                put( "currency", Gate.this.safeString(market, "settle") );
+                put( "minNotional", Gate.this.parseNumber(finalFloor) );
+                put( "maxNotional", Gate.this.parseNumber(cap) );
+                put( "maintenanceMarginRate", Gate.this.parseNumber(finalMaintenanceMarginRate) );
+                put( "maxLeverage", Gate.this.parseNumber(Precise.stringDiv("1", finalInitialMarginRatio)) );
                 put( "info", info );
             }});
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, maintenanceMarginUnit);
@@ -8626,13 +8626,13 @@ final Object finalFloor = floor;
 final Object finalI = i;
             final Object finalMinNotional = minNotional;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", GateCore.this.sum(finalI, 1) );
-                put( "symbol", GateCore.this.safeString(market, "symbol") );
-                put( "currency", GateCore.this.safeString(market, "base") );
+                put( "tier", Gate.this.sum(finalI, 1) );
+                put( "symbol", Gate.this.safeString(market, "symbol") );
+                put( "currency", Gate.this.safeString(market, "base") );
                 put( "minNotional", finalMinNotional );
                 put( "maxNotional", maxNotional );
-                put( "maintenanceMarginRate", GateCore.this.safeNumber(item, "maintenance_rate") );
-                put( "maxLeverage", GateCore.this.safeNumber(item, "leverage_max") );
+                put( "maintenanceMarginRate", Gate.this.safeNumber(item, "maintenance_rate") );
+                put( "maxLeverage", Gate.this.safeNumber(item, "leverage_max") );
                 put( "info", item );
             }});
             minNotional = maxNotional;
@@ -8666,7 +8666,7 @@ final Object finalI = i;
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", ((String)Helpers.GetValue(currency, "id")).toUpperCase() );
-                put( "amount", GateCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Gate.this.currencyToPrecision(code, amount) );
             }};
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
@@ -8707,7 +8707,7 @@ final Object finalI = i;
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", ((String)Helpers.GetValue(currency, "id")).toUpperCase() );
-                put( "amount", GateCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Gate.this.currencyToPrecision(code, amount) );
             }};
             Object isUnifiedAccount = false;
             java.util.List<Object> isUnifiedAccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "repayCrossMargin", "unifiedAccount");
@@ -8754,7 +8754,7 @@ final Object finalI = i;
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", ((String)Helpers.GetValue(currency, "id")).toUpperCase() );
-                put( "amount", GateCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Gate.this.currencyToPrecision(code, amount) );
             }};
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
@@ -8810,7 +8810,7 @@ final Object finalI = i;
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", ((String)Helpers.GetValue(currency, "id")).toUpperCase() );
-                put( "amount", GateCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Gate.this.currencyToPrecision(code, amount) );
             }};
             Object isUnifiedAccount = false;
             java.util.List<Object> isUnifiedAccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "borrowCrossMargin", "unifiedAccount");
@@ -8881,12 +8881,12 @@ final Object finalI = i;
         String marketId = this.safeString(info, "currency_pair");
         final Object finalTimestamp = timestamp;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", GateCore.this.safeString(info, "id") );
-            put( "currency", GateCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", GateCore.this.safeNumber(info, "amount") );
-            put( "symbol", GateCore.this.safeSymbol(marketId, null, "_", "margin") );
+            put( "id", Gate.this.safeString(info, "id") );
+            put( "currency", Gate.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Gate.this.safeNumber(info, "amount") );
+            put( "symbol", Gate.this.safeSymbol(marketId, null, "_", "margin") );
             put( "timestamp", finalTimestamp );
-            put( "datetime", GateCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Gate.this.iso8601(finalTimestamp) );
             put( "info", info );
         }};
     }
@@ -8983,14 +8983,14 @@ final Object finalI = i;
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", GateCore.this.safeString(finalMarket, "symbol") );
-            put( "currency", GateCore.this.safeCurrencyCode(GateCore.this.safeString(info, "currency")) );
-            put( "interest", GateCore.this.safeNumber(info, "interest") );
-            put( "interestRate", GateCore.this.safeNumber(info, "actual_rate") );
+            put( "symbol", Gate.this.safeString(finalMarket, "symbol") );
+            put( "currency", Gate.this.safeCurrencyCode(Gate.this.safeString(info, "currency")) );
+            put( "interest", Gate.this.safeNumber(info, "interest") );
+            put( "interestRate", Gate.this.safeNumber(info, "actual_rate") );
             put( "amountBorrowed", null );
             put( "marginMode", marginMode );
             put( "timestamp", timestamp );
-            put( "datetime", GateCore.this.iso8601(timestamp) );
+            put( "datetime", Gate.this.iso8601(timestamp) );
         }};
     }
 
@@ -9106,7 +9106,7 @@ final Object finalI = i;
             Object payload = String.join("\n", (java.util.List<String>)payloadArray);
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512());
             headers = new java.util.HashMap<String, Object>() {{
-                put( "KEY", GateCore.this.apiKey );
+                put( "KEY", Gate.this.apiKey );
                 put( "Timestamp", timestampString );
                 put( "SIGN", signature );
                 put( "Content-Type", "application/json" );
@@ -9196,7 +9196,7 @@ final Object finalI = i;
             put( "marginMode", "isolated" );
             put( "amount", null );
             put( "total", total );
-            put( "code", GateCore.this.safeValue(finalMarket, "quote") );
+            put( "code", Gate.this.safeValue(finalMarket, "quote") );
             put( "status", "ok" );
             put( "timestamp", null );
             put( "datetime", null );
@@ -9289,7 +9289,7 @@ final Object finalI = i;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contract", Helpers.GetValue(market, "id") );
                 put( "settle", Helpers.GetValue(market, "settleId") );
-                put( "interval", GateCore.this.safeString(GateCore.this.timeframes, timeframe, timeframe) );
+                put( "interval", Gate.this.safeString(Gate.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -9349,11 +9349,11 @@ final Object finalI = i;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(interest, "time");
         return new java.util.HashMap<String, Object>() {{
-            put( "symbol", GateCore.this.safeString(market, "symbol") );
-            put( "openInterestAmount", GateCore.this.safeNumber(interest, "open_interest") );
-            put( "openInterestValue", GateCore.this.safeNumber(interest, "open_interest_usd") );
+            put( "symbol", Gate.this.safeString(market, "symbol") );
+            put( "openInterestAmount", Gate.this.safeNumber(interest, "open_interest") );
+            put( "openInterestValue", Gate.this.safeNumber(interest, "open_interest_usd") );
             put( "timestamp", timestamp );
-            put( "datetime", GateCore.this.iso8601(timestamp) );
+            put( "datetime", Gate.this.iso8601(timestamp) );
             put( "info", interest );
         }};
     }
@@ -9398,7 +9398,7 @@ final Object finalI = i;
             Object marketId = Helpers.GetValue(market, "id");
             Object optionParts = Helpers.split(((String)marketId), "-");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "underlying", GateCore.this.safeString(optionParts, 0) );
+                put( "underlying", Gate.this.safeString(optionParts, 0) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -9585,10 +9585,10 @@ final Object finalI = i;
         String marketId = this.safeString(settlement, "contract");
         return new java.util.HashMap<String, Object>() {{
             put( "info", settlement );
-            put( "symbol", GateCore.this.safeSymbol(marketId, market) );
-            put( "price", GateCore.this.safeNumber(settlement, "settle_price") );
+            put( "symbol", Gate.this.safeSymbol(marketId, market) );
+            put( "price", Gate.this.safeNumber(settlement, "settle_price") );
             put( "timestamp", timestamp );
-            put( "datetime", GateCore.this.iso8601(timestamp) );
+            put( "datetime", Gate.this.iso8601(timestamp) );
         }};
     }
 
@@ -9854,18 +9854,18 @@ final Object finalI = i;
         final Object finalTimestamp = timestamp;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", GateCore.this.safeString(item, "id") );
+            put( "id", Gate.this.safeString(item, "id") );
             put( "direction", finalDirection );
             put( "account", null );
             put( "referenceAccount", null );
             put( "referenceId", null );
-            put( "type", GateCore.this.parseLedgerEntryType(type) );
-            put( "currency", GateCore.this.safeCurrencyCode(currencyId, finalCurrency) );
-            put( "amount", GateCore.this.parseNumber(finalAmount) );
+            put( "type", Gate.this.parseLedgerEntryType(type) );
+            put( "currency", Gate.this.safeCurrencyCode(currencyId, finalCurrency) );
+            put( "amount", Gate.this.parseNumber(finalAmount) );
             put( "timestamp", finalTimestamp );
-            put( "datetime", GateCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Gate.this.iso8601(finalTimestamp) );
             put( "before", before );
-            put( "after", GateCore.this.safeNumber(item, "balance") );
+            put( "after", Gate.this.safeNumber(item, "balance") );
             put( "status", null );
             put( "fee", null );
         }}, currency);
@@ -10244,15 +10244,15 @@ final Object finalI = i;
         final Object finalQuoteValueString = quoteValueString;
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
-            put( "symbol", GateCore.this.safeSymbol(marketId, market) );
-            put( "contracts", GateCore.this.parseNumber(contractsString) );
-            put( "contractSize", GateCore.this.parseNumber(contractSizeString) );
-            put( "price", GateCore.this.parseNumber(priceString) );
+            put( "symbol", Gate.this.safeSymbol(marketId, market) );
+            put( "contracts", Gate.this.parseNumber(contractsString) );
+            put( "contractSize", Gate.this.parseNumber(contractSizeString) );
+            put( "price", Gate.this.parseNumber(priceString) );
             put( "side", finalSide );
-            put( "baseValue", GateCore.this.parseNumber(baseValueString) );
-            put( "quoteValue", GateCore.this.parseNumber(Precise.stringAbs(finalQuoteValueString)) );
+            put( "baseValue", Gate.this.parseNumber(baseValueString) );
+            put( "quoteValue", Gate.this.parseNumber(Precise.stringAbs(finalQuoteValueString)) );
             put( "timestamp", timestamp );
-            put( "datetime", GateCore.this.iso8601(timestamp) );
+            put( "datetime", Gate.this.iso8601(timestamp) );
         }});
     }
 
@@ -10351,21 +10351,21 @@ final Object finalI = i;
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "delta", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "delta")) );
-            put( "gamma", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "gamma")) );
-            put( "theta", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "theta")) );
-            put( "vega", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "vega")) );
+            put( "delta", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "delta")) );
+            put( "gamma", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "gamma")) );
+            put( "theta", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "theta")) );
+            put( "vega", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "vega")) );
             put( "rho", null );
-            put( "bidSize", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "bid1_size")) );
-            put( "askSize", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "ask1_size")) );
-            put( "bidImpliedVolatility", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "bid_iv")) );
-            put( "askImpliedVolatility", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "ask_iv")) );
-            put( "markImpliedVolatility", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "mark_iv")) );
-            put( "bidPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "bid1_price")) );
-            put( "askPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "ask1_price")) );
-            put( "markPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "mark_price")) );
-            put( "lastPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(greeks, "last_price")) );
-            put( "underlyingPrice", GateCore.this.parseNumber(Helpers.GetValue(Helpers.GetValue(finalMarket, "info"), "underlying_price")) );
+            put( "bidSize", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "bid1_size")) );
+            put( "askSize", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "ask1_size")) );
+            put( "bidImpliedVolatility", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "bid_iv")) );
+            put( "askImpliedVolatility", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "ask_iv")) );
+            put( "markImpliedVolatility", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "mark_iv")) );
+            put( "bidPrice", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "bid1_price")) );
+            put( "askPrice", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "ask1_price")) );
+            put( "markPrice", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "mark_price")) );
+            put( "lastPrice", Gate.this.parseNumber(Gate.this.safeNumber(greeks, "last_price")) );
+            put( "underlyingPrice", Gate.this.parseNumber(Helpers.GetValue(Helpers.GetValue(finalMarket, "info"), "underlying_price")) );
             put( "info", greeks );
         }};
     }
@@ -10397,7 +10397,7 @@ final Object finalI = i;
             {
                 side = ""; // side is not used but needs to be present, otherwise crashes in php
             }
-            return (this.createOrder(symbol, "market", side, 0, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(0), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -10501,7 +10501,7 @@ final Object finalI = i;
         Long leverageValue = this.safeInteger(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", GateCore.this.safeSymbol(marketId, market, "_", "spot") );
+            put( "symbol", Gate.this.safeSymbol(marketId, market, "_", "spot") );
             put( "marginMode", null );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
@@ -10703,15 +10703,15 @@ final Object finalI = i;
             put( "currency", null );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", GateCore.this.iso8601(timestamp) );
+            put( "datetime", Gate.this.iso8601(timestamp) );
             put( "impliedVolatility", null );
             put( "openInterest", null );
-            put( "bidPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(chain, "bid1_price")) );
-            put( "askPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(chain, "ask1_price")) );
+            put( "bidPrice", Gate.this.parseNumber(Gate.this.safeNumber(chain, "bid1_price")) );
+            put( "askPrice", Gate.this.parseNumber(Gate.this.safeNumber(chain, "ask1_price")) );
             put( "midPrice", null );
-            put( "markPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(chain, "mark_price")) );
-            put( "lastPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(chain, "last_price")) );
-            put( "underlyingPrice", GateCore.this.parseNumber(GateCore.this.safeNumber(chain, "underlying_price")) );
+            put( "markPrice", Gate.this.parseNumber(Gate.this.safeNumber(chain, "mark_price")) );
+            put( "lastPrice", Gate.this.parseNumber(Gate.this.safeNumber(chain, "last_price")) );
+            put( "underlyingPrice", Gate.this.parseNumber(Gate.this.safeNumber(chain, "underlying_price")) );
             put( "change", null );
             put( "percentage", null );
             put( "baseVolume", null );

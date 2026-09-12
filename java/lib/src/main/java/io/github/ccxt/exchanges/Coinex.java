@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class CoinexCore extends CoinexApi
+public class Coinex extends CoinexApi
 {
-   public CoinexCore () {
+   public Coinex () {
        super();
    }
 
-   public CoinexCore (Object options) {
+   public Coinex (Object options) {
        super(options);
    }
 
@@ -1268,21 +1268,21 @@ public class CoinexCore extends CoinexApi
                 put( "network", finalNetworkCode );
                 put( "name", null );
                 put( "active", null );
-                put( "deposit", CoinexCore.this.safeBool(chain, "deposit_enabled") );
-                put( "withdraw", CoinexCore.this.safeBool(chain, "withdraw_enabled") );
-                put( "fee", CoinexCore.this.safeNumber(chain, "withdrawal_fee") );
-                put( "precision", CoinexCore.this.parseNumber(CoinexCore.this.parsePrecision(CoinexCore.this.safeString(chain, "withdrawal_precision"))) );
+                put( "deposit", Coinex.this.safeBool(chain, "deposit_enabled") );
+                put( "withdraw", Coinex.this.safeBool(chain, "withdraw_enabled") );
+                put( "fee", Coinex.this.safeNumber(chain, "withdrawal_fee") );
+                put( "precision", Coinex.this.parseNumber(Coinex.this.parsePrecision(Coinex.this.safeString(chain, "withdrawal_precision"))) );
                 put( "limits", new java.util.HashMap<String, Object>() {{
                     put( "amount", new java.util.HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
                     }} );
                     put( "deposit", new java.util.HashMap<String, Object>() {{
-                        put( "min", CoinexCore.this.safeNumber(chain, "min_deposit_amount") );
+                        put( "min", Coinex.this.safeNumber(chain, "min_deposit_amount") );
                         put( "max", null );
                     }} );
                     put( "withdraw", new java.util.HashMap<String, Object>() {{
-                        put( "min", CoinexCore.this.safeNumber(chain, "min_withdraw_amount") );
+                        put( "min", Coinex.this.safeNumber(chain, "min_withdraw_amount") );
                         put( "max", null );
                     }} );
                 }} );
@@ -1298,8 +1298,8 @@ public class CoinexCore extends CoinexApi
             put( "code", code );
             put( "name", null );
             put( "active", null );
-            put( "deposit", CoinexCore.this.safeBool(asset, "deposit_enabled") );
-            put( "withdraw", CoinexCore.this.safeBool(asset, "withdraw_enabled") );
+            put( "deposit", Coinex.this.safeBool(asset, "deposit_enabled") );
+            put( "withdraw", Coinex.this.safeBool(asset, "withdraw_enabled") );
             put( "fee", null );
             put( "precision", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
@@ -1397,24 +1397,24 @@ public class CoinexCore extends CoinexApi
                     put( "settleId", null );
                     put( "type", "spot" );
                     put( "spot", true );
-                    put( "margin", CoinexCore.this.safeBool(market, "is_margin_available") );
+                    put( "margin", Coinex.this.safeBool(market, "is_margin_available") );
                     put( "swap", false );
                     put( "future", false );
                     put( "option", false );
-                    put( "active", CoinexCore.this.safeBool(market, "is_api_trading_available") );
+                    put( "active", Coinex.this.safeBool(market, "is_api_trading_available") );
                     put( "contract", false );
                     put( "linear", null );
                     put( "inverse", null );
-                    put( "taker", CoinexCore.this.safeNumber(market, "taker_fee_rate") );
-                    put( "maker", CoinexCore.this.safeNumber(market, "maker_fee_rate") );
+                    put( "taker", Coinex.this.safeNumber(market, "taker_fee_rate") );
+                    put( "maker", Coinex.this.safeNumber(market, "maker_fee_rate") );
                     put( "contractSize", null );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", CoinexCore.this.parseNumber(CoinexCore.this.parsePrecision(CoinexCore.this.safeString(market, "base_ccy_precision"))) );
-                        put( "price", CoinexCore.this.parseNumber(CoinexCore.this.parsePrecision(CoinexCore.this.safeString(market, "quote_ccy_precision"))) );
+                        put( "amount", Coinex.this.parseNumber(Coinex.this.parsePrecision(Coinex.this.safeString(market, "base_ccy_precision"))) );
+                        put( "price", Coinex.this.parseNumber(Coinex.this.parsePrecision(Coinex.this.safeString(market, "quote_ccy_precision"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -1422,7 +1422,7 @@ public class CoinexCore extends CoinexApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", CoinexCore.this.safeNumber(market, "min_amount") );
+                            put( "min", Coinex.this.safeNumber(market, "min_amount") );
                             put( "max", null );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
@@ -1512,22 +1512,22 @@ public class CoinexCore extends CoinexApi
                     put( "inverse", inverse );
                     put( "taker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "taker") );
                     put( "maker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "maker") );
-                    put( "contractSize", CoinexCore.this.parseNumber("1") );
+                    put( "contractSize", Coinex.this.parseNumber("1") );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", CoinexCore.this.parseNumber(CoinexCore.this.parsePrecision(CoinexCore.this.safeString(entry, "base_ccy_precision"))) );
-                        put( "price", CoinexCore.this.parseNumber(CoinexCore.this.parsePrecision(CoinexCore.this.safeString(entry, "quote_ccy_precision"))) );
+                        put( "amount", Coinex.this.parseNumber(Coinex.this.parsePrecision(Coinex.this.safeString(entry, "base_ccy_precision"))) );
+                        put( "price", Coinex.this.parseNumber(Coinex.this.parsePrecision(Coinex.this.safeString(entry, "quote_ccy_precision"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", CoinexCore.this.safeNumber(leverages, 0) );
-                            put( "max", CoinexCore.this.safeNumber(leverages, Helpers.subtract(finalLeveragesLength, 1)) );
+                            put( "min", Coinex.this.safeNumber(leverages, 0) );
+                            put( "max", Coinex.this.safeNumber(leverages, Helpers.subtract(finalLeveragesLength, 1)) );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", CoinexCore.this.safeNumber(entry, "min_amount") );
+                            put( "min", Coinex.this.safeNumber(entry, "min_amount") );
                             put( "max", null );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
@@ -1597,24 +1597,24 @@ public class CoinexCore extends CoinexApi
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", CoinexCore.this.safeString(ticker, "high") );
-            put( "low", CoinexCore.this.safeString(ticker, "low") );
+            put( "high", Coinex.this.safeString(ticker, "high") );
+            put( "low", Coinex.this.safeString(ticker, "low") );
             put( "bid", null );
-            put( "bidVolume", CoinexCore.this.safeString(ticker, "volume_buy") );
+            put( "bidVolume", Coinex.this.safeString(ticker, "volume_buy") );
             put( "ask", null );
-            put( "askVolume", CoinexCore.this.safeString(ticker, "volume_sell") );
+            put( "askVolume", Coinex.this.safeString(ticker, "volume_sell") );
             put( "vwap", null );
-            put( "open", CoinexCore.this.safeString(ticker, "open") );
-            put( "close", CoinexCore.this.safeString(ticker, "close") );
-            put( "last", CoinexCore.this.safeString(ticker, "last") );
+            put( "open", Coinex.this.safeString(ticker, "open") );
+            put( "close", Coinex.this.safeString(ticker, "close") );
+            put( "last", Coinex.this.safeString(ticker, "last") );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", CoinexCore.this.safeString(ticker, "volume") );
+            put( "baseVolume", Coinex.this.safeString(ticker, "volume") );
             put( "quoteVolume", quoteVolume );
-            put( "markPrice", CoinexCore.this.safeString(ticker, "mark_price") );
-            put( "indexPrice", CoinexCore.this.safeString(ticker, "index_price") );
+            put( "markPrice", Coinex.this.safeString(ticker, "mark_price") );
+            put( "indexPrice", Coinex.this.safeString(ticker, "index_price") );
             put( "info", ticker );
         }}, market);
     }
@@ -1943,16 +1943,16 @@ public class CoinexCore extends CoinexApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", CoinexCore.this.iso8601(timestamp) );
+            put( "datetime", Coinex.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "id", CoinexCore.this.safeString(trade, "deal_id") );
-            put( "order", CoinexCore.this.safeString(trade, "order_id") );
+            put( "id", Coinex.this.safeString(trade, "deal_id") );
+            put( "order", Coinex.this.safeString(trade, "order_id") );
             put( "type", null );
-            put( "side", CoinexCore.this.safeString(trade, "side") );
-            put( "takerOrMaker", CoinexCore.this.safeString(trade, "role") );
-            put( "price", CoinexCore.this.safeString(trade, "price") );
-            put( "amount", CoinexCore.this.safeString(trade, "amount") );
-            put( "cost", CoinexCore.this.safeString(trade, "deal_money") );
+            put( "side", Coinex.this.safeString(trade, "side") );
+            put( "takerOrMaker", Coinex.this.safeString(trade, "role") );
+            put( "price", Coinex.this.safeString(trade, "price") );
+            put( "amount", Coinex.this.safeString(trade, "amount") );
+            put( "cost", Coinex.this.safeString(trade, "deal_money") );
             put( "fee", finalFee );
         }}, market);
     }
@@ -2112,8 +2112,8 @@ public class CoinexCore extends CoinexApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", CoinexCore.this.safeNumber(fee, "maker_fee_rate") );
-            put( "taker", CoinexCore.this.safeNumber(fee, "taker_fee_rate") );
+            put( "maker", Coinex.this.safeNumber(fee, "maker_fee_rate") );
+            put( "taker", Coinex.this.safeNumber(fee, "taker_fee_rate") );
             put( "percentage", true );
             put( "tierBased", true );
         }};
@@ -2166,7 +2166,7 @@ public class CoinexCore extends CoinexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
-                put( "period", CoinexCore.this.safeString(CoinexCore.this.timeframes, timeframe, timeframe) );
+                put( "period", Coinex.this.safeString(Coinex.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -2726,31 +2726,31 @@ public class CoinexCore extends CoinexApi
         final Object finalSide = side;
         final Object finalFeeCurrency = feeCurrency;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", CoinexCore.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id", "order_id", "stop_id"))) );
+            put( "id", Coinex.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id", "order_id", "stop_id"))) );
             put( "clientOrderId", finalClientOrderId );
-            put( "datetime", CoinexCore.this.iso8601(timestamp) );
+            put( "datetime", Coinex.this.iso8601(timestamp) );
             put( "timestamp", timestamp );
             put( "lastTradeTimestamp", finalUpdatedTimestamp );
-            put( "status", CoinexCore.this.parseOrderStatus(rawStatus) );
+            put( "status", Coinex.this.parseOrderStatus(rawStatus) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "type", CoinexCore.this.safeString(order, "type") );
+            put( "type", Coinex.this.safeString(order, "type") );
             put( "timeInForce", null );
             put( "postOnly", null );
             put( "reduceOnly", null );
             put( "side", finalSide );
-            put( "price", CoinexCore.this.safeString(order, "price") );
-            put( "triggerPrice", CoinexCore.this.safeString(order, "trigger_price") );
-            put( "takeProfitPrice", CoinexCore.this.safeNumber(order, "take_profit_price") );
-            put( "stopLossPrice", CoinexCore.this.safeNumber(order, "stop_loss_price") );
-            put( "cost", CoinexCore.this.safeString(order, "filled_value") );
-            put( "average", CoinexCore.this.safeString(order, "avg_entry_price") );
-            put( "amount", CoinexCore.this.safeString(order, "amount") );
-            put( "filled", CoinexCore.this.safeString(order, "filled_amount") );
-            put( "remaining", CoinexCore.this.safeString(order, "unfilled_amount") );
+            put( "price", Coinex.this.safeString(order, "price") );
+            put( "triggerPrice", Coinex.this.safeString(order, "trigger_price") );
+            put( "takeProfitPrice", Coinex.this.safeNumber(order, "take_profit_price") );
+            put( "stopLossPrice", Coinex.this.safeNumber(order, "stop_loss_price") );
+            put( "cost", Coinex.this.safeString(order, "filled_value") );
+            put( "average", Coinex.this.safeString(order, "avg_entry_price") );
+            put( "amount", Coinex.this.safeString(order, "amount") );
+            put( "filled", Coinex.this.safeString(order, "filled_amount") );
+            put( "remaining", Coinex.this.safeString(order, "unfilled_amount") );
             put( "trades", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", finalFeeCurrency );
-                put( "cost", CoinexCore.this.safeString2(order, "quote_fee", "fee") );
+                put( "cost", Coinex.this.safeString2(order, "quote_fee", "fee") );
             }} );
             put( "info", order );
         }}, market);
@@ -2783,7 +2783,7 @@ public class CoinexCore extends CoinexApi
                 throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -3373,7 +3373,7 @@ public class CoinexCore extends CoinexApi
                 }
                 final Object finalMarket_type = market_type;
                 java.util.Map<String, Object> orderRequest = new java.util.HashMap<String, Object>() {{
-                    put( "order_id", CoinexCore.this.parseToNumeric(id) );
+                    put( "order_id", Coinex.this.parseToNumeric(id) );
                     put( "market", Helpers.GetValue(market, "id") );
                     put( "market_type", finalMarket_type );
                 }};
@@ -3631,7 +3631,7 @@ public class CoinexCore extends CoinexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
-                put( "order_id", CoinexCore.this.parseToNumeric(id) );
+                put( "order_id", Coinex.this.parseToNumeric(id) );
             }};
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
@@ -3853,7 +3853,7 @@ public class CoinexCore extends CoinexApi
             final Object finalNetwork = network;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
-                put( "chain", CoinexCore.this.networkCodeToId(finalNetwork, Helpers.GetValue(currency, "code")) );
+                put( "chain", Coinex.this.networkCodeToId(finalNetwork, Helpers.GetValue(currency, "code")) );
             }};
             java.util.Map<String, Object> response = (this.v2PrivatePostAssetsRenewalDepositAddress(this.extend(request, parameters))).join();
             //
@@ -3948,10 +3948,10 @@ public class CoinexCore extends CoinexApi
         final Object finalTag = tag;
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", CoinexCore.this.safeCurrencyCode(null, currency) );
+            put( "currency", Coinex.this.safeCurrencyCode(null, currency) );
             put( "network", null );
             put( "address", finalAddress );
-            put( "tag", CoinexCore.this.safeString(depositAddress, "memo", finalTag) );
+            put( "tag", Coinex.this.safeString(depositAddress, "memo", finalTag) );
         }};
     }
 
@@ -4255,33 +4255,33 @@ public class CoinexCore extends CoinexApi
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", CoinexCore.this.safeInteger(position, "position_id") );
+            put( "id", Coinex.this.safeInteger(position, "position_id") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "notional", CoinexCore.this.safeNumber(position, "settle_value") );
-            put( "marginMode", CoinexCore.this.safeString(position, "margin_mode") );
-            put( "liquidationPrice", CoinexCore.this.safeNumber(position, "liq_price") );
-            put( "entryPrice", CoinexCore.this.safeNumber(position, "avg_entry_price") );
-            put( "unrealizedPnl", CoinexCore.this.safeNumber(position, "unrealized_pnl") );
-            put( "realizedPnl", CoinexCore.this.safeNumber(position, "realized_pnl") );
+            put( "notional", Coinex.this.safeNumber(position, "settle_value") );
+            put( "marginMode", Coinex.this.safeString(position, "margin_mode") );
+            put( "liquidationPrice", Coinex.this.safeNumber(position, "liq_price") );
+            put( "entryPrice", Coinex.this.safeNumber(position, "avg_entry_price") );
+            put( "unrealizedPnl", Coinex.this.safeNumber(position, "unrealized_pnl") );
+            put( "realizedPnl", Coinex.this.safeNumber(position, "realized_pnl") );
             put( "percentage", null );
-            put( "contracts", CoinexCore.this.safeNumber(position, "close_avbl") );
-            put( "contractSize", CoinexCore.this.safeNumber(finalMarket, "contractSize") );
+            put( "contracts", Coinex.this.safeNumber(position, "close_avbl") );
+            put( "contractSize", Coinex.this.safeNumber(finalMarket, "contractSize") );
             put( "markPrice", null );
             put( "lastPrice", null );
-            put( "side", CoinexCore.this.safeString(position, "side") );
+            put( "side", Coinex.this.safeString(position, "side") );
             put( "hedged", null );
             put( "timestamp", timestamp );
-            put( "datetime", CoinexCore.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", CoinexCore.this.safeInteger(position, "updated_at") );
-            put( "maintenanceMargin", CoinexCore.this.safeNumber(position, "maintenance_margin_value") );
-            put( "maintenanceMarginPercentage", CoinexCore.this.safeNumber(position, "maintenance_margin_rate") );
-            put( "collateral", CoinexCore.this.safeNumber(position, "margin_avbl") );
+            put( "datetime", Coinex.this.iso8601(timestamp) );
+            put( "lastUpdateTimestamp", Coinex.this.safeInteger(position, "updated_at") );
+            put( "maintenanceMargin", Coinex.this.safeNumber(position, "maintenance_margin_value") );
+            put( "maintenanceMarginPercentage", Coinex.this.safeNumber(position, "maintenance_margin_rate") );
+            put( "collateral", Coinex.this.safeNumber(position, "margin_avbl") );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
-            put( "leverage", CoinexCore.this.safeNumber(position, "leverage") );
-            put( "marginRatio", CoinexCore.this.safeNumber(position, "position_margin_rate") );
-            put( "stopLossPrice", CoinexCore.this.omitZero(CoinexCore.this.safeString(position, "stop_loss_price")) );
-            put( "takeProfitPrice", CoinexCore.this.omitZero(CoinexCore.this.safeString(position, "take_profit_price")) );
+            put( "leverage", Coinex.this.safeNumber(position, "leverage") );
+            put( "marginRatio", Coinex.this.safeNumber(position, "position_margin_rate") );
+            put( "stopLossPrice", Coinex.this.omitZero(Coinex.this.safeString(position, "stop_loss_price")) );
+            put( "takeProfitPrice", Coinex.this.omitZero(Coinex.this.safeString(position, "take_profit_price")) );
         }});
     }
 
@@ -4473,13 +4473,13 @@ public class CoinexCore extends CoinexApi
 final Object finalI = i;
             final Object finalMarket = market;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", CoinexCore.this.sum(finalI, 1) );
-                put( "symbol", CoinexCore.this.safeSymbol(marketId, finalMarket, null, "swap") );
+                put( "tier", Coinex.this.sum(finalI, 1) );
+                put( "symbol", Coinex.this.safeSymbol(marketId, finalMarket, null, "swap") );
                 put( "currency", curr );
                 put( "minNotional", notional );
                 put( "maxNotional", maxNotional );
-                put( "maintenanceMarginRate", CoinexCore.this.safeNumber(tier, "maintenance_margin_rate") );
-                put( "maxLeverage", CoinexCore.this.safeInteger(tier, "leverage") );
+                put( "maintenanceMarginRate", Coinex.this.safeNumber(tier, "maintenance_margin_rate") );
+                put( "maxLeverage", Coinex.this.safeInteger(tier, "leverage") );
                 put( "info", tier );
             }});
             minNotional = maxNotional;
@@ -4554,7 +4554,7 @@ final Object finalI = i;
             String type = ((Helpers.isTrue((Helpers.isEqual(addOrReduce, "reduce"))))) ? "reduce" : "add";
             return this.extend(this.parseMarginModification(data, market), new java.util.HashMap<String, Object>() {{
                 put( "type", type );
-                put( "amount", CoinexCore.this.parseNumber(amount) );
+                put( "amount", Coinex.this.parseNumber(amount) );
                 put( "status", status );
             }});
         });
@@ -4622,15 +4622,15 @@ final Object finalI = i;
         String change = this.safeString(data, "margin_change");
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", CoinexCore.this.safeSymbol(marketId, market, null, "swap") );
+            put( "symbol", Coinex.this.safeSymbol(marketId, market, null, "swap") );
             put( "type", null );
             put( "marginMode", "isolated" );
-            put( "amount", CoinexCore.this.parseNumber(Precise.stringAbs(change)) );
-            put( "total", CoinexCore.this.safeNumber(data, "margin_avbl") );
-            put( "code", CoinexCore.this.safeString(market, "quote") );
+            put( "amount", Coinex.this.parseNumber(Precise.stringAbs(change)) );
+            put( "total", Coinex.this.safeNumber(data, "margin_avbl") );
+            put( "code", Coinex.this.safeString(market, "quote") );
             put( "status", null );
             put( "timestamp", timestamp );
-            put( "datetime", CoinexCore.this.iso8601(timestamp) );
+            put( "datetime", Coinex.this.iso8601(timestamp) );
         }};
     }
 
@@ -4756,9 +4756,9 @@ final Object finalI = i;
                     put( "symbol", finalSymbol );
                     put( "code", code );
                     put( "timestamp", timestamp );
-                    put( "datetime", CoinexCore.this.iso8601(timestamp) );
-                    put( "id", CoinexCore.this.safeNumber(entry, "position_id") );
-                    put( "amount", CoinexCore.this.safeNumber(entry, "funding_value") );
+                    put( "datetime", Coinex.this.iso8601(timestamp) );
+                    put( "id", Coinex.this.safeNumber(entry, "position_id") );
+                    put( "amount", Coinex.this.safeNumber(entry, "funding_value") );
                 }});
             }
             return result;
@@ -4834,7 +4834,7 @@ final Object finalI = i;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchFundingRate(symbol, parameters)).join();
+            return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
         });
 
     }
@@ -4864,23 +4864,23 @@ final Object finalI = i;
         String marketId = this.safeString(contract, "market");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", CoinexCore.this.safeSymbol(marketId, market, null, "swap") );
-            put( "markPrice", CoinexCore.this.safeNumber(contract, "mark_price") );
+            put( "symbol", Coinex.this.safeSymbol(marketId, market, null, "swap") );
+            put( "markPrice", Coinex.this.safeNumber(contract, "mark_price") );
             put( "indexPrice", null );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", CoinexCore.this.safeNumber(contract, "latest_funding_rate") );
+            put( "fundingRate", Coinex.this.safeNumber(contract, "latest_funding_rate") );
             put( "fundingTimestamp", currentFundingTimestamp );
-            put( "fundingDatetime", CoinexCore.this.iso8601(currentFundingTimestamp) );
-            put( "nextFundingRate", CoinexCore.this.safeNumber(contract, "next_funding_rate") );
+            put( "fundingDatetime", Coinex.this.iso8601(currentFundingTimestamp) );
+            put( "nextFundingRate", Coinex.this.safeNumber(contract, "next_funding_rate") );
             put( "nextFundingTimestamp", futureFundingTimestamp );
-            put( "nextFundingDatetime", CoinexCore.this.iso8601(futureFundingTimestamp) );
+            put( "nextFundingDatetime", Coinex.this.iso8601(futureFundingTimestamp) );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
-            put( "interval", CoinexCore.this.parseFundingInterval(millisecondsInterval) );
+            put( "interval", Coinex.this.parseFundingInterval(millisecondsInterval) );
         }};
     }
 
@@ -4987,7 +4987,7 @@ final Object finalI = i;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
                 put( "to_address", address );
-                put( "amount", CoinexCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Coinex.this.currencyToPrecision(code, amount) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
             {
@@ -5133,9 +5133,9 @@ final Object finalI = i;
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", symbolInner );
-                    put( "fundingRate", CoinexCore.this.safeNumber(entry, "actual_funding_rate") );
+                    put( "fundingRate", Coinex.this.safeNumber(entry, "actual_funding_rate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", CoinexCore.this.iso8601(timestamp) );
+                    put( "datetime", Coinex.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -5236,8 +5236,8 @@ final Object finalI = i;
         String feeCurrencyId = this.safeString2(transaction, "fee_asset", "fee_ccy"); // https://github.com/ccxt/ccxt/issues/25153
         final Object finalFeeCost = feeCost;
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
-            put( "cost", CoinexCore.this.parseNumber(finalFeeCost) );
-            put( "currency", CoinexCore.this.safeCurrencyCode(feeCurrencyId) );
+            put( "cost", Coinex.this.parseNumber(finalFeeCost) );
+            put( "currency", Coinex.this.safeCurrencyCode(feeCurrencyId) );
         }};
         final Object finalTxid = txid;
         final Object finalTag = tag;
@@ -5246,11 +5246,11 @@ final Object finalI = i;
         final Object finalRemark = remark;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", CoinexCore.this.safeString2(transaction, "withdraw_id", "deposit_id") );
+            put( "id", Coinex.this.safeString2(transaction, "withdraw_id", "deposit_id") );
             put( "txid", finalTxid );
             put( "timestamp", timestamp );
-            put( "datetime", CoinexCore.this.iso8601(timestamp) );
-            put( "network", CoinexCore.this.networkIdToCode(networkId, code) );
+            put( "datetime", Coinex.this.iso8601(timestamp) );
+            put( "network", Coinex.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "addressTo", address );
             put( "addressFrom", null );
@@ -5260,7 +5260,7 @@ final Object finalI = i;
             put( "type", finalType );
             put( "amount", finalAmount );
             put( "currency", code );
-            put( "status", CoinexCore.this.parseTransactionStatus(CoinexCore.this.safeString(transaction, "status")) );
+            put( "status", Coinex.this.parseTransactionStatus(Coinex.this.safeString(transaction, "status")) );
             put( "updated", null );
             put( "fee", fee );
             put( "comment", finalRemark );
@@ -5329,7 +5329,7 @@ final Object finalI = i;
             final Object finalFromAccount = fromAccount;
             final Object finalToAccount = toAccount;
             return this.extend(this.parseTransfer(response, currency), new java.util.HashMap<String, Object>() {{
-                put( "amount", CoinexCore.this.parseNumber(amountToPrecision) );
+                put( "amount", Coinex.this.parseNumber(amountToPrecision) );
                 put( "fromAccount", finalFromAccount );
                 put( "toAccount", finalToAccount );
             }});
@@ -5360,12 +5360,12 @@ final Object finalI = i;
         return new java.util.HashMap<String, Object>() {{
             put( "id", null );
             put( "timestamp", timestamp );
-            put( "datetime", CoinexCore.this.iso8601(timestamp) );
-            put( "currency", CoinexCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", CoinexCore.this.safeNumber(transfer, "amount") );
-            put( "fromAccount", CoinexCore.this.safeString(accountsById, fromId, fromId) );
-            put( "toAccount", CoinexCore.this.safeString(accountsById, toId, toId) );
-            put( "status", CoinexCore.this.parseTransferStatus(CoinexCore.this.safeString2(transfer, "code", "status")) );
+            put( "datetime", Coinex.this.iso8601(timestamp) );
+            put( "currency", Coinex.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Coinex.this.safeNumber(transfer, "amount") );
+            put( "fromAccount", Coinex.this.safeString(accountsById, fromId, fromId) );
+            put( "toAccount", Coinex.this.safeString(accountsById, toId, toId) );
+            put( "status", Coinex.this.parseTransferStatus(Coinex.this.safeString2(transfer, "code", "status")) );
         }};
     }
 
@@ -5784,13 +5784,13 @@ final Object finalI = i;
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "currency", CoinexCore.this.safeCurrencyCode(CoinexCore.this.safeString(info, "ccy")) );
-            put( "interest", CoinexCore.this.safeNumber(info, "to_repaied_amount") );
-            put( "interestRate", CoinexCore.this.safeNumber(info, "daily_interest_rate") );
-            put( "amountBorrowed", CoinexCore.this.safeNumber(info, "borrow_amount") );
+            put( "currency", Coinex.this.safeCurrencyCode(Coinex.this.safeString(info, "ccy")) );
+            put( "interest", Coinex.this.safeNumber(info, "to_repaied_amount") );
+            put( "interestRate", Coinex.this.safeNumber(info, "daily_interest_rate") );
+            put( "amountBorrowed", Coinex.this.safeNumber(info, "borrow_amount") );
             put( "marginMode", "isolated" );
             put( "timestamp", timestamp );
-            put( "datetime", CoinexCore.this.iso8601(timestamp) );
+            put( "datetime", Coinex.this.iso8601(timestamp) );
         }};
     }
 
@@ -5823,7 +5823,7 @@ final Object finalI = i;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "ccy", Helpers.GetValue(currency, "id") );
-                put( "borrow_amount", CoinexCore.this.currencyToPrecision(code, amount) );
+                put( "borrow_amount", Coinex.this.currencyToPrecision(code, amount) );
                 put( "is_auto_renew", isAutoRenew );
             }};
             java.util.Map<String, Object> response = (this.v2PrivatePostAssetsMarginBorrow(this.extend(request, parameters))).join();
@@ -5880,7 +5880,7 @@ final Object finalI = i;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "ccy", Helpers.GetValue(currency, "id") );
-                put( "amount", CoinexCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Coinex.this.currencyToPrecision(code, amount) );
             }};
             java.util.Map<String, Object> response = (this.v2PrivatePostAssetsMarginRepay(this.extend(request, parameters))).join();
             //
@@ -5919,12 +5919,12 @@ final Object finalI = i;
         String marketId = this.safeString(info, "market");
         Long timestamp = this.safeInteger(info, "expired_at");
         return new java.util.HashMap<String, Object>() {{
-            put( "id", CoinexCore.this.safeString(info, "borrow_id") );
-            put( "currency", CoinexCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", CoinexCore.this.safeNumber(info, "borrow_amount") );
-            put( "symbol", CoinexCore.this.safeSymbol(marketId, null, null, "spot") );
+            put( "id", Coinex.this.safeString(info, "borrow_id") );
+            put( "currency", Coinex.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Coinex.this.safeNumber(info, "borrow_amount") );
+            put( "symbol", Coinex.this.safeSymbol(marketId, null, null, "spot") );
             put( "timestamp", timestamp );
-            put( "datetime", CoinexCore.this.iso8601(timestamp) );
+            put( "datetime", Coinex.this.iso8601(timestamp) );
             put( "info", info );
         }};
     }
@@ -6137,7 +6137,7 @@ final Object finalI = i;
                     {
                         Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", new java.util.HashMap<String, Object>() {{
-        put( "fee", CoinexCore.this.safeNumber(entry, "withdrawal_fee") );
+        put( "fee", Coinex.this.safeNumber(entry, "withdrawal_fee") );
         put( "percentage", false );
     }} );
     put( "deposit", new java.util.HashMap<String, Object>() {{
@@ -6222,7 +6222,7 @@ final Object finalI = i;
         Long leverageValue = this.safeInteger(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", CoinexCore.this.safeSymbol(marketId, market, null, "spot") );
+            put( "symbol", Coinex.this.safeSymbol(marketId, market, null, "spot") );
             put( "marginMode", "isolated" );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
@@ -6472,7 +6472,7 @@ final Object finalI = i;
             this.checkRequiredCredentials();
             final Object finalNonce = nonce;
             query = this.extend(new java.util.HashMap<String, Object>() {{
-                put( "access_id", CoinexCore.this.apiKey );
+                put( "access_id", Coinex.this.apiKey );
                 put( "timestamp", finalNonce );
             }}, query);
             query = this.keysort(query);
@@ -6480,7 +6480,7 @@ final Object finalI = i;
             Object signature = this.hash(this.encode(Helpers.add(Helpers.add(urlencoded, "&secret_key="), this.secret)), sha256());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Authorization", ((String)signature).toLowerCase() );
-                put( "AccessId", CoinexCore.this.apiKey );
+                put( "AccessId", Coinex.this.apiKey );
             }};
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "PUT")))))
             {
@@ -6503,7 +6503,7 @@ final Object finalI = i;
                 this.checkRequiredCredentials();
                 final Object finalNonce_2 = nonce;
                 query = this.extend(new java.util.HashMap<String, Object>() {{
-                    put( "access_id", CoinexCore.this.apiKey );
+                    put( "access_id", Coinex.this.apiKey );
                     put( "tonce", finalNonce_2 );
                 }}, query);
                 query = this.keysort(query);
@@ -6540,7 +6540,7 @@ final Object finalI = i;
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
                     put( "Accept", "application/json" );
-                    put( "X-COINEX-KEY", CoinexCore.this.apiKey );
+                    put( "X-COINEX-KEY", Coinex.this.apiKey );
                     put( "X-COINEX-SIGN", signature );
                     put( "X-COINEX-TIMESTAMP", finalNonce_3 );
                 }};

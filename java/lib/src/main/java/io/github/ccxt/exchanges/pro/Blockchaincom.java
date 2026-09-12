@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
+public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
 {
-   public BlockchaincomCore () {
+   public Blockchaincom () {
        super();
    }
 
-   public BlockchaincomCore (Object options) {
+   public Blockchaincom (Object options) {
        super(options);
    }
 
@@ -179,7 +179,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
                 put( "action", "subscribe" );
                 put( "channel", "prices" );
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "granularity", BlockchaincomCore.this.parseNumber(interval) );
+                put( "granularity", Blockchaincom.this.parseNumber(interval) );
             }};
             request = this.deepExtend(request, parameters);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -356,16 +356,16 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", BlockchaincomCore.this.safeString(lastTicker, "open") );
+            put( "open", Blockchaincom.this.safeString(lastTicker, "open") );
             put( "close", null );
             put( "last", last );
-            put( "previousClose", BlockchaincomCore.this.safeString(lastTicker, "close") );
+            put( "previousClose", Blockchaincom.this.safeString(lastTicker, "close") );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", BlockchaincomCore.this.safeString(lastTicker, "baseVolume") );
+            put( "baseVolume", Blockchaincom.this.safeString(lastTicker, "baseVolume") );
             put( "quoteVolume", null );
-            put( "info", BlockchaincomCore.this.extend(BlockchaincomCore.this.safeValue(lastTicker, "info", new java.util.HashMap<String, Object>() {{}}), ticker) );
+            put( "info", Blockchaincom.this.extend(Blockchaincom.this.safeValue(lastTicker, "info", new java.util.HashMap<String, Object>() {{}}), ticker) );
         }}, market);
     }
 
@@ -472,16 +472,16 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
         String marketId = this.safeString(trade, "symbol");
         String datetime = this.safeString(trade, "timestamp");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", BlockchaincomCore.this.safeString(trade, "trade_id") );
-            put( "timestamp", BlockchaincomCore.this.parse8601(datetime) );
+            put( "id", Blockchaincom.this.safeString(trade, "trade_id") );
+            put( "timestamp", Blockchaincom.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "symbol", BlockchaincomCore.this.safeSymbol(marketId, market, "-") );
+            put( "symbol", Blockchaincom.this.safeSymbol(marketId, market, "-") );
             put( "order", null );
             put( "type", null );
-            put( "side", BlockchaincomCore.this.safeString(trade, "side") );
+            put( "side", Blockchaincom.this.safeString(trade, "side") );
             put( "takerOrMaker", null );
-            put( "price", BlockchaincomCore.this.safeString(trade, "price") );
-            put( "amount", BlockchaincomCore.this.safeString(trade, "qty") );
+            put( "price", Blockchaincom.this.safeString(trade, "price") );
+            put( "amount", Blockchaincom.this.safeString(trade, "qty") );
             put( "cost", null );
             put( "fee", null );
             put( "info", trade );
@@ -692,31 +692,31 @@ final Object finalTradeId = tradeId;
         }
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", BlockchaincomCore.this.safeString(order, "orderID") );
-            put( "clientOrderId", BlockchaincomCore.this.safeString(order, "clOrdID") );
+            put( "id", Blockchaincom.this.safeString(order, "orderID") );
+            put( "clientOrderId", Blockchaincom.this.safeString(order, "clOrdID") );
             put( "datetime", datetime );
-            put( "timestamp", BlockchaincomCore.this.parse8601(datetime) );
-            put( "status", BlockchaincomCore.this.parseWsOrderStatus(status) );
-            put( "symbol", BlockchaincomCore.this.safeSymbol(marketId, finalMarket) );
-            put( "type", BlockchaincomCore.this.safeString(order, "ordType") );
-            put( "timeInForce", BlockchaincomCore.this.safeString(order, "timeInForce") );
-            put( "postOnly", Helpers.isEqual(BlockchaincomCore.this.safeString(order, "execInst"), "ALO") );
-            put( "side", BlockchaincomCore.this.safeString(order, "side") );
-            put( "price", BlockchaincomCore.this.safeString(order, "price") );
-            put( "stopPrice", BlockchaincomCore.this.safeString(order, "stopPx") );
+            put( "timestamp", Blockchaincom.this.parse8601(datetime) );
+            put( "status", Blockchaincom.this.parseWsOrderStatus(status) );
+            put( "symbol", Blockchaincom.this.safeSymbol(marketId, finalMarket) );
+            put( "type", Blockchaincom.this.safeString(order, "ordType") );
+            put( "timeInForce", Blockchaincom.this.safeString(order, "timeInForce") );
+            put( "postOnly", Helpers.isEqual(Blockchaincom.this.safeString(order, "execInst"), "ALO") );
+            put( "side", Blockchaincom.this.safeString(order, "side") );
+            put( "price", Blockchaincom.this.safeString(order, "price") );
+            put( "stopPrice", Blockchaincom.this.safeString(order, "stopPx") );
             put( "cost", null );
-            put( "amount", BlockchaincomCore.this.safeString(order, "orderQty") );
-            put( "filled", BlockchaincomCore.this.safeString(order, "cumQty") );
-            put( "remaining", BlockchaincomCore.this.safeString(order, "leavesQty") );
+            put( "amount", Blockchaincom.this.safeString(order, "orderQty") );
+            put( "filled", Blockchaincom.this.safeString(order, "cumQty") );
+            put( "remaining", Blockchaincom.this.safeString(order, "leavesQty") );
             put( "trades", trades );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "rate", null );
-                put( "cost", BlockchaincomCore.this.safeNumber(order, "fee") );
-                put( "currency", BlockchaincomCore.this.safeString(finalMarket, "quote") );
+                put( "cost", Blockchaincom.this.safeNumber(order, "fee") );
+                put( "currency", Blockchaincom.this.safeString(finalMarket, "quote") );
             }} );
             put( "info", order );
             put( "lastTradeTimestamp", null );
-            put( "average", BlockchaincomCore.this.safeString(order, "avgPx") );
+            put( "average", Blockchaincom.this.safeString(order, "avgPx") );
         }}, market);
     }
 
@@ -919,7 +919,7 @@ final Object finalTradeId = tradeId;
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "action", "subscribe" );
                     put( "channel", "auth" );
-                    put( "token", BlockchaincomCore.this.secret );
+                    put( "token", Blockchaincom.this.secret );
                 }};
                 return this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
             }

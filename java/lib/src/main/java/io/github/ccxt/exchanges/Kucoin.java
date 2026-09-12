@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class KucoinCore extends KucoinApi
+public class Kucoin extends KucoinApi
 {
-   public KucoinCore () {
+   public Kucoin () {
        super();
    }
 
-   public KucoinCore (Object options) {
+   public Kucoin (Object options) {
        super(options);
    }
 
@@ -1459,31 +1459,31 @@ public class KucoinCore extends KucoinApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", KucoinCore.this.parseNumber("0.001") );
-                    put( "maker", KucoinCore.this.parseNumber("0.001") );
+                    put( "taker", Kucoin.this.parseNumber("0.001") );
+                    put( "maker", Kucoin.this.parseNumber("0.001") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("0"), KucoinCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("50"), KucoinCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("200"), KucoinCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("500"), KucoinCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("1000"), KucoinCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("2000"), KucoinCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("4000"), KucoinCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("8000"), KucoinCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("15000"), KucoinCore.this.parseNumber("0.00045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("25000"), KucoinCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("40000"), KucoinCore.this.parseNumber("0.00035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("60000"), KucoinCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("80000"), KucoinCore.this.parseNumber("0.00025"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("0"), KucoinCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("50"), KucoinCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("200"), KucoinCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("500"), KucoinCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("1000"), KucoinCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("2000"), KucoinCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("4000"), KucoinCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("8000"), KucoinCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("15000"), KucoinCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("25000"), KucoinCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("40000"), KucoinCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("60000"), KucoinCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("80000"), KucoinCore.this.parseNumber("-0.00005"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("0"), Kucoin.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("50"), Kucoin.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("200"), Kucoin.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("500"), Kucoin.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("1000"), Kucoin.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("2000"), Kucoin.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("4000"), Kucoin.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("8000"), Kucoin.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("15000"), Kucoin.this.parseNumber("0.00045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("25000"), Kucoin.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("40000"), Kucoin.this.parseNumber("0.00035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("60000"), Kucoin.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("80000"), Kucoin.this.parseNumber("0.00025"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("0"), Kucoin.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("50"), Kucoin.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("200"), Kucoin.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("500"), Kucoin.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("1000"), Kucoin.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("2000"), Kucoin.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("4000"), Kucoin.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("8000"), Kucoin.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("15000"), Kucoin.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("25000"), Kucoin.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("40000"), Kucoin.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("60000"), Kucoin.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("80000"), Kucoin.this.parseNumber("-0.00005"))))) );
                     }} );
                 }} );
                 put( "spot", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", KucoinCore.this.parseNumber("0.001") );
-                    put( "maker", KucoinCore.this.parseNumber("0.001") );
+                    put( "taker", Kucoin.this.parseNumber("0.001") );
+                    put( "maker", Kucoin.this.parseNumber("0.001") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("0"), KucoinCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("50"), KucoinCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("200"), KucoinCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("500"), KucoinCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("1000"), KucoinCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("2000"), KucoinCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("4000"), KucoinCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("8000"), KucoinCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("15000"), KucoinCore.this.parseNumber("0.00045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("25000"), KucoinCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("40000"), KucoinCore.this.parseNumber("0.00035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("60000"), KucoinCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("80000"), KucoinCore.this.parseNumber("0.00025"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("0"), KucoinCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("50"), KucoinCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("200"), KucoinCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("500"), KucoinCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("1000"), KucoinCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("2000"), KucoinCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("4000"), KucoinCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("8000"), KucoinCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("15000"), KucoinCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("25000"), KucoinCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("40000"), KucoinCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("60000"), KucoinCore.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("80000"), KucoinCore.this.parseNumber("-0.00005"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("0"), Kucoin.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("50"), Kucoin.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("200"), Kucoin.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("500"), Kucoin.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("1000"), Kucoin.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("2000"), Kucoin.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("4000"), Kucoin.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("8000"), Kucoin.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("15000"), Kucoin.this.parseNumber("0.00045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("25000"), Kucoin.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("40000"), Kucoin.this.parseNumber("0.00035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("60000"), Kucoin.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("80000"), Kucoin.this.parseNumber("0.00025"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("0"), Kucoin.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("50"), Kucoin.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("200"), Kucoin.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("500"), Kucoin.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("1000"), Kucoin.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("2000"), Kucoin.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("4000"), Kucoin.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("8000"), Kucoin.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("15000"), Kucoin.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("25000"), Kucoin.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("40000"), Kucoin.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("60000"), Kucoin.this.parseNumber("-0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("80000"), Kucoin.this.parseNumber("-0.00005"))))) );
                     }} );
                 }} );
                 put( "contract", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", KucoinCore.this.parseNumber("0.0006") );
-                    put( "maker", KucoinCore.this.parseNumber("0.0002") );
+                    put( "taker", Kucoin.this.parseNumber("0.0006") );
+                    put( "maker", Kucoin.this.parseNumber("0.0002") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("0"), KucoinCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("50"), KucoinCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("200"), KucoinCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("500"), KucoinCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("1000"), KucoinCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("2000"), KucoinCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("4000"), KucoinCore.this.parseNumber("0.00038"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("8000"), KucoinCore.this.parseNumber("0.00035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("15000"), KucoinCore.this.parseNumber("0.00032"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("25000"), KucoinCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("40000"), KucoinCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("60000"), KucoinCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("80000"), KucoinCore.this.parseNumber("0.0003"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("0"), KucoinCore.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("50"), KucoinCore.this.parseNumber("0.015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("200"), KucoinCore.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("500"), KucoinCore.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("1000"), KucoinCore.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("2000"), KucoinCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("4000"), KucoinCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("8000"), KucoinCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("15000"), KucoinCore.this.parseNumber("-0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("25000"), KucoinCore.this.parseNumber("-0.006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("40000"), KucoinCore.this.parseNumber("-0.009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("60000"), KucoinCore.this.parseNumber("-0.012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KucoinCore.this.parseNumber("80000"), KucoinCore.this.parseNumber("-0.015"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("0"), Kucoin.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("50"), Kucoin.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("200"), Kucoin.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("500"), Kucoin.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("1000"), Kucoin.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("2000"), Kucoin.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("4000"), Kucoin.this.parseNumber("0.00038"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("8000"), Kucoin.this.parseNumber("0.00035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("15000"), Kucoin.this.parseNumber("0.00032"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("25000"), Kucoin.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("40000"), Kucoin.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("60000"), Kucoin.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("80000"), Kucoin.this.parseNumber("0.0003"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("0"), Kucoin.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("50"), Kucoin.this.parseNumber("0.015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("200"), Kucoin.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("500"), Kucoin.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("1000"), Kucoin.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("2000"), Kucoin.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("4000"), Kucoin.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("8000"), Kucoin.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("15000"), Kucoin.this.parseNumber("-0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("25000"), Kucoin.this.parseNumber("-0.006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("40000"), Kucoin.this.parseNumber("-0.009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("60000"), Kucoin.this.parseNumber("-0.012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kucoin.this.parseNumber("80000"), Kucoin.this.parseNumber("-0.015"))))) );
                     }} );
                 }} );
                 put( "funding", new java.util.HashMap<String, Object>() {{
@@ -2310,20 +2310,20 @@ public class KucoinCore extends KucoinApi
                     put( "swap", false );
                     put( "future", false );
                     put( "option", false );
-                    put( "active", KucoinCore.this.safeBool(market, "enableTrading") );
+                    put( "active", Kucoin.this.safeBool(market, "enableTrading") );
                     put( "contract", false );
                     put( "linear", null );
                     put( "inverse", null );
-                    put( "taker", KucoinCore.this.parseNumber(Precise.stringMul(takerFeeRate, takerCoefficient)) );
-                    put( "maker", KucoinCore.this.parseNumber(Precise.stringMul(makerFeeRate, makerCoefficient)) );
+                    put( "taker", Kucoin.this.parseNumber(Precise.stringMul(takerFeeRate, takerCoefficient)) );
+                    put( "maker", Kucoin.this.parseNumber(Precise.stringMul(makerFeeRate, makerCoefficient)) );
                     put( "contractSize", null );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", KucoinCore.this.safeNumber(market, "baseIncrement") );
-                        put( "price", KucoinCore.this.safeNumber(market, "priceIncrement") );
+                        put( "amount", Kucoin.this.safeNumber(market, "baseIncrement") );
+                        put( "price", Kucoin.this.safeNumber(market, "priceIncrement") );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -2331,16 +2331,16 @@ public class KucoinCore extends KucoinApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", KucoinCore.this.safeNumber(market, "baseMinSize") );
-                            put( "max", KucoinCore.this.safeNumber(market, "baseMaxSize") );
+                            put( "min", Kucoin.this.safeNumber(market, "baseMinSize") );
+                            put( "max", Kucoin.this.safeNumber(market, "baseMaxSize") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", KucoinCore.this.safeNumber(market, "quoteMinSize") );
-                            put( "max", KucoinCore.this.safeNumber(market, "quoteMaxSize") );
+                            put( "min", Kucoin.this.safeNumber(market, "quoteMinSize") );
+                            put( "max", Kucoin.this.safeNumber(market, "quoteMaxSize") );
                         }} );
                     }} );
                     put( "created", null );
@@ -2501,11 +2501,11 @@ public class KucoinCore extends KucoinApi
                     put( "contract", true );
                     put( "linear", (!Helpers.isEqual(finalInverse, true)) );
                     put( "inverse", finalInverse );
-                    put( "taker", KucoinCore.this.safeNumber(market, "takerFeeRate") );
-                    put( "maker", KucoinCore.this.safeNumber(market, "makerFeeRate") );
-                    put( "contractSize", KucoinCore.this.parseNumber(Precise.stringAbs(multiplier)) );
+                    put( "taker", Kucoin.this.safeNumber(market, "takerFeeRate") );
+                    put( "maker", Kucoin.this.safeNumber(market, "makerFeeRate") );
+                    put( "contractSize", Kucoin.this.parseNumber(Precise.stringAbs(multiplier)) );
                     put( "expiry", expiry );
-                    put( "expiryDatetime", KucoinCore.this.iso8601(expiry) );
+                    put( "expiryDatetime", Kucoin.this.iso8601(expiry) );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
@@ -2514,8 +2514,8 @@ public class KucoinCore extends KucoinApi
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", KucoinCore.this.parseNumber("1") );
-                            put( "max", KucoinCore.this.safeNumber(market, "maxLeverage") );
+                            put( "min", Kucoin.this.parseNumber("1") );
+                            put( "max", Kucoin.this.safeNumber(market, "maxLeverage") );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
                             put( "min", finalLimitAmountMin );
@@ -2526,11 +2526,11 @@ public class KucoinCore extends KucoinApi
                             put( "max", finalLimitPriceMax );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", KucoinCore.this.safeNumber(market, "quoteMinSize") );
-                            put( "max", KucoinCore.this.safeNumber(market, "quoteMaxSize") );
+                            put( "min", Kucoin.this.safeNumber(market, "quoteMinSize") );
+                            put( "max", Kucoin.this.safeNumber(market, "quoteMaxSize") );
                         }} );
                     }} );
-                    put( "created", KucoinCore.this.safeInteger(market, "firstOpenDate") );
+                    put( "created", Kucoin.this.safeInteger(market, "firstOpenDate") );
                     put( "info", market );
                 }});
             }
@@ -2710,36 +2710,36 @@ public class KucoinCore extends KucoinApi
                     put( "contract", finalContract );
                     put( "linear", finalLinear );
                     put( "inverse", finalInverse );
-                    put( "taker", KucoinCore.this.safeNumber(market, "makerFeeRate") );
-                    put( "maker", KucoinCore.this.safeNumber(market, "takerFeeRate") );
-                    put( "contractSize", KucoinCore.this.safeNumber(market, "unitSize") );
+                    put( "taker", Kucoin.this.safeNumber(market, "makerFeeRate") );
+                    put( "maker", Kucoin.this.safeNumber(market, "takerFeeRate") );
+                    put( "contractSize", Kucoin.this.safeNumber(market, "unitSize") );
                     put( "expiry", expiry );
-                    put( "expiryDatetime", KucoinCore.this.iso8601(expiry) );
+                    put( "expiryDatetime", Kucoin.this.iso8601(expiry) );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", KucoinCore.this.safeNumber2(market, "lotSize", "baseOrderStep") );
-                        put( "price", KucoinCore.this.safeNumber(market, "tickSize") );
+                        put( "amount", Kucoin.this.safeNumber2(market, "lotSize", "baseOrderStep") );
+                        put( "price", Kucoin.this.safeNumber(market, "tickSize") );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
-                            put( "max", KucoinCore.this.safeInteger(market, "maxLeverage") );
+                            put( "max", Kucoin.this.safeInteger(market, "maxLeverage") );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", KucoinCore.this.safeNumber(market, "minBaseOrderSize") );
-                            put( "max", KucoinCore.this.safeNumber(market, "maxBaseOrderSize") );
+                            put( "min", Kucoin.this.safeNumber(market, "minBaseOrderSize") );
+                            put( "max", Kucoin.this.safeNumber(market, "maxBaseOrderSize") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
-                            put( "max", KucoinCore.this.safeNumber(market, "maxPrice") );
+                            put( "max", Kucoin.this.safeNumber(market, "maxPrice") );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", KucoinCore.this.safeNumber(market, "minQuoteOrderSize") );
-                            put( "max", KucoinCore.this.safeNumber(market, "maxQuoteOrderSize") );
+                            put( "min", Kucoin.this.safeNumber(market, "minQuoteOrderSize") );
+                            put( "max", Kucoin.this.safeNumber(market, "maxQuoteOrderSize") );
                         }} );
                     }} );
-                    put( "created", KucoinCore.this.safeInteger(market, "launchTime") );
+                    put( "created", Kucoin.this.safeInteger(market, "launchTime") );
                     put( "info", market );
                 }});
             }
@@ -2892,21 +2892,21 @@ public class KucoinCore extends KucoinApi
                 Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", chainId );
-    put( "name", KucoinCore.this.safeString(chain, "chainName") );
+    put( "name", Kucoin.this.safeString(chain, "chainName") );
     put( "code", finalNetworkCode );
     put( "active", null );
-    put( "fee", KucoinCore.this.safeNumber2(chain, "withdrawalMinFee", "minWithdrawFee") );
-    put( "deposit", KucoinCore.this.safeBool(chain, "isDepositEnabled") );
-    put( "withdraw", KucoinCore.this.safeBool(chain, "isWithdrawEnabled") );
-    put( "precision", KucoinCore.this.parseNumber(KucoinCore.this.parsePrecision(KucoinCore.this.safeString(chain, "withdrawPrecision"))) );
+    put( "fee", Kucoin.this.safeNumber2(chain, "withdrawalMinFee", "minWithdrawFee") );
+    put( "deposit", Kucoin.this.safeBool(chain, "isDepositEnabled") );
+    put( "withdraw", Kucoin.this.safeBool(chain, "isWithdrawEnabled") );
+    put( "precision", Kucoin.this.parseNumber(Kucoin.this.parsePrecision(Kucoin.this.safeString(chain, "withdrawPrecision"))) );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", KucoinCore.this.safeNumber2(chain, "withdrawalMinSize", "minWithdrawSize") );
-            put( "max", KucoinCore.this.safeNumber2(chain, "maxWithdraw", "maxWithdrawSize") );
+            put( "min", Kucoin.this.safeNumber2(chain, "withdrawalMinSize", "minWithdrawSize") );
+            put( "max", Kucoin.this.safeNumber2(chain, "maxWithdraw", "maxWithdrawSize") );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", KucoinCore.this.safeNumber2(chain, "depositMinSize", "minDepositSize") );
-            put( "max", KucoinCore.this.safeNumber2(chain, "maxDeposit", "maxDepositSize") );
+            put( "min", Kucoin.this.safeNumber2(chain, "depositMinSize", "minDepositSize") );
+            put( "max", Kucoin.this.safeNumber2(chain, "maxDeposit", "maxDepositSize") );
         }} );
     }} );
 }});
@@ -2918,7 +2918,7 @@ public class KucoinCore extends KucoinApi
         Boolean isFiat = Helpers.isEqual(chainsLength, 0);
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
-            put( "name", KucoinCore.this.safeString(entry, "fullName") );
+            put( "name", Kucoin.this.safeString(entry, "fullName") );
             put( "code", code );
             put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
             put( "precision", precision );
@@ -3176,7 +3176,7 @@ public class KucoinCore extends KucoinApi
                 {
                     Helpers.addElementToObject(Helpers.GetValue(resultNew, "networks"), networkCodeNew, new java.util.HashMap<String, Object>() {{
     put( "withdraw", new java.util.HashMap<String, Object>() {{
-        put( "fee", KucoinCore.this.safeNumber2(chain, "withdrawalMinFee", "withdrawMinFee") );
+        put( "fee", Kucoin.this.safeNumber2(chain, "withdrawalMinFee", "withdrawMinFee") );
         put( "percentage", false );
     }} );
     put( "deposit", new java.util.HashMap<String, Object>() {{
@@ -3358,25 +3358,25 @@ public class KucoinCore extends KucoinApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", KucoinCore.this.iso8601(timestamp) );
-            put( "high", KucoinCore.this.safeString(ticker, "high") );
-            put( "low", KucoinCore.this.safeString(ticker, "low") );
-            put( "bid", KucoinCore.this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("buy", "bestBid", "bestBidPrice"))) );
-            put( "bidVolume", KucoinCore.this.safeString(ticker, "bestBidSize") );
-            put( "ask", KucoinCore.this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("sell", "bestAsk", "bestAskPrice"))) );
-            put( "askVolume", KucoinCore.this.safeString(ticker, "bestAskSize") );
+            put( "datetime", Kucoin.this.iso8601(timestamp) );
+            put( "high", Kucoin.this.safeString(ticker, "high") );
+            put( "low", Kucoin.this.safeString(ticker, "low") );
+            put( "bid", Kucoin.this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("buy", "bestBid", "bestBidPrice"))) );
+            put( "bidVolume", Kucoin.this.safeString(ticker, "bestBidSize") );
+            put( "ask", Kucoin.this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("sell", "bestAsk", "bestAskPrice"))) );
+            put( "askVolume", Kucoin.this.safeString(ticker, "bestAskSize") );
             put( "vwap", null );
-            put( "open", KucoinCore.this.safeString(ticker, "open") );
+            put( "open", Kucoin.this.safeString(ticker, "open") );
             put( "close", finalLast );
             put( "last", finalLast );
             put( "previousClose", null );
-            put( "change", KucoinCore.this.safeString2(ticker, "changePrice", "priceChange") );
+            put( "change", Kucoin.this.safeString2(ticker, "changePrice", "priceChange") );
             put( "percentage", finalPercentage );
-            put( "average", KucoinCore.this.safeString(ticker, "averagePrice") );
+            put( "average", Kucoin.this.safeString(ticker, "averagePrice") );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-            put( "markPrice", KucoinCore.this.safeString2(ticker, "markPrice", "value") );
-            put( "indexPrice", KucoinCore.this.safeString(ticker, "indexPrice") );
+            put( "markPrice", Kucoin.this.safeString2(ticker, "markPrice", "value") );
+            put( "indexPrice", Kucoin.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
         }}, market);
     }
@@ -3486,25 +3486,25 @@ public class KucoinCore extends KucoinApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", KucoinCore.this.iso8601(timestamp) );
-            put( "high", KucoinCore.this.safeString(ticker, "highPrice") );
-            put( "low", KucoinCore.this.safeString(ticker, "lowPrice") );
-            put( "bid", KucoinCore.this.safeString(ticker, "bestBidPrice") );
-            put( "bidVolume", KucoinCore.this.safeString(ticker, "bestBidSize") );
-            put( "ask", KucoinCore.this.safeString(ticker, "bestAskPrice") );
-            put( "askVolume", KucoinCore.this.safeString(ticker, "bestAskSize") );
+            put( "datetime", Kucoin.this.iso8601(timestamp) );
+            put( "high", Kucoin.this.safeString(ticker, "highPrice") );
+            put( "low", Kucoin.this.safeString(ticker, "lowPrice") );
+            put( "bid", Kucoin.this.safeString(ticker, "bestBidPrice") );
+            put( "bidVolume", Kucoin.this.safeString(ticker, "bestBidSize") );
+            put( "ask", Kucoin.this.safeString(ticker, "bestAskPrice") );
+            put( "askVolume", Kucoin.this.safeString(ticker, "bestAskSize") );
             put( "vwap", null );
             put( "open", null );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
-            put( "change", KucoinCore.this.safeString(ticker, "priceChg") );
-            put( "percentage", Precise.stringMul(KucoinCore.this.safeString(ticker, "priceChgPct"), "100") );
+            put( "change", Kucoin.this.safeString(ticker, "priceChg") );
+            put( "percentage", Precise.stringMul(Kucoin.this.safeString(ticker, "priceChgPct"), "100") );
             put( "average", null );
-            put( "baseVolume", KucoinCore.this.safeString(ticker, "volumeOf24h") );
-            put( "quoteVolume", KucoinCore.this.safeString(ticker, "turnoverOf24h") );
-            put( "markPrice", KucoinCore.this.safeString2(ticker, "markPrice", "value") );
-            put( "indexPrice", KucoinCore.this.safeString(ticker, "indexPrice") );
+            put( "baseVolume", Kucoin.this.safeString(ticker, "volumeOf24h") );
+            put( "quoteVolume", Kucoin.this.safeString(ticker, "turnoverOf24h") );
+            put( "markPrice", Kucoin.this.safeString2(ticker, "markPrice", "value") );
+            put( "indexPrice", Kucoin.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
         }}, market);
     }
@@ -3578,7 +3578,7 @@ public class KucoinCore extends KucoinApi
                 response = (this.utaGetMarketTicker(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, "spot"))) && Helpers.isTrue((!Helpers.isEqual(type, "margin")))))
             {
-                return (this.fetchContractTickers(symbols, parameters)).join();
+                return (this.fetchContractTickers((Object)(symbols), (Object)(parameters))).join();
             } else
             {
                 response = (this.publicGetMarketAllTickers(parameters)).join();
@@ -3956,10 +3956,10 @@ public class KucoinCore extends KucoinApi
                 return (this.fetchUTAOHLCV(symbol, timeframe, since, limit, parameters)).join();
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                return (this.fetchContractOHLCV(symbol, timeframe, since, limit, parameters)).join();
+                return (this.fetchContractOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             } else
             {
-                return (this.fetchSpotOHLCV(symbol, timeframe, since, limit, parameters)).join();
+                return (this.fetchSpotOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
         });
 
@@ -4003,7 +4003,7 @@ public class KucoinCore extends KucoinApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "interval", KucoinCore.this.safeString(KucoinCore.this.timeframes, timeframe, timeframe) );
+                put( "interval", Kucoin.this.safeString(Kucoin.this.timeframes, timeframe, timeframe) );
             }};
             Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Object endAt = this.milliseconds(); // required param
@@ -4113,7 +4113,7 @@ public class KucoinCore extends KucoinApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "type", KucoinCore.this.safeString(KucoinCore.this.timeframes, timeframe, timeframe) );
+                put( "type", Kucoin.this.safeString(Kucoin.this.timeframes, timeframe, timeframe) );
             }};
             Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Object endAt = this.milliseconds(); // required param
@@ -4324,12 +4324,12 @@ public class KucoinCore extends KucoinApi
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(accountType, "contract")))
             {
-                return (this.fetchContractDepositAddress(code, parameters)).join();
+                return (this.fetchContractDepositAddress(code, (Object)(parameters))).join();
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(uta) || Helpers.isTrue((Helpers.isEqual(accountType, "uta")))) || Helpers.isTrue((Helpers.isEqual(accountType, "unified")))))
             {
-                return (super.fetchDepositAddress(code, this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                return (super.fetchDepositAddress(code, (Object)(this.extend(parameters, new java.util.HashMap<String, Object>() {{
                     put( "uta", true );
-                }}))).join();
+                }})))).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -4408,9 +4408,9 @@ public class KucoinCore extends KucoinApi
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", finalCurrencyId );
-                put( "network", KucoinCore.this.safeString(data, "chain") );
+                put( "network", Kucoin.this.safeString(data, "chain") );
                 put( "address", address );
-                put( "tag", KucoinCore.this.safeString(data, "memo") );
+                put( "tag", Kucoin.this.safeString(data, "memo") );
             }};
         });
 
@@ -4441,9 +4441,9 @@ public class KucoinCore extends KucoinApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", finalCode );
-            put( "network", KucoinCore.this.networkIdToCode(chainId, finalCode) );
+            put( "network", Kucoin.this.networkIdToCode(chainId, finalCode) );
             put( "address", finalAddress );
-            put( "tag", KucoinCore.this.safeString(depositAddress, "memo") );
+            put( "tag", Kucoin.this.safeString(depositAddress, "memo") );
         }};
     }
 
@@ -5562,7 +5562,7 @@ public class KucoinCore extends KucoinApi
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", side, cost, null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -5588,7 +5588,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            return (this.createMarketOrderWithCost(symbol, "buy", cost, parameters)).join();
+            return (this.createMarketOrderWithCost(symbol, (Object)("buy"), (Object)(cost), (Object)(parameters))).join();
         });
 
     }
@@ -5614,7 +5614,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            return (this.createMarketOrderWithCost(symbol, "sell", cost, parameters)).join();
+            return (this.createMarketOrderWithCost(symbol, (Object)("sell"), (Object)(cost), (Object)(parameters))).join();
         });
 
     }
@@ -5664,10 +5664,10 @@ public class KucoinCore extends KucoinApi
                 throw new BadRequest(Helpers.add(this.id, " createOrders() requires all orders to be either spot or contract")) ;
             } else if (Helpers.isTrue(isSpot))
             {
-                return (this.createSpotOrders(orders, parameters)).join();
+                return (this.createSpotOrders((Object)(orders), (Object)(parameters))).join();
             } else if (Helpers.isTrue(isContract))
             {
-                return (this.createContractOrders(orders, parameters)).join();
+                return (this.createContractOrders((Object)(orders), (Object)(parameters))).join();
             } else
             {
                 throw new NotSupported(Helpers.add(this.id, " createOrders() does not support the markets of the orders provided")) ;
@@ -5978,10 +5978,10 @@ public class KucoinCore extends KucoinApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(marketType, "spot"))) || Helpers.isTrue((Helpers.isEqual(marketType, "margin")))))
             {
-                return (this.cancelSpotOrder(id, symbol, parameters)).join();
+                return (this.cancelSpotOrder((Object)(id), (Object)(symbol), (Object)(parameters))).join();
             } else
             {
-                return (this.cancelContractOrder(id, symbol, parameters)).join();
+                return (this.cancelContractOrder((Object)(id), (Object)(symbol), (Object)(parameters))).join();
             }
         });
 
@@ -6338,10 +6338,10 @@ public class KucoinCore extends KucoinApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(marketType, "spot"))) || Helpers.isTrue((Helpers.isEqual(marketType, "margin")))))
             {
-                return (this.cancelAllSpotOrders(symbol, parameters)).join();
+                return (this.cancelAllSpotOrders((Object)(symbol), (Object)(parameters))).join();
             } else
             {
-                return (this.cancelAllContractOrders(symbol, parameters)).join();
+                return (this.cancelAllContractOrders((Object)(symbol), (Object)(parameters))).join();
             }
         });
 
@@ -7741,7 +7741,7 @@ public class KucoinCore extends KucoinApi
             put( "side", side );
             put( "amount", amount );
             put( "price", price );
-            put( "triggerPrice", KucoinCore.this.safeNumber(order, "stopPrice") );
+            put( "triggerPrice", Kucoin.this.safeNumber(order, "stopPrice") );
             put( "cost", cost );
             put( "filled", filled );
             put( "remaining", null );
@@ -7922,28 +7922,28 @@ public class KucoinCore extends KucoinApi
         final Object finalStatus = status;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", KucoinCore.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "orderId", "newOrderId", "cancelledOrderId"))) );
-            put( "clientOrderId", KucoinCore.this.safeString(order, "clientOid") );
-            put( "symbol", KucoinCore.this.safeSymbol(marketId, market, "-") );
-            put( "type", KucoinCore.this.safeString(order, "type") );
-            put( "timeInForce", KucoinCore.this.safeString(order, "timeInForce") );
-            put( "postOnly", KucoinCore.this.safeBool(order, "postOnly") );
-            put( "side", KucoinCore.this.safeString(order, "side") );
-            put( "amount", KucoinCore.this.safeString(order, "size") );
-            put( "price", KucoinCore.this.safeString(order, "price") );
-            put( "triggerPrice", KucoinCore.this.safeNumber(order, "stopPrice") );
-            put( "cost", KucoinCore.this.safeString(order, "dealFunds") );
-            put( "filled", KucoinCore.this.safeString(order, "dealSize") );
+            put( "id", Kucoin.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "orderId", "newOrderId", "cancelledOrderId"))) );
+            put( "clientOrderId", Kucoin.this.safeString(order, "clientOid") );
+            put( "symbol", Kucoin.this.safeSymbol(marketId, market, "-") );
+            put( "type", Kucoin.this.safeString(order, "type") );
+            put( "timeInForce", Kucoin.this.safeString(order, "timeInForce") );
+            put( "postOnly", Kucoin.this.safeBool(order, "postOnly") );
+            put( "side", Kucoin.this.safeString(order, "side") );
+            put( "amount", Kucoin.this.safeString(order, "size") );
+            put( "price", Kucoin.this.safeString(order, "price") );
+            put( "triggerPrice", Kucoin.this.safeNumber(order, "stopPrice") );
+            put( "cost", Kucoin.this.safeString(order, "dealFunds") );
+            put( "filled", Kucoin.this.safeString(order, "dealSize") );
             put( "remaining", null );
             put( "timestamp", timestamp );
-            put( "datetime", KucoinCore.this.iso8601(timestamp) );
+            put( "datetime", Kucoin.this.iso8601(timestamp) );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "currency", KucoinCore.this.safeCurrencyCode(feeCurrencyId) );
-                put( "cost", KucoinCore.this.safeNumber(order, "fee") );
+                put( "currency", Kucoin.this.safeCurrencyCode(feeCurrencyId) );
+                put( "cost", Kucoin.this.safeNumber(order, "fee") );
             }} );
             put( "status", finalStatus );
             put( "lastTradeTimestamp", null );
-            put( "average", KucoinCore.this.safeString(order, "avgDealPrice") );
+            put( "average", Kucoin.this.safeString(order, "avgDealPrice") );
             put( "trades", null );
         }}, market);
     }
@@ -8021,37 +8021,37 @@ public class KucoinCore extends KucoinApi
             filled = this.amountToPrecision(symbol, filled);
         }
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
-            put( "currency", KucoinCore.this.safeCurrencyCode(KucoinCore.this.safeString(order, "feeCurrency")) );
-            put( "cost", KucoinCore.this.safeString(order, "fee") );
+            put( "currency", Kucoin.this.safeCurrencyCode(Kucoin.this.safeString(order, "feeCurrency")) );
+            put( "cost", Kucoin.this.safeString(order, "fee") );
         }};
         final Object finalAmount = amount;
         final Object finalCost = cost;
         final Object finalFilled = filled;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", KucoinCore.this.safeString(order, "orderId") );
-            put( "clientOrderId", KucoinCore.this.safeString(order, "clientOid") );
+            put( "id", Kucoin.this.safeString(order, "orderId") );
+            put( "clientOrderId", Kucoin.this.safeString(order, "clientOid") );
             put( "symbol", symbol );
-            put( "type", KucoinCore.this.safeStringLower(order, "orderType") );
-            put( "timeInForce", KucoinCore.this.parseOrderTimeInForce(rawTimeInForce) );
-            put( "postOnly", KucoinCore.this.safeBool(order, "postOnly") );
-            put( "reduceOnly", KucoinCore.this.safeBool(order, "reduceOnly") );
-            put( "side", KucoinCore.this.safeStringLower(order, "side") );
+            put( "type", Kucoin.this.safeStringLower(order, "orderType") );
+            put( "timeInForce", Kucoin.this.parseOrderTimeInForce(rawTimeInForce) );
+            put( "postOnly", Kucoin.this.safeBool(order, "postOnly") );
+            put( "reduceOnly", Kucoin.this.safeBool(order, "reduceOnly") );
+            put( "side", Kucoin.this.safeStringLower(order, "side") );
             put( "amount", finalAmount );
-            put( "price", KucoinCore.this.safeString(order, "price") );
-            put( "triggerPrice", KucoinCore.this.safeString2(order, "stopPrice", "triggerPrice") );
+            put( "price", Kucoin.this.safeString(order, "price") );
+            put( "triggerPrice", Kucoin.this.safeString2(order, "stopPrice", "triggerPrice") );
             put( "cost", finalCost );
             put( "filled", finalFilled );
             put( "remaining", null );
             put( "timestamp", timestamp );
-            put( "datetime", KucoinCore.this.iso8601(timestamp) );
+            put( "datetime", Kucoin.this.iso8601(timestamp) );
             put( "fee", fee );
-            put( "status", KucoinCore.this.parseOrderStatus(rawStatus) );
+            put( "status", Kucoin.this.parseOrderStatus(rawStatus) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
             put( "average", average );
             put( "trades", null );
-            put( "stopLossPrice", KucoinCore.this.safeString(order, "slTriggerPrice") );
-            put( "takeProfitPrice", KucoinCore.this.safeString(order, "tpTriggerPrice") );
+            put( "stopLossPrice", Kucoin.this.safeString(order, "slTriggerPrice") );
+            put( "takeProfitPrice", Kucoin.this.safeString(order, "tpTriggerPrice") );
             put( "info", order );
         }}, market);
     }
@@ -8118,7 +8118,7 @@ public class KucoinCore extends KucoinApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -8841,7 +8841,7 @@ public class KucoinCore extends KucoinApi
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", finalFeeCurrency );
-                put( "rate", KucoinCore.this.safeString(trade, "feeRate") );
+                put( "rate", Kucoin.this.safeString(trade, "feeRate") );
             }};
         }
         String type = this.safeString(trade, "type");
@@ -8860,7 +8860,7 @@ public class KucoinCore extends KucoinApi
             put( "id", id );
             put( "order", orderId );
             put( "timestamp", finalTimestamp );
-            put( "datetime", KucoinCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Kucoin.this.iso8601(finalTimestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", finalType );
             put( "takerOrMaker", takerOrMaker );
@@ -8986,7 +8986,7 @@ public class KucoinCore extends KucoinApi
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "currency", finalFeeCurrency );
-                put( "rate", KucoinCore.this.safeString(trade, "feeRate") );
+                put( "rate", Kucoin.this.safeString(trade, "feeRate") );
             }};
         }
         String type = this.safeString2(trade, "type", "orderType");
@@ -9012,7 +9012,7 @@ public class KucoinCore extends KucoinApi
             put( "id", id );
             put( "order", orderId );
             put( "timestamp", finalTimestamp );
-            put( "datetime", KucoinCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Kucoin.this.iso8601(finalTimestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", finalType );
             put( "takerOrMaker", takerOrMaker );
@@ -9049,23 +9049,23 @@ public class KucoinCore extends KucoinApi
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeIntegerProduct(trade, "executionTime", 0.000001);
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
-            put( "cost", KucoinCore.this.safeString(trade, "fee") );
-            put( "currency", KucoinCore.this.safeCurrencyCode(KucoinCore.this.safeString(trade, "feeCurrency")) );
+            put( "cost", Kucoin.this.safeString(trade, "fee") );
+            put( "currency", Kucoin.this.safeCurrencyCode(Kucoin.this.safeString(trade, "feeCurrency")) );
         }};
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", KucoinCore.this.safeString(trade, "tradeId") );
-            put( "order", KucoinCore.this.safeString(trade, "orderId") );
+            put( "id", Kucoin.this.safeString(trade, "tradeId") );
+            put( "order", Kucoin.this.safeString(trade, "orderId") );
             put( "timestamp", timestamp );
-            put( "datetime", KucoinCore.this.iso8601(timestamp) );
+            put( "datetime", Kucoin.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "type", KucoinCore.this.safeStringLower(trade, "orderType") );
-            put( "takerOrMaker", KucoinCore.this.safeStringLower(trade, "liquidityRole") );
-            put( "side", KucoinCore.this.safeStringLower(trade, "side") );
-            put( "price", KucoinCore.this.safeString(trade, "price") );
-            put( "amount", KucoinCore.this.safeString(trade, "size") );
-            put( "cost", KucoinCore.this.safeString(trade, "value") );
+            put( "type", Kucoin.this.safeStringLower(trade, "orderType") );
+            put( "takerOrMaker", Kucoin.this.safeStringLower(trade, "liquidityRole") );
+            put( "side", Kucoin.this.safeStringLower(trade, "side") );
+            put( "price", Kucoin.this.safeString(trade, "price") );
+            put( "amount", Kucoin.this.safeString(trade, "size") );
+            put( "cost", Kucoin.this.safeString(trade, "value") );
             put( "fee", fee );
         }}, market);
     }
@@ -9169,9 +9169,9 @@ public class KucoinCore extends KucoinApi
             final Object finalEntry = entry;
             return new java.util.HashMap<String, Object>() {{
                 put( "info", finalResponse );
-                put( "symbol", KucoinCore.this.safeSymbol(marketId, market) );
-                put( "maker", KucoinCore.this.safeNumber(finalEntry, "makerFeeRate") );
-                put( "taker", KucoinCore.this.safeNumber(finalEntry, "takerFeeRate") );
+                put( "symbol", Kucoin.this.safeSymbol(marketId, market) );
+                put( "maker", Kucoin.this.safeNumber(finalEntry, "makerFeeRate") );
+                put( "taker", Kucoin.this.safeNumber(finalEntry, "takerFeeRate") );
                 put( "percentage", true );
                 put( "tierBased", true );
             }};
@@ -9353,8 +9353,8 @@ public class KucoinCore extends KucoinApi
             final Object finalFeeCost = feeCost;
             final Object finalRate = rate;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", KucoinCore.this.parseNumber(finalFeeCost) );
-                put( "rate", KucoinCore.this.parseNumber(finalRate) );
+                put( "cost", Kucoin.this.parseNumber(finalFeeCost) );
+                put( "rate", Kucoin.this.parseNumber(finalRate) );
                 put( "currency", code );
             }};
         }
@@ -9386,10 +9386,10 @@ public class KucoinCore extends KucoinApi
         final Object finalUpdated = updated;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", KucoinCore.this.safeString2(transaction, "id", "withdrawalId") );
+            put( "id", Kucoin.this.safeString2(transaction, "id", "withdrawalId") );
             put( "timestamp", finalTimestamp );
-            put( "datetime", KucoinCore.this.iso8601(finalTimestamp) );
-            put( "network", KucoinCore.this.networkIdToCode(chainId, code) );
+            put( "datetime", Kucoin.this.iso8601(finalTimestamp) );
+            put( "network", Kucoin.this.networkIdToCode(chainId, code) );
             put( "address", finalAddress );
             put( "addressTo", finalAddress );
             put( "addressFrom", null );
@@ -9397,11 +9397,11 @@ public class KucoinCore extends KucoinApi
             put( "tagTo", tag );
             put( "tagFrom", null );
             put( "currency", code );
-            put( "amount", KucoinCore.this.parseNumber(finalAmount) );
+            put( "amount", Kucoin.this.parseNumber(finalAmount) );
             put( "txid", finalTxid );
             put( "type", finalType );
-            put( "status", KucoinCore.this.parseTransactionStatus(rawStatus) );
-            put( "comment", KucoinCore.this.safeString(transaction, "remark") );
+            put( "status", Kucoin.this.parseTransactionStatus(rawStatus) );
+            put( "comment", Kucoin.this.safeString(transaction, "remark") );
             put( "internal", intern );
             put( "fee", finalFee );
             put( "updated", finalUpdated );
@@ -10231,7 +10231,7 @@ public class KucoinCore extends KucoinApi
             Object result = new java.util.HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "timestamp", timestamp );
-                put( "datetime", KucoinCore.this.iso8601(timestamp) );
+                put( "datetime", Kucoin.this.iso8601(timestamp) );
             }};
             Object accounts = this.safeList(data, "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             if (Helpers.isTrue(isIsolated))
@@ -10627,14 +10627,14 @@ public class KucoinCore extends KucoinApi
         String accountFrom = ((Helpers.isTrue((Helpers.isEqual(accountFromRaw, null))))) ? null : this.safeString(accountsByType, accountFromRaw, accountFromRaw);
         String accountTo = ((Helpers.isTrue((Helpers.isEqual(accountToRaw, null))))) ? null : this.safeString(accountsByType, accountToRaw, accountToRaw);
         return new java.util.HashMap<String, Object>() {{
-            put( "id", KucoinCore.this.safeStringN(transfer, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "applyId", "orderId"))) );
-            put( "currency", KucoinCore.this.safeCurrencyCode(currencyId, currency) );
+            put( "id", Kucoin.this.safeStringN(transfer, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "applyId", "orderId"))) );
+            put( "currency", Kucoin.this.safeCurrencyCode(currencyId, currency) );
             put( "timestamp", timestamp );
-            put( "datetime", KucoinCore.this.iso8601(timestamp) );
-            put( "amount", KucoinCore.this.safeNumber(transfer, "amount") );
+            put( "datetime", Kucoin.this.iso8601(timestamp) );
+            put( "amount", Kucoin.this.safeNumber(transfer, "amount") );
             put( "fromAccount", accountFrom );
             put( "toAccount", accountTo );
-            put( "status", KucoinCore.this.parseTransferStatus(rawStatus) );
+            put( "status", Kucoin.this.parseTransferStatus(rawStatus) );
             put( "info", transfer );
         }};
     }
@@ -10834,7 +10834,7 @@ public class KucoinCore extends KucoinApi
             final Object finalFeeCost = feeCost;
             final Object finalFeeCurrency = feeCurrency;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", KucoinCore.this.parseNumber(finalFeeCost) );
+                put( "cost", Kucoin.this.parseNumber(finalFeeCost) );
                 put( "currency", finalFeeCurrency );
             }};
         }
@@ -10846,18 +10846,18 @@ public class KucoinCore extends KucoinApi
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
             put( "id", id );
-            put( "direction", KucoinCore.this.parseLedgerDirection(direction) );
+            put( "direction", Kucoin.this.parseLedgerDirection(direction) );
             put( "account", finalAccount );
             put( "referenceId", finalReferenceId );
             put( "referenceAccount", finalAccount );
             put( "type", type );
             put( "currency", code );
-            put( "amount", KucoinCore.this.parseNumber(Precise.stringAbs(amount)) );
+            put( "amount", Kucoin.this.parseNumber(Precise.stringAbs(amount)) );
             put( "timestamp", finalTimestamp );
             put( "datetime", datetime );
             put( "before", null );
             put( "after", balanceAfter );
-            put( "status", KucoinCore.this.parseLedgerStatus(status) );
+            put( "status", Kucoin.this.parseLedgerStatus(status) );
             put( "fee", finalFee );
         }}, currency);
     }
@@ -11132,11 +11132,11 @@ public class KucoinCore extends KucoinApi
         String currencyId = this.safeString(info, "currency");
         final Object finalTimestamp = timestamp;
         return new java.util.HashMap<String, Object>() {{
-            put( "currency", KucoinCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "rate", KucoinCore.this.safeNumberN(info, new java.util.ArrayList<Object>(java.util.Arrays.asList("dailyIntRate", "dayRatio", "currentRateDaily"))) );
+            put( "currency", Kucoin.this.safeCurrencyCode(currencyId, currency) );
+            put( "rate", Kucoin.this.safeNumberN(info, new java.util.ArrayList<Object>(java.util.Arrays.asList("dailyIntRate", "dayRatio", "currentRateDaily"))) );
             put( "period", 86400000 );
             put( "timestamp", finalTimestamp );
-            put( "datetime", KucoinCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Kucoin.this.iso8601(finalTimestamp) );
             put( "info", info );
         }};
     }
@@ -11349,9 +11349,9 @@ public class KucoinCore extends KucoinApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", symbol );
-            put( "currency", KucoinCore.this.safeCurrencyCode(finalCurrencyId) );
+            put( "currency", Kucoin.this.safeCurrencyCode(finalCurrencyId) );
             put( "interest", finalInterest );
-            put( "interestRate", KucoinCore.this.safeNumber(info, "dailyIntRate") );
+            put( "interestRate", Kucoin.this.safeNumber(info, "dailyIntRate") );
             put( "amountBorrowed", finalAmountBorrowed );
             put( "marginMode", finalMarginMode );
             put( "timestamp", null );
@@ -11606,7 +11606,7 @@ public class KucoinCore extends KucoinApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "size", KucoinCore.this.currencyToPrecision(code, amount) );
+                put( "size", Kucoin.this.currencyToPrecision(code, amount) );
                 put( "timeInForce", "FOK" );
             }};
             java.util.Map<String, Object> response = (this.privatePostMarginBorrow(this.extend(request, parameters))).join();
@@ -11654,7 +11654,7 @@ public class KucoinCore extends KucoinApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "size", KucoinCore.this.currencyToPrecision(code, amount) );
+                put( "size", Kucoin.this.currencyToPrecision(code, amount) );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "timeInForce", "FOK" );
                 put( "isIsolated", true );
@@ -11701,7 +11701,7 @@ public class KucoinCore extends KucoinApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "size", KucoinCore.this.currencyToPrecision(code, amount) );
+                put( "size", Kucoin.this.currencyToPrecision(code, amount) );
             }};
             java.util.Map<String, Object> response = (this.privatePostMarginRepay(this.extend(request, parameters))).join();
             //
@@ -11747,7 +11747,7 @@ public class KucoinCore extends KucoinApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "size", KucoinCore.this.currencyToPrecision(code, amount) );
+                put( "size", Kucoin.this.currencyToPrecision(code, amount) );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "isIsolated", true );
             }};
@@ -11782,12 +11782,12 @@ public class KucoinCore extends KucoinApi
         Long timestamp = this.milliseconds();
         String currencyId = this.safeString(info, "currency");
         return new java.util.HashMap<String, Object>() {{
-            put( "id", KucoinCore.this.safeString(info, "orderNo") );
-            put( "currency", KucoinCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", KucoinCore.this.safeNumber(info, "actualSize") );
+            put( "id", Kucoin.this.safeString(info, "orderNo") );
+            put( "currency", Kucoin.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Kucoin.this.safeNumber(info, "actualSize") );
             put( "symbol", null );
             put( "timestamp", timestamp );
-            put( "datetime", KucoinCore.this.iso8601(timestamp) );
+            put( "datetime", Kucoin.this.iso8601(timestamp) );
             put( "info", info );
         }};
     }
@@ -11937,7 +11937,7 @@ public class KucoinCore extends KucoinApi
                 }
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "leverage", KucoinCore.this.numberToString(leverage) );
+                put( "leverage", Kucoin.this.numberToString(leverage) );
             }};
             Object marginMode = null;
             java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
@@ -12076,7 +12076,7 @@ public class KucoinCore extends KucoinApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchFundingRate(symbol, parameters)).join();
+            return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
         });
 
     }
@@ -12190,23 +12190,23 @@ public class KucoinCore extends KucoinApi
         String granularity = this.safeString2(data, "granularity", "currentGranularity");
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", KucoinCore.this.safeSymbol(marketId, market, null, "contract") );
+            put( "symbol", Kucoin.this.safeSymbol(marketId, market, null, "contract") );
             put( "markPrice", null );
             put( "indexPrice", null );
-            put( "interestRate", KucoinCore.this.safeNumber(data, "dailyInterestRate") );
+            put( "interestRate", Kucoin.this.safeNumber(data, "dailyInterestRate") );
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", KucoinCore.this.safeNumber2(data, "nextFundingRate", "value") );
+            put( "fundingRate", Kucoin.this.safeNumber2(data, "nextFundingRate", "value") );
             put( "fundingTimestamp", fundingTimestamp );
-            put( "fundingDatetime", KucoinCore.this.iso8601(fundingTimestamp) );
+            put( "fundingDatetime", Kucoin.this.iso8601(fundingTimestamp) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", nextFundingTimestamp );
-            put( "nextFundingDatetime", KucoinCore.this.iso8601(nextFundingTimestamp) );
+            put( "nextFundingDatetime", Kucoin.this.iso8601(nextFundingTimestamp) );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", previousFundingTimestamp );
-            put( "previousFundingDatetime", KucoinCore.this.iso8601(previousFundingTimestamp) );
-            put( "interval", KucoinCore.this.parseFundingInterval(granularity) );
+            put( "previousFundingDatetime", Kucoin.this.iso8601(previousFundingTimestamp) );
+            put( "interval", Kucoin.this.parseFundingInterval(granularity) );
         }};
     }
 
@@ -12341,10 +12341,10 @@ public class KucoinCore extends KucoinApi
         Long timestamp = (Long) this.safeInteger2(info, "ts", "timepoint");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", KucoinCore.this.safeSymbol(marketId, market) );
-            put( "fundingRate", KucoinCore.this.safeNumber(info, "fundingRate") );
+            put( "symbol", Kucoin.this.safeSymbol(marketId, market) );
+            put( "fundingRate", Kucoin.this.safeNumber(info, "fundingRate") );
             put( "timestamp", timestamp );
-            put( "datetime", KucoinCore.this.iso8601(timestamp) );
+            put( "datetime", Kucoin.this.iso8601(timestamp) );
         }};
     }
 
@@ -12466,16 +12466,16 @@ public class KucoinCore extends KucoinApi
     final Object finalMarket = market;
                             ((java.util.List<Object>)fees).add(new java.util.HashMap<String, Object>() {{
                     put( "info", listItem );
-                    put( "symbol", KucoinCore.this.safeSymbol(marketId, finalMarket) );
-                    put( "code", KucoinCore.this.safeCurrencyCode(KucoinCore.this.safeString(listItem, "settleCurrency")) );
+                    put( "symbol", Kucoin.this.safeSymbol(marketId, finalMarket) );
+                    put( "code", Kucoin.this.safeCurrencyCode(Kucoin.this.safeString(listItem, "settleCurrency")) );
                     put( "timestamp", timestamp );
-                    put( "datetime", KucoinCore.this.iso8601(timestamp) );
-                    put( "id", KucoinCore.this.safeNumber(listItem, "id") );
-                    put( "amount", KucoinCore.this.safeNumber2(listItem, "funding", "fundingFee") );
-                    put( "fundingRate", KucoinCore.this.safeNumber(listItem, "fundingRate") );
-                    put( "markPrice", KucoinCore.this.safeNumber(listItem, "markPrice") );
-                    put( "positionQty", KucoinCore.this.safeNumber2(listItem, "positionQty", "size") );
-                    put( "positionCost", KucoinCore.this.safeNumber2(listItem, "positionCost", "positionValue") );
+                    put( "datetime", Kucoin.this.iso8601(timestamp) );
+                    put( "id", Kucoin.this.safeNumber(listItem, "id") );
+                    put( "amount", Kucoin.this.safeNumber2(listItem, "funding", "fundingFee") );
+                    put( "fundingRate", Kucoin.this.safeNumber(listItem, "fundingRate") );
+                    put( "markPrice", Kucoin.this.safeNumber(listItem, "markPrice") );
+                    put( "positionQty", Kucoin.this.safeNumber2(listItem, "positionQty", "size") );
+                    put( "positionCost", Kucoin.this.safeNumber2(listItem, "positionCost", "positionValue") );
                 }});
             }
             return fees;
@@ -12967,27 +12967,27 @@ public class KucoinCore extends KucoinApi
         final Object finalSide = side;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", KucoinCore.this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "positionId", "closeId"))) );
-            put( "symbol", KucoinCore.this.safeString(finalMarket, "symbol") );
+            put( "id", Kucoin.this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "positionId", "closeId"))) );
+            put( "symbol", Kucoin.this.safeString(finalMarket, "symbol") );
             put( "timestamp", finalTimestamp );
-            put( "datetime", KucoinCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Kucoin.this.iso8601(finalTimestamp) );
             put( "lastUpdateTimestamp", finalLastUpdateTimestamp );
-            put( "initialMargin", KucoinCore.this.parseNumber(initialMargin) );
-            put( "initialMarginPercentage", KucoinCore.this.parseNumber(initialMarginPercentage) );
-            put( "maintenanceMargin", KucoinCore.this.safeNumber2(position, "posMaint", "maintenanceMargin") );
-            put( "maintenanceMarginPercentage", KucoinCore.this.safeNumber2(position, "maintMarginReq", "mmr") );
-            put( "entryPrice", KucoinCore.this.safeNumberN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("avgEntryPrice", "openPrice", "entryPrice"))) );
-            put( "notional", KucoinCore.this.parseNumber(notional) );
-            put( "leverage", KucoinCore.this.safeNumber2(position, "realLeverage", "leverage") );
-            put( "unrealizedPnl", KucoinCore.this.parseNumber(unrealisedPnl) );
-            put( "contracts", KucoinCore.this.parseNumber(Precise.stringAbs(finalSize)) );
-            put( "contractSize", KucoinCore.this.safeValue(finalMarket, "contractSize") );
-            put( "realizedPnl", KucoinCore.this.safeNumberN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("realisedPnl", "pnl", "realizedPnL"))) );
+            put( "initialMargin", Kucoin.this.parseNumber(initialMargin) );
+            put( "initialMarginPercentage", Kucoin.this.parseNumber(initialMarginPercentage) );
+            put( "maintenanceMargin", Kucoin.this.safeNumber2(position, "posMaint", "maintenanceMargin") );
+            put( "maintenanceMarginPercentage", Kucoin.this.safeNumber2(position, "maintMarginReq", "mmr") );
+            put( "entryPrice", Kucoin.this.safeNumberN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("avgEntryPrice", "openPrice", "entryPrice"))) );
+            put( "notional", Kucoin.this.parseNumber(notional) );
+            put( "leverage", Kucoin.this.safeNumber2(position, "realLeverage", "leverage") );
+            put( "unrealizedPnl", Kucoin.this.parseNumber(unrealisedPnl) );
+            put( "contracts", Kucoin.this.parseNumber(Precise.stringAbs(finalSize)) );
+            put( "contractSize", Kucoin.this.safeValue(finalMarket, "contractSize") );
+            put( "realizedPnl", Kucoin.this.safeNumberN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("realisedPnl", "pnl", "realizedPnL"))) );
             put( "marginRatio", null );
-            put( "liquidationPrice", KucoinCore.this.safeNumber(position, "liquidationPrice") );
-            put( "markPrice", KucoinCore.this.safeNumber(position, "markPrice") );
-            put( "lastPrice", KucoinCore.this.safeNumber(position, "closePrice") );
-            put( "collateral", KucoinCore.this.safeNumber(position, "maintMargin") );
+            put( "liquidationPrice", Kucoin.this.safeNumber(position, "liquidationPrice") );
+            put( "markPrice", Kucoin.this.safeNumber(position, "markPrice") );
+            put( "lastPrice", Kucoin.this.safeNumber(position, "closePrice") );
+            put( "collateral", Kucoin.this.safeNumber(position, "maintMargin") );
             put( "marginMode", finalMarginMode );
             put( "side", finalSide );
             put( "percentage", null );
@@ -13054,8 +13054,8 @@ public class KucoinCore extends KucoinApi
     final Object finalMarket = market;
                 final Object finalI = i;
                             ((java.util.List<Object>)ordersRequests).add(new java.util.HashMap<String, Object>() {{
-                    put( "symbol", KucoinCore.this.safeString(finalMarket, "id") );
-                    put( "clientOid", KucoinCore.this.safeString(clientOrderIds, finalI) );
+                    put( "symbol", Kucoin.this.safeString(finalMarket, "id") );
+                    put( "clientOid", Kucoin.this.safeString(clientOrderIds, finalI) );
                 }});
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
@@ -13066,7 +13066,7 @@ public class KucoinCore extends KucoinApi
     final Object finalMarket = market;
                                     ((java.util.List<Object>)ordersRequests).add(new java.util.HashMap<String, Object>() {{
                         put( "orderId", orderId );
-                        put( "symbol", KucoinCore.this.safeString(finalMarket, "id") );
+                        put( "symbol", Kucoin.this.safeString(finalMarket, "id") );
                     }});
                 } else
                 {
@@ -13151,7 +13151,7 @@ public class KucoinCore extends KucoinApi
             Object uuid = this.uuid();
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "margin", KucoinCore.this.amountToPrecision(symbol, amount) );
+                put( "margin", Kucoin.this.amountToPrecision(symbol, amount) );
                 put( "bizNo", uuid );
             }};
             java.util.Map<String, Object> response = (this.futuresPrivatePostPositionMarginDepositMargin(this.extend(request, parameters))).join();
@@ -13206,7 +13206,7 @@ public class KucoinCore extends KucoinApi
             //
             Object data = this.safeValue(response, "data");
             return this.extend(this.parseMarginModification(data, market), new java.util.HashMap<String, Object>() {{
-                put( "amount", KucoinCore.this.amountToPrecision(symbol, amount) );
+                put( "amount", Kucoin.this.amountToPrecision(symbol, amount) );
                 put( "direction", "in" );
             }});
         });
@@ -13255,9 +13255,9 @@ public class KucoinCore extends KucoinApi
                 put( "symbol", Helpers.GetValue(market, "symbol") );
                 put( "type", "reduce" );
                 put( "marginMode", "isolated" );
-                put( "amount", KucoinCore.this.parseNumber(amountString) );
+                put( "amount", Kucoin.this.parseNumber(amountString) );
                 put( "total", null );
-                put( "code", KucoinCore.this.safeCurrencyCode(currencyId) );
+                put( "code", Kucoin.this.safeCurrencyCode(currencyId) );
                 put( "status", ((Helpers.isTrue((Helpers.isEqual(finalResponseCode, "200000"))))) ? "ok" : null );
                 put( "timestamp", null );
                 put( "datetime", null );
@@ -13324,15 +13324,15 @@ public class KucoinCore extends KucoinApi
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", KucoinCore.this.safeSymbol(marketId, finalMarket) );
+            put( "symbol", Kucoin.this.safeSymbol(marketId, finalMarket) );
             put( "type", null );
             put( "marginMode", mode );
             put( "amount", null );
             put( "total", null );
-            put( "code", KucoinCore.this.safeCurrencyCode(currencyId) );
+            put( "code", Kucoin.this.safeCurrencyCode(currencyId) );
             put( "status", null );
             put( "timestamp", timestamp );
-            put( "datetime", KucoinCore.this.iso8601(timestamp) );
+            put( "datetime", Kucoin.this.iso8601(timestamp) );
         }};
     }
 
@@ -13383,7 +13383,7 @@ public class KucoinCore extends KucoinApi
         final Object finalMarginType = marginType;
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", KucoinCore.this.safeString(market, "symbol") );
+            put( "symbol", Kucoin.this.safeString(market, "symbol") );
             put( "marginMode", finalMarginType );
         }};
     }
@@ -13588,7 +13588,7 @@ public class KucoinCore extends KucoinApi
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(uta))
             {
-                Object result = (this.fetchLeverageTiers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object result = (this.fetchLeverageTiers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
                 return this.safeList(result, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -13659,13 +13659,13 @@ public class KucoinCore extends KucoinApi
             market = this.safeMarket(marketId, market);
 final Object finalMarket = market;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", KucoinCore.this.safeNumber2(tier, "level", "tier") );
+                put( "tier", Kucoin.this.safeNumber2(tier, "level", "tier") );
                 put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
                 put( "currency", Helpers.GetValue(finalMarket, "base") );
-                put( "minNotional", KucoinCore.this.safeNumber2(tier, "minRiskLimit", "minSize") );
-                put( "maxNotional", KucoinCore.this.safeNumber2(tier, "maxRiskLimit", "maxSize") );
-                put( "maintenanceMarginRate", KucoinCore.this.safeNumber2(tier, "maintainMargin", "maintainMarginRate") );
-                put( "maxLeverage", KucoinCore.this.safeNumber(tier, "maxLeverage") );
+                put( "minNotional", Kucoin.this.safeNumber2(tier, "minRiskLimit", "minSize") );
+                put( "maxNotional", Kucoin.this.safeNumber2(tier, "maxRiskLimit", "maxSize") );
+                put( "maintenanceMarginRate", Kucoin.this.safeNumber2(tier, "maintainMargin", "maintainMarginRate") );
+                put( "maxLeverage", Kucoin.this.safeNumber(tier, "maxLeverage") );
                 put( "info", tier );
             }});
         }
@@ -13828,11 +13828,11 @@ final Object finalMarket = market;
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(interest, "ts");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", KucoinCore.this.safeSymbol(marketId) );
-            put( "openInterestAmount", KucoinCore.this.safeNumber(interest, "openInterest") );
+            put( "symbol", Kucoin.this.safeSymbol(marketId) );
+            put( "openInterestAmount", Kucoin.this.safeNumber(interest, "openInterest") );
             put( "openInterestValue", null );
             put( "timestamp", timestamp );
-            put( "datetime", KucoinCore.this.iso8601(timestamp) );
+            put( "datetime", Kucoin.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -14013,7 +14013,7 @@ final Object finalMarket = market;
             final Object finalTimestamp = timestamp;
             headers = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "KC-API-KEY-VERSION", "2" );
-                put( "KC-API-KEY", KucoinCore.this.apiKey );
+                put( "KC-API-KEY", Kucoin.this.apiKey );
                 put( "KC-API-TIMESTAMP", finalTimestamp );
             }}, headers);
             headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
@@ -14311,12 +14311,12 @@ final Object finalMarket = market;
         String percentage = this.safeString(info, "delevPercentage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", KucoinCore.this.safeSymbol(marketId, market, null, "contract") );
+            put( "symbol", Kucoin.this.safeSymbol(marketId, market, null, "contract") );
             put( "rank", null );
             put( "rating", null );
-            put( "percentage", KucoinCore.this.parseNumber(Precise.stringMul(percentage, "100")) );
+            put( "percentage", Kucoin.this.parseNumber(Precise.stringMul(percentage, "100")) );
             put( "timestamp", timestamp );
-            put( "datetime", KucoinCore.this.iso8601(timestamp) );
+            put( "datetime", Kucoin.this.iso8601(timestamp) );
         }};
     }
 }

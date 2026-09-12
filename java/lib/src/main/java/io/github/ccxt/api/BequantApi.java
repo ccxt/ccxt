@@ -6,9 +6,9 @@
 // -------------------------------------------------------------------------------
 
 package io.github.ccxt.api;
-import io.github.ccxt.exchanges.HitbtcCore;
+import io.github.ccxt.exchanges.Hitbtc;
 
-public class BequantApi extends HitbtcCore
+public class BequantApi extends Hitbtc
 {
 
     public BequantApi () {

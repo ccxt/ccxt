@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class CoinmateCore extends CoinmateApi
+public class Coinmate extends CoinmateApi
 {
-   public CoinmateCore () {
+   public Coinmate () {
        super();
    }
 
-   public CoinmateCore (Object options) {
+   public Coinmate (Object options) {
        super(options);
    }
 
@@ -344,11 +344,11 @@ public class CoinmateCore extends CoinmateApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", CoinmateCore.this.parseNumber("0.006") );
-                    put( "maker", CoinmateCore.this.parseNumber("0.004") );
+                    put( "taker", Coinmate.this.parseNumber("0.006") );
+                    put( "maker", Coinmate.this.parseNumber("0.004") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("0"), CoinmateCore.this.parseNumber("0.006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("10000"), CoinmateCore.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("100000"), CoinmateCore.this.parseNumber("0.0023"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("250000"), CoinmateCore.this.parseNumber("0.0021"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("500000"), CoinmateCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("1000000"), CoinmateCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("3000000"), CoinmateCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("15000000"), CoinmateCore.this.parseNumber("0.001"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("0"), CoinmateCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("10000"), CoinmateCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("100000"), CoinmateCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("250000"), CoinmateCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("500000"), CoinmateCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("1000000"), CoinmateCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("3000000"), CoinmateCore.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinmateCore.this.parseNumber("15000000"), CoinmateCore.this.parseNumber("-0.0004"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("0"), Coinmate.this.parseNumber("0.006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("10000"), Coinmate.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("100000"), Coinmate.this.parseNumber("0.0023"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("250000"), Coinmate.this.parseNumber("0.0021"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("500000"), Coinmate.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("1000000"), Coinmate.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("3000000"), Coinmate.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("15000000"), Coinmate.this.parseNumber("0.001"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("0"), Coinmate.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("10000"), Coinmate.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("100000"), Coinmate.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("250000"), Coinmate.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("500000"), Coinmate.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("1000000"), Coinmate.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("3000000"), Coinmate.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinmate.this.parseNumber("15000000"), Coinmate.this.parseNumber("-0.0004"))))) );
                     }} );
                 }} );
             }} );
@@ -548,8 +548,8 @@ public class CoinmateCore extends CoinmateApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", CoinmateCore.this.parseNumber(CoinmateCore.this.parsePrecision(CoinmateCore.this.safeString(market, "lotDecimals"))) );
-                        put( "price", CoinmateCore.this.parseNumber(CoinmateCore.this.parsePrecision(CoinmateCore.this.safeString(market, "priceDecimals"))) );
+                        put( "amount", Coinmate.this.parseNumber(Coinmate.this.parsePrecision(Coinmate.this.safeString(market, "lotDecimals"))) );
+                        put( "price", Coinmate.this.parseNumber(Coinmate.this.parsePrecision(Coinmate.this.safeString(market, "priceDecimals"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -557,7 +557,7 @@ public class CoinmateCore extends CoinmateApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", CoinmateCore.this.safeNumber(market, "minAmount") );
+                            put( "min", Coinmate.this.safeNumber(market, "minAmount") );
                             put( "max", null );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
@@ -778,14 +778,14 @@ public class CoinmateCore extends CoinmateApi
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
         Double last = this.safeNumber(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", CoinmateCore.this.safeString(market, "symbol") );
+            put( "symbol", Coinmate.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", CoinmateCore.this.iso8601(timestamp) );
-            put( "high", CoinmateCore.this.safeNumber(ticker, "high") );
-            put( "low", CoinmateCore.this.safeNumber(ticker, "low") );
-            put( "bid", CoinmateCore.this.safeNumber(ticker, "bid") );
+            put( "datetime", Coinmate.this.iso8601(timestamp) );
+            put( "high", Coinmate.this.safeNumber(ticker, "high") );
+            put( "low", Coinmate.this.safeNumber(ticker, "low") );
+            put( "bid", Coinmate.this.safeNumber(ticker, "bid") );
             put( "bidVolume", null );
-            put( "ask", CoinmateCore.this.safeNumber(ticker, "ask") );
+            put( "ask", Coinmate.this.safeNumber(ticker, "ask") );
             put( "vwap", null );
             put( "askVolume", null );
             put( "open", null );
@@ -795,7 +795,7 @@ public class CoinmateCore extends CoinmateApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", CoinmateCore.this.safeNumber(ticker, "amount") );
+            put( "baseVolume", Coinmate.this.safeNumber(ticker, "amount") );
             put( "quoteVolume", null );
             put( "info", ticker );
         }}, market);
@@ -910,26 +910,26 @@ public class CoinmateCore extends CoinmateApi
         String code = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", CoinmateCore.this.safeString2(transaction, "transactionId", "id") );
-            put( "txid", CoinmateCore.this.safeString(transaction, "txid") );
-            put( "type", CoinmateCore.this.safeStringLower(transaction, "transferType") );
+            put( "id", Coinmate.this.safeString2(transaction, "transactionId", "id") );
+            put( "txid", Coinmate.this.safeString(transaction, "txid") );
+            put( "type", Coinmate.this.safeStringLower(transaction, "transferType") );
             put( "currency", code );
-            put( "network", CoinmateCore.this.safeString(transaction, "walletType") );
-            put( "amount", CoinmateCore.this.safeNumber(transaction, "amount") );
-            put( "status", CoinmateCore.this.parseTransactionStatus(CoinmateCore.this.safeString(transaction, "transferStatus")) );
+            put( "network", Coinmate.this.safeString(transaction, "walletType") );
+            put( "amount", Coinmate.this.safeNumber(transaction, "amount") );
+            put( "status", Coinmate.this.parseTransactionStatus(Coinmate.this.safeString(transaction, "transferStatus")) );
             put( "timestamp", timestamp );
-            put( "datetime", CoinmateCore.this.iso8601(timestamp) );
-            put( "address", CoinmateCore.this.safeString(transaction, "destination") );
+            put( "datetime", Coinmate.this.iso8601(timestamp) );
+            put( "address", Coinmate.this.safeString(transaction, "destination") );
             put( "addressFrom", null );
             put( "addressTo", null );
-            put( "tag", CoinmateCore.this.safeString(transaction, "destinationTag") );
+            put( "tag", Coinmate.this.safeString(transaction, "destinationTag") );
             put( "tagFrom", null );
             put( "tagTo", null );
             put( "updated", null );
             put( "comment", null );
             put( "internal", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "cost", CoinmateCore.this.safeNumber(transaction, "fee") );
+                put( "cost", Coinmate.this.safeNumber(transaction, "fee") );
                 put( "currency", code );
                 put( "rate", null );
             }} );
@@ -978,7 +978,7 @@ public class CoinmateCore extends CoinmateApi
                 throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() only allows withdrawing the following currencies: "), String.join(", ", (java.util.List<String>)allowedCurrencies))) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "amount", CoinmateCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Coinmate.this.currencyToPrecision(code, amount) );
                 put( "address", address );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
@@ -1151,7 +1151,7 @@ public class CoinmateCore extends CoinmateApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", CoinmateCore.this.iso8601(timestamp) );
+            put( "datetime", Coinmate.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket_2, "symbol") );
             put( "type", type );
             put( "side", side );
@@ -1425,7 +1425,7 @@ public class CoinmateCore extends CoinmateApi
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", CoinmateCore.this.iso8601(timestamp) );
+            put( "datetime", Coinmate.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", symbol );
             put( "type", type );
@@ -1433,7 +1433,7 @@ public class CoinmateCore extends CoinmateApi
             put( "postOnly", null );
             put( "side", side );
             put( "price", priceString );
-            put( "triggerPrice", CoinmateCore.this.safeNumber(order, "stopPrice") );
+            put( "triggerPrice", Coinmate.this.safeNumber(order, "stopPrice") );
             put( "amount", amountString );
             put( "cost", null );
             put( "average", averageString );
@@ -1626,9 +1626,9 @@ public class CoinmateCore extends CoinmateApi
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalNonce = nonce;
             body = this.urlencode(this.extend(new java.util.HashMap<String, Object>() {{
-                put( "clientId", CoinmateCore.this.uid );
+                put( "clientId", Coinmate.this.uid );
                 put( "nonce", finalNonce );
-                put( "publicKey", CoinmateCore.this.apiKey );
+                put( "publicKey", Coinmate.this.apiKey );
                 put( "signature", ((String)signature).toUpperCase() );
             }}, parameters));
             headers = new java.util.HashMap<String, Object>() {{

@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class OkxusCore extends io.github.ccxt.exchanges.Okxus
+public class Okxus extends io.github.ccxt.exchanges.Okxus
 {
-   public OkxusCore () {
+   public Okxus () {
        super();
    }
 
-   public OkxusCore (Object options) {
+   public Okxus (Object options) {
        super(options);
    }
 

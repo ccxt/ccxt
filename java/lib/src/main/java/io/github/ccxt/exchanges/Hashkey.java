@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class HashkeyCore extends HashkeyApi
+public class Hashkey extends HashkeyApi
 {
-   public HashkeyCore () {
+   public Hashkey () {
        super();
    }
 
-   public HashkeyCore (Object options) {
+   public Hashkey (Object options) {
        super(options);
    }
 
@@ -425,22 +425,22 @@ public class HashkeyCore extends HashkeyApi
                         put( "tierBased", true );
                         put( "percentage", true );
                         put( "feeSide", "get" );
-                        put( "maker", HashkeyCore.this.parseNumber("0.0012") );
-                        put( "taker", HashkeyCore.this.parseNumber("0.0012") );
+                        put( "maker", Hashkey.this.parseNumber("0.0012") );
+                        put( "taker", Hashkey.this.parseNumber("0.0012") );
                         put( "tiers", new java.util.HashMap<String, Object>() {{
-                            put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("0"), HashkeyCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("1000000"), HashkeyCore.this.parseNumber("0.00080"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("5000000"), HashkeyCore.this.parseNumber("0.00070"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("10000000"), HashkeyCore.this.parseNumber("0.00060"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("50000000"), HashkeyCore.this.parseNumber("0.00040"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("200000000"), HashkeyCore.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("400000000"), HashkeyCore.this.parseNumber("0.00010"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("800000000"), HashkeyCore.this.parseNumber("0.00"))))) );
-                            put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("0"), HashkeyCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("1000000"), HashkeyCore.this.parseNumber("0.00090"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("5000000"), HashkeyCore.this.parseNumber("0.00085"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("10000000"), HashkeyCore.this.parseNumber("0.00075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("50000000"), HashkeyCore.this.parseNumber("0.00065"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("200000000"), HashkeyCore.this.parseNumber("0.00045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("400000000"), HashkeyCore.this.parseNumber("0.00040"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("800000000"), HashkeyCore.this.parseNumber("0.00035"))))) );
+                            put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("0"), Hashkey.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("1000000"), Hashkey.this.parseNumber("0.00080"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("5000000"), Hashkey.this.parseNumber("0.00070"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("10000000"), Hashkey.this.parseNumber("0.00060"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("50000000"), Hashkey.this.parseNumber("0.00040"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("200000000"), Hashkey.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("400000000"), Hashkey.this.parseNumber("0.00010"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("800000000"), Hashkey.this.parseNumber("0.00"))))) );
+                            put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("0"), Hashkey.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("1000000"), Hashkey.this.parseNumber("0.00090"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("5000000"), Hashkey.this.parseNumber("0.00085"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("10000000"), Hashkey.this.parseNumber("0.00075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("50000000"), Hashkey.this.parseNumber("0.00065"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("200000000"), Hashkey.this.parseNumber("0.00045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("400000000"), Hashkey.this.parseNumber("0.00040"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("800000000"), Hashkey.this.parseNumber("0.00035"))))) );
                         }} );
                     }} );
                     put( "swap", new java.util.HashMap<String, Object>() {{
                         put( "tierBased", true );
                         put( "percentage", true );
                         put( "feeSide", "get" );
-                        put( "maker", HashkeyCore.this.parseNumber("0.00025") );
-                        put( "taker", HashkeyCore.this.parseNumber("0.00060") );
+                        put( "maker", Hashkey.this.parseNumber("0.00025") );
+                        put( "taker", Hashkey.this.parseNumber("0.00060") );
                         put( "tiers", new java.util.HashMap<String, Object>() {{
-                            put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("0"), HashkeyCore.this.parseNumber("0.00025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("1000000"), HashkeyCore.this.parseNumber("0.00016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("5000000"), HashkeyCore.this.parseNumber("0.00014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("10000000"), HashkeyCore.this.parseNumber("0.00012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("50000000"), HashkeyCore.this.parseNumber("0.000080"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("200000000"), HashkeyCore.this.parseNumber("0.000060"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("400000000"), HashkeyCore.this.parseNumber("0.000020"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("800000000"), HashkeyCore.this.parseNumber("0.00"))))) );
-                            put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("0"), HashkeyCore.this.parseNumber("0.00060"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("1000000"), HashkeyCore.this.parseNumber("0.00050"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("5000000"), HashkeyCore.this.parseNumber("0.00045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("10000000"), HashkeyCore.this.parseNumber("0.00040"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("50000000"), HashkeyCore.this.parseNumber("0.00035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("200000000"), HashkeyCore.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("400000000"), HashkeyCore.this.parseNumber("0.00025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HashkeyCore.this.parseNumber("800000000"), HashkeyCore.this.parseNumber("0.00020"))))) );
+                            put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("0"), Hashkey.this.parseNumber("0.00025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("1000000"), Hashkey.this.parseNumber("0.00016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("5000000"), Hashkey.this.parseNumber("0.00014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("10000000"), Hashkey.this.parseNumber("0.00012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("50000000"), Hashkey.this.parseNumber("0.000080"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("200000000"), Hashkey.this.parseNumber("0.000060"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("400000000"), Hashkey.this.parseNumber("0.000020"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("800000000"), Hashkey.this.parseNumber("0.00"))))) );
+                            put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("0"), Hashkey.this.parseNumber("0.00060"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("1000000"), Hashkey.this.parseNumber("0.00050"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("5000000"), Hashkey.this.parseNumber("0.00045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("10000000"), Hashkey.this.parseNumber("0.00040"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("50000000"), Hashkey.this.parseNumber("0.00035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("200000000"), Hashkey.this.parseNumber("0.00030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("400000000"), Hashkey.this.parseNumber("0.00025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hashkey.this.parseNumber("800000000"), Hashkey.this.parseNumber("0.00020"))))) );
                         }} );
                     }} );
                 }} );
@@ -1251,44 +1251,44 @@ public class HashkeyCore extends HashkeyApi
             put( "type", finalMarketType );
             put( "subType", finalSubType );
             put( "spot", finalIsSpot );
-            put( "margin", HashkeyCore.this.safeBool(market, "allowMargin") );
+            put( "margin", Hashkey.this.safeBool(market, "allowMargin") );
             put( "swap", finalIsSwap );
             put( "future", false );
             put( "option", false );
             put( "contract", finalIsSwap );
             put( "settle", settle );
             put( "settleId", settleId );
-            put( "contractSize", HashkeyCore.this.parseNumber(contractSizeString) );
+            put( "contractSize", Hashkey.this.parseNumber(contractSizeString) );
             put( "linear", finalIsLinear );
             put( "inverse", finalIsInverse );
-            put( "taker", HashkeyCore.this.safeNumber(fees, "taker") );
-            put( "maker", HashkeyCore.this.safeNumber(fees, "maker") );
-            put( "percentage", HashkeyCore.this.safeBool(fees, "percentage") );
-            put( "tierBased", HashkeyCore.this.safeBool(fees, "tierBased") );
-            put( "feeSide", HashkeyCore.this.safeString(fees, "feeSide") );
+            put( "taker", Hashkey.this.safeNumber(fees, "taker") );
+            put( "maker", Hashkey.this.safeNumber(fees, "maker") );
+            put( "percentage", Hashkey.this.safeBool(fees, "percentage") );
+            put( "tierBased", Hashkey.this.safeBool(fees, "tierBased") );
+            put( "feeSide", Hashkey.this.safeString(fees, "feeSide") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", HashkeyCore.this.parseNumber(finalAmountPrecisionString) );
-                put( "price", HashkeyCore.this.safeNumber(priceFilter, "tickSize") );
+                put( "amount", Hashkey.this.parseNumber(finalAmountPrecisionString) );
+                put( "price", Hashkey.this.safeNumber(priceFilter, "tickSize") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", HashkeyCore.this.parseNumber(finalAmountMinLimitString) );
-                    put( "max", HashkeyCore.this.parseNumber(finalAmountMaxLimitString) );
+                    put( "min", Hashkey.this.parseNumber(finalAmountMinLimitString) );
+                    put( "max", Hashkey.this.parseNumber(finalAmountMaxLimitString) );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", HashkeyCore.this.safeNumber(priceFilter, "minPrice") );
-                    put( "max", HashkeyCore.this.safeNumber(priceFilter, "maxPrice") );
+                    put( "min", Hashkey.this.safeNumber(priceFilter, "minPrice") );
+                    put( "max", Hashkey.this.safeNumber(priceFilter, "maxPrice") );
                 }} );
                 put( "leverage", new java.util.HashMap<String, Object>() {{
                     put( "min", finalMinLeverage );
                     put( "max", finalMaxLeverage );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", HashkeyCore.this.parseNumber(minCostString) );
+                    put( "min", Hashkey.this.parseNumber(minCostString) );
                     put( "max", null );
                 }} );
             }} );
@@ -1364,18 +1364,18 @@ public class HashkeyCore extends HashkeyApi
     put( "network", finalNetworkCode );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", HashkeyCore.this.safeNumber(network, "minWithdrawQuantity") );
-            put( "max", HashkeyCore.this.parseNumber(HashkeyCore.this.omitZero(HashkeyCore.this.safeString(network, "maxWithdrawQuantity"))) );
+            put( "min", Hashkey.this.safeNumber(network, "minWithdrawQuantity") );
+            put( "max", Hashkey.this.parseNumber(Hashkey.this.omitZero(Hashkey.this.safeString(network, "maxWithdrawQuantity"))) );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", HashkeyCore.this.safeNumber(network, "minDepositQuantity") );
+            put( "min", Hashkey.this.safeNumber(network, "minDepositQuantity") );
             put( "max", null );
         }} );
     }} );
     put( "active", null );
-    put( "deposit", HashkeyCore.this.safeBool(network, "allowDeposit") );
-    put( "withdraw", HashkeyCore.this.safeBool(network, "allowWithdraw") );
-    put( "fee", HashkeyCore.this.safeNumber(network, "withdrawFee") );
+    put( "deposit", Hashkey.this.safeBool(network, "allowDeposit") );
+    put( "withdraw", Hashkey.this.safeBool(network, "allowWithdraw") );
+    put( "fee", Hashkey.this.safeNumber(network, "withdrawFee") );
     put( "precision", null );
     put( "info", network );
 }});
@@ -1388,10 +1388,10 @@ public class HashkeyCore extends HashkeyApi
             put( "code", code );
             put( "precision", null );
             put( "type", type );
-            put( "name", HashkeyCore.this.safeString(rawCurrency, "coinFullName") );
+            put( "name", Hashkey.this.safeString(rawCurrency, "coinFullName") );
             put( "active", null );
-            put( "deposit", HashkeyCore.this.safeBool(rawCurrency, "allowDeposit") );
-            put( "withdraw", HashkeyCore.this.safeBool(rawCurrency, "allowWithdraw") );
+            put( "deposit", Hashkey.this.safeBool(rawCurrency, "allowDeposit") );
+            put( "withdraw", Hashkey.this.safeBool(rawCurrency, "allowWithdraw") );
             put( "fee", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "deposit", new java.util.HashMap<String, Object>() {{
@@ -1702,8 +1702,8 @@ public class HashkeyCore extends HashkeyApi
             final Object finalFeeCost = feeCost;
             final Object finalFeeCurrncyId = feeCurrncyId;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", HashkeyCore.this.parseNumber(finalFeeCost) );
-                put( "currency", HashkeyCore.this.safeCurrencyCode(finalFeeCurrncyId) );
+                put( "cost", Hashkey.this.parseNumber(finalFeeCost) );
+                put( "currency", Hashkey.this.safeCurrencyCode(finalFeeCurrncyId) );
             }};
         }
         final Object finalMarket = market;
@@ -1711,17 +1711,17 @@ public class HashkeyCore extends HashkeyApi
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", HashkeyCore.this.safeString2(trade, "id", "tradeId") );
+            put( "id", Hashkey.this.safeString2(trade, "id", "tradeId") );
             put( "timestamp", timestamp );
-            put( "datetime", HashkeyCore.this.iso8601(timestamp) );
+            put( "datetime", Hashkey.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "side", finalSide );
-            put( "price", HashkeyCore.this.safeString2(trade, "p", "price") );
-            put( "amount", HashkeyCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("q", "qty", "quantity"))) );
+            put( "price", Hashkey.this.safeString2(trade, "p", "price") );
+            put( "amount", Hashkey.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("q", "qty", "quantity"))) );
             put( "cost", null );
             put( "takerOrMaker", finalTakerOrMaker );
             put( "type", null );
-            put( "order", HashkeyCore.this.safeString(trade, "orderId") );
+            put( "order", Hashkey.this.safeString(trade, "orderId") );
             put( "fee", finalFee );
             put( "info", trade );
         }}, market);
@@ -1933,15 +1933,15 @@ public class HashkeyCore extends HashkeyApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", HashkeyCore.this.iso8601(timestamp) );
-            put( "high", HashkeyCore.this.safeString(ticker, "h") );
-            put( "low", HashkeyCore.this.safeString(ticker, "l") );
-            put( "bid", HashkeyCore.this.safeString(ticker, "b") );
+            put( "datetime", Hashkey.this.iso8601(timestamp) );
+            put( "high", Hashkey.this.safeString(ticker, "h") );
+            put( "low", Hashkey.this.safeString(ticker, "l") );
+            put( "bid", Hashkey.this.safeString(ticker, "b") );
             put( "bidVolume", null );
-            put( "ask", HashkeyCore.this.safeString(ticker, "a") );
+            put( "ask", Hashkey.this.safeString(ticker, "a") );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", HashkeyCore.this.safeString(ticker, "o") );
+            put( "open", Hashkey.this.safeString(ticker, "o") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
@@ -1949,7 +1949,7 @@ public class HashkeyCore extends HashkeyApi
             put( "percentage", null );
             put( "average", null );
             put( "baseVolume", finalBaseVolume );
-            put( "quoteVolume", HashkeyCore.this.safeString(ticker, "qv") );
+            put( "quoteVolume", Hashkey.this.safeString(ticker, "qv") );
             put( "info", ticker );
         }}, market);
     }
@@ -2002,7 +2002,7 @@ public class HashkeyCore extends HashkeyApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "price", HashkeyCore.this.safeNumberOmitZero(entry, "p") );
+            put( "price", Hashkey.this.safeNumberOmitZero(entry, "p") );
             put( "side", null );
             put( "info", entry );
         }};
@@ -2225,7 +2225,7 @@ public class HashkeyCore extends HashkeyApi
         final Object finalTag = tag;
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", HashkeyCore.this.safeString(currency, "code") );
+            put( "currency", Hashkey.this.safeString(currency, "code") );
             put( "network", null );
             put( "address", address );
             put( "tag", finalTag );
@@ -2526,7 +2526,7 @@ public class HashkeyCore extends HashkeyApi
             put( "id", id );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", HashkeyCore.this.iso8601(timestamp) );
+            put( "datetime", Hashkey.this.iso8601(timestamp) );
             put( "network", null );
             put( "address", address );
             put( "addressTo", null );
@@ -2537,7 +2537,7 @@ public class HashkeyCore extends HashkeyApi
             put( "type", null );
             put( "amount", amount );
             put( "currency", code );
-            put( "status", HashkeyCore.this.parseTransactionStatus(finalStatus) );
+            put( "status", Hashkey.this.parseTransactionStatus(finalStatus) );
             put( "updated", null );
             put( "internal", null );
             put( "comment", null );
@@ -2591,7 +2591,7 @@ public class HashkeyCore extends HashkeyApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
-                put( "quantity", HashkeyCore.this.currencyToPrecision(code, amount) );
+                put( "quantity", Hashkey.this.currencyToPrecision(code, amount) );
                 put( "fromAccountId", fromAccount );
                 put( "toAccountId", toAccount );
             }};
@@ -2622,10 +2622,10 @@ public class HashkeyCore extends HashkeyApi
         }
         final Object finalStatus = status;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", HashkeyCore.this.safeString(transfer, "orderId") );
+            put( "id", Hashkey.this.safeString(transfer, "orderId") );
             put( "timestamp", timestamp );
-            put( "datetime", HashkeyCore.this.iso8601(timestamp) );
-            put( "currency", HashkeyCore.this.safeCurrencyCode(currencyId, currency) );
+            put( "datetime", Hashkey.this.iso8601(timestamp) );
+            put( "currency", Hashkey.this.safeCurrencyCode(currencyId, currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
@@ -2683,7 +2683,7 @@ public class HashkeyCore extends HashkeyApi
         String accountType = this.parseAccountType(this.safeString(account, "accountType"));
         Object type = Helpers.add(Helpers.add(label, " "), accountType);
         return new java.util.HashMap<String, Object>() {{
-            put( "id", HashkeyCore.this.safeString(account, "accountId") );
+            put( "id", Hashkey.this.safeString(account, "accountId") );
             put( "type", type );
             put( "code", null );
             put( "info", account );
@@ -2863,7 +2863,7 @@ public class HashkeyCore extends HashkeyApi
             put( "info", item );
             put( "id", id );
             put( "timestamp", timestamp );
-            put( "datetime", HashkeyCore.this.iso8601(timestamp) );
+            put( "datetime", Hashkey.this.iso8601(timestamp) );
             put( "account", account );
             put( "direction", finalDirection );
             put( "referenceId", null );
@@ -2953,7 +2953,7 @@ public class HashkeyCore extends HashkeyApi
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -3146,7 +3146,7 @@ public class HashkeyCore extends HashkeyApi
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "type", "LIMIT" );
-            put( "quantity", HashkeyCore.this.amountToPrecision(symbol, amount) );
+            put( "quantity", Hashkey.this.amountToPrecision(symbol, amount) );
         }};
         Boolean isMarketOrder = Helpers.isEqual(type, "market");
         if (Helpers.isTrue(isMarketOrder))
@@ -4076,30 +4076,30 @@ public class HashkeyCore extends HashkeyApi
         final Object finalReduceOnly = reduceOnly;
         final Object finalPostOnly = postOnly;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", HashkeyCore.this.safeString(order, "orderId") );
-            put( "clientOrderId", HashkeyCore.this.safeString(order, "clientOrderId") );
-            put( "datetime", HashkeyCore.this.iso8601(timestamp) );
+            put( "id", Hashkey.this.safeString(order, "orderId") );
+            put( "clientOrderId", Hashkey.this.safeString(order, "clientOrderId") );
+            put( "datetime", Hashkey.this.iso8601(timestamp) );
             put( "timestamp", timestamp );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", HashkeyCore.this.safeInteger(order, "updateTime") );
-            put( "status", HashkeyCore.this.parseOrderStatus(status) );
+            put( "lastUpdateTimestamp", Hashkey.this.safeInteger(order, "updateTime") );
+            put( "status", Hashkey.this.parseOrderStatus(status) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", finalType );
             put( "timeInForce", finalTimeInForce );
             put( "side", finalSide );
             put( "price", finalPrice );
             put( "average", average );
-            put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "origQty")) );
-            put( "filled", HashkeyCore.this.safeString(order, "executedQty") );
+            put( "amount", Hashkey.this.omitZero(Hashkey.this.safeString(order, "origQty")) );
+            put( "filled", Hashkey.this.safeString(order, "executedQty") );
             put( "remaining", null );
-            put( "triggerPrice", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "stopPrice")) );
+            put( "triggerPrice", Hashkey.this.omitZero(Hashkey.this.safeString(order, "stopPrice")) );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
-            put( "cost", HashkeyCore.this.omitZero(HashkeyCore.this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")) );
+            put( "cost", Hashkey.this.omitZero(Hashkey.this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")) );
             put( "trades", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "currency", HashkeyCore.this.safeCurrencyCode(finalFeeCurrncyId) );
-                put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "feeAmount")) );
+                put( "currency", Hashkey.this.safeCurrencyCode(finalFeeCurrncyId) );
+                put( "amount", Hashkey.this.omitZero(Hashkey.this.safeString(order, "feeAmount")) );
             }} );
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );
@@ -4190,7 +4190,7 @@ public class HashkeyCore extends HashkeyApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "timestamp", HashkeyCore.this.milliseconds() );
+                put( "timestamp", Hashkey.this.milliseconds() );
             }};
             java.util.List<Object> response = (this.publicGetApiV1FuturesFundingRate(this.extend(request, parameters))).join();
             //
@@ -4226,7 +4226,7 @@ public class HashkeyCore extends HashkeyApi
             }
             symbols = this.marketSymbols(symbols);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "timestamp", HashkeyCore.this.milliseconds() );
+                put( "timestamp", Hashkey.this.milliseconds() );
             }};
             java.util.List<Object> response = (this.publicGetApiV1FuturesFundingRate(this.extend(request, parameters))).join();
             //
@@ -4269,7 +4269,7 @@ public class HashkeyCore extends HashkeyApi
             put( "fundingDatetime", null );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", fundingTimestamp );
-            put( "nextFundingDatetime", HashkeyCore.this.iso8601(fundingTimestamp) );
+            put( "nextFundingDatetime", Hashkey.this.iso8601(fundingTimestamp) );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
@@ -4335,10 +4335,10 @@ public class HashkeyCore extends HashkeyApi
                 Long timestamp = this.safeInteger(entry, "settleTime");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", HashkeyCore.this.safeSymbol(HashkeyCore.this.safeString(entry, "symbol"), market, null, "swap") );
-                    put( "fundingRate", HashkeyCore.this.safeNumber(entry, "settleRate") );
+                    put( "symbol", Hashkey.this.safeSymbol(Hashkey.this.safeString(entry, "symbol"), market, null, "swap") );
+                    put( "fundingRate", Hashkey.this.safeNumber(entry, "settleRate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", HashkeyCore.this.iso8601(timestamp) );
+                    put( "datetime", Hashkey.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -4381,9 +4381,9 @@ public class HashkeyCore extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            return (this.fetchPositionsForSymbol(Helpers.GetValue(symbols, 0), this.extend(new java.util.HashMap<String, Object>() {{
+            return (this.fetchPositionsForSymbol((Object)(Helpers.GetValue(symbols, 0)), (Object)(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "methodName", "fetchPositions" );
-            }}, parameters))).join();
+            }}, parameters)))).join();
         });
 
     }
@@ -4459,26 +4459,26 @@ public class HashkeyCore extends HashkeyApi
             put( "id", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "contracts", HashkeyCore.this.safeNumber(position, "position") );
+            put( "contracts", Hashkey.this.safeNumber(position, "position") );
             put( "contractSize", null );
-            put( "side", HashkeyCore.this.safeStringLower(position, "side") );
-            put( "notional", HashkeyCore.this.safeNumber(position, "positionValue") );
-            put( "leverage", HashkeyCore.this.safeInteger(position, "leverage") );
-            put( "unrealizedPnl", HashkeyCore.this.safeNumber(position, "unrealizedPnL") );
-            put( "realizedPnl", HashkeyCore.this.safeNumber(position, "realizedPnL") );
+            put( "side", Hashkey.this.safeStringLower(position, "side") );
+            put( "notional", Hashkey.this.safeNumber(position, "positionValue") );
+            put( "leverage", Hashkey.this.safeInteger(position, "leverage") );
+            put( "unrealizedPnl", Hashkey.this.safeNumber(position, "unrealizedPnL") );
+            put( "realizedPnl", Hashkey.this.safeNumber(position, "realizedPnL") );
             put( "collateral", null );
-            put( "entryPrice", HashkeyCore.this.safeNumber(position, "avgPrice") );
+            put( "entryPrice", Hashkey.this.safeNumber(position, "avgPrice") );
             put( "markPrice", null );
-            put( "liquidationPrice", HashkeyCore.this.safeNumber(position, "liquidationPrice") );
+            put( "liquidationPrice", Hashkey.this.safeNumber(position, "liquidationPrice") );
             put( "marginMode", "cross" );
             put( "hedged", true );
-            put( "maintenanceMargin", HashkeyCore.this.safeNumber(position, "minMargin") );
+            put( "maintenanceMargin", Hashkey.this.safeNumber(position, "minMargin") );
             put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", HashkeyCore.this.safeNumber(position, "margin") );
+            put( "initialMargin", Hashkey.this.safeNumber(position, "margin") );
             put( "initialMarginPercentage", null );
             put( "marginRatio", null );
             put( "lastUpdateTimestamp", null );
-            put( "lastPrice", HashkeyCore.this.safeNumber(position, "lastPrice") );
+            put( "lastPrice", Hashkey.this.safeNumber(position, "lastPrice") );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
             put( "percentage", null );
@@ -4532,7 +4532,7 @@ public class HashkeyCore extends HashkeyApi
         Double leverageValue = this.safeNumber(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", HashkeyCore.this.safeString(market, "symbol") );
+            put( "symbol", Hashkey.this.safeString(market, "symbol") );
             put( "marginMode", marginMode );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
@@ -4748,11 +4748,11 @@ public class HashkeyCore extends HashkeyApi
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );
-            put( "total", HashkeyCore.this.safeNumber(data, "margin") );
+            put( "total", Hashkey.this.safeNumber(data, "margin") );
             put( "code", Helpers.GetValue(finalMarket, "settle") );
             put( "status", ((Helpers.isTrue((success)))) ? "ok" : "failed" );
             put( "timestamp", timestamp );
-            put( "datetime", HashkeyCore.this.iso8601(timestamp) );
+            put( "datetime", Hashkey.this.iso8601(timestamp) );
         }};
     }
 
@@ -4876,13 +4876,13 @@ public class HashkeyCore extends HashkeyApi
 final Object finalI = i;
             final Object finalMarket = market;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", HashkeyCore.this.sum(finalI, 1) );
-                put( "symbol", HashkeyCore.this.safeSymbol(marketId, finalMarket) );
+                put( "tier", Hashkey.this.sum(finalI, 1) );
+                put( "symbol", Hashkey.this.safeSymbol(marketId, finalMarket) );
                 put( "currency", Helpers.GetValue(finalMarket, "settle") );
                 put( "minNotional", null );
-                put( "maxNotional", HashkeyCore.this.safeNumber(tier, "quantity") );
-                put( "maintenanceMarginRate", HashkeyCore.this.safeNumber(tier, "maintMargin") );
-                put( "maxLeverage", HashkeyCore.this.parseNumber(Precise.stringDiv("1", initialMarginRate)) );
+                put( "maxNotional", Hashkey.this.safeNumber(tier, "quantity") );
+                put( "maintenanceMarginRate", Hashkey.this.safeNumber(tier, "maintMargin") );
+                put( "maxLeverage", Hashkey.this.parseNumber(Precise.stringDiv("1", initialMarginRate)) );
                 put( "info", tier );
             }});
         }
@@ -4914,7 +4914,7 @@ final Object finalI = i;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                response = (this.fetchTradingFees(parameters)).join();
+                response = (this.fetchTradingFees((Object)(parameters))).join();
                 return this.safeDict(response, symbol);
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -5014,8 +5014,8 @@ final Object finalI = i;
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "maker", HashkeyCore.this.safeNumber2(fee, "openMakerFee", "actualMakerRate") );
-            put( "taker", HashkeyCore.this.safeNumber2(fee, "openTakerFee", "actualTakerRate") );
+            put( "maker", Hashkey.this.safeNumber2(fee, "openMakerFee", "actualMakerRate") );
+            put( "taker", Hashkey.this.safeNumber2(fee, "openTakerFee", "actualTakerRate") );
             put( "percentage", true );
             put( "tierBased", true );
         }};
@@ -5043,7 +5043,7 @@ final Object finalI = i;
                 Helpers.addElementToObject(additionalParams, "recvWindow", recvWindow);
             }
             headers = new java.util.HashMap<String, Object>() {{
-                put( "X-HK-APIKEY", HashkeyCore.this.apiKey );
+                put( "X-HK-APIKEY", Hashkey.this.apiKey );
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
             Object signature = null;

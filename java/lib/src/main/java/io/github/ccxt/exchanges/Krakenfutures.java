@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class KrakenfuturesCore extends KrakenfuturesApi
+public class Krakenfutures extends KrakenfuturesApi
 {
-   public KrakenfuturesCore () {
+   public Krakenfutures () {
        super();
    }
 
-   public KrakenfuturesCore (Object options) {
+   public Krakenfutures (Object options) {
        super(options);
    }
 
@@ -306,11 +306,11 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", KrakenfuturesCore.this.parseNumber("0.0005") );
-                    put( "maker", KrakenfuturesCore.this.parseNumber("0.0002") );
+                    put( "taker", Krakenfutures.this.parseNumber("0.0005") );
+                    put( "maker", Krakenfutures.this.parseNumber("0.0002") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("0"), KrakenfuturesCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("100000"), KrakenfuturesCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("1000000"), KrakenfuturesCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("5000000"), KrakenfuturesCore.this.parseNumber("0.00025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("10000000"), KrakenfuturesCore.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("20000000"), KrakenfuturesCore.this.parseNumber("0.00015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("50000000"), KrakenfuturesCore.this.parseNumber("0.000125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("100000000"), KrakenfuturesCore.this.parseNumber("0.0001"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("0"), KrakenfuturesCore.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("100000"), KrakenfuturesCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("1000000"), KrakenfuturesCore.this.parseNumber("0.000125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("5000000"), KrakenfuturesCore.this.parseNumber("0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("10000000"), KrakenfuturesCore.this.parseNumber("0.000075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("20000000"), KrakenfuturesCore.this.parseNumber("0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("50000000"), KrakenfuturesCore.this.parseNumber("0.000025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenfuturesCore.this.parseNumber("100000000"), KrakenfuturesCore.this.parseNumber("0"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("0"), Krakenfutures.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("100000"), Krakenfutures.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("1000000"), Krakenfutures.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("5000000"), Krakenfutures.this.parseNumber("0.00025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("10000000"), Krakenfutures.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("20000000"), Krakenfutures.this.parseNumber("0.00015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("50000000"), Krakenfutures.this.parseNumber("0.000125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("100000000"), Krakenfutures.this.parseNumber("0.0001"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("0"), Krakenfutures.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("100000"), Krakenfutures.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("1000000"), Krakenfutures.this.parseNumber("0.000125"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("5000000"), Krakenfutures.this.parseNumber("0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("10000000"), Krakenfutures.this.parseNumber("0.000075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("20000000"), Krakenfutures.this.parseNumber("0.00005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("50000000"), Krakenfutures.this.parseNumber("0.000025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Krakenfutures.this.parseNumber("100000000"), Krakenfutures.this.parseNumber("0"))))) );
                     }} );
                 }} );
             }} );
@@ -628,16 +628,16 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                     put( "future", future );
                     put( "option", false );
                     put( "index", index );
-                    put( "active", KrakenfuturesCore.this.safeBool(market, "tradeable") );
+                    put( "active", Krakenfutures.this.safeBool(market, "tradeable") );
                     put( "contract", contract );
                     put( "linear", finalLinear );
                     put( "inverse", finalInverse );
-                    put( "contractSize", KrakenfuturesCore.this.safeNumber(market, "contractSize") );
-                    put( "taker", KrakenfuturesCore.this.safeNumber(Helpers.GetValue(KrakenfuturesCore.this.fees, "trading"), "taker") );
-                    put( "maker", KrakenfuturesCore.this.safeNumber(Helpers.GetValue(KrakenfuturesCore.this.fees, "trading"), "maker") );
+                    put( "contractSize", Krakenfutures.this.safeNumber(market, "contractSize") );
+                    put( "taker", Krakenfutures.this.safeNumber(Helpers.GetValue(Krakenfutures.this.fees, "trading"), "taker") );
+                    put( "maker", Krakenfutures.this.safeNumber(Helpers.GetValue(Krakenfutures.this.fees, "trading"), "maker") );
                     put( "maintenanceMarginRate", null );
                     put( "expiry", finalExpiry );
-                    put( "expiryDatetime", KrakenfuturesCore.this.iso8601(finalExpiry) );
+                    put( "expiryDatetime", Krakenfutures.this.iso8601(finalExpiry) );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
@@ -662,7 +662,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                             put( "max", null );
                         }} );
                     }} );
-                    put( "created", KrakenfuturesCore.this.parse8601(KrakenfuturesCore.this.safeString(market, "openingDate")) );
+                    put( "created", Krakenfutures.this.parse8601(Krakenfutures.this.safeString(market, "openingDate")) );
                     put( "info", market );
                 }});
             }
@@ -914,13 +914,13 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", KrakenfuturesCore.this.iso8601(timestamp) );
+            put( "datetime", Krakenfutures.this.iso8601(timestamp) );
             put( "high", null );
             put( "low", null );
-            put( "bid", KrakenfuturesCore.this.safeString(ticker, "bid") );
-            put( "bidVolume", KrakenfuturesCore.this.safeString(ticker, "bidSize") );
-            put( "ask", KrakenfuturesCore.this.safeString(ticker, "ask") );
-            put( "askVolume", KrakenfuturesCore.this.safeString(ticker, "askSize") );
+            put( "bid", Krakenfutures.this.safeString(ticker, "bid") );
+            put( "bidVolume", Krakenfutures.this.safeString(ticker, "bidSize") );
+            put( "ask", Krakenfutures.this.safeString(ticker, "ask") );
+            put( "askVolume", Krakenfutures.this.safeString(ticker, "askSize") );
             put( "vwap", null );
             put( "open", open );
             put( "close", last );
@@ -931,8 +931,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             put( "average", average );
             put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", finalQuoteVolume );
-            put( "markPrice", KrakenfuturesCore.this.safeString(ticker, "markPrice") );
-            put( "indexPrice", KrakenfuturesCore.this.safeString(ticker, "indexPrice") );
+            put( "markPrice", Krakenfutures.this.safeString(ticker, "markPrice") );
+            put( "indexPrice", Krakenfutures.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
         }});
     }
@@ -1052,9 +1052,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         final Object finalTakerFee = takerFee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", KrakenfuturesCore.this.safeSymbol(null, market) );
-            put( "maker", KrakenfuturesCore.this.parseNumber(Precise.stringDiv(finalMakerFee, "100")) );
-            put( "taker", KrakenfuturesCore.this.parseNumber(Precise.stringDiv(finalTakerFee, "100")) );
+            put( "symbol", Krakenfutures.this.safeSymbol(null, market) );
+            put( "maker", Krakenfutures.this.parseNumber(Precise.stringDiv(finalMakerFee, "100")) );
+            put( "taker", Krakenfutures.this.parseNumber(Precise.stringDiv(finalTakerFee, "100")) );
             put( "percentage", true );
             put( "tierBased", true );
         }};
@@ -1098,8 +1098,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             final Object finalParameters = parameters;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "price_type", KrakenfuturesCore.this.safeString(finalParameters, "price", "trade") );
-                put( "interval", KrakenfuturesCore.this.safeString(KrakenfuturesCore.this.timeframes, timeframe, timeframe) );
+                put( "price_type", Krakenfutures.this.safeString(finalParameters, "price", "trade") );
+                put( "interval", Krakenfutures.this.safeString(Krakenfutures.this.timeframes, timeframe, timeframe) );
             }};
             parameters = this.omit(parameters, "price");
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1483,9 +1483,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalId );
-            put( "symbol", KrakenfuturesCore.this.safeString(finalMarket, "symbol") );
+            put( "symbol", Krakenfutures.this.safeString(finalMarket, "symbol") );
             put( "timestamp", finalTimestamp );
-            put( "datetime", KrakenfuturesCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Krakenfutures.this.iso8601(finalTimestamp) );
             put( "order", finalOrder );
             put( "type", finalType );
             put( "side", finalSide );
@@ -1535,7 +1535,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "side", finalSide );
-            put( "size", KrakenfuturesCore.this.amountToPrecision(finalSymbol, amount) );
+            put( "size", Krakenfutures.this.amountToPrecision(finalSymbol, amount) );
         }};
         String clientOrderId = this.safeString2(parameters, "clientOrderId", "cliOrdId");
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -2017,7 +2017,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ((Object) (KrakenfuturesCore.this.parseToInt(Helpers.divide(timeout, 1000)))) : 0 );
+                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ((Object) (Krakenfutures.this.parseToInt(Helpers.divide(timeout, 1000)))) : 0 );
             }};
             java.util.Map<String, Object> response = (this.privatePostCancelallordersafter(this.extend(request, parameters))).join();
             //
@@ -2131,7 +2131,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderIds", new java.util.ArrayList<Object>(java.util.Arrays.asList(id)) );
             }};
-            Object orders = (this.fetchOrders(null, null, null, this.extend(request, parameters))).join();
+            Object orders = (this.fetchOrders((Object)(null), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
             Object order = this.safeDict(orders, 0);
             if (Helpers.isTrue(Helpers.isEqual(order, null)))
             {
@@ -2706,27 +2706,27 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             final Object finalOrderDictFromFetchOrder = orderDictFromFetchOrder;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", order );
-                put( "id", KrakenfuturesCore.this.safeString(finalOrderDictFromFetchOrder, "orderId") );
-                put( "clientOrderId", KrakenfuturesCore.this.safeString(finalOrderDictFromFetchOrder, "cliOrdId") );
-                put( "timestamp", KrakenfuturesCore.this.parse8601(datetime) );
+                put( "id", Krakenfutures.this.safeString(finalOrderDictFromFetchOrder, "orderId") );
+                put( "clientOrderId", Krakenfutures.this.safeString(finalOrderDictFromFetchOrder, "cliOrdId") );
+                put( "timestamp", Krakenfutures.this.parse8601(datetime) );
                 put( "datetime", datetime );
                 put( "lastTradeTimestamp", null );
-                put( "lastUpdateTimestamp", KrakenfuturesCore.this.parse8601(KrakenfuturesCore.this.safeString(finalOrderDictFromFetchOrder, "lastUpdateTimestamp")) );
+                put( "lastUpdateTimestamp", Krakenfutures.this.parse8601(Krakenfutures.this.safeString(finalOrderDictFromFetchOrder, "lastUpdateTimestamp")) );
                 put( "symbol", unifiedSymbol );
                 put( "type", null );
                 put( "timeInForce", null );
                 put( "postOnly", null );
-                put( "reduceOnly", KrakenfuturesCore.this.safeBool(finalOrderDictFromFetchOrder, "reduceOnly") );
-                put( "side", KrakenfuturesCore.this.safeString(finalOrderDictFromFetchOrder, "side") );
+                put( "reduceOnly", Krakenfutures.this.safeBool(finalOrderDictFromFetchOrder, "reduceOnly") );
+                put( "side", Krakenfutures.this.safeString(finalOrderDictFromFetchOrder, "side") );
                 put( "price", null );
                 put( "triggerPrice", fetchOrderTriggerPrice );
                 put( "stopPrice", fetchOrderTriggerPrice );
-                put( "amount", KrakenfuturesCore.this.safeString(finalOrderDictFromFetchOrder, "quantity") );
+                put( "amount", Krakenfutures.this.safeString(finalOrderDictFromFetchOrder, "quantity") );
                 put( "cost", null );
                 put( "average", null );
-                put( "filled", KrakenfuturesCore.this.safeString(finalOrderDictFromFetchOrder, "filled") );
+                put( "filled", Krakenfutures.this.safeString(finalOrderDictFromFetchOrder, "filled") );
                 put( "remaining", null );
-                put( "status", KrakenfuturesCore.this.parseOrderStatus(innerStatus) );
+                put( "status", Krakenfutures.this.parseOrderStatus(innerStatus) );
                 put( "fee", null );
                 put( "fees", null );
                 put( "trades", null );
@@ -2906,17 +2906,17 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
             put( "id", finalId );
-            put( "clientOrderId", KrakenfuturesCore.this.safeStringN(finalDetails, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "clientId", "cliOrdId"))) );
+            put( "clientOrderId", Krakenfutures.this.safeStringN(finalDetails, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "clientId", "cliOrdId"))) );
             put( "timestamp", ts );
-            put( "datetime", KrakenfuturesCore.this.iso8601(ts) );
+            put( "datetime", Krakenfutures.this.iso8601(ts) );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", KrakenfuturesCore.this.safeInteger(finalDetails, "lastUpdateTimestamp", lastUpdateTimestamp) );
+            put( "lastUpdateTimestamp", Krakenfutures.this.safeInteger(finalDetails, "lastUpdateTimestamp", lastUpdateTimestamp) );
             put( "symbol", symbol );
-            put( "type", KrakenfuturesCore.this.parseOrderType(finalType) );
+            put( "type", Krakenfutures.this.parseOrderType(finalType) );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", Helpers.isEqual(finalType, "post") );
-            put( "reduceOnly", KrakenfuturesCore.this.safeBool2(finalDetails, "reduceOnly", "reduce_only") );
-            put( "side", KrakenfuturesCore.this.safeStringLower2(finalDetails, "side", "direction") );
+            put( "reduceOnly", Krakenfutures.this.safeBool2(finalDetails, "reduceOnly", "reduce_only") );
+            put( "side", Krakenfutures.this.safeStringLower2(finalDetails, "side", "direction") );
             put( "price", finalPrice );
             put( "triggerPrice", finalTriggerPrice );
             put( "stopPrice", finalTriggerPrice );
@@ -3169,21 +3169,21 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         final Object finalFeeCost = feeCost;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", KrakenfuturesCore.this.safeString(item, "id") );
+            put( "id", Krakenfutures.this.safeString(item, "id") );
             put( "direction", finalDirection );
-            put( "account", KrakenfuturesCore.this.safeString(item, "margin_account") );
-            put( "referenceId", KrakenfuturesCore.this.safeString2(item, "execution", "booking_uid") );
+            put( "account", Krakenfutures.this.safeString(item, "margin_account") );
+            put( "referenceId", Krakenfutures.this.safeString2(item, "execution", "booking_uid") );
             put( "referenceAccount", null );
-            put( "type", KrakenfuturesCore.this.parseLedgerEntryType(KrakenfuturesCore.this.safeString(item, "info")) );
+            put( "type", Krakenfutures.this.parseLedgerEntryType(Krakenfutures.this.safeString(item, "info")) );
             put( "currency", code );
-            put( "amount", KrakenfuturesCore.this.parseNumber(finalAmount) );
-            put( "before", KrakenfuturesCore.this.parseNumber(finalBefore) );
-            put( "after", KrakenfuturesCore.this.parseNumber(finalAfter) );
+            put( "amount", Krakenfutures.this.parseNumber(finalAmount) );
+            put( "before", Krakenfutures.this.parseNumber(finalBefore) );
+            put( "after", Krakenfutures.this.parseNumber(finalAfter) );
             put( "status", "ok" );
             put( "timestamp", timestamp );
-            put( "datetime", KrakenfuturesCore.this.iso8601(timestamp) );
+            put( "datetime", Krakenfutures.this.iso8601(timestamp) );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "cost", KrakenfuturesCore.this.parseNumber(finalFeeCost) );
+                put( "cost", Krakenfutures.this.parseNumber(finalFeeCost) );
                 put( "currency", code );
             }} );
         }}, currency);
@@ -3540,16 +3540,16 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
             put( "symbol", symbol );
-            put( "markPrice", KrakenfuturesCore.this.parseNumber(markPriceString) );
-            put( "indexPrice", KrakenfuturesCore.this.safeNumber(ticker, "indexPrice") );
+            put( "markPrice", Krakenfutures.this.parseNumber(markPriceString) );
+            put( "indexPrice", Krakenfutures.this.safeNumber(ticker, "indexPrice") );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
-            put( "datetime", KrakenfuturesCore.this.iso8601(timestamp) );
-            put( "fundingRate", KrakenfuturesCore.this.parseNumber(finalFundingRateResult) );
+            put( "datetime", Krakenfutures.this.iso8601(timestamp) );
+            put( "fundingRate", Krakenfutures.this.parseNumber(finalFundingRateResult) );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
-            put( "nextFundingRate", KrakenfuturesCore.this.parseNumber(finalNextFundingRateResult) );
+            put( "nextFundingRate", Krakenfutures.this.parseNumber(finalNextFundingRateResult) );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
             put( "previousFundingRate", null );
@@ -3593,7 +3593,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 throw new BadRequest(Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", KrakenfuturesCore.this.safeStringUpper(market, "id") );
+                put( "symbol", Krakenfutures.this.safeStringUpper(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetHistoricalfundingrates(this.extend(request, parameters))).join();
             //
@@ -3618,8 +3618,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "info", item );
                     put( "symbol", finalSymbol );
-                    put( "fundingRate", KrakenfuturesCore.this.safeNumber(item, "relativeFundingRate") );
-                    put( "timestamp", KrakenfuturesCore.this.parse8601(datetime) );
+                    put( "fundingRate", Krakenfutures.this.safeNumber(item, "relativeFundingRate") );
+                    put( "timestamp", Krakenfutures.this.parse8601(datetime) );
                     put( "datetime", datetime );
                 }});
             }
@@ -3738,24 +3738,24 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "timestamp", KrakenfuturesCore.this.parse8601(datetime) );
+            put( "timestamp", Krakenfutures.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "entryPrice", KrakenfuturesCore.this.safeNumber(position, "price") );
+            put( "entryPrice", Krakenfutures.this.safeNumber(position, "price") );
             put( "notional", null );
             put( "leverage", finalLeverage );
-            put( "unrealizedPnl", KrakenfuturesCore.this.safeNumber(position, "unrealizedPnl") );
-            put( "contracts", KrakenfuturesCore.this.safeNumber(position, "size") );
-            put( "contractSize", KrakenfuturesCore.this.safeNumber(finalMarket, "contractSize") );
+            put( "unrealizedPnl", Krakenfutures.this.safeNumber(position, "unrealizedPnl") );
+            put( "contracts", Krakenfutures.this.safeNumber(position, "size") );
+            put( "contractSize", Krakenfutures.this.safeNumber(finalMarket, "contractSize") );
             put( "marginRatio", null );
             put( "liquidationPrice", null );
             put( "markPrice", null );
             put( "collateral", null );
             put( "marginType", finalMarginType );
-            put( "side", KrakenfuturesCore.this.safeString(position, "side") );
+            put( "side", Krakenfutures.this.safeString(position, "side") );
             put( "percentage", null );
         }};
     }
@@ -3895,13 +3895,13 @@ public class KrakenfuturesCore extends KrakenfuturesApi
 final Object finalI = i;
             final Object finalMarket = market;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", KrakenfuturesCore.this.sum(finalI, 1) );
-                put( "symbol", KrakenfuturesCore.this.safeSymbol(marketId, finalMarket) );
+                put( "tier", Krakenfutures.this.sum(finalI, 1) );
+                put( "symbol", Krakenfutures.this.safeSymbol(marketId, finalMarket) );
                 put( "currency", Helpers.GetValue(finalMarket, "quote") );
                 put( "minNotional", minNotional );
                 put( "maxNotional", null );
-                put( "maintenanceMarginRate", KrakenfuturesCore.this.safeNumber(tier, "maintenanceMargin") );
-                put( "maxLeverage", KrakenfuturesCore.this.parseNumber(Precise.stringDiv("1", initialMargin)) );
+                put( "maintenanceMarginRate", Krakenfutures.this.safeNumber(tier, "maintenanceMargin") );
+                put( "maxLeverage", Krakenfutures.this.parseNumber(Precise.stringDiv("1", initialMargin)) );
                 put( "info", tier );
             }});
         }
@@ -3923,13 +3923,13 @@ final Object finalI = i;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", null );
-            put( "timestamp", KrakenfuturesCore.this.parse8601(datetime) );
+            put( "timestamp", Krakenfutures.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "currency", KrakenfuturesCore.this.safeString(currency, "code") );
+            put( "currency", Krakenfutures.this.safeString(currency, "code") );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
-            put( "status", KrakenfuturesCore.this.safeString(transfer, "result") );
+            put( "status", Krakenfutures.this.safeString(transfer, "result") );
         }};
     }
 
@@ -3981,7 +3981,7 @@ final Object finalI = i;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.transfer(code, amount, "future", "spot", parameters)).join();
+            return (this.transfer(code, (Object)(amount), (Object)("future"), (Object)("spot"), (Object)(parameters))).join();
         });
 
     }
@@ -4190,7 +4190,7 @@ final Object finalI = i;
         Long leverageValue = this.safeInteger(leverage, "maxLeverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", KrakenfuturesCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Krakenfutures.this.safeSymbol(marketId, market) );
             put( "marginMode", null );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
@@ -4275,7 +4275,7 @@ final Object finalI = i;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "Accept", "application/json" );
-                put( "APIKey", KrakenfuturesCore.this.apiKey );
+                put( "APIKey", Krakenfutures.this.apiKey );
                 put( "Authent", signature );
             }};
         }

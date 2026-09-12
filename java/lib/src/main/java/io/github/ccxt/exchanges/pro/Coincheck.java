@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
+public class Coincheck extends io.github.ccxt.exchanges.Coincheck
 {
-   public CoincheckCore () {
+   public Coincheck () {
        super();
    }
 
-   public CoincheckCore (Object options) {
+   public Coincheck (Object options) {
        super(options);
    }
 
@@ -228,10 +228,10 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         String priceString = this.safeString(trade, 3);
         String amountString = this.safeString(trade, 4);
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", CoincheckCore.this.safeString(trade, 1) );
+            put( "id", Coincheck.this.safeString(trade, 1) );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", CoincheckCore.this.iso8601(timestamp) );
+            put( "datetime", Coincheck.this.iso8601(timestamp) );
             put( "order", null );
             put( "symbol", symbol );
             put( "type", null );

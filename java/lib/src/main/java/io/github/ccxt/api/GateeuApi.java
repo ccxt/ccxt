@@ -6,9 +6,9 @@
 // -------------------------------------------------------------------------------
 
 package io.github.ccxt.api;
-import io.github.ccxt.exchanges.GateCore;
+import io.github.ccxt.exchanges.Gate;
 
-public class GateeuApi extends GateCore
+public class GateeuApi extends Gate
 {
 
     public GateeuApi () {

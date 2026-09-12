@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class IndependentreserveCore extends IndependentreserveApi
+public class Independentreserve extends IndependentreserveApi
 {
-   public IndependentreserveCore () {
+   public Independentreserve () {
        super();
    }
 
-   public IndependentreserveCore (Object options) {
+   public Independentreserve (Object options) {
        super(options);
    }
 
@@ -280,8 +280,8 @@ public class IndependentreserveCore extends IndependentreserveApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "trading", new java.util.HashMap<String, Object>() {{
-                    put( "taker", IndependentreserveCore.this.parseNumber("0.005") );
-                    put( "maker", IndependentreserveCore.this.parseNumber("0.005") );
+                    put( "taker", Independentreserve.this.parseNumber("0.005") );
+                    put( "maker", Independentreserve.this.parseNumber("0.005") );
                     put( "percentage", true );
                     put( "tierBased", false );
                 }} );
@@ -623,12 +623,12 @@ public class IndependentreserveCore extends IndependentreserveApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", IndependentreserveCore.this.iso8601(timestamp) );
-            put( "high", IndependentreserveCore.this.safeString(ticker, "DayHighestPrice") );
-            put( "low", IndependentreserveCore.this.safeString(ticker, "DayLowestPrice") );
-            put( "bid", IndependentreserveCore.this.safeString(ticker, "CurrentHighestBidPrice") );
+            put( "datetime", Independentreserve.this.iso8601(timestamp) );
+            put( "high", Independentreserve.this.safeString(ticker, "DayHighestPrice") );
+            put( "low", Independentreserve.this.safeString(ticker, "DayLowestPrice") );
+            put( "bid", Independentreserve.this.safeString(ticker, "CurrentHighestBidPrice") );
             put( "bidVolume", null );
-            put( "ask", IndependentreserveCore.this.safeString(ticker, "CurrentLowestOfferPrice") );
+            put( "ask", Independentreserve.this.safeString(ticker, "CurrentLowestOfferPrice") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -637,8 +637,8 @@ public class IndependentreserveCore extends IndependentreserveApi
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
-            put( "average", IndependentreserveCore.this.safeString(ticker, "DayAvgPrice") );
-            put( "baseVolume", IndependentreserveCore.this.safeString(ticker, "DayVolumeXbtInSecondaryCurrrency") );
+            put( "average", Independentreserve.this.safeString(ticker, "DayAvgPrice") );
+            put( "baseVolume", Independentreserve.this.safeString(ticker, "DayVolumeXbtInSecondaryCurrrency") );
             put( "quoteVolume", null );
             put( "info", ticker );
         }}, market);
@@ -790,24 +790,24 @@ public class IndependentreserveCore extends IndependentreserveApi
         final Object finalBase = base;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", IndependentreserveCore.this.safeString(order, "OrderGuid") );
+            put( "id", Independentreserve.this.safeString(order, "OrderGuid") );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", IndependentreserveCore.this.iso8601(timestamp) );
+            put( "datetime", Independentreserve.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", finalSymbol );
             put( "type", finalOrderType );
-            put( "timeInForce", IndependentreserveCore.this.parseTimeInForce(IndependentreserveCore.this.safeString(order, "TimeInForce")) );
+            put( "timeInForce", Independentreserve.this.parseTimeInForce(Independentreserve.this.safeString(order, "TimeInForce")) );
             put( "postOnly", null );
             put( "side", finalSide );
-            put( "price", IndependentreserveCore.this.safeString(order, "Price") );
+            put( "price", Independentreserve.this.safeString(order, "Price") );
             put( "triggerPrice", null );
-            put( "cost", IndependentreserveCore.this.safeString(order, "Value") );
-            put( "average", IndependentreserveCore.this.safeString(order, "AvgPrice") );
-            put( "amount", IndependentreserveCore.this.safeString2(order, "VolumeOrdered", "Volume") );
+            put( "cost", Independentreserve.this.safeString(order, "Value") );
+            put( "average", Independentreserve.this.safeString(order, "AvgPrice") );
+            put( "amount", Independentreserve.this.safeString2(order, "VolumeOrdered", "Volume") );
             put( "filled", finalFilled );
-            put( "remaining", IndependentreserveCore.this.safeString(order, "Outstanding") );
-            put( "status", IndependentreserveCore.this.parseOrderStatus(IndependentreserveCore.this.safeString(order, "Status")) );
+            put( "remaining", Independentreserve.this.safeString(order, "Outstanding") );
+            put( "status", Independentreserve.this.parseOrderStatus(Independentreserve.this.safeString(order, "Status")) );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "rate", finalFeeRate );
                 put( "cost", finalFeeCost );
@@ -1044,7 +1044,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", IndependentreserveCore.this.iso8601(timestamp) );
+            put( "datetime", Independentreserve.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "order", orderId );
             put( "type", null );
@@ -1143,10 +1143,10 @@ public class IndependentreserveCore extends IndependentreserveApi
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object fee = this.safeValue(fees, Helpers.GetValue(market, "base"), new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
-        put( "info", IndependentreserveCore.this.safeValue(fee, "info") );
+        put( "info", Independentreserve.this.safeValue(fee, "info") );
         put( "symbol", symbol );
-        put( "maker", IndependentreserveCore.this.safeNumber(fee, "fee") );
-        put( "taker", IndependentreserveCore.this.safeNumber(fee, "fee") );
+        put( "maker", Independentreserve.this.safeNumber(fee, "fee") );
+        put( "taker", Independentreserve.this.safeNumber(fee, "fee") );
         put( "percentage", true );
         put( "tierBased", true );
     }});
@@ -1306,10 +1306,10 @@ public class IndependentreserveCore extends IndependentreserveApi
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", IndependentreserveCore.this.safeString(currency, "code") );
+            put( "currency", Independentreserve.this.safeString(currency, "code") );
             put( "network", null );
             put( "address", address );
-            put( "tag", IndependentreserveCore.this.safeString(depositAddress, "Tag") );
+            put( "tag", Independentreserve.this.safeString(depositAddress, "Tag") );
         }};
     }
 
@@ -1346,7 +1346,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "primaryCurrencyCode", Helpers.GetValue(currency, "id") );
                 put( "withdrawalAddress", address );
-                put( "amount", IndependentreserveCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Independentreserve.this.currencyToPrecision(code, amount) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
             {
@@ -1412,14 +1412,14 @@ public class IndependentreserveCore extends IndependentreserveApi
         String code = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", IndependentreserveCore.this.safeString(transaction, "TransactionGuid") );
+            put( "id", Independentreserve.this.safeString(transaction, "TransactionGuid") );
             put( "txid", null );
             put( "type", "withdraw" );
             put( "currency", code );
             put( "network", null );
-            put( "amount", IndependentreserveCore.this.safeNumber(amount, "Total") );
-            put( "status", IndependentreserveCore.this.safeString(transaction, "Status") );
-            put( "timestamp", IndependentreserveCore.this.parse8601(datetime) );
+            put( "amount", Independentreserve.this.safeNumber(amount, "Total") );
+            put( "status", Independentreserve.this.safeString(transaction, "Status") );
+            put( "timestamp", Independentreserve.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "address", address );
             put( "addressFrom", null );
@@ -1431,7 +1431,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             put( "comment", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", IndependentreserveCore.this.safeNumber(amount, "Fee") );
+                put( "cost", Independentreserve.this.safeNumber(amount, "Fee") );
                 put( "rate", null );
             }} );
             put( "internal", false );

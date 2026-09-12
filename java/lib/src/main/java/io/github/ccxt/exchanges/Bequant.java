@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BequantCore extends BequantApi
+public class Bequant extends BequantApi
 {
-   public BequantCore () {
+   public Bequant () {
        super();
    }
 
-   public BequantCore (Object options) {
+   public Bequant (Object options) {
        super(options);
    }
 

@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class ParadexCore extends io.github.ccxt.exchanges.Paradex
+public class Paradex extends io.github.ccxt.exchanges.Paradex
 {
-   public ParadexCore () {
+   public Paradex () {
        super();
    }
 
-   public ParadexCore (Object options) {
+   public Paradex (Object options) {
        super(options);
    }
 
@@ -75,7 +75,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                 Object token = (this.authenticateRest()).join();
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "jsonrpc", "2.0" );
-                    put( "id", ParadexCore.this.requestId() );
+                    put( "id", Paradex.this.requestId() );
                     put( "method", "auth" );
                     put( "params", new java.util.HashMap<String, Object>() {{
                         put( "bearer", token );
@@ -688,11 +688,11 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             put( "symbol", symbol );
             put( "markPrice", null );
             put( "indexPrice", null );
-            put( "interestRate", ParadexCore.this.parseNumber("0") );
+            put( "interestRate", Paradex.this.parseNumber("0") );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
-            put( "datetime", ParadexCore.this.iso8601(timestamp) );
-            put( "fundingRate", ParadexCore.this.safeNumber(contract, "funding_rate") );
+            put( "datetime", Paradex.this.iso8601(timestamp) );
+            put( "fundingRate", Paradex.this.safeNumber(contract, "funding_rate") );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
             put( "nextFundingRate", null );

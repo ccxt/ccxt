@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class ApexCore extends io.github.ccxt.exchanges.Apex
+public class Apex extends io.github.ccxt.exchanges.Apex
 {
-   public ApexCore () {
+   public Apex () {
        super();
    }
 
-   public ApexCore (Object options) {
+   public Apex (Object options) {
        super(options);
    }
 
@@ -82,7 +82,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -215,7 +215,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", ApexCore.this.iso8601(timestamp) );
+            put( "datetime", Apex.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "order", null );
             put( "type", null );
@@ -245,7 +245,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1102,8 +1102,8 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                     put( "topics", new java.util.ArrayList<Object>(java.util.Arrays.asList("ws_zk_accounts_v3")) );
                     put( "httpMethod", http_method );
                     put( "requestPath", request_path );
-                    put( "apiKey", ApexCore.this.apiKey );
-                    put( "passphrase", ApexCore.this.password );
+                    put( "apiKey", Apex.this.apiKey );
+                    put( "passphrase", Apex.this.password );
                     put( "timestamp", finalTimestamp );
                     put( "signature", signature );
                 }};

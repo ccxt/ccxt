@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class DeriveCore extends io.github.ccxt.exchanges.Derive
+public class Derive extends io.github.ccxt.exchanges.Derive
 {
-   public DeriveCore () {
+   public Derive () {
        super();
    }
 
-   public DeriveCore (Object options) {
+   public Derive (Object options) {
        super(options);
    }
 
@@ -288,19 +288,19 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             Object stats = this.safeDict(data, "stats", new java.util.HashMap<String, Object>() {{}});
             ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "symbol") );
-                put( "timestamp", DeriveCore.this.safeInteger(data, "t") );
-                put( "datetime", DeriveCore.this.iso8601(DeriveCore.this.safeInteger(data, "t")) );
-                put( "bid", DeriveCore.this.safeString(data, "b") );
-                put( "bidVolume", DeriveCore.this.safeString(data, "B") );
-                put( "ask", DeriveCore.this.safeString(data, "a") );
-                put( "askVolume", DeriveCore.this.safeString(data, "A") );
-                put( "high", DeriveCore.this.safeString(stats, "h") );
-                put( "low", DeriveCore.this.safeString(stats, "l") );
-                put( "baseVolume", DeriveCore.this.safeString(stats, "c") );
-                put( "quoteVolume", DeriveCore.this.safeString(stats, "v") );
-                put( "percentage", DeriveCore.this.safeString(stats, "p") );
-                put( "markPrice", DeriveCore.this.safeString(data, "M") );
-                put( "indexPrice", DeriveCore.this.safeString(data, "I") );
+                put( "timestamp", Derive.this.safeInteger(data, "t") );
+                put( "datetime", Derive.this.iso8601(Derive.this.safeInteger(data, "t")) );
+                put( "bid", Derive.this.safeString(data, "b") );
+                put( "bidVolume", Derive.this.safeString(data, "B") );
+                put( "ask", Derive.this.safeString(data, "a") );
+                put( "askVolume", Derive.this.safeString(data, "A") );
+                put( "high", Derive.this.safeString(stats, "h") );
+                put( "low", Derive.this.safeString(stats, "l") );
+                put( "baseVolume", Derive.this.safeString(stats, "c") );
+                put( "quoteVolume", Derive.this.safeString(stats, "v") );
+                put( "percentage", Derive.this.safeString(stats, "p") );
+                put( "markPrice", Derive.this.safeString(data, "M") );
+                put( "indexPrice", Derive.this.safeString(data, "I") );
                 put( "info", rawData );
             }}, market);
         } else

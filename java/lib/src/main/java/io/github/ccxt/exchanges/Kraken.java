@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class KrakenCore extends KrakenApi
+public class Kraken extends KrakenApi
 {
-   public KrakenCore () {
+   public Kraken () {
        super();
    }
 
-   public KrakenCore (Object options) {
+   public Kraken (Object options) {
        super(options);
    }
 
@@ -123,11 +123,11 @@ public class KrakenCore extends KrakenApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", KrakenCore.this.parseNumber("0.0026") );
-                    put( "maker", KrakenCore.this.parseNumber("0.0016") );
+                    put( "taker", Kraken.this.parseNumber("0.0026") );
+                    put( "maker", Kraken.this.parseNumber("0.0016") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("0"), KrakenCore.this.parseNumber("0.0026"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("50000"), KrakenCore.this.parseNumber("0.0024"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("100000"), KrakenCore.this.parseNumber("0.0022"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("250000"), KrakenCore.this.parseNumber("0.0020"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("500000"), KrakenCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("1000000"), KrakenCore.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("2500000"), KrakenCore.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("5000000"), KrakenCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("10000000"), KrakenCore.this.parseNumber("0.0001"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("0"), KrakenCore.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("50000"), KrakenCore.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("100000"), KrakenCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("250000"), KrakenCore.this.parseNumber("0.0010"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("500000"), KrakenCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("1000000"), KrakenCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("2500000"), KrakenCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("5000000"), KrakenCore.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(KrakenCore.this.parseNumber("10000000"), KrakenCore.this.parseNumber("0.0"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("0"), Kraken.this.parseNumber("0.0026"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("50000"), Kraken.this.parseNumber("0.0024"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("100000"), Kraken.this.parseNumber("0.0022"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("250000"), Kraken.this.parseNumber("0.0020"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("500000"), Kraken.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("1000000"), Kraken.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("2500000"), Kraken.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("5000000"), Kraken.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("10000000"), Kraken.this.parseNumber("0.0001"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("0"), Kraken.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("50000"), Kraken.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("100000"), Kraken.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("250000"), Kraken.this.parseNumber("0.0010"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("500000"), Kraken.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("1000000"), Kraken.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("2500000"), Kraken.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("5000000"), Kraken.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Kraken.this.parseNumber("10000000"), Kraken.this.parseNumber("0.0"))))) );
                     }} );
                 }} );
             }} );
@@ -819,7 +819,7 @@ public class KrakenCore extends KrakenApi
                 final Object finalPrecisionAmount = precisionAmount;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "wsId", KrakenCore.this.safeString(market, "wsname") );
+                    put( "wsId", Kraken.this.safeString(market, "wsname") );
                     put( "symbol", symbol );
                     put( "base", finalBase );
                     put( "quote", quote );
@@ -851,11 +851,11 @@ public class KrakenCore extends KrakenApi
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", KrakenCore.this.parseNumber("1") );
-                            put( "max", KrakenCore.this.safeNumber(leverageBuy, Helpers.subtract(finalLeverageBuyLength, 1), 1) );
+                            put( "min", Kraken.this.parseNumber("1") );
+                            put( "max", Kraken.this.safeNumber(leverageBuy, Helpers.subtract(finalLeverageBuyLength, 1), 1) );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", KrakenCore.this.safeNumber(market, "ordermin") );
+                            put( "min", Kraken.this.safeNumber(market, "ordermin") );
                             put( "max", null );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
@@ -863,7 +863,7 @@ public class KrakenCore extends KrakenApi
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", KrakenCore.this.safeNumber(market, "costmin") );
+                            put( "min", Kraken.this.safeNumber(market, "costmin") );
                             put( "max", null );
                         }} );
                     }} );
@@ -1045,13 +1045,13 @@ public class KrakenCore extends KrakenApi
             put( "id", finalId );
             put( "code", finalCode );
             put( "info", finalRawCurrency );
-            put( "name", KrakenCore.this.safeString(finalRawCurrency, "altname") );
-            put( "active", Helpers.isEqual(KrakenCore.this.safeString(finalRawCurrency, "status"), "enabled") );
+            put( "name", Kraken.this.safeString(finalRawCurrency, "altname") );
+            put( "active", Helpers.isEqual(Kraken.this.safeString(finalRawCurrency, "status"), "enabled") );
             put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
             put( "deposit", null );
             put( "withdraw", null );
             put( "fee", null );
-            put( "precision", KrakenCore.this.parseNumber(KrakenCore.this.parsePrecision(KrakenCore.this.safeString(finalRawCurrency, "decimals"))) );
+            put( "precision", Kraken.this.parseNumber(Kraken.this.parsePrecision(Kraken.this.safeString(finalRawCurrency, "decimals"))) );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -1153,8 +1153,8 @@ public class KrakenCore extends KrakenApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "symbol", Helpers.GetValue(market, "symbol") );
-            put( "maker", KrakenCore.this.parseNumber(Precise.stringDiv(KrakenCore.this.safeString(symbolMakerFee, "fee"), "100")) );
-            put( "taker", KrakenCore.this.parseNumber(Precise.stringDiv(KrakenCore.this.safeString(symbolTakerFee, "fee"), "100")) );
+            put( "maker", Kraken.this.parseNumber(Precise.stringDiv(Kraken.this.safeString(symbolMakerFee, "fee"), "100")) );
+            put( "taker", Kraken.this.parseNumber(Precise.stringDiv(Kraken.this.safeString(symbolTakerFee, "fee"), "100")) );
             put( "percentage", true );
             put( "tierBased", true );
         }};
@@ -1267,14 +1267,14 @@ public class KrakenCore extends KrakenApi
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", KrakenCore.this.safeString(high, 1) );
-            put( "low", KrakenCore.this.safeString(low, 1) );
-            put( "bid", KrakenCore.this.safeString(bid, 0) );
-            put( "bidVolume", KrakenCore.this.safeString(bid, 2) );
-            put( "ask", KrakenCore.this.safeString(ask, 0) );
-            put( "askVolume", KrakenCore.this.safeString(ask, 2) );
+            put( "high", Kraken.this.safeString(high, 1) );
+            put( "low", Kraken.this.safeString(low, 1) );
+            put( "bid", Kraken.this.safeString(bid, 0) );
+            put( "bidVolume", Kraken.this.safeString(bid, 2) );
+            put( "ask", Kraken.this.safeString(ask, 0) );
+            put( "askVolume", Kraken.this.safeString(ask, 2) );
             put( "vwap", vwap );
-            put( "open", KrakenCore.this.safeString(ticker, "o") );
+            put( "open", Kraken.this.safeString(ticker, "o") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
@@ -1526,14 +1526,14 @@ public class KrakenCore extends KrakenApi
             put( "referenceAccount", referenceAccount );
             put( "type", type );
             put( "currency", code );
-            put( "amount", KrakenCore.this.parseNumber(finalAmount) );
+            put( "amount", Kraken.this.parseNumber(finalAmount) );
             put( "before", null );
-            put( "after", KrakenCore.this.safeNumber(item, "balance") );
+            put( "after", Kraken.this.safeNumber(item, "balance") );
             put( "status", "ok" );
             put( "timestamp", timestamp );
-            put( "datetime", KrakenCore.this.iso8601(timestamp) );
+            put( "datetime", Kraken.this.iso8601(timestamp) );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "cost", KrakenCore.this.safeNumber(item, "fee") );
+                put( "cost", Kraken.this.safeNumber(item, "fee") );
                 put( "currency", code );
             }} );
         }}, currency);
@@ -1783,7 +1783,7 @@ public class KrakenCore extends KrakenApi
                 }
                 final Object finalCurrency = currency;
                 fee = new java.util.HashMap<String, Object>() {{
-                    put( "cost", KrakenCore.this.safeString(trade, "fee") );
+                    put( "cost", Kraken.this.safeString(trade, "fee") );
                     put( "currency", finalCurrency );
                 }};
             }
@@ -1999,7 +1999,7 @@ public class KrakenCore extends KrakenApi
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", side, cost, null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -2024,7 +2024,7 @@ public class KrakenCore extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            return (this.createMarketOrderWithCost(symbol, "buy", cost, parameters)).join();
+            return (this.createMarketOrderWithCost(symbol, (Object)("buy"), (Object)(cost), (Object)(parameters))).join();
         });
 
     }
@@ -2068,7 +2068,7 @@ public class KrakenCore extends KrakenApi
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "type", side );
                 put( "ordertype", type );
-                put( "volume", KrakenCore.this.amountToPrecision(symbol, amount) );
+                put( "volume", Kraken.this.amountToPrecision(symbol, amount) );
             }};
             Object orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
             String flags = this.safeString(Helpers.GetValue(orderRequest, 0), "oflags", "");
@@ -2151,7 +2151,7 @@ public class KrakenCore extends KrakenApi
             final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
-                put( "pair", KrakenCore.this.safeString(finalMarket, "id") );
+                put( "pair", Kraken.this.safeString(finalMarket, "id") );
             }};
             request = this.extend(request, parameters);
             response = (this.privatePostAddOrderBatch(request)).join();
@@ -2551,9 +2551,9 @@ final Object finalId = id;
             put( "clientOrderId", clientOrderId );
             put( "info", finalOrder );
             put( "timestamp", timestamp );
-            put( "datetime", KrakenCore.this.iso8601(timestamp) );
+            put( "datetime", Kraken.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", KrakenCore.this.safeTimestamp(finalOrder, "closetm") );
+            put( "lastUpdateTimestamp", Kraken.this.safeTimestamp(finalOrder, "closetm") );
             put( "status", status );
             put( "symbol", finalSymbol_2 );
             put( "type", finalTypeParsed );
@@ -2569,7 +2569,7 @@ final Object finalId = id;
             put( "filled", filled );
             put( "average", average );
             put( "remaining", null );
-            put( "reduceOnly", KrakenCore.this.safeBool2(finalOrder, "reduceOnly", "reduce_only") );
+            put( "reduceOnly", Kraken.this.safeBool2(finalOrder, "reduceOnly", "reduce_only") );
             put( "fee", finalFee );
             put( "trades", trades );
         }}, market);
@@ -3306,7 +3306,7 @@ final Object finalId = id;
             }
             final Object finalTimeout = timeout;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? ((Object) (KrakenCore.this.parseToInt(Helpers.divide(finalTimeout, 1000)))) : 0 );
+                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? ((Object) (Kraken.this.parseToInt(Helpers.divide(finalTimeout, 1000)))) : 0 );
             }};
             java.util.Map<String, Object> response = (this.privatePostCancelAllOrdersAfter(this.extend(request, parameters))).join();
             //
@@ -3651,7 +3651,7 @@ final Object finalId = id;
             put( "id", id );
             put( "currency", code );
             put( "amount", amount );
-            put( "network", KrakenCore.this.parseNetwork(KrakenCore.this.safeString(transaction, "network")) );
+            put( "network", Kraken.this.parseNetwork(Kraken.this.safeString(transaction, "network")) );
             put( "address", address );
             put( "addressTo", null );
             put( "addressFrom", null );
@@ -3663,7 +3663,7 @@ final Object finalId = id;
             put( "updated", null );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", KrakenCore.this.iso8601(timestamp) );
+            put( "datetime", Kraken.this.iso8601(timestamp) );
             put( "comment", null );
             put( "internal", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
@@ -3924,7 +3924,7 @@ final Object finalId = id;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "new", "true" );
             }};
-            return (this.fetchDepositAddress(code, this.extend(request, parameters))).join();
+            return (this.fetchDepositAddress(code, (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -4241,15 +4241,15 @@ final Object finalId = id;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", KrakenCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Kraken.this.safeSymbol(marketId, market) );
             put( "notional", null );
             put( "marginMode", null );
             put( "liquidationPrice", null );
             put( "entryPrice", null );
-            put( "unrealizedPnl", KrakenCore.this.safeNumber(position, "net") );
+            put( "unrealizedPnl", Kraken.this.safeNumber(position, "net") );
             put( "realizedPnl", null );
             put( "percentage", null );
-            put( "contracts", KrakenCore.this.safeNumber(position, "vol") );
+            put( "contracts", Kraken.this.safeNumber(position, "vol") );
             put( "contractSize", null );
             put( "markPrice", null );
             put( "lastPrice", null );
@@ -4261,9 +4261,9 @@ final Object finalId = id;
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
             put( "collateral", null );
-            put( "initialMargin", KrakenCore.this.safeNumber(position, "margin") );
+            put( "initialMargin", Kraken.this.safeNumber(position, "margin") );
             put( "initialMarginPercentage", null );
-            put( "leverage", KrakenCore.this.safeNumber(position, "leverage") );
+            put( "leverage", Kraken.this.safeNumber(position, "leverage") );
             put( "marginRatio", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
@@ -4296,7 +4296,7 @@ final Object finalId = id;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.transfer(code, amount, "spot", "swap", parameters)).join();
+            return (this.transfer(code, (Object)(amount), (Object)("spot"), (Object)("swap"), (Object)(parameters))).join();
         });
 
     }
@@ -4328,7 +4328,7 @@ final Object finalId = id;
             String toAccountParsed = this.parseAccountType(toAccount);
             final Object finalFromAccountParsed = fromAccountParsed;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "amount", KrakenCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Kraken.this.currencyToPrecision(code, amount) );
                 put( "from", finalFromAccountParsed );
                 put( "to", toAccountParsed );
                 put( "asset", Helpers.GetValue(currency, "id") );
@@ -4378,7 +4378,7 @@ final Object finalId = id;
             put( "id", refid );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", KrakenCore.this.safeString(currency, "code") );
+            put( "currency", Kraken.this.safeString(currency, "code") );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
@@ -4434,7 +4434,7 @@ final Object finalId = id;
             Object secret = this.base64ToBinary(this.secret);
             Object signature = this.hmac(binhash, secret, sha512(), "base64");
             headers = new java.util.HashMap<String, Object>() {{
-                put( "API-Key", KrakenCore.this.apiKey );
+                put( "API-Key", Kraken.this.apiKey );
                 put( "API-Sign", signature );
             }};
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isCancelOrderBatch) || Helpers.isTrue(isTriggerPercent)) || Helpers.isTrue(isBatchOrder)))

@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class IndependentreserveCore extends io.github.ccxt.exchanges.Independentreserve
+public class Independentreserve extends io.github.ccxt.exchanges.Independentreserve
 {
-   public IndependentreserveCore () {
+   public Independentreserve () {
        super();
    }
 
-   public IndependentreserveCore (Object options) {
+   public Independentreserve (Object options) {
        super(options);
    }
 
@@ -136,17 +136,17 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         String marketId = this.safeString(market, "Pair");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", IndependentreserveCore.this.safeString(trade, "TradeGuid") );
-            put( "order", IndependentreserveCore.this.safeString(trade, "orderNo") );
-            put( "symbol", IndependentreserveCore.this.safeSymbol(marketId, market, "-") );
-            put( "side", IndependentreserveCore.this.safeStringLower(trade, "Side") );
+            put( "id", Independentreserve.this.safeString(trade, "TradeGuid") );
+            put( "order", Independentreserve.this.safeString(trade, "orderNo") );
+            put( "symbol", Independentreserve.this.safeSymbol(marketId, market, "-") );
+            put( "side", Independentreserve.this.safeStringLower(trade, "Side") );
             put( "type", null );
             put( "takerOrMaker", null );
-            put( "price", IndependentreserveCore.this.safeString(trade, "Price") );
-            put( "amount", IndependentreserveCore.this.safeString(trade, "Volume") );
+            put( "price", Independentreserve.this.safeString(trade, "Price") );
+            put( "amount", Independentreserve.this.safeString(trade, "Volume") );
             put( "cost", null );
             put( "fee", null );
-            put( "timestamp", IndependentreserveCore.this.parse8601(datetime) );
+            put( "timestamp", Independentreserve.this.parse8601(datetime) );
             put( "datetime", datetime );
         }}, market);
     }

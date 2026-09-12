@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexchange
+public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
 {
-   public CoinbaseexchangeCore () {
+   public Coinbaseexchange () {
        super();
    }
 
-   public CoinbaseexchangeCore (Object options) {
+   public Coinbaseexchange (Object options) {
        super(options);
    }
 
@@ -62,9 +62,9 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         Object signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
         return new java.util.HashMap<String, Object>() {{
             put( "timestamp", nonce );
-            put( "key", CoinbaseexchangeCore.this.apiKey );
+            put( "key", Coinbaseexchange.this.apiKey );
             put( "signature", signature );
-            put( "passphrase", CoinbaseexchangeCore.this.password );
+            put( "passphrase", Coinbaseexchange.this.password );
         }};
     }
 
@@ -693,8 +693,8 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         final Object finalFeeRate = feeRate;
         final Object finalFeeCost = feeCost;
         Helpers.addElementToObject(parsed, "fee", new java.util.HashMap<String, Object>() {{
-    put( "rate", CoinbaseexchangeCore.this.parseNumber(finalFeeRate) );
-    put( "cost", CoinbaseexchangeCore.this.parseNumber(finalFeeCost) );
+    put( "rate", Coinbaseexchange.this.parseNumber(finalFeeRate) );
+    put( "cost", Coinbaseexchange.this.parseNumber(finalFeeCost) );
     put( "currency", feeCurrency );
 }});
         return parsed;
@@ -868,7 +868,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                         {
                             Helpers.addElementToObject(previousOrder, "fee", new java.util.HashMap<String, Object>() {{
     put( "cost", 0 );
-    put( "currency", CoinbaseexchangeCore.this.safeString(Helpers.GetValue(trade, "fee"), "currency") );
+    put( "currency", Coinbaseexchange.this.safeString(Helpers.GetValue(trade, "fee"), "currency") );
 }});
                         }
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), null))) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(Helpers.GetValue(trade, "fee"), "cost"), null)))))
@@ -946,7 +946,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", CoinbaseexchangeCore.this.iso8601(timestamp) );
+            put( "datetime", Coinbaseexchange.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "type", orderType );
             put( "timeInForce", null );
@@ -955,11 +955,11 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             put( "price", price );
             put( "stopPrice", null );
             put( "triggerPrice", null );
-            put( "amount", CoinbaseexchangeCore.this.parseNumber(finalAmount) );
+            put( "amount", Coinbaseexchange.this.parseNumber(finalAmount) );
             put( "cost", null );
             put( "average", null );
-            put( "filled", CoinbaseexchangeCore.this.parseNumber(finalFilled) );
-            put( "remaining", CoinbaseexchangeCore.this.parseNumber(finalRemaining) );
+            put( "filled", Coinbaseexchange.this.parseNumber(finalFilled) );
+            put( "remaining", Coinbaseexchange.this.parseNumber(finalRemaining) );
             put( "status", status );
             put( "fee", null );
             put( "trades", null );
@@ -1040,22 +1040,22 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", CoinbaseexchangeCore.this.iso8601(timestamp) );
-            put( "high", CoinbaseexchangeCore.this.safeString(ticker, "high_24h") );
-            put( "low", CoinbaseexchangeCore.this.safeString(ticker, "low_24h") );
-            put( "bid", CoinbaseexchangeCore.this.safeString(ticker, "best_bid") );
-            put( "bidVolume", CoinbaseexchangeCore.this.safeString(ticker, "best_bid_size") );
-            put( "ask", CoinbaseexchangeCore.this.safeString(ticker, "best_ask") );
-            put( "askVolume", CoinbaseexchangeCore.this.safeString(ticker, "best_ask_size") );
+            put( "datetime", Coinbaseexchange.this.iso8601(timestamp) );
+            put( "high", Coinbaseexchange.this.safeString(ticker, "high_24h") );
+            put( "low", Coinbaseexchange.this.safeString(ticker, "low_24h") );
+            put( "bid", Coinbaseexchange.this.safeString(ticker, "best_bid") );
+            put( "bidVolume", Coinbaseexchange.this.safeString(ticker, "best_bid_size") );
+            put( "ask", Coinbaseexchange.this.safeString(ticker, "best_ask") );
+            put( "askVolume", Coinbaseexchange.this.safeString(ticker, "best_ask_size") );
             put( "vwap", null );
-            put( "open", CoinbaseexchangeCore.this.safeString(ticker, "open_24h") );
+            put( "open", Coinbaseexchange.this.safeString(ticker, "open_24h") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", CoinbaseexchangeCore.this.safeString(ticker, "volume_24h") );
+            put( "baseVolume", Coinbaseexchange.this.safeString(ticker, "volume_24h") );
             put( "quoteVolume", null );
             put( "info", ticker );
         }});

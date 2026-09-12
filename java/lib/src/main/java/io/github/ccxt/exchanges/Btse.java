@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BtseCore extends BtseApi
+public class Btse extends BtseApi
 {
-   public BtseCore () {
+   public Btse () {
        super();
    }
 
-   public BtseCore (Object options) {
+   public Btse (Object options) {
        super(options);
    }
 
@@ -593,20 +593,20 @@ public class BtseCore extends BtseApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "maker", BtseCore.this.parseNumber("0.0002") );
-                    put( "taker", BtseCore.this.parseNumber("0.0002") );
+                    put( "maker", Btse.this.parseNumber("0.0002") );
+                    put( "taker", Btse.this.parseNumber("0.0002") );
                 }} );
                 put( "spot", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "maker", BtseCore.this.parseNumber("0.0002") );
-                    put( "taker", BtseCore.this.parseNumber("0.0002") );
+                    put( "maker", Btse.this.parseNumber("0.0002") );
+                    put( "taker", Btse.this.parseNumber("0.0002") );
                 }} );
                 put( "contract", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "maker", BtseCore.this.parseNumber("0.0002") );
-                    put( "taker", BtseCore.this.parseNumber("0.00055") );
+                    put( "maker", Btse.this.parseNumber("0.0002") );
+                    put( "taker", Btse.this.parseNumber("0.00055") );
                 }} );
             }} );
             put( "exceptions", new java.util.HashMap<String, Object>() {{
@@ -877,14 +877,14 @@ public class BtseCore extends BtseApi
             put( "inverse", ((Helpers.isTrue(isSpot))) ? null : false );
             put( "taker", Helpers.GetValue(finalFees, "taker") );
             put( "maker", Helpers.GetValue(finalFees, "maker") );
-            put( "contractSize", BtseCore.this.parseNumber(finalContractSize) );
+            put( "contractSize", Btse.this.parseNumber(finalContractSize) );
             put( "expiry", finalExpiry );
-            put( "expiryDatetime", BtseCore.this.iso8601(finalExpiry) );
+            put( "expiryDatetime", Btse.this.iso8601(finalExpiry) );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", BtseCore.this.parseNumber(amountPrecision) );
-                put( "price", BtseCore.this.parseNumber(pricePrecision) );
+                put( "amount", Btse.this.parseNumber(amountPrecision) );
+                put( "price", Btse.this.parseNumber(pricePrecision) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -892,11 +892,11 @@ public class BtseCore extends BtseApi
                     put( "max", null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", BtseCore.this.parseNumber(minAmountString) );
-                    put( "max", BtseCore.this.parseNumber(maxAmountString) );
+                    put( "min", Btse.this.parseNumber(minAmountString) );
+                    put( "max", Btse.this.parseNumber(maxAmountString) );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", BtseCore.this.parseNumber(minPriceString) );
+                    put( "min", Btse.this.parseNumber(minPriceString) );
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
@@ -1185,10 +1185,10 @@ public class BtseCore extends BtseApi
         Long timestamp = this.safeInteger(contract, "timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", BtseCore.this.safeSymbol(null, market) );
-            put( "fundingRate", BtseCore.this.safeNumber(contract, "rate") );
+            put( "symbol", Btse.this.safeSymbol(null, market) );
+            put( "fundingRate", Btse.this.safeNumber(contract, "rate") );
             put( "timestamp", timestamp );
-            put( "datetime", BtseCore.this.iso8601(timestamp) );
+            put( "datetime", Btse.this.iso8601(timestamp) );
         }};
     }
 
@@ -1390,11 +1390,11 @@ public class BtseCore extends BtseApi
                         // the endpoint only reports the notional ladder, the
                         // per-tier leverage and margin rates are not available
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                            put( "tier", BtseCore.this.safeInteger(level, "level") );
+                            put( "tier", Btse.this.safeInteger(level, "level") );
                             put( "symbol", symbol );
                             put( "currency", Helpers.GetValue(market, "settle") );
                             put( "minNotional", null );
-                            put( "maxNotional", BtseCore.this.safeNumber(level, "value") );
+                            put( "maxNotional", Btse.this.safeNumber(level, "value") );
                             put( "maintenanceMarginRate", null );
                             put( "maxLeverage", null );
                             put( "info", level );
@@ -1450,7 +1450,7 @@ public class BtseCore extends BtseApi
             {
                 throw new BadRequest(Helpers.add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
-            Object result = (this.fetchLeverageTiers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object result = (this.fetchLeverageTiers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(result, symbol);
         });
 
@@ -1573,25 +1573,25 @@ public class BtseCore extends BtseApi
         final Object finalMarket = market;
         final Object finalBaseVolume = baseVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", BtseCore.this.safeSymbol(marketId, finalMarket) );
+            put( "symbol", Btse.this.safeSymbol(marketId, finalMarket) );
             put( "timestamp", timestamp );
-            put( "datetime", BtseCore.this.iso8601(timestamp) );
-            put( "high", BtseCore.this.safeString(ticker, "highPrice") );
-            put( "low", BtseCore.this.safeString(ticker, "lowPrice") );
-            put( "bid", BtseCore.this.safeString(ticker, "bidPrice") );
-            put( "bidVolume", BtseCore.this.safeString(ticker, "bidQty") );
-            put( "ask", BtseCore.this.safeString(ticker, "askPrice") );
-            put( "askVolume", BtseCore.this.safeString(ticker, "askQty") );
+            put( "datetime", Btse.this.iso8601(timestamp) );
+            put( "high", Btse.this.safeString(ticker, "highPrice") );
+            put( "low", Btse.this.safeString(ticker, "lowPrice") );
+            put( "bid", Btse.this.safeString(ticker, "bidPrice") );
+            put( "bidVolume", Btse.this.safeString(ticker, "bidQty") );
+            put( "ask", Btse.this.safeString(ticker, "askPrice") );
+            put( "askVolume", Btse.this.safeString(ticker, "askQty") );
             put( "vwap", null );
-            put( "open", BtseCore.this.safeString(ticker, "openPrice") );
+            put( "open", Btse.this.safeString(ticker, "openPrice") );
             put( "close", last );
             put( "last", last );
-            put( "previousClose", BtseCore.this.safeString(ticker, "prevClosePrice") );
-            put( "change", BtseCore.this.safeString(ticker, "priceChange") );
+            put( "previousClose", Btse.this.safeString(ticker, "prevClosePrice") );
+            put( "change", Btse.this.safeString(ticker, "priceChange") );
             put( "percentage", null );
             put( "average", null );
             put( "baseVolume", finalBaseVolume );
-            put( "quoteVolume", BtseCore.this.safeString(ticker, "volume") );
+            put( "quoteVolume", Btse.this.safeString(ticker, "volume") );
             put( "markPrice", null );
             put( "indexPrice", null );
             put( "info", ticker );
@@ -1681,10 +1681,10 @@ public class BtseCore extends BtseApi
         final Object finalMarket = market;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "openInterestAmount", BtseCore.this.safeNumber(interest, "openInterest") );
-            put( "openInterestValue", BtseCore.this.safeNumber(interest, "openInterestUSD") );
+            put( "openInterestAmount", Btse.this.safeNumber(interest, "openInterest") );
+            put( "openInterestValue", Btse.this.safeNumber(interest, "openInterestUSD") );
             put( "timestamp", timestamp );
-            put( "datetime", BtseCore.this.iso8601(timestamp) );
+            put( "datetime", Btse.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -1814,13 +1814,13 @@ public class BtseCore extends BtseApi
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
-            put( "datetime", BtseCore.this.iso8601(timestamp) );
-            put( "fundingRate", BtseCore.this.safeNumber(contract, "fundingRate") );
+            put( "datetime", Btse.this.iso8601(timestamp) );
+            put( "fundingRate", Btse.this.safeNumber(contract, "fundingRate") );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", nextFundingTimestamp );
-            put( "nextFundingDatetime", BtseCore.this.iso8601(nextFundingTimestamp) );
+            put( "nextFundingDatetime", Btse.this.iso8601(nextFundingTimestamp) );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
@@ -2091,7 +2091,7 @@ public class BtseCore extends BtseApi
                     put( "clOrderID", finalClientOrderId );
                 }});
             }
-            return (this.fetchMyTrades(symbol, since, limit, parameters)).join();
+            return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -2179,7 +2179,7 @@ public class BtseCore extends BtseApi
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
-                put( "currency", BtseCore.this.safeCurrencyCode(BtseCore.this.safeString(trade, "feeCurrency")) );
+                put( "currency", Btse.this.safeCurrencyCode(Btse.this.safeString(trade, "feeCurrency")) );
             }};
         }
         final Object finalMarket = market;
@@ -2187,15 +2187,15 @@ public class BtseCore extends BtseApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BtseCore.this.iso8601(timestamp) );
+            put( "datetime", Btse.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "id", BtseCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("tradeId", "serialId", "id"))) );
-            put( "order", BtseCore.this.safeString(trade, "orderId") );
-            put( "type", BtseCore.this.parseOrderType(BtseCore.this.safeString2(trade, "orderType", "type")) );
-            put( "side", BtseCore.this.safeStringLower2(trade, "side", "orderSide") );
+            put( "id", Btse.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("tradeId", "serialId", "id"))) );
+            put( "order", Btse.this.safeString(trade, "orderId") );
+            put( "type", Btse.this.parseOrderType(Btse.this.safeString2(trade, "orderType", "type")) );
+            put( "side", Btse.this.safeStringLower2(trade, "side", "orderSide") );
             put( "takerOrMaker", null );
-            put( "price", BtseCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("filledPrice", "avgFilledPrice", "price"))) );
-            put( "amount", BtseCore.this.safeString2(trade, "filledSize", "size") );
+            put( "price", Btse.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("filledPrice", "avgFilledPrice", "price"))) );
+            put( "amount", Btse.this.safeString2(trade, "filledSize", "size") );
             put( "cost", null );
             put( "fee", finalFee );
         }}, market);
@@ -2537,9 +2537,9 @@ public class BtseCore extends BtseApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             type = ((String)type).toUpperCase();
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BtseCore.this.futuresRequestId(market) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
                 put( "orderSide", ((String)((String)side)).toUpperCase() );
-                put( "orderSize", BtseCore.this.amountToPrecision(symbol, amount) );
+                put( "orderSize", Btse.this.amountToPrecision(symbol, amount) );
             }};
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -3226,30 +3226,30 @@ public class BtseCore extends BtseApi
         final Object finalOrderType = orderType;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", BtseCore.this.safeString2(order, "orderID", "orderId") );
-            put( "clientOrderId", BtseCore.this.safeString2(order, "clOrderID", "clOrderId") );
+            put( "id", Btse.this.safeString2(order, "orderID", "orderId") );
+            put( "clientOrderId", Btse.this.safeString2(order, "clOrderID", "clOrderId") );
             put( "timestamp", timestamp );
-            put( "datetime", BtseCore.this.iso8601(timestamp) );
+            put( "datetime", Btse.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", null );
             put( "status", finalStatus );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", finalOrderType );
-            put( "timeInForce", BtseCore.this.parseTimeInForce(rawTimeInForce) );
-            put( "postOnly", BtseCore.this.safeBool(order, "postOnly") );
-            put( "reduceOnly", BtseCore.this.safeBool(order, "reduceOnly") );
-            put( "side", BtseCore.this.safeStringLower2(order, "side", "orderSide") );
-            put( "price", BtseCore.this.safeString2(order, "price", "orderPrice") );
-            put( "triggerPrice", BtseCore.this.omitZero(BtseCore.this.safeString2(order, "triggerOriginalPrice", "triggerPrice")) );
+            put( "timeInForce", Btse.this.parseTimeInForce(rawTimeInForce) );
+            put( "postOnly", Btse.this.safeBool(order, "postOnly") );
+            put( "reduceOnly", Btse.this.safeBool(order, "reduceOnly") );
+            put( "side", Btse.this.safeStringLower2(order, "side", "orderSide") );
+            put( "price", Btse.this.safeString2(order, "price", "orderPrice") );
+            put( "triggerPrice", Btse.this.omitZero(Btse.this.safeString2(order, "triggerOriginalPrice", "triggerPrice")) );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-            put( "amount", BtseCore.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("currentOrderBaseSize", "currentOrderSize", "orderSize"))) );
-            put( "filled", BtseCore.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("totalFilledBaseSize", "totalFilledSize", "filledSize"))) );
-            put( "remaining", BtseCore.this.safeString2(order, "remainingOrderBaseSize", "remainingSize") );
+            put( "amount", Btse.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("currentOrderBaseSize", "currentOrderSize", "orderSize"))) );
+            put( "filled", Btse.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("totalFilledBaseSize", "totalFilledSize", "filledSize"))) );
+            put( "remaining", Btse.this.safeString2(order, "remainingOrderBaseSize", "remainingSize") );
             put( "cost", null );
             put( "trades", null );
             put( "fee", null );
-            put( "average", BtseCore.this.omitZero(BtseCore.this.safeString2(order, "avgFilledPrice", "averageFillPrice")) );
+            put( "average", Btse.this.omitZero(Btse.this.safeString2(order, "avgFilledPrice", "averageFillPrice")) );
         }}, market);
     }
 
@@ -3596,27 +3596,27 @@ public class BtseCore extends BtseApi
         String networkId = this.safeString2(transaction, "currencyNetwork", "cryptoNetwork");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", BtseCore.this.safeString2(transaction, "orderId", "transactionRef") );
-            put( "txid", BtseCore.this.safeString(transaction, "txId") );
+            put( "id", Btse.this.safeString2(transaction, "orderId", "transactionRef") );
+            put( "txid", Btse.this.safeString(transaction, "txId") );
             put( "timestamp", timestamp );
-            put( "datetime", BtseCore.this.iso8601(timestamp) );
-            put( "network", BtseCore.this.networkIdToCode(networkId, code) );
-            put( "address", BtseCore.this.safeString(transaction, "toAddress") );
-            put( "addressTo", BtseCore.this.safeString(transaction, "toAddress") );
+            put( "datetime", Btse.this.iso8601(timestamp) );
+            put( "network", Btse.this.networkIdToCode(networkId, code) );
+            put( "address", Btse.this.safeString(transaction, "toAddress") );
+            put( "addressTo", Btse.this.safeString(transaction, "toAddress") );
             put( "addressFrom", null );
             put( "tag", null );
             put( "tagTo", null );
             put( "tagFrom", null );
-            put( "type", BtseCore.this.parseTransactionType(BtseCore.this.safeString(transaction, "type")) );
-            put( "amount", BtseCore.this.safeNumber(transaction, "amount") );
+            put( "type", Btse.this.parseTransactionType(Btse.this.safeString(transaction, "type")) );
+            put( "amount", Btse.this.safeNumber(transaction, "amount") );
             put( "currency", code );
-            put( "status", BtseCore.this.parseTransactionStatus(BtseCore.this.safeString(transaction, "status")) );
+            put( "status", Btse.this.parseTransactionStatus(Btse.this.safeString(transaction, "status")) );
             put( "updated", null );
             put( "internal", null );
-            put( "comment", BtseCore.this.safeString(transaction, "description") );
+            put( "comment", Btse.this.safeString(transaction, "description") );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", BtseCore.this.safeNumber2(transaction, "fees", "fee") );
+                put( "cost", Btse.this.safeNumber2(transaction, "fees", "fee") );
             }} );
         }};
     }
@@ -3734,22 +3734,22 @@ public class BtseCore extends BtseApi
         String type = this.safeString(item, "type");
         return new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", BtseCore.this.safeString2(item, "orderId", "transactionRef") );
+            put( "id", Btse.this.safeString2(item, "orderId", "transactionRef") );
             put( "timestamp", timestamp );
-            put( "datetime", BtseCore.this.iso8601(timestamp) );
-            put( "direction", BtseCore.this.parseLedgerEntryDirection(type) );
-            put( "account", BtseCore.this.safeString2(item, "wallet", "walletName") );
-            put( "referenceId", BtseCore.this.safeString(item, "txId") );
+            put( "datetime", Btse.this.iso8601(timestamp) );
+            put( "direction", Btse.this.parseLedgerEntryDirection(type) );
+            put( "account", Btse.this.safeString2(item, "wallet", "walletName") );
+            put( "referenceId", Btse.this.safeString(item, "txId") );
             put( "referenceAccount", null );
-            put( "type", BtseCore.this.parseLedgerEntryType(type) );
+            put( "type", Btse.this.parseLedgerEntryType(type) );
             put( "currency", code );
-            put( "amount", BtseCore.this.safeNumber(item, "amount") );
+            put( "amount", Btse.this.safeNumber(item, "amount") );
             put( "before", null );
             put( "after", null );
-            put( "status", BtseCore.this.parseTransactionStatus(BtseCore.this.safeString(item, "status")) );
+            put( "status", Btse.this.parseTransactionStatus(Btse.this.safeString(item, "status")) );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", BtseCore.this.safeNumber2(item, "fees", "fee") );
+                put( "cost", Btse.this.safeNumber2(item, "fees", "fee") );
             }} );
         }};
     }
@@ -3919,9 +3919,9 @@ public class BtseCore extends BtseApi
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             parameters = this.extend(new java.util.HashMap<String, Object>() {{
-                put( "symbol", BtseCore.this.futuresRequestId(market) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
             }}, parameters);
-            return (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            return (this.fetchPositions((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
         });
 
     }
@@ -3991,32 +3991,32 @@ public class BtseCore extends BtseApi
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", BtseCore.this.safeString(position, "positionId") );
+            put( "id", Btse.this.safeString(position, "positionId") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "entryPrice", BtseCore.this.parseNumber(BtseCore.this.safeString(position, "entryPrice")) );
-            put( "markPrice", BtseCore.this.parseNumber(BtseCore.this.safeString(position, "markPrice")) );
+            put( "entryPrice", Btse.this.parseNumber(Btse.this.safeString(position, "entryPrice")) );
+            put( "markPrice", Btse.this.parseNumber(Btse.this.safeString(position, "markPrice")) );
             put( "lastPrice", null );
-            put( "takeProfitPrice", BtseCore.this.parseNumber(takeProfitPrice) );
-            put( "stopLossPrice", BtseCore.this.parseNumber(stopLossPrice) );
-            put( "notional", BtseCore.this.parseNumber(BtseCore.this.safeString2(position, "notionalValue", "orderValue")) );
+            put( "takeProfitPrice", Btse.this.parseNumber(takeProfitPrice) );
+            put( "stopLossPrice", Btse.this.parseNumber(stopLossPrice) );
+            put( "notional", Btse.this.parseNumber(Btse.this.safeString2(position, "notionalValue", "orderValue")) );
             put( "collateral", null );
-            put( "unrealizedPnl", BtseCore.this.parseNumber(BtseCore.this.safeString(position, "unrealizedProfitLoss")) );
+            put( "unrealizedPnl", Btse.this.parseNumber(Btse.this.safeString(position, "unrealizedProfitLoss")) );
             put( "realizedPnl", null );
-            put( "side", BtseCore.this.parsePositionSide(side) );
-            put( "contracts", BtseCore.this.parseNumber(BtseCore.this.safeString(position, "size")) );
-            put( "contractSize", BtseCore.this.parseNumber(BtseCore.this.safeString(position, "contractSize")) );
+            put( "side", Btse.this.parsePositionSide(side) );
+            put( "contracts", Btse.this.parseNumber(Btse.this.safeString(position, "size")) );
+            put( "contractSize", Btse.this.parseNumber(Btse.this.safeString(position, "contractSize")) );
             put( "timestamp", timestamp );
-            put( "datetime", BtseCore.this.iso8601(timestamp) );
+            put( "datetime", Btse.this.iso8601(timestamp) );
             put( "lastUpdateTimestamp", null );
             put( "hedged", hedged );
-            put( "maintenanceMargin", BtseCore.this.parseNumber(BtseCore.this.safeString(position, "totalMaintenanceMargin")) );
+            put( "maintenanceMargin", Btse.this.parseNumber(Btse.this.safeString(position, "totalMaintenanceMargin")) );
             put( "maintenanceMarginPercentage", null );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
-            put( "leverage", BtseCore.this.parseNumber(BtseCore.this.safeString(position, "currentLeverage")) );
-            put( "liquidationPrice", BtseCore.this.parseNumber(BtseCore.this.safeString(position, "liquidationPrice")) );
+            put( "leverage", Btse.this.parseNumber(Btse.this.safeString(position, "currentLeverage")) );
+            put( "liquidationPrice", Btse.this.parseNumber(Btse.this.safeString(position, "liquidationPrice")) );
             put( "marginRatio", null );
-            put( "marginMode", BtseCore.this.parseMarginModeType(marginType) );
+            put( "marginMode", Btse.this.parseMarginModeType(marginType) );
             put( "percentage", null );
         }});
     }
@@ -4064,7 +4064,7 @@ public class BtseCore extends BtseApi
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BtseCore.this.futuresRequestId(market) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
             }};
             java.util.List<Object> response = (this.privateGetFuturesApiV3TradePositionMode(this.extend(request, parameters))).join();
             //
@@ -4116,7 +4116,7 @@ public class BtseCore extends BtseApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String positionMode = ((Helpers.isTrue(hedged))) ? "HEDGE" : "ONE_WAY";
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BtseCore.this.futuresRequestId(market) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
                 put( "positionMode", positionMode );
             }};
             return (this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters))).join();
@@ -4142,7 +4142,7 @@ public class BtseCore extends BtseApi
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BtseCore.this.futuresRequestId(market) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
             }};
             java.util.List<Object> response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
@@ -4235,7 +4235,7 @@ public class BtseCore extends BtseApi
             parameters = this.omit(parameters, "hedged");
             final Object finalPositionMode = positionMode;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BtseCore.this.futuresRequestId(market) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
                 put( "positionMode", finalPositionMode );
             }};
             return (this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters))).join();
@@ -4272,7 +4272,7 @@ public class BtseCore extends BtseApi
                 throw new ArgumentsRequired(Helpers.add(this.id, " closePosition() requires a positionId parameter")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BtseCore.this.futuresRequestId(market) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
             }};
             Object type = "market";
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "closePosition", "type", type);
@@ -4319,7 +4319,7 @@ public class BtseCore extends BtseApi
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BtseCore.this.futuresRequestId(market) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
             }};
             java.util.List<Object> response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             //
@@ -4403,7 +4403,7 @@ public class BtseCore extends BtseApi
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BtseCore.this.futuresRequestId(market) );
+                put( "symbol", Btse.this.futuresRequestId(market) );
                 put( "leverage", leverage );
             }};
             // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
@@ -4560,7 +4560,7 @@ public class BtseCore extends BtseApi
             Object payload = Helpers.add(Helpers.add(signPath, String.valueOf(nonce)), bodyString);
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
             headers = new java.util.HashMap<String, Object>() {{
-                put( "request-api", BtseCore.this.apiKey );
+                put( "request-api", Btse.this.apiKey );
                 put( "request-nonce", String.valueOf(nonce) );
                 put( "request-sign", signature );
                 put( "Content-Type", "application/json" );

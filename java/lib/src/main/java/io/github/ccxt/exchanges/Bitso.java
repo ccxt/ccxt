@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BitsoCore extends BitsoApi
+public class Bitso extends BitsoApi
 {
-   public BitsoCore () {
+   public Bitso () {
        super();
    }
 
-   public BitsoCore (Object options) {
+   public Bitso (Object options) {
        super(options);
    }
 
@@ -542,7 +542,7 @@ public class BitsoCore extends BitsoApi
         final Object finalFee = fee;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", BitsoCore.this.safeString(item, "eid") );
+            put( "id", Bitso.this.safeString(item, "eid") );
             put( "direction", finalDirection );
             put( "account", null );
             put( "referenceId", finalReferenceId );
@@ -551,7 +551,7 @@ public class BitsoCore extends BitsoApi
             put( "currency", code );
             put( "amount", amount );
             put( "timestamp", timestamp );
-            put( "datetime", BitsoCore.this.iso8601(timestamp) );
+            put( "datetime", Bitso.this.iso8601(timestamp) );
             put( "before", null );
             put( "after", null );
             put( "status", "ok" );
@@ -684,8 +684,8 @@ public class BitsoCore extends BitsoApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", BitsoCore.this.safeNumber(baseCurrency, "precision") );
-                        put( "price", BitsoCore.this.safeNumber(market, "tick_size") );
+                        put( "amount", Bitso.this.safeNumber(baseCurrency, "precision") );
+                        put( "price", Bitso.this.safeNumber(market, "tick_size") );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -693,16 +693,16 @@ public class BitsoCore extends BitsoApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitsoCore.this.safeNumber(market, "minimum_amount") );
-                            put( "max", BitsoCore.this.safeNumber(market, "maximum_amount") );
+                            put( "min", Bitso.this.safeNumber(market, "minimum_amount") );
+                            put( "max", Bitso.this.safeNumber(market, "maximum_amount") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitsoCore.this.safeNumber(market, "minimum_price") );
-                            put( "max", BitsoCore.this.safeNumber(market, "maximum_price") );
+                            put( "min", Bitso.this.safeNumber(market, "minimum_price") );
+                            put( "max", Bitso.this.safeNumber(market, "maximum_price") );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", BitsoCore.this.safeNumber(market, "minimum_value") );
-                            put( "max", BitsoCore.this.safeNumber(market, "maximum_value") );
+                            put( "min", Bitso.this.safeNumber(market, "minimum_value") );
+                            put( "max", Bitso.this.safeNumber(market, "maximum_value") );
                         }} );
                     }} );
                     put( "created", null );
@@ -767,13 +767,13 @@ public class BitsoCore extends BitsoApi
             put( "info", rawCurrency );
             put( "code", code );
             put( "id", currencyId );
-            put( "name", BitsoCore.this.safeString(rawCurrency, "full_name") );
+            put( "name", Bitso.this.safeString(rawCurrency, "full_name") );
             put( "active", null );
             put( "deposit", null );
             put( "withdraw", null );
             put( "fee", null );
-            put( "precision", BitsoCore.this.parseNumber(BitsoCore.this.parsePrecision(BitsoCore.this.safeString(rawCurrency, "precision"))) );
-            put( "margin", BitsoCore.this.safeBool(rawCurrency, "marginAvailable") );
+            put( "precision", Bitso.this.parseNumber(Bitso.this.parsePrecision(Bitso.this.safeString(rawCurrency, "precision"))) );
+            put( "margin", Bitso.this.safeBool(rawCurrency, "marginAvailable") );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -789,7 +789,7 @@ public class BitsoCore extends BitsoApi
                 }} );
             }} );
             put( "networks", null );
-            put( "type", BitsoCore.this.safeString(rawCurrency, "type") );
+            put( "type", Bitso.this.safeString(rawCurrency, "type") );
         }});
     }
 
@@ -927,12 +927,12 @@ public class BitsoCore extends BitsoApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BitsoCore.this.iso8601(timestamp) );
-            put( "high", BitsoCore.this.safeString(ticker, "high") );
-            put( "low", BitsoCore.this.safeString(ticker, "low") );
-            put( "bid", BitsoCore.this.safeString(ticker, "bid") );
+            put( "datetime", Bitso.this.iso8601(timestamp) );
+            put( "high", Bitso.this.safeString(ticker, "high") );
+            put( "low", Bitso.this.safeString(ticker, "low") );
+            put( "bid", Bitso.this.safeString(ticker, "bid") );
             put( "bidVolume", null );
-            put( "ask", BitsoCore.this.safeString(ticker, "ask") );
+            put( "ask", Bitso.this.safeString(ticker, "ask") );
             put( "askVolume", null );
             put( "vwap", vwap );
             put( "open", null );
@@ -1022,7 +1022,7 @@ public class BitsoCore extends BitsoApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "book", Helpers.GetValue(market, "id") );
-                put( "time_bucket", BitsoCore.this.safeString(BitsoCore.this.timeframes, timeframe, timeframe) );
+                put( "time_bucket", Bitso.this.safeString(Bitso.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -1194,7 +1194,7 @@ public class BitsoCore extends BitsoApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BitsoCore.this.iso8601(timestamp) );
+            put( "datetime", Bitso.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "order", orderId );
             put( "type", null );
@@ -1314,8 +1314,8 @@ public class BitsoCore extends BitsoApi
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
-        put( "maker", BitsoCore.this.safeNumber(fee, "maker_fee_decimal") );
-        put( "taker", BitsoCore.this.safeNumber(fee, "taker_fee_decimal") );
+        put( "maker", Bitso.this.safeNumber(fee, "maker_fee_decimal") );
+        put( "taker", Bitso.this.safeNumber(fee, "taker_fee_decimal") );
         put( "percentage", true );
         put( "tierBased", true );
     }});
@@ -1409,7 +1409,7 @@ public class BitsoCore extends BitsoApi
                 put( "book", Helpers.GetValue(market, "id") );
                 put( "side", side );
                 put( "type", finalType );
-                put( "major", BitsoCore.this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount) );
+                put( "major", Bitso.this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
@@ -1598,7 +1598,7 @@ public class BitsoCore extends BitsoApi
             put( "id", finalId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", BitsoCore.this.iso8601(timestamp) );
+            put( "datetime", Bitso.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", symbol );
             put( "type", orderType );
@@ -1988,7 +1988,7 @@ public class BitsoCore extends BitsoApi
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
-        put( "deposit", BitsoCore.this.safeNumber(depositFee, "fee") );
+        put( "deposit", Bitso.this.safeNumber(depositFee, "fee") );
         put( "withdraw", null );
         put( "info", new java.util.HashMap<String, Object>() {{
             put( "deposit", depositFee );
@@ -2011,11 +2011,11 @@ public class BitsoCore extends BitsoApi
                 {
                     final Object finalCode = code;
                     Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
-        put( "deposit", BitsoCore.this.safeValue(BitsoCore.this.safeValue(result, finalCode), "deposit") );
-        put( "withdraw", BitsoCore.this.safeNumber(withdrawalFees, currencyId) );
+        put( "deposit", Bitso.this.safeValue(Bitso.this.safeValue(result, finalCode), "deposit") );
+        put( "withdraw", Bitso.this.safeNumber(withdrawalFees, currencyId) );
         put( "info", new java.util.HashMap<String, Object>() {{
-            put( "deposit", BitsoCore.this.safeValue(BitsoCore.this.safeValue(BitsoCore.this.safeValue(result, finalCode), "info"), "deposit") );
-            put( "withdraw", BitsoCore.this.safeNumber(withdrawalFees, currencyId) );
+            put( "deposit", Bitso.this.safeValue(Bitso.this.safeValue(Bitso.this.safeValue(result, finalCode), "info"), "deposit") );
+            put( "withdraw", Bitso.this.safeNumber(withdrawalFees, currencyId) );
         }} );
     }});
                 }
@@ -2153,8 +2153,8 @@ public class BitsoCore extends BitsoApi
                 {
                     Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
     put( "deposit", new java.util.HashMap<String, Object>() {{
-        put( "fee", BitsoCore.this.safeNumber(entry, "fee") );
-        put( "percentage", (!Helpers.isEqual(BitsoCore.this.safeValue(entry, "is_fixed"), true)) );
+        put( "fee", Bitso.this.safeNumber(entry, "fee") );
+        put( "percentage", (!Helpers.isEqual(Bitso.this.safeValue(entry, "is_fixed"), true)) );
     }} );
     put( "withdraw", new java.util.HashMap<String, Object>() {{
         put( "fee", null );
@@ -2313,18 +2313,18 @@ public class BitsoCore extends BitsoApi
         final Object finalWithdrawId = withdrawId;
         final Object finalCurrency = currency;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", BitsoCore.this.safeString2(transaction, "wid", "fid") );
-            put( "txid", BitsoCore.this.safeString(details, "tx_hash") );
-            put( "timestamp", BitsoCore.this.parse8601(datetime) );
+            put( "id", Bitso.this.safeString2(transaction, "wid", "fid") );
+            put( "txid", Bitso.this.safeString(details, "tx_hash") );
+            put( "timestamp", Bitso.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "network", networkCodeUpper );
             put( "addressFrom", receivingAddress );
             put( "address", ((Helpers.isTrue((!Helpers.isEqual(finalWithdrawalAddress, null))))) ? finalWithdrawalAddress : receivingAddress );
             put( "addressTo", finalWithdrawalAddress );
-            put( "amount", BitsoCore.this.safeNumber(transaction, "amount") );
+            put( "amount", Bitso.this.safeNumber(transaction, "amount") );
             put( "type", ((Helpers.isTrue((Helpers.isEqual(finalWithdrawId, null))))) ? "deposit" : "withdrawal" );
-            put( "currency", BitsoCore.this.safeCurrencyCode(currencyId, finalCurrency) );
-            put( "status", BitsoCore.this.parseTransactionStatus(status) );
+            put( "currency", Bitso.this.safeCurrencyCode(currencyId, finalCurrency) );
+            put( "status", Bitso.this.parseTransactionStatus(status) );
             put( "updated", null );
             put( "tagFrom", null );
             put( "tag", null );

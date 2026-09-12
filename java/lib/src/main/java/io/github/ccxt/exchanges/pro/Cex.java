@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class CexCore extends io.github.ccxt.exchanges.Cex
+public class Cex extends io.github.ccxt.exchanges.Cex
 {
-   public CexCore () {
+   public Cex () {
        super();
    }
 
-   public CexCore (Object options) {
+   public Cex (Object options) {
        super(options);
    }
 
@@ -88,7 +88,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "e", "get-balance" );
                 put( "data", new java.util.HashMap<String, Object>() {{}} );
-                put( "oid", CexCore.this.requestId() );
+                put( "oid", Cex.this.requestId() );
             }};
             java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
@@ -245,8 +245,8 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             put( "info", finalTrade );
             put( "id", id );
             put( "timestamp", timestamp );
-            put( "datetime", CexCore.this.iso8601(timestamp) );
-            put( "symbol", CexCore.this.safeString(market, "symbol") );
+            put( "datetime", Cex.this.iso8601(timestamp) );
+            put( "symbol", Cex.this.safeString(market, "symbol") );
             put( "type", null );
             put( "side", side );
             put( "order", null );
@@ -335,7 +335,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                 message = new java.util.HashMap<String, Object>() {{
                     put( "e", "ticker" );
                     put( "data", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "baseId"), Helpers.GetValue(market, "quoteId"))) );
-                    put( "oid", CexCore.this.requestId() );
+                    put( "oid", Cex.this.requestId() );
                 }};
                 subscriptionHash = Helpers.add("ticker:", symbol);
             }
@@ -377,7 +377,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object tickerSymbol = Helpers.GetValue(ticker, "symbol");
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbols, null)) && !Helpers.isTrue(this.inArray(tickerSymbol, symbols))))
             {
-                return (this.watchTickers(symbols, parameters)).join();
+                return (this.watchTickers((Object)(symbols), (Object)(parameters))).join();
             }
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -503,23 +503,23 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
-            put( "datetime", CexCore.this.iso8601(finalTimestamp) );
-            put( "high", CexCore.this.safeString(ticker, "high") );
-            put( "low", CexCore.this.safeString(ticker, "low") );
-            put( "bid", CexCore.this.safeString(ticker, "bid") );
+            put( "datetime", Cex.this.iso8601(finalTimestamp) );
+            put( "high", Cex.this.safeString(ticker, "high") );
+            put( "low", Cex.this.safeString(ticker, "low") );
+            put( "bid", Cex.this.safeString(ticker, "bid") );
             put( "bidVolume", null );
-            put( "ask", CexCore.this.safeString(ticker, "ask") );
+            put( "ask", Cex.this.safeString(ticker, "ask") );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", CexCore.this.safeString(ticker, "open24") );
+            put( "open", Cex.this.safeString(ticker, "open24") );
             put( "close", null );
-            put( "last", CexCore.this.safeString2(ticker, "price", "last") );
+            put( "last", Cex.this.safeString2(ticker, "price", "last") );
             put( "previousClose", null );
-            put( "change", CexCore.this.safeString(ticker, "priceChange") );
-            put( "percentage", CexCore.this.safeString(ticker, "priceChangePercentage") );
+            put( "change", Cex.this.safeString(ticker, "priceChange") );
+            put( "percentage", Cex.this.safeString(ticker, "priceChangePercentage") );
             put( "average", null );
             put( "baseVolume", null );
-            put( "quoteVolume", CexCore.this.safeString(ticker, "volume") );
+            put( "quoteVolume", Cex.this.safeString(ticker, "volume") );
             put( "info", ticker );
         }}, market);
     }
@@ -767,10 +767,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         final Object finalSide = side;
         final Object finalAmount = amount;
         java.util.Map<String, Object> parsedTrade = new java.util.HashMap<String, Object>() {{
-            put( "id", CexCore.this.safeString(trade, "id") );
-            put( "order", CexCore.this.safeString(trade, "order") );
+            put( "id", Cex.this.safeString(trade, "id") );
+            put( "order", Cex.this.safeString(trade, "order") );
             put( "info", trade );
-            put( "timestamp", CexCore.this.parse8601(datetime) );
+            put( "timestamp", Cex.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "symbol", finalSymbol );
             put( "type", null );
@@ -1019,19 +1019,19 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         final Object finalRemaining = remaining;
         final Object finalQuote = quote;
         java.util.Map<String, Object> parsedOrder = new java.util.HashMap<String, Object>() {{
-            put( "id", CexCore.this.safeString2(order, "id", "order") );
+            put( "id", Cex.this.safeString2(order, "id", "order") );
             put( "clientOrderId", null );
             put( "info", order );
             put( "timestamp", finalTimestamp );
-            put( "datetime", CexCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Cex.this.iso8601(finalTimestamp) );
             put( "lastTradeTimestamp", null );
             put( "status", finalStatus );
             put( "symbol", finalSymbol );
             put( "type", null );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "side", CexCore.this.safeString(order, "type") );
-            put( "price", CexCore.this.safeNumber(order, "price") );
+            put( "side", Cex.this.safeString(order, "type") );
+            put( "price", Cex.this.safeNumber(order, "price") );
             put( "stopPrice", null );
             put( "triggerPrice", null );
             put( "average", null );
@@ -1040,7 +1040,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             put( "filled", null );
             put( "remaining", finalRemaining );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "cost", CexCore.this.safeNumber2(order, "fee", "fee_amount") );
+                put( "cost", Cex.this.safeNumber2(order, "fee", "fee_amount") );
                 put( "currency", finalQuote );
                 put( "rate", null );
             }} );
@@ -1147,7 +1147,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                     put( "subscribe", true );
                     put( "depth", depth );
                 }} );
-                put( "oid", CexCore.this.requestId() );
+                put( "oid", Cex.this.requestId() );
             }};
             java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
@@ -1854,7 +1854,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "e", "auth" );
                     put( "auth", new java.util.HashMap<String, Object>() {{
-                        put( "key", CexCore.this.apiKey );
+                        put( "key", Cex.this.apiKey );
                         put( "signature", ((String)signature).toUpperCase() );
                         put( "timestamp", finalNonce );
                     }} );

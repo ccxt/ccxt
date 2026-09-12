@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class ApexCore extends ApexApi
+public class Apex extends ApexApi
 {
-   public ApexCore () {
+   public Apex () {
        super();
    }
 
-   public ApexCore (Object options) {
+   public Apex (Object options) {
        super(options);
    }
 
@@ -286,8 +286,8 @@ public class ApexCore extends ApexApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "swap", new java.util.HashMap<String, Object>() {{
-                    put( "taker", ApexCore.this.parseNumber("0.0005") );
-                    put( "maker", ApexCore.this.parseNumber("0.0002") );
+                    put( "taker", Apex.this.parseNumber("0.0005") );
+                    put( "maker", Apex.this.parseNumber("0.0002") );
                 }} );
             }} );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
@@ -420,7 +420,7 @@ public class ApexCore extends ApexApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
-            put( "datetime", ApexCore.this.iso8601(timestamp) );
+            put( "datetime", Apex.this.iso8601(timestamp) );
         }};
         String code = "USDT";
         Object account = this.account();
@@ -635,17 +635,17 @@ public class ApexCore extends ApexApi
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", null );
-    put( "deposit", (!Helpers.isEqual(ApexCore.this.safeBool(chain, "depositDisable"), true)) );
-    put( "withdraw", ApexCore.this.safeBool(token, "withdrawEnable") );
-    put( "fee", ApexCore.this.safeNumber(token, "minFee") );
-    put( "precision", ApexCore.this.parseNumber(ApexCore.this.parsePrecision(ApexCore.this.safeString(token, "decimals"))) );
+    put( "deposit", (!Helpers.isEqual(Apex.this.safeBool(chain, "depositDisable"), true)) );
+    put( "withdraw", Apex.this.safeBool(token, "withdrawEnable") );
+    put( "fee", Apex.this.safeNumber(token, "minFee") );
+    put( "precision", Apex.this.parseNumber(Apex.this.parsePrecision(Apex.this.safeString(token, "decimals"))) );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", ApexCore.this.safeNumber(token, "minWithdraw") );
+            put( "min", Apex.this.safeNumber(token, "minWithdraw") );
             put( "max", null );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", ApexCore.this.safeNumber(chain, "minDeposit") );
+            put( "min", Apex.this.safeNumber(chain, "minDeposit") );
             put( "max", null );
         }} );
     }} );
@@ -796,29 +796,29 @@ public class ApexCore extends ApexApi
             put( "swap", true );
             put( "future", false );
             put( "option", false );
-            put( "active", ApexCore.this.safeBool(market, "enableTrade") );
+            put( "active", Apex.this.safeBool(market, "enableTrade") );
             put( "contract", true );
             put( "linear", true );
             put( "inverse", false );
             put( "taker", takerFee );
             put( "maker", makerFee );
-            put( "contractSize", ApexCore.this.safeNumber(market, "minOrderSize") );
+            put( "contractSize", Apex.this.safeNumber(market, "minOrderSize") );
             put( "expiry", ((Helpers.isTrue((Helpers.isEqual(finalExpiry, 0))))) ? null : finalExpiry );
-            put( "expiryDatetime", ((Helpers.isTrue((Helpers.isEqual(finalExpiry, 0))))) ? null : ApexCore.this.iso8601(finalExpiry) );
+            put( "expiryDatetime", ((Helpers.isTrue((Helpers.isEqual(finalExpiry, 0))))) ? null : Apex.this.iso8601(finalExpiry) );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", ApexCore.this.safeNumber(market, "stepSize") );
-                put( "price", ApexCore.this.safeNumber(market, "tickSize") );
+                put( "amount", Apex.this.safeNumber(market, "stepSize") );
+                put( "price", Apex.this.safeNumber(market, "tickSize") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
-                    put( "min", ApexCore.this.safeNumber(market, "displayMinLeverage") );
-                    put( "max", ApexCore.this.safeNumber(market, "displayMaxLeverage") );
+                    put( "min", Apex.this.safeNumber(market, "displayMinLeverage") );
+                    put( "max", Apex.this.safeNumber(market, "displayMaxLeverage") );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", ApexCore.this.safeNumber(market, "minOrderSize") );
-                    put( "max", ApexCore.this.safeNumber(market, "maxOrderSize") );
+                    put( "min", Apex.this.safeNumber(market, "minOrderSize") );
+                    put( "max", Apex.this.safeNumber(market, "maxOrderSize") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -868,7 +868,7 @@ public class ApexCore extends ApexApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", ApexCore.this.iso8601(timestamp) );
+            put( "datetime", Apex.this.iso8601(timestamp) );
             put( "high", high );
             put( "low", low );
             put( "bid", null );
@@ -885,8 +885,8 @@ public class ApexCore extends ApexApi
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-            put( "markPrice", ApexCore.this.safeString(ticker, "markPrice") );
-            put( "indexPrice", ApexCore.this.safeString(ticker, "indexPrice") );
+            put( "markPrice", Apex.this.safeString(ticker, "markPrice") );
+            put( "indexPrice", Apex.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
         }}, market);
     }
@@ -912,7 +912,7 @@ public class ApexCore extends ApexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", ApexCore.this.safeString(market, "id2") );
+                put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             java.util.Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -977,8 +977,8 @@ public class ApexCore extends ApexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "interval", ApexCore.this.safeString(ApexCore.this.timeframes, timeframe, timeframe) );
-                put( "symbol", ApexCore.this.safeString(market, "id2") );
+                put( "interval", Apex.this.safeString(Apex.this.timeframes, timeframe, timeframe) );
+                put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -1042,7 +1042,7 @@ public class ApexCore extends ApexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", ApexCore.this.safeString(market, "id2") );
+                put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -1112,7 +1112,7 @@ public class ApexCore extends ApexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", ApexCore.this.safeString(market, "id2") );
+                put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -1176,7 +1176,7 @@ public class ApexCore extends ApexApi
             put( "id", id );
             put( "order", null );
             put( "timestamp", timestamp );
-            put( "datetime", ApexCore.this.iso8601(timestamp) );
+            put( "datetime", Apex.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", type );
             put( "takerOrMaker", null );
@@ -1209,7 +1209,7 @@ public class ApexCore extends ApexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", ApexCore.this.safeString(market, "id2") );
+                put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             java.util.Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1246,10 +1246,10 @@ public class ApexCore extends ApexApi
         String symbol = this.safeSymbol(marketId, market);
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
-            put( "openInterestAmount", ApexCore.this.safeString(interest, "openInterest") );
+            put( "openInterestAmount", Apex.this.safeString(interest, "openInterest") );
             put( "openInterestValue", null );
             put( "timestamp", timestamp );
-            put( "datetime", ApexCore.this.iso8601(timestamp) );
+            put( "datetime", Apex.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -1330,10 +1330,10 @@ public class ApexCore extends ApexApi
                 String marketId = this.safeString(entry, "symbol");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", ApexCore.this.safeSymbol(marketId, market) );
-                    put( "fundingRate", ApexCore.this.safeNumber(entry, "rate") );
+                    put( "symbol", Apex.this.safeSymbol(marketId, market) );
+                    put( "fundingRate", Apex.this.safeNumber(entry, "rate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", ApexCore.this.iso8601(timestamp) );
+                    put( "datetime", Apex.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -1418,18 +1418,18 @@ public class ApexCore extends ApexApi
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", ApexCore.this.iso8601(timestamp) );
+            put( "datetime", Apex.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "status", ApexCore.this.parseOrderStatus(status) );
+            put( "status", Apex.this.parseOrderStatus(status) );
             put( "symbol", symbol );
-            put( "type", ApexCore.this.parseOrderType(orderType) );
-            put( "timeInForce", ApexCore.this.parseTimeInForce(ApexCore.this.safeString(order, "timeInForce")) );
-            put( "postOnly", ApexCore.this.safeBool(order, "postOnly") );
-            put( "reduceOnly", ApexCore.this.safeBool(order, "reduceOnly") );
+            put( "type", Apex.this.parseOrderType(orderType) );
+            put( "timeInForce", Apex.this.parseTimeInForce(Apex.this.safeString(order, "timeInForce")) );
+            put( "postOnly", Apex.this.safeBool(order, "postOnly") );
+            put( "reduceOnly", Apex.this.safeBool(order, "reduceOnly") );
             put( "side", side );
             put( "price", price );
-            put( "triggerPrice", ApexCore.this.safeString(order, "triggerPrice") );
+            put( "triggerPrice", Apex.this.safeString(order, "triggerPrice") );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
             put( "average", null );
@@ -1439,7 +1439,7 @@ public class ApexCore extends ApexApi
             put( "cost", null );
             put( "trades", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "cost", ApexCore.this.safeString(order, "fee") );
+                put( "cost", Apex.this.safeString(order, "fee") );
                 put( "currency", Helpers.GetValue(finalMarket, "settleId") );
             }} );
             put( "info", order );
@@ -1690,7 +1690,7 @@ public class ApexCore extends ApexApi
                 put( "expiration", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.add(Helpers.divide(finalTimeNow, 1000), Helpers.multiply(Helpers.multiply(Helpers.multiply(30, 24), 60), 60)))))) );
                 put( "timeInForce", finalTimeInForce );
                 put( "clientId", finalClientOrderId );
-                put( "brokerId", ApexCore.this.safeString(ApexCore.this.options, "brokerId", "6956") );
+                put( "brokerId", Apex.this.safeString(Apex.this.options, "brokerId", "6956") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
@@ -1815,7 +1815,7 @@ public class ApexCore extends ApexApi
                 Object parsedAmount = this.parseNumber(amount);
                 return this.extend(this.parseTransfer(data, this.currency(code)), new java.util.HashMap<String, Object>() {{
                     put( "timestamp", currentTime );
-                    put( "datetime", ApexCore.this.iso8601(currentTime) );
+                    put( "datetime", Apex.this.iso8601(currentTime) );
                     put( "amount", parsedAmount );
                     put( "fromAccount", "contract" );
                     put( "toAccount", "spot" );
@@ -1859,8 +1859,8 @@ public class ApexCore extends ApexApi
                 final Object finalAmount_2 = amount;
                 return this.extend(this.parseTransfer(data, this.currency(code)), new java.util.HashMap<String, Object>() {{
                     put( "timestamp", currentTime );
-                    put( "datetime", ApexCore.this.iso8601(currentTime) );
-                    put( "amount", ApexCore.this.parseNumber(finalAmount_2) );
+                    put( "datetime", Apex.this.iso8601(currentTime) );
+                    put( "amount", Apex.this.parseNumber(finalAmount_2) );
                     put( "fromAccount", "spot" );
                     put( "toAccount", "contract" );
                 }});
@@ -1878,14 +1878,14 @@ public class ApexCore extends ApexApi
         String toAccount = this.safeString(transfer, "toAccount");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", ApexCore.this.safeString2(transfer, "transferId", "id") );
+            put( "id", Apex.this.safeString2(transfer, "transferId", "id") );
             put( "timestamp", timestamp );
-            put( "datetime", ApexCore.this.iso8601(timestamp) );
-            put( "currency", ApexCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", ApexCore.this.safeNumber(transfer, "amount") );
+            put( "datetime", Apex.this.iso8601(timestamp) );
+            put( "currency", Apex.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Apex.this.safeNumber(transfer, "amount") );
             put( "fromAccount", fromAccount );
             put( "toAccount", toAccount );
-            put( "status", ApexCore.this.safeString(transfer, "status") );
+            put( "status", Apex.this.safeString(transfer, "status") );
         }};
     }
 
@@ -2271,13 +2271,13 @@ public class ApexCore extends ApexApi
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", ApexCore.this.safeSymbol(marketId, finalMarket) );
+            put( "symbol", Apex.this.safeSymbol(marketId, finalMarket) );
             put( "code", code );
             put( "timestamp", timestamp );
-            put( "datetime", ApexCore.this.iso8601(timestamp) );
-            put( "id", ApexCore.this.safeString(income, "id") );
-            put( "amount", ApexCore.this.safeNumber(income, "fundingValue") );
-            put( "rate", ApexCore.this.safeNumber(income, "rate") );
+            put( "datetime", Apex.this.iso8601(timestamp) );
+            put( "id", Apex.this.safeString(income, "id") );
+            put( "amount", Apex.this.safeNumber(income, "fundingValue") );
+            put( "rate", Apex.this.safeNumber(income, "rate") );
         }};
     }
 
@@ -2381,18 +2381,18 @@ public class ApexCore extends ApexApi
         final Object finalLeverage = leverage;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", ApexCore.this.safeString(position, "id") );
+            put( "id", Apex.this.safeString(position, "id") );
             put( "symbol", symbol );
-            put( "entryPrice", ApexCore.this.safeNumber(position, "entryPrice") );
+            put( "entryPrice", Apex.this.safeNumber(position, "entryPrice") );
             put( "markPrice", null );
             put( "notional", null );
             put( "collateral", null );
             put( "unrealizedPnl", null );
             put( "side", side );
-            put( "contracts", ApexCore.this.parseNumber(quantity) );
+            put( "contracts", Apex.this.parseNumber(quantity) );
             put( "contractSize", null );
             put( "timestamp", timestamp );
-            put( "datetime", ApexCore.this.iso8601(timestamp) );
+            put( "datetime", Apex.this.iso8601(timestamp) );
             put( "hedged", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );

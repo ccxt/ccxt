@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class WooCore extends io.github.ccxt.exchanges.Woo
+public class Woo extends io.github.ccxt.exchanges.Woo
 {
-   public WooCore () {
+   public Woo () {
        super();
    }
 
-   public WooCore (Object options) {
+   public Woo (Object options) {
        super(options);
    }
 
@@ -494,25 +494,25 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", WooCore.this.safeSymbol(null, market) );
+            put( "symbol", Woo.this.safeSymbol(null, market) );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", WooCore.this.safeString(ticker, "high") );
-            put( "low", WooCore.this.safeString(ticker, "low") );
+            put( "high", Woo.this.safeString(ticker, "high") );
+            put( "low", Woo.this.safeString(ticker, "low") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", WooCore.this.safeString(ticker, "open") );
-            put( "close", WooCore.this.safeString(ticker, "close") );
+            put( "open", Woo.this.safeString(ticker, "open") );
+            put( "close", Woo.this.safeString(ticker, "close") );
             put( "last", null );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", WooCore.this.safeString(ticker, "volume") );
-            put( "quoteVolume", WooCore.this.safeString(ticker, "amount") );
+            put( "baseVolume", Woo.this.safeString(ticker, "volume") );
+            put( "quoteVolume", Woo.this.safeString(ticker, "amount") );
             put( "info", ticker );
         }}, market);
     }
@@ -783,11 +783,11 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", WooCore.this.iso8601(timestamp) );
-            put( "ask", WooCore.this.safeString(ticker, "ask") );
-            put( "askVolume", WooCore.this.safeString(ticker, "askSize") );
-            put( "bid", WooCore.this.safeString(ticker, "bid") );
-            put( "bidVolume", WooCore.this.safeString(ticker, "bidSize") );
+            put( "datetime", Woo.this.iso8601(timestamp) );
+            put( "ask", Woo.this.safeString(ticker, "ask") );
+            put( "askVolume", Woo.this.safeString(ticker, "askSize") );
+            put( "bid", Woo.this.safeString(ticker, "bid") );
+            put( "bidVolume", Woo.this.safeString(ticker, "bidSize") );
             put( "info", ticker );
         }}, market);
     }
@@ -1083,21 +1083,21 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
-                put( "currency", WooCore.this.safeCurrencyCode(WooCore.this.safeString(trade, "feeCurrency")) );
+                put( "currency", Woo.this.safeCurrencyCode(Woo.this.safeString(trade, "feeCurrency")) );
             }};
         }
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", WooCore.this.safeString(trade, "tradeId") );
+            put( "id", Woo.this.safeString(trade, "tradeId") );
             put( "timestamp", timestamp );
-            put( "datetime", WooCore.this.iso8601(timestamp) );
+            put( "datetime", Woo.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "side", side );
             put( "price", price );
             put( "amount", amount );
             put( "cost", cost );
-            put( "order", WooCore.this.safeString(trade, "orderId") );
+            put( "order", Woo.this.safeString(trade, "orderId") );
             put( "takerOrMaker", finalTakerOrMaker );
             put( "type", type );
             put( "fee", finalFee );
@@ -1142,7 +1142,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "event", eventVar );
                     put( "params", new java.util.HashMap<String, Object>() {{
-                        put( "apikey", WooCore.this.apiKey );
+                        put( "apikey", Woo.this.apiKey );
                         put( "sign", signature );
                         put( "timestamp", ts );
                     }} );
@@ -1369,8 +1369,8 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object symbol = Helpers.GetValue(market, "symbol");
         Long timestamp = this.safeInteger(order, "timestamp");
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
-            put( "cost", WooCore.this.safeString(order, "totalFee") );
-            put( "currency", WooCore.this.safeString(order, "feeAsset") );
+            put( "cost", Woo.this.safeString(order, "totalFee") );
+            put( "currency", Woo.this.safeString(order, "feeAsset") );
         }};
         String priceString = this.safeString(order, "price");
         Object price = this.safeNumber(order, "price");
@@ -1396,7 +1396,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", WooCore.this.iso8601(timestamp) );
+            put( "datetime", Woo.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", timestamp );
             put( "type", type );
             put( "timeInForce", null );
@@ -1405,7 +1405,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             put( "price", finalPrice );
             put( "stopPrice", triggerPrice );
             put( "triggerPrice", triggerPrice );
-            put( "reduceOnly", WooCore.this.safeBool(order, "reduceOnly") );
+            put( "reduceOnly", Woo.this.safeBool(order, "reduceOnly") );
             put( "amount", amount );
             put( "cost", null );
             put( "average", finalAvgPrice );

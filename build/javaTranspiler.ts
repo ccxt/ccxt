@@ -44,10 +44,10 @@ function overwriteFileAndFolder(path: string, content: string) {
     overwriteFile(path, content);
 }
 
-// User-facing typed-wrapper methods that ship BOTH a typed sync overload
+// User-facing typed methods that ship BOTH a typed sync overload
 // (`Balances fetchBalance()`) AND a typed async sibling
 // (`CompletableFuture<Balances> fetchBalanceAsync()`). Internal calls in
-// transpiled `*Core.java` files that resolve to the typed sync overload
+// transpiled exchange files that resolve to the typed sync overload
 // would break the parent's CompletableFuture chain (`.join()` doesn't
 // exist on `Balances`), and inside `Promise.all` they'd silently run
 // synchronously instead of in parallel.
@@ -64,9 +64,8 @@ function overwriteFileAndFolder(path: string, content: string) {
 // no `fetchBalanceAsync(Object... varargs)` on the base class — only the
 // typed-arity variants exist.
 //
-// Anchored on `this.` so we don't rewrite `super.<method>(...)` calls
-// that the typed wrappers themselves use to delegate to the base class.
-// Applies only to per-exchange Core .java output — base `Exchange.java`
+// Anchored on `this.` so `super.<method>(...)` calls are left alone.
+// Applies only to per-exchange .java output — base `Exchange.java`
 // (which lacks the typed-async siblings) is unaffected because it's
 // emitted via a different code path (`transpileBaseMethods`).
 //
@@ -667,7 +666,7 @@ function safeStringReject (reason: string): boolean {
 // file + a printed value starting with `this.<m>(` / `Helpers.<...>(`. The SS-03 `+`
 // acceptance must not fire there — the retype would be silently reverted, and it would
 // also pre-empt a declaration the pro messageHash family types WITH the redundant
-// `(String)` checkcast that defeats the revert (measured: pro/HtxCore messageHash would
+// `(String)` checkcast that defeats the revert (measured: pro/Htx messageHash would
 // lose its String type). Files that survive the revert (REST/base) keep the relaxation.
 const WS_REVERT_SOURCE_FILE = /[\\/](pro|prediction)[\\/]/;
 function wsPostProcessReverts (declaration: any): boolean {
@@ -2351,6 +2350,7 @@ class NewTranspiler {
             // loadOrderBook is provided hand-written (void, WS-snapshot friendly) in Exchange.java;
             // drop the transpiled CompletableFuture version to avoid a redundant overload.
             exchangeBody = this.removeJavaMethod(exchangeBody, 'loadOrderBook');
+            exchangeBody = this.redirectToAsyncOnJoin(exchangeBody);
             log.magenta('→', (EXCHANGE_METHODS_FILE as any).yellow)
             this.replaceInFileLiteral(EXCHANGE_METHODS_FILE, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + exchangeBody.trim() + '\n}\n');
         }
@@ -2421,7 +2421,8 @@ class NewTranspiler {
             }
             // predictionBody ends with the class's closing brace — splice the extras in before it.
             const withoutClose = predictionBody.replace(/\}\s*$/, '');
-            const merged = withoutClose.trimEnd() + '\n\n' + extras.trim() + '\n}\n';
+            let merged = withoutClose.trimEnd() + '\n\n' + extras.trim() + '\n}\n';
+            merged = this.redirectToAsyncOnJoin(merged, true);
             log.magenta('→', (javaPredictionBase as any).yellow)
             this.replaceInFileLiteral(javaPredictionBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + merged);
         }
@@ -2495,17 +2496,10 @@ class NewTranspiler {
         let inputExchanges: string[] =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
         const scopedRun = inputExchanges.length > 0;
         if (!inputExchanges || inputExchanges.length === 0) {
-            // REST transpile writes `<Exchange>Core.java`; only Binance.java and
-            // Bybit.java exist as plain names (tracked in git). Match against
-            // both shapes — on a fresh CI checkout only the two tracked files
-            // are plain, so a naive `.java` match emits only those WS classes
-            // and every other exchange dies at runtime with ClassNotFound.
             const restExchanges = new Set<string>();
             for (const f of fs.readdirSync(EXCHANGES_FOLDER)) {
                 if (!f.endsWith('.java')) continue;
-                const base = f.replace('.java', '').toLowerCase();
-                restExchanges.add(base);
-                if (base.endsWith('core')) restExchanges.add(base.slice(0, -4));
+                restExchanges.add(f.replace('.java', '').toLowerCase());
             }
             const wsExchanges = (exchanges as any).ws as string[];
             inputExchanges = wsExchanges.filter((ws: string) => restExchanges.has(ws));
@@ -2519,7 +2513,7 @@ class NewTranspiler {
     }
 
     async transpilePrediction(force = false) {
-        // Prediction-market exchanges (ts/src/prediction/) transpile to Core classes
+        // Prediction-market exchanges (ts/src/prediction/) transpile to classes
         // under io.github.ccxt.exchanges.prediction. REST + WS are merged into one
         // class (no separate prediction/pro package).
         this.transpilePredictionBaseMethods('./ts/src/base/PredictionExchange.ts', force);
@@ -2567,9 +2561,6 @@ class NewTranspiler {
         await this.transpileTests(force)
 
         this.transpileErrorHierarchy(force)
-
-        // Fix Api classes that extend other exchanges (not Exchange) to use Core suffix
-        this.fixApiExtendsForCore()
 
         log.bright.green('Transpiled successfully.')
     }
@@ -2634,7 +2625,7 @@ class NewTranspiler {
         }
 
         // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
-        // drop the exchanges whose generated <Name>Core.java is newer than their ts
+        // drop the exchanges whose generated <Name>.java is newer than their ts
         // source. This has to happen BEFORE the pool is fed, because `allFilesPath`
         // doubles as the sticky ts.Program root list (see build/worker-program-batch.ts)
         // — leaving a clean exchange in it would transpile and rewrite it anyway.
@@ -2643,8 +2634,7 @@ class NewTranspiler {
             const fileNameNoExt = basename(file, pattern);
             const outputs: string[] = [];
             if (options.csharpFolder) {
-                // REST and WS both emit the Core-suffixed class, see transpileDerivedExchangeFile
-                outputs.push(options.csharpFolder + this.capitalize(fileNameNoExt) + 'Core.java');
+                outputs.push(options.csharpFolder + this.capitalize(fileNameNoExt) + '.java');
             }
             return { 'tsPath': jsFolder + file, 'outputs': outputs };
         })
@@ -2691,10 +2681,7 @@ class NewTranspiler {
         const javaImports = this.getJavaImports(name, ws, prediction).join("\n") + "\n\n";
         let content = javaVersion.content;
 
-        // Append "Core" suffix so the typed wrapper can take the clean name.
-        // e.g., transpiled Binance becomes BinanceCore, typed Binance extends BinanceCore.
-        // Same for WS: pro.BinanceCore (transpiled WS), pro.Binance (typed WS wrapper).
-        const className = this.capitalize(name) + 'Core';
+        const className = this.capitalize(name);
 
         // inject constructor
         const constructor = [
@@ -2714,11 +2701,7 @@ class NewTranspiler {
         // const parentExchange = res[1].toLowerCase();
         // override extends from Exchange to ClassApi
         content = content.replace(/extends\s\w+/g, `extends ${this.capitalize(name)}Api`);
-        // Rename the class to include Core suffix
         content = content.replace(/class\s+\w+\s+extends/, `class ${className} extends`);
-        // Also rename self-references like ClassName.this in anonymous inner classes
-        const origName = this.capitalize(name);
-        content = content.replace(new RegExp(`${origName}\\.this`, 'g'), `${className}.this`);
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/(\s+public Object describe\(\))/g, `${constructor}$1`)
         // `for (var i = <ident>; Helpers.isLessThan(i, end); i++)` — when the loop
@@ -2772,8 +2755,7 @@ class NewTranspiler {
             const wsRegexes = this.getJavaWsRegexes();
             content = this.regexAll (content, wsRegexes);
             content = this.replaceImportedRestClasses (content, javaVersion.imports);
-            // For WS classes, extend the typed REST class (not Core) so WS inherits REST typed methods.
-            // pro.BinanceCore extends io.github.ccxt.exchanges.Binance (the typed REST wrapper)
+            // WS classes extend the REST class: pro.Binance extends io.github.ccxt.exchanges.Binance
             const restTypedFqn = `io.github.ccxt.exchanges.${this.capitalize(name)}`;
             content = content.replace(/extends\s\w+Api/g, `extends ${restTypedFqn}`);
             content = content.replace(/extends\s(\w+)Rest/g, `extends io.github.ccxt.exchanges.$1`);
@@ -2786,7 +2768,7 @@ class NewTranspiler {
             // effectively-final pass (it conflicts with the REST parse* methods, which the
             // ast-transpiler already handles).
             content = this.regexAll (content, this.getJavaWsRegexes());
-            content = this.postProcessWsJava(content, name, true, true, true);
+            content = this.postProcessWsJava(content, name, true, true);
         }
         content = this.addDeprecatedAnnotations(content);
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
@@ -2949,39 +2931,6 @@ class NewTranspiler {
         return result.join('\n');
     }
 
-    /**
-     * Fix Api classes that extend other exchange classes (not Exchange) to use Core suffix.
-     * e.g., BinanceusdmApi extends Binance → BinanceusdmApi extends BinanceCore
-     * This is needed because the typed wrapper class now takes the clean name (Binance),
-     * and Api classes must extend the untyped Core class to avoid inheriting typed overloads.
-     */
-    fixApiExtendsForCore() {
-        const apiFolder = './java/lib/src/main/java/io/github/ccxt/api/';
-        if (!fs.existsSync(apiFolder)) return;
-
-        const apiFiles = fs.readdirSync(apiFolder).filter(f => f.endsWith('Api.java'));
-        for (const file of apiFiles) {
-            const path = apiFolder + file;
-            let content = fs.readFileSync(path, 'utf-8');
-            // Match "extends SomeName" where SomeName is NOT "Exchange" and NOT already Core
-            const match = content.match(/class\s+\w+Api\s+extends\s+(\w+)/);
-            if (match && match[1] !== 'Exchange' && !match[1].endsWith('Core')) {
-                const parentName = match[1];
-                // Update extends clause
-                content = content.replace(
-                    new RegExp(`extends\\s+${parentName}\\b`),
-                    `extends ${parentName}Core`
-                );
-                // Update import to use Core name
-                content = content.replace(
-                    new RegExp(`import\\s+io\\.github\\.ccxt\\.exchanges\\.${parentName}\\s*;`),
-                    `import io.github.ccxt.exchanges.${parentName}Core;`
-                );
-                fs.writeFileSync(path, content, 'utf-8');
-            }
-        }
-    }
-
     replaceImportedRestClasses(content: string, imports: any[]) {
         for (const imp of imports) {
             // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
@@ -3011,19 +2960,28 @@ class NewTranspiler {
      * the method body only.
      */
     /**
-     * Read `exchanges/<Exchange>.java` (the typed REST wrapper) and collect all
-     * public method names (typed overloads). Used by redirectToAsyncOnJoin to
-     * scope the rewrite to methods that actually shadow the untyped varargs
-     * base.
+     * Collect the typed `default` method names declared on the generated
+     * TypedSurface / PredictionTypedSurface interface. Used by redirectToAsyncOnJoin
+     * and castLiteralArgsOnTypedCalls to scope rewrites to methods that actually
+     * shadow the untyped varargs core signature.
      */
-    collectTypedRestMethodNames(name: string): Set<string> {
-        const path = EXCHANGES_FOLDER + this.capitalize(name) + '.java';
+    _typedSurfaceNames: Map<boolean, Set<string>> = new Map();
+    collectTypedSurfaceMethodNames(prediction = false): Set<string> {
+        const cached = this._typedSurfaceNames.get(prediction);
+        if (cached !== undefined) return new Set(cached);
+        const path = EXCHANGE_WRAPPER_FOLDER + (prediction ? 'PredictionTypedSurface.java' : 'TypedSurface.java');
+        const names = new Set<string>();
+        let content = '';
         try {
-            const content = fs.readFileSync(path, 'utf-8');
-            return this.collectMethodNamesInClass(content);
+            content = fs.readFileSync(path, 'utf-8');
         } catch {
-            return new Set();
+            log.red(`[java] ${path} missing — run \`tsx build/generateJavaWrappers.ts\` first; typed-call casts skipped`);
         }
+        const re = /^\s{4}default\s+[^=]+?\s+(\w+)\s*\(/gm;
+        let m;
+        while ((m = re.exec(content)) !== null) names.add(m[1]);
+        this._typedSurfaceNames.set(prediction, names);
+        return new Set(names);
     }
 
     /**
@@ -3045,28 +3003,26 @@ class NewTranspiler {
     }
 
     /**
-     * Rewrite `(this.X(arg1, arg2, ...)).join()` inside WS cores, where X is a
-     * typed REST method on the exchange's REST typed wrapper, to cast every
-     * argument to `(Object)` so the call dispatches to the untyped `X(Object...)`
-     * varargs inherited from the REST untyped Core instead of the typed
-     * overload (which would return the typed value directly and break `.join()`).
-     *
-     * Scoped to methods we can verify exist on the typed REST wrapper file to
-     * avoid breaking WS-core local helpers.
+     * Rewrite `(this.X(arg1, ...)).join()` / `(super.X(arg1, ...)).join()` in every
+     * transpiled tier, where X carries typed defaults on TypedSurface, to cast every
+     * argument to `(Object)` so the call dispatches to the untyped `X(Object...)` core
+     * signature instead of a typed overload (which returns the typed value and breaks
+     * `.join()`, or is ambiguous between List<String> / String[] on a null).
      */
-    redirectToAsyncOnJoin(content: string, name: string): string {
-        const typedRestMethods = this.collectTypedRestMethodNames(name);
+    redirectToAsyncOnJoin(content: string, prediction = false): string {
+        const typedRestMethods = this.collectTypedSurfaceMethodNames(prediction);
         if (typedRestMethods.size === 0) return content;
         // loadMarkets has a special typed signature `loadMarkets(boolean reload)`;
         // the untyped base accepts 0 args, so a zero-arg call is already unambiguous
         // and we shouldn't touch it.
         typedRestMethods.delete('loadMarkets');
-        const pattern = /\(this\.(\w+)\(/g;
+        const pattern = /\((this|super)\.(\w+)\(/g;
         let result = '';
         let lastIdx = 0;
         let match;
         while ((match = pattern.exec(content)) !== null) {
-            const methodName = match[1];
+            const receiver = match[1];
+            const methodName = match[2];
             if (!typedRestMethods.has(methodName)) {
                 continue;
             }
@@ -3096,7 +3052,7 @@ class NewTranspiler {
                     ? argsRaw
                     : this.splitTopLevelArgs(argsRaw).map((a, k) => (retyped.includes(k) ? a.trim() : `(Object)(${a.trim()})`)).join(', ');
                 result += content.substring(lastIdx, match.index);
-                result += `(this.${methodName}(${argsCast})).join()`;
+                result += `(${receiver}.${methodName}(${argsCast})).join()`;
                 lastIdx = j + 8;
                 pattern.lastIndex = lastIdx;
             }
@@ -3311,8 +3267,8 @@ class NewTranspiler {
         return false;
     }
 
-    postProcessWsJava(content: string, name: string, isCore = true, skipEffectivelyFinal = false, prediction = false): string {
-        const cap = this.capitalize(name) + (isCore ? 'Core' : ''); // WS classes are now named *Core
+    postProcessWsJava(content: string, name: string, skipEffectivelyFinal = false, prediction = false): string {
+        const cap = this.capitalize(name);
 
         // ── Fix broken method references: ClassName."methodName" → "methodName" ──
         // The transpiler generates method references as ClassName."methodName" which is
@@ -3680,11 +3636,6 @@ class NewTranspiler {
         // into void event-handler methods. Uses comment/string-aware brace tracking
         // to avoid false state from brace chars in `//` comment blocks.
         content = this.fixVoidReturnNull(content);
-
-        // Redirect `(this.restMethod(...)).join()` to `(this.restMethodAsync(...)).join()`
-        // so the typed REST overload (returning a typed value directly) doesn't shadow
-        // the future-returning variant the transpiled WS code expects.
-        content = this.redirectToAsyncOnJoin(content, name);
 
         return content;
     }
@@ -4157,10 +4108,10 @@ class NewTranspiler {
 
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
         javaSource = routeWhitelistedInternalCallsToAsync(javaSource)
+        javaSource = this.redirectToAsyncOnJoin(javaSource, prediction)
 
         if (javaFolder) {
-            // Both REST and WS classes get Core suffix (e.g., BinanceCore.java, pro/BinanceCore.java)
-            const outputName = this.capitalize(fileNameNoExt) + 'Core.java';
+            const outputName = this.capitalize(fileNameNoExt) + '.java';
             overwriteFileAndFolder(javaFolder + outputName, javaSource)
         }
     }

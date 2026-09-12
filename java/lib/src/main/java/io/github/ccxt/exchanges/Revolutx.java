@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class RevolutxCore extends RevolutxApi
+public class Revolutx extends RevolutxApi
 {
-   public RevolutxCore () {
+   public Revolutx () {
        super();
    }
 
-   public RevolutxCore (Object options) {
+   public Revolutx (Object options) {
        super(options);
    }
 
@@ -117,8 +117,8 @@ public class RevolutxCore extends RevolutxApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "taker", RevolutxCore.this.parseNumber("0.0009") );
-                    put( "maker", RevolutxCore.this.parseNumber("0") );
+                    put( "taker", Revolutx.this.parseNumber("0.0009") );
+                    put( "maker", Revolutx.this.parseNumber("0") );
                 }} );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
@@ -260,7 +260,7 @@ public class RevolutxCore extends RevolutxApi
             Object signature = eddsa(this.encode(message), this.privateKey, ed25519());
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{
-                put( "X-Revx-API-Key", RevolutxCore.this.apiKey );
+                put( "X-Revx-API-Key", Revolutx.this.apiKey );
                 put( "X-Revx-Timestamp", finalTimestamp );
                 put( "X-Revx-Signature", signature );
             }};
@@ -345,26 +345,26 @@ public class RevolutxCore extends RevolutxApi
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
-            put( "taker", RevolutxCore.this.parseNumber("0.0009") );
-            put( "maker", RevolutxCore.this.parseNumber("0") );
+            put( "taker", Revolutx.this.parseNumber("0.0009") );
+            put( "maker", Revolutx.this.parseNumber("0") );
             put( "percentage", true );
             put( "tierBased", false );
             put( "feeSide", "get" );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", RevolutxCore.this.parseNumber(baseStep) );
-                put( "price", RevolutxCore.this.parseNumber(quoteStep) );
+                put( "amount", Revolutx.this.parseNumber(baseStep) );
+                put( "price", Revolutx.this.parseNumber(quoteStep) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", RevolutxCore.this.parseNumber(minOrderSize) );
-                    put( "max", RevolutxCore.this.parseNumber(maxOrderSize) );
+                    put( "min", Revolutx.this.parseNumber(minOrderSize) );
+                    put( "max", Revolutx.this.parseNumber(maxOrderSize) );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", RevolutxCore.this.parseNumber(minOrderSizeQuote) );
+                    put( "min", Revolutx.this.parseNumber(minOrderSizeQuote) );
                     put( "max", null );
                 }} );
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -458,7 +458,7 @@ public class RevolutxCore extends RevolutxApi
             put( "type", type );
             put( "deposit", null );
             put( "withdraw", null );
-            put( "precision", RevolutxCore.this.parseNumber(precision) );
+            put( "precision", Revolutx.this.parseNumber(precision) );
             put( "fee", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
@@ -569,7 +569,7 @@ public class RevolutxCore extends RevolutxApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", RevolutxCore.this.iso8601(timestamp) );
+            put( "datetime", Revolutx.this.iso8601(timestamp) );
             put( "high", high );
             put( "low", low );
             put( "bid", bid );
@@ -693,7 +693,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             Object ticker = this.safeDict(tickers, symbol);
             if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
             {
@@ -808,7 +808,7 @@ public class RevolutxCore extends RevolutxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "interval", RevolutxCore.this.safeInteger(RevolutxCore.this.timeframes, timeframe, 5) );
+                put( "interval", Revolutx.this.safeInteger(Revolutx.this.timeframes, timeframe, 5) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -882,7 +882,7 @@ public class RevolutxCore extends RevolutxApi
             put( "amount", finalAmount );
             put( "cost", finalCost );
             put( "timestamp", timestamp );
-            put( "datetime", RevolutxCore.this.iso8601(timestamp) );
+            put( "datetime", Revolutx.this.iso8601(timestamp) );
             put( "fee", null );
             put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
         }};
@@ -1081,7 +1081,7 @@ public class RevolutxCore extends RevolutxApi
         {
             final Object finalTotalFee = totalFee;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", RevolutxCore.this.parseNumber(finalTotalFee) );
+                put( "cost", Revolutx.this.parseNumber(finalTotalFee) );
                 put( "currency", feeCurrency );
             }};
         }
@@ -1116,15 +1116,15 @@ public class RevolutxCore extends RevolutxApi
             put( "symbol", symbol );
             put( "side", side );
             put( "type", orderType );
-            put( "price", RevolutxCore.this.parseNumber(price) );
-            put( "average", RevolutxCore.this.parseNumber(averageFillPrice) );
-            put( "amount", RevolutxCore.this.parseNumber(finalAmountValue) );
-            put( "filled", RevolutxCore.this.parseNumber(finalFilledValue) );
-            put( "remaining", RevolutxCore.this.parseNumber(finalRemainingValue) );
+            put( "price", Revolutx.this.parseNumber(price) );
+            put( "average", Revolutx.this.parseNumber(averageFillPrice) );
+            put( "amount", Revolutx.this.parseNumber(finalAmountValue) );
+            put( "filled", Revolutx.this.parseNumber(finalFilledValue) );
+            put( "remaining", Revolutx.this.parseNumber(finalRemainingValue) );
             put( "status", status );
             put( "timeInForce", timeInForce );
             put( "timestamp", createdDate );
-            put( "datetime", RevolutxCore.this.iso8601(createdDate) );
+            put( "datetime", Revolutx.this.iso8601(createdDate) );
             put( "lastUpdateTimestamp", updatedDate );
             put( "fee", finalFee );
             put( "info", order );
@@ -1533,7 +1533,7 @@ public class RevolutxCore extends RevolutxApi
             java.util.Map<String, Object> requestParams = this.extend(this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderStates", "order_states"))), new java.util.HashMap<String, Object>() {{
                 put( "order_states", orderStates );
             }});
-            return (this.fetchOrders(symbol, since, limit, requestParams)).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(requestParams))).join();
         });
 
     }
@@ -1579,7 +1579,7 @@ public class RevolutxCore extends RevolutxApi
             put( "amount", finalAmount );
             put( "cost", finalCost );
             put( "timestamp", timestamp );
-            put( "datetime", RevolutxCore.this.iso8601(timestamp) );
+            put( "datetime", Revolutx.this.iso8601(timestamp) );
             put( "fee", null );
             put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
         }};

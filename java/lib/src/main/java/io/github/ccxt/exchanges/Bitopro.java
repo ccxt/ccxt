@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BitoproCore extends BitoproApi
+public class Bitopro extends BitoproApi
 {
-   public BitoproCore () {
+   public Bitopro () {
        super();
    }
 
-   public BitoproCore (Object options) {
+   public Bitopro (Object options) {
        super(options);
    }
 
@@ -259,11 +259,11 @@ public class BitoproCore extends BitoproApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "maker", BitoproCore.this.parseNumber("0.001") );
-                    put( "taker", BitoproCore.this.parseNumber("0.002") );
+                    put( "maker", Bitopro.this.parseNumber("0.001") );
+                    put( "taker", Bitopro.this.parseNumber("0.002") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("0"), BitoproCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("3000000"), BitoproCore.this.parseNumber("0.00194"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("5000000"), BitoproCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("30000000"), BitoproCore.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("300000000"), BitoproCore.this.parseNumber("0.0013"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("550000000"), BitoproCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("1300000000"), BitoproCore.this.parseNumber("0.0011"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("0"), BitoproCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("3000000"), BitoproCore.this.parseNumber("0.00097"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("5000000"), BitoproCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("30000000"), BitoproCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("300000000"), BitoproCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("550000000"), BitoproCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitoproCore.this.parseNumber("1300000000"), BitoproCore.this.parseNumber("0.0003"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("0"), Bitopro.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("3000000"), Bitopro.this.parseNumber("0.00194"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("5000000"), Bitopro.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("30000000"), Bitopro.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("300000000"), Bitopro.this.parseNumber("0.0013"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("550000000"), Bitopro.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("1300000000"), Bitopro.this.parseNumber("0.0011"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("0"), Bitopro.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("3000000"), Bitopro.this.parseNumber("0.00097"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("5000000"), Bitopro.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("30000000"), Bitopro.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("300000000"), Bitopro.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("550000000"), Bitopro.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitopro.this.parseNumber("1300000000"), Bitopro.this.parseNumber("0.0003"))))) );
                     }} );
                 }} );
             }} );
@@ -434,12 +434,12 @@ public class BitoproCore extends BitoproApi
             put( "active", (Helpers.isTrue((Helpers.isEqual(finalDeposit, true))) && Helpers.isTrue((Helpers.isEqual(finalWithdraw, true)))) );
             put( "deposit", finalDeposit );
             put( "withdraw", finalWithdraw );
-            put( "fee", BitoproCore.this.safeNumber(rawCurrency, "withdrawFee") );
+            put( "fee", Bitopro.this.safeNumber(rawCurrency, "withdrawFee") );
             put( "precision", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
-                    put( "min", BitoproCore.this.safeNumber(rawCurrency, "minWithdraw") );
-                    put( "max", BitoproCore.this.safeNumber(rawCurrency, "maxWithdraw") );
+                    put( "min", Bitopro.this.safeNumber(rawCurrency, "minWithdraw") );
+                    put( "max", Bitopro.this.safeNumber(rawCurrency, "maxWithdraw") );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -507,8 +507,8 @@ public class BitoproCore extends BitoproApi
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         java.util.Map<String, Object> limits = new java.util.HashMap<String, Object>() {{
             put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", BitoproCore.this.safeNumber(market, "minLimitBaseAmount") );
-                put( "max", BitoproCore.this.safeNumber(market, "maxLimitBaseAmount") );
+                put( "min", Bitopro.this.safeNumber(market, "minLimitBaseAmount") );
+                put( "max", Bitopro.this.safeNumber(market, "maxLimitBaseAmount") );
             }} );
             put( "price", new java.util.HashMap<String, Object>() {{
                 put( "min", null );
@@ -551,8 +551,8 @@ public class BitoproCore extends BitoproApi
             put( "optionType", null );
             put( "limits", limits );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "price", BitoproCore.this.parseNumber(BitoproCore.this.parsePrecision(BitoproCore.this.safeString(market, "quotePrecision"))) );
-                put( "amount", BitoproCore.this.parseNumber(BitoproCore.this.parsePrecision(BitoproCore.this.safeString(market, "basePrecision"))) );
+                put( "price", Bitopro.this.parseNumber(Bitopro.this.parsePrecision(Bitopro.this.safeString(market, "quotePrecision"))) );
+                put( "amount", Bitopro.this.parseNumber(Bitopro.this.parsePrecision(Bitopro.this.safeString(market, "basePrecision"))) );
             }} );
             put( "active", active );
             put( "created", null );
@@ -581,21 +581,21 @@ public class BitoproCore extends BitoproApi
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", BitoproCore.this.safeString(ticker, "high24hr") );
-            put( "low", BitoproCore.this.safeString(ticker, "low24hr") );
+            put( "high", Bitopro.this.safeString(ticker, "high24hr") );
+            put( "low", Bitopro.this.safeString(ticker, "low24hr") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
-            put( "close", BitoproCore.this.safeString(ticker, "lastPrice") );
-            put( "last", BitoproCore.this.safeString(ticker, "lastPrice") );
+            put( "close", Bitopro.this.safeString(ticker, "lastPrice") );
+            put( "last", Bitopro.this.safeString(ticker, "lastPrice") );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", BitoproCore.this.safeString(ticker, "priceChange24hr") );
+            put( "percentage", Bitopro.this.safeString(ticker, "priceChange24hr") );
             put( "average", null );
-            put( "baseVolume", BitoproCore.this.safeString(ticker, "volume24hr") );
+            put( "baseVolume", Bitopro.this.safeString(ticker, "volume24hr") );
             put( "quoteVolume", null );
             put( "info", ticker );
         }}, market);
@@ -835,7 +835,7 @@ public class BitoproCore extends BitoproApi
             put( "info", trade );
             put( "order", orderId );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BitoproCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Bitopro.this.iso8601(finalTimestamp) );
             put( "symbol", symbol );
             put( "takerOrMaker", finalTakerOrMaker );
             put( "type", type );
@@ -1288,8 +1288,8 @@ public class BitoproCore extends BitoproApi
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", BitoproCore.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", BitoproCore.this.safeInteger(order, "updatedTimestamp") );
+            put( "datetime", Bitopro.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", Bitopro.this.safeInteger(order, "updatedTimestamp") );
             put( "symbol", symbol );
             put( "type", type );
             put( "timeInForce", finalTimeInForce );
@@ -1339,8 +1339,8 @@ public class BitoproCore extends BitoproApi
                 put( "type", type );
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "action", side );
-                put( "amount", BitoproCore.this.amountToPrecision(symbol, amount) );
-                put( "timestamp", BitoproCore.this.milliseconds() );
+                put( "amount", Bitopro.this.amountToPrecision(symbol, amount) );
+                put( "timestamp", Bitopro.this.milliseconds() );
             }};
             Object orderType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(orderType, "LIMIT")))
@@ -1448,7 +1448,7 @@ final Object finalJ = j;
                                 ((java.util.List<Object>)orders).add(this.safeOrder(new java.util.HashMap<String, Object>() {{
                     put( "info", Helpers.GetValue(orderIds, finalJ) );
                     put( "id", Helpers.GetValue(orderIds, finalJ) );
-                    put( "symbol", BitoproCore.this.safeSymbol(marketId) );
+                    put( "symbol", Bitopro.this.safeSymbol(marketId) );
                 }}));
             }
         }
@@ -1888,15 +1888,15 @@ final Object finalJ = j;
         final Object finalNetworkId = networkId;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", BitoproCore.this.safeString(transaction, "serial") );
-            put( "txid", BitoproCore.this.safeString(transaction, "txid") );
+            put( "id", Bitopro.this.safeString(transaction, "serial") );
+            put( "txid", Bitopro.this.safeString(transaction, "txid") );
             put( "type", null );
             put( "currency", code );
-            put( "network", BitoproCore.this.networkIdToCode(finalNetworkId, code) );
-            put( "amount", BitoproCore.this.safeNumber(transaction, "total") );
-            put( "status", BitoproCore.this.parseTransactionStatus(status) );
+            put( "network", Bitopro.this.networkIdToCode(finalNetworkId, code) );
+            put( "amount", Bitopro.this.safeNumber(transaction, "total") );
+            put( "status", Bitopro.this.parseTransactionStatus(status) );
             put( "timestamp", timestamp );
-            put( "datetime", BitoproCore.this.iso8601(timestamp) );
+            put( "datetime", Bitopro.this.iso8601(timestamp) );
             put( "address", address );
             put( "addressFrom", null );
             put( "addressTo", address );
@@ -1908,7 +1908,7 @@ final Object finalJ = j;
             put( "internal", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", BitoproCore.this.safeNumber(transaction, "fee") );
+                put( "cost", Bitopro.this.safeNumber(transaction, "fee") );
                 put( "rate", null );
             }} );
         }};
@@ -2132,7 +2132,7 @@ final Object finalJ = j;
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "amount", BitoproCore.this.numberToString(amount) );
+                put( "amount", Bitopro.this.numberToString(amount) );
                 put( "address", address );
             }};
             if (Helpers.isTrue(Helpers.inOp(parameters, "network")))
@@ -2187,7 +2187,7 @@ final Object finalJ = j;
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "fee", BitoproCore.this.safeNumber(fee, "withdrawFee") );
+                put( "fee", Bitopro.this.safeNumber(fee, "withdrawFee") );
                 put( "percentage", false );
             }} );
             put( "deposit", new java.util.HashMap<String, Object>() {{

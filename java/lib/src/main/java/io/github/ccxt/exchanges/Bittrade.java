@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BittradeCore extends BittradeApi
+public class Bittrade extends BittradeApi
 {
-   public BittradeCore () {
+   public Bittrade () {
        super();
    }
 
-   public BittradeCore (Object options) {
+   public Bittrade (Object options) {
        super(options);
    }
 
@@ -24,7 +24,7 @@ public class BittradeCore extends BittradeApi
             put( "name", "BitTrade" );
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("JP")) );
             put( "rateLimit", 100 );
-            put( "userAgent", Helpers.GetValue(BittradeCore.this.userAgents, "chrome39") );
+            put( "userAgent", Helpers.GetValue(Bittrade.this.userAgents, "chrome39") );
             put( "certified", false );
             put( "version", "v1" );
             put( "hostname", "api-cloud.bittrade.co.jp" );
@@ -472,8 +472,8 @@ public class BittradeCore extends BittradeApi
                     put( "feeSide", "get" );
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "maker", BittradeCore.this.parseNumber("0.002") );
-                    put( "taker", BittradeCore.this.parseNumber("0.002") );
+                    put( "maker", Bittrade.this.parseNumber("0.002") );
+                    put( "taker", Bittrade.this.parseNumber("0.002") );
                 }} );
             }} );
             put( "features", new java.util.HashMap<String, Object>() {{
@@ -743,8 +743,8 @@ public class BittradeCore extends BittradeApi
             put( "info", limits );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", BittradeCore.this.safeNumber(limits, "limit-order-must-greater-than") );
-                    put( "max", BittradeCore.this.safeNumber(limits, "limit-order-must-less-than") );
+                    put( "min", Bittrade.this.safeNumber(limits, "limit-order-must-greater-than") );
+                    put( "max", Bittrade.this.safeNumber(limits, "limit-order-must-less-than") );
                 }} );
             }} );
         }};
@@ -867,26 +867,26 @@ public class BittradeCore extends BittradeApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "price", BittradeCore.this.parseNumber(BittradeCore.this.parsePrecision(BittradeCore.this.safeString(market, "price-precision"))) );
-                        put( "amount", BittradeCore.this.parseNumber(BittradeCore.this.parsePrecision(BittradeCore.this.safeString(market, "amount-precision"))) );
-                        put( "cost", BittradeCore.this.parseNumber(BittradeCore.this.parsePrecision(BittradeCore.this.safeString(market, "value-precision"))) );
+                        put( "price", Bittrade.this.parseNumber(Bittrade.this.parsePrecision(Bittrade.this.safeString(market, "price-precision"))) );
+                        put( "amount", Bittrade.this.parseNumber(Bittrade.this.parsePrecision(Bittrade.this.safeString(market, "amount-precision"))) );
+                        put( "cost", Bittrade.this.parseNumber(Bittrade.this.parsePrecision(Bittrade.this.safeString(market, "value-precision"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", BittradeCore.this.parseNumber("1") );
-                            put( "max", BittradeCore.this.parseNumber(leverageRatio) );
-                            put( "superMax", BittradeCore.this.parseNumber(superLeverageRatio) );
+                            put( "min", Bittrade.this.parseNumber("1") );
+                            put( "max", Bittrade.this.parseNumber(leverageRatio) );
+                            put( "superMax", Bittrade.this.parseNumber(superLeverageRatio) );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", BittradeCore.this.safeNumber(market, "min-order-amt") );
-                            put( "max", BittradeCore.this.safeNumber(market, "max-order-amt") );
+                            put( "min", Bittrade.this.safeNumber(market, "min-order-amt") );
+                            put( "max", Bittrade.this.safeNumber(market, "max-order-amt") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", BittradeCore.this.safeNumber(market, "min-order-value") );
+                            put( "min", Bittrade.this.safeNumber(market, "min-order-value") );
                             put( "max", null );
                         }} );
                     }} );
@@ -976,9 +976,9 @@ public class BittradeCore extends BittradeApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BittradeCore.this.iso8601(timestamp) );
-            put( "high", BittradeCore.this.safeString(ticker, "high") );
-            put( "low", BittradeCore.this.safeString(ticker, "low") );
+            put( "datetime", Bittrade.this.iso8601(timestamp) );
+            put( "high", Bittrade.this.safeString(ticker, "high") );
+            put( "low", Bittrade.this.safeString(ticker, "low") );
             put( "bid", finalBid );
             put( "bidVolume", finalBidVolume );
             put( "ask", finalAsk );
@@ -1236,7 +1236,7 @@ public class BittradeCore extends BittradeApi
             put( "symbol", symbol );
             put( "order", order );
             put( "timestamp", timestamp );
-            put( "datetime", BittradeCore.this.iso8601(timestamp) );
+            put( "datetime", Bittrade.this.iso8601(timestamp) );
             put( "type", finalType );
             put( "side", finalSide );
             put( "takerOrMaker", takerOrMaker );
@@ -1443,7 +1443,7 @@ public class BittradeCore extends BittradeApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "period", BittradeCore.this.safeString(BittradeCore.this.timeframes, timeframe, timeframe) );
+                put( "period", Bittrade.this.safeString(Bittrade.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -1505,7 +1505,7 @@ public class BittradeCore extends BittradeApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "language", BittradeCore.this.handleOption("fetchCurrencies", "language", "en-US") );
+                put( "language", Bittrade.this.handleOption("fetchCurrencies", "language", "en-US") );
             }};
             java.util.Map<String, Object> response = (this.publicGetSettingsCurrencys(this.extend(request, parameters))).join();
             //
@@ -1585,11 +1585,11 @@ public class BittradeCore extends BittradeApi
                     put( "max", null );
                 }} );
                 put( "deposit", new java.util.HashMap<String, Object>() {{
-                    put( "min", BittradeCore.this.safeNumber(currency, "deposit-min-amount") );
+                    put( "min", Bittrade.this.safeNumber(currency, "deposit-min-amount") );
                     put( "max", null );
                 }} );
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
-                    put( "min", BittradeCore.this.safeNumber(currency, "withdraw-min-amount") );
+                    put( "min", Bittrade.this.safeNumber(currency, "withdraw-min-amount") );
                     put( "max", null );
                 }} );
             }} );
@@ -1660,7 +1660,7 @@ public class BittradeCore extends BittradeApi
             (this.loadAccounts()).join();
             Object method = this.handleOption("fetchBalance", "method", "privateGetAccountAccountsIdBalance");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "id", Helpers.GetValue(Helpers.GetValue(BittradeCore.this.accounts, 0), "id") );
+                put( "id", Helpers.GetValue(Helpers.GetValue(Bittrade.this.accounts, 0), "id") );
             }};
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetAccountAccountsIdBalance")))
@@ -2011,7 +2011,7 @@ public class BittradeCore extends BittradeApi
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", BittradeCore.this.iso8601(timestamp) );
+            put( "datetime", Bittrade.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", finalType );
@@ -2056,7 +2056,7 @@ public class BittradeCore extends BittradeApi
                 throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -2091,7 +2091,7 @@ public class BittradeCore extends BittradeApi
             final Object finalSide = side;
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "account-id", Helpers.GetValue(Helpers.GetValue(BittradeCore.this.accounts, 0), "id") );
+                put( "account-id", Helpers.GetValue(Helpers.GetValue(Bittrade.this.accounts, 0), "id") );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", Helpers.add(Helpers.add(finalSide, "-"), finalType) );
             }};
@@ -2340,9 +2340,9 @@ public class BittradeCore extends BittradeApi
             Object order = Helpers.GetValue(failed, i);
             ((java.util.List<Object>)result).add(this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", order );
-                put( "id", BittradeCore.this.safeString2(order, "order-id", "order_id") );
+                put( "id", Bittrade.this.safeString2(order, "order-id", "order_id") );
                 put( "status", "failed" );
-                put( "clientOrderId", BittradeCore.this.safeString(order, "client-order-id") );
+                put( "clientOrderId", Bittrade.this.safeString(order, "client-order-id") );
             }}));
         }
         return result;
@@ -2589,27 +2589,27 @@ public class BittradeCore extends BittradeApi
         final Object finalFeeCost = feeCost;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", BittradeCore.this.safeString2(transaction, "id", "data") );
-            put( "txid", BittradeCore.this.safeString(transaction, "tx-hash") );
+            put( "id", Bittrade.this.safeString2(transaction, "id", "data") );
+            put( "txid", Bittrade.this.safeString(transaction, "tx-hash") );
             put( "timestamp", timestamp );
-            put( "datetime", BittradeCore.this.iso8601(timestamp) );
-            put( "network", BittradeCore.this.safeStringUpper(transaction, "chain") );
-            put( "address", BittradeCore.this.safeString(transaction, "address") );
+            put( "datetime", Bittrade.this.iso8601(timestamp) );
+            put( "network", Bittrade.this.safeStringUpper(transaction, "chain") );
+            put( "address", Bittrade.this.safeString(transaction, "address") );
             put( "addressTo", null );
             put( "addressFrom", null );
-            put( "tag", BittradeCore.this.safeString(transaction, "address-tag") );
+            put( "tag", Bittrade.this.safeString(transaction, "address-tag") );
             put( "tagTo", null );
             put( "tagFrom", null );
             put( "type", finalType );
-            put( "amount", BittradeCore.this.safeNumber(transaction, "amount") );
+            put( "amount", Bittrade.this.safeNumber(transaction, "amount") );
             put( "currency", code );
-            put( "status", BittradeCore.this.parseTransactionStatus(BittradeCore.this.safeString(transaction, "state")) );
-            put( "updated", BittradeCore.this.safeInteger(transaction, "updated-at") );
+            put( "status", Bittrade.this.parseTransactionStatus(Bittrade.this.safeString(transaction, "state")) );
+            put( "updated", Bittrade.this.safeInteger(transaction, "updated-at") );
             put( "comment", null );
             put( "internal", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", BittradeCore.this.parseNumber(finalFeeCost) );
+                put( "cost", Bittrade.this.parseNumber(finalFeeCost) );
                 put( "rate", null );
             }} );
         }};
@@ -2727,7 +2727,7 @@ public class BittradeCore extends BittradeApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "SignatureMethod", "HmacSHA256" );
                 put( "SignatureVersion", "2" );
-                put( "AccessKeyId", BittradeCore.this.apiKey );
+                put( "AccessKeyId", Bittrade.this.apiKey );
                 put( "Timestamp", timestamp );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(method, "POST")))
@@ -2765,7 +2765,7 @@ public class BittradeCore extends BittradeApi
             }
         }
         url = Helpers.add(this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), new java.util.HashMap<String, Object>() {{
-    put( "hostname", BittradeCore.this.hostname );
+    put( "hostname", Bittrade.this.hostname );
 }}), url);
         final Object finalUrl = url;
         final Object finalMethod = method;

@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class LighterCore extends LighterApi
+public class Lighter extends LighterApi
 {
-   public LighterCore () {
+   public Lighter () {
        super();
    }
 
-   public LighterCore (Object options) {
+   public Lighter (Object options) {
        super(options);
    }
 
@@ -778,8 +778,8 @@ public class LighterCore extends LighterApi
         final Object finalAccountIndex = accountIndex;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "deadline", deadline );
-            put( "api_key_index", LighterCore.this.parseToInt(finalApiKeyIndex) );
-            put( "account_index", LighterCore.this.parseToInt(finalAccountIndex) );
+            put( "api_key_index", Lighter.this.parseToInt(finalApiKeyIndex) );
+            put( "account_index", Lighter.this.parseToInt(finalAccountIndex) );
         }};
         Object token = this.lighterCreateAuthToken(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex), "signer"), request);
         Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex), "deadline", deadline);
@@ -933,7 +933,7 @@ public class LighterCore extends LighterApi
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
             java.util.Map<String, Object> signRaw = new java.util.HashMap<String, Object>() {{
-                put( "pubkey", LighterCore.this.encode(publicKey) );
+                put( "pubkey", Lighter.this.encode(publicKey) );
                 put( "nonce", nonce );
                 put( "api_key_index", finalApiKeyIndex );
                 put( "account_index", finalAccountIndex );
@@ -1003,7 +1003,7 @@ public class LighterCore extends LighterApi
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object orderSide = ((String)((String)side)).toUpperCase();
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-            put( "market_index", LighterCore.this.parseToInt(Helpers.GetValue(market, "id")) );
+            put( "market_index", Lighter.this.parseToInt(Helpers.GetValue(market, "id")) );
         }};
         Object nonce = null;
         Object apiKeyIndex = null;
@@ -1394,11 +1394,11 @@ public class LighterCore extends LighterApi
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
             java.util.Map<String, Object> signRaw = new java.util.HashMap<String, Object>() {{
-                put( "market_index", LighterCore.this.parseToInt(Helpers.GetValue(market, "id")) );
-                put( "index", LighterCore.this.parseToInt(id) );
-                put( "base_amount", LighterCore.this.parseToInt(Precise.stringMul(finalAmountStr, amountScale)) );
-                put( "price", LighterCore.this.parseToInt(Precise.stringMul(priceStr, priceScale)) );
-                put( "trigger_price", LighterCore.this.parseToInt(Precise.stringMul(finalTriggerPriceStr, priceScale)) );
+                put( "market_index", Lighter.this.parseToInt(Helpers.GetValue(market, "id")) );
+                put( "index", Lighter.this.parseToInt(id) );
+                put( "base_amount", Lighter.this.parseToInt(Precise.stringMul(finalAmountStr, amountScale)) );
+                put( "price", Lighter.this.parseToInt(Precise.stringMul(priceStr, priceScale)) );
+                put( "trigger_price", Lighter.this.parseToInt(Precise.stringMul(finalTriggerPriceStr, priceScale)) );
                 put( "nonce", nonce );
                 put( "api_key_index", finalApiKeyIndex );
                 put( "account_index", finalAccountIndex );
@@ -1629,12 +1629,12 @@ public class LighterCore extends LighterApi
                     put( "swap", Helpers.isEqual(finalType, "swap") );
                     put( "future", false );
                     put( "option", false );
-                    put( "active", Helpers.isEqual(LighterCore.this.safeString(market, "status"), "active") );
+                    put( "active", Helpers.isEqual(Lighter.this.safeString(market, "status"), "active") );
                     put( "contract", Helpers.isEqual(finalType, "swap") );
                     put( "linear", ((Helpers.isTrue((Helpers.isEqual(finalType, "swap"))))) ? true : null );
                     put( "inverse", ((Helpers.isTrue((Helpers.isEqual(finalType, "swap"))))) ? false : null );
-                    put( "taker", LighterCore.this.safeNumber(market, "taker_fee") );
-                    put( "maker", LighterCore.this.safeNumber(market, "maker_fee") );
+                    put( "taker", Lighter.this.safeNumber(market, "taker_fee") );
+                    put( "maker", Lighter.this.safeNumber(market, "maker_fee") );
                     put( "contractSize", quoteMultiplier );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
@@ -1650,7 +1650,7 @@ public class LighterCore extends LighterApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", LighterCore.this.safeNumber(market, "min_base_amount") );
+                            put( "min", Lighter.this.safeNumber(market, "min_base_amount") );
                             put( "max", null );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
@@ -1658,8 +1658,8 @@ public class LighterCore extends LighterApi
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", LighterCore.this.safeNumber(market, "min_quote_amount") );
-                            put( "max", LighterCore.this.safeNumber(market, "order_quote_limit") );
+                            put( "min", Lighter.this.safeNumber(market, "min_quote_amount") );
+                            put( "max", Lighter.this.safeNumber(market, "order_quote_limit") );
                         }} );
                     }} );
                     put( "created", null );
@@ -1734,7 +1734,7 @@ public class LighterCore extends LighterApi
             put( "id", id );
             put( "name", finalCode );
             put( "code", finalCode );
-            put( "precision", LighterCore.this.parseNumber(Helpers.add("1e-", decimals)) );
+            put( "precision", Lighter.this.parseNumber(Helpers.add("1e-", decimals)) );
             put( "active", true );
             put( "fee", null );
             put( "networks", new java.util.HashMap<String, Object>() {{}} );
@@ -1918,8 +1918,8 @@ public class LighterCore extends LighterApi
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-            put( "markPrice", LighterCore.this.safeString(ticker, "mark_price") );
-            put( "indexPrice", LighterCore.this.safeString(ticker, "index_price") );
+            put( "markPrice", Lighter.this.safeString(ticker, "mark_price") );
+            put( "indexPrice", Lighter.this.safeString(ticker, "index_price") );
             put( "openInterest", openInterest );
             put( "info", ticker );
         }}, market);
@@ -2125,7 +2125,7 @@ public class LighterCore extends LighterApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market_id", Helpers.GetValue(market, "id") );
                 put( "count_back", 0 );
-                put( "resolution", LighterCore.this.safeString(LighterCore.this.timeframes, timeframe, timeframe) );
+                put( "resolution", Lighter.this.safeString(Lighter.this.timeframes, timeframe, timeframe) );
                 put( "start_timestamp", finalStartTs );
                 put( "end_timestamp", finalEndTs );
             }};
@@ -2172,14 +2172,14 @@ public class LighterCore extends LighterApi
         String marketId = this.safeString(contract, "market_id");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", LighterCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Lighter.this.safeSymbol(marketId, market) );
             put( "markPrice", null );
             put( "indexPrice", null );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", LighterCore.this.safeNumber(contract, "rate") );
+            put( "fundingRate", Lighter.this.safeNumber(contract, "rate") );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
             put( "nextFundingRate", null );
@@ -2271,7 +2271,7 @@ public class LighterCore extends LighterApi
             final Object finalParameters = parameters;
             final Object finalAccountIndex = accountIndex;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "by", LighterCore.this.safeString(finalParameters, "by", "index") );
+                put( "by", Lighter.this.safeString(finalParameters, "by", "index") );
                 put( "value", finalAccountIndex );
             }};
             java.util.Map<String, Object> response = (this.publicGetAccount(this.extend(request, parameters))).join();
@@ -2376,7 +2376,7 @@ public class LighterCore extends LighterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object positions = (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object positions = (this.fetchPositions((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(positions, 0, new java.util.HashMap<String, Object>() {{}});
         });
 
@@ -2411,7 +2411,7 @@ public class LighterCore extends LighterApi
             final Object finalParameters = parameters;
             final Object finalAccountIndex = accountIndex;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "by", LighterCore.this.safeString(finalParameters, "by", "index") );
+                put( "by", Lighter.this.safeString(finalParameters, "by", "index") );
                 put( "value", finalAccountIndex );
             }};
             java.util.Map<String, Object> response = (this.publicGetAccount(this.extend(request, parameters))).join();
@@ -2539,19 +2539,19 @@ public class LighterCore extends LighterApi
             put( "isolated", (Helpers.isEqual(finalMarginMode, "isolated")) );
             put( "hedged", null );
             put( "side", finalSide );
-            put( "contracts", LighterCore.this.safeNumber(position, "position") );
+            put( "contracts", Lighter.this.safeNumber(position, "position") );
             put( "contractSize", null );
-            put( "entryPrice", LighterCore.this.safeNumber(position, "avg_entry_price") );
+            put( "entryPrice", Lighter.this.safeNumber(position, "avg_entry_price") );
             put( "markPrice", null );
-            put( "notional", LighterCore.this.safeNumber(position, "position_value") );
+            put( "notional", Lighter.this.safeNumber(position, "position_value") );
             put( "leverage", finalLeverage );
-            put( "collateral", LighterCore.this.safeNumber(position, "allocated_margin") );
+            put( "collateral", Lighter.this.safeNumber(position, "allocated_margin") );
             put( "initialMargin", null );
             put( "maintenanceMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMarginPercentage", null );
-            put( "unrealizedPnl", LighterCore.this.safeNumber(position, "unrealized_pnl") );
-            put( "liquidationPrice", LighterCore.this.safeNumber(position, "liquidation_price") );
+            put( "unrealizedPnl", Lighter.this.safeNumber(position, "unrealized_pnl") );
+            put( "liquidationPrice", Lighter.this.safeNumber(position, "liquidation_price") );
             put( "marginMode", finalMarginMode );
             put( "percentage", null );
         }});
@@ -2584,7 +2584,7 @@ public class LighterCore extends LighterApi
             final Object finalParameters = parameters;
             final Object finalAccountIndex = accountIndex;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "by", LighterCore.this.safeString(finalParameters, "by", "index") );
+                put( "by", Lighter.this.safeString(finalParameters, "by", "index") );
                 put( "value", finalAccountIndex );
             }};
             java.util.Map<String, Object> response = (this.publicGetAccount(this.extend(request, parameters))).join();
@@ -2655,7 +2655,7 @@ public class LighterCore extends LighterApi
         String accountType = this.safeString(account, "account_type");
         final Object finalAccountType = accountType;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", LighterCore.this.safeString(account, "account_index") );
+            put( "id", Lighter.this.safeString(account, "account_index") );
             put( "type", ((Helpers.isTrue((Helpers.isEqual(finalAccountType, "0"))))) ? "main" : "subaccount" );
             put( "code", null );
             put( "info", account );
@@ -2963,28 +2963,28 @@ public class LighterCore extends LighterApi
         final Object finalTakeProfitPrice = takeProfitPrice;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", LighterCore.this.safeString(order, "order_id") );
-            put( "clientOrderId", LighterCore.this.omitZero(LighterCore.this.safeString2(order, "client_order_id", "client_order_index")) );
+            put( "id", Lighter.this.safeString(order, "order_id") );
+            put( "clientOrderId", Lighter.this.omitZero(Lighter.this.safeString2(order, "client_order_id", "client_order_index")) );
             put( "timestamp", timestamp );
-            put( "datetime", LighterCore.this.iso8601(timestamp) );
+            put( "datetime", Lighter.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", LighterCore.this.safeTimestamp(order, "updated_at") );
+            put( "lastUpdateTimestamp", Lighter.this.safeTimestamp(order, "updated_at") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "type", LighterCore.this.parseOrderType(finalType) );
-            put( "timeInForce", LighterCore.this.parseOrderTimeInForce(finalTif) );
+            put( "type", Lighter.this.parseOrderType(finalType) );
+            put( "timeInForce", Lighter.this.parseOrderTimeInForce(finalTif) );
             put( "postOnly", Helpers.isEqual(finalTif, "post-only") );
             put( "reduceOnly", finalReduceOnly );
             put( "side", finalSide );
-            put( "price", LighterCore.this.safeString(order, "price") );
+            put( "price", Lighter.this.safeString(order, "price") );
             put( "triggerPrice", triggerPrice );
             put( "stopLossPrice", finalStopLossPrice );
             put( "takeProfitPrice", finalTakeProfitPrice );
-            put( "amount", LighterCore.this.safeString(order, "initial_base_amount") );
-            put( "cost", LighterCore.this.safeString(order, "filled_quote_amount") );
+            put( "amount", Lighter.this.safeString(order, "initial_base_amount") );
+            put( "cost", Lighter.this.safeString(order, "filled_quote_amount") );
             put( "average", null );
-            put( "filled", LighterCore.this.safeString(order, "filled_base_amount") );
-            put( "remaining", LighterCore.this.safeString(order, "remaining_base_amount") );
-            put( "status", LighterCore.this.parseOrderStatus(status) );
+            put( "filled", Lighter.this.safeString(order, "filled_base_amount") );
+            put( "remaining", Lighter.this.safeString(order, "remaining_base_amount") );
+            put( "status", Lighter.this.parseOrderStatus(status) );
             put( "fee", null );
             put( "trades", null );
         }}, market);
@@ -3136,7 +3136,7 @@ public class LighterCore extends LighterApi
             final Object finalAccountIndex = accountIndex;
             java.util.Map<String, Object> signRaw = new java.util.HashMap<String, Object>() {{
                 put( "to_account_index", finalToAccountIndex );
-                put( "asset_index", LighterCore.this.parseToInt(Helpers.GetValue(currency, "id")) );
+                put( "asset_index", Lighter.this.parseToInt(Helpers.GetValue(currency, "id")) );
                 put( "from_route_type", fromRouteType );
                 put( "to_route_type", toRouteType );
                 put( "amount", finalAmount );
@@ -3275,13 +3275,13 @@ public class LighterCore extends LighterApi
         Object fromAccount = this.safeDict(transfer, "from", new java.util.HashMap<String, Object>() {{}});
         Object toAccount = this.safeDict(transfer, "to", new java.util.HashMap<String, Object>() {{}});
         return new java.util.HashMap<String, Object>() {{
-            put( "id", LighterCore.this.safeString(transfer, "id") );
+            put( "id", Lighter.this.safeString(transfer, "id") );
             put( "timestamp", timestamp );
-            put( "datetime", LighterCore.this.iso8601(timestamp) );
+            put( "datetime", Lighter.this.iso8601(timestamp) );
             put( "currency", code );
-            put( "amount", LighterCore.this.safeNumber(transfer, "amount") );
-            put( "fromAccount", LighterCore.this.safeString(fromAccount, "from_account_index") );
-            put( "toAccount", LighterCore.this.safeString(toAccount, "to_account_index") );
+            put( "amount", Lighter.this.safeNumber(transfer, "amount") );
+            put( "fromAccount", Lighter.this.safeString(fromAccount, "from_account_index") );
+            put( "toAccount", Lighter.this.safeString(toAccount, "to_account_index") );
             put( "status", null );
             put( "info", transfer );
         }};
@@ -3504,15 +3504,15 @@ public class LighterCore extends LighterApi
         final Object finalType = type;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", LighterCore.this.safeString(transaction, "id") );
-            put( "txid", LighterCore.this.safeString(transaction, "l1_tx_hash") );
+            put( "id", Lighter.this.safeString(transaction, "id") );
+            put( "txid", Lighter.this.safeString(transaction, "l1_tx_hash") );
             put( "type", finalType );
-            put( "currency", LighterCore.this.safeCurrencyCode(LighterCore.this.safeString(transaction, "asset_id"), currency) );
+            put( "currency", Lighter.this.safeCurrencyCode(Lighter.this.safeString(transaction, "asset_id"), currency) );
             put( "network", null );
-            put( "amount", LighterCore.this.safeNumber(transaction, "amount") );
-            put( "status", LighterCore.this.parseTransactionStatus(status) );
+            put( "amount", Lighter.this.safeNumber(transaction, "amount") );
+            put( "status", Lighter.this.parseTransactionStatus(status) );
             put( "timestamp", timestamp );
-            put( "datetime", LighterCore.this.iso8601(timestamp) );
+            put( "datetime", Lighter.this.iso8601(timestamp) );
             put( "address", null );
             put( "addressFrom", null );
             put( "addressTo", null );
@@ -3591,7 +3591,7 @@ public class LighterCore extends LighterApi
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
             java.util.Map<String, Object> signRaw = new java.util.HashMap<String, Object>() {{
-                put( "asset_index", LighterCore.this.parseToInt(Helpers.GetValue(currency, "id")) );
+                put( "asset_index", Lighter.this.parseToInt(Helpers.GetValue(currency, "id")) );
                 put( "route_type", routeType );
                 put( "amount", finalAmount );
                 put( "nonce", nonce );
@@ -3791,17 +3791,17 @@ public class LighterCore extends LighterApi
         final Object finalTakerOrMaker = takerOrMaker;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", LighterCore.this.safeString(trade, "trade_id") );
+            put( "id", Lighter.this.safeString(trade, "trade_id") );
             put( "timestamp", timestamp );
-            put( "datetime", LighterCore.this.iso8601(timestamp) );
+            put( "datetime", Lighter.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "order", finalOrderId );
-            put( "type", LighterCore.this.safeString(trade, "type") );
+            put( "type", Lighter.this.safeString(trade, "type") );
             put( "side", finalSide );
             put( "takerOrMaker", finalTakerOrMaker );
-            put( "price", LighterCore.this.safeString(trade, "price") );
-            put( "amount", LighterCore.this.safeString(trade, "size") );
-            put( "cost", LighterCore.this.safeString(trade, "usd_amount") );
+            put( "price", Lighter.this.safeString(trade, "price") );
+            put( "amount", Lighter.this.safeString(trade, "size") );
+            put( "cost", Lighter.this.safeString(trade, "usd_amount") );
             put( "fee", null );
         }}, market);
     }
@@ -3914,8 +3914,8 @@ public class LighterCore extends LighterApi
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
             java.util.Map<String, Object> signRaw = new java.util.HashMap<String, Object>() {{
-                put( "market_index", LighterCore.this.parseToInt(Helpers.GetValue(market, "id")) );
-                put( "initial_margin_fraction", LighterCore.this.parseToInt(Helpers.divide(10000, leverage)) );
+                put( "market_index", Lighter.this.parseToInt(Helpers.GetValue(market, "id")) );
+                put( "initial_margin_fraction", Lighter.this.parseToInt(Helpers.divide(10000, leverage)) );
                 put( "margin_mode", ((Helpers.isTrue((Helpers.isEqual(finalMarginMode, "cross"))))) ? 0 : 1 );
                 put( "nonce", nonce );
                 put( "api_key_index", finalApiKeyIndex );
@@ -3966,7 +3966,7 @@ public class LighterCore extends LighterApi
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
             java.util.Map<String, Object> signRaw = new java.util.HashMap<String, Object>() {{
-                put( "market_index", LighterCore.this.parseToInt(Helpers.GetValue(market, "id")) );
+                put( "market_index", Lighter.this.parseToInt(Helpers.GetValue(market, "id")) );
                 put( "nonce", nonce );
                 put( "api_key_index", finalApiKeyIndex );
                 put( "account_index", finalAccountIndex );
@@ -4129,7 +4129,7 @@ public class LighterCore extends LighterApi
             final Object finalAccountIndex = accountIndex;
             java.util.Map<String, Object> signRaw = new java.util.HashMap<String, Object>() {{
                 put( "time_in_force", 1 );
-                put( "time", Helpers.add(LighterCore.this.milliseconds(), timeout) );
+                put( "time", Helpers.add(Lighter.this.milliseconds(), timeout) );
                 put( "nonce", nonce );
                 put( "api_key_index", finalApiKeyIndex );
                 put( "account_index", finalAccountIndex );
@@ -4165,7 +4165,7 @@ public class LighterCore extends LighterApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "direction", 1 );
             }};
-            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
+            return (this.setMargin(symbol, (Object)(amount), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -4188,7 +4188,7 @@ public class LighterCore extends LighterApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "direction", 0 );
             }};
-            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
+            return (this.setMargin(symbol, (Object)(amount), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -4244,8 +4244,8 @@ public class LighterCore extends LighterApi
             final Object finalApiKeyIndex = apiKeyIndex;
             final Object finalAccountIndex = accountIndex;
             java.util.Map<String, Object> signRaw = new java.util.HashMap<String, Object>() {{
-                put( "market_index", LighterCore.this.parseToInt(Helpers.GetValue(market, "id")) );
-                put( "usdc_amount", LighterCore.this.parseToInt(Precise.stringMul(LighterCore.this.pow("10", "6"), LighterCore.this.currencyToPrecision("USDC", amount))) );
+                put( "market_index", Lighter.this.parseToInt(Helpers.GetValue(market, "id")) );
+                put( "usdc_amount", Lighter.this.parseToInt(Precise.stringMul(Lighter.this.pow("10", "6"), Lighter.this.currencyToPrecision("USDC", amount))) );
                 put( "direction", finalDirection );
                 put( "nonce", nonce );
                 put( "api_key_index", finalApiKeyIndex );
@@ -4270,7 +4270,7 @@ public class LighterCore extends LighterApi
         Long timestamp = this.safeInteger(data, "predicted_execution_time_ms");
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", LighterCore.this.safeString(market, "symbol") );
+            put( "symbol", Lighter.this.safeString(market, "symbol") );
             put( "type", null );
             put( "marginMode", null );
             put( "amount", null );
@@ -4278,7 +4278,7 @@ public class LighterCore extends LighterApi
             put( "code", "USDC" );
             put( "status", null );
             put( "timestamp", timestamp );
-            put( "datetime", LighterCore.this.iso8601(timestamp) );
+            put( "datetime", Lighter.this.iso8601(timestamp) );
         }};
     }
 
@@ -4300,7 +4300,7 @@ public class LighterCore extends LighterApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             headers = new java.util.HashMap<String, Object>() {{
-                put( "Authorization", LighterCore.this.createAuth(parameters) );
+                put( "Authorization", Lighter.this.createAuth(parameters) );
             }};
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))

@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
+public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
 {
-   public KucoinfuturesCore () {
+   public Kucoinfutures () {
        super();
    }
 
-   public KucoinfuturesCore (Object options) {
+   public Kucoinfutures (Object options) {
        super(options);
    }
 
@@ -95,7 +95,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object amountToPrecision = this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "currency", KucoinfuturesCore.this.safeString(currency, "id") );
+                put( "currency", Kucoinfutures.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
             String toAccountString = this.parseTransferType(toAccount);
@@ -115,7 +115,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             final Object finalToAccount = toAccount;
             return this.extend(this.parseTransfer(data, currency), new java.util.HashMap<String, Object>() {{
-                put( "amount", KucoinfuturesCore.this.parseNumber(amountToPrecision) );
+                put( "amount", Kucoinfutures.this.parseNumber(amountToPrecision) );
                 put( "fromAccount", fromAccount );
                 put( "toAccount", finalToAccount );
             }});

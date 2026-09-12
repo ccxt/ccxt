@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class LighterCore extends io.github.ccxt.exchanges.Lighter
+public class Lighter extends io.github.ccxt.exchanges.Lighter
 {
-   public LighterCore () {
+   public Lighter () {
        super();
    }
 
-   public LighterCore (Object options) {
+   public Lighter (Object options) {
        super(options);
    }
 
@@ -65,7 +65,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 }} );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
-                put( "requestId", LighterCore.this.createSafeDictionary() );
+                put( "requestId", Lighter.this.createSafeDictionary() );
             }} );
         }});
     }
@@ -535,7 +535,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTicker(symbol, parameters)).join();
+            return (this.watchTicker(symbol, (Object)(parameters))).join();
         });
 
     }
@@ -556,7 +556,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTickers(symbols, parameters)).join();
+            return (this.watchTickers((Object)(symbols), (Object)(parameters))).join();
         });
 
     }
@@ -644,14 +644,14 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             put( "id", tradeId );
             put( "order", null );
             put( "timestamp", timestamp );
-            put( "datetime", LighterCore.this.iso8601(timestamp) );
-            put( "symbol", LighterCore.this.safeSymbol(null, market) );
+            put( "datetime", Lighter.this.iso8601(timestamp) );
+            put( "symbol", Lighter.this.safeSymbol(null, market) );
             put( "type", null );
             put( "side", side );
             put( "takerOrMaker", "taker" );
             put( "price", priceString );
             put( "amount", amountString );
-            put( "cost", LighterCore.this.safeString(trade, "usd_amount") );
+            put( "cost", Lighter.this.safeString(trade, "usd_amount") );
             put( "fee", null );
         }}, market);
     }
@@ -871,8 +871,8 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             put( "id", tradeId );
             put( "order", finalOrder );
             put( "timestamp", timestamp );
-            put( "datetime", LighterCore.this.iso8601(timestamp) );
-            put( "symbol", LighterCore.this.safeSymbol(null, market) );
+            put( "datetime", Lighter.this.iso8601(timestamp) );
+            put( "symbol", Lighter.this.safeSymbol(null, market) );
             put( "type", null );
             put( "side", finalSide );
             put( "takerOrMaker", finalTakerOrMaker );
@@ -998,7 +998,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             }
             final Object finalAccountIndex = accountIndex;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "channel", Helpers.add("account_all_trades/", LighterCore.this.numberToString(finalAccountIndex)) );
+                put( "channel", Helpers.add("account_all_trades/", Lighter.this.numberToString(finalAccountIndex)) );
             }};
             Object trades = (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -1101,7 +1101,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             put( "baseValue", baseValue );
             put( "quoteValue", quoteValue );
             put( "timestamp", timestamp );
-            put( "datetime", LighterCore.this.iso8601(timestamp) );
+            put( "datetime", Lighter.this.iso8601(timestamp) );
         }});
     }
 

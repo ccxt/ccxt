@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class LbankCore extends LbankApi
+public class Lbank extends LbankApi
 {
-   public LbankCore () {
+   public Lbank () {
        super();
    }
 
-   public LbankCore (Object options) {
+   public Lbank (Object options) {
        super(options);
    }
 
@@ -335,8 +335,8 @@ public class LbankCore extends LbankApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "trading", new java.util.HashMap<String, Object>() {{
-                    put( "maker", LbankCore.this.parseNumber("0.001") );
-                    put( "taker", LbankCore.this.parseNumber("0.001") );
+                    put( "maker", Lbank.this.parseNumber("0.001") );
+                    put( "taker", Lbank.this.parseNumber("0.001") );
                 }} );
                 put( "funding", new java.util.HashMap<String, Object>() {{
                     put( "withdraw", new java.util.HashMap<String, Object>() {{}} );
@@ -611,19 +611,19 @@ public class LbankCore extends LbankApi
     put( "network", finalNetworkCode );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", LbankCore.this.safeNumber(networkEntry, "min") );
+            put( "min", Lbank.this.safeNumber(networkEntry, "min") );
             put( "max", null );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", LbankCore.this.safeNumber(networkEntry, "minTransfer") );
+            put( "min", Lbank.this.safeNumber(networkEntry, "minTransfer") );
             put( "max", null );
         }} );
     }} );
     put( "active", null );
     put( "deposit", null );
-    put( "withdraw", LbankCore.this.safeBool(networkEntry, "canWithDraw") );
-    put( "fee", LbankCore.this.safeNumber(networkEntry, "fee") );
-    put( "precision", LbankCore.this.parseNumber(LbankCore.this.parsePrecision(LbankCore.this.safeString(networkEntry, "transferAmtScale"))) );
+    put( "withdraw", Lbank.this.safeBool(networkEntry, "canWithDraw") );
+    put( "fee", Lbank.this.safeNumber(networkEntry, "fee") );
+    put( "precision", Lbank.this.parseNumber(Lbank.this.parsePrecision(Lbank.this.safeString(networkEntry, "transferAmtScale"))) );
     put( "info", networkEntry );
 }});
             }
@@ -735,8 +735,8 @@ public class LbankCore extends LbankApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", LbankCore.this.parseNumber(LbankCore.this.parsePrecision(LbankCore.this.safeString(market, "quantityAccuracy"))) );
-                        put( "price", LbankCore.this.parseNumber(LbankCore.this.parsePrecision(LbankCore.this.safeString(market, "priceAccuracy"))) );
+                        put( "amount", Lbank.this.parseNumber(Lbank.this.parsePrecision(Lbank.this.safeString(market, "quantityAccuracy"))) );
+                        put( "price", Lbank.this.parseNumber(Lbank.this.parsePrecision(Lbank.this.safeString(market, "priceAccuracy"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -744,7 +744,7 @@ public class LbankCore extends LbankApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", LbankCore.this.safeNumber(market, "minTranQua") );
+                            put( "min", Lbank.this.safeNumber(market, "minTranQua") );
                             put( "max", null );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
@@ -836,14 +836,14 @@ public class LbankCore extends LbankApi
                     put( "contract", true );
                     put( "linear", true );
                     put( "inverse", false );
-                    put( "contractSize", LbankCore.this.safeNumber(market, "volumeMultiple") );
+                    put( "contractSize", Lbank.this.safeNumber(market, "volumeMultiple") );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", LbankCore.this.safeNumber(market, "volumeTick") );
-                        put( "price", LbankCore.this.safeNumber(market, "priceTick") );
+                        put( "amount", Lbank.this.safeNumber(market, "volumeTick") );
+                        put( "price", Lbank.this.safeNumber(market, "priceTick") );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -851,15 +851,15 @@ public class LbankCore extends LbankApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", LbankCore.this.safeNumber(market, "minOrderVolume") );
-                            put( "max", LbankCore.this.safeNumber(market, "maxOrderVolume") );
+                            put( "min", Lbank.this.safeNumber(market, "minOrderVolume") );
+                            put( "max", Lbank.this.safeNumber(market, "maxOrderVolume") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", LbankCore.this.safeNumber(market, "minOrderCost") );
+                            put( "min", Lbank.this.safeNumber(market, "minOrderCost") );
                             put( "max", null );
                         }} );
                     }} );
@@ -920,23 +920,23 @@ public class LbankCore extends LbankApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
-            put( "datetime", LbankCore.this.iso8601(finalTimestamp) );
-            put( "high", LbankCore.this.safeString2(data, "high", "highestPrice") );
-            put( "low", LbankCore.this.safeString2(data, "low", "lowestPrice") );
+            put( "datetime", Lbank.this.iso8601(finalTimestamp) );
+            put( "high", Lbank.this.safeString2(data, "high", "highestPrice") );
+            put( "low", Lbank.this.safeString2(data, "low", "lowestPrice") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", LbankCore.this.safeString(data, "openPrice") );
+            put( "open", Lbank.this.safeString(data, "openPrice") );
             put( "close", null );
-            put( "last", LbankCore.this.safeString2(data, "latest", "lastPrice") );
+            put( "last", Lbank.this.safeString2(data, "latest", "lastPrice") );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", LbankCore.this.safeString(data, "change") );
+            put( "percentage", Lbank.this.safeString(data, "change") );
             put( "average", null );
-            put( "baseVolume", LbankCore.this.safeString2(data, "vol", "volume") );
-            put( "quoteVolume", LbankCore.this.safeString(data, "turnover") );
+            put( "baseVolume", Lbank.this.safeString2(data, "vol", "volume") );
+            put( "quoteVolume", Lbank.this.safeString(data, "turnover") );
             put( "info", ticker );
         }}, market);
     }
@@ -963,7 +963,7 @@ public class LbankCore extends LbankApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                Object responseForSwap = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+                Object responseForSwap = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
                 return this.safeValue(responseForSwap, Helpers.GetValue(market, "symbol"));
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1295,7 +1295,7 @@ public class LbankCore extends LbankApi
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", feeCurr );
-                put( "rate", LbankCore.this.safeString(trade, "tradeFeeRate") );
+                put( "rate", Lbank.this.safeString(trade, "tradeFeeRate") );
             }};
         }
         final Object finalTimestamp = timestamp;
@@ -1309,7 +1309,7 @@ public class LbankCore extends LbankApi
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "timestamp", finalTimestamp );
-            put( "datetime", LbankCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Lbank.this.iso8601(finalTimestamp) );
             put( "symbol", symbol );
             put( "id", finalId );
             put( "order", order );
@@ -1456,7 +1456,7 @@ public class LbankCore extends LbankApi
             Object parsedLimit = Helpers.mathMin(Helpers.add(limit, 1), 2000); // max 2000;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "type", LbankCore.this.safeString(LbankCore.this.timeframes, timeframe, timeframe) );
+                put( "type", Lbank.this.safeString(Lbank.this.timeframes, timeframe, timeframe) );
                 put( "time", parsedSince );
                 put( "size", parsedLimit );
             }};
@@ -1571,7 +1571,7 @@ public class LbankCore extends LbankApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
-            put( "datetime", LbankCore.this.iso8601(timestamp) );
+            put( "datetime", Lbank.this.iso8601(timestamp) );
         }};
         Object data = this.safeValue(response, "data");
         // from spotPrivatePostUserInfo
@@ -1675,7 +1675,7 @@ public class LbankCore extends LbankApi
             put( "indexPrice", indexPrice );
             put( "fundingRate", fundingRate );
             put( "fundingTimestamp", fundingTime );
-            put( "fundingDatetime", LbankCore.this.iso8601(fundingTime) );
+            put( "fundingDatetime", Lbank.this.iso8601(fundingTime) );
             put( "timestamp", null );
             put( "datetime", null );
             put( "nextFundingRate", null );
@@ -1708,7 +1708,7 @@ public class LbankCore extends LbankApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object responseForSwap = (this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+            Object responseForSwap = (this.fetchFundingRates((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
             return this.safeValue(responseForSwap, Helpers.GetValue(market, "symbol"));
         });
 
@@ -1858,8 +1858,8 @@ public class LbankCore extends LbankApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", LbankCore.this.safeNumber(fee, "makerCommission") );
-            put( "taker", LbankCore.this.safeNumber(fee, "takerCommission") );
+            put( "maker", Lbank.this.safeNumber(fee, "makerCommission") );
+            put( "taker", Lbank.this.safeNumber(fee, "takerCommission") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -1881,9 +1881,9 @@ public class LbankCore extends LbankApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object result = (this.fetchTradingFees(this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            Object result = (this.fetchTradingFees((Object)(this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "category", Helpers.GetValue(market, "id") );
-            }}))).join();
+            }})))).join();
             return this.safeDict(result, symbol);
         });
 
@@ -1949,7 +1949,7 @@ public class LbankCore extends LbankApi
                 throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -2079,7 +2079,7 @@ public class LbankCore extends LbankApi
             //
             Object result = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
-                put( "id", LbankCore.this.safeString(result, "order_id") );
+                put( "id", Lbank.this.safeString(result, "order_id") );
                 put( "info", result );
             }}, market);
         });
@@ -2235,10 +2235,10 @@ public class LbankCore extends LbankApi
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
-            put( "datetime", LbankCore.this.iso8601(timestamp) );
+            put( "datetime", Lbank.this.iso8601(timestamp) );
             put( "timestamp", timestamp );
             put( "lastTradeTimestamp", null );
-            put( "status", LbankCore.this.parseOrderStatus(rawStatus) );
+            put( "status", Lbank.this.parseOrderStatus(rawStatus) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", finalType );
             put( "timeInForce", finalTimeInForce );
@@ -2812,7 +2812,7 @@ public class LbankCore extends LbankApi
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
-                put( "network", LbankCore.this.networkIdToCode(LbankCore.this.safeString(result, "netWork"), code) );
+                put( "network", Lbank.this.networkIdToCode(Lbank.this.safeString(result, "netWork"), code) );
                 put( "address", address );
                 put( "tag", tag );
             }};
@@ -2935,7 +2935,7 @@ public class LbankCore extends LbankApi
             Object result = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             return new java.util.HashMap<String, Object>() {{
                 put( "info", result );
-                put( "id", LbankCore.this.safeString(result, "withdrawId") );
+                put( "id", Lbank.this.safeString(result, "withdrawId") );
             }};
         });
 
@@ -3039,8 +3039,8 @@ public class LbankCore extends LbankApi
             put( "id", finalId );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", LbankCore.this.iso8601(timestamp) );
-            put( "network", LbankCore.this.networkIdToCode(LbankCore.this.safeString(transaction, "networkName"), code) );
+            put( "datetime", Lbank.this.iso8601(timestamp) );
+            put( "network", Lbank.this.networkIdToCode(Lbank.this.safeString(transaction, "networkName"), code) );
             put( "address", address );
             put( "addressTo", finalAddressTo );
             put( "addressFrom", finalAddressFrom );
@@ -3704,7 +3704,7 @@ public class LbankCore extends LbankApi
             Object timestamp = String.valueOf(this.milliseconds());
             Object echostr = Helpers.add(this.uuid22(), this.uuid16());
             query = this.extend(new java.util.HashMap<String, Object>() {{
-                put( "api_key", LbankCore.this.apiKey );
+                put( "api_key", Lbank.this.apiKey );
             }}, query);
             String signatureMethod = null;
             if (Helpers.isTrue(Helpers.isGreaterThan(this.secret.length(), 32)))

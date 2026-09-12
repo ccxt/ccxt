@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class LatokenCore extends LatokenApi
+public class Latoken extends LatokenApi
 {
-   public LatokenCore () {
+   public Latoken () {
        super();
    }
 
-   public LatokenCore (Object options) {
+   public Latoken (Object options) {
        super(options);
    }
 
@@ -323,8 +323,8 @@ public class LatokenCore extends LatokenApi
                     put( "feeSide", "get" );
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "maker", LatokenCore.this.parseNumber("0.0049") );
-                    put( "taker", LatokenCore.this.parseNumber("0.0049") );
+                    put( "maker", Latoken.this.parseNumber("0.0049") );
+                    put( "taker", Latoken.this.parseNumber("0.0049") );
                 }} );
             }} );
             put( "commonCurrencies", new java.util.HashMap<String, Object>() {{
@@ -592,8 +592,8 @@ public class LatokenCore extends LatokenApi
                         put( "strike", null );
                         put( "optionType", null );
                         put( "precision", new java.util.HashMap<String, Object>() {{
-                            put( "amount", LatokenCore.this.safeNumber(market, "quantityTick") );
-                            put( "price", LatokenCore.this.safeNumber(market, "priceTick") );
+                            put( "amount", Latoken.this.safeNumber(market, "quantityTick") );
+                            put( "price", Latoken.this.safeNumber(market, "priceTick") );
                         }} );
                         put( "limits", new java.util.HashMap<String, Object>() {{
                             put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -601,7 +601,7 @@ public class LatokenCore extends LatokenApi
                                 put( "max", null );
                             }} );
                             put( "amount", new java.util.HashMap<String, Object>() {{
-                                put( "min", LatokenCore.this.safeNumber(market, "minOrderQuantity") );
+                                put( "min", Latoken.this.safeNumber(market, "minOrderQuantity") );
                                 put( "max", null );
                             }} );
                             put( "price", new java.util.HashMap<String, Object>() {{
@@ -609,11 +609,11 @@ public class LatokenCore extends LatokenApi
                                 put( "max", null );
                             }} );
                             put( "cost", new java.util.HashMap<String, Object>() {{
-                                put( "min", LatokenCore.this.safeNumber(market, Helpers.add("minOrderCost", capitalizedQuote)) );
-                                put( "max", LatokenCore.this.safeNumber(market, Helpers.add("maxOrderCost", capitalizedQuote)) );
+                                put( "min", Latoken.this.safeNumber(market, Helpers.add("minOrderCost", capitalizedQuote)) );
+                                put( "max", Latoken.this.safeNumber(market, Helpers.add("maxOrderCost", capitalizedQuote)) );
                             }} );
                         }} );
-                        put( "created", LatokenCore.this.safeInteger(market, "created") );
+                        put( "created", Latoken.this.safeInteger(market, "created") );
                         put( "info", market );
                     }});
                 }
@@ -685,16 +685,16 @@ public class LatokenCore extends LatokenApi
             put( "id", id );
             put( "code", code );
             put( "info", currency );
-            put( "name", LatokenCore.this.safeString(currency, "name") );
+            put( "name", Latoken.this.safeString(currency, "name") );
             put( "type", ((Helpers.isTrue(isCrypto))) ? "crypto" : "other" );
-            put( "active", Helpers.isEqual(LatokenCore.this.safeString(currency, "status"), "CURRENCY_STATUS_ACTIVE") );
+            put( "active", Helpers.isEqual(Latoken.this.safeString(currency, "status"), "CURRENCY_STATUS_ACTIVE") );
             put( "deposit", null );
             put( "withdraw", null );
-            put( "fee", LatokenCore.this.safeNumber(currency, "fee") );
-            put( "precision", LatokenCore.this.parseNumber(LatokenCore.this.parsePrecision(LatokenCore.this.safeString(currency, "decimals"))) );
+            put( "fee", Latoken.this.safeNumber(currency, "fee") );
+            put( "precision", Latoken.this.parseNumber(Latoken.this.parsePrecision(Latoken.this.safeString(currency, "decimals"))) );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", LatokenCore.this.safeNumber(currency, "minTransferAmount") );
+                    put( "min", Latoken.this.safeNumber(currency, "minTransferAmount") );
                     put( "max", null );
                 }} );
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -903,25 +903,25 @@ public class LatokenCore extends LatokenApi
         String last = this.safeString(ticker, "lastPrice");
         Object timestamp = this.safeIntegerOmitZero(ticker, "updateTimestamp"); // sometimes latoken provided '0' ts from /ticker endpoint
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", LatokenCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Latoken.this.safeSymbol(marketId, market) );
             put( "timestamp", timestamp );
-            put( "datetime", LatokenCore.this.iso8601(timestamp) );
+            put( "datetime", Latoken.this.iso8601(timestamp) );
             put( "low", null );
             put( "high", null );
-            put( "bid", LatokenCore.this.safeString(ticker, "bestBid") );
-            put( "bidVolume", LatokenCore.this.safeString(ticker, "bestBidQuantity") );
-            put( "ask", LatokenCore.this.safeString(ticker, "bestAsk") );
-            put( "askVolume", LatokenCore.this.safeString(ticker, "bestAskQuantity") );
+            put( "bid", Latoken.this.safeString(ticker, "bestBid") );
+            put( "bidVolume", Latoken.this.safeString(ticker, "bestBidQuantity") );
+            put( "ask", Latoken.this.safeString(ticker, "bestAsk") );
+            put( "askVolume", Latoken.this.safeString(ticker, "bestAskQuantity") );
             put( "vwap", null );
             put( "open", null );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", LatokenCore.this.safeString(ticker, "change24h") );
+            put( "percentage", Latoken.this.safeString(ticker, "change24h") );
             put( "average", null );
-            put( "baseVolume", LatokenCore.this.safeString(ticker, "amount24h") );
-            put( "quoteVolume", LatokenCore.this.safeString(ticker, "volume24h") );
+            put( "baseVolume", Latoken.this.safeString(ticker, "amount24h") );
+            put( "quoteVolume", Latoken.this.safeString(ticker, "volume24h") );
             put( "info", ticker );
         }}, market);
     }
@@ -1109,7 +1109,7 @@ public class LatokenCore extends LatokenApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", LatokenCore.this.iso8601(timestamp) );
+            put( "datetime", Latoken.this.iso8601(timestamp) );
             put( "symbol", finalSymbol );
             put( "id", id );
             put( "order", orderId );
@@ -1229,8 +1229,8 @@ public class LatokenCore extends LatokenApi
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", Helpers.GetValue(market, "symbol") );
-                put( "maker", LatokenCore.this.safeNumber(response, "makerFee") );
-                put( "taker", LatokenCore.this.safeNumber(response, "takerFee") );
+                put( "maker", Latoken.this.safeNumber(response, "makerFee") );
+                put( "taker", Latoken.this.safeNumber(response, "takerFee") );
                 put( "percentage", null );
                 put( "tierBased", null );
             }};
@@ -1265,8 +1265,8 @@ public class LatokenCore extends LatokenApi
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", Helpers.GetValue(market, "symbol") );
-                put( "maker", LatokenCore.this.safeNumber(response, "makerFee") );
-                put( "taker", LatokenCore.this.safeNumber(response, "takerFee") );
+                put( "maker", Latoken.this.safeNumber(response, "makerFee") );
+                put( "taker", Latoken.this.safeNumber(response, "takerFee") );
                 put( "percentage", null );
                 put( "tierBased", null );
             }};
@@ -1464,7 +1464,7 @@ public class LatokenCore extends LatokenApi
             put( "clientOrderId", clientOrderId );
             put( "info", order );
             put( "timestamp", timestamp );
-            put( "datetime", LatokenCore.this.iso8601(timestamp) );
+            put( "datetime", Latoken.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "status", finalStatus );
             put( "symbol", finalSymbol );
@@ -1473,7 +1473,7 @@ public class LatokenCore extends LatokenApi
             put( "postOnly", null );
             put( "side", finalSide );
             put( "price", price );
-            put( "triggerPrice", LatokenCore.this.safeString(order, "stopPrice") );
+            put( "triggerPrice", Latoken.this.safeString(order, "stopPrice") );
             put( "cost", cost );
             put( "amount", amount );
             put( "filled", filled );
@@ -1748,9 +1748,9 @@ public class LatokenCore extends LatokenApi
                 put( "side", ((String)finalSide).toUpperCase() );
                 put( "condition", "GTC" );
                 put( "type", finalUppercaseType );
-                put( "clientOrderId", LatokenCore.this.uuid() );
-                put( "quantity", LatokenCore.this.amountToPrecision(symbol, amount) );
-                put( "timestamp", LatokenCore.this.seconds() );
+                put( "clientOrderId", Latoken.this.uuid() );
+                put( "quantity", Latoken.this.amountToPrecision(symbol, amount) );
+                put( "timestamp", Latoken.this.seconds() );
             }};
             if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "LIMIT")))
             {
@@ -2010,7 +2010,7 @@ public class LatokenCore extends LatokenApi
             put( "id", id );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", LatokenCore.this.iso8601(timestamp) );
+            put( "datetime", Latoken.this.iso8601(timestamp) );
             put( "network", null );
             put( "addressFrom", addressFrom );
             put( "addressTo", addressTo );
@@ -2142,7 +2142,7 @@ public class LatokenCore extends LatokenApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "recipient", toAccount );
-                put( "value", LatokenCore.this.currencyToPrecision(code, amount) );
+                put( "value", Latoken.this.currencyToPrecision(code, amount) );
             }};
             Object response = null;
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(toAccount, "@"), 0)))
@@ -2212,14 +2212,14 @@ public class LatokenCore extends LatokenApi
         String status = this.safeString(transfer, "status");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", LatokenCore.this.safeString(transfer, "id") );
-            put( "timestamp", LatokenCore.this.safeInteger(transfer, "timestamp") );
-            put( "datetime", LatokenCore.this.iso8601(timestamp) );
-            put( "currency", LatokenCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", LatokenCore.this.safeNumber(transfer, "transferringFunds") );
-            put( "fromAccount", LatokenCore.this.safeString(transfer, "fromAccount") );
-            put( "toAccount", LatokenCore.this.safeString(transfer, "toAccount") );
-            put( "status", LatokenCore.this.parseTransferStatus(status) );
+            put( "id", Latoken.this.safeString(transfer, "id") );
+            put( "timestamp", Latoken.this.safeInteger(transfer, "timestamp") );
+            put( "datetime", Latoken.this.iso8601(timestamp) );
+            put( "currency", Latoken.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Latoken.this.safeNumber(transfer, "transferringFunds") );
+            put( "fromAccount", Latoken.this.safeString(transfer, "fromAccount") );
+            put( "toAccount", Latoken.this.safeString(transfer, "toAccount") );
+            put( "status", Latoken.this.parseTransferStatus(status) );
         }};
     }
 
@@ -2259,7 +2259,7 @@ public class LatokenCore extends LatokenApi
             Object auth = Helpers.add(Helpers.add(method, request), urlencodedQuery);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512());
             headers = new java.util.HashMap<String, Object>() {{
-                put( "X-LA-APIKEY", LatokenCore.this.apiKey );
+                put( "X-LA-APIKEY", Latoken.this.apiKey );
                 put( "X-LA-SIGNATURE", signature );
                 put( "X-LA-DIGEST", "HMAC-SHA512" );
             }};

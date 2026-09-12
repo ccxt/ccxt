@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BitteamCore extends BitteamApi
+public class Bitteam extends BitteamApi
 {
-   public BitteamCore () {
+   public Bitteam () {
        super();
    }
 
-   public BitteamCore (Object options) {
+   public Bitteam (Object options) {
        super(options);
    }
 
@@ -274,8 +274,8 @@ public class BitteamCore extends BitteamApi
                     put( "feeSide", "get" );
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "taker", BitteamCore.this.parseNumber("0.002") );
-                    put( "maker", BitteamCore.this.parseNumber("0.002") );
+                    put( "taker", Bitteam.this.parseNumber("0.002") );
+                    put( "maker", Bitteam.this.parseNumber("0.002") );
                 }} );
             }} );
             put( "precisionMode", TICK_SIZE );
@@ -566,8 +566,8 @@ public class BitteamCore extends BitteamApi
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", BitteamCore.this.parseNumber(BitteamCore.this.parsePrecision(BitteamCore.this.safeString(market, "baseStep"))) );
-                put( "price", BitteamCore.this.parseNumber(BitteamCore.this.parsePrecision(BitteamCore.this.safeString(market, "quoteStep"))) );
+                put( "amount", Bitteam.this.parseNumber(Bitteam.this.parsePrecision(Bitteam.this.safeString(market, "baseStep"))) );
+                put( "price", Bitteam.this.parseNumber(Bitteam.this.parsePrecision(Bitteam.this.safeString(market, "quoteStep"))) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -784,11 +784,11 @@ public class BitteamCore extends BitteamApi
             put( "max", null );
         }} );
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", BitteamCore.this.parseNumber(minWithdraw) );
-            put( "max", BitteamCore.this.parseNumber(maxWithdraw) );
+            put( "min", Bitteam.this.parseNumber(minWithdraw) );
+            put( "max", Bitteam.this.parseNumber(maxWithdraw) );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", BitteamCore.this.parseNumber(minDeposit) );
+            put( "min", Bitteam.this.parseNumber(minDeposit) );
             put( "max", null );
         }} );
     }} );
@@ -814,11 +814,11 @@ public class BitteamCore extends BitteamApi
                     put( "max", null );
                 }} );
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
-                    put( "min", BitteamCore.this.parseNumber(minWithdraw) );
-                    put( "max", BitteamCore.this.parseNumber(maxWithdraw) );
+                    put( "min", Bitteam.this.parseNumber(minWithdraw) );
+                    put( "max", Bitteam.this.parseNumber(maxWithdraw) );
                 }} );
                 put( "deposit", new java.util.HashMap<String, Object>() {{
-                    put( "min", BitteamCore.this.parseNumber(minDeposit) );
+                    put( "min", Bitteam.this.parseNumber(minDeposit) );
                     put( "max", null );
                 }} );
             }} );
@@ -1197,7 +1197,7 @@ public class BitteamCore extends BitteamApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "active" );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -1229,7 +1229,7 @@ public class BitteamCore extends BitteamApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "closed" );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -1261,7 +1261,7 @@ public class BitteamCore extends BitteamApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "cancelled" );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -1293,10 +1293,10 @@ public class BitteamCore extends BitteamApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "pairId", BitteamCore.this.safeString(market, "numericId") );
+                put( "pairId", Bitteam.this.safeString(market, "numericId") );
                 put( "type", finalType );
                 put( "side", side );
-                put( "amount", BitteamCore.this.amountToPrecision(symbol, amount) );
+                put( "amount", Bitteam.this.amountToPrecision(symbol, amount) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
@@ -1539,7 +1539,7 @@ public class BitteamCore extends BitteamApi
             String feeCost = this.safeString(feeRaw, "amount");
             String feeCurrencyId = this.safeString(feeRaw, "symbol");
             fee = new java.util.HashMap<String, Object>() {{
-                put( "currency", BitteamCore.this.safeCurrencyCode(feeCurrencyId) );
+                put( "currency", Bitteam.this.safeCurrencyCode(feeCurrencyId) );
                 put( "cost", feeCost );
                 put( "rate", null );
             }};
@@ -1551,7 +1551,7 @@ public class BitteamCore extends BitteamApi
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BitteamCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Bitteam.this.iso8601(finalTimestamp) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
             put( "status", status );
@@ -1560,7 +1560,7 @@ public class BitteamCore extends BitteamApi
             put( "timeInForce", "GTC" );
             put( "side", side );
             put( "price", price );
-            put( "triggerPrice", BitteamCore.this.safeString(order, "stopPrice") );
+            put( "triggerPrice", Bitteam.this.safeString(order, "stopPrice") );
             put( "average", null );
             put( "amount", amount );
             put( "cost", null );
@@ -2352,7 +2352,7 @@ public class BitteamCore extends BitteamApi
         String feeCurrencyId = this.safeString(feeInfo, "symbol");
         String feeCost = this.safeString(feeInfo, "amount");
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
-            put( "currency", BitteamCore.this.safeCurrencyCode(feeCurrencyId) );
+            put( "currency", Bitteam.this.safeCurrencyCode(feeCurrencyId) );
             put( "cost", feeCost );
         }};
         Long intTs = this.parseToInt(timestamp);
@@ -2363,7 +2363,7 @@ public class BitteamCore extends BitteamApi
             put( "id", id );
             put( "order", finalOrder );
             put( "timestamp", intTs );
-            put( "datetime", BitteamCore.this.iso8601(intTs) );
+            put( "datetime", Bitteam.this.iso8601(intTs) );
             put( "symbol", symbol );
             put( "type", null );
             put( "side", finalSide );
@@ -2447,7 +2447,7 @@ public class BitteamCore extends BitteamApi
         java.util.Map<String, Object> balance = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
-            put( "datetime", BitteamCore.this.iso8601(timestamp) );
+            put( "datetime", Bitteam.this.iso8601(timestamp) );
         }};
         Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
         Object balanceByCurrencies = this.omit(result, new java.util.ArrayList<Object>(java.util.Arrays.asList("free", "used", "total")));
@@ -2679,8 +2679,8 @@ public class BitteamCore extends BitteamApi
             put( "id", id );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", BitteamCore.this.iso8601(timestamp) );
-            put( "network", BitteamCore.this.networkIdToCode(finalNetworkId, code) );
+            put( "datetime", Bitteam.this.iso8601(timestamp) );
+            put( "network", Bitteam.this.networkIdToCode(finalNetworkId, code) );
             put( "addressFrom", addressFrom );
             put( "address", null );
             put( "addressTo", addressTo );
@@ -2688,12 +2688,12 @@ public class BitteamCore extends BitteamApi
             put( "tag", tag );
             put( "tagTo", null );
             put( "type", type );
-            put( "amount", BitteamCore.this.parseNumber(amount) );
+            put( "amount", Bitteam.this.parseNumber(amount) );
             put( "currency", code );
             put( "status", status );
             put( "updated", null );
             put( "fee", null );
-            put( "comment", BitteamCore.this.safeString(transaction, "description") );
+            put( "comment", Bitteam.this.safeString(transaction, "description") );
             put( "internal", false );
         }};
     }

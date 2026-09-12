@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class CoincheckCore extends CoincheckApi
+public class Coincheck extends CoincheckApi
 {
-   public CoincheckCore () {
+   public Coincheck () {
        super();
    }
 
-   public CoincheckCore (Object options) {
+   public Coincheck (Object options) {
        super(options);
    }
 
@@ -232,7 +232,7 @@ public class CoincheckCore extends CoincheckApi
                 }} );
             }} );
             put( "markets", new java.util.HashMap<String, Object>() {{
-                put( "BTC/JPY", CoincheckCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "BTC/JPY", Coincheck.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "btc_jpy" );
                     put( "symbol", "BTC/JPY" );
                     put( "base", "BTC" );
@@ -242,7 +242,7 @@ public class CoincheckCore extends CoincheckApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "ETC/JPY", CoincheckCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "ETC/JPY", Coincheck.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "etc_jpy" );
                     put( "symbol", "ETC/JPY" );
                     put( "base", "ETC" );
@@ -252,7 +252,7 @@ public class CoincheckCore extends CoincheckApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "FCT/JPY", CoincheckCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "FCT/JPY", Coincheck.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "fct_jpy" );
                     put( "symbol", "FCT/JPY" );
                     put( "base", "FCT" );
@@ -262,7 +262,7 @@ public class CoincheckCore extends CoincheckApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "MONA/JPY", CoincheckCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "MONA/JPY", Coincheck.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "mona_jpy" );
                     put( "symbol", "MONA/JPY" );
                     put( "base", "MONA" );
@@ -272,7 +272,7 @@ public class CoincheckCore extends CoincheckApi
                     put( "type", "spot" );
                     put( "spot", true );
                 }}) );
-                put( "ETC/BTC", CoincheckCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "ETC/BTC", Coincheck.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "etc_btc" );
                     put( "symbol", "ETC/BTC" );
                     put( "base", "ETC" );
@@ -341,8 +341,8 @@ public class CoincheckCore extends CoincheckApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "maker", CoincheckCore.this.parseNumber("0") );
-                    put( "taker", CoincheckCore.this.parseNumber("0") );
+                    put( "maker", Coincheck.this.parseNumber("0") );
+                    put( "taker", Coincheck.this.parseNumber("0") );
                 }} );
             }} );
             put( "precisionMode", TICK_SIZE );
@@ -538,7 +538,7 @@ public class CoincheckCore extends CoincheckApi
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", CoincheckCore.this.iso8601(timestamp) );
+            put( "datetime", Coincheck.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "amount", amount );
             put( "remaining", remaining );
@@ -610,12 +610,12 @@ public class CoincheckCore extends CoincheckApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", CoincheckCore.this.iso8601(timestamp) );
-            put( "high", CoincheckCore.this.safeString(ticker, "high") );
-            put( "low", CoincheckCore.this.safeString(ticker, "low") );
-            put( "bid", CoincheckCore.this.safeString(ticker, "bid") );
+            put( "datetime", Coincheck.this.iso8601(timestamp) );
+            put( "high", Coincheck.this.safeString(ticker, "high") );
+            put( "low", Coincheck.this.safeString(ticker, "low") );
+            put( "bid", Coincheck.this.safeString(ticker, "bid") );
             put( "bidVolume", null );
-            put( "ask", CoincheckCore.this.safeString(ticker, "ask") );
+            put( "ask", Coincheck.this.safeString(ticker, "ask") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -625,7 +625,7 @@ public class CoincheckCore extends CoincheckApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", CoincheckCore.this.safeString(ticker, "volume") );
+            put( "baseVolume", Coincheck.this.safeString(ticker, "volume") );
             put( "quoteVolume", null );
             put( "info", ticker );
         }}, market);
@@ -735,8 +735,8 @@ public class CoincheckCore extends CoincheckApi
             amountString = this.safeString(funds, baseId);
             costString = this.safeString(funds, quoteId);
             fee = new java.util.HashMap<String, Object>() {{
-                put( "currency", CoincheckCore.this.safeString(trade, "fee_currency") );
-                put( "cost", CoincheckCore.this.safeString(trade, "fee") );
+                put( "currency", Coincheck.this.safeString(trade, "fee_currency") );
+                put( "cost", Coincheck.this.safeString(trade, "fee") );
             }};
             side = this.safeString(trade, "side");
             orderId = this.safeString(trade, "order_id");
@@ -754,7 +754,7 @@ public class CoincheckCore extends CoincheckApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
-            put( "datetime", CoincheckCore.this.iso8601(timestamp) );
+            put( "datetime", Coincheck.this.iso8601(timestamp) );
             put( "timestamp", timestamp );
             put( "symbol", symbol );
             put( "type", null );
@@ -928,8 +928,8 @@ public class CoincheckCore extends CoincheckApi
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
-        put( "maker", CoincheckCore.this.safeNumber(fee, "maker_fee") );
-        put( "taker", CoincheckCore.this.safeNumber(fee, "taker_fee") );
+        put( "maker", Coincheck.this.safeNumber(fee, "maker_fee") );
+        put( "taker", Coincheck.this.safeNumber(fee, "taker_fee") );
         put( "percentage", true );
         put( "tierBased", false );
     }});
@@ -1230,7 +1230,7 @@ public class CoincheckCore extends CoincheckApi
             put( "id", id );
             put( "txid", null );
             put( "timestamp", timestamp );
-            put( "datetime", CoincheckCore.this.iso8601(timestamp) );
+            put( "datetime", Coincheck.this.iso8601(timestamp) );
             put( "network", null );
             put( "address", address );
             put( "addressTo", address );
@@ -1292,9 +1292,9 @@ public class CoincheckCore extends CoincheckApi
             final Object finalNonce = nonce;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
-                put( "ACCESS-KEY", CoincheckCore.this.apiKey );
+                put( "ACCESS-KEY", Coincheck.this.apiKey );
                 put( "ACCESS-NONCE", finalNonce );
-                put( "ACCESS-SIGNATURE", CoincheckCore.this.hmac(CoincheckCore.this.encode(auth), CoincheckCore.this.encode(CoincheckCore.this.secret), sha256()) );
+                put( "ACCESS-SIGNATURE", Coincheck.this.hmac(Coincheck.this.encode(auth), Coincheck.this.encode(Coincheck.this.secret), sha256()) );
             }};
         }
         final Object finalUrl = url;

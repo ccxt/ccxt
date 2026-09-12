@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class CoinbaseinternationalCore extends CoinbaseinternationalApi
+public class Coinbaseinternational extends CoinbaseinternationalApi
 {
-   public CoinbaseinternationalCore () {
+   public Coinbaseinternational () {
        super();
    }
 
-   public CoinbaseinternationalCore (Object options) {
+   public Coinbaseinternational (Object options) {
        super(options);
    }
 
@@ -27,7 +27,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             put( "pro", true );
             put( "rateLimit", 100 );
             put( "version", "v1" );
-            put( "userAgent", Helpers.GetValue(CoinbaseinternationalCore.this.userAgents, "chrome") );
+            put( "userAgent", Helpers.GetValue(Coinbaseinternational.this.userAgents, "chrome") );
             put( "headers", new java.util.HashMap<String, Object>() {{
                 put( "CB-VERSION", "2018-05-30" );
             }} );
@@ -333,13 +333,13 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "trading", new java.util.HashMap<String, Object>() {{
-                    put( "taker", CoinbaseinternationalCore.this.parseNumber("0.004") );
-                    put( "maker", CoinbaseinternationalCore.this.parseNumber("0.002") );
+                    put( "taker", Coinbaseinternational.this.parseNumber("0.004") );
+                    put( "maker", Coinbaseinternational.this.parseNumber("0.002") );
                     put( "tierBased", true );
                     put( "percentage", true );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinbaseinternationalCore.this.parseNumber("0"), CoinbaseinternationalCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinbaseinternationalCore.this.parseNumber("1000000"), CoinbaseinternationalCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinbaseinternationalCore.this.parseNumber("5000000"), CoinbaseinternationalCore.this.parseNumber("0.0035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinbaseinternationalCore.this.parseNumber("10000000"), CoinbaseinternationalCore.this.parseNumber("0.0035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinbaseinternationalCore.this.parseNumber("50000000"), CoinbaseinternationalCore.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinbaseinternationalCore.this.parseNumber("250000000"), CoinbaseinternationalCore.this.parseNumber("0.0025"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinbaseinternationalCore.this.parseNumber("0"), CoinbaseinternationalCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinbaseinternationalCore.this.parseNumber("1000000"), CoinbaseinternationalCore.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinbaseinternationalCore.this.parseNumber("5000000"), CoinbaseinternationalCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinbaseinternationalCore.this.parseNumber("10000000"), CoinbaseinternationalCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinbaseinternationalCore.this.parseNumber("50000000"), CoinbaseinternationalCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinbaseinternationalCore.this.parseNumber("250000000"), CoinbaseinternationalCore.this.parseNumber("0"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinbaseinternational.this.parseNumber("0"), Coinbaseinternational.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinbaseinternational.this.parseNumber("1000000"), Coinbaseinternational.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinbaseinternational.this.parseNumber("5000000"), Coinbaseinternational.this.parseNumber("0.0035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinbaseinternational.this.parseNumber("10000000"), Coinbaseinternational.this.parseNumber("0.0035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinbaseinternational.this.parseNumber("50000000"), Coinbaseinternational.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinbaseinternational.this.parseNumber("250000000"), Coinbaseinternational.this.parseNumber("0.0025"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinbaseinternational.this.parseNumber("0"), Coinbaseinternational.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinbaseinternational.this.parseNumber("1000000"), Coinbaseinternational.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinbaseinternational.this.parseNumber("5000000"), Coinbaseinternational.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinbaseinternational.this.parseNumber("10000000"), Coinbaseinternational.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinbaseinternational.this.parseNumber("50000000"), Coinbaseinternational.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinbaseinternational.this.parseNumber("250000000"), Coinbaseinternational.this.parseNumber("0"))))) );
                     }} );
                 }} );
             }} );
@@ -587,7 +587,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         //    }
         //
         return new java.util.HashMap<String, Object>() {{
-            put( "id", CoinbaseinternationalCore.this.safeString2(account, "portfolio_id", "portfolio_uuid") );
+            put( "id", Coinbaseinternational.this.safeString2(account, "portfolio_id", "portfolio_uuid") );
             put( "type", null );
             put( "code", null );
             put( "info", account );
@@ -632,7 +632,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument", Helpers.GetValue(market, "id") );
-                put( "granularity", CoinbaseinternationalCore.this.safeString(CoinbaseinternationalCore.this.timeframes, timeframe, timeframe) );
+                put( "granularity", Coinbaseinternational.this.safeString(Coinbaseinternational.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -781,15 +781,15 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         String fundingDatetime = this.safeString2(contract, "event_time", "time");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", CoinbaseinternationalCore.this.safeSymbol(null, market) );
-            put( "markPrice", CoinbaseinternationalCore.this.safeNumber(contract, "mark_price") );
+            put( "symbol", Coinbaseinternational.this.safeSymbol(null, market) );
+            put( "markPrice", Coinbaseinternational.this.safeNumber(contract, "mark_price") );
             put( "indexPrice", null );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
-            put( "timestamp", CoinbaseinternationalCore.this.parse8601(fundingDatetime) );
+            put( "timestamp", Coinbaseinternational.this.parse8601(fundingDatetime) );
             put( "datetime", fundingDatetime );
-            put( "fundingRate", CoinbaseinternationalCore.this.safeNumber(contract, "funding_rate") );
-            put( "fundingTimestamp", CoinbaseinternationalCore.this.parse8601(fundingDatetime) );
+            put( "fundingRate", Coinbaseinternational.this.safeNumber(contract, "funding_rate") );
+            put( "fundingTimestamp", Coinbaseinternational.this.parse8601(fundingDatetime) );
             put( "fundingDatetime", fundingDatetime );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
@@ -895,9 +895,9 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "code", code );
             put( "timestamp", timestamp );
-            put( "datetime", CoinbaseinternationalCore.this.iso8601(timestamp) );
-            put( "id", CoinbaseinternationalCore.this.safeString(income, "transfer_uuid") );
-            put( "amount", CoinbaseinternationalCore.this.safeNumber(income, "amount") );
+            put( "datetime", Coinbaseinternational.this.iso8601(timestamp) );
+            put( "id", Coinbaseinternational.this.safeString(income, "transfer_uuid") );
+            put( "amount", Coinbaseinternational.this.safeNumber(income, "amount") );
             put( "rate", null );
         }};
     }
@@ -995,14 +995,14 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         String toId = this.safeString(toPorfolio, "id");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", CoinbaseinternationalCore.this.safeString(transfer, "transfer_uuid") );
+            put( "id", Coinbaseinternational.this.safeString(transfer, "transfer_uuid") );
             put( "timestamp", timestamp );
-            put( "datetime", CoinbaseinternationalCore.this.iso8601(timestamp) );
+            put( "datetime", Coinbaseinternational.this.iso8601(timestamp) );
             put( "currency", code );
-            put( "amount", CoinbaseinternationalCore.this.safeNumber(transfer, "amount") );
+            put( "amount", Coinbaseinternational.this.safeNumber(transfer, "amount") );
             put( "fromAccount", fromId );
             put( "toAccount", toId );
-            put( "status", CoinbaseinternationalCore.this.parseTransferStatus(CoinbaseinternationalCore.this.safeString(transfer, "status")) );
+            put( "status", Coinbaseinternational.this.parseTransferStatus(Coinbaseinternational.this.safeString(transfer, "status")) );
         }};
     }
 
@@ -1188,8 +1188,8 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         return this.safeNetwork(new java.util.HashMap<String, Object>() {{
             put( "info", network );
             put( "id", networkId );
-            put( "name", CoinbaseinternationalCore.this.safeString(network, "display_name") );
-            put( "network", CoinbaseinternationalCore.this.networkIdToCode(networkIdForCode, currencyCode) );
+            put( "name", Coinbaseinternational.this.safeString(network, "display_name") );
+            put( "network", Coinbaseinternational.this.networkIdToCode(networkIdForCode, currencyCode) );
             put( "active", null );
             put( "deposit", null );
             put( "withdraw", null );
@@ -1197,8 +1197,8 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             put( "fee", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
-                    put( "min", CoinbaseinternationalCore.this.safeNumber(network, "min_withdrawal_amt") );
-                    put( "max", CoinbaseinternationalCore.this.safeNumber(network, "max_withdrawal_amt") );
+                    put( "min", Coinbaseinternational.this.safeNumber(network, "min_withdrawal_amt") );
+                    put( "max", Coinbaseinternational.this.safeNumber(network, "max_withdrawal_amt") );
                 }} );
                 put( "deposit", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -1376,7 +1376,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             final Object finalSymbol = symbol;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "portfolio", finalPortfolio );
-                put( "instrument", CoinbaseinternationalCore.this.marketId(finalSymbol) );
+                put( "instrument", Coinbaseinternational.this.marketId(finalSymbol) );
             }};
             java.util.Map<String, Object> position = (this.v1PrivateGetPortfoliosPortfolioPositionsInstrument(this.extend(request, parameters))).join();
             //
@@ -1431,22 +1431,22 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         final Object finalQuantity = quantity;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", CoinbaseinternationalCore.this.safeString(position, "id") );
+            put( "id", Coinbaseinternational.this.safeString(position, "id") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "entryPrice", null );
-            put( "markPrice", CoinbaseinternationalCore.this.safeNumber(position, "mark_price") );
+            put( "markPrice", Coinbaseinternational.this.safeNumber(position, "mark_price") );
             put( "notional", null );
             put( "collateral", null );
-            put( "unrealizedPnl", CoinbaseinternationalCore.this.safeNumber(position, "unrealized_pnl") );
+            put( "unrealizedPnl", Coinbaseinternational.this.safeNumber(position, "unrealized_pnl") );
             put( "side", finalSide );
-            put( "contracts", CoinbaseinternationalCore.this.parseNumber(finalQuantity) );
-            put( "contractSize", CoinbaseinternationalCore.this.safeNumber(finalMarket, "contractSize") );
+            put( "contracts", Coinbaseinternational.this.parseNumber(finalQuantity) );
+            put( "contractSize", Coinbaseinternational.this.safeNumber(finalMarket, "contractSize") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "hedged", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", CoinbaseinternationalCore.this.safeNumber(position, "im_contribution") );
+            put( "initialMargin", Coinbaseinternational.this.safeNumber(position, "im_contribution") );
             put( "initialMarginPercentage", null );
             put( "leverage", null );
             put( "liquidationPrice", null );
@@ -1543,7 +1543,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Helpers.addElementToObject(parameters, "type", "WITHDRAW");
-            return (this.fetchDepositsWithdrawals(code, since, limit, parameters)).join();
+            return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1577,7 +1577,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Helpers.addElementToObject(parameters, "type", "DEPOSIT");
-            return (this.fetchDepositsWithdrawals(code, since, limit, parameters)).join();
+            return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1609,22 +1609,22 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         String code = this.safeString(currency, "code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", CoinbaseinternationalCore.this.safeString(transaction, "transfer_uuid") );
-            put( "txid", CoinbaseinternationalCore.this.safeString(transaction, "transaction_uuid") );
-            put( "timestamp", CoinbaseinternationalCore.this.parse8601(datetime) );
+            put( "id", Coinbaseinternational.this.safeString(transaction, "transfer_uuid") );
+            put( "txid", Coinbaseinternational.this.safeString(transaction, "transaction_uuid") );
+            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "network", CoinbaseinternationalCore.this.networkIdToCode(CoinbaseinternationalCore.this.safeString(transaction, "network_name"), code) );
+            put( "network", Coinbaseinternational.this.networkIdToCode(Coinbaseinternational.this.safeString(transaction, "network_name"), code) );
             put( "address", null );
             put( "addressTo", addressTo );
             put( "addressFrom", addressFrom );
             put( "tag", null );
             put( "tagTo", null );
             put( "tagFrom", null );
-            put( "type", CoinbaseinternationalCore.this.safeString(transaction, "resource") );
-            put( "amount", CoinbaseinternationalCore.this.safeNumber(transaction, "amount") );
-            put( "currency", CoinbaseinternationalCore.this.safeCurrencyCode(CoinbaseinternationalCore.this.safeString(transaction, "asset"), currency) );
-            put( "status", CoinbaseinternationalCore.this.parseTransactionStatus(CoinbaseinternationalCore.this.safeString(transaction, "status")) );
-            put( "updated", CoinbaseinternationalCore.this.parse8601(datetime) );
+            put( "type", Coinbaseinternational.this.safeString(transaction, "resource") );
+            put( "amount", Coinbaseinternational.this.safeNumber(transaction, "amount") );
+            put( "currency", Coinbaseinternational.this.safeCurrencyCode(Coinbaseinternational.this.safeString(transaction, "asset"), currency) );
+            put( "status", Coinbaseinternational.this.parseTransactionStatus(Coinbaseinternational.this.safeString(transaction, "status")) );
+            put( "updated", Coinbaseinternational.this.parse8601(datetime) );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "cost", null );
                 put( "currency", null );
@@ -1671,20 +1671,20 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         String datetime = this.safeString(trade, "event_time");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", CoinbaseinternationalCore.this.safeString2(trade, "fill_id", "exec_id") );
-            put( "order", CoinbaseinternationalCore.this.safeString(trade, "order_id") );
-            put( "timestamp", CoinbaseinternationalCore.this.parse8601(datetime) );
+            put( "id", Coinbaseinternational.this.safeString2(trade, "fill_id", "exec_id") );
+            put( "order", Coinbaseinternational.this.safeString(trade, "order_id") );
+            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "symbol", CoinbaseinternationalCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Coinbaseinternational.this.safeSymbol(marketId, market) );
             put( "type", null );
-            put( "side", CoinbaseinternationalCore.this.safeStringLower(trade, "side") );
+            put( "side", Coinbaseinternational.this.safeStringLower(trade, "side") );
             put( "takerOrMaker", null );
-            put( "price", CoinbaseinternationalCore.this.safeNumber(trade, "fill_price") );
-            put( "amount", CoinbaseinternationalCore.this.safeNumber(trade, "fill_qty") );
+            put( "price", Coinbaseinternational.this.safeNumber(trade, "fill_price") );
+            put( "amount", Coinbaseinternational.this.safeNumber(trade, "fill_qty") );
             put( "cost", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "cost", CoinbaseinternationalCore.this.safeNumber(trade, "fee") );
-                put( "currency", CoinbaseinternationalCore.this.safeCurrencyCode(CoinbaseinternationalCore.this.safeString(trade, "fee_asset")) );
+                put( "cost", Coinbaseinternational.this.safeNumber(trade, "fee") );
+                put( "currency", Coinbaseinternational.this.safeCurrencyCode(Coinbaseinternational.this.safeString(trade, "fee_asset")) );
             }} );
         }});
     }
@@ -1845,7 +1845,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             put( "swap", !Helpers.isTrue(isSpot) );
             put( "future", false );
             put( "option", false );
-            put( "active", Helpers.isEqual(CoinbaseinternationalCore.this.safeString(market, "trading_state"), "TRADING") );
+            put( "active", Helpers.isEqual(Coinbaseinternational.this.safeString(market, "trading_state"), "TRADING") );
             put( "contract", !Helpers.isTrue(isSpot) );
             put( "linear", isLinear );
             put( "inverse", isInverse );
@@ -1857,25 +1857,25 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", CoinbaseinternationalCore.this.safeNumber(market, "base_increment") );
-                put( "price", CoinbaseinternationalCore.this.safeNumber(market, "quote_increment") );
-                put( "cost", CoinbaseinternationalCore.this.safeNumber(market, "quote_increment") );
+                put( "amount", Coinbaseinternational.this.safeNumber(market, "base_increment") );
+                put( "price", Coinbaseinternational.this.safeNumber(market, "quote_increment") );
+                put( "cost", Coinbaseinternational.this.safeNumber(market, "quote_increment") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", CoinbaseinternationalCore.this.safeNumber(market, "base_imf") );
+                    put( "max", Coinbaseinternational.this.safeNumber(market, "base_imf") );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", ((Helpers.isTrue(isSpot))) ? null : CoinbaseinternationalCore.this.safeNumber(market, "position_limit_qty") );
+                    put( "max", ((Helpers.isTrue(isSpot))) ? null : Coinbaseinternational.this.safeNumber(market, "position_limit_qty") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", CoinbaseinternationalCore.this.safeNumber(market, "min_notional_value") );
+                    put( "min", Coinbaseinternational.this.safeNumber(market, "min_notional_value") );
                     put( "max", null );
                 }} );
             }} );
@@ -1945,7 +1945,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             put( "networks", null );
             put( "fee", null );
             put( "fees", null );
-            put( "limits", CoinbaseinternationalCore.this.limits );
+            put( "limits", Coinbaseinternational.this.limits );
         }});
     }
 
@@ -2011,7 +2011,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "instrument", CoinbaseinternationalCore.this.marketId(symbol) );
+                put( "instrument", Coinbaseinternational.this.marketId(symbol) );
             }};
             java.util.Map<String, Object> ticker = (this.v1PublicGetInstrumentsInstrumentQuote(this.extend(request, parameters))).join();
             return this.parseTicker(ticker, market);
@@ -2042,13 +2042,13 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         String datetime = this.safeString(ticker, "timestamp");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
-            put( "symbol", CoinbaseinternationalCore.this.safeSymbol(null, market) );
-            put( "timestamp", CoinbaseinternationalCore.this.parse8601(datetime) );
+            put( "symbol", Coinbaseinternational.this.safeSymbol(null, market) );
+            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "bid", CoinbaseinternationalCore.this.safeNumber(ticker, "best_bid_price") );
-            put( "bidVolume", CoinbaseinternationalCore.this.safeNumber(ticker, "best_bid_size") );
-            put( "ask", CoinbaseinternationalCore.this.safeNumber(ticker, "best_ask_price") );
-            put( "askVolume", CoinbaseinternationalCore.this.safeNumber(ticker, "best_ask_size") );
+            put( "bid", Coinbaseinternational.this.safeNumber(ticker, "best_bid_price") );
+            put( "bidVolume", Coinbaseinternational.this.safeNumber(ticker, "best_bid_size") );
+            put( "ask", Coinbaseinternational.this.safeNumber(ticker, "best_ask_price") );
+            put( "askVolume", Coinbaseinternational.this.safeNumber(ticker, "best_ask_size") );
             put( "high", null );
             put( "low", null );
             put( "open", null );
@@ -2061,8 +2061,8 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "previousClose", null );
-            put( "markPrice", CoinbaseinternationalCore.this.safeNumber(ticker, "mark_price") );
-            put( "indexPrice", CoinbaseinternationalCore.this.safeNumber(ticker, "index_price") );
+            put( "markPrice", Coinbaseinternational.this.safeNumber(ticker, "mark_price") );
+            put( "indexPrice", Coinbaseinternational.this.safeNumber(ticker, "index_price") );
         }});
     }
 
@@ -2248,7 +2248,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "client_order_id", finalClientOrderId );
                 put( "side", ((String)finalSide).toUpperCase() );
                 put( "instrument", Helpers.GetValue(market, "id") );
-                put( "size", CoinbaseinternationalCore.this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount) );
+                put( "size", Coinbaseinternational.this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
@@ -2367,24 +2367,24 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         final Object finalFee = fee;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", CoinbaseinternationalCore.this.safeString(order, "order_id") );
-            put( "clientOrderId", CoinbaseinternationalCore.this.safeString(order, "client_order_id") );
-            put( "timestamp", CoinbaseinternationalCore.this.parse8601(datetime) );
+            put( "id", Coinbaseinternational.this.safeString(order, "order_id") );
+            put( "clientOrderId", Coinbaseinternational.this.safeString(order, "client_order_id") );
+            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "lastTradeTimestamp", null );
-            put( "symbol", CoinbaseinternationalCore.this.safeSymbol(marketId, market) );
-            put( "type", CoinbaseinternationalCore.this.parseOrderType(CoinbaseinternationalCore.this.safeString(order, "type")) );
-            put( "timeInForce", CoinbaseinternationalCore.this.safeString(order, "tif") );
+            put( "symbol", Coinbaseinternational.this.safeSymbol(marketId, market) );
+            put( "type", Coinbaseinternational.this.parseOrderType(Coinbaseinternational.this.safeString(order, "type")) );
+            put( "timeInForce", Coinbaseinternational.this.safeString(order, "tif") );
             put( "postOnly", null );
-            put( "side", CoinbaseinternationalCore.this.safeStringLower(order, "side") );
-            put( "price", CoinbaseinternationalCore.this.safeString(order, "price") );
-            put( "triggerPrice", CoinbaseinternationalCore.this.safeString(order, "stop_price") );
-            put( "amount", CoinbaseinternationalCore.this.safeString(order, "size") );
-            put( "filled", CoinbaseinternationalCore.this.safeString(order, "exec_qty") );
-            put( "remaining", CoinbaseinternationalCore.this.safeString(order, "leaves_qty") );
+            put( "side", Coinbaseinternational.this.safeStringLower(order, "side") );
+            put( "price", Coinbaseinternational.this.safeString(order, "price") );
+            put( "triggerPrice", Coinbaseinternational.this.safeString(order, "stop_price") );
+            put( "amount", Coinbaseinternational.this.safeString(order, "size") );
+            put( "filled", Coinbaseinternational.this.safeString(order, "exec_qty") );
+            put( "remaining", Coinbaseinternational.this.safeString(order, "leaves_qty") );
             put( "cost", null );
-            put( "average", CoinbaseinternationalCore.this.safeString(order, "avg_price") );
-            put( "status", CoinbaseinternationalCore.this.parseOrderStatus(CoinbaseinternationalCore.this.safeString(order, "order_status")) );
+            put( "average", Coinbaseinternational.this.safeString(order, "avg_price") );
+            put( "status", Coinbaseinternational.this.parseOrderStatus(Coinbaseinternational.this.safeString(order, "order_status")) );
             put( "fee", finalFee );
             put( "trades", null );
         }}, market);
@@ -2934,7 +2934,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "amount", amount );
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "network_arn_id", finalNetworkId );
-                put( "nonce", CoinbaseinternationalCore.this.nonce() );
+                put( "nonce", Coinbaseinternational.this.nonce() );
             }};
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "v1PrivatePostTransfersWithdrawCounterparty")))
@@ -2993,8 +2993,8 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             headers = new java.util.HashMap<String, Object>() {{
                 put( "CB-ACCESS-TIMESTAMP", finalNonce );
                 put( "CB-ACCESS-SIGN", signature );
-                put( "CB-ACCESS-PASSPHRASE", CoinbaseinternationalCore.this.password );
-                put( "CB-ACCESS-KEY", CoinbaseinternationalCore.this.apiKey );
+                put( "CB-ACCESS-PASSPHRASE", Coinbaseinternational.this.password );
+                put( "CB-ACCESS-KEY", Coinbaseinternational.this.apiKey );
             }};
         }
         final Object finalMethod = method;

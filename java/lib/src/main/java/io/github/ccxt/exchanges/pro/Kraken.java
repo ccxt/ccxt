@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class KrakenCore extends io.github.ccxt.exchanges.Kraken
+public class Kraken extends io.github.ccxt.exchanges.Kraken
 {
-   public KrakenCore () {
+   public Kraken () {
        super();
    }
 
-   public KrakenCore (Object options) {
+   public Kraken (Object options) {
        super(options);
    }
 
@@ -345,7 +345,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "order_type", type );
                     put( "side", side );
-                    put( "order_qty", KrakenCore.this.parseToNumeric(KrakenCore.this.amountToPrecision(symbol, amount)) );
+                    put( "order_qty", Kraken.this.parseToNumeric(Kraken.this.amountToPrecision(symbol, amount)) );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
                     put( "token", token );
                 }} );
@@ -424,7 +424,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 put( "method", "amend_order" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "order_id", id );
-                    put( "order_qty", KrakenCore.this.parseToNumeric(KrakenCore.this.amountToPrecision(symbol, amount)) );
+                    put( "order_qty", Kraken.this.parseToNumeric(Kraken.this.amountToPrecision(symbol, amount)) );
                     put( "token", token );
                 }} );
                 put( "req_id", requestId );
@@ -631,19 +631,19 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", KrakenCore.this.safeString(ticker, "high") );
-            put( "low", KrakenCore.this.safeString(ticker, "low") );
-            put( "bid", KrakenCore.this.safeString(ticker, "bid") );
-            put( "bidVolume", KrakenCore.this.safeString(ticker, "bid_qty") );
-            put( "ask", KrakenCore.this.safeString(ticker, "ask") );
-            put( "askVolume", KrakenCore.this.safeString(ticker, "ask_qty") );
+            put( "high", Kraken.this.safeString(ticker, "high") );
+            put( "low", Kraken.this.safeString(ticker, "low") );
+            put( "bid", Kraken.this.safeString(ticker, "bid") );
+            put( "bidVolume", Kraken.this.safeString(ticker, "bid_qty") );
+            put( "ask", Kraken.this.safeString(ticker, "ask") );
+            put( "askVolume", Kraken.this.safeString(ticker, "ask_qty") );
             put( "vwap", finalVwap );
             put( "open", null );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
-            put( "change", KrakenCore.this.safeString(ticker, "change") );
-            put( "percentage", KrakenCore.this.safeString(ticker, "change_pct") );
+            put( "change", Kraken.this.safeString(ticker, "change") );
+            put( "percentage", Kraken.this.safeString(ticker, "change_pct") );
             put( "average", null );
             put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", finalQuoteVolume );
@@ -775,7 +775,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbol = this.symbol(symbol);
-            Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
         });
 
@@ -861,7 +861,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -914,7 +914,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -990,7 +990,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channel", name );
                     put( "symbol", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalSymbol)) );
-                    put( "interval", KrakenCore.this.safeValue(KrakenCore.this.timeframes, timeframe, timeframe) );
+                    put( "interval", Kraken.this.safeValue(Kraken.this.timeframes, timeframe, timeframe) );
                 }} );
                 put( "req_id", requestId );
             }};
@@ -1529,8 +1529,8 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object fees = this.safeList(trade, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object firstFee = this.safeDict(fees, 0, new java.util.HashMap<String, Object>() {{}});
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", KrakenCore.this.safeNumber(firstFee, "qty") );
-                put( "currency", KrakenCore.this.safeString(firstFee, "asset") );
+                put( "cost", Kraken.this.safeNumber(firstFee, "qty") );
+                put( "currency", Kraken.this.safeString(firstFee, "asset") );
             }};
         }
         String datetime = this.safeString(trade, "timestamp");
@@ -1540,17 +1540,17 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", KrakenCore.this.safeString(trade, "exec_id") );
-            put( "order", KrakenCore.this.safeString(trade, "order_id") );
-            put( "timestamp", KrakenCore.this.parse8601(datetime) );
+            put( "id", Kraken.this.safeString(trade, "exec_id") );
+            put( "order", Kraken.this.safeString(trade, "order_id") );
+            put( "timestamp", Kraken.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "symbol", finalSymbol );
-            put( "type", KrakenCore.this.safeString(trade, "order_type") );
-            put( "side", KrakenCore.this.safeString(trade, "side") );
+            put( "type", Kraken.this.safeString(trade, "order_type") );
+            put( "side", Kraken.this.safeString(trade, "side") );
             put( "takerOrMaker", takerOrMaker );
-            put( "price", KrakenCore.this.safeNumber(trade, "last_price") );
-            put( "amount", KrakenCore.this.safeNumber(trade, "last_qty") );
-            put( "cost", KrakenCore.this.safeNumber(trade, "cost") );
+            put( "price", Kraken.this.safeNumber(trade, "last_price") );
+            put( "amount", Kraken.this.safeNumber(trade, "last_qty") );
+            put( "cost", Kraken.this.safeNumber(trade, "cost") );
             put( "fee", finalFee );
         }};
     }
@@ -1707,31 +1707,31 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
-            put( "cost", KrakenCore.this.safeString(order, "fee_usd_equiv") );
+            put( "cost", Kraken.this.safeString(order, "fee_usd_equiv") );
             put( "currency", "USD" );
         }};
         String stopPrice = this.safeString(order, "stop_price");
         String datetime = this.safeString(order, "timestamp");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", KrakenCore.this.safeString(order, "order_id") );
-            put( "clientOrderId", KrakenCore.this.safeString(order, "order_userref") );
+            put( "id", Kraken.this.safeString(order, "order_id") );
+            put( "clientOrderId", Kraken.this.safeString(order, "order_userref") );
             put( "info", order );
-            put( "timestamp", KrakenCore.this.parse8601(datetime) );
+            put( "timestamp", Kraken.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "lastTradeTimestamp", null );
-            put( "status", KrakenCore.this.parseOrderStatus(KrakenCore.this.safeString(order, "order_status")) );
-            put( "symbol", KrakenCore.this.safeString(order, "symbol") );
-            put( "type", KrakenCore.this.safeString(order, "order_type") );
-            put( "timeInForce", KrakenCore.this.safeString(order, "time_in_force") );
+            put( "status", Kraken.this.parseOrderStatus(Kraken.this.safeString(order, "order_status")) );
+            put( "symbol", Kraken.this.safeString(order, "symbol") );
+            put( "type", Kraken.this.safeString(order, "order_type") );
+            put( "timeInForce", Kraken.this.safeString(order, "time_in_force") );
             put( "postOnly", null );
-            put( "side", KrakenCore.this.safeString(order, "side") );
-            put( "price", KrakenCore.this.safeString(order, "limit_price") );
+            put( "side", Kraken.this.safeString(order, "side") );
+            put( "price", Kraken.this.safeString(order, "limit_price") );
             put( "stopPrice", stopPrice );
             put( "triggerPrice", stopPrice );
-            put( "cost", KrakenCore.this.safeString(order, "cum_cost") );
-            put( "amount", KrakenCore.this.safeString2(order, "order_qty", "cum_qty") );
+            put( "cost", Kraken.this.safeString(order, "cum_cost") );
+            put( "amount", Kraken.this.safeString2(order, "order_qty", "cum_qty") );
             put( "filled", null );
-            put( "average", KrakenCore.this.safeString(order, "avg_price") );
+            put( "average", Kraken.this.safeString(order, "avg_price") );
             put( "remaining", null );
             put( "fee", fee );
             put( "trades", null );
@@ -1772,7 +1772,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                     put( "channel", channelName );
                     put( "symbol", finalSymbols );
                 }} );
-                put( "req_id", KrakenCore.this.requestId() );
+                put( "req_id", Kraken.this.requestId() );
             }};
             Helpers.addElementToObject(request, "params", this.deepExtend(Helpers.GetValue(request, "params"), parameters));
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "publicV2");

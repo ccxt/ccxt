@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class CryptomusCore extends CryptomusApi
+public class Cryptomus extends CryptomusApi
 {
-   public CryptomusCore () {
+   public Cryptomus () {
        super();
    }
 
-   public CryptomusCore (Object options) {
+   public Cryptomus (Object options) {
        super(options);
    }
 
@@ -281,8 +281,8 @@ public class CryptomusCore extends CryptomusApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "percentage", true );
                     put( "feeSide", "get" );
-                    put( "maker", CryptomusCore.this.parseNumber("0.02") );
-                    put( "taker", CryptomusCore.this.parseNumber("0.02") );
+                    put( "maker", Cryptomus.this.parseNumber("0.02") );
+                    put( "taker", Cryptomus.this.parseNumber("0.02") );
                 }} );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
@@ -434,27 +434,27 @@ public class CryptomusCore extends CryptomusApi
             put( "contractSize", null );
             put( "linear", null );
             put( "inverse", null );
-            put( "taker", CryptomusCore.this.safeNumber(fees, "taker") );
-            put( "maker", CryptomusCore.this.safeNumber(fees, "maker") );
-            put( "percentage", CryptomusCore.this.safeBool(fees, "percentage") );
+            put( "taker", Cryptomus.this.safeNumber(fees, "taker") );
+            put( "maker", Cryptomus.this.safeNumber(fees, "maker") );
+            put( "percentage", Cryptomus.this.safeBool(fees, "percentage") );
             put( "tierBased", null );
-            put( "feeSide", CryptomusCore.this.safeString(fees, "feeSide") );
+            put( "feeSide", Cryptomus.this.safeString(fees, "feeSide") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", CryptomusCore.this.parseNumber(CryptomusCore.this.parsePrecision(CryptomusCore.this.safeString(market, "quotePrec"))) );
-                put( "price", CryptomusCore.this.parseNumber(CryptomusCore.this.parsePrecision(CryptomusCore.this.safeString(market, "basePrec"))) );
+                put( "amount", Cryptomus.this.parseNumber(Cryptomus.this.parsePrecision(Cryptomus.this.safeString(market, "quotePrec"))) );
+                put( "price", Cryptomus.this.parseNumber(Cryptomus.this.parsePrecision(Cryptomus.this.safeString(market, "basePrec"))) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", CryptomusCore.this.safeNumber(market, "quoteMinSize") );
-                    put( "max", CryptomusCore.this.safeNumber(market, "quoteMaxSize") );
+                    put( "min", Cryptomus.this.safeNumber(market, "quoteMinSize") );
+                    put( "max", Cryptomus.this.safeNumber(market, "quoteMaxSize") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", CryptomusCore.this.safeNumber(market, "baseMinSize") );
-                    put( "max", CryptomusCore.this.safeNumber(market, "baseMaxSize") );
+                    put( "min", Cryptomus.this.safeNumber(market, "baseMinSize") );
+                    put( "max", Cryptomus.this.safeNumber(market, "baseMaxSize") );
                 }} );
                 put( "leverage", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -536,17 +536,17 @@ public class CryptomusCore extends CryptomusApi
     put( "network", finalNetworkCode );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", CryptomusCore.this.safeNumber(networkEntry, "min_withdraw") );
-            put( "max", CryptomusCore.this.safeNumber(networkEntry, "max_withdraw") );
+            put( "min", Cryptomus.this.safeNumber(networkEntry, "min_withdraw") );
+            put( "max", Cryptomus.this.safeNumber(networkEntry, "max_withdraw") );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", CryptomusCore.this.safeNumber(networkEntry, "min_deposit") );
-            put( "max", CryptomusCore.this.safeNumber(networkEntry, "max_deposit") );
+            put( "min", Cryptomus.this.safeNumber(networkEntry, "min_deposit") );
+            put( "max", Cryptomus.this.safeNumber(networkEntry, "max_deposit") );
         }} );
     }} );
     put( "active", null );
-    put( "deposit", CryptomusCore.this.safeBool(networkEntry, "can_deposit") );
-    put( "withdraw", CryptomusCore.this.safeBool(networkEntry, "can_withdraw") );
+    put( "deposit", Cryptomus.this.safeBool(networkEntry, "can_deposit") );
+    put( "withdraw", Cryptomus.this.safeBool(networkEntry, "can_withdraw") );
     put( "fee", null );
     put( "precision", null );
     put( "info", networkEntry );
@@ -636,8 +636,8 @@ public class CryptomusCore extends CryptomusApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", CryptomusCore.this.safeString(ticker, "base_volume") );
-            put( "quoteVolume", CryptomusCore.this.safeString(ticker, "quote_volume") );
+            put( "baseVolume", Cryptomus.this.safeString(ticker, "base_volume") );
+            put( "quoteVolume", Cryptomus.this.safeString(ticker, "quote_volume") );
             put( "info", ticker );
         }}, market);
     }
@@ -768,14 +768,14 @@ public class CryptomusCore extends CryptomusApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(trade, "timestamp");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", CryptomusCore.this.safeString(trade, "trade_id") );
+            put( "id", Cryptomus.this.safeString(trade, "trade_id") );
             put( "timestamp", timestamp );
-            put( "datetime", CryptomusCore.this.iso8601(timestamp) );
-            put( "symbol", CryptomusCore.this.safeString(market, "symbol") );
-            put( "side", CryptomusCore.this.safeString(trade, "type") );
-            put( "price", CryptomusCore.this.safeString(trade, "price") );
-            put( "amount", CryptomusCore.this.safeString(trade, "quote_volume") );
-            put( "cost", CryptomusCore.this.safeString(trade, "base_volume") );
+            put( "datetime", Cryptomus.this.iso8601(timestamp) );
+            put( "symbol", Cryptomus.this.safeString(market, "symbol") );
+            put( "side", Cryptomus.this.safeString(trade, "type") );
+            put( "price", Cryptomus.this.safeString(trade, "price") );
+            put( "amount", Cryptomus.this.safeString(trade, "quote_volume") );
+            put( "cost", Cryptomus.this.safeString(trade, "base_volume") );
             put( "takerOrMaker", null );
             put( "type", null );
             put( "order", null );
@@ -1222,8 +1222,8 @@ public class CryptomusCore extends CryptomusApi
         {
             final Object finalFeeCurrency = feeCurrency;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "currency", CryptomusCore.this.safeCurrencyCode(finalFeeCurrency) );
-                put( "cost", CryptomusCore.this.safeNumber(firstTx, "fee") );
+                put( "currency", Cryptomus.this.safeCurrencyCode(finalFeeCurrency) );
+                put( "cost", Cryptomus.this.safeNumber(firstTx, "fee") );
             }};
         }
         if (Helpers.isTrue(Helpers.isEqual(price, null)))
@@ -1241,7 +1241,7 @@ public class CryptomusCore extends CryptomusApi
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", CryptomusCore.this.iso8601(timestamp) );
+            put( "datetime", Cryptomus.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", type );
@@ -1249,12 +1249,12 @@ public class CryptomusCore extends CryptomusApi
             put( "postOnly", null );
             put( "side", side );
             put( "price", finalPrice );
-            put( "stopPrice", CryptomusCore.this.safeString(order, "stopLossPrice") );
-            put( "triggerPrice", CryptomusCore.this.safeString(order, "stopLossPrice") );
+            put( "stopPrice", Cryptomus.this.safeString(order, "stopLossPrice") );
+            put( "triggerPrice", Cryptomus.this.safeString(order, "stopLossPrice") );
             put( "amount", amount );
             put( "cost", cost );
             put( "average", averageFilledPrice );
-            put( "filled", CryptomusCore.this.safeString(order, "filledQuantity") );
+            put( "filled", Cryptomus.this.safeString(order, "filledQuantity") );
             put( "remaining", null );
             put( "status", status );
             put( "fee", finalFee );
@@ -1362,8 +1362,8 @@ public class CryptomusCore extends CryptomusApi
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
-        put( "maker", CryptomusCore.this.parseNumber(finalMakerFee) );
-        put( "taker", CryptomusCore.this.parseNumber(finalTakerFee) );
+        put( "maker", Cryptomus.this.parseNumber(finalMakerFee) );
+        put( "taker", Cryptomus.this.parseNumber(finalTakerFee) );
         put( "percentage", true );
         put( "tierBased", true );
         put( "tiers", tiers );
@@ -1411,7 +1411,7 @@ public class CryptomusCore extends CryptomusApi
             this.checkRequiredCredentials();
             Object jsonParams = "";
             headers = new java.util.HashMap<String, Object>() {{
-                put( "userId", CryptomusCore.this.uid );
+                put( "userId", Cryptomus.this.uid );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
             {

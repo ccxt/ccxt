@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class ZaifCore extends ZaifApi
+public class Zaif extends ZaifApi
 {
-   public ZaifCore () {
+   public Zaif () {
        super();
    }
 
-   public ZaifCore (Object options) {
+   public Zaif (Object options) {
        super(options);
    }
 
@@ -96,8 +96,8 @@ public class ZaifCore extends ZaifApi
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "percentage", true );
-                    put( "taker", ZaifCore.this.parseNumber("0.001") );
-                    put( "maker", ZaifCore.this.parseNumber("0") );
+                    put( "taker", Zaif.this.parseNumber("0.001") );
+                    put( "maker", Zaif.this.parseNumber("0") );
                 }} );
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
@@ -382,8 +382,8 @@ public class ZaifCore extends ZaifApi
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", ZaifCore.this.safeNumber(market, "item_unit_step") );
-                put( "price", ZaifCore.this.parseNumber(ZaifCore.this.parsePrecision(ZaifCore.this.safeString(market, "aux_unit_point"))) );
+                put( "amount", Zaif.this.safeNumber(market, "item_unit_step") );
+                put( "price", Zaif.this.parseNumber(Zaif.this.parsePrecision(Zaif.this.safeString(market, "aux_unit_point"))) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -391,11 +391,11 @@ public class ZaifCore extends ZaifApi
                     put( "max", null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", ZaifCore.this.safeNumber(market, "item_unit_min") );
+                    put( "min", Zaif.this.safeNumber(market, "item_unit_min") );
                     put( "max", null );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", ZaifCore.this.safeNumber(market, "aux_unit_min") );
+                    put( "min", Zaif.this.safeNumber(market, "aux_unit_min") );
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
@@ -520,11 +520,11 @@ public class ZaifCore extends ZaifApi
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", ZaifCore.this.safeString(ticker, "high") );
-            put( "low", ZaifCore.this.safeString(ticker, "low") );
-            put( "bid", ZaifCore.this.safeString(ticker, "bid") );
+            put( "high", Zaif.this.safeString(ticker, "high") );
+            put( "low", Zaif.this.safeString(ticker, "low") );
+            put( "bid", Zaif.this.safeString(ticker, "bid") );
             put( "bidVolume", null );
-            put( "ask", ZaifCore.this.safeString(ticker, "ask") );
+            put( "ask", Zaif.this.safeString(ticker, "ask") );
             put( "askVolume", null );
             put( "vwap", vwap );
             put( "open", null );
@@ -608,7 +608,7 @@ public class ZaifCore extends ZaifApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", ZaifCore.this.iso8601(timestamp) );
+            put( "datetime", Zaif.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "type", null );
             put( "side", finalSide );
@@ -801,7 +801,7 @@ public class ZaifCore extends ZaifApi
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", ZaifCore.this.iso8601(timestamp) );
+            put( "datetime", Zaif.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "status", "open" );
             put( "symbol", symbol );
@@ -993,8 +993,8 @@ public class ZaifCore extends ZaifApi
         final Object finalCurrency_2 = currency;
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", ZaifCore.this.safeString(transaction, "id") );
-            put( "txid", ZaifCore.this.safeString(transaction, "txid") );
+            put( "id", Zaif.this.safeString(transaction, "id") );
+            put( "txid", Zaif.this.safeString(transaction, "txid") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "network", null );
@@ -1058,8 +1058,8 @@ public class ZaifCore extends ZaifApi
             final Object finalBody = body;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
-                put( "Key", ZaifCore.this.apiKey );
-                put( "Sign", ZaifCore.this.hmac(ZaifCore.this.encode(finalBody), ZaifCore.this.encode(ZaifCore.this.secret), sha512()) );
+                put( "Key", Zaif.this.apiKey );
+                put( "Sign", Zaif.this.hmac(Zaif.this.encode(finalBody), Zaif.this.encode(Zaif.this.secret), sha512()) );
             }};
         }
         final Object finalUrl = url;

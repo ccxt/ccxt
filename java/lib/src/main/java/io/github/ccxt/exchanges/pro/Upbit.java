@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class UpbitCore extends io.github.ccxt.exchanges.Upbit
+public class Upbit extends io.github.ccxt.exchanges.Upbit
 {
-   public UpbitCore () {
+   public Upbit () {
        super();
    }
 
-   public UpbitCore (Object options) {
+   public Upbit (Object options) {
        super(options);
    }
 
@@ -67,7 +67,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             }
             Object marketIds = this.marketIds(symbols);
             Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), new java.util.HashMap<String, Object>() {{
-                put( "hostname", UpbitCore.this.hostname );
+                put( "hostname", Upbit.this.hostname );
             }});
             Client client = this.client(url);
             String subscriptionsKey = "upbitPublicSubscriptions";
@@ -93,7 +93,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
                 }
             }
             java.util.List<Object> finalMessage = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
-        put( "ticket", UpbitCore.this.uuid() );
+        put( "ticket", Upbit.this.uuid() );
     }}));
             Object channelKeys = Helpers.objectKeys(subscriptions);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(channelKeys)); i++)
@@ -173,7 +173,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -439,8 +439,8 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 java.util.Map<String, Object> auth = new java.util.HashMap<String, Object>() {{
-                    put( "access_key", UpbitCore.this.apiKey );
-                    put( "nonce", UpbitCore.this.uuid() );
+                    put( "access_key", Upbit.this.apiKey );
+                    put( "nonce", Upbit.this.uuid() );
                 }};
                 Object token = jwt(auth, this.encode(this.secret), sha256(), false);
                 Helpers.addElementToObject(wsOptions, "token", token);
@@ -484,7 +484,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
             }
             Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), new java.util.HashMap<String, Object>() {{
-                put( "hostname", UpbitCore.this.hostname );
+                put( "hostname", Upbit.this.hostname );
             }});
             url = Helpers.add(url, "/private");
             Client client = this.client(url);
@@ -514,7 +514,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
                 ((java.util.List<Object>)requests).add(Helpers.GetValue(subscriptions, Helpers.GetValue(channelKeys, i)));
             }
             java.util.List<Object> message = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
-        put( "ticket", UpbitCore.this.uuid() );
+        put( "ticket", Upbit.this.uuid() );
     }}));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(requests)); i++)
             {
@@ -672,21 +672,21 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", UpbitCore.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", UpbitCore.this.safeString(order, "trade_timestamp") );
+            put( "datetime", Upbit.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", Upbit.this.safeString(order, "trade_timestamp") );
             put( "symbol", Helpers.GetValue(finalMarket_2, "symbol") );
-            put( "type", UpbitCore.this.safeString(order, "order_type") );
-            put( "timeInForce", UpbitCore.this.safeString(order, "time_in_force") );
+            put( "type", Upbit.this.safeString(order, "order_type") );
+            put( "timeInForce", Upbit.this.safeString(order, "time_in_force") );
             put( "postOnly", null );
             put( "side", finalSide );
-            put( "price", UpbitCore.this.safeString(order, "price") );
+            put( "price", Upbit.this.safeString(order, "price") );
             put( "stopPrice", null );
             put( "triggerPrice", null );
-            put( "cost", UpbitCore.this.safeString(order, "executed_funds") );
-            put( "average", UpbitCore.this.safeString(order, "avg_price") );
-            put( "amount", UpbitCore.this.safeString(order, "volume") );
-            put( "filled", UpbitCore.this.safeString(order, "executed_volume") );
-            put( "remaining", UpbitCore.this.safeString(order, "remaining_volume") );
+            put( "cost", Upbit.this.safeString(order, "executed_funds") );
+            put( "average", Upbit.this.safeString(order, "avg_price") );
+            put( "amount", Upbit.this.safeString(order, "volume") );
+            put( "filled", Upbit.this.safeString(order, "executed_volume") );
+            put( "remaining", Upbit.this.safeString(order, "remaining_volume") );
             put( "status", status );
             put( "fee", finalFee );
             put( "trades", null );
@@ -723,17 +723,17 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         final Object finalSide = side;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", UpbitCore.this.safeString(trade, "trade_uuid") );
+            put( "id", Upbit.this.safeString(trade, "trade_uuid") );
             put( "timestamp", timestamp );
-            put( "datetime", UpbitCore.this.iso8601(timestamp) );
+            put( "datetime", Upbit.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket_2, "symbol") );
             put( "side", finalSide );
-            put( "price", UpbitCore.this.safeString(trade, "price") );
-            put( "amount", UpbitCore.this.safeString(trade, "volume") );
-            put( "cost", UpbitCore.this.safeString(trade, "executed_funds") );
-            put( "order", UpbitCore.this.safeString(trade, "uuid") );
+            put( "price", Upbit.this.safeString(trade, "price") );
+            put( "amount", Upbit.this.safeString(trade, "volume") );
+            put( "cost", Upbit.this.safeString(trade, "executed_funds") );
+            put( "order", Upbit.this.safeString(trade, "uuid") );
             put( "takerOrMaker", null );
-            put( "type", UpbitCore.this.safeString(trade, "order_type") );
+            put( "type", Upbit.this.safeString(trade, "order_type") );
             put( "fee", finalFee );
             put( "info", trade );
         }}, market);

@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BtcboxCore extends BtcboxApi
+public class Btcbox extends BtcboxApi
 {
-   public BtcboxCore () {
+   public Btcbox () {
        super();
    }
 
-   public BtcboxCore (Object options) {
+   public Btcbox (Object options) {
        super(options);
    }
 
@@ -343,10 +343,10 @@ public class BtcboxCore extends BtcboxApi
                         }} );
                     }} );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "price", BtcboxCore.this.parseNumber(BtcboxCore.this.parsePrecision(BtcboxCore.this.safeString(tradeDetails, "pricedecimal"))) );
+                        put( "price", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(tradeDetails, "pricedecimal"))) );
                         put( "amount", null );
                     }} );
-                    put( "active", Helpers.isEqual(BtcboxCore.this.safeString(tradeDetails, "enable"), "1") );
+                    put( "active", Helpers.isEqual(Btcbox.this.safeString(tradeDetails, "enable"), "1") );
                     put( "created", null );
                     put( "info", res );
                 }}));
@@ -365,7 +365,7 @@ public class BtcboxCore extends BtcboxApi
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
-            put( "id", BtcboxCore.this.safeString(market, "symbol") );
+            put( "id", Btcbox.this.safeString(market, "symbol") );
             put( "uppercaseId", null );
             put( "symbol", symbol );
             put( "base", finalBase );
@@ -390,8 +390,8 @@ public class BtcboxCore extends BtcboxApi
             put( "optionType", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", BtcboxCore.this.safeNumber(market, "minLimitBaseAmount") );
-                    put( "max", BtcboxCore.this.safeNumber(market, "maxLimitBaseAmount") );
+                    put( "min", Btcbox.this.safeNumber(market, "minLimitBaseAmount") );
+                    put( "max", Btcbox.this.safeNumber(market, "maxLimitBaseAmount") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -407,8 +407,8 @@ public class BtcboxCore extends BtcboxApi
                 }} );
             }} );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "price", BtcboxCore.this.parseNumber(BtcboxCore.this.parsePrecision(BtcboxCore.this.safeString(market, "quotePrecision"))) );
-                put( "amount", BtcboxCore.this.parseNumber(BtcboxCore.this.parsePrecision(BtcboxCore.this.safeString(market, "basePrecision"))) );
+                put( "price", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(market, "quotePrecision"))) );
+                put( "amount", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(market, "basePrecision"))) );
             }} );
             put( "active", null );
             put( "created", null );
@@ -507,11 +507,11 @@ public class BtcboxCore extends BtcboxApi
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", BtcboxCore.this.safeString(ticker, "high") );
-            put( "low", BtcboxCore.this.safeString(ticker, "low") );
-            put( "bid", BtcboxCore.this.safeString(ticker, "buy") );
+            put( "high", Btcbox.this.safeString(ticker, "high") );
+            put( "low", Btcbox.this.safeString(ticker, "low") );
+            put( "bid", Btcbox.this.safeString(ticker, "buy") );
             put( "bidVolume", null );
-            put( "ask", BtcboxCore.this.safeString(ticker, "sell") );
+            put( "ask", Btcbox.this.safeString(ticker, "sell") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -521,8 +521,8 @@ public class BtcboxCore extends BtcboxApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", BtcboxCore.this.safeString(ticker, "vol") );
-            put( "quoteVolume", BtcboxCore.this.safeString(ticker, "volume") );
+            put( "baseVolume", Btcbox.this.safeString(ticker, "vol") );
+            put( "quoteVolume", Btcbox.this.safeString(ticker, "volume") );
             put( "info", ticker );
         }}, market);
     }
@@ -611,7 +611,7 @@ public class BtcboxCore extends BtcboxApi
             put( "id", id );
             put( "order", null );
             put( "timestamp", timestamp );
-            put( "datetime", BtcboxCore.this.iso8601(timestamp) );
+            put( "datetime", Btcbox.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", type );
             put( "side", side );
@@ -814,7 +814,7 @@ public class BtcboxCore extends BtcboxApi
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BtcboxCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Btcbox.this.iso8601(finalTimestamp) );
             put( "lastTradeTimestamp", null );
             put( "amount", amount );
             put( "remaining", remaining );
@@ -1013,7 +1013,7 @@ public class BtcboxCore extends BtcboxApi
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             java.util.Map<String, Object> query = this.extend(new java.util.HashMap<String, Object>() {{
-                put( "key", BtcboxCore.this.apiKey );
+                put( "key", Btcbox.this.apiKey );
                 put( "nonce", nonce );
             }}, parameters);
             Object request = this.urlencode(query);

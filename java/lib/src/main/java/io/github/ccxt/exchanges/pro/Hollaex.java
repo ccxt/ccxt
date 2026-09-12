@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
+public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 {
-   public HollaexCore () {
+   public Hollaex () {
        super();
    }
 
-   public HollaexCore (Object options) {
+   public Hollaex (Object options) {
        super(options);
    }
 
@@ -583,7 +583,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalExpires = expires;
             java.util.Map<String, Object> authParams = new java.util.HashMap<String, Object>() {{
-                put( "api-key", HollaexCore.this.apiKey );
+                put( "api-key", Hollaex.this.apiKey );
                 put( "api-signature", signature );
                 put( "api-expires", finalExpires );
             }};

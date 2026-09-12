@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class HtxCore extends io.github.ccxt.exchanges.Htx
+public class Htx extends io.github.ccxt.exchanges.Htx
 {
-   public HtxCore () {
+   public Htx () {
        super();
    }
 
-   public HtxCore (Object options) {
+   public Htx (Object options) {
        super(options);
    }
 
@@ -1448,12 +1448,12 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                     put( "id", orderId );
                     put( "trades", trades );
                     put( "status", status );
-                    put( "lastTradeTimestamp", HtxCore.this.safeInteger(finalData, "tradeTime") );
+                    put( "lastTradeTimestamp", Htx.this.safeInteger(finalData, "tradeTime") );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
-                    put( "filled", HtxCore.this.parseNumber(filled) );
-                    put( "remaining", HtxCore.this.parseNumber(remaining) );
-                    put( "price", HtxCore.this.safeNumber(finalData, "orderPrice") );
-                    put( "amount", HtxCore.this.safeNumber(finalData, "orderSize") );
+                    put( "filled", Htx.this.parseNumber(filled) );
+                    put( "remaining", Htx.this.parseNumber(remaining) );
+                    put( "price", Htx.this.safeNumber(finalData, "orderPrice") );
+                    put( "amount", Htx.this.safeNumber(finalData, "orderSize") );
                     put( "info", finalData );
                 }};
                 parsedOrder = order;
@@ -1479,9 +1479,9 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 // inject order params in every trade
                 final Object finalParsedOrder = parsedOrder;
                 java.util.Map<String, Object> extendTradeParams = new java.util.HashMap<String, Object>() {{
-                    put( "order", HtxCore.this.safeString(finalParsedOrder, "id") );
-                    put( "type", HtxCore.this.safeString(finalParsedOrder, "type") );
-                    put( "side", HtxCore.this.safeString(finalParsedOrder, "side") );
+                    put( "order", Htx.this.safeString(finalParsedOrder, "id") );
+                    put( "type", Htx.this.safeString(finalParsedOrder, "type") );
+                    put( "side", Htx.this.safeString(finalParsedOrder, "side") );
                 }};
                 // trades arrive inside an order update
                 // we're forwarding them to handleMyTrade
@@ -1692,7 +1692,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
-                put( "currency", HtxCore.this.safeCurrencyCode(feeCurrencyId) );
+                put( "currency", Htx.this.safeCurrencyCode(feeCurrencyId) );
             }};
         }
         String avgPrice = this.safeString(order, "trade_avg_price");
@@ -1728,12 +1728,12 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", created );
-            put( "datetime", HtxCore.this.iso8601(created) );
+            put( "datetime", Htx.this.iso8601(created) );
             put( "lastTradeTimestamp", lastTradeTimestamp );
             put( "status", status );
             put( "symbol", symbol );
             put( "type", finalType );
-            put( "timeInForce", HtxCore.this.safeStringUpper(order, "time_in_force") );
+            put( "timeInForce", Htx.this.safeStringUpper(order, "time_in_force") );
             put( "postOnly", null );
             put( "side", finalSide );
             put( "price", price );
@@ -1744,11 +1744,11 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             put( "fee", finalFee );
             put( "average", avgPrice );
             put( "trades", rawTrades );
-            put( "reduceOnly", HtxCore.this.safeBool(order, "reduce_only") );
+            put( "reduceOnly", Htx.this.safeBool(order, "reduce_only") );
             put( "stopPrice", null );
             put( "triggerPrice", null );
-            put( "takeProfitPrice", HtxCore.this.safeString2(order, "tp_trigger_price", "tp_order_price") );
-            put( "stopLossPrice", HtxCore.this.safeString2(order, "sl_trigger_price", "sl_order_price") );
+            put( "takeProfitPrice", Htx.this.safeString2(order, "tp_trigger_price", "tp_order_price") );
+            put( "stopLossPrice", Htx.this.safeString2(order, "sl_trigger_price", "sl_order_price") );
         }}, market);
     }
 
@@ -1803,7 +1803,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", tradeId );
             put( "order", order );
@@ -3223,7 +3223,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             final Object finalFeeCurrency = feeCurrency;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", HtxCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("transactFee", "fee", "trade_fee"))) );
+                put( "cost", Htx.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("transactFee", "fee", "trade_fee"))) );
                 put( "currency", finalFeeCurrency );
             }};
         }
@@ -3233,7 +3233,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", HtxCore.this.iso8601(timestamp) );
+            put( "datetime", Htx.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", tradeId );
             put( "order", order );
@@ -3255,7 +3255,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object isV5 = Helpers.getArg(optionalArgs, 3, false);
         String api = this.safeString(this.options, "api", "api");
         java.util.Map<String, Object> hostname = new java.util.HashMap<String, Object>() {{
-            put( "hostname", HtxCore.this.hostname );
+            put( "hostname", Htx.this.hostname );
         }};
         Object hostnameURL = null;
         Object url = null;
@@ -3437,7 +3437,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
                 {
                     signatureParams = new java.util.HashMap<String, Object>() {{
-                        put( "accessKey", HtxCore.this.apiKey );
+                        put( "accessKey", Htx.this.apiKey );
                         put( "signatureMethod", "HmacSHA256" );
                         put( "signatureVersion", "2.1" );
                         put( "timestamp", timestamp );
@@ -3445,7 +3445,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 } else
                 {
                     signatureParams = new java.util.HashMap<String, Object>() {{
-                        put( "AccessKeyId", HtxCore.this.apiKey );
+                        put( "AccessKeyId", Htx.this.apiKey );
                         put( "SignatureMethod", "HmacSHA256" );
                         put( "SignatureVersion", "2" );
                         put( "Timestamp", timestamp );
@@ -3460,7 +3460,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 {
                     java.util.Map<String, Object> newParams = new java.util.HashMap<String, Object>() {{
                         put( "authType", "api" );
-                        put( "accessKey", HtxCore.this.apiKey );
+                        put( "accessKey", Htx.this.apiKey );
                         put( "signatureMethod", "HmacSHA256" );
                         put( "signatureVersion", "2.1" );
                         put( "timestamp", timestamp );
@@ -3476,7 +3476,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                     request = new java.util.HashMap<String, Object>() {{
                         put( "op", "auth" );
                         put( "type", "api" );
-                        put( "AccessKeyId", HtxCore.this.apiKey );
+                        put( "AccessKeyId", Htx.this.apiKey );
                         put( "SignatureMethod", "HmacSHA256" );
                         put( "SignatureVersion", "2" );
                         put( "Timestamp", timestamp );

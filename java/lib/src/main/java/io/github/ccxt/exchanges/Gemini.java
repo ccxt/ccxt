@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class GeminiCore extends GeminiApi
+public class Gemini extends GeminiApi
 {
-   public GeminiCore () {
+   public Gemini () {
        super();
    }
 
-   public GeminiCore (Object options) {
+   public Gemini (Object options) {
        super(options);
    }
 
@@ -759,7 +759,7 @@ public class GeminiCore extends GeminiApi
             put( "info", rawCurrency );
             put( "id", id );
             put( "code", code );
-            put( "name", GeminiCore.this.safeString(rawCurrency, 1) );
+            put( "name", Gemini.this.safeString(rawCurrency, 1) );
             put( "active", null );
             put( "deposit", null );
             put( "withdraw", null );
@@ -889,8 +889,8 @@ public class GeminiCore extends GeminiApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", GeminiCore.this.safeNumber(amountPrecisionParts, 0) );
-                        put( "price", GeminiCore.this.safeNumber(pricePrecisionParts, 0) );
+                        put( "amount", Gemini.this.safeNumber(amountPrecisionParts, 0) );
+                        put( "price", Gemini.this.safeNumber(pricePrecisionParts, 0) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -1462,12 +1462,12 @@ public class GeminiCore extends GeminiApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
             put( "timestamp", timestamp );
-            put( "datetime", GeminiCore.this.iso8601(timestamp) );
-            put( "high", GeminiCore.this.safeString(ticker, "high") );
-            put( "low", GeminiCore.this.safeString(ticker, "low") );
-            put( "bid", GeminiCore.this.safeString(ticker, "bid") );
+            put( "datetime", Gemini.this.iso8601(timestamp) );
+            put( "high", Gemini.this.safeString(ticker, "high") );
+            put( "low", Gemini.this.safeString(ticker, "low") );
+            put( "bid", Gemini.this.safeString(ticker, "bid") );
             put( "bidVolume", null );
-            put( "ask", GeminiCore.this.safeString(ticker, "ask") );
+            put( "ask", Gemini.this.safeString(ticker, "ask") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", open );
@@ -1567,7 +1567,7 @@ public class GeminiCore extends GeminiApi
         String feeCurrencyId = this.safeString(trade, "fee_currency");
         String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
-            put( "cost", GeminiCore.this.safeString(trade, "fee_amount") );
+            put( "cost", Gemini.this.safeString(trade, "fee_amount") );
             put( "currency", feeCurrencyCode );
         }};
         String priceString = this.safeString(trade, "price");
@@ -1579,7 +1579,7 @@ public class GeminiCore extends GeminiApi
             put( "order", orderId );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", GeminiCore.this.iso8601(timestamp) );
+            put( "datetime", Gemini.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "type", null );
             put( "side", side );
@@ -1922,7 +1922,7 @@ public class GeminiCore extends GeminiApi
             put( "clientOrderId", clientOrderId );
             put( "info", order );
             put( "timestamp", timestamp );
-            put( "datetime", GeminiCore.this.iso8601(timestamp) );
+            put( "datetime", Gemini.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "status", finalStatus );
             put( "symbol", symbol );
@@ -2430,10 +2430,10 @@ public class GeminiCore extends GeminiApi
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", GeminiCore.this.safeString2(transaction, "eid", "withdrawalId") );
-            put( "txid", GeminiCore.this.safeString(transaction, "txHash") );
+            put( "id", Gemini.this.safeString2(transaction, "eid", "withdrawalId") );
+            put( "txid", Gemini.this.safeString(transaction, "txHash") );
             put( "timestamp", timestamp );
-            put( "datetime", GeminiCore.this.iso8601(timestamp) );
+            put( "datetime", Gemini.this.iso8601(timestamp) );
             put( "network", null );
             put( "address", address );
             put( "addressTo", null );
@@ -2442,12 +2442,12 @@ public class GeminiCore extends GeminiApi
             put( "tagTo", null );
             put( "tagFrom", null );
             put( "type", type );
-            put( "amount", GeminiCore.this.safeNumber(transaction, "amount") );
+            put( "amount", Gemini.this.safeNumber(transaction, "amount") );
             put( "currency", code );
-            put( "status", GeminiCore.this.parseTransactionStatus(statusRaw) );
+            put( "status", Gemini.this.parseTransactionStatus(statusRaw) );
             put( "updated", null );
             put( "internal", null );
-            put( "comment", GeminiCore.this.safeString(transaction, "message") );
+            put( "comment", Gemini.this.safeString(transaction, "message") );
             put( "fee", finalFee );
         }};
     }
@@ -2589,7 +2589,7 @@ public class GeminiCore extends GeminiApi
             final Object finalPayload = payload;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "text/plain" );
-                put( "X-GEMINI-APIKEY", GeminiCore.this.apiKey );
+                put( "X-GEMINI-APIKEY", Gemini.this.apiKey );
                 put( "X-GEMINI-PAYLOAD", finalPayload );
                 put( "X-GEMINI-SIGNATURE", signature );
             }};
@@ -2787,9 +2787,9 @@ public class GeminiCore extends GeminiApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "info", interest );
-            put( "symbol", GeminiCore.this.safeString(market, "symbol") );
-            put( "openInterestAmount", GeminiCore.this.safeString(interest, "open_interest") );
-            put( "openInterestValue", GeminiCore.this.safeString(interest, "open_interest_notional") );
+            put( "symbol", Gemini.this.safeString(market, "symbol") );
+            put( "openInterestAmount", Gemini.this.safeString(interest, "open_interest") );
+            put( "openInterestValue", Gemini.this.safeString(interest, "open_interest_notional") );
             put( "timestamp", null );
             put( "datetime", null );
         }}, market);

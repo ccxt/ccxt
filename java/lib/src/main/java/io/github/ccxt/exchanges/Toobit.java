@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class ToobitCore extends ToobitApi
+public class Toobit extends ToobitApi
 {
-   public ToobitCore () {
+   public Toobit () {
        super();
    }
 
-   public ToobitCore (Object options) {
+   public Toobit (Object options) {
        super(options);
    }
 
@@ -975,19 +975,19 @@ public class ToobitCore extends ToobitApi
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "margin", null );
-    put( "deposit", ToobitCore.this.safeBool(rawNetwork, "allowDeposit") );
-    put( "withdraw", ToobitCore.this.safeBool(rawNetwork, "allowWithdraw") );
+    put( "deposit", Toobit.this.safeBool(rawNetwork, "allowDeposit") );
+    put( "withdraw", Toobit.this.safeBool(rawNetwork, "allowWithdraw") );
     put( "active", null );
-    put( "fee", ToobitCore.this.safeNumber(rawNetwork, "withdrawFee") );
+    put( "fee", Toobit.this.safeNumber(rawNetwork, "withdrawFee") );
     put( "precision", null );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", ToobitCore.this.safeNumber(rawNetwork, "minDepositQuantity") );
+            put( "min", Toobit.this.safeNumber(rawNetwork, "minDepositQuantity") );
             put( "max", null );
         }} );
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", ToobitCore.this.safeNumber(rawNetwork, "minWithdrawQuantity") );
-            put( "max", ToobitCore.this.safeNumber(rawNetwork, "maxWithdrawQuantity") );
+            put( "min", Toobit.this.safeNumber(rawNetwork, "minWithdrawQuantity") );
+            put( "max", Toobit.this.safeNumber(rawNetwork, "maxWithdrawQuantity") );
         }} );
     }} );
     put( "info", rawNetwork );
@@ -997,11 +997,11 @@ public class ToobitCore extends ToobitApi
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
-            put( "name", ToobitCore.this.safeString(rawCurrency, "coinFullName") );
+            put( "name", Toobit.this.safeString(rawCurrency, "coinFullName") );
             put( "type", null );
             put( "active", null );
-            put( "deposit", ToobitCore.this.safeBool(rawCurrency, "allowDeposit") );
-            put( "withdraw", ToobitCore.this.safeBool(rawCurrency, "allowWithdraw") );
+            put( "deposit", Toobit.this.safeBool(rawCurrency, "allowDeposit") );
+            put( "withdraw", Toobit.this.safeBool(rawCurrency, "allowWithdraw") );
             put( "fee", null );
             put( "precision", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
@@ -1235,14 +1235,14 @@ public class ToobitCore extends ToobitApi
             put( "contract", isContract );
             put( "linear", ((Helpers.isTrue(isContract))) ? (!Helpers.isEqual(finalInverse, true)) : null );
             put( "inverse", ((Helpers.isTrue(isContract))) ? finalInverse : null );
-            put( "contractSize", ToobitCore.this.safeNumber(market, "contractMultiplier") );
+            put( "contractSize", Toobit.this.safeNumber(market, "contractMultiplier") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", ToobitCore.this.safeNumber(lotSizeFilter, "stepSize") );
-                put( "price", ToobitCore.this.safeNumber(priceFilter, "tickSize") );
+                put( "amount", Toobit.this.safeNumber(lotSizeFilter, "stepSize") );
+                put( "price", Toobit.this.safeNumber(priceFilter, "tickSize") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -1250,15 +1250,15 @@ public class ToobitCore extends ToobitApi
                     put( "max", null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", ToobitCore.this.safeNumber(lotSizeFilter, "minQty") );
-                    put( "max", ToobitCore.this.safeNumber(lotSizeFilter, "maxQty") );
+                    put( "min", Toobit.this.safeNumber(lotSizeFilter, "minQty") );
+                    put( "max", Toobit.this.safeNumber(lotSizeFilter, "maxQty") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", ToobitCore.this.safeNumber(priceFilter, "minPrice") );
-                    put( "max", ToobitCore.this.safeNumber(priceFilter, "maxPrice") );
+                    put( "min", Toobit.this.safeNumber(priceFilter, "minPrice") );
+                    put( "max", Toobit.this.safeNumber(priceFilter, "maxPrice") );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", ToobitCore.this.safeNumber(minNotionalFilter, "minNotional") );
+                    put( "min", Toobit.this.safeNumber(minNotionalFilter, "minNotional") );
                     put( "max", null );
                 }} );
             }} );
@@ -1463,7 +1463,7 @@ public class ToobitCore extends ToobitApi
         {
             final Object finalFeeAmount = feeAmount;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "currency", ToobitCore.this.safeCurrencyCode(feeCurrencyId) );
+                put( "currency", Toobit.this.safeCurrencyCode(feeCurrencyId) );
                 put( "cost", finalFeeAmount );
             }};
         }
@@ -1481,10 +1481,10 @@ public class ToobitCore extends ToobitApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", ToobitCore.this.iso8601(timestamp) );
+            put( "datetime", Toobit.this.iso8601(timestamp) );
             put( "symbol", symbol );
-            put( "id", ToobitCore.this.safeString2(trade, "id", "v") );
-            put( "order", ToobitCore.this.safeString(trade, "orderId") );
+            put( "id", Toobit.this.safeString2(trade, "id", "v") );
+            put( "order", Toobit.this.safeString(trade, "orderId") );
             put( "type", null );
             put( "side", finalSide );
             put( "amount", amountString );
@@ -1526,7 +1526,7 @@ public class ToobitCore extends ToobitApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "interval", ToobitCore.this.safeString(ToobitCore.this.timeframes, timeframe, timeframe) );
+                put( "interval", Toobit.this.safeString(Toobit.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -1661,23 +1661,23 @@ public class ToobitCore extends ToobitApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", ToobitCore.this.iso8601(timestamp) );
-            put( "high", ToobitCore.this.safeString(ticker, "h") );
-            put( "low", ToobitCore.this.safeString(ticker, "l") );
+            put( "datetime", Toobit.this.iso8601(timestamp) );
+            put( "high", Toobit.this.safeString(ticker, "h") );
+            put( "low", Toobit.this.safeString(ticker, "l") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", ToobitCore.this.safeString(ticker, "o") );
+            put( "open", Toobit.this.safeString(ticker, "o") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
-            put( "change", ToobitCore.this.safeString(ticker, "pc") );
-            put( "percentage", Precise.stringMul(ToobitCore.this.safeString(ticker, "pcp"), "100") );
+            put( "change", Toobit.this.safeString(ticker, "pc") );
+            put( "percentage", Precise.stringMul(Toobit.this.safeString(ticker, "pcp"), "100") );
             put( "average", null );
             put( "baseVolume", finalBaseVolume );
-            put( "quoteVolume", ToobitCore.this.safeString(ticker, "qv") );
+            put( "quoteVolume", Toobit.this.safeString(ticker, "qv") );
             put( "info", ticker );
         }}, market);
     }
@@ -1738,7 +1738,7 @@ public class ToobitCore extends ToobitApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "price", ToobitCore.this.safeNumberOmitZero(entry, "price") );
+            put( "price", Toobit.this.safeNumberOmitZero(entry, "price") );
             put( "side", null );
             put( "info", entry );
         }};
@@ -1817,12 +1817,12 @@ public class ToobitCore extends ToobitApi
         Long timestamp = this.safeInteger(ticker, "t");
         return new java.util.HashMap<String, Object>() {{
             put( "timestamp", timestamp );
-            put( "datetime", ToobitCore.this.iso8601(timestamp) );
+            put( "datetime", Toobit.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(market, "symbol") );
-            put( "bid", ToobitCore.this.safeNumber(ticker, "b") );
-            put( "bidVolume", ToobitCore.this.safeNumber(ticker, "bq") );
-            put( "ask", ToobitCore.this.safeNumber(ticker, "a") );
-            put( "askVolume", ToobitCore.this.safeNumber(ticker, "aq") );
+            put( "bid", Toobit.this.safeNumber(ticker, "b") );
+            put( "bidVolume", Toobit.this.safeNumber(ticker, "bq") );
+            put( "ask", Toobit.this.safeNumber(ticker, "a") );
+            put( "askVolume", Toobit.this.safeNumber(ticker, "aq") );
             put( "info", ticker );
         }};
     }
@@ -1896,7 +1896,7 @@ public class ToobitCore extends ToobitApi
             put( "nextFundingDatetime", null );
             put( "fundingRate", nextFundingRate );
             put( "fundingTimestamp", nextFundingRateTimestamp );
-            put( "fundingDatetime", ToobitCore.this.iso8601(nextFundingRateTimestamp) );
+            put( "fundingDatetime", Toobit.this.iso8601(nextFundingRateTimestamp) );
             put( "interval", null );
         }};
     }
@@ -1969,10 +1969,10 @@ public class ToobitCore extends ToobitApi
         String marketId = this.safeString(contract, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", ToobitCore.this.safeSymbol(marketId, market) );
-            put( "fundingRate", ToobitCore.this.safeNumber(contract, "settleRate") );
+            put( "symbol", Toobit.this.safeSymbol(marketId, market) );
+            put( "fundingRate", Toobit.this.safeNumber(contract, "settleRate") );
             put( "timestamp", timestamp );
-            put( "datetime", ToobitCore.this.iso8601(timestamp) );
+            put( "datetime", Toobit.this.iso8601(timestamp) );
         }};
     }
 
@@ -2173,7 +2173,7 @@ public class ToobitCore extends ToobitApi
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
-            put( "quantity", ToobitCore.this.amountToPrecision(symbol, amount) );
+            put( "quantity", Toobit.this.amountToPrecision(symbol, amount) );
         }};
         Boolean reduceOnly = null;
         java.util.List<Object> reduceOnlyparametersVariable = (java.util.List<Object>) this.handleParamBool(parameters, "reduceOnly");
@@ -2354,24 +2354,24 @@ public class ToobitCore extends ToobitApi
         final Object finalReduceOnly = reduceOnly;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", ToobitCore.this.safeString(order, "orderId") );
-            put( "clientOrderId", ToobitCore.this.safeString(order, "clientOrderId") );
+            put( "id", Toobit.this.safeString(order, "orderId") );
+            put( "clientOrderId", Toobit.this.safeString(order, "clientOrderId") );
             put( "timestamp", timestamp );
-            put( "datetime", ToobitCore.this.iso8601(timestamp) );
+            put( "datetime", Toobit.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", ToobitCore.this.safeInteger(order, "updateTime") );
-            put( "status", ToobitCore.this.parseOrderStatus(ToobitCore.this.safeString(order, "status")) );
+            put( "lastUpdateTimestamp", Toobit.this.safeInteger(order, "updateTime") );
+            put( "status", Toobit.this.parseOrderStatus(Toobit.this.safeString(order, "status")) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "type", ToobitCore.this.parseOrderType(finalRawType) );
-            put( "timeInForce", ToobitCore.this.safeString(order, "timeInForce") );
+            put( "type", Toobit.this.parseOrderType(finalRawType) );
+            put( "timeInForce", Toobit.this.safeString(order, "timeInForce") );
             put( "postOnly", (Helpers.isEqual(finalRawType, "LIMIT_MAKER")) );
             put( "side", finalRawSideLower );
-            put( "price", ToobitCore.this.omitZero(ToobitCore.this.safeString(order, "price")) );
+            put( "price", Toobit.this.omitZero(Toobit.this.safeString(order, "price")) );
             put( "triggerPrice", finalTriggerPrice );
-            put( "cost", ToobitCore.this.omitZero(ToobitCore.this.safeString(order, "cumulativeQuoteQty")) );
-            put( "average", ToobitCore.this.safeString(order, "avgPrice") );
-            put( "amount", ToobitCore.this.safeString(order, "origQty") );
-            put( "filled", ToobitCore.this.safeString(order, "executedQty") );
+            put( "cost", Toobit.this.omitZero(Toobit.this.safeString(order, "cumulativeQuoteQty")) );
+            put( "average", Toobit.this.safeString(order, "avgPrice") );
+            put( "amount", Toobit.this.safeString(order, "origQty") );
+            put( "filled", Toobit.this.safeString(order, "executedQty") );
             put( "remaining", null );
             put( "trades", null );
             put( "fee", null );
@@ -2917,7 +2917,7 @@ public class ToobitCore extends ToobitApi
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
-                put( "quantity", ToobitCore.this.currencyToPrecision(code, amount) );
+                put( "quantity", Toobit.this.currencyToPrecision(code, amount) );
                 put( "fromAccountType", fromId );
                 put( "toAccountType", toId );
             }};
@@ -3052,14 +3052,14 @@ public class ToobitCore extends ToobitApi
         final Object finalCurrency = currency;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", ToobitCore.this.safeString(item, "id") );
+            put( "id", Toobit.this.safeString(item, "id") );
             put( "timestamp", timestamp );
-            put( "datetime", ToobitCore.this.iso8601(timestamp) );
+            put( "datetime", Toobit.this.iso8601(timestamp) );
             put( "direction", finalDirection );
             put( "account", null );
             put( "referenceId", null );
             put( "referenceAccount", null );
-            put( "type", ToobitCore.this.parseLedgerType(ToobitCore.this.safeString(item, "flowType")) );
+            put( "type", Toobit.this.parseLedgerType(Toobit.this.safeString(item, "flowType")) );
             put( "currency", Helpers.GetValue(finalCurrency, "code") );
             put( "amount", amount );
             put( "before", null );
@@ -3147,9 +3147,9 @@ public class ToobitCore extends ToobitApi
         String marketId = this.safeString(data, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", ToobitCore.this.safeSymbol(marketId, market) );
-            put( "maker", ToobitCore.this.safeNumber(data, "closeMakerFee") );
-            put( "taker", ToobitCore.this.safeNumber(data, "closeTakerFee") );
+            put( "symbol", Toobit.this.safeSymbol(marketId, market) );
+            put( "maker", Toobit.this.safeNumber(data, "closeMakerFee") );
+            put( "taker", Toobit.this.safeNumber(data, "closeTakerFee") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -3305,8 +3305,8 @@ public class ToobitCore extends ToobitApi
         {
             final Object finalFeeString = feeString;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", ToobitCore.this.parseNumber(finalFeeString) );
-                put( "currency", ToobitCore.this.safeCurrencyCode(feeCoin) );
+                put( "cost", Toobit.this.parseNumber(finalFeeString) );
+                put( "currency", Toobit.this.safeCurrencyCode(feeCoin) );
             }};
         }
         String tagTo = this.safeString2(transaction, "addressTag", "addressExt");
@@ -3318,10 +3318,10 @@ public class ToobitCore extends ToobitApi
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", ToobitCore.this.safeString(transaction, "id") );
-            put( "txid", ToobitCore.this.safeString(transaction, "txId") );
+            put( "id", Toobit.this.safeString(transaction, "id") );
+            put( "txid", Toobit.this.safeString(transaction, "txId") );
             put( "timestamp", timestamp );
-            put( "datetime", ToobitCore.this.iso8601(timestamp) );
+            put( "datetime", Toobit.this.iso8601(timestamp) );
             put( "network", null );
             put( "address", null );
             put( "addressTo", addressTo );
@@ -3330,9 +3330,9 @@ public class ToobitCore extends ToobitApi
             put( "tagTo", tagTo );
             put( "tagFrom", tagFrom );
             put( "type", type );
-            put( "amount", ToobitCore.this.safeNumber(transaction, "quantity") );
+            put( "amount", Toobit.this.safeNumber(transaction, "quantity") );
             put( "currency", code );
-            put( "status", ToobitCore.this.parseTransactionStatus(ToobitCore.this.safeString(transaction, "status")) );
+            put( "status", Toobit.this.parseTransactionStatus(Toobit.this.safeString(transaction, "status")) );
             put( "updated", null );
             put( "fee", finalFee );
             put( "comment", null );
@@ -3410,10 +3410,10 @@ public class ToobitCore extends ToobitApi
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", ToobitCore.this.safeString(currency, "code") );
+            put( "currency", Toobit.this.safeString(currency, "code") );
             put( "network", null );
             put( "address", address );
-            put( "tag", ToobitCore.this.safeString(depositAddress, "addressExt") );
+            put( "tag", Toobit.this.safeString(depositAddress, "addressExt") );
         }};
     }
 
@@ -3455,9 +3455,9 @@ public class ToobitCore extends ToobitApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "address", address );
-                put( "quantity", ToobitCore.this.currencyToPrecision(Helpers.GetValue(currency, "code"), amount) );
-                put( "chainType", ToobitCore.this.networkCodeToId(finalNetworkCode, code) );
-                put( "clientOrderId", ToobitCore.this.milliseconds() );
+                put( "quantity", Toobit.this.currencyToPrecision(Helpers.GetValue(currency, "code"), amount) );
+                put( "chainType", Toobit.this.networkCodeToId(finalNetworkCode, code) );
+                put( "clientOrderId", Toobit.this.milliseconds() );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
             {
@@ -3610,7 +3610,7 @@ public class ToobitCore extends ToobitApi
         String marginMode = ((Helpers.isTrue((Helpers.isEqual(marginType, "cross"))))) ? "cross" : "isolated";
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", ToobitCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Toobit.this.safeSymbol(marketId, market) );
             put( "marginMode", marginMode );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
@@ -3693,23 +3693,23 @@ public class ToobitCore extends ToobitApi
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", ToobitCore.this.safeString(position, "id") );
+            put( "id", Toobit.this.safeString(position, "id") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "entryPrice", ToobitCore.this.safeNumber(position, "avgPrice") );
-            put( "markPrice", ToobitCore.this.safeNumber(position, "markPrice") );
-            put( "lastPrice", ToobitCore.this.safeNumber(position, "lastPrice") );
-            put( "notional", ToobitCore.this.safeNumber(position, "positionValue") );
+            put( "entryPrice", Toobit.this.safeNumber(position, "avgPrice") );
+            put( "markPrice", Toobit.this.safeNumber(position, "markPrice") );
+            put( "lastPrice", Toobit.this.safeNumber(position, "lastPrice") );
+            put( "notional", Toobit.this.safeNumber(position, "positionValue") );
             put( "collateral", null );
-            put( "unrealizedPnl", ToobitCore.this.safeNumber(position, "unrealizedPnL") );
+            put( "unrealizedPnl", Toobit.this.safeNumber(position, "unrealizedPnL") );
             put( "side", side );
-            put( "contracts", ToobitCore.this.parseNumber(quantity) );
+            put( "contracts", Toobit.this.parseNumber(quantity) );
             put( "contractSize", null );
             put( "timestamp", null );
             put( "datetime", null );
             put( "hedged", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", ToobitCore.this.safeNumber(position, "margin") );
+            put( "initialMargin", Toobit.this.safeNumber(position, "margin") );
             put( "initialMarginPercentage", null );
             put( "leverage", leverage );
             put( "liquidationPrice", null );
@@ -3781,8 +3781,8 @@ public class ToobitCore extends ToobitApi
             }
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Referrer", "CCXT" );
-                put( "X-BB-APIKEY", ToobitCore.this.apiKey );
-                put( "X-BB-API-PLATFORM", ToobitCore.this.safeString(ToobitCore.this.options, "brokerId", "177321641268789") );
+                put( "X-BB-APIKEY", Toobit.this.apiKey );
+                put( "X-BB-API-PLATFORM", Toobit.this.safeString(Toobit.this.options, "brokerId", "177321641268789") );
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
         }

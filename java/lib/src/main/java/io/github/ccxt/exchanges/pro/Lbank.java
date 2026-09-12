@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class LbankCore extends io.github.ccxt.exchanges.Lbank
+public class Lbank extends io.github.ccxt.exchanges.Lbank
 {
-   public LbankCore () {
+   public Lbank () {
        super();
    }
 
-   public LbankCore (Object options) {
+   public Lbank (Object options) {
        super(options);
    }
 
@@ -415,10 +415,10 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         Object tickerData = this.safeValue(ticker, "tick");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
-            put( "timestamp", LbankCore.this.parse8601(datetime) );
+            put( "timestamp", Lbank.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "high", LbankCore.this.safeString(tickerData, "high") );
-            put( "low", LbankCore.this.safeString(tickerData, "low") );
+            put( "high", Lbank.this.safeString(tickerData, "high") );
+            put( "low", Lbank.this.safeString(tickerData, "low") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
@@ -426,13 +426,13 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             put( "vwap", null );
             put( "open", null );
             put( "close", null );
-            put( "last", LbankCore.this.safeString(tickerData, "latest") );
+            put( "last", Lbank.this.safeString(tickerData, "latest") );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", LbankCore.this.safeString(tickerData, "change") );
+            put( "percentage", Lbank.this.safeString(tickerData, "change") );
             put( "average", null );
-            put( "baseVolume", LbankCore.this.safeString(tickerData, "vol") );
-            put( "quoteVolume", LbankCore.this.safeString(tickerData, "turnover") );
+            put( "baseVolume", Lbank.this.safeString(tickerData, "vol") );
+            put( "quoteVolume", Lbank.this.safeString(tickerData, "turnover") );
             put( "info", ticker );
         }}, market);
     }
@@ -617,9 +617,9 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             put( "type", null );
             put( "takerOrMaker", null );
             put( "side", finalSide );
-            put( "price", LbankCore.this.safeString2(trade, "price", 1) );
-            put( "amount", LbankCore.this.safeString2(trade, "volume", 2) );
-            put( "cost", LbankCore.this.safeString(trade, "amount") );
+            put( "price", Lbank.this.safeString2(trade, "price", 1) );
+            put( "amount", Lbank.this.safeString2(trade, "volume", 2) );
+            put( "cost", Lbank.this.safeString(trade, "amount") );
             put( "fee", null );
             put( "info", trade );
         }}, market);
@@ -786,22 +786,22 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         final Object finalCost = cost;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", LbankCore.this.safeString(orderUpdate, "uuid") );
-            put( "clientOrderId", LbankCore.this.safeString(orderUpdate, "customerID") );
+            put( "id", Lbank.this.safeString(orderUpdate, "uuid") );
+            put( "clientOrderId", Lbank.this.safeString(orderUpdate, "customerID") );
             put( "timestamp", timestamp );
-            put( "datetime", LbankCore.this.iso8601(timestamp) );
+            put( "datetime", Lbank.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", LbankCore.this.safeInteger(orderUpdate, "updateTime") );
+            put( "lastUpdateTimestamp", Lbank.this.safeInteger(orderUpdate, "updateTime") );
             put( "symbol", symbol );
             put( "type", finalType );
             put( "side", finalSide );
-            put( "price", LbankCore.this.safeString2(orderUpdate, "price", "orderPrice") );
+            put( "price", Lbank.this.safeString2(orderUpdate, "price", "orderPrice") );
             put( "stopPrice", null );
-            put( "average", LbankCore.this.safeString(orderUpdate, "avgPrice") );
-            put( "amount", LbankCore.this.safeString2(orderUpdate, "amount", "orderAmt") );
-            put( "remaining", LbankCore.this.safeString(orderUpdate, "remainAmt") );
-            put( "filled", LbankCore.this.safeString(orderUpdate, "accAmt") );
-            put( "status", LbankCore.this.parseWsOrderStatus(status) );
+            put( "average", Lbank.this.safeString(orderUpdate, "avgPrice") );
+            put( "amount", Lbank.this.safeString2(orderUpdate, "amount", "orderAmt") );
+            put( "remaining", Lbank.this.safeString(orderUpdate, "remainAmt") );
+            put( "filled", Lbank.this.safeString(orderUpdate, "accAmt") );
+            put( "status", Lbank.this.parseWsOrderStatus(status) );
             put( "fee", null );
             put( "cost", finalCost );
             put( "trades", null );
@@ -1163,8 +1163,8 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                         throw new ExchangeError(Helpers.add(this.id, " failed to get subscribe key")) ;
                     }
                     Helpers.addElementToObject(client.subscriptions, "authenticated", new java.util.HashMap<String, Object>() {{
-        put( "key", LbankCore.this.safeString(response, "data") );
-        put( "expires", LbankCore.this.sum(now, 3300000) );
+        put( "key", Lbank.this.safeString(response, "data") );
+        put( "expires", Lbank.this.sum(now, 3300000) );
     }});
                 } else
                 {

@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
+public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 {
-   public DeepcoinCore () {
+   public Deepcoin () {
        super();
    }
 
-   public DeepcoinCore (Object options) {
+   public Deepcoin (Object options) {
        super(options);
    }
 
@@ -431,9 +431,9 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", DeepcoinCore.this.safeString(market, "symbol") );
+            put( "symbol", Deepcoin.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", DeepcoinCore.this.iso8601(timestamp) );
+            put( "datetime", Deepcoin.this.iso8601(timestamp) );
             put( "high", high );
             put( "low", low );
             put( "bid", bid );
@@ -607,23 +607,23 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
-                put( "currency", DeepcoinCore.this.safeCurrencyCode(DeepcoinCore.this.safeString(trade, "f")) );
+                put( "currency", Deepcoin.this.safeCurrencyCode(Deepcoin.this.safeString(trade, "f")) );
             }};
         }
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", DeepcoinCore.this.iso8601(timestamp) );
-            put( "symbol", DeepcoinCore.this.safeString(market, "symbol") );
-            put( "id", DeepcoinCore.this.safeString2(trade, "TradeID", "TI") );
-            put( "order", DeepcoinCore.this.safeString(trade, "OS") );
+            put( "datetime", Deepcoin.this.iso8601(timestamp) );
+            put( "symbol", Deepcoin.this.safeString(market, "symbol") );
+            put( "id", Deepcoin.this.safeString2(trade, "TradeID", "TI") );
+            put( "order", Deepcoin.this.safeString(trade, "OS") );
             put( "type", null );
-            put( "takerOrMaker", DeepcoinCore.this.handleTakerOrMaker(matchRole) );
-            put( "side", DeepcoinCore.this.parseTradeSide(direction) );
-            put( "price", DeepcoinCore.this.safeString(trade, "P") );
-            put( "amount", DeepcoinCore.this.safeString(trade, "V") );
-            put( "cost", DeepcoinCore.this.safeString(trade, "T") );
+            put( "takerOrMaker", Deepcoin.this.handleTakerOrMaker(matchRole) );
+            put( "side", Deepcoin.this.parseTradeSide(direction) );
+            put( "price", Deepcoin.this.safeString(trade, "P") );
+            put( "amount", Deepcoin.this.safeString(trade, "V") );
+            put( "cost", Deepcoin.this.safeString(trade, "T") );
             put( "fee", finalFee );
         }}, market);
     }
@@ -1252,26 +1252,26 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object timestamp = this.safeTimestamp(order, "IT");
         String direction = this.safeString(order, "D");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", DeepcoinCore.this.safeString(order, "OS") );
+            put( "id", Deepcoin.this.safeString(order, "OS") );
             put( "clientOrderId", null );
-            put( "datetime", DeepcoinCore.this.iso8601(timestamp) );
+            put( "datetime", Deepcoin.this.iso8601(timestamp) );
             put( "timestamp", timestamp );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", DeepcoinCore.this.safeTimestamp(order, "U") );
-            put( "status", DeepcoinCore.this.parseWsOrderStatus(state) );
-            put( "symbol", DeepcoinCore.this.safeString(market, "symbol") );
+            put( "lastUpdateTimestamp", Deepcoin.this.safeTimestamp(order, "U") );
+            put( "status", Deepcoin.this.parseWsOrderStatus(state) );
+            put( "symbol", Deepcoin.this.safeString(market, "symbol") );
             put( "type", null );
             put( "timeInForce", null );
-            put( "side", DeepcoinCore.this.parseTradeSide(direction) );
-            put( "price", DeepcoinCore.this.safeString(order, "P") );
-            put( "average", DeepcoinCore.this.safeString(order, "t") );
-            put( "amount", DeepcoinCore.this.safeString(order, "V") );
-            put( "filled", DeepcoinCore.this.safeString(order, "VT") );
+            put( "side", Deepcoin.this.parseTradeSide(direction) );
+            put( "price", Deepcoin.this.safeString(order, "P") );
+            put( "average", Deepcoin.this.safeString(order, "t") );
+            put( "amount", Deepcoin.this.safeString(order, "V") );
+            put( "filled", Deepcoin.this.safeString(order, "VT") );
             put( "remaining", null );
             put( "triggerPrice", null );
-            put( "takeProfitPrice", DeepcoinCore.this.safeString(order, "TPT") );
-            put( "stopLossPrice", DeepcoinCore.this.safeString(order, "SLT") );
-            put( "cost", DeepcoinCore.this.safeString(order, "T") );
+            put( "takeProfitPrice", Deepcoin.this.safeString(order, "TPT") );
+            put( "stopLossPrice", Deepcoin.this.safeString(order, "SLT") );
+            put( "cost", Deepcoin.this.safeString(order, "T") );
             put( "trades", null );
             put( "fee", null );
             put( "reduceOnly", null );
@@ -1409,24 +1409,24 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         String direction = this.safeString(position, "p");
         String marginMode = this.safeString(position, "i");
         return this.safePosition(new java.util.HashMap<String, Object>() {{
-            put( "symbol", DeepcoinCore.this.safeString(market, "symbol") );
+            put( "symbol", Deepcoin.this.safeString(market, "symbol") );
             put( "id", null );
             put( "timestamp", timestamp );
-            put( "datetime", DeepcoinCore.this.iso8601(timestamp) );
-            put( "contracts", DeepcoinCore.this.safeString(position, "Po") );
+            put( "datetime", Deepcoin.this.iso8601(timestamp) );
+            put( "contracts", Deepcoin.this.safeString(position, "Po") );
             put( "contractSize", null );
-            put( "side", DeepcoinCore.this.parsePositionSide(direction) );
+            put( "side", Deepcoin.this.parsePositionSide(direction) );
             put( "notional", null );
-            put( "leverage", DeepcoinCore.this.omitZero(DeepcoinCore.this.safeString(position, "l")) );
+            put( "leverage", Deepcoin.this.omitZero(Deepcoin.this.safeString(position, "l")) );
             put( "unrealizedPnl", null );
             put( "realizedPnl", null );
             put( "collateral", null );
-            put( "entryPrice", DeepcoinCore.this.safeString(position, "OP") );
+            put( "entryPrice", Deepcoin.this.safeString(position, "OP") );
             put( "markPrice", null );
             put( "liquidationPrice", null );
-            put( "marginMode", DeepcoinCore.this.parseWsMarginMode(marginMode) );
+            put( "marginMode", Deepcoin.this.parseWsMarginMode(marginMode) );
             put( "hedged", true );
-            put( "maintenanceMargin", DeepcoinCore.this.safeString(position, "u") );
+            put( "maintenanceMargin", Deepcoin.this.safeString(position, "u") );
             put( "maintenanceMarginPercentage", null );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );

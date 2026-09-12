@@ -12,7 +12,7 @@ import io.github.ccxt.ws.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-public class PredictionExchange extends BaseExchange {
+public class PredictionExchange extends BaseExchange implements PredictionTypedSurface {
     public volatile Object outcomes = null;
     public volatile Object outcomes_by_id = null;
     public volatile Object events = null;
@@ -485,7 +485,7 @@ public Object describe()
             {
                 return this.events;
             }
-            Object events = (this.fetchEvents(parameters)).join();
+            Object events = (this.fetchEvents((Object)(parameters))).join();
             return this.setEvents(events);
         });
 
@@ -1081,10 +1081,10 @@ public Object describe()
                 Long searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
                 try
                 {
-                    (this.fetchEvents(new java.util.HashMap<String, Object>() {{
+                    (this.fetchEvents((Object)(new java.util.HashMap<String, Object>() {{
                         put( "query", searchQuery );
                         put( "limit", searchLimit );
-                    }})).join();
+                    }}))).join();
                 } catch(Exception e)
                 {
                     // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
@@ -1184,7 +1184,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (super.fetchOHLCV(outcome, timeframe, since, limit, parameters)).join();
+            return (super.fetchOHLCV((Object)(outcome), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1577,7 +1577,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false)) || Helpers.isTrue(this.safeBool(this.has, "createMarketBuyOrderWithCost", false))))
             {
-                return (this.createOrder(outcome, "market", "buy", cost, 1, parameters)).join();
+                return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
         });
@@ -1601,7 +1601,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false)) || Helpers.isTrue(this.safeBool(this.has, "createMarketSellOrderWithCost", false))))
             {
-                return (this.createOrder(outcome, "market", "sell", cost, 1, parameters)).join();
+                return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
         });
@@ -2423,8 +2423,8 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Strin
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.cancelOrder(id, symbol)).join();
-            return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
+            (this.cancelOrder((Object)(id), (Object)(symbol))).join();
+            return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -2483,7 +2483,7 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Strin
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCost"), false)))) || Helpers.isTrue((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), false)))) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), false))))))))
             {
-                return (this.createOrder(symbol, "market", side, cost, 1, parameters)).join();
+                return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
         });

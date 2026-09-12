@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
+public class Woofipro extends io.github.ccxt.exchanges.Woofipro
 {
-   public WoofiproCore () {
+   public Woofipro () {
        super();
    }
 
-   public WoofiproCore (Object options) {
+   public Woofipro (Object options) {
        super(options);
    }
 
@@ -231,25 +231,25 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", WoofiproCore.this.safeSymbol(null, market) );
+            put( "symbol", Woofipro.this.safeSymbol(null, market) );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", WoofiproCore.this.safeString(ticker, "high") );
-            put( "low", WoofiproCore.this.safeString(ticker, "low") );
+            put( "high", Woofipro.this.safeString(ticker, "high") );
+            put( "low", Woofipro.this.safeString(ticker, "low") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", WoofiproCore.this.safeString(ticker, "open") );
-            put( "close", WoofiproCore.this.safeString(ticker, "close") );
+            put( "open", Woofipro.this.safeString(ticker, "open") );
+            put( "close", Woofipro.this.safeString(ticker, "close") );
             put( "last", null );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", WoofiproCore.this.safeString(ticker, "volume") );
-            put( "quoteVolume", WoofiproCore.this.safeString(ticker, "amount") );
+            put( "baseVolume", Woofipro.this.safeString(ticker, "volume") );
+            put( "quoteVolume", Woofipro.this.safeString(ticker, "amount") );
             put( "info", ticker );
         }}, market);
     }
@@ -436,11 +436,11 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
-            put( "ask", WoofiproCore.this.safeString(ticker, "ask") );
-            put( "askVolume", WoofiproCore.this.safeString(ticker, "askSize") );
-            put( "bid", WoofiproCore.this.safeString(ticker, "bid") );
-            put( "bidVolume", WoofiproCore.this.safeString(ticker, "bidSize") );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
+            put( "ask", Woofipro.this.safeString(ticker, "ask") );
+            put( "askVolume", Woofipro.this.safeString(ticker, "askSize") );
+            put( "bid", Woofipro.this.safeString(ticker, "bid") );
+            put( "bidVolume", Woofipro.this.safeString(ticker, "bidSize") );
             put( "info", ticker );
         }}, market);
     }
@@ -672,23 +672,23 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             final Object finalFeeValue = feeValue;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeValue );
-                put( "currency", WoofiproCore.this.safeCurrencyCode(WoofiproCore.this.safeString(trade, "feeAsset")) );
+                put( "currency", Woofipro.this.safeCurrencyCode(Woofipro.this.safeString(trade, "feeAsset")) );
             }};
         }
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", WoofiproCore.this.safeString(trade, "tradeId") );
+            put( "id", Woofipro.this.safeString(trade, "tradeId") );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "side", side );
             put( "price", price );
             put( "amount", amount );
             put( "cost", cost );
-            put( "order", WoofiproCore.this.safeString(trade, "orderId") );
+            put( "order", Woofipro.this.safeString(trade, "orderId") );
             put( "takerOrMaker", finalTakerOrMaker );
-            put( "type", WoofiproCore.this.safeStringLower(trade, "type") );
+            put( "type", Woofipro.this.safeStringLower(trade, "type") );
             put( "fee", finalFee );
             put( "info", trade );
         }}, market);
@@ -749,7 +749,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "event", eventVar );
                     put( "params", new java.util.HashMap<String, Object>() {{
-                        put( "orderly_key", WoofiproCore.this.apiKey );
+                        put( "orderly_key", Woofipro.this.apiKey );
                         put( "sign", signature );
                         put( "timestamp", ts );
                     }} );
@@ -974,8 +974,8 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         Object symbol = Helpers.GetValue(market, "symbol");
         Long timestamp = this.safeInteger(order, "timestamp");
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
-            put( "cost", WoofiproCore.this.safeString(order, "totalFee") );
-            put( "currency", WoofiproCore.this.safeString(order, "feeAsset") );
+            put( "cost", Woofipro.this.safeString(order, "totalFee") );
+            put( "currency", Woofipro.this.safeString(order, "feeAsset") );
         }};
         String priceString = this.safeString(order, "price");
         Object price = this.safeNumber(order, "price");
@@ -1007,7 +1007,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", timestamp );
             put( "type", type );
             put( "timeInForce", null );
@@ -1393,23 +1393,23 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", WoofiproCore.this.safeString(finalMarket, "symbol") );
+            put( "symbol", Woofipro.this.safeString(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
             put( "lastUpdateTimestamp", null );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "entryPrice", WoofiproCore.this.parseNumber(entryPrice) );
-            put( "notional", WoofiproCore.this.parseNumber(notional) );
+            put( "entryPrice", Woofipro.this.parseNumber(entryPrice) );
+            put( "notional", Woofipro.this.parseNumber(notional) );
             put( "leverage", null );
-            put( "unrealizedPnl", WoofiproCore.this.parseNumber(unrealisedPnl) );
-            put( "contracts", WoofiproCore.this.parseNumber(finalSize) );
-            put( "contractSize", WoofiproCore.this.parseNumber(contractSize) );
+            put( "unrealizedPnl", Woofipro.this.parseNumber(unrealisedPnl) );
+            put( "contracts", Woofipro.this.parseNumber(finalSize) );
+            put( "contractSize", Woofipro.this.parseNumber(contractSize) );
             put( "marginRatio", null );
-            put( "liquidationPrice", WoofiproCore.this.safeNumber(position, "estLiqPrice") );
-            put( "markPrice", WoofiproCore.this.parseNumber(markPrice) );
+            put( "liquidationPrice", Woofipro.this.safeNumber(position, "estLiqPrice") );
+            put( "markPrice", Woofipro.this.parseNumber(markPrice) );
             put( "lastPrice", null );
             put( "collateral", null );
             put( "marginMode", "cross" );

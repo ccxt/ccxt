@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
+public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 {
-   public BitrueCore () {
+   public Bitrue () {
        super();
    }
 
-   public BitrueCore (Object options) {
+   public Bitrue (Object options) {
        super(options);
    }
 
@@ -338,27 +338,27 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         String feeCurrencyId = this.safeString(order, "N");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", BitrueCore.this.safeString(order, "i") );
-            put( "clientOrderId", BitrueCore.this.safeString(order, "c") );
+            put( "id", Bitrue.this.safeString(order, "i") );
+            put( "clientOrderId", Bitrue.this.safeString(order, "c") );
             put( "timestamp", timestamp );
-            put( "datetime", BitrueCore.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", BitrueCore.this.safeInteger(order, "T") );
-            put( "symbol", BitrueCore.this.safeSymbol(marketId, market) );
-            put( "type", BitrueCore.this.parseWsOrderType(typeId) );
+            put( "datetime", Bitrue.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", Bitrue.this.safeInteger(order, "T") );
+            put( "symbol", Bitrue.this.safeSymbol(marketId, market) );
+            put( "type", Bitrue.this.parseWsOrderType(typeId) );
             put( "timeInForce", null );
             put( "postOnly", null );
             put( "side", side );
-            put( "price", BitrueCore.this.safeString(order, "p") );
+            put( "price", Bitrue.this.safeString(order, "p") );
             put( "triggerPrice", null );
-            put( "amount", BitrueCore.this.safeString(order, "q") );
-            put( "cost", BitrueCore.this.safeString(order, "Y") );
+            put( "amount", Bitrue.this.safeString(order, "q") );
+            put( "cost", Bitrue.this.safeString(order, "Y") );
             put( "average", null );
-            put( "filled", BitrueCore.this.safeString(order, "z") );
+            put( "filled", Bitrue.this.safeString(order, "z") );
             put( "remaining", null );
-            put( "status", BitrueCore.this.parseWsOrderStatus(statusId) );
+            put( "status", Bitrue.this.parseWsOrderStatus(statusId) );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "currency", BitrueCore.this.safeCurrencyCode(feeCurrencyId) );
-                put( "cost", BitrueCore.this.safeNumber(order, "n") );
+                put( "currency", Bitrue.this.safeCurrencyCode(feeCurrencyId) );
+                put( "cost", Bitrue.this.safeNumber(order, "n") );
             }} );
         }}, market);
     }
@@ -468,8 +468,8 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             Object rawBuys = this.safeList(tick, "buys", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             final Object finalSymbol = symbol;
             parseable = new java.util.HashMap<String, Object>() {{
-                put( "asks", BitrueCore.this.parseContractBidsAsks(rawAsks, finalSymbol) );
-                put( "buys", BitrueCore.this.parseContractBidsAsks(rawBuys, finalSymbol) );
+                put( "asks", Bitrue.this.parseContractBidsAsks(rawAsks, finalSymbol) );
+                put( "buys", Bitrue.this.parseContractBidsAsks(rawBuys, finalSymbol) );
             }};
         }
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -657,14 +657,14 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             put( "info", trade );
             put( "id", null );
             put( "timestamp", timestamp );
-            put( "datetime", BitrueCore.this.iso8601(timestamp) );
+            put( "datetime", Bitrue.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "order", null );
             put( "type", null );
             put( "side", sideLower );
             put( "takerOrMaker", "taker" );
             put( "price", priceString );
-            put( "amount", BitrueCore.this.numberToString(baseAmount) );
+            put( "amount", Bitrue.this.numberToString(baseAmount) );
             put( "cost", null );
             put( "fee", null );
         }}, market);
@@ -897,15 +897,15 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             put( "info", tick );
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BitrueCore.this.iso8601(timestamp) );
-            put( "high", BitrueCore.this.safeNumber(tick, "high") );
-            put( "low", BitrueCore.this.safeNumber(tick, "low") );
+            put( "datetime", Bitrue.this.iso8601(timestamp) );
+            put( "high", Bitrue.this.safeNumber(tick, "high") );
+            put( "low", Bitrue.this.safeNumber(tick, "low") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", BitrueCore.this.safeNumber(tick, "open") );
+            put( "open", Bitrue.this.safeNumber(tick, "open") );
             put( "close", close );
             put( "last", close );
             put( "previousClose", null );

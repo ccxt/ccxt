@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class PhemexCore extends PhemexApi
+public class Phemex extends PhemexApi
 {
-   public PhemexCore () {
+   public Phemex () {
        super();
    }
 
-   public PhemexCore (Object options) {
+   public Phemex (Object options) {
        super(options);
    }
 
@@ -563,8 +563,8 @@ public class PhemexCore extends PhemexApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "taker", PhemexCore.this.parseNumber("0.001") );
-                    put( "maker", PhemexCore.this.parseNumber("0.001") );
+                    put( "taker", Phemex.this.parseNumber("0.001") );
+                    put( "maker", Phemex.this.parseNumber("0.001") );
                 }} );
             }} );
             put( "features", new java.util.HashMap<String, Object>() {{
@@ -1005,8 +1005,8 @@ public class PhemexCore extends PhemexApi
             put( "contract", true );
             put( "linear", isLinear );
             put( "inverse", finalInverse );
-            put( "taker", PhemexCore.this.parseNumber(PhemexCore.this.fromEn(takerFeeRateEr, ratioScale)) );
-            put( "maker", PhemexCore.this.parseNumber(PhemexCore.this.fromEn(makerFeeRateEr, ratioScale)) );
+            put( "taker", Phemex.this.parseNumber(Phemex.this.fromEn(takerFeeRateEr, ratioScale)) );
+            put( "maker", Phemex.this.parseNumber(Phemex.this.fromEn(makerFeeRateEr, ratioScale)) );
             put( "contractSize", finalContractSize );
             put( "expiry", null );
             put( "expiryDatetime", null );
@@ -1016,25 +1016,25 @@ public class PhemexCore extends PhemexApi
             put( "valueScale", valueScale );
             put( "ratioScale", ratioScale );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", PhemexCore.this.safeNumber2(market, "lotSize", "qtyStepSize") );
-                put( "price", PhemexCore.this.safeNumber(market, "tickSize") );
+                put( "amount", Phemex.this.safeNumber2(market, "lotSize", "qtyStepSize") );
+                put( "price", Phemex.this.safeNumber(market, "tickSize") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
-                    put( "min", PhemexCore.this.parseNumber("1") );
-                    put( "max", PhemexCore.this.safeNumber(market, "maxLeverage") );
+                    put( "min", Phemex.this.parseNumber("1") );
+                    put( "max", Phemex.this.safeNumber(market, "maxLeverage") );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", PhemexCore.this.parseNumber(PhemexCore.this.fromEn(minPriceEp, priceScale)) );
-                    put( "max", PhemexCore.this.parseNumber(PhemexCore.this.fromEn(maxPriceEp, priceScale)) );
+                    put( "min", Phemex.this.parseNumber(Phemex.this.fromEn(minPriceEp, priceScale)) );
+                    put( "max", Phemex.this.parseNumber(Phemex.this.fromEn(maxPriceEp, priceScale)) );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", PhemexCore.this.parseNumber(PhemexCore.this.safeString(market, "maxOrderQty")) );
+                    put( "max", Phemex.this.parseNumber(Phemex.this.safeString(market, "maxOrderQty")) );
                 }} );
             }} );
             put( "created", null );
@@ -1110,16 +1110,16 @@ public class PhemexCore extends PhemexApi
             put( "contract", false );
             put( "linear", null );
             put( "inverse", null );
-            put( "taker", PhemexCore.this.safeNumber(market, "defaultTakerFee") );
-            put( "maker", PhemexCore.this.safeNumber(market, "defaultMakerFee") );
+            put( "taker", Phemex.this.safeNumber(market, "defaultTakerFee") );
+            put( "maker", Phemex.this.safeNumber(market, "defaultMakerFee") );
             put( "contractSize", null );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
-            put( "priceScale", PhemexCore.this.safeInteger(market, "priceScale") );
-            put( "valueScale", PhemexCore.this.safeInteger(market, "valueScale") );
-            put( "ratioScale", PhemexCore.this.safeInteger(market, "ratioScale") );
+            put( "priceScale", Phemex.this.safeInteger(market, "priceScale") );
+            put( "valueScale", Phemex.this.safeInteger(market, "valueScale") );
+            put( "ratioScale", Phemex.this.safeInteger(market, "ratioScale") );
             put( "precision", new java.util.HashMap<String, Object>() {{
                 put( "amount", precisionAmount );
                 put( "price", precisionPrice );
@@ -1131,18 +1131,18 @@ public class PhemexCore extends PhemexApi
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", precisionAmount );
-                    put( "max", PhemexCore.this.parseSafeNumber(PhemexCore.this.safeString(market, "maxBaseOrderSize")) );
+                    put( "max", Phemex.this.parseSafeNumber(Phemex.this.safeString(market, "maxBaseOrderSize")) );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", precisionPrice );
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", PhemexCore.this.parseSafeNumber(PhemexCore.this.safeString(market, "minOrderValue")) );
-                    put( "max", PhemexCore.this.parseSafeNumber(PhemexCore.this.safeString(market, "maxOrderValue")) );
+                    put( "min", Phemex.this.parseSafeNumber(Phemex.this.safeString(market, "minOrderValue")) );
+                    put( "max", Phemex.this.parseSafeNumber(Phemex.this.safeString(market, "maxOrderValue")) );
                 }} );
             }} );
-            put( "created", PhemexCore.this.safeInteger(market, "listTime") );
+            put( "created", Phemex.this.safeInteger(market, "listTime") );
             put( "info", market );
         }});
     }
@@ -1453,8 +1453,8 @@ public class PhemexCore extends PhemexApi
             put( "id", id );
             put( "info", rawCurrency );
             put( "code", code );
-            put( "name", PhemexCore.this.safeString(rawCurrency, "name") );
-            put( "active", Helpers.isEqual(PhemexCore.this.safeString(rawCurrency, "status"), "Listed") );
+            put( "name", Phemex.this.safeString(rawCurrency, "name") );
+            put( "active", Helpers.isEqual(Phemex.this.safeString(rawCurrency, "status"), "Listed") );
             put( "deposit", null );
             put( "withdraw", null );
             put( "fee", null );
@@ -1503,7 +1503,7 @@ public class PhemexCore extends PhemexApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", PhemexCore.this.iso8601(timestamp) );
+            put( "datetime", Phemex.this.iso8601(timestamp) );
             put( "nonce", null );
         }};
         java.util.List<Object> sides = new java.util.ArrayList<Object>(java.util.Arrays.asList(bidsKey, asksKey));
@@ -1732,7 +1732,7 @@ public class PhemexCore extends PhemexApi
             Object userLimit = limit;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "resolution", PhemexCore.this.safeString(PhemexCore.this.timeframes, timeframe, timeframe) );
+                put( "resolution", Phemex.this.safeString(Phemex.this.timeframes, timeframe, timeframe) );
             }};
             Object until = this.safeInteger2(parameters, "until", "to");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
@@ -1889,12 +1889,12 @@ public class PhemexCore extends PhemexApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", PhemexCore.this.iso8601(timestamp) );
-            put( "high", PhemexCore.this.fromEp(PhemexCore.this.safeString2(ticker, "highEp", "highRp"), finalMarket) );
-            put( "low", PhemexCore.this.fromEp(PhemexCore.this.safeString2(ticker, "lowEp", "lowRp"), finalMarket) );
-            put( "bid", PhemexCore.this.fromEp(PhemexCore.this.safeString(ticker, "bidEp"), finalMarket) );
+            put( "datetime", Phemex.this.iso8601(timestamp) );
+            put( "high", Phemex.this.fromEp(Phemex.this.safeString2(ticker, "highEp", "highRp"), finalMarket) );
+            put( "low", Phemex.this.fromEp(Phemex.this.safeString2(ticker, "lowEp", "lowRp"), finalMarket) );
+            put( "bid", Phemex.this.fromEp(Phemex.this.safeString(ticker, "bidEp"), finalMarket) );
             put( "bidVolume", null );
-            put( "ask", PhemexCore.this.fromEp(PhemexCore.this.safeString(ticker, "askEp"), finalMarket) );
+            put( "ask", Phemex.this.fromEp(Phemex.this.safeString(ticker, "askEp"), finalMarket) );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", open );
@@ -2433,7 +2433,7 @@ public class PhemexCore extends PhemexApi
             put( "id", finalId );
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
-            put( "datetime", PhemexCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Phemex.this.iso8601(finalTimestamp) );
             put( "order", finalOrderId );
             put( "type", finalType );
             put( "side", finalSide );
@@ -2891,7 +2891,7 @@ public class PhemexCore extends PhemexApi
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
-                put( "currency", PhemexCore.this.safeCurrencyCode(PhemexCore.this.safeString(order, "feeCurrency")) );
+                put( "currency", Phemex.this.safeCurrencyCode(Phemex.this.safeString(order, "feeCurrency")) );
             }};
         }
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
@@ -2905,7 +2905,7 @@ public class PhemexCore extends PhemexApi
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", PhemexCore.this.iso8601(timestamp) );
+            put( "datetime", Phemex.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", symbol );
             put( "type", type );
@@ -3110,7 +3110,7 @@ public class PhemexCore extends PhemexApi
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
-            put( "datetime", PhemexCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Phemex.this.iso8601(finalTimestamp) );
             put( "timestamp", finalTimestamp );
             put( "lastTradeTimestamp", finalLastTradeTimestamp );
             put( "symbol", symbol );
@@ -4536,8 +4536,8 @@ public class PhemexCore extends PhemexApi
             put( "id", id );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", PhemexCore.this.iso8601(timestamp) );
-            put( "network", PhemexCore.this.networkIdToCode(networkId, code) );
+            put( "datetime", Phemex.this.iso8601(timestamp) );
+            put( "network", Phemex.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "addressTo", address );
             put( "addressFrom", null );
@@ -4946,31 +4946,31 @@ public class PhemexCore extends PhemexApi
         final Object finalSide = side;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", PhemexCore.this.safeString(position, "execSeq") );
+            put( "id", Phemex.this.safeString(position, "execSeq") );
             put( "symbol", symbol );
-            put( "contracts", PhemexCore.this.parseNumber(contracts) );
+            put( "contracts", Phemex.this.parseNumber(contracts) );
             put( "contractSize", contractSize );
-            put( "realizedPnl", PhemexCore.this.safeNumber2(position, "curTermRealisedPnlRv", "realizedPnlRv") );
-            put( "unrealizedPnl", PhemexCore.this.parseNumber(apiUnrealizedPnl) );
+            put( "realizedPnl", Phemex.this.safeNumber2(position, "curTermRealisedPnlRv", "realizedPnlRv") );
+            put( "unrealizedPnl", Phemex.this.parseNumber(apiUnrealizedPnl) );
             put( "leverage", leverage );
             put( "liquidationPrice", liquidationPrice );
-            put( "collateral", PhemexCore.this.parseNumber(collateral) );
-            put( "notional", PhemexCore.this.parseNumber(notionalString) );
-            put( "markPrice", PhemexCore.this.parseNumber(markPriceString) );
+            put( "collateral", Phemex.this.parseNumber(collateral) );
+            put( "notional", Phemex.this.parseNumber(notionalString) );
+            put( "markPrice", Phemex.this.parseNumber(markPriceString) );
             put( "lastPrice", null );
-            put( "entryPrice", PhemexCore.this.parseNumber(entryPriceString) );
-            put( "exitPrice", PhemexCore.this.safeNumber(position, "closePrice") );
+            put( "entryPrice", Phemex.this.parseNumber(entryPriceString) );
+            put( "exitPrice", Phemex.this.safeNumber(position, "closePrice") );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "initialMargin", PhemexCore.this.parseNumber(initialMarginString) );
-            put( "initialMarginPercentage", PhemexCore.this.parseNumber(initialMarginPercentageString) );
-            put( "maintenanceMargin", PhemexCore.this.parseNumber(maintenanceMarginString) );
-            put( "maintenanceMarginPercentage", PhemexCore.this.parseNumber(maintenanceMarginPercentageString) );
-            put( "marginRatio", PhemexCore.this.parseNumber(marginRatio) );
+            put( "initialMargin", Phemex.this.parseNumber(initialMarginString) );
+            put( "initialMarginPercentage", Phemex.this.parseNumber(initialMarginPercentageString) );
+            put( "maintenanceMargin", Phemex.this.parseNumber(maintenanceMarginString) );
+            put( "maintenanceMarginPercentage", Phemex.this.parseNumber(maintenanceMarginPercentageString) );
+            put( "marginRatio", Phemex.this.parseNumber(marginRatio) );
             put( "timestamp", timestamp );
-            put( "datetime", PhemexCore.this.iso8601(timestamp) );
+            put( "datetime", Phemex.this.iso8601(timestamp) );
             put( "marginMode", ((Helpers.isTrue((Helpers.isEqual(finalIsCross, true))))) ? "cross" : "isolated" );
             put( "side", finalSide );
-            put( "hedged", Helpers.isEqual(PhemexCore.this.safeString(position, "posMode"), "Hedged") );
+            put( "hedged", Helpers.isEqual(Phemex.this.safeString(position, "posMode"), "Hedged") );
             put( "percentage", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
@@ -5059,12 +5059,12 @@ public class PhemexCore extends PhemexApi
                 String currencyCode = this.safeCurrencyCode(this.safeString(entry, "currency"));
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", PhemexCore.this.safeString(entry, "symbol") );
+                    put( "symbol", Phemex.this.safeString(entry, "symbol") );
                     put( "code", currencyCode );
                     put( "timestamp", timestamp );
-                    put( "datetime", PhemexCore.this.iso8601(timestamp) );
+                    put( "datetime", Phemex.this.iso8601(timestamp) );
                     put( "id", null );
-                    put( "amount", PhemexCore.this.parseFundingFeeToPrecision(execFee, market, currencyCode) );
+                    put( "amount", Phemex.this.parseFundingFeeToPrecision(execFee, market, currencyCode) );
                 }});
             }
             return result;
@@ -5205,16 +5205,16 @@ public class PhemexCore extends PhemexApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
-            put( "markPrice", PhemexCore.this.safeNumber(contract, "markPriceRp", markEp) );
-            put( "indexPrice", PhemexCore.this.safeNumber(contract, "indexPriceRp", indexEp) );
+            put( "markPrice", Phemex.this.safeNumber(contract, "markPriceRp", markEp) );
+            put( "indexPrice", Phemex.this.safeNumber(contract, "indexPriceRp", indexEp) );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
-            put( "datetime", PhemexCore.this.iso8601(timestamp) );
-            put( "fundingRate", PhemexCore.this.safeNumber(contract, "fundingRateRr", fundingRateEr) );
+            put( "datetime", Phemex.this.iso8601(timestamp) );
+            put( "fundingRate", Phemex.this.safeNumber(contract, "fundingRateRr", fundingRateEr) );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
-            put( "nextFundingRate", PhemexCore.this.safeNumber(contract, "predFundingRateRr", nextFundingRateEr) );
+            put( "nextFundingRate", Phemex.this.safeNumber(contract, "predFundingRateRr", nextFundingRateEr) );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
             put( "previousFundingRate", null );
@@ -5247,7 +5247,7 @@ public class PhemexCore extends PhemexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "posBalanceEv", PhemexCore.this.toEv(amount, market) );
+                put( "posBalanceEv", Phemex.this.toEv(amount, market) );
             }};
             java.util.Map<String, Object> response = (this.privatePostPositionsAssign(this.extend(request, parameters))).join();
             //
@@ -5288,13 +5288,13 @@ public class PhemexCore extends PhemexApi
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", PhemexCore.this.safeSymbol(null, finalMarket) );
+            put( "symbol", Phemex.this.safeSymbol(null, finalMarket) );
             put( "type", "set" );
             put( "marginMode", "isolated" );
             put( "amount", null );
             put( "total", null );
             put( "code", Helpers.GetValue(finalMarket, codeCurrency) );
-            put( "status", PhemexCore.this.parseMarginStatus(PhemexCore.this.safeString(data, "code")) );
+            put( "status", Phemex.this.parseMarginStatus(Phemex.this.safeString(data, "code")) );
             put( "timestamp", null );
             put( "datetime", null );
         }};
@@ -5551,12 +5551,12 @@ public class PhemexCore extends PhemexApi
 final Object finalI = i;
             final Object finalMarket = market;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", PhemexCore.this.sum(finalI, 1) );
-                put( "symbol", PhemexCore.this.safeSymbol(marketId, finalMarket) );
+                put( "tier", Phemex.this.sum(finalI, 1) );
+                put( "symbol", Phemex.this.safeSymbol(marketId, finalMarket) );
                 put( "currency", Helpers.GetValue(finalMarket, "settle") );
                 put( "minNotional", minNotionalResponse );
                 put( "maxNotional", maxNotional );
-                put( "maintenanceMarginRate", PhemexCore.this.safeNumber(tier, "maintenanceMargin") );
+                put( "maintenanceMarginRate", Phemex.this.safeNumber(tier, "maintenanceMargin") );
                 put( "maxLeverage", null );
                 put( "info", tier );
             }});
@@ -5592,7 +5592,7 @@ final Object finalI = i;
             Object expiry = this.sum(timestamp, xPhemexRequestExpiry);
             Object expiryString = String.valueOf(expiry);
             headers = new java.util.HashMap<String, Object>() {{
-                put( "x-phemex-access-token", PhemexCore.this.apiKey );
+                put( "x-phemex-access-token", Phemex.this.apiKey );
                 put( "x-phemex-request-expiry", expiryString );
             }};
             Object payload = "";
@@ -5764,7 +5764,7 @@ final Object finalI = i;
                     put( "toUserId", finalToId );
                     put( "amountEv", scaledAmmount );
                     put( "currency", Helpers.GetValue(currency, "id") );
-                    put( "bizType", PhemexCore.this.safeString(parameters, "bizType", "SPOT") );
+                    put( "bizType", Phemex.this.safeString(parameters, "bizType", "SPOT") );
                 }};
                 java.util.Map<String, Object> response = (this.privatePostAssetsUniversalTransfer(this.extend(request, parameters))).join();
                 //
@@ -5923,12 +5923,12 @@ final Object finalI = i;
             put( "info", transfer );
             put( "id", id );
             put( "timestamp", timestamp );
-            put( "datetime", PhemexCore.this.iso8601(timestamp) );
+            put( "datetime", Phemex.this.iso8601(timestamp) );
             put( "currency", code );
             put( "amount", amountTransfered );
             put( "fromAccount", finalFromId );
             put( "toAccount", finalToId );
-            put( "status", PhemexCore.this.parseTransferStatus(status) );
+            put( "status", Phemex.this.parseTransferStatus(status) );
         }};
     }
 
@@ -6045,9 +6045,9 @@ final Object finalI = i;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "info", item );
                     put( "symbol", finalSymbol );
-                    put( "fundingRate", PhemexCore.this.safeNumber(item, "fundingRate") );
+                    put( "fundingRate", Phemex.this.safeNumber(item, "fundingRate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", PhemexCore.this.iso8601(timestamp) );
+                    put( "datetime", Phemex.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(result, "timestamp");
@@ -6229,13 +6229,13 @@ final Object finalI = i;
         String id = this.safeString(interest, "symbol");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "info", interest );
-            put( "symbol", PhemexCore.this.safeSymbol(id, market) );
-            put( "baseVolume", PhemexCore.this.safeString(interest, "volumeRq") );
+            put( "symbol", Phemex.this.safeSymbol(id, market) );
+            put( "baseVolume", Phemex.this.safeString(interest, "volumeRq") );
             put( "quoteVolume", null );
-            put( "openInterestAmount", PhemexCore.this.safeString(interest, "openInterestRv") );
+            put( "openInterestAmount", Phemex.this.safeString(interest, "openInterestRv") );
             put( "openInterestValue", null );
             put( "timestamp", timestamp );
-            put( "datetime", PhemexCore.this.iso8601(timestamp) );
+            put( "datetime", Phemex.this.iso8601(timestamp) );
         }}, market);
     }
 
@@ -6267,7 +6267,7 @@ final Object finalI = i;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "fromCurrency", fromCode );
                 put( "toCurrency", toCode );
-                put( "fromAmountEv", PhemexCore.this.toEn(amount, valueScale) );
+                put( "fromAmountEv", Phemex.this.toEn(amount, valueScale) );
             }};
             java.util.Map<String, Object> response = (this.privateGetAssetsQuote(this.extend(request, parameters))).join();
             //
@@ -6499,13 +6499,13 @@ final Object finalI = i;
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
-            put( "datetime", PhemexCore.this.iso8601(timestamp) );
-            put( "id", PhemexCore.this.safeString(conversion, "code") );
+            put( "datetime", Phemex.this.iso8601(timestamp) );
+            put( "id", Phemex.this.safeString(conversion, "code") );
             put( "fromCurrency", fromCode );
-            put( "fromAmount", PhemexCore.this.parseNumber(finalFromAmount) );
+            put( "fromAmount", Phemex.this.parseNumber(finalFromAmount) );
             put( "toCurrency", toCode );
-            put( "toAmount", PhemexCore.this.parseNumber(finalToAmount) );
-            put( "price", PhemexCore.this.safeNumber(finalQuoteArgs, "price") );
+            put( "toAmount", Phemex.this.parseNumber(finalToAmount) );
+            put( "price", Phemex.this.safeNumber(finalQuoteArgs, "price") );
             put( "fee", null );
         }};
     }
@@ -6723,10 +6723,10 @@ final Object finalI = i;
         String marketId = this.safeString(info, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", PhemexCore.this.safeSymbol(marketId, market, null, "contract") );
+            put( "symbol", Phemex.this.safeSymbol(marketId, market, null, "contract") );
             put( "rank", null );
             put( "rating", null );
-            put( "percentage", PhemexCore.this.safeNumber2(info, "deleveragePercentileRr", "deleveragePercentileEr") );
+            put( "percentage", Phemex.this.safeNumber2(info, "deleveragePercentileRr", "deleveragePercentileEr") );
             put( "timestamp", null );
             put( "datetime", null );
         }};

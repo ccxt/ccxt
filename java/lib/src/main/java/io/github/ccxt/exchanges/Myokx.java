@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class MyokxCore extends MyokxApi
+public class Myokx extends MyokxApi
 {
-   public MyokxCore () {
+   public Myokx () {
        super();
    }
 
-   public MyokxCore (Object options) {
+   public Myokx (Object options) {
        super(options);
    }
 

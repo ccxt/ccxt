@@ -9,13 +9,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class LimitlessCore extends LimitlessApi
+public class Limitless extends LimitlessApi
 {
-   public LimitlessCore () {
+   public Limitless () {
        super();
    }
 
-   public LimitlessCore (Object options) {
+   public Limitless (Object options) {
        super(options);
    }
 
@@ -442,7 +442,7 @@ public class LimitlessCore extends LimitlessApi
                         final Object finalGroupId = groupId;
                         Helpers.addElementToObject(eventGroups, eventKey, new java.util.HashMap<String, Object>() {{
         put( "groupId", finalGroupId );
-        put( "title", LimitlessCore.this.safeString2(raw, "groupTitle", "title", finalGroupId) );
+        put( "title", Limitless.this.safeString2(raw, "groupTitle", "title", finalGroupId) );
         put( "raw", raw );
         put( "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
     }});
@@ -580,7 +580,7 @@ public class LimitlessCore extends LimitlessApi
         Object collateralToken = this.safeDict(raw, "collateralToken", new java.util.HashMap<String, Object>() {{}});
         Long collateralDecimals = this.safeInteger(collateralToken, "decimals", this.safeInteger(this.options, "usdcDecimals", 6));
         java.util.Map<String, Object> precision = new java.util.HashMap<String, Object>() {{
-            put( "amount", LimitlessCore.this.parseNumber(LimitlessCore.this.parsePrecision(LimitlessCore.this.numberToString(collateralDecimals))) );
+            put( "amount", Limitless.this.parseNumber(Limitless.this.parsePrecision(Limitless.this.numberToString(collateralDecimals))) );
             put( "price", 0.001 );
         }};
         java.util.List<Object> outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -669,7 +669,7 @@ public class LimitlessCore extends LimitlessApi
             put( "inverse", null );
             put( "contractSize", null );
             put( "expiry", expiryTimestamp );
-            put( "expiryDatetime", LimitlessCore.this.iso8601(expiryTimestamp) );
+            put( "expiryDatetime", Limitless.this.iso8601(expiryTimestamp) );
             put( "strike", null );
             put( "optionType", null );
             put( "taker", 0.02 );
@@ -697,7 +697,7 @@ public class LimitlessCore extends LimitlessApi
                 }} );
             }} );
             put( "outcomes", outcomes );
-            put( "info", LimitlessCore.this.extend(raw, new java.util.HashMap<String, Object>() {{
+            put( "info", Limitless.this.extend(raw, new java.util.HashMap<String, Object>() {{
                 put( "slug", slug );
                 put( "address", address );
                 put( "volume24h", volume24h );
@@ -1044,22 +1044,22 @@ public class LimitlessCore extends LimitlessApi
             put( "slug", finalGroupId );
             put( "event", eventSlug );
             put( "title", title );
-            put( "description", LimitlessCore.this.safeString(eventVar, "description") );
+            put( "description", Limitless.this.safeString(eventVar, "description") );
             put( "markets", markets );
             put( "volume", finalTotalVolume );
-            put( "liquidity", LimitlessCore.this.safeNumber(eventVar, "liquidity") );
-            put( "url", LimitlessCore.this.safeString(eventVar, "url") );
-            put( "image", LimitlessCore.this.safeString(eventVar, "imageUrl", LimitlessCore.this.safeString(eventVar, "image")) );
-            put( "active", LimitlessCore.this.safeBool(eventVar, "active", true) );
-            put( "resolved", LimitlessCore.this.safeBool(eventVar, "resolved", false) );
-            put( "category", LimitlessCore.this.safeString(eventVar, "category") );
-            put( "tags", LimitlessCore.this.safeList(eventVar, "tags") );
-            put( "created", LimitlessCore.this.parse8601(LimitlessCore.this.safeString(eventVar, "createdAt")) );
-            put( "createdDatetime", LimitlessCore.this.safeString(eventVar, "createdAt") );
+            put( "liquidity", Limitless.this.safeNumber(eventVar, "liquidity") );
+            put( "url", Limitless.this.safeString(eventVar, "url") );
+            put( "image", Limitless.this.safeString(eventVar, "imageUrl", Limitless.this.safeString(eventVar, "image")) );
+            put( "active", Limitless.this.safeBool(eventVar, "active", true) );
+            put( "resolved", Limitless.this.safeBool(eventVar, "resolved", false) );
+            put( "category", Limitless.this.safeString(eventVar, "category") );
+            put( "tags", Limitless.this.safeList(eventVar, "tags") );
+            put( "created", Limitless.this.parse8601(Limitless.this.safeString(eventVar, "createdAt")) );
+            put( "createdDatetime", Limitless.this.safeString(eventVar, "createdAt") );
             put( "end", endTimestamp );
             put( "endDatetime", finalEndDate );
-            put( "lastUpdatedAt", LimitlessCore.this.parse8601(LimitlessCore.this.safeString(eventVar, "updatedAt")) );
-            put( "resolutionSource", LimitlessCore.this.safeString(eventVar, "resolutionSource") );
+            put( "lastUpdatedAt", Limitless.this.parse8601(Limitless.this.safeString(eventVar, "updatedAt")) );
+            put( "resolutionSource", Limitless.this.safeString(eventVar, "resolutionSource") );
             put( "info", eventVar );
         }});
     }
@@ -1332,27 +1332,27 @@ public class LimitlessCore extends LimitlessApi
         final Object finalVolumeStr = volumeStr;
         return this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
             put( "outcome", outcomeSymbol );
-            put( "outcomeId", LimitlessCore.this.safeString(finalMarket, "outcomeId") );
-            put( "label", LimitlessCore.this.safeString(finalMarket, "label") );
-            put( "market", LimitlessCore.this.safeString(finalMarket, "market") );
+            put( "outcomeId", Limitless.this.safeString(finalMarket, "outcomeId") );
+            put( "label", Limitless.this.safeString(finalMarket, "label") );
+            put( "market", Limitless.this.safeString(finalMarket, "market") );
             put( "timestamp", now );
-            put( "datetime", LimitlessCore.this.iso8601(now) );
+            put( "datetime", Limitless.this.iso8601(now) );
             put( "high", null );
             put( "low", null );
-            put( "bid", LimitlessCore.this.parseNumber(finalBidStr) );
-            put( "bidVolume", LimitlessCore.this.parseNumber(finalBidSizeStr) );
-            put( "ask", LimitlessCore.this.parseNumber(finalAskStr) );
-            put( "askVolume", LimitlessCore.this.parseNumber(finalAskSizeStr) );
+            put( "bid", Limitless.this.parseNumber(finalBidStr) );
+            put( "bidVolume", Limitless.this.parseNumber(finalBidSizeStr) );
+            put( "ask", Limitless.this.parseNumber(finalAskStr) );
+            put( "askVolume", Limitless.this.parseNumber(finalAskSizeStr) );
             put( "vwap", null );
             put( "open", null );
-            put( "close", LimitlessCore.this.parseNumber(finalLastStr) );
-            put( "last", LimitlessCore.this.parseNumber(finalLastStr) );
+            put( "close", Limitless.this.parseNumber(finalLastStr) );
+            put( "last", Limitless.this.parseNumber(finalLastStr) );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
-            put( "average", LimitlessCore.this.parseNumber(finalMidStr) );
+            put( "average", Limitless.this.parseNumber(finalMidStr) );
             put( "baseVolume", null );
-            put( "quoteVolume", LimitlessCore.this.parseNumber(finalVolumeStr) );
+            put( "quoteVolume", Limitless.this.parseNumber(finalVolumeStr) );
             put( "info", ticker );
         }});
     }
@@ -1603,11 +1603,11 @@ public class LimitlessCore extends LimitlessApi
                 ((java.util.List<Object>)asks).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseNumber(priceStr), this.parseNumber(sizeStr))));
             }
             java.util.Map<String, Object> orderbook = new java.util.HashMap<String, Object>() {{
-                put( "outcome", LimitlessCore.this.safeOutcomeSymbol(outcome, outcomeObj) );
-                put( "bids", LimitlessCore.this.sortBy(bids, 0, true) );
-                put( "asks", LimitlessCore.this.sortBy(asks, 0) );
+                put( "outcome", Limitless.this.safeOutcomeSymbol(outcome, outcomeObj) );
+                put( "bids", Limitless.this.sortBy(bids, 0, true) );
+                put( "asks", Limitless.this.sortBy(asks, 0) );
                 put( "timestamp", timestamp );
-                put( "datetime", LimitlessCore.this.iso8601(timestamp) );
+                put( "datetime", Limitless.this.iso8601(timestamp) );
                 put( "nonce", null );
             }};
             return this.safePredictionOrderBook(orderbook, outcomeObj);
@@ -1811,7 +1811,7 @@ public class LimitlessCore extends LimitlessApi
             Object outcomeObj = this.outcome(outcome);
             Object info = this.safeDict(outcomeObj, "info");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "slug", LimitlessCore.this.safeString(info, "slug") );
+                put( "slug", Limitless.this.safeString(info, "slug") );
                 put( "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList("LIVE", "MATCHED")) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1874,7 +1874,7 @@ public class LimitlessCore extends LimitlessApi
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList("LIVE")) );
             }});
-            return (this.fetchOrders(outcome, since, limit, parameters)).join();
+            return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1907,7 +1907,7 @@ public class LimitlessCore extends LimitlessApi
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList("MATCHED")) );
             }});
-            return (this.fetchOrders(outcome, since, limit, parameters)).join();
+            return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -2266,7 +2266,7 @@ public class LimitlessCore extends LimitlessApi
             final Object finalFeeCost = feeCost;
             final Object finalFeeCurrency = feeCurrency;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", LimitlessCore.this.parseNumber(LimitlessCore.this.applyScale(finalFeeCost)) );
+                put( "cost", Limitless.this.parseNumber(Limitless.this.applyScale(finalFeeCost)) );
                 put( "currency", finalFeeCurrency );
             }};
         }
@@ -2284,23 +2284,23 @@ public class LimitlessCore extends LimitlessApi
             put( "timestamp", ts );
             put( "datetime", datetime );
             put( "lastTradeTimestamp", null );
-            put( "status", LimitlessCore.this.parseOrderStatus(finalRawStatus) );
+            put( "status", Limitless.this.parseOrderStatus(finalRawStatus) );
             put( "outcome", outcomeSymbol );
-            put( "outcomeId", LimitlessCore.this.safeString(mkt, "outcomeId") );
-            put( "label", LimitlessCore.this.safeString(mkt, "label") );
-            put( "market", LimitlessCore.this.safeString(mkt, "market") );
+            put( "outcomeId", Limitless.this.safeString(mkt, "outcomeId") );
+            put( "label", Limitless.this.safeString(mkt, "label") );
+            put( "market", Limitless.this.safeString(mkt, "market") );
             put( "type", finalType );
-            put( "timeInForce", LimitlessCore.this.parseOrderTimeInForce(finalTimeInForce) );
+            put( "timeInForce", Limitless.this.parseOrderTimeInForce(finalTimeInForce) );
             put( "postOnly", null );
             put( "side", finalSide );
             put( "price", price );
             put( "stopPrice", null );
             put( "triggerPrice", null );
             put( "average", null );
-            put( "amount", LimitlessCore.this.applyScale(amount) );
-            put( "cost", LimitlessCore.this.applyScale(finalCost) );
-            put( "filled", LimitlessCore.this.applyScale(finalFilled) );
-            put( "remaining", LimitlessCore.this.applyScale(remaining) );
+            put( "amount", Limitless.this.applyScale(amount) );
+            put( "cost", Limitless.this.applyScale(finalCost) );
+            put( "filled", Limitless.this.applyScale(finalFilled) );
+            put( "remaining", Limitless.this.applyScale(remaining) );
             put( "fee", finalFee );
             put( "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
         }});
@@ -2510,7 +2510,7 @@ public class LimitlessCore extends LimitlessApi
                 put( "taker", finalTaker );
                 put( "tokenId", Helpers.GetValue(outcomeObj, "outcomeId") );
                 put( "nonce", 0 );
-                put( "feeRateBps", LimitlessCore.this.safeInteger(rank, "feeRateBps", 0) );
+                put( "feeRateBps", Limitless.this.safeInteger(rank, "feeRateBps", 0) );
                 put( "side", sideValue );
                 put( "signatureType", finalSignatureType );
             }};
@@ -2592,7 +2592,7 @@ public class LimitlessCore extends LimitlessApi
             String slug = this.safeString(Helpers.GetValue(outcomeObj, "info"), "slug");
             final Object finalTimeInForce = timeInForce;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "ownerId", LimitlessCore.this.safeInteger(account, "id") );
+                put( "ownerId", Limitless.this.safeInteger(account, "id") );
                 put( "order", signRequest );
                 put( "marketSlug", slug );
                 put( "orderType", finalTimeInForce );
@@ -3117,21 +3117,21 @@ public class LimitlessCore extends LimitlessApi
             final Object finalPriceStr = priceStr;
             final Object finalCostStr = costStr;
             return this.safePredictionTrade(new java.util.HashMap<String, Object>() {{
-                put( "id", LimitlessCore.this.safeString(trade, "txHash") );
+                put( "id", Limitless.this.safeString(trade, "txHash") );
                 put( "info", trade );
                 put( "timestamp", ts );
-                put( "datetime", LimitlessCore.this.iso8601(ts) );
+                put( "datetime", Limitless.this.iso8601(ts) );
                 put( "outcome", feedOutcome );
-                put( "outcomeId", LimitlessCore.this.safeString(market, "outcomeId") );
-                put( "label", LimitlessCore.this.safeString(market, "label") );
-                put( "market", LimitlessCore.this.safeString(market, "market") );
+                put( "outcomeId", Limitless.this.safeString(market, "outcomeId") );
+                put( "label", Limitless.this.safeString(market, "label") );
+                put( "market", Limitless.this.safeString(market, "market") );
                 put( "order", null );
                 put( "type", null );
                 put( "side", finalFeedSide );
                 put( "takerOrMaker", "taker" );
-                put( "price", LimitlessCore.this.parseNumber(finalPriceStr) );
-                put( "amount", LimitlessCore.this.parseNumber(amountStr) );
-                put( "cost", LimitlessCore.this.parseNumber(finalCostStr) );
+                put( "price", Limitless.this.parseNumber(finalPriceStr) );
+                put( "amount", Limitless.this.parseNumber(amountStr) );
+                put( "cost", Limitless.this.parseNumber(finalCostStr) );
                 put( "fee", null );
             }});
         }
@@ -3209,11 +3209,11 @@ public class LimitlessCore extends LimitlessApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", LimitlessCore.this.iso8601(timestamp) );
+            put( "datetime", Limitless.this.iso8601(timestamp) );
             put( "outcome", tradeOutcome );
-            put( "outcomeId", LimitlessCore.this.safeString(trade, "asset") );
-            put( "label", LimitlessCore.this.safeString(outcome, "label") );
-            put( "market", LimitlessCore.this.safeString(outcome, "market") );
+            put( "outcomeId", Limitless.this.safeString(trade, "asset") );
+            put( "label", Limitless.this.safeString(outcome, "label") );
+            put( "market", Limitless.this.safeString(outcome, "market") );
             put( "order", null );
             put( "type", finalType );
             put( "side", side );
@@ -3432,20 +3432,20 @@ public class LimitlessCore extends LimitlessApi
         return new java.util.HashMap<String, Object>() {{
             put( "id", null );
             put( "outcome", outcomeSymbol );
-            put( "outcomeId", LimitlessCore.this.safeString(market, "outcomeId") );
-            put( "label", LimitlessCore.this.safeString(market, "label") );
-            put( "market", LimitlessCore.this.safeString(market, "market") );
+            put( "outcomeId", Limitless.this.safeString(market, "outcomeId") );
+            put( "label", Limitless.this.safeString(market, "label") );
+            put( "market", Limitless.this.safeString(market, "market") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "contracts", null );
             put( "contractSize", 1 );
             put( "side", "long" );
-            put( "notional", LimitlessCore.this.parseNumber(notional) );
+            put( "notional", Limitless.this.parseNumber(notional) );
             put( "leverage", 1 );
-            put( "unrealizedPnl", LimitlessCore.this.parseNumber(unrealizedPnl) );
-            put( "realizedPnl", LimitlessCore.this.parseNumber(realizedPnl) );
-            put( "collateral", LimitlessCore.this.parseNumber(collateral) );
-            put( "entryPrice", LimitlessCore.this.parseNumber(entryPrice) );
+            put( "unrealizedPnl", Limitless.this.parseNumber(unrealizedPnl) );
+            put( "realizedPnl", Limitless.this.parseNumber(realizedPnl) );
+            put( "collateral", Limitless.this.parseNumber(collateral) );
+            put( "entryPrice", Limitless.this.parseNumber(entryPrice) );
             put( "markPrice", null );
             put( "liquidationPrice", null );
             put( "hedged", false );
@@ -3571,7 +3571,7 @@ public class LimitlessCore extends LimitlessApi
                         final Object finalGroupId = groupId;
                         Helpers.addElementToObject(eventGroups, eventKey, new java.util.HashMap<String, Object>() {{
         put( "groupId", finalGroupId );
-        put( "title", LimitlessCore.this.safeString2(raw, "groupTitle", "title", finalGroupId) );
+        put( "title", Limitless.this.safeString2(raw, "groupTitle", "title", finalGroupId) );
         put( "raw", raw );
         put( "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
     }});

@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
+public class Coinone extends io.github.ccxt.exchanges.Coinone
 {
-   public CoinoneCore () {
+   public Coinone () {
        super();
    }
 
-   public CoinoneCore (Object options) {
+   public Coinone (Object options) {
        super(options);
    }
 
@@ -270,23 +270,23 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", CoinoneCore.this.iso8601(timestamp) );
-            put( "high", CoinoneCore.this.safeString(ticker, "high") );
-            put( "low", CoinoneCore.this.safeString(ticker, "low") );
-            put( "bid", CoinoneCore.this.safeNumber(ticker, "bid_best_price") );
-            put( "bidVolume", CoinoneCore.this.safeNumber(ticker, "bid_best_qty") );
-            put( "ask", CoinoneCore.this.safeNumber(ticker, "ask_best_price") );
-            put( "askVolume", CoinoneCore.this.safeNumber(ticker, "ask_best_qty") );
+            put( "datetime", Coinone.this.iso8601(timestamp) );
+            put( "high", Coinone.this.safeString(ticker, "high") );
+            put( "low", Coinone.this.safeString(ticker, "low") );
+            put( "bid", Coinone.this.safeNumber(ticker, "bid_best_price") );
+            put( "bidVolume", Coinone.this.safeNumber(ticker, "bid_best_qty") );
+            put( "ask", Coinone.this.safeNumber(ticker, "ask_best_price") );
+            put( "askVolume", Coinone.this.safeNumber(ticker, "ask_best_qty") );
             put( "vwap", null );
-            put( "open", CoinoneCore.this.safeString(ticker, "first") );
+            put( "open", Coinone.this.safeString(ticker, "first") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", CoinoneCore.this.safeString(ticker, "target_volume") );
-            put( "quoteVolume", CoinoneCore.this.safeString(ticker, "quote_volume") );
+            put( "baseVolume", Coinone.this.safeString(ticker, "target_volume") );
+            put( "quoteVolume", Coinone.this.safeString(ticker, "quote_volume") );
             put( "info", ticker );
         }}, market);
     }
@@ -400,10 +400,10 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         final Object finalMarket = market;
         final Object finalSide = side;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", CoinoneCore.this.safeString(trade, "id") );
+            put( "id", Coinone.this.safeString(trade, "id") );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", CoinoneCore.this.iso8601(timestamp) );
+            put( "datetime", Coinone.this.iso8601(timestamp) );
             put( "order", null );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", null );

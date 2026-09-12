@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class DydxCore extends io.github.ccxt.exchanges.Dydx
+public class Dydx extends io.github.ccxt.exchanges.Dydx
 {
-   public DydxCore () {
+   public Dydx () {
        super();
    }
 
-   public DydxCore (Object options) {
+   public Dydx (Object options) {
        super(options);
    }
 
@@ -179,17 +179,17 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.parse8601(this.safeString(trade, "createdAt"));
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", DydxCore.this.safeString(trade, "id") );
+            put( "id", Dydx.this.safeString(trade, "id") );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", DydxCore.this.iso8601(timestamp) );
-            put( "symbol", DydxCore.this.safeString(market, "symbol") );
+            put( "datetime", Dydx.this.iso8601(timestamp) );
+            put( "symbol", Dydx.this.safeString(market, "symbol") );
             put( "order", null );
-            put( "type", DydxCore.this.safeStringLower(trade, "type") );
-            put( "side", DydxCore.this.safeStringLower(trade, "side") );
+            put( "type", Dydx.this.safeStringLower(trade, "type") );
+            put( "side", Dydx.this.safeStringLower(trade, "side") );
             put( "takerOrMaker", null );
-            put( "price", DydxCore.this.safeString(trade, "price") );
-            put( "amount", DydxCore.this.safeString(trade, "size") );
+            put( "price", Dydx.this.safeString(trade, "price") );
+            put( "amount", Dydx.this.safeString(trade, "size") );
             put( "cost", null );
             put( "fee", null );
         }}, market);

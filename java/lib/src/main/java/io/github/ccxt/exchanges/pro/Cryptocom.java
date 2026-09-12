@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
+public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 {
-   public CryptocomCore () {
+   public Cryptocom () {
        super();
    }
 
-   public CryptocomCore (Object options) {
+   public Cryptocom (Object options) {
        super(options);
    }
 
@@ -73,7 +73,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             try
             {
                 (client.send(new java.util.HashMap<String, Object>() {{
-                    put( "id", CryptocomCore.this.safeInteger(message, "id") );
+                    put( "id", Cryptocom.this.safeInteger(message, "id") );
                     put( "method", "public/respond-heartbeat" );
                 }})).join();
             } catch(Exception e)
@@ -105,7 +105,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -407,7 +407,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -821,23 +821,23 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", CryptocomCore.this.iso8601(timestamp) );
-            put( "high", CryptocomCore.this.safeNumber(ticker, "h") );
-            put( "low", CryptocomCore.this.safeNumber(ticker, "l") );
-            put( "bid", CryptocomCore.this.safeNumber(ticker, "b") );
-            put( "bidVolume", CryptocomCore.this.safeNumber(ticker, "bs") );
-            put( "ask", CryptocomCore.this.safeNumber(ticker, "k") );
-            put( "askVolume", CryptocomCore.this.safeNumber(ticker, "ks") );
+            put( "datetime", Cryptocom.this.iso8601(timestamp) );
+            put( "high", Cryptocom.this.safeNumber(ticker, "h") );
+            put( "low", Cryptocom.this.safeNumber(ticker, "l") );
+            put( "bid", Cryptocom.this.safeNumber(ticker, "b") );
+            put( "bidVolume", Cryptocom.this.safeNumber(ticker, "bs") );
+            put( "ask", Cryptocom.this.safeNumber(ticker, "k") );
+            put( "askVolume", Cryptocom.this.safeNumber(ticker, "ks") );
             put( "vwap", null );
             put( "open", null );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", CryptocomCore.this.safeString(ticker, "c") );
+            put( "percentage", Cryptocom.this.safeString(ticker, "c") );
             put( "average", null );
-            put( "baseVolume", CryptocomCore.this.safeString(ticker, "v") );
-            put( "quoteVolume", ((Helpers.isTrue((Helpers.isEqual(finalQuote, "USD"))))) ? CryptocomCore.this.safeString(ticker, "vv") : null );
+            put( "baseVolume", Cryptocom.this.safeString(ticker, "v") );
+            put( "quoteVolume", ((Helpers.isTrue((Helpers.isEqual(finalQuote, "USD"))))) ? Cryptocom.this.safeString(ticker, "vv") : null );
             put( "info", ticker );
         }}, market);
     }
@@ -917,11 +917,11 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", CryptocomCore.this.iso8601(timestamp) );
-            put( "ask", CryptocomCore.this.safeString(ticker, "k") );
-            put( "askVolume", CryptocomCore.this.safeString(ticker, "ks") );
-            put( "bid", CryptocomCore.this.safeString(ticker, "b") );
-            put( "bidVolume", CryptocomCore.this.safeString(ticker, "bs") );
+            put( "datetime", Cryptocom.this.iso8601(timestamp) );
+            put( "ask", Cryptocom.this.safeString(ticker, "k") );
+            put( "askVolume", Cryptocom.this.safeString(ticker, "ks") );
+            put( "bid", Cryptocom.this.safeString(ticker, "b") );
+            put( "bidVolume", Cryptocom.this.safeString(ticker, "bs") );
             put( "info", ticker );
         }}, market);
     }
@@ -1552,7 +1552,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "private/cancel-all-orders" );
-                put( "params", CryptocomCore.this.extend(new java.util.HashMap<String, Object>() {{}}, parameters) );
+                put( "params", Cryptocom.this.extend(new java.util.HashMap<String, Object>() {{}}, parameters) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1848,7 +1848,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                     put( "id", nonce );
                     put( "nonce", nonce );
                     put( "method", finalMethod );
-                    put( "api_key", CryptocomCore.this.apiKey );
+                    put( "api_key", Cryptocom.this.apiKey );
                     put( "sig", signature );
                 }};
                 java.util.Map<String, Object> message = this.extend(request, parameters);

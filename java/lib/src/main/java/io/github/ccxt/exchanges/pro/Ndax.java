@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class NdaxCore extends io.github.ccxt.exchanges.Ndax
+public class Ndax extends io.github.ccxt.exchanges.Ndax
 {
-   public NdaxCore () {
+   public Ndax () {
        super();
    }
 
-   public NdaxCore (Object options) {
+   public Ndax (Object options) {
        super(options);
    }
 
@@ -74,14 +74,14 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             Object requestId = this.requestId();
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
                 put( "OMSId", omsId );
-                put( "InstrumentId", NdaxCore.this.safeInteger(market, "id") );
+                put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
             }};
             final Object finalName = name;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "m", 0 );
                 put( "i", requestId );
                 put( "n", finalName );
-                put( "o", NdaxCore.this.json(payload) );
+                put( "o", Ndax.this.json(payload) );
             }};
             java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
@@ -161,7 +161,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             Object requestId = this.requestId();
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
                 put( "OMSId", omsId );
-                put( "InstrumentId", NdaxCore.this.safeInteger(market, "id") );
+                put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
                 put( "IncludeLastCount", 100 );
             }};
             final Object finalName = name;
@@ -169,7 +169,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 put( "m", 0 );
                 put( "i", requestId );
                 put( "n", finalName );
-                put( "o", NdaxCore.this.json(payload) );
+                put( "o", Ndax.this.json(payload) );
             }};
             java.util.Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
@@ -271,8 +271,8 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             Object requestId = this.requestId();
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
                 put( "OMSId", omsId );
-                put( "InstrumentId", NdaxCore.this.safeInteger(market, "id") );
-                put( "Interval", Helpers.parseInt(NdaxCore.this.safeString(NdaxCore.this.timeframes, timeframe, timeframe)) );
+                put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
+                put( "Interval", Helpers.parseInt(Ndax.this.safeString(Ndax.this.timeframes, timeframe, timeframe)) );
                 put( "IncludeLastCount", 100 );
             }};
             final Object finalName = name;
@@ -280,7 +280,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 put( "m", 0 );
                 put( "i", requestId );
                 put( "n", finalName );
-                put( "o", NdaxCore.this.json(payload) );
+                put( "o", Ndax.this.json(payload) );
             }};
             java.util.Map<String, Object> message = this.extend(request, parameters);
             Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
@@ -442,7 +442,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             final Object finalLimit = limit;
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
                 put( "OMSId", omsId );
-                put( "InstrumentId", NdaxCore.this.safeInteger(market, "id") );
+                put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
                 put( "Depth", finalLimit );
             }};
             final Object finalName = name;
@@ -450,7 +450,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 put( "m", 0 );
                 put( "i", requestId );
                 put( "n", finalName );
-                put( "o", NdaxCore.this.json(payload) );
+                put( "o", Ndax.this.json(payload) );
             }};
             final Object finalSymbol = symbol;
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{

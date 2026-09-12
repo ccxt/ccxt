@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class CoinexCore extends io.github.ccxt.exchanges.Coinex
+public class Coinex extends io.github.ccxt.exchanges.Coinex
 {
-   public CoinexCore () {
+   public Coinex () {
        super();
    }
 
-   public CoinexCore (Object options) {
+   public Coinex (Object options) {
        super(options);
    }
 
@@ -240,25 +240,25 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         String defaultType = this.safeString(this.options, "defaultType");
         String marketId = this.safeString(ticker, "market");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", CoinexCore.this.safeSymbol(marketId, market, null, defaultType) );
+            put( "symbol", Coinex.this.safeSymbol(marketId, market, null, defaultType) );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", CoinexCore.this.safeString(ticker, "high") );
-            put( "low", CoinexCore.this.safeString(ticker, "low") );
+            put( "high", Coinex.this.safeString(ticker, "high") );
+            put( "low", Coinex.this.safeString(ticker, "low") );
             put( "bid", null );
-            put( "bidVolume", CoinexCore.this.safeString(ticker, "volume_buy") );
+            put( "bidVolume", Coinex.this.safeString(ticker, "volume_buy") );
             put( "ask", null );
-            put( "askVolume", CoinexCore.this.safeString(ticker, "volume_sell") );
+            put( "askVolume", Coinex.this.safeString(ticker, "volume_sell") );
             put( "vwap", null );
-            put( "open", CoinexCore.this.safeString(ticker, "open") );
-            put( "close", CoinexCore.this.safeString(ticker, "close") );
-            put( "last", CoinexCore.this.safeString(ticker, "last") );
+            put( "open", Coinex.this.safeString(ticker, "open") );
+            put( "close", Coinex.this.safeString(ticker, "close") );
+            put( "last", Coinex.this.safeString(ticker, "last") );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", CoinexCore.this.safeString(ticker, "volume") );
-            put( "quoteVolume", CoinexCore.this.safeString(ticker, "value") );
+            put( "baseVolume", Coinex.this.safeString(ticker, "volume") );
+            put( "quoteVolume", Coinex.this.safeString(ticker, "value") );
             put( "info", ticker );
         }}, market);
     }
@@ -310,7 +310,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "ccy_list", finalCurrencies );
                 }} );
-                put( "id", CoinexCore.this.requestId() );
+                put( "id", Coinex.this.requestId() );
             }};
             java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
@@ -518,7 +518,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "market_list", subscribedSymbols );
                 }} );
-                put( "id", CoinexCore.this.requestId() );
+                put( "id", Coinex.this.requestId() );
             }};
             java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
@@ -692,24 +692,24 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             String feeCurrencyId = this.safeString(trade, "fee_ccy", Helpers.GetValue(market, "quote"));
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "currency", CoinexCore.this.safeCurrencyCode(feeCurrencyId) );
+                put( "currency", Coinex.this.safeCurrencyCode(feeCurrencyId) );
                 put( "cost", finalFeeCost );
             }};
         }
         final Object finalMarket = market;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", CoinexCore.this.safeString(trade, "deal_id") );
+            put( "id", Coinex.this.safeString(trade, "deal_id") );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", CoinexCore.this.iso8601(timestamp) );
-            put( "symbol", CoinexCore.this.safeSymbol(marketId, finalMarket, null, defaultType) );
-            put( "order", CoinexCore.this.safeString(trade, "order_id") );
+            put( "datetime", Coinex.this.iso8601(timestamp) );
+            put( "symbol", Coinex.this.safeSymbol(marketId, finalMarket, null, defaultType) );
+            put( "order", Coinex.this.safeString(trade, "order_id") );
             put( "type", null );
-            put( "side", CoinexCore.this.safeString(trade, "side") );
-            put( "takerOrMaker", CoinexCore.this.safeString(trade, "role") );
-            put( "price", CoinexCore.this.safeString(trade, "price") );
-            put( "amount", CoinexCore.this.safeString(trade, "amount") );
+            put( "side", Coinex.this.safeString(trade, "side") );
+            put( "takerOrMaker", Coinex.this.safeString(trade, "role") );
+            put( "price", Coinex.this.safeString(trade, "price") );
+            put( "amount", Coinex.this.safeString(trade, "amount") );
             put( "cost", null );
             put( "fee", finalFee );
         }}, market);
@@ -736,7 +736,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, Helpers.GetValue(market, "symbol"));
         });
 
@@ -792,7 +792,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "market_list", finalMarketIds );
                 }} );
-                put( "id", CoinexCore.this.requestId() );
+                put( "id", Coinex.this.requestId() );
             }};
             Object result = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -825,7 +825,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTrades");
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -886,7 +886,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "market_list", subscribedSymbols );
                 }} );
-                put( "id", CoinexCore.this.requestId() );
+                put( "id", Coinex.this.requestId() );
             }};
             Object trades = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -967,7 +967,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "market_list", marketList );
                 }} );
-                put( "id", CoinexCore.this.requestId() );
+                put( "id", Coinex.this.requestId() );
             }};
             // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256());
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
@@ -1000,7 +1000,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOrderBook");
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1157,7 +1157,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "market_list", finalMarketList );
                 }} );
-                put( "id", CoinexCore.this.requestId() );
+                put( "id", Coinex.this.requestId() );
             }};
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
             java.util.Map<String, Object> request = this.deepExtend(message, parameters);
@@ -1291,7 +1291,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> order = this.extend(new java.util.HashMap<String, Object>() {{
-            put( "status", CoinexCore.this.safeString(data, "event") );
+            put( "status", Coinex.this.safeString(data, "event") );
         }}, this.safeDict2(data, "order", "stop", new java.util.HashMap<String, Object>() {{}}));
         Object parsedOrder = this.parseWsOrder(order);
         Object symbol = Helpers.GetValue(parsedOrder, "symbol");
@@ -1414,7 +1414,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             String feeCurrencyId = this.safeString(order, "fee_ccy", Helpers.GetValue(market, "quote"));
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "currency", CoinexCore.this.safeCurrencyCode(feeCurrencyId) );
+                put( "currency", Coinex.this.safeCurrencyCode(feeCurrencyId) );
                 put( "cost", finalFeeCost );
             }};
         }
@@ -1422,25 +1422,25 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         final Object finalFee = fee;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", CoinexCore.this.safeString2(order, "order_id", "stop_id") );
-            put( "clientOrderId", CoinexCore.this.safeString(order, "client_id") );
-            put( "datetime", CoinexCore.this.iso8601(timestamp) );
+            put( "id", Coinex.this.safeString2(order, "order_id", "stop_id") );
+            put( "clientOrderId", Coinex.this.safeString(order, "client_id") );
+            put( "datetime", Coinex.this.iso8601(timestamp) );
             put( "timestamp", timestamp );
-            put( "lastTradeTimestamp", CoinexCore.this.safeInteger(order, "updated_at") );
+            put( "lastTradeTimestamp", Coinex.this.safeInteger(order, "updated_at") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "type", CoinexCore.this.safeString(order, "type") );
+            put( "type", Coinex.this.safeString(order, "type") );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "side", CoinexCore.this.safeString(order, "side") );
-            put( "price", CoinexCore.this.safeString(order, "price") );
-            put( "stopPrice", CoinexCore.this.safeString(order, "trigger_price") );
-            put( "triggerPrice", CoinexCore.this.safeString(order, "trigger_price") );
-            put( "amount", CoinexCore.this.safeString(order, "amount") );
-            put( "filled", CoinexCore.this.safeString2(order, "filled_amount", "fill_value") );
-            put( "remaining", CoinexCore.this.safeString2(order, "unfilled_amount", "unfill_amount") );
+            put( "side", Coinex.this.safeString(order, "side") );
+            put( "price", Coinex.this.safeString(order, "price") );
+            put( "stopPrice", Coinex.this.safeString(order, "trigger_price") );
+            put( "triggerPrice", Coinex.this.safeString(order, "trigger_price") );
+            put( "amount", Coinex.this.safeString(order, "amount") );
+            put( "filled", Coinex.this.safeString2(order, "filled_amount", "fill_value") );
+            put( "remaining", Coinex.this.safeString2(order, "unfilled_amount", "unfill_amount") );
             put( "cost", null );
             put( "average", null );
-            put( "status", CoinexCore.this.parseWsOrderStatus(status) );
+            put( "status", Coinex.this.parseWsOrderStatus(status) );
             put( "fee", finalFee );
             put( "trades", null );
         }}, market);
@@ -1508,7 +1508,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "market_list", marketIds );
                 }} );
-                put( "id", CoinexCore.this.requestId() );
+                put( "id", Coinex.this.requestId() );
             }};
             Object result = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -1563,13 +1563,13 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Long timestamp = this.safeInteger(ticker, "updated_at");
         final Object finalMarket = market;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", CoinexCore.this.safeSymbol(marketId, finalMarket, null, defaultType) );
+            put( "symbol", Coinex.this.safeSymbol(marketId, finalMarket, null, defaultType) );
             put( "timestamp", timestamp );
-            put( "datetime", CoinexCore.this.iso8601(timestamp) );
-            put( "ask", CoinexCore.this.safeNumber(ticker, "best_ask_price") );
-            put( "askVolume", CoinexCore.this.safeNumber(ticker, "best_ask_size") );
-            put( "bid", CoinexCore.this.safeNumber(ticker, "best_bid_price") );
-            put( "bidVolume", CoinexCore.this.safeNumber(ticker, "best_bid_size") );
+            put( "datetime", Coinex.this.iso8601(timestamp) );
+            put( "ask", Coinex.this.safeNumber(ticker, "best_ask_price") );
+            put( "askVolume", Coinex.this.safeNumber(ticker, "best_ask_size") );
+            put( "bid", Coinex.this.safeNumber(ticker, "best_bid_price") );
+            put( "bidVolume", Coinex.this.safeNumber(ticker, "best_bid_size") );
             put( "info", ticker );
         }}, market);
     }
@@ -1705,7 +1705,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 put( "id", requestId );
                 put( "method", "server.sign" );
                 put( "params", new java.util.HashMap<String, Object>() {{
-                    put( "access_id", CoinexCore.this.apiKey );
+                    put( "access_id", Coinex.this.apiKey );
                     put( "signed_str", ((String)hmac).toLowerCase() );
                     put( "timestamp", time );
                 }} );

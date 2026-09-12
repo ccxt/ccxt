@@ -6,9 +6,9 @@
 // -------------------------------------------------------------------------------
 
 package io.github.ccxt.api;
-import io.github.ccxt.exchanges.OkxCore;
+import io.github.ccxt.exchanges.Okx;
 
-public class MyokxApi extends OkxCore
+public class MyokxApi extends Okx
 {
 
     public MyokxApi () {

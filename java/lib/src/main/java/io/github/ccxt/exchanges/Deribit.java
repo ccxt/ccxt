@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class DeribitCore extends DeribitApi
+public class Deribit extends DeribitApi
 {
-   public DeribitCore () {
+   public Deribit () {
        super();
    }
 
-   public DeribitCore (Object options) {
+   public Deribit (Object options) {
        super(options);
    }
 
@@ -871,7 +871,7 @@ public class DeribitCore extends DeribitApi
             put( "expiry", timestamp );
             put( "expiryDatetime", datetime );
             put( "optionType", ((Helpers.isTrue((Helpers.isEqual(finalOptionType, "C"))))) ? "call" : "put" );
-            put( "strike", DeribitCore.this.parseNumber(strike) );
+            put( "strike", Deribit.this.parseNumber(strike) );
             put( "precision", new java.util.HashMap<String, Object>() {{
                 put( "amount", null );
                 put( "price", null );
@@ -992,12 +992,12 @@ public class DeribitCore extends DeribitApi
             put( "info", rawCurrency );
             put( "code", code );
             put( "id", currencyId );
-            put( "name", DeribitCore.this.safeString(rawCurrency, "currency_long") );
+            put( "name", Deribit.this.safeString(rawCurrency, "currency_long") );
             put( "active", null );
             put( "deposit", null );
             put( "withdraw", null );
             put( "type", "crypto" );
-            put( "fee", DeribitCore.this.safeNumber(rawCurrency, "withdrawal_fee") );
+            put( "fee", Deribit.this.safeNumber(rawCurrency, "withdrawal_fee") );
             put( "precision", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
@@ -1145,8 +1145,8 @@ public class DeribitCore extends DeribitApi
         //
         return new java.util.HashMap<String, Object>() {{
             put( "info", account );
-            put( "id", DeribitCore.this.safeString(account, "id") );
-            put( "type", DeribitCore.this.safeString(account, "type") );
+            put( "id", Deribit.this.safeString(account, "id") );
+            put( "type", Deribit.this.safeString(account, "type") );
             put( "code", null );
         }};
     }
@@ -1393,15 +1393,15 @@ public class DeribitCore extends DeribitApi
                         put( "swap", swap );
                         put( "future", future );
                         put( "option", finalOption );
-                        put( "active", DeribitCore.this.safeValue(market, "is_active") );
+                        put( "active", Deribit.this.safeValue(market, "is_active") );
                         put( "contract", !Helpers.isTrue(isSpot) );
                         put( "linear", finalLinear );
                         put( "inverse", finalInverse );
-                        put( "taker", DeribitCore.this.safeNumber(market, "taker_commission") );
-                        put( "maker", DeribitCore.this.safeNumber(market, "maker_commission") );
-                        put( "contractSize", DeribitCore.this.safeNumber(market, "contract_size") );
+                        put( "taker", Deribit.this.safeNumber(market, "taker_commission") );
+                        put( "maker", Deribit.this.safeNumber(market, "maker_commission") );
+                        put( "contractSize", Deribit.this.safeNumber(market, "contract_size") );
                         put( "expiry", expiry );
-                        put( "expiryDatetime", DeribitCore.this.iso8601(expiry) );
+                        put( "expiryDatetime", Deribit.this.iso8601(expiry) );
                         put( "strike", finalStrike );
                         put( "optionType", finalOptionType );
                         put( "precision", new java.util.HashMap<String, Object>() {{
@@ -1426,7 +1426,7 @@ public class DeribitCore extends DeribitApi
                                 put( "max", null );
                             }} );
                         }} );
-                        put( "created", DeribitCore.this.safeInteger(market, "creation_timestamp") );
+                        put( "created", Deribit.this.safeInteger(market, "creation_timestamp") );
                         put( "info", market );
                     }});
                 }
@@ -1711,13 +1711,13 @@ public class DeribitCore extends DeribitApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", DeribitCore.this.iso8601(timestamp) );
-            put( "high", DeribitCore.this.safeString2(stats, "high", "max_price") );
-            put( "low", DeribitCore.this.safeString2(stats, "low", "min_price") );
-            put( "bid", DeribitCore.this.safeString2(ticker, "best_bid_price", "bid_price") );
-            put( "bidVolume", DeribitCore.this.safeString(ticker, "best_bid_amount") );
-            put( "ask", DeribitCore.this.safeString2(ticker, "best_ask_price", "ask_price") );
-            put( "askVolume", DeribitCore.this.safeString(ticker, "best_ask_amount") );
+            put( "datetime", Deribit.this.iso8601(timestamp) );
+            put( "high", Deribit.this.safeString2(stats, "high", "max_price") );
+            put( "low", Deribit.this.safeString2(stats, "low", "min_price") );
+            put( "bid", Deribit.this.safeString2(ticker, "best_bid_price", "bid_price") );
+            put( "bidVolume", Deribit.this.safeString(ticker, "best_bid_amount") );
+            put( "ask", Deribit.this.safeString2(ticker, "best_ask_price", "ask_price") );
+            put( "askVolume", Deribit.this.safeString(ticker, "best_ask_amount") );
             put( "vwap", null );
             put( "open", null );
             put( "close", last );
@@ -1726,10 +1726,10 @@ public class DeribitCore extends DeribitApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", DeribitCore.this.safeString(stats, "volume") );
-            put( "quoteVolume", DeribitCore.this.safeString2(stats, "volume_notional", "volume_usd") );
-            put( "markPrice", DeribitCore.this.safeString(ticker, "mark_price") );
-            put( "indexPrice", DeribitCore.this.safeString(ticker, "index_price") );
+            put( "baseVolume", Deribit.this.safeString(stats, "volume") );
+            put( "quoteVolume", Deribit.this.safeString2(stats, "volume_notional", "volume_usd") );
+            put( "markPrice", Deribit.this.safeString(ticker, "mark_price") );
+            put( "indexPrice", Deribit.this.safeString(ticker, "index_price") );
             put( "info", ticker );
         }}, market);
     }
@@ -1944,7 +1944,7 @@ public class DeribitCore extends DeribitApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
-                put( "resolution", DeribitCore.this.safeString(DeribitCore.this.timeframes, timeframe, timeframe) );
+                put( "resolution", Deribit.this.safeString(Deribit.this.timeframes, timeframe, timeframe) );
             }};
             int duration = this.parseTimeframe(timeframe);
             Long now = this.milliseconds();
@@ -2087,10 +2087,10 @@ public class DeribitCore extends DeribitApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", DeribitCore.this.iso8601(timestamp) );
+            put( "datetime", Deribit.this.iso8601(timestamp) );
             put( "symbol", symbol );
-            put( "order", DeribitCore.this.safeString(trade, "order_id") );
-            put( "type", DeribitCore.this.safeString(trade, "order_type") );
+            put( "order", Deribit.this.safeString(trade, "order_id") );
+            put( "type", Deribit.this.safeString(trade, "order_type") );
             put( "side", side );
             put( "takerOrMaker", finalTakerOrMaker );
             put( "price", priceString );
@@ -2271,22 +2271,22 @@ public class DeribitCore extends DeribitApi
                 {
                     futureFee = new java.util.HashMap<String, Object>() {{
                         put( "info", fee );
-                        put( "maker", DeribitCore.this.safeNumber(fee, "maker_fee") );
-                        put( "taker", DeribitCore.this.safeNumber(fee, "taker_fee") );
+                        put( "maker", Deribit.this.safeNumber(fee, "maker_fee") );
+                        put( "taker", Deribit.this.safeNumber(fee, "taker_fee") );
                     }};
                 } else if (Helpers.isTrue(Helpers.isEqual(instrumentType, "perpetual")))
                 {
                     perpetualFee = new java.util.HashMap<String, Object>() {{
                         put( "info", fee );
-                        put( "maker", DeribitCore.this.safeNumber(fee, "maker_fee") );
-                        put( "taker", DeribitCore.this.safeNumber(fee, "taker_fee") );
+                        put( "maker", Deribit.this.safeNumber(fee, "maker_fee") );
+                        put( "taker", Deribit.this.safeNumber(fee, "taker_fee") );
                     }};
                 } else if (Helpers.isTrue(Helpers.isEqual(instrumentType, "option")))
                 {
                     optionFee = new java.util.HashMap<String, Object>() {{
                         put( "info", fee );
-                        put( "maker", DeribitCore.this.safeNumber(fee, "maker_fee") );
-                        put( "taker", DeribitCore.this.safeNumber(fee, "taker_fee") );
+                        put( "maker", Deribit.this.safeNumber(fee, "maker_fee") );
+                        put( "taker", Deribit.this.safeNumber(fee, "taker_fee") );
                     }};
                 }
             }
@@ -2527,7 +2527,7 @@ public class DeribitCore extends DeribitApi
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", DeribitCore.this.iso8601(timestamp) );
+            put( "datetime", Deribit.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", finalLastTradeTimestamp );
             put( "symbol", Helpers.GetValue(finalMarket_2, "symbol") );
             put( "type", type );
@@ -2535,7 +2535,7 @@ public class DeribitCore extends DeribitApi
             put( "postOnly", postOnly );
             put( "side", side );
             put( "price", finalPriceString );
-            put( "triggerPrice", DeribitCore.this.safeValue(order, "stop_price") );
+            put( "triggerPrice", Deribit.this.safeValue(order, "stop_price") );
             put( "amount", amount );
             put( "cost", finalCost );
             put( "average", finalAverageString );
@@ -2642,7 +2642,7 @@ public class DeribitCore extends DeribitApi
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
-                put( "amount", DeribitCore.this.amountToPrecision(symbol, amount) );
+                put( "amount", Deribit.this.amountToPrecision(symbol, amount) );
                 put( "type", finalType );
             }};
             String trigger = this.safeString(parameters, "trigger", "last_price");
@@ -2839,7 +2839,7 @@ public class DeribitCore extends DeribitApi
             final Object finalAmount = amount;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
-                put( "amount", DeribitCore.this.amountToPrecision(symbol, finalAmount) );
+                put( "amount", Deribit.this.amountToPrecision(symbol, finalAmount) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
@@ -3407,10 +3407,10 @@ public class DeribitCore extends DeribitApi
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", DeribitCore.this.safeString(transaction, "id") );
-            put( "txid", DeribitCore.this.safeString(transaction, "transaction_id") );
+            put( "id", Deribit.this.safeString(transaction, "id") );
+            put( "txid", Deribit.this.safeString(transaction, "transaction_id") );
             put( "timestamp", timestamp );
-            put( "datetime", DeribitCore.this.iso8601(timestamp) );
+            put( "datetime", Deribit.this.iso8601(timestamp) );
             put( "address", address );
             put( "addressTo", address );
             put( "addressFrom", null );
@@ -3418,7 +3418,7 @@ public class DeribitCore extends DeribitApi
             put( "tagTo", null );
             put( "tagFrom", null );
             put( "type", finalType );
-            put( "amount", DeribitCore.this.safeNumber(transaction, "amount") );
+            put( "amount", Deribit.this.safeNumber(transaction, "amount") );
             put( "currency", code );
             put( "status", status );
             put( "updated", updated );
@@ -3472,24 +3472,24 @@ public class DeribitCore extends DeribitApi
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", DeribitCore.this.safeString(finalMarket, "symbol") );
+            put( "symbol", Deribit.this.safeString(finalMarket, "symbol") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "lastUpdateTimestamp", null );
-            put( "initialMargin", DeribitCore.this.parseNumber(initialMarginString) );
-            put( "initialMarginPercentage", DeribitCore.this.parseNumber(Precise.stringMul(Precise.stringDiv(initialMarginString, notionalStringAbs), "100")) );
-            put( "maintenanceMargin", DeribitCore.this.parseNumber(maintenanceMarginString) );
-            put( "maintenanceMarginPercentage", DeribitCore.this.parseNumber(Precise.stringMul(Precise.stringDiv(maintenanceMarginString, notionalStringAbs), "100")) );
-            put( "entryPrice", DeribitCore.this.safeNumber(position, "average_price") );
-            put( "notional", DeribitCore.this.parseNumber(notionalStringAbs) );
-            put( "leverage", DeribitCore.this.safeInteger(position, "leverage") );
-            put( "unrealizedPnl", DeribitCore.this.parseNumber(unrealizedPnl) );
-            put( "realizedPnl", DeribitCore.this.safeNumber(position, "realized_profit_loss") );
-            put( "contracts", DeribitCore.this.safeNumber(position, "size") );
-            put( "contractSize", DeribitCore.this.safeNumber(position, "contractSize") );
+            put( "initialMargin", Deribit.this.parseNumber(initialMarginString) );
+            put( "initialMarginPercentage", Deribit.this.parseNumber(Precise.stringMul(Precise.stringDiv(initialMarginString, notionalStringAbs), "100")) );
+            put( "maintenanceMargin", Deribit.this.parseNumber(maintenanceMarginString) );
+            put( "maintenanceMarginPercentage", Deribit.this.parseNumber(Precise.stringMul(Precise.stringDiv(maintenanceMarginString, notionalStringAbs), "100")) );
+            put( "entryPrice", Deribit.this.safeNumber(position, "average_price") );
+            put( "notional", Deribit.this.parseNumber(notionalStringAbs) );
+            put( "leverage", Deribit.this.safeInteger(position, "leverage") );
+            put( "unrealizedPnl", Deribit.this.parseNumber(unrealizedPnl) );
+            put( "realizedPnl", Deribit.this.safeNumber(position, "realized_profit_loss") );
+            put( "contracts", Deribit.this.safeNumber(position, "size") );
+            put( "contractSize", Deribit.this.safeNumber(position, "contractSize") );
             put( "marginRatio", null );
-            put( "liquidationPrice", DeribitCore.this.safeNumber(position, "estimated_liquidation_price") );
-            put( "markPrice", DeribitCore.this.safeNumber(position, "mark_price") );
+            put( "liquidationPrice", Deribit.this.safeNumber(position, "estimated_liquidation_price") );
+            put( "markPrice", Deribit.this.safeNumber(position, "mark_price") );
             put( "lastPrice", null );
             put( "collateral", null );
             put( "marginMode", null );
@@ -3692,7 +3692,7 @@ public class DeribitCore extends DeribitApi
             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                 put( "info", volatilityObj );
                 put( "timestamp", timestamp );
-                put( "datetime", DeribitCore.this.iso8601(timestamp) );
+                put( "datetime", Deribit.this.iso8601(timestamp) );
                 put( "volatility", volatilityObj );
             }});
         }
@@ -3867,14 +3867,14 @@ public class DeribitCore extends DeribitApi
         final Object finalDirection = direction;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", DeribitCore.this.safeString(transfer, "id") );
-            put( "status", DeribitCore.this.parseTransferStatus(status) );
-            put( "amount", DeribitCore.this.safeNumber(transfer, "amount") );
-            put( "currency", DeribitCore.this.safeCurrencyCode(currencyId, currency) );
+            put( "id", Deribit.this.safeString(transfer, "id") );
+            put( "status", Deribit.this.parseTransferStatus(status) );
+            put( "amount", Deribit.this.safeNumber(transfer, "amount") );
+            put( "currency", Deribit.this.safeCurrencyCode(currencyId, currency) );
             put( "fromAccount", ((Helpers.isTrue(!Helpers.isEqual(finalDirection, "payment")))) ? account : null );
             put( "toAccount", ((Helpers.isTrue(Helpers.isEqual(finalDirection, "payment")))) ? account : null );
             put( "timestamp", timestamp );
-            put( "datetime", DeribitCore.this.iso8601(timestamp) );
+            put( "datetime", Deribit.this.iso8601(timestamp) );
         }};
     }
 
@@ -3950,7 +3950,7 @@ public class DeribitCore extends DeribitApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "fee", DeribitCore.this.safeNumber(fee, "withdrawal_fee") );
+                put( "fee", Deribit.this.safeNumber(fee, "withdrawal_fee") );
                 put( "percentage", false );
             }} );
             put( "deposit", new java.util.HashMap<String, Object>() {{
@@ -4185,9 +4185,9 @@ public class DeribitCore extends DeribitApi
         Double result = this.safeNumber2(contract, "result", "interest_8h");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", DeribitCore.this.safeSymbol(null, market) );
+            put( "symbol", Deribit.this.safeSymbol(null, market) );
             put( "markPrice", null );
-            put( "indexPrice", DeribitCore.this.safeNumber(contract, "index_price") );
+            put( "indexPrice", Deribit.this.safeNumber(contract, "index_price") );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
@@ -4401,14 +4401,14 @@ public class DeribitCore extends DeribitApi
         Long timestamp = this.safeInteger(liquidation, "timestamp");
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
-            put( "symbol", DeribitCore.this.safeSymbol(null, market) );
+            put( "symbol", Deribit.this.safeSymbol(null, market) );
             put( "contracts", null );
-            put( "contractSize", DeribitCore.this.safeNumber(market, "contractSize") );
+            put( "contractSize", Deribit.this.safeNumber(market, "contractSize") );
             put( "price", null );
-            put( "baseValue", DeribitCore.this.safeNumber(liquidation, "session_bankrupcy") );
+            put( "baseValue", Deribit.this.safeNumber(liquidation, "session_bankrupcy") );
             put( "quoteValue", null );
             put( "timestamp", timestamp );
-            put( "datetime", DeribitCore.this.iso8601(timestamp) );
+            put( "datetime", Deribit.this.iso8601(timestamp) );
         }});
     }
 
@@ -4537,22 +4537,22 @@ public class DeribitCore extends DeribitApi
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", DeribitCore.this.iso8601(timestamp) );
-            put( "delta", DeribitCore.this.safeNumber(stats, "delta") );
-            put( "gamma", DeribitCore.this.safeNumber(stats, "gamma") );
-            put( "theta", DeribitCore.this.safeNumber(stats, "theta") );
-            put( "vega", DeribitCore.this.safeNumber(stats, "vega") );
-            put( "rho", DeribitCore.this.safeNumber(stats, "rho") );
-            put( "bidSize", DeribitCore.this.safeNumber(greeks, "best_bid_amount") );
-            put( "askSize", DeribitCore.this.safeNumber(greeks, "best_ask_amount") );
-            put( "bidImpliedVolatility", DeribitCore.this.safeNumber(greeks, "bid_iv") );
-            put( "askImpliedVolatility", DeribitCore.this.safeNumber(greeks, "ask_iv") );
-            put( "markImpliedVolatility", DeribitCore.this.safeNumber(greeks, "mark_iv") );
-            put( "bidPrice", DeribitCore.this.safeNumber(greeks, "best_bid_price") );
-            put( "askPrice", DeribitCore.this.safeNumber(greeks, "best_ask_price") );
-            put( "markPrice", DeribitCore.this.safeNumber(greeks, "mark_price") );
-            put( "lastPrice", DeribitCore.this.safeNumber(greeks, "last_price") );
-            put( "underlyingPrice", DeribitCore.this.safeNumber(greeks, "underlying_price") );
+            put( "datetime", Deribit.this.iso8601(timestamp) );
+            put( "delta", Deribit.this.safeNumber(stats, "delta") );
+            put( "gamma", Deribit.this.safeNumber(stats, "gamma") );
+            put( "theta", Deribit.this.safeNumber(stats, "theta") );
+            put( "vega", Deribit.this.safeNumber(stats, "vega") );
+            put( "rho", Deribit.this.safeNumber(stats, "rho") );
+            put( "bidSize", Deribit.this.safeNumber(greeks, "best_bid_amount") );
+            put( "askSize", Deribit.this.safeNumber(greeks, "best_ask_amount") );
+            put( "bidImpliedVolatility", Deribit.this.safeNumber(greeks, "bid_iv") );
+            put( "askImpliedVolatility", Deribit.this.safeNumber(greeks, "ask_iv") );
+            put( "markImpliedVolatility", Deribit.this.safeNumber(greeks, "mark_iv") );
+            put( "bidPrice", Deribit.this.safeNumber(greeks, "best_bid_price") );
+            put( "askPrice", Deribit.this.safeNumber(greeks, "best_ask_price") );
+            put( "markPrice", Deribit.this.safeNumber(greeks, "mark_price") );
+            put( "lastPrice", Deribit.this.safeNumber(greeks, "last_price") );
+            put( "underlyingPrice", Deribit.this.safeNumber(greeks, "underlying_price") );
             put( "info", greeks );
         }};
     }
@@ -4721,19 +4721,19 @@ public class DeribitCore extends DeribitApi
             put( "currency", code );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", DeribitCore.this.iso8601(timestamp) );
+            put( "datetime", Deribit.this.iso8601(timestamp) );
             put( "impliedVolatility", null );
-            put( "openInterest", DeribitCore.this.safeNumber(chain, "open_interest") );
-            put( "bidPrice", DeribitCore.this.safeNumber(chain, "bid_price") );
-            put( "askPrice", DeribitCore.this.safeNumber(chain, "ask_price") );
-            put( "midPrice", DeribitCore.this.safeNumber(chain, "mid_price") );
-            put( "markPrice", DeribitCore.this.safeNumber(chain, "mark_price") );
-            put( "lastPrice", DeribitCore.this.safeNumber(chain, "last") );
-            put( "underlyingPrice", DeribitCore.this.safeNumber(chain, "underlying_price") );
+            put( "openInterest", Deribit.this.safeNumber(chain, "open_interest") );
+            put( "bidPrice", Deribit.this.safeNumber(chain, "bid_price") );
+            put( "askPrice", Deribit.this.safeNumber(chain, "ask_price") );
+            put( "midPrice", Deribit.this.safeNumber(chain, "mid_price") );
+            put( "markPrice", Deribit.this.safeNumber(chain, "mark_price") );
+            put( "lastPrice", Deribit.this.safeNumber(chain, "last") );
+            put( "underlyingPrice", Deribit.this.safeNumber(chain, "underlying_price") );
             put( "change", null );
-            put( "percentage", DeribitCore.this.safeNumber(chain, "price_change") );
-            put( "baseVolume", DeribitCore.this.safeNumber(chain, "volume") );
-            put( "quoteVolume", DeribitCore.this.safeNumber(chain, "volume_usd") );
+            put( "percentage", Deribit.this.safeNumber(chain, "price_change") );
+            put( "baseVolume", Deribit.this.safeNumber(chain, "volume") );
+            put( "quoteVolume", Deribit.this.safeNumber(chain, "volume_usd") );
         }};
     }
 
@@ -4847,11 +4847,11 @@ public class DeribitCore extends DeribitApi
         final Object finalOpenInterestAmount = openInterestAmount;
         final Object finalOpenInterestValue = openInterestValue;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", DeribitCore.this.safeSymbol(marketId, finalMarket) );
+            put( "symbol", Deribit.this.safeSymbol(marketId, finalMarket) );
             put( "openInterestAmount", finalOpenInterestAmount );
             put( "openInterestValue", finalOpenInterestValue );
             put( "timestamp", timestamp );
-            put( "datetime", DeribitCore.this.iso8601(timestamp) );
+            put( "datetime", Deribit.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -4891,7 +4891,7 @@ public class DeribitCore extends DeribitApi
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{
-                put( "Authorization", Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("deri-hmac-sha256 id=", DeribitCore.this.apiKey), ",ts="), finalTimestamp), ",sig="), signature), ","), "nonce="), nonce) );
+                put( "Authorization", Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("deri-hmac-sha256 id=", Deribit.this.apiKey), ",ts="), finalTimestamp), ",sig="), signature), ","), "nonce="), nonce) );
             }};
         }
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), request);

@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class ZebpayCore extends ZebpayApi
+public class Zebpay extends ZebpayApi
 {
-   public ZebpayCore () {
+   public Zebpay () {
        super();
    }
 
-   public ZebpayCore (Object options) {
+   public Zebpay (Object options) {
        super(options);
    }
 
@@ -582,15 +582,15 @@ public class ZebpayCore extends ZebpayApi
     put( "active", Helpers.isTrue(finalDepositAllowed) && Helpers.isTrue(withdrawAllowed) );
     put( "deposit", finalDepositAllowed );
     put( "withdraw", withdrawAllowed );
-    put( "fee", ZebpayCore.this.parseNumber(finalWithdrawFeeString) );
+    put( "fee", Zebpay.this.parseNumber(finalWithdrawFeeString) );
     put( "precision", precision );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", ZebpayCore.this.parseNumber(finalMinNetworkWithdrawString) );
+            put( "min", Zebpay.this.parseNumber(finalMinNetworkWithdrawString) );
             put( "max", null );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", ZebpayCore.this.parseNumber(finalMinNetworkDepositString) );
+            put( "min", Zebpay.this.parseNumber(finalMinNetworkDepositString) );
             put( "max", null );
         }} );
     }} );
@@ -610,7 +610,7 @@ public class ZebpayCore extends ZebpayApi
             put( "active", Helpers.isTrue(finalDeposit) && Helpers.isTrue(finalWithdraw) );
             put( "deposit", finalDeposit );
             put( "withdraw", finalWithdraw );
-            put( "fee", ZebpayCore.this.parseNumber(finalMinWithdrawFeeString) );
+            put( "fee", Zebpay.this.parseNumber(finalMinWithdrawFeeString) );
             put( "precision", precision );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
@@ -618,11 +618,11 @@ public class ZebpayCore extends ZebpayApi
                     put( "max", null );
                 }} );
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
-                    put( "min", ZebpayCore.this.parseNumber(finalMinWithdrawString) );
+                    put( "min", Zebpay.this.parseNumber(finalMinWithdrawString) );
                     put( "max", null );
                 }} );
                 put( "deposit", new java.util.HashMap<String, Object>() {{
-                    put( "min", ZebpayCore.this.parseNumber(finalMinDepositString) );
+                    put( "min", Zebpay.this.parseNumber(finalMinDepositString) );
                     put( "max", null );
                 }} );
             }} );
@@ -1231,16 +1231,16 @@ public class ZebpayCore extends ZebpayApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", ZebpayCore.this.iso8601(timestamp) );
+            put( "datetime", Zebpay.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "order", orderId );
-            put( "type", ZebpayCore.this.safeStringLower(trade, "type") );
+            put( "type", Zebpay.this.safeStringLower(trade, "type") );
             put( "side", side );
             put( "takerOrMaker", null );
             put( "price", priceString );
             put( "amount", amountString );
-            put( "cost", ZebpayCore.this.safeString(trade, "cost") );
-            put( "fee", ZebpayCore.this.safeDict(trade, "fee") );
+            put( "cost", Zebpay.this.safeString(trade, "cost") );
+            put( "fee", Zebpay.this.safeDict(trade, "fee") );
         }}, market);
     }
 
@@ -1836,7 +1836,7 @@ public class ZebpayCore extends ZebpayApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", ZebpayCore.this.safeStringUpper(market, "id") );
+                put( "symbol", Zebpay.this.safeStringUpper(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.privateSwapGetV1TradeUserLeverage(this.extend(request, parameters))).join();
             //
@@ -2092,13 +2092,13 @@ public class ZebpayCore extends ZebpayApi
                     put( "option", false );
                     put( "active", null );
                     put( "contract", null );
-                    put( "taker", ZebpayCore.this.safeNumber(market, "takerFee") );
-                    put( "maker", ZebpayCore.this.safeNumber(market, "makerFee") );
+                    put( "taker", Zebpay.this.safeNumber(market, "takerFee") );
+                    put( "maker", Zebpay.this.safeNumber(market, "makerFee") );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", ZebpayCore.this.safeNumber(market, "lotSz") );
-                        put( "price", ZebpayCore.this.safeNumber(market, "tickSz") );
+                        put( "amount", Zebpay.this.safeNumber(market, "lotSz") );
+                        put( "price", Zebpay.this.safeNumber(market, "tickSz") );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "amount", new java.util.HashMap<String, Object>() {{
@@ -2184,18 +2184,18 @@ public class ZebpayCore extends ZebpayApi
                     put( "option", false );
                     put( "active", (Helpers.isEqual(finalStatus, "Open")) );
                     put( "contract", true );
-                    put( "taker", ZebpayCore.this.safeNumber(market, "takerFee") );
-                    put( "maker", ZebpayCore.this.safeNumber(market, "makerFee") );
+                    put( "taker", Zebpay.this.safeNumber(market, "takerFee") );
+                    put( "maker", Zebpay.this.safeNumber(market, "makerFee") );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", ZebpayCore.this.safeNumber(market, "lotSz") );
-                        put( "price", ZebpayCore.this.safeNumber(market, "tickSz") );
+                        put( "amount", Zebpay.this.safeNumber(market, "lotSz") );
+                        put( "price", Zebpay.this.safeNumber(market, "tickSz") );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", ZebpayCore.this.safeNumber(market, "minLeverage") );
-                            put( "max", ZebpayCore.this.safeNumber(market, "maxLeverage") );
+                            put( "min", Zebpay.this.safeNumber(market, "minLeverage") );
+                            put( "max", Zebpay.this.safeNumber(market, "maxLeverage") );
                         }} );
                     }} );
                     put( "info", market );
@@ -2253,24 +2253,24 @@ public class ZebpayCore extends ZebpayApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "symbol", marketId );
-            put( "timestamp", ZebpayCore.this.parse8601(datetime) );
+            put( "timestamp", Zebpay.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "initialMargin", ZebpayCore.this.safeNumber(position, "initialMargin") );
+            put( "initialMargin", Zebpay.this.safeNumber(position, "initialMargin") );
             put( "initialMarginPercentage", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "entryPrice", ZebpayCore.this.safeNumber(position, "entryPrice") );
-            put( "notional", ZebpayCore.this.safeNumber(position, "notional") );
+            put( "entryPrice", Zebpay.this.safeNumber(position, "entryPrice") );
+            put( "notional", Zebpay.this.safeNumber(position, "notional") );
             put( "leverage", leverage );
             put( "unrealizedPnl", null );
-            put( "contracts", ZebpayCore.this.safeNumber(position, "contracts") );
-            put( "contractSize", ZebpayCore.this.safeNumber(finalMarket, "contractSize") );
+            put( "contracts", Zebpay.this.safeNumber(position, "contracts") );
+            put( "contractSize", Zebpay.this.safeNumber(finalMarket, "contractSize") );
             put( "marginRatio", null );
-            put( "liquidationPrice", ZebpayCore.this.safeNumber(position, "liquidationPrice") );
+            put( "liquidationPrice", Zebpay.this.safeNumber(position, "liquidationPrice") );
             put( "markPrice", null );
             put( "collateral", null );
             put( "marginType", "isolated" );
-            put( "side", ZebpayCore.this.safeString(position, "side") );
+            put( "side", Zebpay.this.safeString(position, "side") );
             put( "percentage", null );
         }};
     }
@@ -2300,8 +2300,8 @@ public class ZebpayCore extends ZebpayApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", ZebpayCore.this.safeNumber2(fee, "makerFeeRate", "makerFee") );
-            put( "taker", ZebpayCore.this.safeNumber2(fee, "takerFeeRate", "takerFee") );
+            put( "maker", Zebpay.this.safeNumber2(fee, "makerFeeRate", "makerFee") );
+            put( "taker", Zebpay.this.safeNumber2(fee, "takerFeeRate", "takerFee") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -2341,23 +2341,23 @@ public class ZebpayCore extends ZebpayApi
             put( "id", marketId );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", ZebpayCore.this.iso8601(timestamp) );
-            put( "high", ZebpayCore.this.safeString(ticker, "high") );
-            put( "low", ZebpayCore.this.safeString(ticker, "low") );
-            put( "bid", ZebpayCore.this.safeString(ticker, "bid") );
+            put( "datetime", Zebpay.this.iso8601(timestamp) );
+            put( "high", Zebpay.this.safeString(ticker, "high") );
+            put( "low", Zebpay.this.safeString(ticker, "low") );
+            put( "bid", Zebpay.this.safeString(ticker, "bid") );
             put( "bidVolume", bidVolume );
-            put( "ask", ZebpayCore.this.safeString(ticker, "ask") );
+            put( "ask", Zebpay.this.safeString(ticker, "ask") );
             put( "askVolume", askVolume );
             put( "vwap", null );
             put( "open", null );
             put( "close", close );
             put( "last", last );
-            put( "previousClose", ZebpayCore.this.safeString(ticker, "previousClose") );
-            put( "change", ZebpayCore.this.safeString(ticker, "change") );
+            put( "previousClose", Zebpay.this.safeString(ticker, "previousClose") );
+            put( "change", Zebpay.this.safeString(ticker, "change") );
             put( "percentage", percentage );
-            put( "average", ZebpayCore.this.safeString(ticker, "average") );
-            put( "baseVolume", ZebpayCore.this.safeString(ticker, "baseVolume") );
-            put( "quoteVolume", ZebpayCore.this.safeString(ticker, "quoteVolume") );
+            put( "average", Zebpay.this.safeString(ticker, "average") );
+            put( "baseVolume", Zebpay.this.safeString(ticker, "baseVolume") );
+            put( "quoteVolume", Zebpay.this.safeString(ticker, "quoteVolume") );
             put( "markPrice", null );
             put( "info", ticker );
         }}, market);
@@ -2378,15 +2378,15 @@ public class ZebpayCore extends ZebpayApi
         Long timestamp = this.milliseconds();
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", ZebpayCore.this.safeString(market, "id") );
+            put( "symbol", Zebpay.this.safeString(market, "id") );
             put( "type", null );
             put( "marginMode", null );
-            put( "amount", ZebpayCore.this.safeNumber(info, "amount") );
+            put( "amount", Zebpay.this.safeNumber(info, "amount") );
             put( "total", null );
-            put( "code", ZebpayCore.this.safeString(info, "code") );
-            put( "status", ZebpayCore.this.safeString(info, "status") );
+            put( "code", Zebpay.this.safeString(info, "code") );
+            put( "status", Zebpay.this.safeString(info, "status") );
             put( "timestamp", timestamp );
-            put( "datetime", ZebpayCore.this.iso8601(timestamp) );
+            put( "datetime", Zebpay.this.iso8601(timestamp) );
         }};
     }
 
@@ -2444,7 +2444,7 @@ public class ZebpayCore extends ZebpayApi
             final Object finalSignature = signature;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Referrer", "ccxt" );
-                put( "X-AUTH-APIKEY", ZebpayCore.this.apiKey );
+                put( "X-AUTH-APIKEY", Zebpay.this.apiKey );
                 put( "X-AUTH-SIGNATURE", finalSignature );
             }};
             Helpers.addElementToObject(headers, "Content-Type", "application/json");

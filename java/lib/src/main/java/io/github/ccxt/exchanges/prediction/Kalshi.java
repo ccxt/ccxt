@@ -9,13 +9,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class KalshiCore extends KalshiApi
+public class Kalshi extends KalshiApi
 {
-   public KalshiCore () {
+   public Kalshi () {
        super();
    }
 
-   public KalshiCore (Object options) {
+   public Kalshi (Object options) {
        super(options);
    }
 
@@ -384,7 +384,7 @@ public class KalshiCore extends KalshiApi
             if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
             {
                 Object eventParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("limit")));
-                Object events = (this.fetchEvents(eventParams)).join();
+                Object events = (this.fetchEvents((Object)(eventParams))).join();
                 Object eventsLength = Helpers.getArrayLength(events);
                 java.util.List<Object> queryMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var ei = 0; Helpers.isLessThan(ei, eventsLength); ei++)
@@ -561,9 +561,9 @@ public class KalshiCore extends KalshiApi
                 {
                     try
                     {
-                        (this.fetchEvents(new java.util.HashMap<String, Object>() {{
+                        (this.fetchEvents((Object)(new java.util.HashMap<String, Object>() {{
                             put( "series_ticker", seriesTicker );
-                        }})).join();
+                        }}))).join();
                     } catch(Exception e)
                     {
                         // an unknown series is a plain miss — the free-text fallback below still runs;
@@ -715,7 +715,7 @@ public class KalshiCore extends KalshiApi
             put( "type", takerOrMaker );
             put( "currency", "USD" );
             put( "rate", 0.07 );
-            put( "cost", KalshiCore.this.parseNumber(finalFeeCost) );
+            put( "cost", Kalshi.this.parseNumber(finalFeeCost) );
         }};
     }
 
@@ -900,7 +900,7 @@ final Object finalOi = oi;
             put( "linear", null );
             put( "inverse", null );
             put( "contractSize", null );
-            put( "expiry", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalEndDate, null)) && Helpers.isTrue(!Helpers.isEqual(finalEndDate, "")))))) ? KalshiCore.this.parse8601(finalEndDate) : null );
+            put( "expiry", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalEndDate, null)) && Helpers.isTrue(!Helpers.isEqual(finalEndDate, "")))))) ? Kalshi.this.parse8601(finalEndDate) : null );
             put( "expiryDatetime", finalEndDate );
             put( "strike", null );
             put( "optionType", null );
@@ -929,7 +929,7 @@ final Object finalOi = oi;
                 }} );
             }} );
             put( "outcomes", outcomes );
-            put( "info", KalshiCore.this.extend(raw, new java.util.HashMap<String, Object>() {{
+            put( "info", Kalshi.this.extend(raw, new java.util.HashMap<String, Object>() {{
                 put( "ticker", finalTicker );
                 put( "eventTicker", finalEventTicker );
                 put( "seriesTicker", finalSeriesTicker );
@@ -1092,13 +1092,13 @@ final Object finalOi = oi;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.milliseconds();
         Object openInterest = this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", KalshiCore.this.safeSymbol(null, market) );
-            put( "openInterestAmount", KalshiCore.this.safeNumber2(interest, "open_interest_fp", "open_interest") );
+            put( "symbol", Kalshi.this.safeSymbol(null, market) );
+            put( "openInterestAmount", Kalshi.this.safeNumber2(interest, "open_interest_fp", "open_interest") );
             put( "openInterestValue", null );
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "timestamp", timestamp );
-            put( "datetime", KalshiCore.this.iso8601(timestamp) );
+            put( "datetime", Kalshi.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
         Helpers.addElementToObject(openInterest, "outcome", this.safeOutcomeSymbol(null, market));
@@ -1227,11 +1227,11 @@ final Object finalOi = oi;
         final Object finalAverage = average;
         return this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
             put( "outcome", outcome );
-            put( "outcomeId", KalshiCore.this.safeString2(outcomeObj, "outcomeId", "id") );
-            put( "label", KalshiCore.this.safeString(outcomeObj, "label") );
-            put( "market", KalshiCore.this.safeString2(outcomeObj, "market", "outcome") );
+            put( "outcomeId", Kalshi.this.safeString2(outcomeObj, "outcomeId", "id") );
+            put( "label", Kalshi.this.safeString(outcomeObj, "label") );
+            put( "market", Kalshi.this.safeString2(outcomeObj, "market", "outcome") );
             put( "timestamp", now );
-            put( "datetime", KalshiCore.this.iso8601(now) );
+            put( "datetime", Kalshi.this.iso8601(now) );
             put( "high", null );
             put( "low", null );
             put( "bid", finalBid );
@@ -1246,7 +1246,7 @@ final Object finalOi = oi;
             put( "change", null );
             put( "percentage", null );
             put( "average", finalAverage );
-            put( "baseVolume", KalshiCore.this.safeNumberN(raw, new java.util.ArrayList<Object>(java.util.Arrays.asList("volume_24h_fp", "volume_24h", "volume"))) );
+            put( "baseVolume", Kalshi.this.safeNumberN(raw, new java.util.ArrayList<Object>(java.util.Arrays.asList("volume_24h_fp", "volume_24h", "volume"))) );
             put( "quoteVolume", null );
             put( "info", raw );
         }}, market);
@@ -1450,7 +1450,7 @@ final Object finalOi = oi;
             put( "bids", finalBids );
             put( "asks", finalAsks );
             put( "timestamp", timestamp );
-            put( "datetime", KalshiCore.this.iso8601(timestamp) );
+            put( "datetime", Kalshi.this.iso8601(timestamp) );
             put( "nonce", null );
         }};
     }
@@ -1732,11 +1732,11 @@ final Object finalOi = oi;
             put( "id", id );
             put( "info", trade );
             put( "timestamp", ts );
-            put( "datetime", KalshiCore.this.iso8601(ts) );
+            put( "datetime", Kalshi.this.iso8601(ts) );
             put( "outcome", outcomeSymbol );
             put( "outcomeId", outcomeId );
-            put( "label", KalshiCore.this.safeString(outcomeObj, "label") );
-            put( "market", KalshiCore.this.safeString2(outcomeObj, "market", "outcome") );
+            put( "label", Kalshi.this.safeString(outcomeObj, "label") );
+            put( "market", Kalshi.this.safeString2(outcomeObj, "market", "outcome") );
             put( "order", null );
             put( "type", null );
             put( "side", finalSide );
@@ -1895,11 +1895,11 @@ final Object finalOi = oi;
             put( "id", id );
             put( "info", fill );
             put( "timestamp", ts );
-            put( "datetime", KalshiCore.this.iso8601(ts) );
-            put( "outcome", KalshiCore.this.safeString(mkt, "outcome", finalOutcomeKey) );
-            put( "outcomeId", KalshiCore.this.safeString2(mkt, "outcomeId", "id") );
-            put( "label", KalshiCore.this.safeString(mkt, "label") );
-            put( "market", KalshiCore.this.safeString2(mkt, "market", "outcome") );
+            put( "datetime", Kalshi.this.iso8601(ts) );
+            put( "outcome", Kalshi.this.safeString(mkt, "outcome", finalOutcomeKey) );
+            put( "outcomeId", Kalshi.this.safeString2(mkt, "outcomeId", "id") );
+            put( "label", Kalshi.this.safeString(mkt, "label") );
+            put( "market", Kalshi.this.safeString2(mkt, "market", "outcome") );
             put( "order", orderId );
             put( "type", null );
             put( "side", side );
@@ -2146,10 +2146,10 @@ final Object finalOi = oi;
             put( "info", settlement );
             put( "id", finalTicker );
             put( "timestamp", ts );
-            put( "datetime", KalshiCore.this.iso8601(ts) );
-            put( "outcome", KalshiCore.this.safeString(mkt, "outcome", heldTicker) );
-            put( "outcomeId", KalshiCore.this.safeString2(mkt, "outcomeId", "id", heldTicker) );
-            put( "market", KalshiCore.this.safeString2(mkt, "market", "outcome") );
+            put( "datetime", Kalshi.this.iso8601(ts) );
+            put( "outcome", Kalshi.this.safeString(mkt, "outcome", heldTicker) );
+            put( "outcomeId", Kalshi.this.safeString2(mkt, "outcomeId", "id", heldTicker) );
+            put( "market", Kalshi.this.safeString2(mkt, "market", "outcome") );
             put( "event", null );
             put( "result", finalMarketResult );
             put( "won", won );
@@ -2187,10 +2187,10 @@ final Object finalOi = oi;
         final Object finalPositionSide = positionSide;
         return this.safePredictionPosition(new java.util.HashMap<String, Object>() {{
             put( "id", null );
-            put( "outcome", KalshiCore.this.safeString(outcomeObj, "outcome", ticker) );
-            put( "outcomeId", KalshiCore.this.safeString2(outcomeObj, "outcomeId", "id") );
-            put( "label", KalshiCore.this.safeString(outcomeObj, "label") );
-            put( "market", KalshiCore.this.safeString2(outcomeObj, "market", "outcome") );
+            put( "outcome", Kalshi.this.safeString(outcomeObj, "outcome", ticker) );
+            put( "outcomeId", Kalshi.this.safeString2(outcomeObj, "outcomeId", "id") );
+            put( "label", Kalshi.this.safeString(outcomeObj, "label") );
+            put( "market", Kalshi.this.safeString2(outcomeObj, "market", "outcome") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "contracts", finalContractsValue );
@@ -2326,7 +2326,7 @@ final Object finalOi = oi;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object orders = (this.fetchOrders(outcome, null, null, parameters)).join();
+            Object orders = (this.fetchOrders((Object)(outcome), (Object)(null), (Object)(null), (Object)(parameters))).join();
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -2438,17 +2438,17 @@ final Object finalOi = oi;
         final Object finalRemaining = remaining;
         return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
-            put( "clientOrderId", KalshiCore.this.safeString(order, "client_order_id") );
+            put( "clientOrderId", Kalshi.this.safeString(order, "client_order_id") );
             put( "info", order );
             put( "timestamp", ts );
-            put( "datetime", KalshiCore.this.iso8601(ts) );
+            put( "datetime", Kalshi.this.iso8601(ts) );
             put( "lastTradeTimestamp", null );
             put( "status", status );
-            put( "outcome", KalshiCore.this.safeString(mkt, "outcome") );
-            put( "outcomeId", KalshiCore.this.safeString2(mkt, "outcomeId", "id") );
-            put( "label", KalshiCore.this.safeString(mkt, "label") );
-            put( "market", KalshiCore.this.safeString2(mkt, "market", "outcome") );
-            put( "type", KalshiCore.this.safeStringLower(order, "type", "limit") );
+            put( "outcome", Kalshi.this.safeString(mkt, "outcome") );
+            put( "outcomeId", Kalshi.this.safeString2(mkt, "outcomeId", "id") );
+            put( "label", Kalshi.this.safeString(mkt, "label") );
+            put( "market", Kalshi.this.safeString2(mkt, "market", "outcome") );
+            put( "type", Kalshi.this.safeStringLower(order, "type", "limit") );
             put( "timeInForce", "GTC" );
             put( "postOnly", null );
             put( "side", finalSide );
@@ -2564,7 +2564,7 @@ final Object finalOi = oi;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker", ticker );
                 put( "side", finalBookSide );
-                put( "count", KalshiCore.this.numberToString(finalAmount) );
+                put( "count", Kalshi.this.numberToString(finalAmount) );
                 put( "time_in_force", finalTimeInForce );
                 put( "self_trade_prevention_type", finalStp );
             }};
@@ -2644,8 +2644,8 @@ final Object finalOi = oi;
                 throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount")) ;
             }
             (this.loadOutcome(outcome)).join();
-            (this.cancelOrder(id, outcome)).join();
-            return (this.createOrder(outcome, type, side, amount, price, parameters)).join();
+            (this.cancelOrder((Object)(id), (Object)(outcome))).join();
+            return (this.createOrder((Object)(outcome), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -3297,16 +3297,16 @@ final Object finalOi = oi;
             put( "markets", marketsList );
             put( "volume", finalTotalVolume );
             put( "liquidity", finalTotalLiquidity );
-            put( "url", KalshiCore.this.safeString(rawEvent, "url") );
-            put( "image", KalshiCore.this.safeString(rawEvent, "image_url") );
+            put( "url", Kalshi.this.safeString(rawEvent, "url") );
+            put( "image", Kalshi.this.safeString(rawEvent, "image_url") );
             put( "created", finalCreated );
-            put( "createdDatetime", KalshiCore.this.safeString(rawEvent, "created_date_iso") );
+            put( "createdDatetime", Kalshi.this.safeString(rawEvent, "created_date_iso") );
             put( "end", finalEnd );
-            put( "endDatetime", KalshiCore.this.iso8601(finalEnd) );
-            put( "category", KalshiCore.this.safeString(rawEvent, "category") );
-            put( "lastUpdatedAt", KalshiCore.this.parse8601(KalshiCore.this.safeString(rawEvent, "last_updated_date_iso")) );
-            put( "lastUpdatedAtDatetime", KalshiCore.this.safeString(rawEvent, "last_updated_date_iso") );
-            put( "resolutionSource", KalshiCore.this.safeString(rawEvent, "resolution_source") );
+            put( "endDatetime", Kalshi.this.iso8601(finalEnd) );
+            put( "category", Kalshi.this.safeString(rawEvent, "category") );
+            put( "lastUpdatedAt", Kalshi.this.parse8601(Kalshi.this.safeString(rawEvent, "last_updated_date_iso")) );
+            put( "lastUpdatedAtDatetime", Kalshi.this.safeString(rawEvent, "last_updated_date_iso") );
+            put( "resolutionSource", Kalshi.this.safeString(rawEvent, "resolution_source") );
             put( "active", finalActive );
             put( "resolved", finalResolved );
             put( "info", rawEvent );
@@ -3367,7 +3367,7 @@ final Object finalOi = oi;
             Object signature = rsa(payload, cleanPrivateKey, sha256(), "pss");
             final Object finalTimestamp = timestamp;
             headers = this.extend(headers, new java.util.HashMap<String, Object>() {{
-                put( "KALSHI-ACCESS-KEY", KalshiCore.this.apiKey );
+                put( "KALSHI-ACCESS-KEY", Kalshi.this.apiKey );
                 put( "KALSHI-ACCESS-SIGNATURE", signature );
                 put( "KALSHI-ACCESS-TIMESTAMP", finalTimestamp );
             }});

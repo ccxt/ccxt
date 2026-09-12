@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class LunoCore extends LunoApi
+public class Luno extends LunoApi
 {
-   public LunoCore () {
+   public Luno () {
        super();
    }
 
-   public LunoCore (Object options) {
+   public Luno (Object options) {
        super(options);
    }
 
@@ -298,11 +298,11 @@ public class LunoCore extends LunoApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", LunoCore.this.parseNumber("0.006") );
-                    put( "maker", LunoCore.this.parseNumber("0.004") );
+                    put( "taker", Luno.this.parseNumber("0.006") );
+                    put( "maker", Luno.this.parseNumber("0.004") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("0"), LunoCore.this.parseNumber("0.006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("20000"), LunoCore.this.parseNumber("0.005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("200000"), LunoCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("1000000"), LunoCore.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("2000000"), LunoCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("5000000"), LunoCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("10000000"), LunoCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("20000000"), LunoCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("40000000"), LunoCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("80000000"), LunoCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("120000000"), LunoCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("160000000"), LunoCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("300000000"), LunoCore.this.parseNumber("0.0005"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("0"), LunoCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("20000"), LunoCore.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("200000"), LunoCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("1000000"), LunoCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("2000000"), LunoCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("5000000"), LunoCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("10000000"), LunoCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("20000000"), LunoCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("40000000"), LunoCore.this.parseNumber("-0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("80000000"), LunoCore.this.parseNumber("-0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("120000000"), LunoCore.this.parseNumber("-0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("160000000"), LunoCore.this.parseNumber("-0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(LunoCore.this.parseNumber("300000000"), LunoCore.this.parseNumber("-0.0002"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("0"), Luno.this.parseNumber("0.006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("20000"), Luno.this.parseNumber("0.005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("200000"), Luno.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("1000000"), Luno.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("2000000"), Luno.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("5000000"), Luno.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("10000000"), Luno.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("20000000"), Luno.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("40000000"), Luno.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("80000000"), Luno.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("120000000"), Luno.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("160000000"), Luno.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("300000000"), Luno.this.parseNumber("0.0005"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("0"), Luno.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("20000"), Luno.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("200000"), Luno.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("1000000"), Luno.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("2000000"), Luno.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("5000000"), Luno.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("10000000"), Luno.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("20000000"), Luno.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("40000000"), Luno.this.parseNumber("-0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("80000000"), Luno.this.parseNumber("-0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("120000000"), Luno.this.parseNumber("-0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("160000000"), Luno.this.parseNumber("-0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Luno.this.parseNumber("300000000"), Luno.this.parseNumber("-0.0002"))))) );
                     }} );
                 }} );
             }} );
@@ -695,8 +695,8 @@ public class LunoCore extends LunoApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", LunoCore.this.parseNumber(LunoCore.this.parsePrecision(LunoCore.this.safeString(market, "volume_scale"))) );
-                        put( "price", LunoCore.this.parseNumber(LunoCore.this.parsePrecision(LunoCore.this.safeString(market, "price_scale"))) );
+                        put( "amount", Luno.this.parseNumber(Luno.this.parsePrecision(Luno.this.safeString(market, "volume_scale"))) );
+                        put( "price", Luno.this.parseNumber(Luno.this.parsePrecision(Luno.this.safeString(market, "price_scale"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -704,12 +704,12 @@ public class LunoCore extends LunoApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", LunoCore.this.safeNumber(market, "min_volume") );
-                            put( "max", LunoCore.this.safeNumber(market, "max_volume") );
+                            put( "min", Luno.this.safeNumber(market, "min_volume") );
+                            put( "max", Luno.this.safeNumber(market, "max_volume") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
-                            put( "min", LunoCore.this.safeNumber(market, "min_price") );
-                            put( "max", LunoCore.this.safeNumber(market, "max_price") );
+                            put( "min", Luno.this.safeNumber(market, "min_price") );
+                            put( "max", Luno.this.safeNumber(market, "max_price") );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
@@ -941,7 +941,7 @@ public class LunoCore extends LunoApi
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
-            put( "datetime", LunoCore.this.iso8601(timestamp) );
+            put( "datetime", Luno.this.iso8601(timestamp) );
             put( "timestamp", timestamp );
             put( "lastTradeTimestamp", null );
             put( "status", finalStatus );
@@ -1118,12 +1118,12 @@ public class LunoCore extends LunoApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", LunoCore.this.iso8601(timestamp) );
+            put( "datetime", Luno.this.iso8601(timestamp) );
             put( "high", null );
             put( "low", null );
-            put( "bid", LunoCore.this.safeString(ticker, "bid") );
+            put( "bid", Luno.this.safeString(ticker, "bid") );
             put( "bidVolume", null );
-            put( "ask", LunoCore.this.safeString(ticker, "ask") );
+            put( "ask", Luno.this.safeString(ticker, "ask") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -1133,7 +1133,7 @@ public class LunoCore extends LunoApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", LunoCore.this.safeString(ticker, "rolling_24_hour_volume") );
+            put( "baseVolume", Luno.this.safeString(ticker, "rolling_24_hour_volume") );
             put( "quoteVolume", null );
             put( "info", ticker );
         }}, market);
@@ -1308,15 +1308,15 @@ public class LunoCore extends LunoApi
             put( "info", trade );
             put( "id", id );
             put( "timestamp", timestamp );
-            put( "datetime", LunoCore.this.iso8601(timestamp) );
-            put( "symbol", LunoCore.this.safeString(market, "symbol") );
+            put( "datetime", Luno.this.iso8601(timestamp) );
+            put( "symbol", Luno.this.safeString(market, "symbol") );
             put( "order", finalOrderId );
             put( "type", null );
             put( "side", finalSide );
             put( "takerOrMaker", finalTakerOrMaker );
-            put( "price", LunoCore.this.safeString(trade, "price") );
-            put( "amount", LunoCore.this.safeString2(trade, "volume", "base") );
-            put( "cost", LunoCore.this.safeString(trade, "counter") );
+            put( "price", Luno.this.safeString(trade, "price") );
+            put( "amount", Luno.this.safeString2(trade, "volume", "base") );
+            put( "cost", Luno.this.safeString(trade, "counter") );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", finalFeeCurrency );
@@ -1402,7 +1402,7 @@ public class LunoCore extends LunoApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "duration", LunoCore.this.safeValue(LunoCore.this.timeframes, timeframe, timeframe) );
+                put( "duration", Luno.this.safeValue(Luno.this.timeframes, timeframe, timeframe) );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1552,8 +1552,8 @@ public class LunoCore extends LunoApi
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", symbol );
-                put( "maker", LunoCore.this.safeNumber(response, "maker_fee") );
-                put( "taker", LunoCore.this.safeNumber(response, "taker_fee") );
+                put( "maker", Luno.this.safeNumber(response, "maker_fee") );
+                put( "taker", Luno.this.safeNumber(response, "taker_fee") );
                 put( "percentage", null );
                 put( "tierBased", null );
             }};
@@ -1689,9 +1689,9 @@ public class LunoCore extends LunoApi
             final Object finalLimit = limit;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "min_row", finalEntry );
-                put( "max_row", LunoCore.this.sum(finalEntry, finalLimit) );
+                put( "max_row", Luno.this.sum(finalEntry, finalLimit) );
             }};
-            return (this.fetchLedger(code, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchLedger((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -1869,11 +1869,11 @@ public class LunoCore extends LunoApi
             put( "referenceAccount", null );
             put( "type", type );
             put( "currency", code );
-            put( "amount", LunoCore.this.parseToNumeric(finalAmount) );
+            put( "amount", Luno.this.parseToNumeric(finalAmount) );
             put( "timestamp", timestamp );
-            put( "datetime", LunoCore.this.iso8601(timestamp) );
-            put( "before", LunoCore.this.parseToNumeric(finalBefore) );
-            put( "after", LunoCore.this.parseToNumeric(after) );
+            put( "datetime", Luno.this.iso8601(timestamp) );
+            put( "before", Luno.this.parseToNumeric(finalBefore) );
+            put( "after", Luno.this.parseToNumeric(after) );
             put( "status", finalStatus );
             put( "fee", null );
         }}, currency);
@@ -2011,8 +2011,8 @@ public class LunoCore extends LunoApi
             put( "info", depositAddress );
             put( "currency", code );
             put( "network", null );
-            put( "address", LunoCore.this.safeString(depositAddress, "address") );
-            put( "tag", LunoCore.this.safeString(depositAddress, "name") );
+            put( "address", Luno.this.safeString(depositAddress, "address") );
+            put( "tag", Luno.this.safeString(depositAddress, "name") );
         }};
     }
 

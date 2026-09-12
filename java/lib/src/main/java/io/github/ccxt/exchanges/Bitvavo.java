@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BitvavoCore extends BitvavoApi
+public class Bitvavo extends BitvavoApi
 {
-   public BitvavoCore () {
+   public Bitvavo () {
        super();
    }
 
-   public BitvavoCore (Object options) {
+   public Bitvavo (Object options) {
        super(options);
    }
 
@@ -314,11 +314,11 @@ public class BitvavoCore extends BitvavoApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", BitvavoCore.this.parseNumber("0.0025") );
-                    put( "maker", BitvavoCore.this.parseNumber("0.002") );
+                    put( "taker", Bitvavo.this.parseNumber("0.0025") );
+                    put( "maker", Bitvavo.this.parseNumber("0.002") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("0"), BitvavoCore.this.parseNumber("0.0025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("100000"), BitvavoCore.this.parseNumber("0.0020"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("250000"), BitvavoCore.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("500000"), BitvavoCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("1000000"), BitvavoCore.this.parseNumber("0.0010"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("2500000"), BitvavoCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("5000000"), BitvavoCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("10000000"), BitvavoCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("25000000"), BitvavoCore.this.parseNumber("0.0004"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("0"), BitvavoCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("100000"), BitvavoCore.this.parseNumber("0.0010"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("250000"), BitvavoCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("500000"), BitvavoCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("1000000"), BitvavoCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("2500000"), BitvavoCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("5000000"), BitvavoCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("10000000"), BitvavoCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitvavoCore.this.parseNumber("25000000"), BitvavoCore.this.parseNumber("0.0003"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("0"), Bitvavo.this.parseNumber("0.0025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("100000"), Bitvavo.this.parseNumber("0.0020"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("250000"), Bitvavo.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("500000"), Bitvavo.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("1000000"), Bitvavo.this.parseNumber("0.0010"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("2500000"), Bitvavo.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("5000000"), Bitvavo.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("10000000"), Bitvavo.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("25000000"), Bitvavo.this.parseNumber("0.0004"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("0"), Bitvavo.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("100000"), Bitvavo.this.parseNumber("0.0010"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("250000"), Bitvavo.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("500000"), Bitvavo.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("1000000"), Bitvavo.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("2500000"), Bitvavo.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("5000000"), Bitvavo.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("10000000"), Bitvavo.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitvavo.this.parseNumber("25000000"), Bitvavo.this.parseNumber("0.0003"))))) );
                     }} );
                 }} );
             }} );
@@ -597,9 +597,9 @@ final Object finalBase = base;
                 put( "taker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "taker") );
                 put( "maker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "maker") );
                 put( "precision", new java.util.HashMap<String, Object>() {{
-                    put( "amount", BitvavoCore.this.parseNumber(BitvavoCore.this.parsePrecision(BitvavoCore.this.safeString(market, "quantityDecimals"))) );
-                    put( "price", BitvavoCore.this.safeNumber(market, "tickSize") );
-                    put( "cost", BitvavoCore.this.parseNumber(BitvavoCore.this.parsePrecision(BitvavoCore.this.safeString(market, "notionalDecimals"))) );
+                    put( "amount", Bitvavo.this.parseNumber(Bitvavo.this.parsePrecision(Bitvavo.this.safeString(market, "quantityDecimals"))) );
+                    put( "price", Bitvavo.this.safeNumber(market, "tickSize") );
+                    put( "cost", Bitvavo.this.parseNumber(Bitvavo.this.parsePrecision(Bitvavo.this.safeString(market, "notionalDecimals"))) );
                 }} );
                 put( "limits", new java.util.HashMap<String, Object>() {{
                     put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -607,16 +607,16 @@ final Object finalBase = base;
                         put( "max", null );
                     }} );
                     put( "amount", new java.util.HashMap<String, Object>() {{
-                        put( "min", BitvavoCore.this.safeNumber(market, "minOrderInBaseAsset") );
-                        put( "max", BitvavoCore.this.safeNumber(market, "maxOrderInBaseAsset") );
+                        put( "min", Bitvavo.this.safeNumber(market, "minOrderInBaseAsset") );
+                        put( "max", Bitvavo.this.safeNumber(market, "maxOrderInBaseAsset") );
                     }} );
                     put( "price", new java.util.HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
                     }} );
                     put( "cost", new java.util.HashMap<String, Object>() {{
-                        put( "min", BitvavoCore.this.safeNumber(market, "minOrderInQuoteAsset") );
-                        put( "max", BitvavoCore.this.safeNumber(market, "maxOrderInQuoteAsset") );
+                        put( "min", Bitvavo.this.safeNumber(market, "minOrderInQuoteAsset") );
+                        put( "max", Bitvavo.this.safeNumber(market, "maxOrderInQuoteAsset") );
                     }} );
                 }} );
                 put( "created", null );
@@ -743,7 +743,7 @@ final Object finalBase = base;
     put( "deposit", finalDeposit );
     put( "withdraw", withdrawal );
     put( "fee", withdrawFee );
-    put( "precision", BitvavoCore.this.parseNumber(BitvavoCore.this.parsePrecision(precision)) );
+    put( "precision", Bitvavo.this.parseNumber(Bitvavo.this.parsePrecision(precision)) );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
             put( "min", minWithdraw );
@@ -758,7 +758,7 @@ final Object finalBase = base;
             put( "info", rawCurrency );
             put( "id", id );
             put( "code", code );
-            put( "name", BitvavoCore.this.safeString(rawCurrency, "name") );
+            put( "name", Bitvavo.this.safeString(rawCurrency, "name") );
             put( "active", active );
             put( "deposit", finalDeposit_2 );
             put( "withdraw", withdrawal );
@@ -859,13 +859,13 @@ final Object finalBase = base;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BitvavoCore.this.iso8601(timestamp) );
-            put( "high", BitvavoCore.this.safeString(ticker, "high") );
-            put( "low", BitvavoCore.this.safeString(ticker, "low") );
-            put( "bid", BitvavoCore.this.safeString(ticker, "bid") );
-            put( "bidVolume", BitvavoCore.this.safeString(ticker, "bidSize") );
-            put( "ask", BitvavoCore.this.safeString(ticker, "ask") );
-            put( "askVolume", BitvavoCore.this.safeString(ticker, "askSize") );
+            put( "datetime", Bitvavo.this.iso8601(timestamp) );
+            put( "high", Bitvavo.this.safeString(ticker, "high") );
+            put( "low", Bitvavo.this.safeString(ticker, "low") );
+            put( "bid", Bitvavo.this.safeString(ticker, "bid") );
+            put( "bidVolume", Bitvavo.this.safeString(ticker, "bidSize") );
+            put( "ask", Bitvavo.this.safeString(ticker, "ask") );
+            put( "askVolume", Bitvavo.this.safeString(ticker, "askSize") );
             put( "vwap", null );
             put( "open", open );
             put( "close", last );
@@ -1081,7 +1081,7 @@ final Object finalBase = base;
             put( "id", id );
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BitvavoCore.this.iso8601(timestamp) );
+            put( "datetime", Bitvavo.this.iso8601(timestamp) );
             put( "order", orderId );
             put( "type", null );
             put( "side", side );
@@ -1199,9 +1199,9 @@ final Object finalBase = base;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", BitvavoCore.this.safeSymbol(null, market) );
-            put( "maker", BitvavoCore.this.safeNumber(fee, "maker") );
-            put( "taker", BitvavoCore.this.safeNumber(fee, "taker") );
+            put( "symbol", Bitvavo.this.safeSymbol(null, market) );
+            put( "maker", Bitvavo.this.safeNumber(fee, "maker") );
+            put( "taker", Bitvavo.this.safeNumber(fee, "taker") );
             put( "percentage", true );
             put( "tierBased", true );
         }};
@@ -1285,7 +1285,7 @@ final Object finalBase = base;
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
-            put( "interval", BitvavoCore.this.safeString(BitvavoCore.this.timeframes, timeframe, timeframe) );
+            put( "interval", Bitvavo.this.safeString(Bitvavo.this.timeframes, timeframe, timeframe) );
         }};
         if (Helpers.isTrue(!Helpers.isEqual(since, null)))
         {
@@ -1460,8 +1460,8 @@ final Object finalBase = base;
     public Object parseAccount(Object account)
     {
         return new java.util.HashMap<String, Object>() {{
-            put( "id", BitvavoCore.this.safeString(account, "id") );
-            put( "type", BitvavoCore.this.safeString(account, "type") );
+            put( "id", Bitvavo.this.safeString(account, "id") );
+            put( "type", Bitvavo.this.safeString(account, "type") );
             put( "code", null );
             put( "info", account );
         }};
@@ -1528,7 +1528,7 @@ final Object finalBase = base;
                 put( "subaccountId", finalSubaccountId );
                 put( "direction", finalDirection );
                 put( "symbol", Helpers.GetValue(currency, "id") );
-                put( "amount", BitvavoCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Bitvavo.this.currencyToPrecision(code, amount) );
             }};
             java.util.Map<String, Object> response = (this.privatePostSubaccountsTransfers(this.extend(request, parameters))).join();
             //
@@ -1708,14 +1708,14 @@ final Object finalBase = base;
         final Object finalToAccount = toAccount;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", BitvavoCore.this.safeString(transfer, "transferId") );
+            put( "id", Bitvavo.this.safeString(transfer, "transferId") );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BitvavoCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Bitvavo.this.iso8601(finalTimestamp) );
             put( "currency", code );
-            put( "amount", BitvavoCore.this.safeNumber(transfer, "amount") );
+            put( "amount", Bitvavo.this.safeNumber(transfer, "amount") );
             put( "fromAccount", finalFromAccount );
             put( "toAccount", finalToAccount );
-            put( "status", BitvavoCore.this.parseTransferStatus(BitvavoCore.this.safeString(transfer, "status")) );
+            put( "status", Bitvavo.this.parseTransferStatus(Bitvavo.this.safeString(transfer, "status")) );
         }};
     }
 
@@ -2196,7 +2196,7 @@ final Object finalBase = base;
             final Object finalCodGroupId = codGroupId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "codGroupId", finalCodGroupId );
-                put( "expiryAfterSeconds", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ((Object) BitvavoCore.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
+                put( "expiryAfterSeconds", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ((Object) Bitvavo.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
             }};
             java.util.Map<String, Object> response = (this.privatePostCancelOrdersAfter(this.extend(request, parameters))).join();
             //
@@ -2573,7 +2573,7 @@ final Object finalBase = base;
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", BitvavoCore.this.iso8601(timestamp) );
+            put( "datetime", Bitvavo.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", symbol );
             put( "type", type );
@@ -2581,7 +2581,7 @@ final Object finalBase = base;
             put( "postOnly", postOnly );
             put( "side", side );
             put( "price", price );
-            put( "triggerPrice", BitvavoCore.this.safeNumber(order, "triggerPrice") );
+            put( "triggerPrice", Bitvavo.this.safeNumber(order, "triggerPrice") );
             put( "amount", amount );
             put( "cost", finalCost );
             put( "average", null );
@@ -2801,16 +2801,16 @@ final Object finalBase = base;
         final Object finalFee = fee;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", BitvavoCore.this.safeString(item, "transactionId") );
+            put( "id", Bitvavo.this.safeString(item, "transactionId") );
             put( "direction", finalDirection );
             put( "account", null );
-            put( "referenceId", BitvavoCore.this.safeString(item, "transactionId") );
-            put( "referenceAccount", BitvavoCore.this.safeString(item, "address") );
+            put( "referenceId", Bitvavo.this.safeString(item, "transactionId") );
+            put( "referenceAccount", Bitvavo.this.safeString(item, "address") );
             put( "type", type );
             put( "currency", code );
             put( "amount", finalAmount );
             put( "timestamp", timestamp );
-            put( "datetime", BitvavoCore.this.iso8601(timestamp) );
+            put( "datetime", Bitvavo.this.iso8601(timestamp) );
             put( "before", null );
             put( "after", null );
             put( "status", "ok" );
@@ -2825,7 +2825,7 @@ final Object finalBase = base;
         java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(currency, "id") );
-            put( "amount", BitvavoCore.this.currencyToPrecision(code, amount) );
+            put( "amount", Bitvavo.this.currencyToPrecision(code, amount) );
             put( "address", address );
         }};
         if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
@@ -3113,7 +3113,7 @@ final Object finalBase = base;
             put( "id", id );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", BitvavoCore.this.iso8601(timestamp) );
+            put( "datetime", Bitvavo.this.iso8601(timestamp) );
             put( "addressFrom", null );
             put( "address", address );
             put( "addressTo", address );
@@ -3155,11 +3155,11 @@ final Object finalBase = base;
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "fee", BitvavoCore.this.safeNumber(fee, "withdrawalFee") );
+                put( "fee", Bitvavo.this.safeNumber(fee, "withdrawalFee") );
                 put( "percentage", false );
             }} );
             put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "fee", BitvavoCore.this.safeNumber(fee, "depositFee") );
+                put( "fee", Bitvavo.this.safeNumber(fee, "depositFee") );
                 put( "percentage", false );
             }} );
             put( "networks", new java.util.HashMap<String, Object>() {{}} );
@@ -3262,7 +3262,7 @@ final Object finalBase = base;
             String accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{
-                put( "BITVAVO-ACCESS-KEY", BitvavoCore.this.apiKey );
+                put( "BITVAVO-ACCESS-KEY", Bitvavo.this.apiKey );
                 put( "BITVAVO-ACCESS-SIGNATURE", signature );
                 put( "BITVAVO-ACCESS-TIMESTAMP", finalTimestamp );
                 put( "BITVAVO-ACCESS-WINDOW", accessWindow );

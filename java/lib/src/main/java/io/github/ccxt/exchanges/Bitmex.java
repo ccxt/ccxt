@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BitmexCore extends BitmexApi
+public class Bitmex extends BitmexApi
 {
-   public BitmexCore () {
+   public Bitmex () {
        super();
    }
 
-   public BitmexCore (Object options) {
+   public Bitmex (Object options) {
        super(options);
    }
 
@@ -1241,20 +1241,20 @@ public class BitmexCore extends BitmexApi
             put( "linear", finalLinear );
             put( "inverse", finalIsInverse );
             put( "quanto", finalIsQuanto );
-            put( "taker", BitmexCore.this.safeNumber(market, "takerFee") );
-            put( "maker", BitmexCore.this.safeNumber(market, "makerFee") );
-            put( "contractSize", BitmexCore.this.parseNumber(finalContractSize) );
+            put( "taker", Bitmex.this.safeNumber(market, "takerFee") );
+            put( "maker", Bitmex.this.safeNumber(market, "makerFee") );
+            put( "contractSize", Bitmex.this.parseNumber(finalContractSize) );
             put( "expiry", finalExpiry );
             put( "expiryDatetime", finalExpiryDatetime );
-            put( "strike", BitmexCore.this.safeNumber(market, "optionStrikePrice") );
+            put( "strike", Bitmex.this.safeNumber(market, "optionStrikePrice") );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", BitmexCore.this.safeNumber(market, "lotSize") );
-                put( "price", BitmexCore.this.safeNumber(market, "tickSize") );
+                put( "amount", Bitmex.this.safeNumber(market, "lotSize") );
+                put( "price", Bitmex.this.safeNumber(market, "tickSize") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
-                    put( "min", ((Helpers.isTrue(contract))) ? BitmexCore.this.parseNumber("1") : null );
+                    put( "min", ((Helpers.isTrue(contract))) ? Bitmex.this.parseNumber("1") : null );
                     put( "max", ((Helpers.isTrue(contract))) ? maxLeverage : null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
@@ -1263,7 +1263,7 @@ public class BitmexCore extends BitmexApi
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", BitmexCore.this.safeNumber(market, "maxPrice") );
+                    put( "max", Bitmex.this.safeNumber(market, "maxPrice") );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -1501,7 +1501,7 @@ public class BitmexCore extends BitmexApi
                     put( "orderID", id );
                 }} );
             }};
-            Object response = (this.fetchOrders(symbol, null, null, this.deepExtend(filter, parameters))).join();
+            Object response = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(this.deepExtend(filter, parameters)))).join();
             Object numResults = Helpers.getArrayLength(response);
             if (Helpers.isTrue(Helpers.isEqual(numResults, 1)))
             {
@@ -1606,7 +1606,7 @@ public class BitmexCore extends BitmexApi
                     put( "open", true );
                 }} );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.deepExtend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.deepExtend(request, parameters)))).join();
         });
 
     }
@@ -1632,7 +1632,7 @@ public class BitmexCore extends BitmexApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+            Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("closed", "canceled")), false);
         });
 
@@ -1842,7 +1842,7 @@ public class BitmexCore extends BitmexApi
             feeCost = this.convertToRealAmount(code, feeCost);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", BitmexCore.this.parseNumber(finalFeeCost) );
+                put( "cost", Bitmex.this.parseNumber(finalFeeCost) );
                 put( "currency", code );
             }};
         }
@@ -1871,16 +1871,16 @@ public class BitmexCore extends BitmexApi
             put( "info", item );
             put( "id", id );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BitmexCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Bitmex.this.iso8601(finalTimestamp) );
             put( "direction", finalDirection );
             put( "account", account );
             put( "referenceId", referenceId );
             put( "referenceAccount", referenceAccount );
             put( "type", type );
             put( "currency", code );
-            put( "amount", BitmexCore.this.parseNumber(finalAmount) );
+            put( "amount", Bitmex.this.parseNumber(finalAmount) );
             put( "before", before );
-            put( "after", BitmexCore.this.parseNumber(finalAfter) );
+            put( "after", Bitmex.this.parseNumber(finalAfter) );
             put( "status", status );
             put( "fee", finalFee );
         }}, currency);
@@ -2074,15 +2074,15 @@ public class BitmexCore extends BitmexApi
         final Object finalCurrency = currency;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", BitmexCore.this.safeString(transaction, "transactID") );
-            put( "txid", BitmexCore.this.safeString(transaction, "tx") );
+            put( "id", Bitmex.this.safeString(transaction, "transactID") );
+            put( "txid", Bitmex.this.safeString(transaction, "tx") );
             put( "type", finalType );
             put( "currency", code );
-            put( "network", BitmexCore.this.networkIdToCode(BitmexCore.this.safeString(transaction, "network"), code) );
-            put( "amount", BitmexCore.this.parseNumber(amount) );
+            put( "network", Bitmex.this.networkIdToCode(Bitmex.this.safeString(transaction, "network"), code) );
+            put( "amount", Bitmex.this.parseNumber(amount) );
             put( "status", finalStatus );
             put( "timestamp", transactTime );
-            put( "datetime", BitmexCore.this.iso8601(transactTime) );
+            put( "datetime", Bitmex.this.iso8601(transactTime) );
             put( "address", finalAddress );
             put( "addressFrom", finalAddressFrom );
             put( "addressTo", finalAddressTo );
@@ -2094,7 +2094,7 @@ public class BitmexCore extends BitmexApi
             put( "comment", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(finalCurrency, "code") );
-                put( "cost", BitmexCore.this.parseNumber(feeCost) );
+                put( "cost", Bitmex.this.parseNumber(feeCost) );
                 put( "rate", null );
             }} );
         }};
@@ -2185,14 +2185,14 @@ public class BitmexCore extends BitmexApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BitmexCore.this.iso8601(timestamp) );
-            put( "high", BitmexCore.this.safeString(ticker, "highPrice") );
-            put( "low", BitmexCore.this.safeString(ticker, "lowPrice") );
-            put( "bid", BitmexCore.this.safeString(ticker, "bidPrice") );
+            put( "datetime", Bitmex.this.iso8601(timestamp) );
+            put( "high", Bitmex.this.safeString(ticker, "highPrice") );
+            put( "low", Bitmex.this.safeString(ticker, "lowPrice") );
+            put( "bid", Bitmex.this.safeString(ticker, "bidPrice") );
             put( "bidVolume", null );
-            put( "ask", BitmexCore.this.safeString(ticker, "askPrice") );
+            put( "ask", Bitmex.this.safeString(ticker, "askPrice") );
             put( "askVolume", null );
-            put( "vwap", BitmexCore.this.safeString(ticker, "vwap") );
+            put( "vwap", Bitmex.this.safeString(ticker, "vwap") );
             put( "open", open );
             put( "close", last );
             put( "last", last );
@@ -2200,9 +2200,9 @@ public class BitmexCore extends BitmexApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", BitmexCore.this.safeString(ticker, "homeNotional24h") );
-            put( "quoteVolume", BitmexCore.this.safeString(ticker, "foreignNotional24h") );
-            put( "markPrice", BitmexCore.this.safeString(ticker, "markPrice") );
+            put( "baseVolume", Bitmex.this.safeString(ticker, "homeNotional24h") );
+            put( "quoteVolume", Bitmex.this.safeString(ticker, "foreignNotional24h") );
+            put( "markPrice", Bitmex.this.safeString(ticker, "markPrice") );
             put( "info", ticker );
         }}, market);
     }
@@ -2276,7 +2276,7 @@ public class BitmexCore extends BitmexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "binSize", BitmexCore.this.safeString(BitmexCore.this.timeframes, timeframe, timeframe) );
+                put( "binSize", Bitmex.this.safeString(Bitmex.this.timeframes, timeframe, timeframe) );
                 put( "partial", true );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2421,8 +2421,8 @@ public class BitmexCore extends BitmexApi
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
-                put( "currency", BitmexCore.this.safeCurrencyCode(currencyId) );
-                put( "rate", BitmexCore.this.safeString(trade, "commission") );
+                put( "currency", Bitmex.this.safeCurrencyCode(currencyId) );
+                put( "rate", Bitmex.this.safeString(trade, "commission") );
             }};
         }
         // Trade or Funding
@@ -2438,7 +2438,7 @@ public class BitmexCore extends BitmexApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BitmexCore.this.iso8601(timestamp) );
+            put( "datetime", Bitmex.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
             put( "order", order );
@@ -2572,25 +2572,25 @@ public class BitmexCore extends BitmexApi
         final Object finalFilled = filled;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", BitmexCore.this.safeString(order, "orderID") );
-            put( "clientOrderId", BitmexCore.this.safeString(order, "clOrdID") );
+            put( "id", Bitmex.this.safeString(order, "orderID") );
+            put( "clientOrderId", Bitmex.this.safeString(order, "clOrdID") );
             put( "timestamp", timestamp );
-            put( "datetime", BitmexCore.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", BitmexCore.this.parse8601(BitmexCore.this.safeString(order, "transactTime")) );
+            put( "datetime", Bitmex.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", Bitmex.this.parse8601(Bitmex.this.safeString(order, "transactTime")) );
             put( "symbol", symbol );
-            put( "type", BitmexCore.this.safeStringLower(order, "ordType") );
-            put( "timeInForce", BitmexCore.this.parseTimeInForce(BitmexCore.this.safeString(order, "timeInForce")) );
+            put( "type", Bitmex.this.safeStringLower(order, "ordType") );
+            put( "timeInForce", Bitmex.this.parseTimeInForce(Bitmex.this.safeString(order, "timeInForce")) );
             put( "postOnly", finalPostOnly );
             put( "reduceOnly", finalReduceOnly );
-            put( "side", BitmexCore.this.safeStringLower(order, "side") );
-            put( "price", BitmexCore.this.safeString(order, "price") );
+            put( "side", Bitmex.this.safeStringLower(order, "side") );
+            put( "price", Bitmex.this.safeString(order, "price") );
             put( "triggerPrice", triggerPrice );
             put( "amount", finalAmount );
             put( "cost", finalCost );
             put( "average", average );
             put( "filled", finalFilled );
-            put( "remaining", BitmexCore.this.convertFromRawQuantity(symbol, remaining) );
-            put( "status", BitmexCore.this.parseOrderStatus(BitmexCore.this.safeString(order, "ordStatus")) );
+            put( "remaining", Bitmex.this.convertFromRawQuantity(symbol, remaining) );
+            put( "status", Bitmex.this.parseOrderStatus(Bitmex.this.safeString(order, "ordStatus")) );
             put( "fee", null );
             put( "trades", null );
         }}, market);
@@ -2731,7 +2731,7 @@ public class BitmexCore extends BitmexApi
             final Object finalSide = side;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "side", BitmexCore.this.capitalize(finalSide) );
+                put( "side", Bitmex.this.capitalize(finalSide) );
                 put( "orderQty", qty );
                 put( "ordType", capitalizeOrderType );
                 put( "text", brokerId );
@@ -3087,7 +3087,7 @@ public class BitmexCore extends BitmexApi
             }
             final Object finalTimeout = timeout;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? ((Object) BitmexCore.this.parseToInt(Helpers.divide(finalTimeout, 1000))) : 0 );
+                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? ((Object) Bitmex.this.parseToInt(Helpers.divide(finalTimeout, 1000))) : 0 );
             }};
             java.util.Map<String, Object> response = (this.privatePostOrderCancelAllAfter(this.extend(request, parameters))).join();
             //
@@ -3121,7 +3121,7 @@ public class BitmexCore extends BitmexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object leverages = (this.fetchPositions(symbols, parameters)).join();
+            Object leverages = (this.fetchPositions((Object)(symbols), (Object)(parameters))).join();
             return this.parseLeverages(leverages, symbols, "symbol");
         });
 
@@ -3133,10 +3133,10 @@ public class BitmexCore extends BitmexApi
         String marketId = this.safeString(leverage, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", BitmexCore.this.safeSymbol(marketId, market) );
-            put( "marginMode", BitmexCore.this.safeStringLower(leverage, "marginMode") );
-            put( "longLeverage", BitmexCore.this.safeInteger(leverage, "leverage") );
-            put( "shortLeverage", BitmexCore.this.safeInteger(leverage, "leverage") );
+            put( "symbol", Bitmex.this.safeSymbol(marketId, market) );
+            put( "marginMode", Bitmex.this.safeStringLower(leverage, "marginMode") );
+            put( "longLeverage", Bitmex.this.safeInteger(leverage, "leverage") );
+            put( "shortLeverage", Bitmex.this.safeInteger(leverage, "leverage") );
         }};
     }
 
@@ -3388,30 +3388,30 @@ public class BitmexCore extends BitmexApi
         final Object finalSide = side;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", BitmexCore.this.safeString(position, "account") );
+            put( "id", Bitmex.this.safeString(position, "account") );
             put( "symbol", symbol );
-            put( "timestamp", BitmexCore.this.parse8601(datetime) );
+            put( "timestamp", Bitmex.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "lastUpdateTimestamp", null );
             put( "hedged", null );
             put( "side", finalSide );
             put( "contracts", contracts );
             put( "contractSize", contractSize );
-            put( "entryPrice", BitmexCore.this.safeNumber(position, "avgEntryPrice") );
-            put( "markPrice", BitmexCore.this.safeNumber(position, "markPrice") );
+            put( "entryPrice", Bitmex.this.safeNumber(position, "avgEntryPrice") );
+            put( "markPrice", Bitmex.this.safeNumber(position, "markPrice") );
             put( "lastPrice", null );
-            put( "notional", BitmexCore.this.parseNumber(notionalString) );
-            put( "leverage", BitmexCore.this.safeNumber(position, "leverage") );
+            put( "notional", Bitmex.this.parseNumber(notionalString) );
+            put( "leverage", Bitmex.this.safeNumber(position, "leverage") );
             put( "collateral", null );
-            put( "initialMargin", BitmexCore.this.safeNumber(position, "initMargin") );
-            put( "initialMarginPercentage", BitmexCore.this.safeNumber(position, "initMarginReq") );
+            put( "initialMargin", Bitmex.this.safeNumber(position, "initMargin") );
+            put( "initialMarginPercentage", Bitmex.this.safeNumber(position, "initMarginReq") );
             put( "maintenanceMargin", maintenanceMargin );
-            put( "maintenanceMarginPercentage", BitmexCore.this.safeNumber(position, "maintMarginReq") );
+            put( "maintenanceMarginPercentage", Bitmex.this.safeNumber(position, "maintMarginReq") );
             put( "unrealizedPnl", unrealisedPnl );
-            put( "liquidationPrice", BitmexCore.this.safeNumber(position, "liquidationPrice") );
+            put( "liquidationPrice", Bitmex.this.safeNumber(position, "liquidationPrice") );
             put( "marginMode", marginMode );
             put( "marginRatio", null );
-            put( "percentage", BitmexCore.this.safeNumber(position, "unrealisedPnlPcnt") );
+            put( "percentage", Bitmex.this.safeNumber(position, "unrealisedPnlPcnt") );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
         }});
@@ -3455,7 +3455,7 @@ public class BitmexCore extends BitmexApi
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", qty );
                 put( "address", address );
-                put( "network", BitmexCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
+                put( "network", Bitmex.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(this.twofa, null)))
             {
@@ -3535,17 +3535,17 @@ public class BitmexCore extends BitmexApi
         String fundingDatetime = this.safeString(contract, "fundingTimestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", BitmexCore.this.safeSymbol(marketId, market) );
-            put( "markPrice", BitmexCore.this.safeNumber(contract, "markPrice") );
+            put( "symbol", Bitmex.this.safeSymbol(marketId, market) );
+            put( "markPrice", Bitmex.this.safeNumber(contract, "markPrice") );
             put( "indexPrice", null );
             put( "interestRate", null );
-            put( "estimatedSettlePrice", BitmexCore.this.safeNumber(contract, "indicativeSettlePrice") );
-            put( "timestamp", BitmexCore.this.parse8601(datetime) );
+            put( "estimatedSettlePrice", Bitmex.this.safeNumber(contract, "indicativeSettlePrice") );
+            put( "timestamp", Bitmex.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "fundingRate", BitmexCore.this.safeNumber(contract, "fundingRate") );
-            put( "fundingTimestamp", BitmexCore.this.parse8601(fundingDatetime) );
+            put( "fundingRate", Bitmex.this.safeNumber(contract, "fundingRate") );
+            put( "fundingTimestamp", Bitmex.this.parse8601(fundingDatetime) );
             put( "fundingDatetime", fundingDatetime );
-            put( "nextFundingRate", BitmexCore.this.safeNumber(contract, "indicativeFundingRate") );
+            put( "nextFundingRate", Bitmex.this.safeNumber(contract, "indicativeFundingRate") );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
             put( "previousFundingRate", null );
@@ -3661,9 +3661,9 @@ public class BitmexCore extends BitmexApi
         String datetime = this.safeString(info, "timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", BitmexCore.this.safeSymbol(marketId, market) );
-            put( "fundingRate", BitmexCore.this.safeNumber(info, "fundingRate") );
-            put( "timestamp", BitmexCore.this.parse8601(datetime) );
+            put( "symbol", Bitmex.this.safeSymbol(marketId, market) );
+            put( "fundingRate", Bitmex.this.safeNumber(info, "fundingRate") );
+            put( "timestamp", Bitmex.this.parse8601(datetime) );
             put( "datetime", datetime );
         }};
     }
@@ -4120,11 +4120,11 @@ public class BitmexCore extends BitmexApi
         String marketId = this.safeString(liquidation, "symbol");
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
-            put( "symbol", BitmexCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Bitmex.this.safeSymbol(marketId, market) );
             put( "contracts", null );
-            put( "contractSize", BitmexCore.this.safeNumber(market, "contractSize") );
-            put( "price", BitmexCore.this.safeNumber(liquidation, "price") );
-            put( "side", BitmexCore.this.safeStringLower(liquidation, "side") );
+            put( "contractSize", Bitmex.this.safeNumber(market, "contractSize") );
+            put( "price", Bitmex.this.safeNumber(liquidation, "price") );
+            put( "side", Bitmex.this.safeStringLower(liquidation, "side") );
             put( "baseValue", null );
             put( "quoteValue", null );
             put( "timestamp", null );
@@ -4398,11 +4398,11 @@ public class BitmexCore extends BitmexApi
         String datetime = this.safeString(info, "timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", BitmexCore.this.safeSymbol(marketId, market, null, "contract") );
-            put( "rank", BitmexCore.this.safeInteger(info, "deleveragePercentile") );
+            put( "symbol", Bitmex.this.safeSymbol(marketId, market, null, "contract") );
+            put( "rank", Bitmex.this.safeInteger(info, "deleveragePercentile") );
             put( "rating", null );
             put( "percentage", null );
-            put( "timestamp", BitmexCore.this.parse8601(datetime) );
+            put( "timestamp", Bitmex.this.parse8601(datetime) );
             put( "datetime", datetime );
         }};
     }
@@ -4505,9 +4505,9 @@ public class BitmexCore extends BitmexApi
         String marketId = this.safeString(settlement, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", settlement );
-            put( "symbol", BitmexCore.this.safeSymbol(marketId, market) );
-            put( "price", BitmexCore.this.safeNumber(settlement, "settledPrice") );
-            put( "timestamp", BitmexCore.this.parse8601(datetime) );
+            put( "symbol", Bitmex.this.safeSymbol(marketId, market) );
+            put( "price", Bitmex.this.safeNumber(settlement, "settledPrice") );
+            put( "timestamp", Bitmex.this.parse8601(datetime) );
             put( "datetime", datetime );
         }};
     }
@@ -4537,7 +4537,7 @@ public class BitmexCore extends BitmexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "side", BitmexCore.this.capitalize(side) );
+                put( "side", Bitmex.this.capitalize(side) );
                 put( "execInst", "Close" );
             }};
             java.util.Map<String, Object> response = (this.privatePostOrder(this.extend(request, parameters))).join();
@@ -4636,7 +4636,7 @@ public class BitmexCore extends BitmexApi
             Object expires = this.safeIntegerProduct(this.options, "recvWindow", 0.001, apiExpires);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
-                put( "api-key", BitmexCore.this.apiKey );
+                put( "api-key", Bitmex.this.apiKey );
             }};
             expires = this.sum(this.seconds(), expires);
             if (Helpers.isTrue(Helpers.isEqual(expires, null)))

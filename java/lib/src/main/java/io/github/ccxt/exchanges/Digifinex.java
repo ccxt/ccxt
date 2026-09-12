@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class DigifinexCore extends DigifinexApi
+public class Digifinex extends DigifinexApi
 {
-   public DigifinexCore () {
+   public Digifinex () {
        super();
    }
 
-   public DigifinexCore (Object options) {
+   public Digifinex (Object options) {
        super(options);
    }
 
@@ -523,8 +523,8 @@ public class DigifinexCore extends DigifinexApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "maker", DigifinexCore.this.parseNumber("0.002") );
-                    put( "taker", DigifinexCore.this.parseNumber("0.002") );
+                    put( "maker", Digifinex.this.parseNumber("0.002") );
+                    put( "taker", Digifinex.this.parseNumber("0.002") );
                 }} );
             }} );
             put( "precisionMode", TICK_SIZE );
@@ -727,17 +727,17 @@ public class DigifinexCore extends DigifinexApi
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", null );
-    put( "deposit", Helpers.isEqual(DigifinexCore.this.safeInteger(networkEntry, "deposit_status"), 1) );
-    put( "withdraw", Helpers.isEqual(DigifinexCore.this.safeInteger(networkEntry, "withdraw_status"), 1) );
-    put( "fee", DigifinexCore.this.safeNumber(networkEntry, "min_withdraw_fee") );
+    put( "deposit", Helpers.isEqual(Digifinex.this.safeInteger(networkEntry, "deposit_status"), 1) );
+    put( "withdraw", Helpers.isEqual(Digifinex.this.safeInteger(networkEntry, "withdraw_status"), 1) );
+    put( "fee", Digifinex.this.safeNumber(networkEntry, "min_withdraw_fee") );
     put( "precision", null );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", DigifinexCore.this.safeNumber(networkEntry, "min_withdraw_amount") );
+            put( "min", Digifinex.this.safeNumber(networkEntry, "min_withdraw_amount") );
             put( "max", null );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", DigifinexCore.this.safeNumber(networkEntry, "min_deposit_amount") );
+            put( "min", Digifinex.this.safeNumber(networkEntry, "min_deposit_amount") );
             put( "max", null );
         }} );
     }} );
@@ -925,14 +925,14 @@ public class DigifinexCore extends DigifinexApi
                     put( "contract", swap );
                     put( "linear", finalIsLinear );
                     put( "inverse", finalIsInverse );
-                    put( "contractSize", DigifinexCore.this.safeNumber(market, "contract_value") );
+                    put( "contractSize", Digifinex.this.safeNumber(market, "contract_value") );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", DigifinexCore.this.parseNumber(DigifinexCore.this.parsePrecision(DigifinexCore.this.safeString(market, "amount_precision"))) );
-                        put( "price", DigifinexCore.this.parseNumber(DigifinexCore.this.parsePrecision(DigifinexCore.this.safeString(market, "price_precision"))) );
+                        put( "amount", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "amount_precision"))) );
+                        put( "price", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "price_precision"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -940,15 +940,15 @@ public class DigifinexCore extends DigifinexApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", DigifinexCore.this.safeNumber2(market, "minimum_amount", "min_order_amount") );
+                            put( "min", Digifinex.this.safeNumber2(market, "minimum_amount", "min_order_amount") );
                             put( "max", null );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
-                            put( "min", DigifinexCore.this.safeNumber(market, "tick_size") );
+                            put( "min", Digifinex.this.safeNumber(market, "tick_size") );
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", DigifinexCore.this.safeNumber(market, "minimum_value") );
+                            put( "min", Digifinex.this.safeNumber(market, "minimum_value") );
                             put( "max", null );
                         }} );
                     }} );
@@ -1025,8 +1025,8 @@ public class DigifinexCore extends DigifinexApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "price", DigifinexCore.this.parseNumber(DigifinexCore.this.parsePrecision(DigifinexCore.this.safeString(market, "price_precision"))) );
-                        put( "amount", DigifinexCore.this.parseNumber(DigifinexCore.this.parsePrecision(DigifinexCore.this.safeString(market, "volume_precision"))) );
+                        put( "price", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "price_precision"))) );
+                        put( "amount", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "volume_precision"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -1034,7 +1034,7 @@ public class DigifinexCore extends DigifinexApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", DigifinexCore.this.safeNumber(market, "min_volume") );
+                            put( "min", Digifinex.this.safeNumber(market, "min_volume") );
                             put( "max", null );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
@@ -1042,7 +1042,7 @@ public class DigifinexCore extends DigifinexApi
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", DigifinexCore.this.safeNumber(market, "min_amount") );
+                            put( "min", Digifinex.this.safeNumber(market, "min_amount") );
                             put( "max", null );
                         }} );
                     }} );
@@ -1549,24 +1549,24 @@ public class DigifinexCore extends DigifinexApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
-            put( "datetime", DigifinexCore.this.iso8601(finalTimestamp) );
-            put( "high", DigifinexCore.this.safeString2(ticker, "high", "high_24h") );
-            put( "low", DigifinexCore.this.safeString2(ticker, "low", "low_24h") );
-            put( "bid", DigifinexCore.this.safeString2(ticker, "buy", "best_bid") );
-            put( "bidVolume", DigifinexCore.this.safeString(ticker, "best_bid_size") );
-            put( "ask", DigifinexCore.this.safeString2(ticker, "sell", "best_ask") );
-            put( "askVolume", DigifinexCore.this.safeString(ticker, "best_ask_size") );
+            put( "datetime", Digifinex.this.iso8601(finalTimestamp) );
+            put( "high", Digifinex.this.safeString2(ticker, "high", "high_24h") );
+            put( "low", Digifinex.this.safeString2(ticker, "low", "low_24h") );
+            put( "bid", Digifinex.this.safeString2(ticker, "buy", "best_bid") );
+            put( "bidVolume", Digifinex.this.safeString(ticker, "best_bid_size") );
+            put( "ask", Digifinex.this.safeString2(ticker, "sell", "best_ask") );
+            put( "askVolume", Digifinex.this.safeString(ticker, "best_ask_size") );
             put( "vwap", null );
-            put( "open", DigifinexCore.this.safeString(ticker, "open_24h") );
+            put( "open", Digifinex.this.safeString(ticker, "open_24h") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", DigifinexCore.this.safeString2(ticker, "change", "price_change_percent") );
+            put( "percentage", Digifinex.this.safeString2(ticker, "change", "price_change_percent") );
             put( "average", null );
-            put( "baseVolume", DigifinexCore.this.safeString2(ticker, "vol", "volume_24h") );
-            put( "quoteVolume", DigifinexCore.this.safeString(ticker, "base_vol") );
-            put( "markPrice", DigifinexCore.this.safeString(ticker, "mark_price") );
+            put( "baseVolume", Digifinex.this.safeString2(ticker, "vol", "volume_24h") );
+            put( "quoteVolume", Digifinex.this.safeString(ticker, "base_vol") );
+            put( "markPrice", Digifinex.this.safeString(ticker, "mark_price") );
             put( "indexPrice", finalIndexPrice );
             put( "info", ticker );
         }}, market);
@@ -1723,7 +1723,7 @@ public class DigifinexCore extends DigifinexApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", finalTimestamp );
-            put( "datetime", DigifinexCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Digifinex.this.iso8601(finalTimestamp) );
             put( "symbol", symbol );
             put( "type", finalType );
             put( "order", orderId );
@@ -2399,7 +2399,7 @@ public class DigifinexCore extends DigifinexApi
                 throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -2505,7 +2505,7 @@ public class DigifinexCore extends DigifinexApi
                 final Object finalResponse = response;
                 return this.safeOrder(new java.util.HashMap<String, Object>() {{
                     put( "info", finalResponse );
-                    put( "orderId", DigifinexCore.this.safeString(finalResponse, "data") );
+                    put( "orderId", Digifinex.this.safeString(finalResponse, "data") );
                 }});
             }
         });
@@ -2531,9 +2531,9 @@ public class DigifinexCore extends DigifinexApi
             Object order = Helpers.GetValue(error, i);
             ((java.util.List<Object>)result).add(this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", order );
-                put( "id", DigifinexCore.this.safeString2(order, "order-id", "order_id") );
+                put( "id", Digifinex.this.safeString2(order, "order-id", "order_id") );
                 put( "status", "failed" );
-                put( "clientOrderId", DigifinexCore.this.safeString(order, "client-order-id") );
+                put( "clientOrderId", Digifinex.this.safeString(order, "client-order-id") );
             }}));
         }
         return result;
@@ -2734,26 +2734,26 @@ public class DigifinexCore extends DigifinexApi
         final Object finalSide = side;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", DigifinexCore.this.safeString2(order, "order_id", "data") );
+            put( "id", Digifinex.this.safeString2(order, "order_id", "data") );
             put( "clientOrderId", null );
             put( "timestamp", finalTimestamp );
-            put( "datetime", DigifinexCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Digifinex.this.iso8601(finalTimestamp) );
             put( "lastTradeTimestamp", finalLastTradeTimestamp );
             put( "symbol", symbol );
             put( "type", finalType );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", null );
             put( "side", finalSide );
-            put( "price", DigifinexCore.this.safeNumber(order, "price") );
+            put( "price", Digifinex.this.safeNumber(order, "price") );
             put( "triggerPrice", null );
-            put( "amount", DigifinexCore.this.safeNumber2(order, "amount", "size") );
-            put( "filled", DigifinexCore.this.safeNumber2(order, "executed_amount", "filled_qty") );
+            put( "amount", Digifinex.this.safeNumber2(order, "amount", "size") );
+            put( "filled", Digifinex.this.safeNumber2(order, "executed_amount", "filled_qty") );
             put( "remaining", null );
             put( "cost", null );
-            put( "average", DigifinexCore.this.safeNumber2(order, "avg_price", "price_avg") );
-            put( "status", DigifinexCore.this.parseOrderStatus(DigifinexCore.this.safeString2(order, "status", "state")) );
+            put( "average", Digifinex.this.safeNumber2(order, "avg_price", "price_avg") );
+            put( "status", Digifinex.this.parseOrderStatus(Digifinex.this.safeString2(order, "status", "state")) );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "cost", DigifinexCore.this.safeNumber(order, "fee") );
+                put( "cost", Digifinex.this.safeNumber(order, "fee") );
             }} );
             put( "trades", null );
         }}, market);
@@ -3326,7 +3326,7 @@ public class DigifinexCore extends DigifinexApi
             put( "after", after );
             put( "status", null );
             put( "timestamp", finalTimestamp );
-            put( "datetime", DigifinexCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Digifinex.this.iso8601(finalTimestamp) );
             put( "fee", null );
         }}, currency);
     }
@@ -3702,7 +3702,7 @@ public class DigifinexCore extends DigifinexApi
             put( "id", id );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", DigifinexCore.this.iso8601(timestamp) );
+            put( "datetime", Digifinex.this.iso8601(timestamp) );
             put( "network", network );
             put( "address", address );
             put( "addressTo", address );
@@ -3778,14 +3778,14 @@ public class DigifinexCore extends DigifinexApi
         final Object finalToAccount = toAccount;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", DigifinexCore.this.safeString(transfer, "transfer_id") );
+            put( "id", Digifinex.this.safeString(transfer, "transfer_id") );
             put( "timestamp", timestamp );
-            put( "datetime", DigifinexCore.this.iso8601(timestamp) );
-            put( "currency", DigifinexCore.this.safeCurrencyCode(DigifinexCore.this.safeString(data, "currency"), currency) );
-            put( "amount", DigifinexCore.this.safeNumber2(data, "amount", "transfer_amount") );
+            put( "datetime", Digifinex.this.iso8601(timestamp) );
+            put( "currency", Digifinex.this.safeCurrencyCode(Digifinex.this.safeString(data, "currency"), currency) );
+            put( "amount", Digifinex.this.safeNumber2(data, "amount", "transfer_amount") );
             put( "fromAccount", finalFromAccount );
             put( "toAccount", finalToAccount );
-            put( "status", DigifinexCore.this.parseTransferStatus(DigifinexCore.this.safeString(transfer, "code")) );
+            put( "status", Digifinex.this.parseTransferStatus(Digifinex.this.safeString(transfer, "code")) );
         }};
     }
 
@@ -3895,7 +3895,7 @@ public class DigifinexCore extends DigifinexApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "address", address );
-                put( "amount", DigifinexCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Digifinex.this.currencyToPrecision(code, amount) );
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
@@ -3993,7 +3993,7 @@ public class DigifinexCore extends DigifinexApi
             put( "currency", currency );
             put( "interest", null );
             put( "interestRate", 0.001 );
-            put( "amountBorrowed", DigifinexCore.this.parseNumber(amountBorrowed) );
+            put( "amountBorrowed", Digifinex.this.parseNumber(amountBorrowed) );
             put( "marginMode", null );
             put( "timestamp", null );
             put( "datetime", null );
@@ -4110,11 +4110,11 @@ public class DigifinexCore extends DigifinexApi
         Long timestamp = this.milliseconds();
         String currencyId = this.safeString(info, "currency");
         return new java.util.HashMap<String, Object>() {{
-            put( "currency", DigifinexCore.this.safeCurrencyCode(currencyId, currency) );
+            put( "currency", Digifinex.this.safeCurrencyCode(currencyId, currency) );
             put( "rate", 0.001 );
             put( "period", 86400000 );
             put( "timestamp", timestamp );
-            put( "datetime", DigifinexCore.this.iso8601(timestamp) );
+            put( "datetime", Digifinex.this.iso8601(timestamp) );
             put( "info", info );
         }};
     }
@@ -4205,7 +4205,7 @@ public class DigifinexCore extends DigifinexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchFundingRate(symbol, parameters)).join();
+            return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
         });
 
     }
@@ -4230,23 +4230,23 @@ public class DigifinexCore extends DigifinexApi
         String millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", DigifinexCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Digifinex.this.safeSymbol(marketId, market) );
             put( "markPrice", null );
             put( "indexPrice", null );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", DigifinexCore.this.safeNumber(contract, "funding_rate") );
+            put( "fundingRate", Digifinex.this.safeNumber(contract, "funding_rate") );
             put( "fundingTimestamp", timestamp );
-            put( "fundingDatetime", DigifinexCore.this.iso8601(timestamp) );
-            put( "nextFundingRate", DigifinexCore.this.safeNumber(contract, "next_funding_rate") );
+            put( "fundingDatetime", Digifinex.this.iso8601(timestamp) );
+            put( "nextFundingRate", Digifinex.this.safeNumber(contract, "next_funding_rate") );
             put( "nextFundingTimestamp", nextTimestamp );
-            put( "nextFundingDatetime", DigifinexCore.this.iso8601(nextTimestamp) );
+            put( "nextFundingDatetime", Digifinex.this.iso8601(nextTimestamp) );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
-            put( "interval", DigifinexCore.this.parseFundingInterval(millisecondsInterval) );
+            put( "interval", Digifinex.this.parseFundingInterval(millisecondsInterval) );
         }};
     }
 
@@ -4334,9 +4334,9 @@ public class DigifinexCore extends DigifinexApi
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", symbolInner );
-                    put( "fundingRate", DigifinexCore.this.safeNumber(entry, "rate") );
+                    put( "fundingRate", Digifinex.this.safeNumber(entry, "rate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", DigifinexCore.this.iso8601(timestamp) );
+                    put( "datetime", Digifinex.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -4404,8 +4404,8 @@ public class DigifinexCore extends DigifinexApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", DigifinexCore.this.safeNumber(fee, "maker_fee_rate") );
-            put( "taker", DigifinexCore.this.safeNumber(fee, "taker_fee_rate") );
+            put( "maker", Digifinex.this.safeNumber(fee, "maker_fee_rate") );
+            put( "taker", Digifinex.this.safeNumber(fee, "taker_fee_rate") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -4725,25 +4725,25 @@ public class DigifinexCore extends DigifinexApi
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
-            put( "notional", DigifinexCore.this.safeNumber(position, "amount") );
+            put( "notional", Digifinex.this.safeNumber(position, "amount") );
             put( "marginMode", finalMarginMode );
-            put( "liquidationPrice", DigifinexCore.this.safeNumber(position, "liquidation_price") );
-            put( "entryPrice", DigifinexCore.this.safeNumber2(position, "avg_cost", "entry_price") );
-            put( "unrealizedPnl", DigifinexCore.this.safeNumber(position, "unrealized_pnl") );
-            put( "contracts", DigifinexCore.this.safeNumber(position, "avail_position") );
-            put( "contractSize", DigifinexCore.this.safeNumber(finalMarket, "contractSize") );
-            put( "markPrice", DigifinexCore.this.safeNumber(position, "last") );
+            put( "liquidationPrice", Digifinex.this.safeNumber(position, "liquidation_price") );
+            put( "entryPrice", Digifinex.this.safeNumber2(position, "avg_cost", "entry_price") );
+            put( "unrealizedPnl", Digifinex.this.safeNumber(position, "unrealized_pnl") );
+            put( "contracts", Digifinex.this.safeNumber(position, "avail_position") );
+            put( "contractSize", Digifinex.this.safeNumber(finalMarket, "contractSize") );
+            put( "markPrice", Digifinex.this.safeNumber(position, "last") );
             put( "side", finalSide );
             put( "hedged", null );
             put( "timestamp", timestamp );
-            put( "datetime", DigifinexCore.this.iso8601(timestamp) );
-            put( "maintenanceMargin", DigifinexCore.this.safeNumber(position, "margin") );
-            put( "maintenanceMarginPercentage", DigifinexCore.this.safeNumber(position, "maint_margin_ratio") );
+            put( "datetime", Digifinex.this.iso8601(timestamp) );
+            put( "maintenanceMargin", Digifinex.this.safeNumber(position, "margin") );
+            put( "maintenanceMarginPercentage", Digifinex.this.safeNumber(position, "maint_margin_ratio") );
             put( "collateral", null );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
-            put( "leverage", DigifinexCore.this.safeNumber2(position, "leverage", "leverage_ratio") );
-            put( "marginRatio", DigifinexCore.this.safeNumber(position, "margin_ratio") );
+            put( "leverage", Digifinex.this.safeNumber2(position, "leverage", "leverage_ratio") );
+            put( "marginRatio", Digifinex.this.safeNumber(position, "margin_ratio") );
             put( "percentage", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
@@ -5036,13 +5036,13 @@ public class DigifinexCore extends DigifinexApi
 final Object finalI = i;
             final Object finalMarket = market;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", DigifinexCore.this.sum(finalI, 1) );
-                put( "symbol", DigifinexCore.this.safeSymbol(marketId, finalMarket, null, "swap") );
+                put( "tier", Digifinex.this.sum(finalI, 1) );
+                put( "symbol", Digifinex.this.safeSymbol(marketId, finalMarket, null, "swap") );
                 put( "currency", Helpers.GetValue(finalMarket, "settle") );
                 put( "minNotional", null );
-                put( "maxNotional", DigifinexCore.this.safeNumber(tier, "max_limit") );
+                put( "maxNotional", Digifinex.this.safeNumber(tier, "max_limit") );
                 put( "maintenanceMarginRate", null );
-                put( "maxLeverage", DigifinexCore.this.safeNumber(tier, "leverage") );
+                put( "maxLeverage", Digifinex.this.safeNumber(tier, "leverage") );
                 put( "info", tier );
             }});
         }
@@ -5285,7 +5285,7 @@ final Object finalI = i;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_id", Helpers.GetValue(market, "id") );
-                put( "amount", DigifinexCore.this.numberToString(amount) );
+                put( "amount", Digifinex.this.numberToString(amount) );
                 put( "type", type );
                 put( "side", side );
             }};
@@ -5327,12 +5327,12 @@ final Object finalI = i;
         final Object finalRawType = rawType;
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", DigifinexCore.this.safeSymbol(marketId, market, null, "swap") );
+            put( "symbol", Digifinex.this.safeSymbol(marketId, market, null, "swap") );
             put( "type", ((Helpers.isTrue((Helpers.isEqual(finalRawType, 1))))) ? "add" : "reduce" );
             put( "marginMode", "isolated" );
-            put( "amount", DigifinexCore.this.safeNumber(data, "amount") );
+            put( "amount", Digifinex.this.safeNumber(data, "amount") );
             put( "total", null );
-            put( "code", DigifinexCore.this.safeString(market, "settle") );
+            put( "code", Digifinex.this.safeString(market, "settle") );
             put( "status", null );
             put( "timestamp", null );
             put( "datetime", null );
@@ -5418,12 +5418,12 @@ final Object finalI = i;
         Long timestamp = this.safeInteger(income, "timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", DigifinexCore.this.safeSymbol(marketId, market, null, "swap") );
-            put( "code", DigifinexCore.this.safeCurrencyCode(currencyId) );
+            put( "symbol", Digifinex.this.safeSymbol(marketId, market, null, "swap") );
+            put( "code", Digifinex.this.safeCurrencyCode(currencyId) );
             put( "timestamp", timestamp );
-            put( "datetime", DigifinexCore.this.iso8601(timestamp) );
+            put( "datetime", Digifinex.this.iso8601(timestamp) );
             put( "id", null );
-            put( "amount", DigifinexCore.this.safeNumber(income, "amount") );
+            put( "amount", Digifinex.this.safeNumber(income, "amount") );
         }};
     }
 
@@ -5532,7 +5532,7 @@ final Object finalI = i;
             }
             final Object finalNonce = nonce;
             headers = new java.util.HashMap<String, Object>() {{
-                put( "ACCESS-KEY", DigifinexCore.this.apiKey );
+                put( "ACCESS-KEY", Digifinex.this.apiKey );
                 put( "ACCESS-SIGN", signature );
                 put( "ACCESS-TIMESTAMP", finalNonce );
             }};

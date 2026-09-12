@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class CexCore extends CexApi
+public class Cex extends CexApi
 {
-   public CexCore () {
+   public Cex () {
        super();
    }
 
-   public CexCore (Object options) {
+   public Cex (Object options) {
        super(options);
    }
 
@@ -454,15 +454,15 @@ public class CexCore extends CexApi
     put( "deposit", deposit );
     put( "withdraw", withdraw );
     put( "active", null );
-    put( "fee", CexCore.this.safeNumber(rawNetwork, "withdrawalFee") );
+    put( "fee", Cex.this.safeNumber(rawNetwork, "withdrawalFee") );
     put( "precision", currencyPrecision );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", CexCore.this.safeNumber(rawNetwork, "minDeposit") );
+            put( "min", Cex.this.safeNumber(rawNetwork, "minDeposit") );
             put( "max", null );
         }} );
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", CexCore.this.safeNumber(rawNetwork, "minWithdrawal") );
+            put( "min", Cex.this.safeNumber(rawNetwork, "minWithdrawal") );
             put( "max", null );
         }} );
     }} );
@@ -476,8 +476,8 @@ public class CexCore extends CexApi
             put( "name", null );
             put( "type", type );
             put( "active", null );
-            put( "deposit", CexCore.this.safeBool(rawCurrency, "walletDeposit") );
-            put( "withdraw", CexCore.this.safeBool(rawCurrency, "walletWithdrawal") );
+            put( "deposit", Cex.this.safeBool(rawCurrency, "walletDeposit") );
+            put( "withdraw", Cex.this.safeBool(rawCurrency, "walletWithdrawal") );
             put( "fee", null );
             put( "precision", currencyPrecision );
             put( "limits", new java.util.HashMap<String, Object>() {{
@@ -571,16 +571,16 @@ public class CexCore extends CexApi
             put( "optionType", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", CexCore.this.safeNumber(market, "baseMin") );
-                    put( "max", CexCore.this.safeNumber(market, "baseMax") );
+                    put( "min", Cex.this.safeNumber(market, "baseMin") );
+                    put( "max", Cex.this.safeNumber(market, "baseMax") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", CexCore.this.safeNumber(market, "minPrice") );
-                    put( "max", CexCore.this.safeNumber(market, "maxPrice") );
+                    put( "min", Cex.this.safeNumber(market, "minPrice") );
+                    put( "max", Cex.this.safeNumber(market, "maxPrice") );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", CexCore.this.safeNumber(market, "quoteMin") );
-                    put( "max", CexCore.this.safeNumber(market, "quoteMax") );
+                    put( "min", Cex.this.safeNumber(market, "quoteMin") );
+                    put( "max", Cex.this.safeNumber(market, "quoteMax") );
                 }} );
                 put( "leverage", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -588,10 +588,10 @@ public class CexCore extends CexApi
                 }} );
             }} );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", CexCore.this.safeString(market, "baseLotSize") );
-                put( "price", CexCore.this.parseNumber(CexCore.this.parsePrecision(CexCore.this.safeString(market, "pricePrecision"))) );
-                put( "base", CexCore.this.parseNumber(CexCore.this.parsePrecision(CexCore.this.safeString(market, "basePrecision"))) );
-                put( "quote", CexCore.this.parseNumber(CexCore.this.parsePrecision(CexCore.this.safeString(market, "quotePrecision"))) );
+                put( "amount", Cex.this.safeString(market, "baseLotSize") );
+                put( "price", Cex.this.parseNumber(Cex.this.parsePrecision(Cex.this.safeString(market, "pricePrecision"))) );
+                put( "base", Cex.this.parseNumber(Cex.this.parsePrecision(Cex.this.safeString(market, "basePrecision"))) );
+                put( "quote", Cex.this.parseNumber(Cex.this.parsePrecision(Cex.this.safeString(market, "quotePrecision"))) );
             }} );
             put( "active", null );
             put( "created", null );
@@ -649,7 +649,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object response = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(response, symbol, new java.util.HashMap<String, Object>() {{}});
         });
 
@@ -722,21 +722,21 @@ public class CexCore extends CexApi
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", CexCore.this.safeNumber(ticker, "high") );
-            put( "low", CexCore.this.safeNumber(ticker, "low") );
-            put( "bid", CexCore.this.safeNumber(ticker, "bestBid") );
+            put( "high", Cex.this.safeNumber(ticker, "high") );
+            put( "low", Cex.this.safeNumber(ticker, "low") );
+            put( "bid", Cex.this.safeNumber(ticker, "bestBid") );
             put( "bidVolume", null );
-            put( "ask", CexCore.this.safeNumber(ticker, "bestAsk") );
+            put( "ask", Cex.this.safeNumber(ticker, "bestAsk") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
-            put( "close", CexCore.this.safeString(ticker, "last") );
+            put( "close", Cex.this.safeString(ticker, "last") );
             put( "previousClose", null );
-            put( "change", CexCore.this.safeNumber(ticker, "priceChange") );
-            put( "percentage", CexCore.this.safeNumber(ticker, "priceChangePercentage") );
+            put( "change", Cex.this.safeNumber(ticker, "priceChange") );
+            put( "percentage", Cex.this.safeNumber(ticker, "priceChangePercentage") );
             put( "average", null );
-            put( "baseVolume", CexCore.this.safeString(ticker, "volume") );
-            put( "quoteVolume", CexCore.this.safeString(ticker, "quoteVolume") );
+            put( "baseVolume", Cex.this.safeString(ticker, "volume") );
+            put( "quoteVolume", Cex.this.safeString(ticker, "quoteVolume") );
             put( "info", ticker );
         }}, market);
     }
@@ -829,15 +829,15 @@ public class CexCore extends CexApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", CexCore.this.iso8601(timestamp) );
+            put( "datetime", Cex.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "id", CexCore.this.safeString(trade, "tradeId") );
+            put( "id", Cex.this.safeString(trade, "tradeId") );
             put( "order", null );
             put( "type", null );
             put( "takerOrMaker", null );
-            put( "side", CexCore.this.safeStringLower(trade, "side") );
-            put( "price", CexCore.this.safeString(trade, "price") );
-            put( "amount", CexCore.this.safeString(trade, "amount") );
+            put( "side", Cex.this.safeStringLower(trade, "side") );
+            put( "price", Cex.this.safeString(trade, "price") );
+            put( "amount", Cex.this.safeString(trade, "amount") );
             put( "cost", null );
             put( "fee", null );
         }}, market);
@@ -932,7 +932,7 @@ public class CexCore extends CexApi
             final Object finalDataType = dataType;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
-                put( "resolution", Helpers.GetValue(CexCore.this.timeframes, timeframe) );
+                put( "resolution", Helpers.GetValue(Cex.this.timeframes, timeframe) );
                 put( "dataType", finalDataType );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1065,9 +1065,9 @@ public class CexCore extends CexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", CexCore.this.safeString(market, "symbol") );
-            put( "maker", CexCore.this.safeNumber(fee, "percent") );
-            put( "taker", CexCore.this.safeNumber(fee, "percent") );
+            put( "symbol", Cex.this.safeString(market, "symbol") );
+            put( "maker", Cex.this.safeNumber(fee, "percent") );
+            put( "taker", Cex.this.safeNumber(fee, "percent") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -1200,8 +1200,8 @@ public class CexCore extends CexApi
             Object balance = this.safeDict(response, key, new java.util.HashMap<String, Object>() {{}});
             String code = this.safeCurrencyCode(key);
             java.util.Map<String, Object> account = new java.util.HashMap<String, Object>() {{
-                put( "used", CexCore.this.safeString(balance, "balanceOnHold") );
-                put( "total", CexCore.this.safeString(balance, "balance") );
+                put( "used", Cex.this.safeString(balance, "balanceOnHold") );
+                put( "total", Cex.this.safeString(balance, "balance") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -1390,7 +1390,7 @@ public class CexCore extends CexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", Helpers.parseInt(id) );
             }};
-            Object result = (this.fetchOpenOrders(symbol, null, null, this.extend(request, parameters))).join();
+            Object result = (this.fetchOpenOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
             return Helpers.GetValue(result, 0);
         });
 
@@ -1420,7 +1420,7 @@ public class CexCore extends CexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", Helpers.parseInt(id) );
             }};
-            Object result = (this.fetchClosedOrders(symbol, null, null, this.extend(request, parameters))).join();
+            Object result = (this.fetchClosedOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
             return Helpers.GetValue(result, 0);
         });
 
@@ -1501,22 +1501,22 @@ public class CexCore extends CexApi
         // const requestedQuote = this.safeNumber (order, 'requestedAmountCcy2');
         Double executedQuote = this.safeNumber(order, "executedAmountCcy2");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", CexCore.this.safeString(order, "orderId") );
-            put( "clientOrderId", CexCore.this.safeString(order, "clientOrderId") );
+            put( "id", Cex.this.safeString(order, "orderId") );
+            put( "clientOrderId", Cex.this.safeString(order, "clientOrderId") );
             put( "timestamp", timestamp );
-            put( "datetime", CexCore.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", CexCore.this.safeInteger(order, "lastUpdateTimestamp") );
+            put( "datetime", Cex.this.iso8601(timestamp) );
+            put( "lastUpdateTimestamp", Cex.this.safeInteger(order, "lastUpdateTimestamp") );
             put( "lastTradeTimestamp", null );
             put( "symbol", symbol );
-            put( "type", CexCore.this.safeStringLower(order, "orderType") );
-            put( "timeInForce", CexCore.this.safeString(order, "timeInForce") );
+            put( "type", Cex.this.safeStringLower(order, "orderType") );
+            put( "timeInForce", Cex.this.safeString(order, "timeInForce") );
             put( "postOnly", null );
-            put( "side", CexCore.this.safeStringLower(order, "side") );
-            put( "price", CexCore.this.safeNumber(order, "price") );
-            put( "triggerPrice", CexCore.this.safeNumber(order, "stopPrice") );
+            put( "side", Cex.this.safeStringLower(order, "side") );
+            put( "price", Cex.this.safeNumber(order, "price") );
+            put( "triggerPrice", Cex.this.safeNumber(order, "stopPrice") );
             put( "amount", requestedBase );
             put( "cost", executedQuote );
-            put( "average", CexCore.this.safeNumber(order, "averagePrice") );
+            put( "average", Cex.this.safeNumber(order, "averagePrice") );
             put( "filled", executedBase );
             put( "remaining", null );
             put( "status", status );
@@ -1571,14 +1571,14 @@ public class CexCore extends CexApi
             final Object finalType = type;
             final Object finalSide = side;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "clientOrderId", CexCore.this.uuid() );
+                put( "clientOrderId", Cex.this.uuid() );
                 put( "currency1", Helpers.GetValue(market, "baseId") );
                 put( "currency2", Helpers.GetValue(market, "quoteId") );
                 put( "accountId", finalAccountId );
-                put( "orderType", CexCore.this.capitalize(((String)finalType).toLowerCase()) );
+                put( "orderType", Cex.this.capitalize(((String)finalType).toLowerCase()) );
                 put( "side", ((String)finalSide).toUpperCase() );
-                put( "timestamp", CexCore.this.milliseconds() );
-                put( "amountCcy1", CexCore.this.amountToPrecision(symbol, amount) );
+                put( "timestamp", Cex.this.milliseconds() );
+                put( "amountCcy1", Cex.this.amountToPrecision(symbol, amount) );
             }};
             Object timeInForce = null;
             java.util.List<Object> timeInForceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce", "GTC");
@@ -1676,8 +1676,8 @@ public class CexCore extends CexApi
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", Helpers.parseInt(id) );
-                put( "cancelRequestId", Helpers.add("c_", String.valueOf((CexCore.this.milliseconds()))) );
-                put( "timestamp", CexCore.this.milliseconds() );
+                put( "cancelRequestId", Helpers.add("c_", String.valueOf((Cex.this.milliseconds()))) );
+                put( "timestamp", Cex.this.milliseconds() );
             }};
             java.util.Map<String, Object> response = (this.privatePostDoCancelMyOrder(this.extend(request, parameters))).join();
             //
@@ -1828,16 +1828,16 @@ public class CexCore extends CexApi
         final Object finalAmount = amount;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", CexCore.this.safeString(item, "transactionId") );
+            put( "id", Cex.this.safeString(item, "transactionId") );
             put( "direction", finalDirection );
-            put( "account", CexCore.this.safeString(item, "accountId", "") );
+            put( "account", Cex.this.safeString(item, "accountId", "") );
             put( "referenceAccount", null );
             put( "referenceId", null );
-            put( "type", CexCore.this.parseLedgerEntryType(type) );
+            put( "type", Cex.this.parseLedgerEntryType(type) );
             put( "currency", code );
-            put( "amount", CexCore.this.parseNumber(finalAmount) );
+            put( "amount", Cex.this.parseNumber(finalAmount) );
             put( "timestamp", timestamp );
-            put( "datetime", CexCore.this.iso8601(timestamp) );
+            put( "datetime", Cex.this.iso8601(timestamp) );
             put( "before", null );
             put( "after", null );
             put( "status", null );
@@ -1937,15 +1937,15 @@ public class CexCore extends CexApi
         Long timestamp = this.parse8601(updatedAt);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", CexCore.this.safeString(transaction, "txId") );
+            put( "id", Cex.this.safeString(transaction, "txId") );
             put( "txid", null );
             put( "type", type );
             put( "currency", code );
             put( "network", null );
-            put( "amount", CexCore.this.safeNumber(transaction, "amount") );
-            put( "status", CexCore.this.parseTransactionStatus(CexCore.this.safeString(transaction, "status")) );
+            put( "amount", Cex.this.safeNumber(transaction, "amount") );
+            put( "status", Cex.this.parseTransactionStatus(Cex.this.safeString(transaction, "status")) );
             put( "timestamp", timestamp );
-            put( "datetime", CexCore.this.iso8601(timestamp) );
+            put( "datetime", Cex.this.iso8601(timestamp) );
             put( "address", null );
             put( "addressFrom", null );
             put( "addressTo", null );
@@ -1956,7 +1956,7 @@ public class CexCore extends CexApi
             put( "comment", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", CexCore.this.safeNumber(transaction, "commissionAmount") );
+                put( "cost", Cex.this.safeNumber(transaction, "commissionAmount") );
             }} );
             put( "internal", null );
         }};
@@ -2027,7 +2027,7 @@ public class CexCore extends CexApi
             String guid = this.safeString(parameters, "guid", this.uuid());
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "amount", CexCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Cex.this.currencyToPrecision(code, amount) );
                 put( "accountId", targetAccount );
                 put( "clientTxId", guid );
             }};
@@ -2071,7 +2071,7 @@ public class CexCore extends CexApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "amount", CexCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Cex.this.currencyToPrecision(code, amount) );
                 put( "fromAccountId", fromAccount );
                 put( "toAccountId", toAccount );
             }};
@@ -2119,14 +2119,14 @@ public class CexCore extends CexApi
         String currencyCode = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", CexCore.this.safeString2(transfer, "transactionId", "clientTxId") );
+            put( "id", Cex.this.safeString2(transfer, "transactionId", "clientTxId") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "currency", currencyCode );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
-            put( "status", CexCore.this.parseTransactionStatus(CexCore.this.safeString(transfer, "status")) );
+            put( "status", Cex.this.parseTransactionStatus(Cex.this.safeString(transfer, "status")) );
         }};
     }
 
@@ -2168,7 +2168,7 @@ public class CexCore extends CexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "accountId", finalAccountId );
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "blockchain", CexCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
+                put( "blockchain", Cex.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }};
             java.util.Map<String, Object> response = (this.privatePostGetDepositAddress(this.extend(request, parameters))).join();
             //
@@ -2199,7 +2199,7 @@ public class CexCore extends CexApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", Helpers.GetValue(finalCurrency, "code") );
-            put( "network", CexCore.this.networkIdToCode(CexCore.this.safeString(depositAddress, "blockchain"), Helpers.GetValue(finalCurrency, "code")) );
+            put( "network", Cex.this.networkIdToCode(Cex.this.safeString(depositAddress, "blockchain"), Helpers.GetValue(finalCurrency, "code")) );
             put( "address", address );
             put( "tag", null );
         }};
@@ -2238,7 +2238,7 @@ public class CexCore extends CexApi
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
-                put( "X-AGGR-KEY", CexCore.this.apiKey );
+                put( "X-AGGR-KEY", Cex.this.apiKey );
                 put( "X-AGGR-TIMESTAMP", seconds );
                 put( "X-AGGR-SIGNATURE", signature );
             }};

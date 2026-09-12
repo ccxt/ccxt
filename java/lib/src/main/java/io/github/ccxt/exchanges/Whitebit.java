@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class WhitebitCore extends WhitebitApi
+public class Whitebit extends WhitebitApi
 {
-   public WhitebitCore () {
+   public Whitebit () {
        super();
    }
 
-   public WhitebitCore (Object options) {
+   public Whitebit (Object options) {
        super(options);
    }
 
@@ -595,8 +595,8 @@ public class WhitebitCore extends WhitebitApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "taker", WhitebitCore.this.parseNumber("0.001") );
-                    put( "maker", WhitebitCore.this.parseNumber("0.001") );
+                    put( "taker", Whitebit.this.parseNumber("0.001") );
+                    put( "maker", Whitebit.this.parseNumber("0.001") );
                 }} );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
@@ -860,16 +860,16 @@ public class WhitebitCore extends WhitebitApi
             put( "contract", finalContract );
             put( "linear", finalLinear );
             put( "inverse", finalInverse );
-            put( "taker", WhitebitCore.this.parseNumber(taker) );
-            put( "maker", WhitebitCore.this.parseNumber(maker) );
-            put( "contractSize", ((Helpers.isTrue(isSpot))) ? null : WhitebitCore.this.parseNumber("1") );
+            put( "taker", Whitebit.this.parseNumber(taker) );
+            put( "maker", Whitebit.this.parseNumber(maker) );
+            put( "contractSize", ((Helpers.isTrue(isSpot))) ? null : Whitebit.this.parseNumber("1") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
                 put( "amount", amountPrecision );
-                put( "price", WhitebitCore.this.parseNumber(WhitebitCore.this.parsePrecision(WhitebitCore.this.safeString(market, "moneyPrec"))) );
+                put( "price", Whitebit.this.parseNumber(Whitebit.this.parsePrecision(Whitebit.this.safeString(market, "moneyPrec"))) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -877,7 +877,7 @@ public class WhitebitCore extends WhitebitApi
                     put( "max", null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", WhitebitCore.this.safeNumber(market, "minAmount") );
+                    put( "min", Whitebit.this.safeNumber(market, "minAmount") );
                     put( "max", null );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
@@ -885,8 +885,8 @@ public class WhitebitCore extends WhitebitApi
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", WhitebitCore.this.safeNumber(market, "minTotal") );
-                    put( "max", WhitebitCore.this.safeNumber(market, "maxTotal") );
+                    put( "min", Whitebit.this.safeNumber(market, "minTotal") );
+                    put( "max", Whitebit.this.safeNumber(market, "maxTotal") );
                 }} );
             }} );
             put( "created", null );
@@ -1007,18 +1007,18 @@ public class WhitebitCore extends WhitebitApi
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", null );
-    put( "deposit", WhitebitCore.this.inArray(networkId, depositsNetworks) );
-    put( "withdraw", WhitebitCore.this.inArray(networkId, withdrawsNetworks) );
+    put( "deposit", Whitebit.this.inArray(networkId, depositsNetworks) );
+    put( "withdraw", Whitebit.this.inArray(networkId, withdrawsNetworks) );
     put( "fee", null );
     put( "precision", null );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", WhitebitCore.this.safeNumber(networkDepositLimits, "min") );
-            put( "max", WhitebitCore.this.safeNumber(networkDepositLimits, "max") );
+            put( "min", Whitebit.this.safeNumber(networkDepositLimits, "min") );
+            put( "max", Whitebit.this.safeNumber(networkDepositLimits, "max") );
         }} );
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", WhitebitCore.this.safeNumber(networkWithdrawLimits, "min") );
-            put( "max", WhitebitCore.this.safeNumber(networkWithdrawLimits, "max") );
+            put( "min", Whitebit.this.safeNumber(networkWithdrawLimits, "min") );
+            put( "max", Whitebit.this.safeNumber(networkWithdrawLimits, "max") );
         }} );
     }} );
 }});
@@ -1030,24 +1030,24 @@ public class WhitebitCore extends WhitebitApi
             put( "info", rawCurrency );
             put( "name", null );
             put( "active", null );
-            put( "deposit", WhitebitCore.this.safeBool(rawCurrency, "can_deposit") );
-            put( "withdraw", WhitebitCore.this.safeBool(rawCurrency, "can_withdraw") );
+            put( "deposit", Whitebit.this.safeBool(rawCurrency, "can_deposit") );
+            put( "withdraw", Whitebit.this.safeBool(rawCurrency, "can_withdraw") );
             put( "fee", null );
             put( "networks", networks );
             put( "type", ((Helpers.isTrue(hasProvider))) ? "fiat" : "crypto" );
-            put( "precision", WhitebitCore.this.parseNumber(WhitebitCore.this.parsePrecision(WhitebitCore.this.safeString(rawCurrency, "currency_precision"))) );
+            put( "precision", Whitebit.this.parseNumber(Whitebit.this.parsePrecision(Whitebit.this.safeString(rawCurrency, "currency_precision"))) );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
-                    put( "min", WhitebitCore.this.safeNumber(rawCurrency, "min_withdraw") );
-                    put( "max", WhitebitCore.this.safeNumber(rawCurrency, "max_withdraw") );
+                    put( "min", Whitebit.this.safeNumber(rawCurrency, "min_withdraw") );
+                    put( "max", Whitebit.this.safeNumber(rawCurrency, "max_withdraw") );
                 }} );
                 put( "deposit", new java.util.HashMap<String, Object>() {{
-                    put( "min", WhitebitCore.this.safeNumber(rawCurrency, "min_deposit") );
-                    put( "max", WhitebitCore.this.safeNumber(rawCurrency, "max_deposit") );
+                    put( "min", Whitebit.this.safeNumber(rawCurrency, "min_deposit") );
+                    put( "max", Whitebit.this.safeNumber(rawCurrency, "max_deposit") );
                 }} );
             }} );
         }});
@@ -1359,8 +1359,8 @@ public class WhitebitCore extends WhitebitApi
         put( "symbol", Helpers.GetValue(market, "symbol") );
         put( "percentage", true );
         put( "tierBased", false );
-        put( "maker", WhitebitCore.this.parseNumber(finalMakerFee) );
-        put( "taker", WhitebitCore.this.parseNumber(finalTakerFee) );
+        put( "maker", Whitebit.this.parseNumber(finalMakerFee) );
+        put( "taker", Whitebit.this.parseNumber(finalTakerFee) );
     }});
             }
             return result;
@@ -1486,16 +1486,16 @@ public class WhitebitCore extends WhitebitApi
         put( "info", finalMarket );
         put( "limits", new java.util.HashMap<String, Object>() {{
             put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", WhitebitCore.this.safeNumber(finalAmountLimits, "min") );
-                put( "max", WhitebitCore.this.safeNumber(finalAmountLimits, "max") );
+                put( "min", Whitebit.this.safeNumber(finalAmountLimits, "min") );
+                put( "max", Whitebit.this.safeNumber(finalAmountLimits, "max") );
             }} );
             put( "price", new java.util.HashMap<String, Object>() {{
-                put( "min", WhitebitCore.this.safeNumber(finalPriceLimits, "min") );
-                put( "max", WhitebitCore.this.safeNumber(finalPriceLimits, "max") );
+                put( "min", Whitebit.this.safeNumber(finalPriceLimits, "min") );
+                put( "max", Whitebit.this.safeNumber(finalPriceLimits, "max") );
             }} );
             put( "cost", new java.util.HashMap<String, Object>() {{
-                put( "min", WhitebitCore.this.safeNumber(finalCostLimits, "min") );
-                put( "max", WhitebitCore.this.safeNumber(finalCostLimits, "max") );
+                put( "min", Whitebit.this.safeNumber(finalCostLimits, "min") );
+                put( "max", Whitebit.this.safeNumber(finalCostLimits, "max") );
             }} );
         }} );
     }});
@@ -1635,14 +1635,14 @@ public class WhitebitCore extends WhitebitApi
                     {
                         final Object finalDepositFee = depositFee;
                         java.util.Map<String, Object> depositFeeData = new java.util.HashMap<String, Object>() {{
-                            put( "fixed", WhitebitCore.this.safeNumber(finalDepositFee, "fixed") );
+                            put( "fixed", Whitebit.this.safeNumber(finalDepositFee, "fixed") );
                         }};
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(depositFee, "flex"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(depositFee, "flex"), null)))))
                         {
                             Helpers.addElementToObject(depositFeeData, "flex", new java.util.HashMap<String, Object>() {{
-        put( "min", WhitebitCore.this.safeNumber(Helpers.GetValue(finalDepositFee, "flex"), "min_fee") );
-        put( "max", WhitebitCore.this.safeNumber(Helpers.GetValue(finalDepositFee, "flex"), "max_fee") );
-        put( "percent", WhitebitCore.this.safeNumber(Helpers.GetValue(finalDepositFee, "flex"), "percent") );
+        put( "min", Whitebit.this.safeNumber(Helpers.GetValue(finalDepositFee, "flex"), "min_fee") );
+        put( "max", Whitebit.this.safeNumber(Helpers.GetValue(finalDepositFee, "flex"), "max_fee") );
+        put( "percent", Whitebit.this.safeNumber(Helpers.GetValue(finalDepositFee, "flex"), "percent") );
     }});
                         }
                         Helpers.addElementToObject(Helpers.GetValue(limits, "deposit"), "fee", depositFeeData);
@@ -1651,14 +1651,14 @@ public class WhitebitCore extends WhitebitApi
                     {
                         final Object finalWithdrawFee = withdrawFee;
                         java.util.Map<String, Object> withdrawFeeData = new java.util.HashMap<String, Object>() {{
-                            put( "fixed", WhitebitCore.this.safeNumber(finalWithdrawFee, "fixed") );
+                            put( "fixed", Whitebit.this.safeNumber(finalWithdrawFee, "fixed") );
                         }};
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(withdrawFee, "flex"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(withdrawFee, "flex"), null)))))
                         {
                             Helpers.addElementToObject(withdrawFeeData, "flex", new java.util.HashMap<String, Object>() {{
-        put( "min", WhitebitCore.this.safeNumber(Helpers.GetValue(finalWithdrawFee, "flex"), "min_fee") );
-        put( "max", WhitebitCore.this.safeNumber(Helpers.GetValue(finalWithdrawFee, "flex"), "max_fee") );
-        put( "percent", WhitebitCore.this.safeNumber(Helpers.GetValue(finalWithdrawFee, "flex"), "percent") );
+        put( "min", Whitebit.this.safeNumber(Helpers.GetValue(finalWithdrawFee, "flex"), "min_fee") );
+        put( "max", Whitebit.this.safeNumber(Helpers.GetValue(finalWithdrawFee, "flex"), "max_fee") );
+        put( "percent", Whitebit.this.safeNumber(Helpers.GetValue(finalWithdrawFee, "flex"), "percent") );
     }});
                         }
                         Helpers.addElementToObject(Helpers.GetValue(limits, "withdraw"), "fee", withdrawFeeData);
@@ -1825,23 +1825,23 @@ public class WhitebitCore extends WhitebitApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", WhitebitCore.this.safeString(ticker, "high") );
-            put( "low", WhitebitCore.this.safeString(ticker, "low") );
-            put( "bid", WhitebitCore.this.safeString2(ticker, "bid", "highestBid") );
+            put( "high", Whitebit.this.safeString(ticker, "high") );
+            put( "low", Whitebit.this.safeString(ticker, "low") );
+            put( "bid", Whitebit.this.safeString2(ticker, "bid", "highestBid") );
             put( "bidVolume", null );
-            put( "ask", WhitebitCore.this.safeString2(ticker, "ask", "lowestAsk") );
+            put( "ask", Whitebit.this.safeString2(ticker, "ask", "lowestAsk") );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", WhitebitCore.this.safeString(ticker, "open") );
+            put( "open", Whitebit.this.safeString(ticker, "open") );
             put( "close", close );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", WhitebitCore.this.safeString(ticker, "change") );
+            put( "percentage", Whitebit.this.safeString(ticker, "change") );
             put( "average", null );
-            put( "baseVolume", WhitebitCore.this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("base_volume", "volume", "baseVolume24h", "stock_volume"))) );
-            put( "quoteVolume", WhitebitCore.this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("quote_volume", "deal", "quoteVolume24h", "money_volume"))) );
-            put( "indexPrice", WhitebitCore.this.safeString(ticker, "index_price") );
+            put( "baseVolume", Whitebit.this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("base_volume", "volume", "baseVolume24h", "stock_volume"))) );
+            put( "quoteVolume", Whitebit.this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("quote_volume", "deal", "quoteVolume24h", "money_volume"))) );
+            put( "indexPrice", Whitebit.this.safeString(ticker, "index_price") );
             put( "info", ticker );
         }}, market);
     }
@@ -2345,7 +2345,7 @@ public class WhitebitCore extends WhitebitApi
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
-                put( "currency", WhitebitCore.this.safeCurrencyCode(WhitebitCore.this.safeString(trade, "feeAsset")) );
+                put( "currency", Whitebit.this.safeCurrencyCode(Whitebit.this.safeString(trade, "feeAsset")) );
             }};
         }
         final Object finalTakerOrMaker = takerOrMaker;
@@ -2353,7 +2353,7 @@ public class WhitebitCore extends WhitebitApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", WhitebitCore.this.iso8601(timestamp) );
+            put( "datetime", Whitebit.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
             put( "order", orderId );
@@ -2395,7 +2395,7 @@ public class WhitebitCore extends WhitebitApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
-                put( "interval", WhitebitCore.this.safeString(WhitebitCore.this.timeframes, timeframe, timeframe) );
+                put( "interval", Whitebit.this.safeString(Whitebit.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -2525,7 +2525,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "cost", cost );
             }};
             // only buy side is supported
-            return (this.createOrder(symbol, "market", side, 0, null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -2545,7 +2545,7 @@ public class WhitebitCore extends WhitebitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.createMarketOrderWithCost(symbol, "buy", cost, parameters)).join();
+            return (this.createMarketOrderWithCost(symbol, (Object)("buy"), (Object)(cost), (Object)(parameters))).join();
         });
 
     }
@@ -3347,7 +3347,7 @@ public class WhitebitCore extends WhitebitApi
             final Object finalDealFee = dealFee;
             final Object finalMarket = market;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", WhitebitCore.this.parseNumber(finalDealFee) );
+                put( "cost", Whitebit.this.parseNumber(finalDealFee) );
                 put( "currency", Helpers.GetValue(finalMarket, "quote") );
             }};
         }
@@ -3377,11 +3377,11 @@ public class WhitebitCore extends WhitebitApi
             put( "symbol", symbol );
             put( "clientOrderId", finalClientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", WhitebitCore.this.iso8601(timestamp) );
+            put( "datetime", Whitebit.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", lastTradeTimestamp );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", finalPostOnly );
-            put( "status", WhitebitCore.this.parseOrderStatus(WhitebitCore.this.safeString(order, "status")) );
+            put( "status", Whitebit.this.parseOrderStatus(Whitebit.this.safeString(order, "status")) );
             put( "side", finalSide );
             put( "price", price );
             put( "type", finalOrderType );
@@ -3773,10 +3773,10 @@ public class WhitebitCore extends WhitebitApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", WhitebitCore.this.safeCurrencyCode(null, currency) );
+            put( "currency", Whitebit.this.safeCurrencyCode(null, currency) );
             put( "network", null );
-            put( "address", WhitebitCore.this.safeString(depositAddress, "address") );
-            put( "tag", WhitebitCore.this.safeString(depositAddress, "memo") );
+            put( "address", Whitebit.this.safeString(depositAddress, "address") );
+            put( "tag", Whitebit.this.safeString(depositAddress, "memo") );
         }};
     }
 
@@ -3928,7 +3928,7 @@ public class WhitebitCore extends WhitebitApi
             put( "id", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", WhitebitCore.this.safeCurrencyCode(null, currency) );
+            put( "currency", Whitebit.this.safeCurrencyCode(null, currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
@@ -3962,7 +3962,7 @@ public class WhitebitCore extends WhitebitApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code); // check if it has canDeposit
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker", Helpers.GetValue(currency, "id") );
-                put( "amount", WhitebitCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Whitebit.this.currencyToPrecision(code, amount) );
                 put( "address", address );
             }};
             Object uniqueId = this.safeValue(parameters, "uniqueId");
@@ -4042,27 +4042,27 @@ public class WhitebitCore extends WhitebitApi
         final Object finalMethod = method;
         final Object finalCurrency = currency;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", WhitebitCore.this.safeString(transaction, "uniqueId") );
-            put( "txid", WhitebitCore.this.safeString(transaction, "transactionId") );
+            put( "id", Whitebit.this.safeString(transaction, "uniqueId") );
+            put( "txid", Whitebit.this.safeString(transaction, "transactionId") );
             put( "timestamp", timestamp );
-            put( "datetime", WhitebitCore.this.iso8601(timestamp) );
-            put( "network", WhitebitCore.this.safeString(transaction, "network") );
+            put( "datetime", Whitebit.this.iso8601(timestamp) );
+            put( "network", Whitebit.this.safeString(transaction, "network") );
             put( "addressFrom", ((Helpers.isTrue((Helpers.isEqual(finalMethod, "1"))))) ? address : null );
             put( "address", address );
             put( "addressTo", ((Helpers.isTrue((Helpers.isEqual(finalMethod, "2"))))) ? address : null );
-            put( "amount", WhitebitCore.this.safeNumber(transaction, "amount") );
+            put( "amount", Whitebit.this.safeNumber(transaction, "amount") );
             put( "type", ((Helpers.isTrue((Helpers.isEqual(finalMethod, "1"))))) ? "deposit" : "withdrawal" );
-            put( "currency", WhitebitCore.this.safeCurrencyCode(currencyId, finalCurrency) );
-            put( "status", WhitebitCore.this.parseTransactionStatus(status) );
+            put( "currency", Whitebit.this.safeCurrencyCode(currencyId, finalCurrency) );
+            put( "status", Whitebit.this.parseTransactionStatus(status) );
             put( "updated", null );
             put( "tagFrom", null );
-            put( "tag", WhitebitCore.this.safeString(transaction, "memo") );
+            put( "tag", Whitebit.this.safeString(transaction, "memo") );
             put( "tagTo", null );
-            put( "comment", WhitebitCore.this.safeString(transaction, "description") );
+            put( "comment", Whitebit.this.safeString(transaction, "description") );
             put( "internal", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "cost", WhitebitCore.this.safeNumber(transaction, "fee") );
-                put( "currency", WhitebitCore.this.safeCurrencyCode(currencyId, finalCurrency) );
+                put( "cost", Whitebit.this.safeNumber(transaction, "fee") );
+                put( "currency", Whitebit.this.safeCurrencyCode(currencyId, finalCurrency) );
             }} );
             put( "info", transaction );
         }};
@@ -4347,12 +4347,12 @@ public class WhitebitCore extends WhitebitApi
             put( "info", info );
             put( "symbol", symbol );
             put( "currency", "USDT" );
-            put( "interest", WhitebitCore.this.safeNumber(info, "unrealizedFunding") );
+            put( "interest", Whitebit.this.safeNumber(info, "unrealizedFunding") );
             put( "interestRate", 0.00098 );
-            put( "amountBorrowed", WhitebitCore.this.safeNumber(info, "amount") );
+            put( "amountBorrowed", Whitebit.this.safeNumber(info, "amount") );
             put( "marginMode", "cross" );
             put( "timestamp", timestamp );
-            put( "datetime", WhitebitCore.this.iso8601(timestamp) );
+            put( "datetime", Whitebit.this.iso8601(timestamp) );
         }};
     }
 
@@ -4376,7 +4376,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object response = (this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object response = (this.fetchFundingRates((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(response, symbol);
         });
 
@@ -4506,7 +4506,7 @@ public class WhitebitCore extends WhitebitApi
             put( "datetime", null );
             put( "fundingRate", fundingRate );
             put( "fundingTimestamp", fundingTime );
-            put( "fundingDatetime", WhitebitCore.this.iso8601(fundingTime) );
+            put( "fundingDatetime", Whitebit.this.iso8601(fundingTime) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
@@ -4603,12 +4603,12 @@ public class WhitebitCore extends WhitebitApi
         Long timestamp = this.safeInteger(contract, "fundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", WhitebitCore.this.safeSymbol(marketId, market, null, "swap") );
+            put( "symbol", Whitebit.this.safeSymbol(marketId, market, null, "swap") );
             put( "code", null );
             put( "timestamp", timestamp );
-            put( "datetime", WhitebitCore.this.iso8601(timestamp) );
+            put( "datetime", Whitebit.this.iso8601(timestamp) );
             put( "id", null );
-            put( "amount", WhitebitCore.this.safeNumber(contract, "fundingAmount") );
+            put( "amount", Whitebit.this.safeNumber(contract, "fundingAmount") );
         }};
     }
 
@@ -4747,7 +4747,7 @@ public class WhitebitCore extends WhitebitApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "from", fromCode );
                 put( "to", toCode );
-                put( "amount", WhitebitCore.this.numberToString(amount) );
+                put( "amount", Whitebit.this.numberToString(amount) );
                 put( "direction", "from" );
             }};
             java.util.Map<String, Object> response = (this.v4PrivatePostConvertEstimate(this.extend(request, parameters))).join();
@@ -4935,13 +4935,13 @@ public class WhitebitCore extends WhitebitApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
-            put( "datetime", WhitebitCore.this.iso8601(timestamp) );
-            put( "id", WhitebitCore.this.safeString(conversion, "id") );
+            put( "datetime", Whitebit.this.iso8601(timestamp) );
+            put( "id", Whitebit.this.safeString(conversion, "id") );
             put( "fromCurrency", fromCode );
-            put( "fromAmount", WhitebitCore.this.safeNumber2(conversion, "give", "finalGive") );
+            put( "fromAmount", Whitebit.this.safeNumber2(conversion, "give", "finalGive") );
             put( "toCurrency", toCode );
-            put( "toAmount", WhitebitCore.this.safeNumber2(conversion, "receive", "finalReceive") );
-            put( "price", WhitebitCore.this.safeNumber(conversion, "rate") );
+            put( "toAmount", Whitebit.this.safeNumber2(conversion, "receive", "finalReceive") );
+            put( "price", Whitebit.this.safeNumber(conversion, "rate") );
             put( "fee", null );
         }};
     }
@@ -5166,15 +5166,15 @@ public class WhitebitCore extends WhitebitApi
         Object orderDetail = this.safeDict(position, "orderDetail", new java.util.HashMap<String, Object>() {{}});
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", WhitebitCore.this.safeString(position, "positionId") );
-            put( "symbol", WhitebitCore.this.safeSymbol(marketId, market) );
+            put( "id", Whitebit.this.safeString(position, "positionId") );
+            put( "symbol", Whitebit.this.safeSymbol(marketId, market) );
             put( "notional", null );
             put( "marginMode", null );
-            put( "liquidationPrice", WhitebitCore.this.safeNumber(position, "liquidationPrice") );
-            put( "entryPrice", WhitebitCore.this.safeNumber(position, "basePrice") );
-            put( "unrealizedPnl", WhitebitCore.this.safeNumber(position, "pnl") );
-            put( "realizedPnl", WhitebitCore.this.safeNumber(orderDetail, "realizedPnl") );
-            put( "percentage", WhitebitCore.this.safeNumber(position, "pnlPercent") );
+            put( "liquidationPrice", Whitebit.this.safeNumber(position, "liquidationPrice") );
+            put( "entryPrice", Whitebit.this.safeNumber(position, "basePrice") );
+            put( "unrealizedPnl", Whitebit.this.safeNumber(position, "pnl") );
+            put( "realizedPnl", Whitebit.this.safeNumber(orderDetail, "realizedPnl") );
+            put( "percentage", Whitebit.this.safeNumber(position, "pnlPercent") );
             put( "contracts", null );
             put( "contractSize", null );
             put( "markPrice", null );
@@ -5182,17 +5182,17 @@ public class WhitebitCore extends WhitebitApi
             put( "side", null );
             put( "hedged", null );
             put( "timestamp", timestamp );
-            put( "datetime", WhitebitCore.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", WhitebitCore.this.safeTimestamp(position, "modifyDate") );
+            put( "datetime", Whitebit.this.iso8601(timestamp) );
+            put( "lastUpdateTimestamp", Whitebit.this.safeTimestamp(position, "modifyDate") );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "collateral", WhitebitCore.this.safeNumber(position, "margin") );
+            put( "collateral", Whitebit.this.safeNumber(position, "margin") );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
             put( "leverage", null );
             put( "marginRatio", null );
-            put( "stopLossPrice", WhitebitCore.this.safeNumber(tpsl, "stopLoss") );
-            put( "takeProfitPrice", WhitebitCore.this.safeNumber(tpsl, "takeProfit") );
+            put( "stopLossPrice", Whitebit.this.safeNumber(tpsl, "stopLoss") );
+            put( "takeProfitPrice", Whitebit.this.safeNumber(tpsl, "takeProfit") );
         }});
     }
 
@@ -5282,9 +5282,9 @@ public class WhitebitCore extends WhitebitApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "fundingRate", WhitebitCore.this.safeNumber(info, "fundingRate") );
+            put( "fundingRate", Whitebit.this.safeNumber(info, "fundingRate") );
             put( "timestamp", timestamp );
-            put( "datetime", WhitebitCore.this.iso8601(timestamp) );
+            put( "datetime", Whitebit.this.iso8601(timestamp) );
         }};
     }
 
@@ -5335,7 +5335,7 @@ public class WhitebitCore extends WhitebitApi
             Object signature = this.hmac(this.encode(payload), secret, sha512());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
-                put( "X-TXC-APIKEY", WhitebitCore.this.apiKey );
+                put( "X-TXC-APIKEY", Whitebit.this.apiKey );
                 put( "X-TXC-PAYLOAD", payload );
                 put( "X-TXC-SIGNATURE", signature );
             }};

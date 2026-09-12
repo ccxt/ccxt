@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BullishCore extends io.github.ccxt.exchanges.Bullish
+public class Bullish extends io.github.ccxt.exchanges.Bullish
 {
-   public BullishCore () {
+   public Bullish () {
        super();
    }
 
-   public BullishCore (Object options) {
+   public Bullish (Object options) {
        super(options);
    }
 

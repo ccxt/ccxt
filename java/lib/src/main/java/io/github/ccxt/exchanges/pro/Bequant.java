@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BequantCore extends io.github.ccxt.exchanges.Bequant
+public class Bequant extends io.github.ccxt.exchanges.Bequant
 {
-   public BequantCore () {
+   public Bequant () {
        super();
    }
 
-   public BequantCore (Object options) {
+   public Bequant (Object options) {
        super(options);
    }
 

@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
+public class Mudrex extends io.github.ccxt.exchanges.Mudrex
 {
-   public MudrexCore () {
+   public Mudrex () {
        super();
    }
 
-   public MudrexCore (Object options) {
+   public Mudrex (Object options) {
        super(options);
    }
 
@@ -45,7 +45,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
     public Object ping(Client client)
     {
         return new java.util.HashMap<String, Object>() {{
-            put( "id", MudrexCore.this.requestId() );
+            put( "id", Mudrex.this.requestId() );
             put( "method", "PING" );
         }};
     }
@@ -97,7 +97,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             Object quoteIdString = ((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "quoteId"), null))))) ? Helpers.GetValue(market, "quoteId") : "";
             Object assetId = Helpers.add(((String)baseIdString).toLowerCase(), ((String)quoteIdString).toLowerCase());
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
-                put( "id", MudrexCore.this.requestId() );
+                put( "id", Mudrex.this.requestId() );
                 put( "method", "SUBSCRIBE" );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList("ticker@1s")) );
                 put( "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList(assetId)) );
@@ -136,7 +136,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             this.setBrokerHeaders();
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
-                put( "id", MudrexCore.this.requestId() );
+                put( "id", Mudrex.this.requestId() );
                 put( "method", "SUBSCRIBE" );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList("ticker@1s")) );
                 put( "assets", assets );
@@ -188,7 +188,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             this.setBrokerHeaders();
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
-                put( "id", MudrexCore.this.requestId() );
+                put( "id", Mudrex.this.requestId() );
                 put( "method", "SUBSCRIBE" );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(stream)) );
             }};
@@ -294,7 +294,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             Object result = this.safeTicker(new java.util.HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "timestamp", timestamp );
-                put( "datetime", MudrexCore.this.iso8601(timestamp) );
+                put( "datetime", Mudrex.this.iso8601(timestamp) );
                 put( "last", last );
                 put( "close", last );
                 put( "info", t );

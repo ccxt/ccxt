@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BullishCore extends BullishApi
+public class Bullish extends BullishApi
 {
-   public BullishCore () {
+   public Bullish () {
        super();
    }
 
-   public BullishCore (Object options) {
+   public Bullish (Object options) {
        super(options);
    }
 
@@ -386,8 +386,8 @@ public class BullishCore extends BullishApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "taker", BullishCore.this.parseNumber("0.001") );
-                    put( "maker", BullishCore.this.parseNumber("0.001") );
+                    put( "taker", Bullish.this.parseNumber("0.001") );
+                    put( "maker", Bullish.this.parseNumber("0.001") );
                 }} );
             }} );
             put( "precisionMode", TICK_SIZE );
@@ -703,8 +703,8 @@ public class BullishCore extends BullishApi
             put( "active", null );
             put( "deposit", null );
             put( "withdraw", null );
-            put( "fee", BullishCore.this.safeNumber(rawCurrency, "minFee") );
-            put( "precision", BullishCore.this.parseNumber(BullishCore.this.parsePrecision(precision)) );
+            put( "fee", Bullish.this.safeNumber(rawCurrency, "minFee") );
+            put( "precision", Bullish.this.parseNumber(Bullish.this.parsePrecision(precision)) );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -1061,25 +1061,25 @@ public class BullishCore extends BullishApi
             put( "contract", finalContract );
             put( "linear", finalLinear );
             put( "inverse", finalInverse );
-            put( "taker", Helpers.GetValue(Helpers.GetValue(BullishCore.this.fees, "trading"), "taker") );
-            put( "maker", Helpers.GetValue(Helpers.GetValue(BullishCore.this.fees, "trading"), "maker") );
+            put( "taker", Helpers.GetValue(Helpers.GetValue(Bullish.this.fees, "trading"), "taker") );
+            put( "maker", Helpers.GetValue(Helpers.GetValue(Bullish.this.fees, "trading"), "maker") );
             put( "contractSize", finalContractSize );
-            put( "expiry", BullishCore.this.parse8601(finalExpiryDatetime) );
+            put( "expiry", Bullish.this.parse8601(finalExpiryDatetime) );
             put( "expiryDatetime", finalExpiryDatetime );
             put( "strike", finalStrike );
             put( "optionType", finalOptionType );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", BullishCore.this.parseNumber(minQuantityLimit) );
-                    put( "max", BullishCore.this.parseNumber(maxQuantityLimit) );
+                    put( "min", Bullish.this.parseNumber(minQuantityLimit) );
+                    put( "max", Bullish.this.parseNumber(maxQuantityLimit) );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", BullishCore.this.parseNumber(minPriceLimit) );
-                    put( "max", BullishCore.this.parseNumber(maxPriceLimit) );
+                    put( "min", Bullish.this.parseNumber(minPriceLimit) );
+                    put( "max", Bullish.this.parseNumber(maxPriceLimit) );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", BullishCore.this.parseNumber(minCostLimit) );
-                    put( "max", BullishCore.this.parseNumber(maxCostLimit) );
+                    put( "min", Bullish.this.parseNumber(minCostLimit) );
+                    put( "max", Bullish.this.parseNumber(maxCostLimit) );
                 }} );
                 put( "leverage", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -1087,13 +1087,13 @@ public class BullishCore extends BullishApi
                 }} );
             }} );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", BullishCore.this.parseNumber(BullishCore.this.parsePrecision(amountPrecision)) );
-                put( "price", BullishCore.this.parseNumber(BullishCore.this.parsePrecision(pricePrecision)) );
-                put( "cost", BullishCore.this.parseNumber(BullishCore.this.parsePrecision(costPrecision)) );
-                put( "base", BullishCore.this.parseNumber(BullishCore.this.parsePrecision(basePrecision)) );
-                put( "quote", BullishCore.this.parseNumber(BullishCore.this.parsePrecision(quotePrecision)) );
+                put( "amount", Bullish.this.parseNumber(Bullish.this.parsePrecision(amountPrecision)) );
+                put( "price", Bullish.this.parseNumber(Bullish.this.parsePrecision(pricePrecision)) );
+                put( "cost", Bullish.this.parseNumber(Bullish.this.parsePrecision(costPrecision)) );
+                put( "base", Bullish.this.parseNumber(Bullish.this.parsePrecision(basePrecision)) );
+                put( "quote", Bullish.this.parseNumber(Bullish.this.parsePrecision(quotePrecision)) );
             }} );
-            put( "active", BullishCore.this.safeBool(market, "marketEnabled") );
+            put( "active", Bullish.this.safeBool(market, "marketEnabled") );
             put( "created", null );
             put( "info", market );
         }});
@@ -1345,7 +1345,7 @@ public class BullishCore extends BullishApi
                     put( "orderId", id );
                 }}, parameters);
             }
-            return (this.fetchMyTrades(symbol, since, limit, parameters)).join();
+            return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1436,9 +1436,9 @@ public class BullishCore extends BullishApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BullishCore.this.iso8601(timestamp) );
+            put( "datetime", Bullish.this.iso8601(timestamp) );
             put( "symbol", symbol );
-            put( "id", BullishCore.this.safeString(trade, "tradeId") );
+            put( "id", Bullish.this.safeString(trade, "tradeId") );
             put( "order", orderId );
             put( "type", null );
             put( "takerOrMaker", finalTakerOrMaker );
@@ -1565,24 +1565,24 @@ public class BullishCore extends BullishApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", BullishCore.this.iso8601(timestamp) );
-            put( "high", BullishCore.this.safeString(ticker, "high") );
-            put( "low", BullishCore.this.safeString(ticker, "low") );
-            put( "bid", BullishCore.this.safeString2(ticker, "bid", "bestBid") );
-            put( "bidVolume", BullishCore.this.safeString(ticker, "bidVolume") );
-            put( "ask", BullishCore.this.safeString2(ticker, "ask", "bestAsk") );
-            put( "askVolume", BullishCore.this.safeString(ticker, "askVolume") );
-            put( "vwap", BullishCore.this.safeString(ticker, "vwap") );
-            put( "open", BullishCore.this.safeString(ticker, "open") );
-            put( "close", BullishCore.this.safeString(ticker, "close") );
-            put( "last", BullishCore.this.safeString(ticker, "last") );
+            put( "datetime", Bullish.this.iso8601(timestamp) );
+            put( "high", Bullish.this.safeString(ticker, "high") );
+            put( "low", Bullish.this.safeString(ticker, "low") );
+            put( "bid", Bullish.this.safeString2(ticker, "bid", "bestBid") );
+            put( "bidVolume", Bullish.this.safeString(ticker, "bidVolume") );
+            put( "ask", Bullish.this.safeString2(ticker, "ask", "bestAsk") );
+            put( "askVolume", Bullish.this.safeString(ticker, "askVolume") );
+            put( "vwap", Bullish.this.safeString(ticker, "vwap") );
+            put( "open", Bullish.this.safeString(ticker, "open") );
+            put( "close", Bullish.this.safeString(ticker, "close") );
+            put( "last", Bullish.this.safeString(ticker, "last") );
             put( "previousClose", null );
-            put( "change", BullishCore.this.safeString(ticker, "change") );
-            put( "percentage", BullishCore.this.safeString(ticker, "percentage") );
-            put( "average", BullishCore.this.safeString(ticker, "average") );
-            put( "baseVolume", BullishCore.this.safeString(ticker, "baseVolume") );
-            put( "quoteVolume", BullishCore.this.safeString(ticker, "quoteVolume") );
-            put( "markPrice", BullishCore.this.safeString(ticker, "markPrice") );
+            put( "change", Bullish.this.safeString(ticker, "change") );
+            put( "percentage", Bullish.this.safeString(ticker, "percentage") );
+            put( "average", Bullish.this.safeString(ticker, "average") );
+            put( "baseVolume", Bullish.this.safeString(ticker, "baseVolume") );
+            put( "quoteVolume", Bullish.this.safeString(ticker, "quoteVolume") );
+            put( "markPrice", Bullish.this.safeString(ticker, "markPrice") );
             put( "info", ticker );
         }}, market);
     }
@@ -1615,13 +1615,13 @@ public class BullishCore extends BullishApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(method, "fetchOHLCV")))
                     {
-                        return (this.fetchOHLCV(((String)symbol), timeframe, since, limit, parameters)).join();
+                        return (this.fetchOHLCV((Object)(((String)symbol)), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                     } else if (Helpers.isTrue(Helpers.isEqual(method, "fetchFundingRateHistory")))
                     {
-                        return (this.fetchFundingRateHistory(symbol, since, limit, parameters)).join();
+                        return (this.fetchFundingRateHistory((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                     } else
                     {
-                        return (this.fetchTrades(((String)symbol), since, limit, parameters)).join();
+                        return (this.fetchTrades(((String)symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                     }
                 } catch(Exception e)
                 {
@@ -1680,7 +1680,7 @@ public class BullishCore extends BullishApi
             }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "timeBucket", BullishCore.this.safeString(BullishCore.this.timeframes, timeframe, timeframe) );
+                put( "timeBucket", Bullish.this.safeString(Bullish.this.timeframes, timeframe, timeframe) );
                 put( "_pageSize", maxLimit );
             }};
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
@@ -1805,8 +1805,8 @@ public class BullishCore extends BullishApi
                             ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", finalSymbol );
-                    put( "fundingRate", BullishCore.this.safeNumber(entry, "fundingRate") );
-                    put( "timestamp", BullishCore.this.parse8601(datetime) );
+                    put( "fundingRate", Bullish.this.safeNumber(entry, "fundingRate") );
+                    put( "timestamp", Bullish.this.parse8601(datetime) );
                     put( "datetime", datetime );
                 }});
             }
@@ -2011,7 +2011,7 @@ public class BullishCore extends BullishApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "OPEN" );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -2041,7 +2041,7 @@ public class BullishCore extends BullishApi
                 put( "status", "CANCELLED" );
                 put( "method", "privateGetV2Orders" );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -2071,7 +2071,7 @@ public class BullishCore extends BullishApi
                 put( "status", "CLOSED" );
                 put( "method", "privateGetV2Orders" );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -2101,7 +2101,7 @@ public class BullishCore extends BullishApi
                 put( "status", "CLOSED" );
                 put( "method", "privateGetV2HistoryOrders" );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -2201,7 +2201,7 @@ public class BullishCore extends BullishApi
                 put( "commandType", "V3CreateOrder" );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", ((String)((String)side)).toUpperCase() );
-                put( "quantity", BullishCore.this.amountToPrecision(symbol, amount) );
+                put( "quantity", Bullish.this.amountToPrecision(symbol, amount) );
                 put( "tradingAccountId", tradingAccountId );
             }};
             Boolean isMarketOrder = (Helpers.isTrue((Helpers.isEqual(type, "market"))) || Helpers.isTrue(Helpers.isEqual(type, "MARKET")));
@@ -2339,7 +2339,7 @@ public class BullishCore extends BullishApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "tradingAccountId", tradingAccountId );
-                put( "commandType", BullishCore.this.safeString(parameters, "commandType", "V3CancelOrder") );
+                put( "commandType", Bullish.this.safeString(parameters, "commandType", "V3CancelOrder") );
                 put( "orderId", id );
             }};
             java.util.Map<String, Object> response = (this.privatePostV2Command(this.extend(request, parameters))).join();
@@ -2490,13 +2490,13 @@ public class BullishCore extends BullishApi
         final Object finalType = type;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
-            put( "clientOrderId", BullishCore.this.safeString(order, "clientOrderId") );
+            put( "clientOrderId", Bullish.this.safeString(order, "clientOrderId") );
             put( "timestamp", timestamp );
-            put( "datetime", BullishCore.this.iso8601(timestamp) );
+            put( "datetime", Bullish.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "status", finalStatus );
             put( "symbol", symbol );
-            put( "type", BullishCore.this.parseOrderType(finalType) );
+            put( "type", Bullish.this.parseOrderType(finalType) );
             put( "timeInForce", timeInForce );
             put( "postOnly", Helpers.isEqual(finalType, "POST_ONLY") );
             put( "side", side );
@@ -2645,7 +2645,7 @@ public class BullishCore extends BullishApi
                     put( "commandType", "V1Withdraw" );
                     put( "destinationId", address );
                     put( "symbol", Helpers.GetValue(currency, "id") );
-                    put( "quantity", BullishCore.this.currencyToPrecision(code, amount) );
+                    put( "quantity", Bullish.this.currencyToPrecision(code, amount) );
                 }} );
             }};
             String networkCode = null;
@@ -2733,15 +2733,15 @@ public class BullishCore extends BullishApi
             put( "id", id );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", BullishCore.this.iso8601(timestamp) );
-            put( "network", BullishCore.this.networkIdToCode(network, code) );
+            put( "datetime", Bullish.this.iso8601(timestamp) );
+            put( "network", Bullish.this.networkIdToCode(network, code) );
             put( "addressFrom", sourceAddress );
             put( "address", address );
             put( "addressTo", address );
             put( "amount", amount );
-            put( "type", BullishCore.this.parseTransactionType(type) );
+            put( "type", Bullish.this.parseTransactionType(type) );
             put( "currency", code );
-            put( "status", BullishCore.this.parseTransactionStatus(status) );
+            put( "status", Bullish.this.parseTransactionStatus(status) );
             put( "updated", updated );
             put( "tagFrom", null );
             put( "tag", null );
@@ -2911,7 +2911,7 @@ public class BullishCore extends BullishApi
     public Object parseAccount(Object account)
     {
         return new java.util.HashMap<String, Object>() {{
-            put( "id", BullishCore.this.safeString(account, "tradingAccountId") );
+            put( "id", Bullish.this.safeString(account, "tradingAccountId") );
             put( "type", null );
             put( "code", null );
             put( "info", account );
@@ -2999,8 +2999,8 @@ public class BullishCore extends BullishApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
-            put( "network", BullishCore.this.networkIdToCode(network, code) );
-            put( "address", BullishCore.this.safeString(depositAddress, "address") );
+            put( "network", Bullish.this.networkIdToCode(network, code) );
+            put( "address", Bullish.this.safeString(depositAddress, "address") );
             put( "tag", null );
         }};
     }
@@ -3175,16 +3175,16 @@ public class BullishCore extends BullishApi
             put( "id", null );
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BullishCore.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", BullishCore.this.safeInteger(position, "updatedAtTimestamp") );
+            put( "datetime", Bullish.this.iso8601(timestamp) );
+            put( "lastUpdateTimestamp", Bullish.this.safeInteger(position, "updatedAtTimestamp") );
             put( "hedged", null );
-            put( "side", BullishCore.this.parsePositionSide(side) );
-            put( "contracts", BullishCore.this.safeNumber(position, "quantity") );
+            put( "side", Bullish.this.parsePositionSide(side) );
+            put( "contracts", Bullish.this.safeNumber(position, "quantity") );
             put( "contractSize", null );
             put( "entryPrice", null );
             put( "markPrice", null );
             put( "lastPrice", null );
-            put( "notional", BullishCore.this.safeNumber(position, "notional") );
+            put( "notional", Bullish.this.safeNumber(position, "notional") );
             put( "leverage", null );
             put( "collateral", null );
             put( "initialMargin", null );
@@ -3313,7 +3313,7 @@ public class BullishCore extends BullishApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "commandType", "V2TransferAsset" );
                 put( "assetSymbol", Helpers.GetValue(currency, "id") );
-                put( "quantity", BullishCore.this.currencyToPrecision(code, amount) );
+                put( "quantity", Bullish.this.currencyToPrecision(code, amount) );
                 put( "fromTradingAccountId", fromAccount );
                 put( "toTradingAccountId", toAccount );
             }};
@@ -3372,14 +3372,14 @@ public class BullishCore extends BullishApi
         }
         final Object finalStatus = status;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", BullishCore.this.safeString(transfer, "requestId") );
+            put( "id", Bullish.this.safeString(transfer, "requestId") );
             put( "timestamp", timestamp );
-            put( "datetime", BullishCore.this.iso8601(timestamp) );
-            put( "currency", BullishCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", BullishCore.this.safeNumber(transfer, "quantity") );
-            put( "fromAccount", BullishCore.this.safeString(transfer, "fromTradingAccountId") );
-            put( "toAccount", BullishCore.this.safeString(transfer, "toTradingAccountId") );
-            put( "status", BullishCore.this.parseTransferStatus(finalStatus) );
+            put( "datetime", Bullish.this.iso8601(timestamp) );
+            put( "currency", Bullish.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Bullish.this.safeNumber(transfer, "quantity") );
+            put( "fromAccount", Bullish.this.safeString(transfer, "fromTradingAccountId") );
+            put( "toAccount", Bullish.this.safeString(transfer, "toTradingAccountId") );
+            put( "status", Bullish.this.parseTransferStatus(finalStatus) );
             put( "info", transfer );
         }};
     }
@@ -3474,11 +3474,11 @@ public class BullishCore extends BullishApi
         Long timestamp = this.safeInteger(info, "createdAtTimestamp");
         String currencyId = this.safeString(info, "assetSymbol");
         return new java.util.HashMap<String, Object>() {{
-            put( "currency", BullishCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "rate", BullishCore.this.safeNumber(info, "borrowedQuantity") );
+            put( "currency", Bullish.this.safeCurrencyCode(currencyId, currency) );
+            put( "rate", Bullish.this.safeNumber(info, "borrowedQuantity") );
             put( "period", 86400000 );
             put( "timestamp", timestamp );
-            put( "datetime", BullishCore.this.iso8601(timestamp) );
+            put( "datetime", Bullish.this.iso8601(timestamp) );
             put( "info", info );
         }};
     }
@@ -3599,11 +3599,11 @@ public class BullishCore extends BullishApi
         String openInterest = this.safeString(interest, "openInterest");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "info", interest );
-            put( "symbol", BullishCore.this.safeString(market, "symbol") );
+            put( "symbol", Bullish.this.safeString(market, "symbol") );
             put( "openInterestAmount", openInterest );
             put( "openInterestValue", null );
-            put( "timestamp", BullishCore.this.safeString(interest, "createdAtTimestamp") );
-            put( "datetime", BullishCore.this.safeString(interest, "createdAtDatetime") );
+            put( "timestamp", Bullish.this.safeString(interest, "createdAtTimestamp") );
+            put( "datetime", Bullish.this.safeString(interest, "createdAtDatetime") );
             put( "baseVolume", openInterest );
             put( "quoteVolume", null );
         }}, market);

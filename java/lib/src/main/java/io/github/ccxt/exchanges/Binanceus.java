@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BinanceusCore extends BinanceusApi
+public class Binanceus extends BinanceusApi
 {
-   public BinanceusCore () {
+   public Binanceus () {
        super();
    }
 
-   public BinanceusCore (Object options) {
+   public Binanceus (Object options) {
        super(options);
    }
 
@@ -46,8 +46,8 @@ public class BinanceusCore extends BinanceusApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", BinanceusCore.this.parseNumber("0.001") );
-                    put( "maker", BinanceusCore.this.parseNumber("0.001") );
+                    put( "taker", Binanceus.this.parseNumber("0.001") );
+                    put( "maker", Binanceus.this.parseNumber("0.001") );
                 }} );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{

@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class NdaxCore extends NdaxApi
+public class Ndax extends NdaxApi
 {
-   public NdaxCore () {
+   public Ndax () {
        super();
    }
 
-   public NdaxCore (Object options) {
+   public Ndax (Object options) {
        super(options);
    }
 
@@ -565,8 +565,8 @@ public class NdaxCore extends NdaxApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "maker", NdaxCore.this.parseNumber("0.002") );
-                    put( "taker", NdaxCore.this.parseNumber("0.0025") );
+                    put( "maker", Ndax.this.parseNumber("0.002") );
+                    put( "taker", Ndax.this.parseNumber("0.0025") );
                 }} );
             }} );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
@@ -690,7 +690,7 @@ public class NdaxCore extends NdaxApi
                 }
                 Helpers.addElementToObject(this.options, "pending2faToken", pending2faToken);
                 request = new java.util.HashMap<String, Object>() {{
-                    put( "Code", totp(NdaxCore.this.twofa) );
+                    put( "Code", totp(Ndax.this.twofa) );
                 }};
                 java.util.Map<String, Object> responseInner = (this.publicGetAuthenticate2FA(this.extend(request, parameters))).join();
                 //
@@ -766,14 +766,14 @@ public class NdaxCore extends NdaxApi
         final Object finalType = type;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
-            put( "name", NdaxCore.this.safeString(rawCurrency, "ProductFullName") );
+            put( "name", Ndax.this.safeString(rawCurrency, "ProductFullName") );
             put( "code", code );
             put( "type", finalType );
-            put( "precision", NdaxCore.this.safeNumber(rawCurrency, "TickSize") );
+            put( "precision", Ndax.this.safeNumber(rawCurrency, "TickSize") );
             put( "info", rawCurrency );
-            put( "active", (!Helpers.isEqual(NdaxCore.this.safeBool(rawCurrency, "IsDisabled"), true)) );
-            put( "deposit", NdaxCore.this.safeBool(rawCurrency, "DepositEnabled") );
-            put( "withdraw", NdaxCore.this.safeBool(rawCurrency, "WithdrawEnabled") );
+            put( "active", (!Helpers.isEqual(Ndax.this.safeBool(rawCurrency, "IsDisabled"), true)) );
+            put( "deposit", Ndax.this.safeBool(rawCurrency, "DepositEnabled") );
+            put( "withdraw", Ndax.this.safeBool(rawCurrency, "WithdrawEnabled") );
             put( "fee", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
@@ -786,7 +786,7 @@ public class NdaxCore extends NdaxApi
                 }} );
             }} );
             put( "networks", new java.util.HashMap<String, Object>() {{}} );
-            put( "margin", NdaxCore.this.safeBool(rawCurrency, "MarginEnabled") );
+            put( "margin", Ndax.this.safeBool(rawCurrency, "MarginEnabled") );
         }});
     }
 
@@ -899,8 +899,8 @@ public class NdaxCore extends NdaxApi
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", NdaxCore.this.safeNumber(market, "QuantityIncrement") );
-                put( "price", NdaxCore.this.safeNumber(market, "PriceIncrement") );
+                put( "amount", Ndax.this.safeNumber(market, "QuantityIncrement") );
+                put( "price", Ndax.this.safeNumber(market, "PriceIncrement") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -908,11 +908,11 @@ public class NdaxCore extends NdaxApi
                     put( "max", null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", NdaxCore.this.safeNumber(market, "MinimumQuantity") );
+                    put( "min", Ndax.this.safeNumber(market, "MinimumQuantity") );
                     put( "max", null );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", NdaxCore.this.safeNumber(market, "MinimumPrice") );
+                    put( "min", Ndax.this.safeNumber(market, "MinimumPrice") );
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
@@ -1104,12 +1104,12 @@ public class NdaxCore extends NdaxApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", NdaxCore.this.iso8601(timestamp) );
-            put( "high", NdaxCore.this.safeString2(ticker, "SessionHigh", "highest_price_24h") );
-            put( "low", NdaxCore.this.safeString2(ticker, "SessionLow", "lowest_price_24h") );
-            put( "bid", NdaxCore.this.safeString2(ticker, "BestBid", "highest_bid") );
+            put( "datetime", Ndax.this.iso8601(timestamp) );
+            put( "high", Ndax.this.safeString2(ticker, "SessionHigh", "highest_price_24h") );
+            put( "low", Ndax.this.safeString2(ticker, "SessionLow", "lowest_price_24h") );
+            put( "bid", Ndax.this.safeString2(ticker, "BestBid", "highest_bid") );
             put( "bidVolume", null );
-            put( "ask", NdaxCore.this.safeString2(ticker, "BestOffer", "lowest_ask") );
+            put( "ask", Ndax.this.safeString2(ticker, "BestOffer", "lowest_ask") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", open );
@@ -1278,7 +1278,7 @@ public class NdaxCore extends NdaxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "InstrumentId", Helpers.GetValue(market, "id") );
-                put( "Interval", NdaxCore.this.safeString(NdaxCore.this.timeframes, timeframe, timeframe) );
+                put( "Interval", Ndax.this.safeString(Ndax.this.timeframes, timeframe, timeframe) );
             }};
             int duration = this.parseTimeframe(timeframe);
             Long now = this.milliseconds();
@@ -1490,7 +1490,7 @@ public class NdaxCore extends NdaxApi
             put( "id", finalId );
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
-            put( "datetime", NdaxCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Ndax.this.iso8601(finalTimestamp) );
             put( "order", finalOrderId );
             put( "type", finalType );
             put( "side", finalSide );
@@ -1569,8 +1569,8 @@ public class NdaxCore extends NdaxApi
             this.checkRequiredCredentials();
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "omsId", omsId );
-                put( "UserId", NdaxCore.this.uid );
-                put( "UserName", NdaxCore.this.login );
+                put( "UserId", Ndax.this.uid );
+                put( "UserName", Ndax.this.login );
             }};
             java.util.List<Object> response = (this.privateGetGetUserAccounts(this.extend(request, parameters))).join();
             //
@@ -1757,19 +1757,19 @@ public class NdaxCore extends NdaxApi
         final Object finalBefore = before;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", NdaxCore.this.safeString(item, "TransactionId") );
+            put( "id", Ndax.this.safeString(item, "TransactionId") );
             put( "direction", finalDirection );
-            put( "account", NdaxCore.this.safeString(item, "AccountId") );
-            put( "referenceId", NdaxCore.this.safeString(item, "ReferenceId") );
-            put( "referenceAccount", NdaxCore.this.safeString(item, "Counterparty") );
-            put( "type", NdaxCore.this.parseLedgerEntryType(NdaxCore.this.safeString(item, "ReferenceType")) );
-            put( "currency", NdaxCore.this.safeCurrencyCode(currencyId, finalCurrency) );
-            put( "amount", NdaxCore.this.parseNumber(finalAmount) );
-            put( "before", NdaxCore.this.parseNumber(finalBefore) );
-            put( "after", NdaxCore.this.parseNumber(after) );
+            put( "account", Ndax.this.safeString(item, "AccountId") );
+            put( "referenceId", Ndax.this.safeString(item, "ReferenceId") );
+            put( "referenceAccount", Ndax.this.safeString(item, "Counterparty") );
+            put( "type", Ndax.this.parseLedgerEntryType(Ndax.this.safeString(item, "ReferenceType")) );
+            put( "currency", Ndax.this.safeCurrencyCode(currencyId, finalCurrency) );
+            put( "amount", Ndax.this.parseNumber(finalAmount) );
+            put( "before", Ndax.this.parseNumber(finalBefore) );
+            put( "after", Ndax.this.parseNumber(after) );
             put( "status", "ok" );
             put( "timestamp", timestamp );
-            put( "datetime", NdaxCore.this.iso8601(timestamp) );
+            put( "datetime", Ndax.this.iso8601(timestamp) );
             put( "fee", null );
         }}, currency);
     }
@@ -1930,24 +1930,24 @@ public class NdaxCore extends NdaxApi
         Long timestamp = this.safeInteger(order, "ReceiveTime");
         String marketId = this.safeString(order, "Instrument");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", NdaxCore.this.safeString2(order, "ReplacementOrderId", "OrderId") );
-            put( "clientOrderId", NdaxCore.this.safeString2(order, "ReplacementClOrdId", "ClientOrderId") );
+            put( "id", Ndax.this.safeString2(order, "ReplacementOrderId", "OrderId") );
+            put( "clientOrderId", Ndax.this.safeString2(order, "ReplacementClOrdId", "ClientOrderId") );
             put( "info", order );
             put( "timestamp", timestamp );
-            put( "datetime", NdaxCore.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", NdaxCore.this.safeInteger(order, "LastUpdatedTime") );
-            put( "status", NdaxCore.this.parseOrderStatus(NdaxCore.this.safeString(order, "OrderState")) );
-            put( "symbol", NdaxCore.this.safeSymbol(marketId, market) );
-            put( "type", NdaxCore.this.safeStringLower(order, "OrderType") );
+            put( "datetime", Ndax.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", Ndax.this.safeInteger(order, "LastUpdatedTime") );
+            put( "status", Ndax.this.parseOrderStatus(Ndax.this.safeString(order, "OrderState")) );
+            put( "symbol", Ndax.this.safeSymbol(marketId, market) );
+            put( "type", Ndax.this.safeStringLower(order, "OrderType") );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "side", NdaxCore.this.safeStringLower(order, "Side") );
-            put( "price", NdaxCore.this.safeString(order, "Price") );
-            put( "triggerPrice", NdaxCore.this.parseNumber(NdaxCore.this.omitZero(NdaxCore.this.safeString(order, "StopPrice"))) );
-            put( "cost", NdaxCore.this.safeString(order, "GrossValueExecuted") );
-            put( "amount", NdaxCore.this.safeString(order, "OrigQuantity") );
-            put( "filled", NdaxCore.this.safeString(order, "QuantityExecuted") );
-            put( "average", NdaxCore.this.safeString(order, "AvgPrice") );
+            put( "side", Ndax.this.safeStringLower(order, "Side") );
+            put( "price", Ndax.this.safeString(order, "Price") );
+            put( "triggerPrice", Ndax.this.parseNumber(Ndax.this.omitZero(Ndax.this.safeString(order, "StopPrice"))) );
+            put( "cost", Ndax.this.safeString(order, "GrossValueExecuted") );
+            put( "amount", Ndax.this.safeString(order, "OrigQuantity") );
+            put( "filled", Ndax.this.safeString(order, "QuantityExecuted") );
+            put( "average", Ndax.this.safeString(order, "AvgPrice") );
             put( "remaining", null );
             put( "fee", null );
             put( "trades", null );
@@ -2006,7 +2006,7 @@ public class NdaxCore extends NdaxApi
             final Object finalAmountString = amountString;
             final Object finalOrderType = orderType;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "InstrumentId", NdaxCore.this.parseToInt(Helpers.GetValue(market, "id")) );
+                put( "InstrumentId", Ndax.this.parseToInt(Helpers.GetValue(market, "id")) );
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
                 put( "TimeInForce", 1 );
@@ -2083,13 +2083,13 @@ public class NdaxCore extends NdaxApi
             final Object finalAmountString = amountString;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "OrderIdToReplace", Helpers.parseInt(id) );
-                put( "InstrumentId", NdaxCore.this.parseToInt(Helpers.GetValue(market, "id")) );
+                put( "InstrumentId", Ndax.this.parseToInt(Helpers.GetValue(market, "id")) );
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
                 put( "TimeInForce", 1 );
                 put( "Side", orderSide );
                 put( "Quantity", ((Helpers.isTrue((Helpers.isEqual(finalAmountString, null))))) ? null : Helpers.parseFloat(finalAmountString) );
-                put( "OrderType", NdaxCore.this.safeInteger(Helpers.GetValue(NdaxCore.this.options, "orderTypes"), NdaxCore.this.capitalize(type)) );
+                put( "OrderType", Ndax.this.safeInteger(Helpers.GetValue(Ndax.this.options, "orderTypes"), Ndax.this.capitalize(type)) );
             }};
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
@@ -2643,7 +2643,7 @@ public class NdaxCore extends NdaxApi
                 market = this.market(symbol);
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "OMSId", NdaxCore.this.parseToInt(omsId) );
+                put( "OMSId", Ndax.this.parseToInt(omsId) );
                 put( "OrderId", Helpers.parseInt(id) );
             }};
             java.util.List<Object> response = (this.privatePostGetOrderHistoryByOrderId(this.extend(request, parameters))).join();
@@ -2809,7 +2809,7 @@ public class NdaxCore extends NdaxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "GenerateNewKey", true );
             }};
-            return (this.fetchDepositAddress(code, this.extend(request, parameters))).join();
+            return (this.fetchDepositAddress(code, (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -3107,19 +3107,19 @@ public class NdaxCore extends NdaxApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", finalId );
-            put( "txid", NdaxCore.this.safeString2(finalTemplateForm, "TxId", "TXId") );
+            put( "txid", Ndax.this.safeString2(finalTemplateForm, "TxId", "TXId") );
             put( "timestamp", timestamp );
-            put( "datetime", NdaxCore.this.iso8601(timestamp) );
+            put( "datetime", Ndax.this.iso8601(timestamp) );
             put( "address", address );
             put( "addressTo", address );
-            put( "addressFrom", NdaxCore.this.safeString(finalTemplateForm, "FromAddress") );
+            put( "addressFrom", Ndax.this.safeString(finalTemplateForm, "FromAddress") );
             put( "tag", null );
             put( "tagTo", null );
             put( "tagFrom", null );
             put( "type", finalType );
-            put( "amount", NdaxCore.this.safeNumber(transaction, "Amount") );
+            put( "amount", Ndax.this.safeNumber(transaction, "Amount") );
             put( "currency", code );
-            put( "status", NdaxCore.this.parseTransactionStatusByType(transactionStatus, finalType) );
+            put( "status", Ndax.this.parseTransactionStatusByType(transactionStatus, finalType) );
             put( "updated", finalUpdated );
             put( "fee", finalFee );
             put( "internal", null );
@@ -3230,13 +3230,13 @@ public class NdaxCore extends NdaxApi
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
                 put( "ProductId", Helpers.GetValue(currency, "id") );
-                put( "TemplateForm", NdaxCore.this.json(withdrawTemplate) );
+                put( "TemplateForm", Ndax.this.json(withdrawTemplate) );
                 put( "TemplateType", templateName );
             }};
             java.util.Map<String, Object> withdrawRequest = new java.util.HashMap<String, Object>() {{
                 put( "TfaType", "Google" );
-                put( "TFaCode", totp(NdaxCore.this.twofa) );
-                put( "Payload", NdaxCore.this.json(withdrawPayload) );
+                put( "TFaCode", totp(Ndax.this.twofa) );
+                put( "Payload", Ndax.this.json(withdrawPayload) );
             }};
             java.util.Map<String, Object> response = (this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, parameters))).join();
             return this.parseTransaction(response, currency);
@@ -3295,9 +3295,9 @@ public class NdaxCore extends NdaxApi
                 final Object finalNonce = nonce;
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "Nonce", finalNonce );
-                    put( "APIKey", NdaxCore.this.apiKey );
+                    put( "APIKey", Ndax.this.apiKey );
                     put( "Signature", signature );
-                    put( "UserId", NdaxCore.this.uid );
+                    put( "UserId", Ndax.this.uid );
                 }};
             } else
             {

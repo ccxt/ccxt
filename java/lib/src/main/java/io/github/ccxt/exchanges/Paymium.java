@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class PaymiumCore extends PaymiumApi
+public class Paymium extends PaymiumApi
 {
-   public PaymiumCore () {
+   public Paymium () {
        super();
    }
 
-   public PaymiumCore (Object options) {
+   public Paymium (Object options) {
        super(options);
    }
 
@@ -154,7 +154,7 @@ public class PaymiumCore extends PaymiumApi
                 }} );
             }} );
             put( "markets", new java.util.HashMap<String, Object>() {{
-                put( "BTC/EUR", PaymiumCore.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                put( "BTC/EUR", Paymium.this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", "eur" );
                     put( "symbol", "BTC/EUR" );
                     put( "base", "BTC" );
@@ -167,8 +167,8 @@ public class PaymiumCore extends PaymiumApi
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
                 put( "trading", new java.util.HashMap<String, Object>() {{
-                    put( "maker", PaymiumCore.this.parseNumber("-0.001") );
-                    put( "taker", PaymiumCore.this.parseNumber("0.005") );
+                    put( "maker", Paymium.this.parseNumber("-0.001") );
+                    put( "taker", Paymium.this.parseNumber("0.005") );
                 }} );
             }} );
             put( "precisionMode", TICK_SIZE );
@@ -326,20 +326,20 @@ public class PaymiumCore extends PaymiumApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", PaymiumCore.this.iso8601(timestamp) );
-            put( "high", PaymiumCore.this.safeString(ticker, "high") );
-            put( "low", PaymiumCore.this.safeString(ticker, "low") );
-            put( "bid", PaymiumCore.this.safeString(ticker, "bid") );
+            put( "datetime", Paymium.this.iso8601(timestamp) );
+            put( "high", Paymium.this.safeString(ticker, "high") );
+            put( "low", Paymium.this.safeString(ticker, "low") );
+            put( "bid", Paymium.this.safeString(ticker, "bid") );
             put( "bidVolume", null );
-            put( "ask", PaymiumCore.this.safeString(ticker, "ask") );
+            put( "ask", Paymium.this.safeString(ticker, "ask") );
             put( "askVolume", null );
             put( "vwap", vwap );
-            put( "open", PaymiumCore.this.safeString(ticker, "open") );
+            put( "open", Paymium.this.safeString(ticker, "open") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", PaymiumCore.this.safeString(ticker, "variation") );
+            put( "percentage", Paymium.this.safeString(ticker, "variation") );
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
@@ -410,7 +410,7 @@ public class PaymiumCore extends PaymiumApi
             put( "id", id );
             put( "order", null );
             put( "timestamp", timestamp );
-            put( "datetime", PaymiumCore.this.iso8601(timestamp) );
+            put( "datetime", Paymium.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", null );
             put( "side", side );
@@ -575,7 +575,7 @@ public class PaymiumCore extends PaymiumApi
         String currencyId = this.safeString(depositAddress, "currency");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", PaymiumCore.this.safeCurrencyCode(currencyId, currency) );
+            put( "currency", Paymium.this.safeCurrencyCode(currencyId, currency) );
             put( "network", null );
             put( "address", address );
             put( "tag", null );
@@ -609,7 +609,7 @@ public class PaymiumCore extends PaymiumApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "type", Helpers.add(PaymiumCore.this.capitalize(finalType), "Order") );
+                put( "type", Helpers.add(Paymium.this.capitalize(finalType), "Order") );
                 put( "currency", Helpers.GetValue(market, "id") );
                 put( "direction", side );
                 put( "amount", amount );
@@ -621,7 +621,7 @@ public class PaymiumCore extends PaymiumApi
             java.util.Map<String, Object> response = (this.privatePostUserOrders(this.extend(request, parameters))).join();
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "id", PaymiumCore.this.safeString(response, "uuid") );
+                put( "id", Paymium.this.safeString(response, "uuid") );
             }}, market);
         });
 
@@ -689,7 +689,7 @@ public class PaymiumCore extends PaymiumApi
             final Object finalCode = code;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "amount", PaymiumCore.this.currencyToPrecision(finalCode, amount) );
+                put( "amount", Paymium.this.currencyToPrecision(finalCode, amount) );
                 put( "email", toAccount );
             }};
             java.util.Map<String, Object> response = (this.privatePostUserEmailTransfers(this.extend(request, parameters))).join();
@@ -773,14 +773,14 @@ public class PaymiumCore extends PaymiumApi
         String status = this.safeString(transfer, "state");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", PaymiumCore.this.safeString(transfer, "uuid") );
+            put( "id", Paymium.this.safeString(transfer, "uuid") );
             put( "timestamp", timetstamp );
-            put( "datetime", PaymiumCore.this.iso8601(timetstamp) );
-            put( "currency", PaymiumCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", PaymiumCore.this.safeNumber(transfer, "amount") );
+            put( "datetime", Paymium.this.iso8601(timetstamp) );
+            put( "currency", Paymium.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Paymium.this.safeNumber(transfer, "amount") );
             put( "fromAccount", null );
-            put( "toAccount", PaymiumCore.this.safeString(firstOperation, "address") );
-            put( "status", PaymiumCore.this.parseTransferStatus(status) );
+            put( "toAccount", Paymium.this.safeString(firstOperation, "address") );
+            put( "status", Paymium.this.parseTransferStatus(status) );
         }};
     }
 
@@ -814,7 +814,7 @@ public class PaymiumCore extends PaymiumApi
             Object auth = Helpers.add(nonce, url);
             final Object finalNonce = nonce;
             headers = new java.util.HashMap<String, Object>() {{
-                put( "Api-Key", PaymiumCore.this.apiKey );
+                put( "Api-Key", Paymium.this.apiKey );
                 put( "Api-Nonce", finalNonce );
             }};
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))

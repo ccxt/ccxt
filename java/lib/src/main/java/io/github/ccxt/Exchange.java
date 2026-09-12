@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 // whitelisted trading methods that moved off BaseExchange.
 // ----------------------------------------------------------------------------
 
-public class Exchange extends BaseExchange {
+public class Exchange extends BaseExchange implements TypedSurface {
 
     public Exchange() {
         super();
@@ -178,7 +178,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPositionsHistory"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPositionsHistory"), false))))
             {
-                Object positions = (this.fetchPositionsHistory(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+                Object positions = (this.fetchPositionsHistory((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                 return positions;
             } else
             {
@@ -297,7 +297,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 (this.loadMarkets()).join();
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
-                Object tickers = (this.fetchMarkPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object tickers = (this.fetchMarkPrices((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
                 Object ticker = this.safeDict(tickers, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
                 {
@@ -440,7 +440,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.createOrderWs(symbol, "limit", "buy", amount, price, parameters)).join();
+            return (this.createOrderWs(symbol, (Object)("limit"), (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -451,7 +451,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.createOrderWs(symbol, "limit", side, amount, price, parameters)).join();
+            return (this.createOrderWs(symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -462,7 +462,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.createOrderWs(symbol, "limit", "sell", amount, price, parameters)).join();
+            return (this.createOrderWs(symbol, (Object)("limit"), (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -473,7 +473,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.createOrderWs(symbol, "market", "buy", amount, null, parameters)).join();
+            return (this.createOrderWs(symbol, (Object)("market"), (Object)("buy"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -496,7 +496,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCostWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCostWs"), false)))) || Helpers.isTrue((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCostWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCostWs"), false)))) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCostWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCostWs"), false))))))))
             {
-                return (this.createOrderWs(symbol, "market", side, cost, 1, parameters)).join();
+                return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCostWs() is not supported yet")) ;
         });
@@ -510,7 +510,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.createOrderWs(symbol, "market", side, amount, price, parameters)).join();
+            return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -521,7 +521,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.createOrderWs(symbol, "market", "sell", amount, null, parameters)).join();
+            return (this.createOrderWs(symbol, (Object)("market"), (Object)("sell"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -560,7 +560,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createOrderWithTakeProfitAndStopLossWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createOrderWithTakeProfitAndStopLossWs"), false))))
             {
-                return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
+                return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
         });
@@ -604,7 +604,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "postOnly", true );
             }});
-            return (this.createOrderWs(symbol, type, side, amount, price, query)).join();
+            return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
         });
 
     }
@@ -623,7 +623,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "reduceOnly", true );
             }});
-            return (this.createOrderWs(symbol, type, side, amount, price, query)).join();
+            return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
         });
 
     }
@@ -641,7 +641,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
             }});
-            return (this.createOrderWs(symbol, "limit", side, amount, price, query)).join();
+            return (this.createOrderWs(symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
         });
 
     }
@@ -677,7 +677,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             }});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createStopLossOrderWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createStopLossOrderWs"), false))))
             {
-                return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
+                return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createStopLossOrderWs() is not supported yet")) ;
         });
@@ -697,7 +697,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
             }});
-            return (this.createOrderWs(symbol, "market", side, amount, null, query)).join();
+            return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(amount), (Object)(null), (Object)(query))).join();
         });
 
     }
@@ -722,7 +722,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "stopPrice", finalTriggerPrice );
             }});
-            return (this.createOrderWs(symbol, type, side, amount, price, query)).join();
+            return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
         });
 
     }
@@ -758,7 +758,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             }});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTakeProfitOrderWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTakeProfitOrderWs"), false))))
             {
-                return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
+                return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTakeProfitOrderWs() is not supported yet")) ;
         });
@@ -799,7 +799,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingAmountOrderWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingAmountOrderWs"), false))))
             {
-                return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
+                return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTrailingAmountOrderWs() is not supported yet")) ;
         });
@@ -840,7 +840,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingPercentOrderWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingPercentOrderWs"), false))))
             {
-                return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
+                return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTrailingPercentOrderWs() is not supported yet")) ;
         });
@@ -878,7 +878,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             }});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTriggerOrderWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTriggerOrderWs"), false))))
             {
-                return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
+                return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTriggerOrderWs() is not supported yet")) ;
         });
@@ -893,8 +893,8 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.cancelOrderWs(id, symbol)).join();
-            return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
+            (this.cancelOrderWs(id, (Object)(symbol))).join();
+            return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -910,7 +910,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrdersWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrdersWs"), false))))
             {
-                Object orders = (this.fetchOrdersWs(symbol, since, limit, parameters)).join();
+                Object orders = (this.fetchOrdersWs((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                 return this.filterBy(orders, "status", "closed");
             }
             throw new NotSupported(Helpers.add(this.id, " fetchClosedOrdersWs() is not supported yet")) ;
@@ -943,7 +943,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrdersWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrdersWs"), false))))
             {
-                Object orders = (this.fetchOrdersWs(symbol, since, limit, parameters)).join();
+                Object orders = (this.fetchOrdersWs((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                 return this.filterBy(orders, "status", "open");
             }
             throw new NotSupported(Helpers.add(this.id, " fetchOpenOrdersWs() is not supported yet")) ;
@@ -1023,7 +1023,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 (this.loadMarkets()).join();
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
-                Object tickers = (this.fetchTickersWs(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object tickers = (this.fetchTickersWs((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
                 Object ticker = this.safeDict(tickers, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
                 {
@@ -1116,7 +1116,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 try
                 {
-                    Object orderBook = (this.fetchOrderBook(symbol, limit, parameters)).join();
+                    Object orderBook = (this.fetchOrderBook((Object)(symbol), (Object)(limit), (Object)(parameters))).join();
                     return orderBook;
                 } catch(Exception e)
                 {
@@ -1151,7 +1151,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOpenInterests"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOpenInterests"), false))))
             {
-                Object openInterests = (this.fetchOpenInterests(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object openInterests = (this.fetchOpenInterests((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
                 return this.safeDict(openInterests, symbol);
             } else
             {
@@ -1168,7 +1168,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object orderbook = (this.fetchOrderBook(symbol, limit, parameters)).join();
+            Object orderbook = (this.fetchOrderBook((Object)(symbol), (Object)(limit), (Object)(parameters))).join();
             return this.extend(orderbook, new java.util.HashMap<String, Object>() {{
                 put( "asks", Exchange.this.sortBy(Exchange.this.aggregate(Helpers.GetValue(orderbook, "asks")), 0) );
                 put( "bids", Exchange.this.sortBy(Exchange.this.aggregate(Helpers.GetValue(orderbook, "bids")), 0, true) );
@@ -1184,7 +1184,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.editLimitOrder(id, symbol, "buy", amount, price, parameters)).join();
+            return (this.editLimitOrder(id, symbol, (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -1196,7 +1196,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.editLimitOrder(id, symbol, "sell", amount, price, parameters)).join();
+            return (this.editLimitOrder(id, symbol, (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -1208,7 +1208,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.editOrder(id, symbol, "limit", side, amount, price, parameters)).join();
+            return (this.editOrder(id, symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -1221,8 +1221,8 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.cancelOrder(id, symbol)).join();
-            return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
+            (this.cancelOrder((Object)(id), (Object)(symbol))).join();
+            return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -1238,7 +1238,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "clientOrderId", clientOrderId );
             }});
-            return (this.editOrder("", symbol, type, side, amount, price, extendedParams)).join();
+            return (this.editOrder("", symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(extendedParams))).join();
         });
 
     }
@@ -1277,7 +1277,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchPositions(symbols, since, limit, parameters)).join();
+            return (this.watchPositions((Object)(symbols), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1305,7 +1305,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 (this.loadMarkets()).join();
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
-                Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object tickers = (this.fetchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
                 Object ticker = this.safeDict(tickers, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
                 {
@@ -1388,7 +1388,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "clientOrderId", clientOrderId );
             }});
-            return (this.fetchOrder("", symbol, extendedParams)).join();
+            return (this.fetchOrder((Object)(""), (Object)(symbol), (Object)(extendedParams))).join();
         });
 
     }
@@ -1402,7 +1402,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             // Promise<string> with Promise<Order['status']>.
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object order = (this.fetchOrder(id, symbol, parameters)).join();
+            Object order = (this.fetchOrder((Object)(id), (Object)(symbol), (Object)(parameters))).join();
             return Helpers.GetValue(order, "status");
         });
 
@@ -1414,7 +1414,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters)).join();
+            return (this.fetchOrder((Object)(this.safeString(order, "id")), (Object)(this.safeString(order, "symbol")), (Object)(parameters))).join();
         });
 
     }
@@ -1465,7 +1465,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingAmountOrder"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingAmountOrder"), false))))
             {
-                return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
+                return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTrailingAmountOrder() is not supported yet")) ;
         });
@@ -1506,7 +1506,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingPercentOrder"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingPercentOrder"), false))))
             {
-                return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
+                return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTrailingPercentOrder() is not supported yet")) ;
         });
@@ -1531,7 +1531,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCost"), false)))) || Helpers.isTrue((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), false)))) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), false))))))))
             {
-                return (this.createOrder(symbol, "market", side, cost, 1, parameters)).join();
+                return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
         });
@@ -1555,7 +1555,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(this.options, "createMarketBuyOrderRequiresPrice"), true))) || Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), false))))))
             {
-                return (this.createOrder(symbol, "market", "buy", cost, 1, parameters)).join();
+                return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
         });
@@ -1579,7 +1579,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(this.options, "createMarketSellOrderRequiresPrice"), true))) || Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), false))))))
             {
-                return (this.createOrder(symbol, "market", "sell", cost, 1, parameters)).join();
+                return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
         });
@@ -1617,7 +1617,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             }});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTriggerOrder"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTriggerOrder"), false))))
             {
-                return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
+                return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTriggerOrder() is not supported yet")) ;
         });
@@ -1655,7 +1655,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             }});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createStopLossOrder"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createStopLossOrder"), false))))
             {
-                return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
+                return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createStopLossOrder() is not supported yet")) ;
         });
@@ -1693,7 +1693,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             }});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTakeProfitOrder"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTakeProfitOrder"), false))))
             {
-                return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
+                return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTakeProfitOrder() is not supported yet")) ;
         });
@@ -1734,7 +1734,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createOrderWithTakeProfitAndStopLoss"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createOrderWithTakeProfitAndStopLoss"), false))))
             {
-                return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
+                return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
         });
@@ -1783,7 +1783,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "clientOrderId", clientOrderId );
             }});
-            return (this.cancelOrder("", symbol, extendedParams)).join();
+            return (this.cancelOrder((Object)(""), (Object)(symbol), (Object)(extendedParams))).join();
         });
 
     }
@@ -1819,7 +1819,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "clientOrderIds", clientOrderIds );
             }});
-            return (this.cancelOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList()), symbol, extendedParams)).join();
+            return (this.cancelOrders((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList())), (Object)(symbol), (Object)(extendedParams))).join();
         });
 
     }
@@ -1904,7 +1904,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrders"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrders"), false))))
             {
-                Object orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+                Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                 return this.filterBy(orders, "status", "open");
             }
             throw new NotSupported(Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
@@ -1923,7 +1923,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrders"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrders"), false))))
             {
-                Object orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+                Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                 return this.filterBy(orders, "status", "closed");
             }
             throw new NotSupported(Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
@@ -1979,7 +1979,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.createOrder(symbol, "limit", side, amount, price, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -1991,7 +1991,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.createOrder(symbol, "market", side, amount, price, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -2002,7 +2002,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.createOrder(symbol, "limit", "buy", amount, price, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -2013,7 +2013,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.createOrder(symbol, "limit", "sell", amount, price, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         });
 
     }
@@ -2024,7 +2024,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.createOrder(symbol, "market", "buy", amount, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -2035,7 +2035,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.createOrder(symbol, "market", "sell", amount, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -2054,7 +2054,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "postOnly", true );
             }});
-            return (this.createOrder(symbol, type, side, amount, price, query)).join();
+            return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
         });
 
     }
@@ -2073,7 +2073,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "reduceOnly", true );
             }});
-            return (this.createOrder(symbol, type, side, amount, price, query)).join();
+            return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
         });
 
     }
@@ -2098,7 +2098,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "stopPrice", finalTriggerPrice );
             }});
-            return (this.createOrder(symbol, type, side, amount, price, query)).join();
+            return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
         });
 
     }
@@ -2116,7 +2116,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
             }});
-            return (this.createOrder(symbol, "limit", side, amount, price, query)).join();
+            return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
         });
 
     }
@@ -2134,7 +2134,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
             }});
-            return (this.createOrder(symbol, "market", side, amount, null, query)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(amount), (Object)(null), (Object)(query))).join();
         });
 
     }
@@ -2149,7 +2149,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchTradingFee() is not supported yet")) ;
             }
-            Object fees = (this.fetchTradingFees(parameters)).join();
+            Object fees = (this.fetchTradingFees((Object)(parameters))).join();
             return this.safeDict(fees, symbol);
         });
 

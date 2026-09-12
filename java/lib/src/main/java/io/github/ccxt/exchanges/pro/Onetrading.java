@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
+public class Onetrading extends io.github.ccxt.exchanges.Onetrading
 {
-   public OnetradingCore () {
+   public Onetrading () {
        super();
    }
 
-   public OnetradingCore (Object options) {
+   public Onetrading (Object options) {
        super(options);
    }
 
@@ -276,25 +276,25 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "instrument");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", OnetradingCore.this.safeSymbol(marketId, market) );
+            put( "symbol", Onetrading.this.safeSymbol(marketId, market) );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", OnetradingCore.this.safeString(ticker, "high") );
-            put( "low", OnetradingCore.this.safeString(ticker, "low") );
+            put( "high", Onetrading.this.safeString(ticker, "high") );
+            put( "low", Onetrading.this.safeString(ticker, "low") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
-            put( "close", OnetradingCore.this.safeString(ticker, "last_price") );
-            put( "last", OnetradingCore.this.safeString(ticker, "last_price") );
+            put( "close", Onetrading.this.safeString(ticker, "last_price") );
+            put( "last", Onetrading.this.safeString(ticker, "last_price") );
             put( "previousClose", null );
-            put( "change", OnetradingCore.this.safeString(ticker, "price_change") );
-            put( "percentage", OnetradingCore.this.safeString(ticker, "price_change_percentage") );
+            put( "change", Onetrading.this.safeString(ticker, "price_change") );
+            put( "percentage", Onetrading.this.safeString(ticker, "price_change_percentage") );
             put( "average", null );
             put( "baseVolume", null );
-            put( "quoteVolume", OnetradingCore.this.safeNumber(ticker, "volume") );
+            put( "quoteVolume", Onetrading.this.safeNumber(ticker, "volume") );
             put( "info", ticker );
         }}, market);
     }
@@ -351,7 +351,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object numTrades = Helpers.getArrayLength(trades);
             if (Helpers.isTrue(Helpers.isEqual(numTrades, 0)))
             {
-                return (this.watchMyTrades(symbol, since, limit, parameters)).join();
+                return (this.watchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
             return trades;
         });
@@ -550,7 +550,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object numOrders = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isEqual(numOrders, 0)))
             {
-                return (this.watchOrders(symbol, since, limit, parameters)).join();
+                return (this.watchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
             return orders;
         });
@@ -706,25 +706,25 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         String marketId = this.safeString(order, "instrument_code");
         String symbol = this.safeSymbol(marketId, market, "_");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", OnetradingCore.this.safeString(order, "order_id") );
-            put( "clientOrderId", OnetradingCore.this.safeString(order, "client_id") );
+            put( "id", Onetrading.this.safeString(order, "order_id") );
+            put( "clientOrderId", Onetrading.this.safeString(order, "client_id") );
             put( "info", order );
-            put( "timestamp", OnetradingCore.this.parse8601(datetime) );
+            put( "timestamp", Onetrading.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "lastTradeTimestamp", null );
             put( "symbol", symbol );
             put( "type", null );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "side", OnetradingCore.this.safeStringLower(order, "side") );
-            put( "price", OnetradingCore.this.safeNumber2(order, "price", "matched_price") );
-            put( "stopPrice", OnetradingCore.this.safeNumber(order, "trigger_price") );
-            put( "amount", OnetradingCore.this.safeNumber(order, "amount") );
+            put( "side", Onetrading.this.safeStringLower(order, "side") );
+            put( "price", Onetrading.this.safeNumber2(order, "price", "matched_price") );
+            put( "stopPrice", Onetrading.this.safeNumber(order, "trigger_price") );
+            put( "amount", Onetrading.this.safeNumber(order, "amount") );
             put( "cost", null );
             put( "average", null );
             put( "filled", null );
-            put( "remaining", OnetradingCore.this.safeString(order, "remaining") );
-            put( "status", OnetradingCore.this.parseTradingOrderStatus(OnetradingCore.this.safeString(order, "status")) );
+            put( "remaining", Onetrading.this.safeString(order, "remaining") );
+            put( "status", Onetrading.this.parseTradingOrderStatus(Onetrading.this.safeString(order, "status")) );
             put( "fee", null );
             put( "trades", null );
         }}, market);
@@ -1093,7 +1093,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 put( "id", orderId );
                 put( "symbol", finalSymbol );
                 put( "status", finalStatus );
-                put( "timestamp", OnetradingCore.this.parse8601(datetime) );
+                put( "timestamp", Onetrading.this.parse8601(datetime) );
                 put( "datetime", datetime );
             }};
             Helpers.callDynamically(orders, "append", new Object[]{orderObject});
@@ -1534,7 +1534,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 this.checkRequiredCredentials();
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "type", "AUTHENTICATE" );
-                    put( "api_token", OnetradingCore.this.apiKey );
+                    put( "api_token", Onetrading.this.apiKey );
                 }};
                 this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
             }

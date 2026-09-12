@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class WeexCore extends WeexApi
+public class Weex extends WeexApi
 {
-   public WeexCore () {
+   public Weex () {
        super();
    }
 
-   public WeexCore (Object options) {
+   public Weex (Object options) {
        super(options);
    }
 
@@ -613,33 +613,33 @@ public class WeexCore extends WeexApi
                     put( "feeSide", "get" );
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", WeexCore.this.parseNumber("0.1") );
-                    put( "maker", WeexCore.this.parseNumber("0.1") );
+                    put( "taker", Weex.this.parseNumber("0.1") );
+                    put( "maker", Weex.this.parseNumber("0.1") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("0"), WeexCore.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("500000"), WeexCore.this.parseNumber("0.09"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("1000000"), WeexCore.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("2000000"), WeexCore.this.parseNumber("0.06"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("5000000"), WeexCore.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("10000000"), WeexCore.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("25000000"), WeexCore.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("50000000"), WeexCore.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("100000000"), WeexCore.this.parseNumber("0"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("0"), WeexCore.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("500000"), WeexCore.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("1000000"), WeexCore.this.parseNumber("0.07"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("2000000"), WeexCore.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("5000000"), WeexCore.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("10000000"), WeexCore.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("25000000"), WeexCore.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("50000000"), WeexCore.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("100000000"), WeexCore.this.parseNumber("0"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.09"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.06"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.07"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
                     }} );
                 }} );
                 put( "spot", new java.util.HashMap<String, Object>() {{
                     put( "feeSide", "get" );
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", WeexCore.this.parseNumber("0.1") );
-                    put( "maker", WeexCore.this.parseNumber("0.1") );
+                    put( "taker", Weex.this.parseNumber("0.1") );
+                    put( "maker", Weex.this.parseNumber("0.1") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("0"), WeexCore.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("500000"), WeexCore.this.parseNumber("0.09"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("1000000"), WeexCore.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("2000000"), WeexCore.this.parseNumber("0.06"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("5000000"), WeexCore.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("10000000"), WeexCore.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("25000000"), WeexCore.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("50000000"), WeexCore.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("100000000"), WeexCore.this.parseNumber("0"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("0"), WeexCore.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("500000"), WeexCore.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("1000000"), WeexCore.this.parseNumber("0.07"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("2000000"), WeexCore.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("5000000"), WeexCore.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("10000000"), WeexCore.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("25000000"), WeexCore.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("50000000"), WeexCore.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("100000000"), WeexCore.this.parseNumber("0"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.09"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.06"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.07"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.03"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.01"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
                     }} );
                 }} );
                 put( "contract", new java.util.HashMap<String, Object>() {{
                     put( "feeSide", "quote" );
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", WeexCore.this.parseNumber("0.08") );
-                    put( "maker", WeexCore.this.parseNumber("0.02") );
+                    put( "taker", Weex.this.parseNumber("0.08") );
+                    put( "maker", Weex.this.parseNumber("0.02") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("0"), WeexCore.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("1000000"), WeexCore.this.parseNumber("0.075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("5000000"), WeexCore.this.parseNumber("0.06"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("10000000"), WeexCore.this.parseNumber("0.055"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("30000000"), WeexCore.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("50000000"), WeexCore.this.parseNumber("0.048"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("100000000"), WeexCore.this.parseNumber("0.045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("300000000"), WeexCore.this.parseNumber("0.042"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("500000000"), WeexCore.this.parseNumber("0.04"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("0"), WeexCore.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("1000000"), WeexCore.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("5000000"), WeexCore.this.parseNumber("0.018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("10000000"), WeexCore.this.parseNumber("0.018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("30000000"), WeexCore.this.parseNumber("0.016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("50000000"), WeexCore.this.parseNumber("0.016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("100000000"), WeexCore.this.parseNumber("0.014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("300000000"), WeexCore.this.parseNumber("0.012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(WeexCore.this.parseNumber("500000000"), WeexCore.this.parseNumber("0.01"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.075"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.06"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.055"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("30000000"), Weex.this.parseNumber("0.05"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.048"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0.045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("300000000"), Weex.this.parseNumber("0.042"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("500000000"), Weex.this.parseNumber("0.04"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("30000000"), Weex.this.parseNumber("0.016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0.014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("300000000"), Weex.this.parseNumber("0.012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Weex.this.parseNumber("500000000"), Weex.this.parseNumber("0.01"))))) );
                     }} );
                 }} );
             }} );
@@ -1072,18 +1072,18 @@ public class WeexCore extends WeexApi
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", null );
-    put( "deposit", WeexCore.this.safeBool(chain, "depositEnable") );
-    put( "withdraw", WeexCore.this.safeBool(chain, "withdrawEnable") );
-    put( "fee", WeexCore.this.safeNumber(chain, "withdrawFee") );
-    put( "precision", WeexCore.this.safeNumber(chain, "withdrawIntegerMultiple") );
-    put( "isDefault", WeexCore.this.safeBool(chain, "isDefault", false) );
+    put( "deposit", Weex.this.safeBool(chain, "depositEnable") );
+    put( "withdraw", Weex.this.safeBool(chain, "withdrawEnable") );
+    put( "fee", Weex.this.safeNumber(chain, "withdrawFee") );
+    put( "precision", Weex.this.safeNumber(chain, "withdrawIntegerMultiple") );
+    put( "isDefault", Weex.this.safeBool(chain, "isDefault", false) );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", WeexCore.this.safeNumber(chain, "withdrawMin") );
+            put( "min", Weex.this.safeNumber(chain, "withdrawMin") );
             put( "max", null );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", WeexCore.this.safeNumber(chain, "depositDust") );
+            put( "min", Weex.this.safeNumber(chain, "depositDust") );
             put( "max", null );
         }} );
     }} );
@@ -1268,7 +1268,7 @@ public class WeexCore extends WeexApi
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", finalId );
             put( "lowercaseId", ((String)finalId).toLowerCase() );
-            put( "numericId", WeexCore.this.safeInteger(market, "contractId") );
+            put( "numericId", Weex.this.safeInteger(market, "contractId") );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
             put( "quote", quote );
@@ -1286,10 +1286,10 @@ public class WeexCore extends WeexApi
             put( "contract", !Helpers.isTrue(finalIsSpot) );
             put( "linear", finalIsLinear );
             put( "inverse", finalIsInverse );
-            put( "taker", WeexCore.this.safeNumber(market, "takerFeeRate") );
-            put( "maker", WeexCore.this.safeNumber(market, "makerFeeRate") );
+            put( "taker", Weex.this.safeNumber(market, "takerFeeRate") );
+            put( "maker", Weex.this.safeNumber(market, "makerFeeRate") );
             put( "feeSide", Helpers.GetValue(fees, "feeSide") );
-            put( "contractSize", WeexCore.this.safeNumber(market, "contractVal") );
+            put( "contractSize", Weex.this.safeNumber(market, "contractVal") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
@@ -1300,12 +1300,12 @@ public class WeexCore extends WeexApi
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
-                    put( "min", WeexCore.this.safeNumber(market, "minLeverage") );
-                    put( "max", WeexCore.this.safeNumber(market, "maxLeverage") );
+                    put( "min", Weex.this.safeNumber(market, "minLeverage") );
+                    put( "max", Weex.this.safeNumber(market, "maxLeverage") );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", WeexCore.this.safeNumber2(market, "minTradeAmount", "minOrderSize") );
-                    put( "max", WeexCore.this.safeNumber2(market, "maxTradeAmount", "maxOrderSize") );
+                    put( "min", Weex.this.safeNumber2(market, "minTradeAmount", "minOrderSize") );
+                    put( "max", Weex.this.safeNumber2(market, "maxTradeAmount", "maxOrderSize") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -1552,25 +1552,25 @@ public class WeexCore extends WeexApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
-            put( "high", WeexCore.this.safeString(ticker, "highPrice") );
-            put( "low", WeexCore.this.safeString(ticker, "lowPrice") );
-            put( "bid", WeexCore.this.safeString(ticker, "bidPrice") );
-            put( "bidVolume", WeexCore.this.safeString(ticker, "bidQty") );
-            put( "ask", WeexCore.this.safeString(ticker, "askPrice") );
-            put( "askVolume", WeexCore.this.safeString(ticker, "askQty") );
+            put( "datetime", Weex.this.iso8601(timestamp) );
+            put( "high", Weex.this.safeString(ticker, "highPrice") );
+            put( "low", Weex.this.safeString(ticker, "lowPrice") );
+            put( "bid", Weex.this.safeString(ticker, "bidPrice") );
+            put( "bidVolume", Weex.this.safeString(ticker, "bidQty") );
+            put( "ask", Weex.this.safeString(ticker, "askPrice") );
+            put( "askVolume", Weex.this.safeString(ticker, "askQty") );
             put( "vwap", null );
-            put( "open", WeexCore.this.safeString(ticker, "openPrice") );
-            put( "close", WeexCore.this.safeString(ticker, "lastPrice") );
-            put( "last", WeexCore.this.safeString(ticker, "lastPrice") );
+            put( "open", Weex.this.safeString(ticker, "openPrice") );
+            put( "close", Weex.this.safeString(ticker, "lastPrice") );
+            put( "last", Weex.this.safeString(ticker, "lastPrice") );
             put( "previousClose", null );
-            put( "change", WeexCore.this.safeString(ticker, "priceChange") );
+            put( "change", Weex.this.safeString(ticker, "priceChange") );
             put( "percentage", percentage );
             put( "average", null );
-            put( "baseVolume", WeexCore.this.safeString(ticker, "volume") );
-            put( "quoteVolume", WeexCore.this.safeString(ticker, "quoteVolume") );
+            put( "baseVolume", Weex.this.safeString(ticker, "volume") );
+            put( "quoteVolume", Weex.this.safeString(ticker, "quoteVolume") );
             put( "markPrice", finalMarkPrice );
-            put( "indexPrice", WeexCore.this.safeString(ticker, "indexPrice") );
+            put( "indexPrice", Weex.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
         }}, market);
     }
@@ -1635,7 +1635,7 @@ public class WeexCore extends WeexApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "price", WeexCore.this.safeNumberOmitZero(entry, "price") );
+            put( "price", Weex.this.safeNumberOmitZero(entry, "price") );
             put( "side", null );
             put( "info", entry );
         }};
@@ -1834,10 +1834,10 @@ public class WeexCore extends WeexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                return (this.fetchSpotOHLCV(symbol, timeframe, since, limit, parameters)).join();
+                return (this.fetchSpotOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             } else
             {
-                return (this.fetchContractOHLCV(symbol, timeframe, since, limit, parameters)).join();
+                return (this.fetchContractOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
         });
 
@@ -1872,7 +1872,7 @@ public class WeexCore extends WeexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "interval", WeexCore.this.safeString(WeexCore.this.timeframes, timeframe, timeframe) );
+                put( "interval", Weex.this.safeString(Weex.this.timeframes, timeframe, timeframe) );
             }};
             java.util.List<Object> response = (this.publicGetApiV3MarketKlines(this.extend(request, parameters))).join();
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
@@ -1934,7 +1934,7 @@ public class WeexCore extends WeexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "interval", WeexCore.this.safeString(contractTimeframes, timeframe, timeframe) );
+                put( "interval", Weex.this.safeString(contractTimeframes, timeframe, timeframe) );
             }};
             String priceType = this.safeStringUpper(parameters, "price");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("historical", "until", "price")));
@@ -2174,17 +2174,17 @@ public class WeexCore extends WeexApi
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", WeexCore.this.safeString(trade, "id") );
-            put( "order", WeexCore.this.safeString(trade, "orderId") );
+            put( "id", Weex.this.safeString(trade, "id") );
+            put( "order", Weex.this.safeString(trade, "orderId") );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
+            put( "datetime", Weex.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", null );
             put( "takerOrMaker", finalTakerOrMaker );
             put( "side", finalSide );
-            put( "price", WeexCore.this.safeString(trade, "price") );
-            put( "amount", WeexCore.this.safeString(trade, "qty") );
-            put( "cost", WeexCore.this.safeString(trade, "quoteQty") );
+            put( "price", Weex.this.safeString(trade, "price") );
+            put( "amount", Weex.this.safeString(trade, "qty") );
+            put( "cost", Weex.this.safeString(trade, "quoteQty") );
             put( "fee", finalFee );
         }}, market);
     }
@@ -2233,10 +2233,10 @@ public class WeexCore extends WeexApi
         Long timestamp = this.safeInteger(interest, "time");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
-            put( "openInterestAmount", WeexCore.this.safeString(interest, "openInterest") );
+            put( "openInterestAmount", Weex.this.safeString(interest, "openInterest") );
             put( "openInterestValue", null );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
+            put( "datetime", Weex.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -2313,18 +2313,18 @@ public class WeexCore extends WeexApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
-            put( "markPrice", WeexCore.this.safeNumber(contract, "markPrice") );
-            put( "indexPrice", WeexCore.this.safeNumber(contract, "indexPrice") );
-            put( "interestRate", WeexCore.this.safeNumber(contract, "interestRate") );
+            put( "markPrice", Weex.this.safeNumber(contract, "markPrice") );
+            put( "indexPrice", Weex.this.safeNumber(contract, "indexPrice") );
+            put( "interestRate", Weex.this.safeNumber(contract, "interestRate") );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
-            put( "fundingRate", WeexCore.this.safeNumber(contract, "lastFundingRate") );
+            put( "datetime", Weex.this.iso8601(timestamp) );
+            put( "fundingRate", Weex.this.safeNumber(contract, "lastFundingRate") );
             put( "fundingTimestamp", timestamp );
-            put( "fundingDatetime", WeexCore.this.iso8601(timestamp) );
-            put( "nextFundingRate", WeexCore.this.safeNumber(contract, "forecastFundingRate") );
+            put( "fundingDatetime", Weex.this.iso8601(timestamp) );
+            put( "nextFundingRate", Weex.this.safeNumber(contract, "forecastFundingRate") );
             put( "nextFundingTimestamp", nextFundingTimestamp );
-            put( "nextFundingDatetime", WeexCore.this.iso8601(nextFundingTimestamp) );
+            put( "nextFundingDatetime", Weex.this.iso8601(nextFundingTimestamp) );
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
@@ -2399,9 +2399,9 @@ public class WeexCore extends WeexApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
-            put( "fundingRate", WeexCore.this.safeNumber(contract, "fundingRate") );
+            put( "fundingRate", Weex.this.safeNumber(contract, "fundingRate") );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
+            put( "datetime", Weex.this.iso8601(timestamp) );
         }};
     }
 
@@ -2602,12 +2602,12 @@ public class WeexCore extends WeexApi
             put( "info", transfer );
             put( "id", null );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
+            put( "datetime", Weex.this.iso8601(timestamp) );
             put( "currency", currencyCode );
-            put( "amount", WeexCore.this.safeNumber(transfer, "amount") );
-            put( "fromAccount", WeexCore.this.safeStringLower(transfer, "fromType") );
-            put( "toAccount", WeexCore.this.safeStringLower(transfer, "toType") );
-            put( "status", WeexCore.this.parseTransferStatus(status) );
+            put( "amount", Weex.this.safeNumber(transfer, "amount") );
+            put( "fromAccount", Weex.this.safeStringLower(transfer, "fromType") );
+            put( "toAccount", Weex.this.safeStringLower(transfer, "toType") );
+            put( "status", Weex.this.parseTransferStatus(status) );
         }};
     }
 
@@ -2734,7 +2734,7 @@ public class WeexCore extends WeexApi
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "side", ((String)finalSide).toUpperCase() );
             put( "type", ((String)finalType).toUpperCase() );
-            put( "quantity", WeexCore.this.amountToPrecision(symbol, amount) );
+            put( "quantity", Weex.this.amountToPrecision(symbol, amount) );
         }};
         if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
         {
@@ -2842,9 +2842,9 @@ public class WeexCore extends WeexApi
         final Object finalSide = side;
         final Object finalType = type;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-            put( "symbol", WeexCore.this.toSandboxMarketId(market) );
+            put( "symbol", Weex.this.toSandboxMarketId(market) );
             put( "side", ((String)finalSide).toUpperCase() );
-            put( "quantity", WeexCore.this.amountToPrecision(symbol, amount) );
+            put( "quantity", Weex.this.amountToPrecision(symbol, amount) );
             put( "type", ((String)finalType).toUpperCase() );
         }};
         Boolean isMarketOrder = (Helpers.isEqual(type, "market"));
@@ -3555,10 +3555,10 @@ public class WeexCore extends WeexApi
                 {
                     throw new ArgumentsRequired(Helpers.add(this.id, " fetchClosedOrders() requires a symbol argument for spot markets")) ;
                 }
-                orders = (this.fetchOrders(symbol, since, null, parameters)).join();
+                orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
             } else
             {
-                orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
+                orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
             return this.filterBy(orders, "status", "closed");
         });
@@ -3609,10 +3609,10 @@ public class WeexCore extends WeexApi
                 {
                     throw new ArgumentsRequired(Helpers.add(this.id, " fetchCanceledOrders() requires a symbol argument for spot markets")) ;
                 }
-                orders = (this.fetchOrders(symbol, since, null, parameters)).join();
+                orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
             } else
             {
-                orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
+                orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
             return this.filterBy(orders, "status", "canceled");
         });
@@ -3956,27 +3956,27 @@ public class WeexCore extends WeexApi
         final Object finalStopLossPrice = stopLossPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", WeexCore.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "algoId", "successOrderId"))) );
-            put( "clientOrderId", WeexCore.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "origClientOrderId", "clientAlgoId"))) );
-            put( "symbol", WeexCore.this.safeString(finalMarket, "symbol") );
-            put( "type", WeexCore.this.parseOrderType(finalRawType) );
-            put( "timeInForce", WeexCore.this.safeString(order, "timeInForce") );
+            put( "id", Weex.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "algoId", "successOrderId"))) );
+            put( "clientOrderId", Weex.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "origClientOrderId", "clientAlgoId"))) );
+            put( "symbol", Weex.this.safeString(finalMarket, "symbol") );
+            put( "type", Weex.this.parseOrderType(finalRawType) );
+            put( "timeInForce", Weex.this.safeString(order, "timeInForce") );
             put( "postOnly", null );
             put( "reduceOnly", isReduceOnly );
-            put( "side", WeexCore.this.safeStringLower(order, "side") );
-            put( "amount", WeexCore.this.safeString2(order, "origQty", "quantity") );
-            put( "price", WeexCore.this.safeString(order, "price") );
+            put( "side", Weex.this.safeStringLower(order, "side") );
+            put( "amount", Weex.this.safeString2(order, "origQty", "quantity") );
+            put( "price", Weex.this.safeString(order, "price") );
             put( "triggerPrice", triggerPrice );
-            put( "cost", WeexCore.this.safeString2(order, "cummulativeQuoteQty", "cumQuote") );
-            put( "filled", WeexCore.this.safeString(order, "executedQty") );
+            put( "cost", Weex.this.safeString2(order, "cummulativeQuoteQty", "cumQuote") );
+            put( "filled", Weex.this.safeString(order, "executedQty") );
             put( "remaining", null );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
+            put( "datetime", Weex.this.iso8601(timestamp) );
             put( "fee", null );
-            put( "status", WeexCore.this.parseOrderStatus(rawStatus) );
+            put( "status", Weex.this.parseOrderStatus(rawStatus) );
             put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", WeexCore.this.safeInteger(order, "updateTime") );
-            put( "average", WeexCore.this.safeString(order, "avgPrice") );
+            put( "lastUpdateTimestamp", Weex.this.safeInteger(order, "updateTime") );
+            put( "average", Weex.this.safeString(order, "avgPrice") );
             put( "trades", null );
             put( "stopLossPrice", finalStopLossPrice );
             put( "takeProfitPrice", finalTakeProfitPrice );
@@ -4065,7 +4065,7 @@ public class WeexCore extends WeexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -4375,22 +4375,22 @@ public class WeexCore extends WeexApi
         final Object finalRawType = rawType;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", WeexCore.this.safeString(item, "billId") );
+            put( "id", Weex.this.safeString(item, "billId") );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
+            put( "datetime", Weex.this.iso8601(timestamp) );
             put( "direction", finalDirection );
             put( "account", null );
             put( "referenceId", null );
             put( "referenceAccount", null );
-            put( "type", WeexCore.this.parseLedgerType(finalRawType) );
+            put( "type", Weex.this.parseLedgerType(finalRawType) );
             put( "currency", code );
             put( "amount", amount );
-            put( "before", WeexCore.this.parseNumber(before) );
-            put( "after", WeexCore.this.parseNumber(after) );
+            put( "before", Weex.this.parseNumber(before) );
+            put( "after", Weex.this.parseNumber(after) );
             put( "status", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", WeexCore.this.safeNumber2(item, "fees", "fillFee") );
+                put( "cost", Weex.this.safeNumber2(item, "fees", "fillFee") );
             }} );
         }}, currency);
     }
@@ -4463,7 +4463,7 @@ public class WeexCore extends WeexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object positions = (this.fetchPositionsForSymbol(symbol, parameters)).join();
+            Object positions = (this.fetchPositionsForSymbol((Object)(symbol), (Object)(parameters))).join();
             return this.safeDict(positions, 0);
         });
 
@@ -4494,7 +4494,7 @@ public class WeexCore extends WeexApi
             if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
             {
                 // the demo trading API does not provide a single-position endpoint
-                return (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+                return (this.fetchPositions((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4603,28 +4603,28 @@ public class WeexCore extends WeexApi
         final Object finalHedged = hedged;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "id", WeexCore.this.safeString2(position, "id", "positionId") );
+            put( "id", Weex.this.safeString2(position, "id", "positionId") );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
-            put( "contracts", WeexCore.this.parseNumber(size) );
+            put( "datetime", Weex.this.iso8601(timestamp) );
+            put( "contracts", Weex.this.parseNumber(size) );
             put( "contractSize", null );
-            put( "side", WeexCore.this.safeStringLower(position, "side") );
-            put( "notional", WeexCore.this.parseNumber(notional) );
-            put( "leverage", WeexCore.this.safeNumber(position, "leverage") );
-            put( "unrealizedPnl", WeexCore.this.safeNumber(position, "unrealizePnl") );
+            put( "side", Weex.this.safeStringLower(position, "side") );
+            put( "notional", Weex.this.parseNumber(notional) );
+            put( "leverage", Weex.this.safeNumber(position, "leverage") );
+            put( "unrealizedPnl", Weex.this.safeNumber(position, "unrealizePnl") );
             put( "realizedPnl", null );
             put( "collateral", null );
-            put( "entryPrice", WeexCore.this.parseNumber(entryPrice) );
+            put( "entryPrice", Weex.this.parseNumber(entryPrice) );
             put( "markPrice", null );
-            put( "liquidationPrice", WeexCore.this.safeNumber(position, "liquidatePrice") );
+            put( "liquidationPrice", Weex.this.safeNumber(position, "liquidatePrice") );
             put( "marginMode", finalMarginMode );
             put( "hedged", finalHedged );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", WeexCore.this.safeNumber(position, "marginSize") );
+            put( "initialMargin", Weex.this.safeNumber(position, "marginSize") );
             put( "initialMarginPercentage", null );
             put( "marginRatio", null );
-            put( "lastUpdateTimestamp", WeexCore.this.safeInteger(position, "updatedTime") );
+            put( "lastUpdateTimestamp", Weex.this.safeInteger(position, "updatedTime") );
             put( "lastPrice", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
@@ -4753,9 +4753,9 @@ public class WeexCore extends WeexApi
         String marketId = this.safeString(fee, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", WeexCore.this.safeSymbol(marketId, market, null, "contract") );
-            put( "maker", WeexCore.this.safeNumber(fee, "makerCommissionRate") );
-            put( "taker", WeexCore.this.safeNumber(fee, "takerCommissionRate") );
+            put( "symbol", Weex.this.safeSymbol(marketId, market, null, "contract") );
+            put( "maker", Weex.this.safeNumber(fee, "makerCommissionRate") );
+            put( "taker", Weex.this.safeNumber(fee, "takerCommissionRate") );
             put( "percentage", true );
             put( "tierBased", true );
         }};
@@ -4837,8 +4837,8 @@ public class WeexCore extends WeexApi
         String marginType = this.safeString(marginMode, "marginType");
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", WeexCore.this.safeSymbol(marketId, market, null, "swap") );
-            put( "marginMode", WeexCore.this.parseMarginType(marginType) );
+            put( "symbol", Weex.this.safeSymbol(marketId, market, null, "swap") );
+            put( "marginMode", Weex.this.parseMarginType(marginType) );
         }};
     }
 
@@ -4879,7 +4879,7 @@ public class WeexCore extends WeexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "marginType", WeexCore.this.encodeMarginMode(marginMode) );
+                put( "marginType", Weex.this.encodeMarginMode(marginMode) );
             }};
             return (this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, parameters))).join();
         });
@@ -4976,7 +4976,7 @@ public class WeexCore extends WeexApi
         final Object finalShortLeverage = shortLeverage;
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", WeexCore.this.safeSymbol(marketId, market, null, "swap") );
+            put( "symbol", Weex.this.safeSymbol(marketId, market, null, "swap") );
             put( "marginMode", finalMarginMode );
             put( "longLeverage", finalLongLeverage );
             put( "shortLeverage", finalShortLeverage );
@@ -5123,7 +5123,7 @@ public class WeexCore extends WeexApi
             final Object finalMarginMode = marginMode;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "marginType", WeexCore.this.encodeMarginMode(finalMarginMode) );
+                put( "marginType", Weex.this.encodeMarginMode(finalMarginMode) );
                 put( "separatedType", separatedType );
             }};
             return (this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, parameters))).join();
@@ -5152,13 +5152,13 @@ public class WeexCore extends WeexApi
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "isolatedPositionId", finalIsolatedPositionId );
-                put( "amount", WeexCore.this.costToPrecision(symbol, amount) );
+                put( "amount", Weex.this.costToPrecision(symbol, amount) );
                 put( "type", finalType );
             }};
             String parsedType = ((Helpers.isTrue((Helpers.isEqual(type, 1))))) ? "add" : "reduce";
             java.util.Map<String, Object> response = (this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, parameters))).join();
             return this.extend(this.parseMarginModification(response, market), new java.util.HashMap<String, Object>() {{
-                put( "amount", WeexCore.this.parseNumber(amount) );
+                put( "amount", Weex.this.parseNumber(amount) );
                 put( "type", parsedType );
             }});
         });
@@ -5180,15 +5180,15 @@ public class WeexCore extends WeexApi
         Long timestamp = this.safeInteger(data, "requestTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", WeexCore.this.safeString(market, "symbol") );
+            put( "symbol", Weex.this.safeString(market, "symbol") );
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );
             put( "total", null );
-            put( "code", WeexCore.this.safeString(market, "settle") );
+            put( "code", Weex.this.safeString(market, "settle") );
             put( "status", status );
             put( "timestamp", timestamp );
-            put( "datetime", WeexCore.this.iso8601(timestamp) );
+            put( "datetime", Weex.this.iso8601(timestamp) );
         }};
     }
 
@@ -5324,9 +5324,9 @@ public class WeexCore extends WeexApi
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{
-                put( "ACCESS-KEY", WeexCore.this.apiKey );
+                put( "ACCESS-KEY", Weex.this.apiKey );
                 put( "ACCESS-SIGN", signature );
-                put( "ACCESS-PASSPHRASE", WeexCore.this.password );
+                put( "ACCESS-PASSPHRASE", Weex.this.password );
                 put( "ACCESS-TIMESTAMP", finalTimestamp );
             }};
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "POST"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))

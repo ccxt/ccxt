@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BinanceusCore extends io.github.ccxt.exchanges.Binanceus
+public class Binanceus extends io.github.ccxt.exchanges.Binanceus
 {
-   public BinanceusCore () {
+   public Binanceus () {
        super();
    }
 
-   public BinanceusCore (Object options) {
+   public Binanceus (Object options) {
        super(options);
    }
 

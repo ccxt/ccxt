@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BitrueCore extends BitrueApi
+public class Bitrue extends BitrueApi
 {
-   public BitrueCore () {
+   public Bitrue () {
        super();
    }
 
-   public BitrueCore (Object options) {
+   public Bitrue (Object options) {
        super(options);
    }
 
@@ -424,19 +424,19 @@ public class BitrueCore extends BitrueApi
                     put( "feeSide", "get" );
                     put( "tierBased", false );
                     put( "percentage", true );
-                    put( "taker", BitrueCore.this.parseNumber("0.00098") );
-                    put( "maker", BitrueCore.this.parseNumber("0.00098") );
+                    put( "taker", Bitrue.this.parseNumber("0.00098") );
+                    put( "maker", Bitrue.this.parseNumber("0.00098") );
                 }} );
                 put( "future", new java.util.HashMap<String, Object>() {{
                     put( "trading", new java.util.HashMap<String, Object>() {{
                         put( "feeSide", "quote" );
                         put( "tierBased", true );
                         put( "percentage", true );
-                        put( "taker", BitrueCore.this.parseNumber("0.000400") );
-                        put( "maker", BitrueCore.this.parseNumber("0.000200") );
+                        put( "taker", Bitrue.this.parseNumber("0.000400") );
+                        put( "maker", Bitrue.this.parseNumber("0.000200") );
                         put( "tiers", new java.util.HashMap<String, Object>() {{
-                            put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("0"), BitrueCore.this.parseNumber("0.000400"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("250"), BitrueCore.this.parseNumber("0.000400"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("2500"), BitrueCore.this.parseNumber("0.000350"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("7500"), BitrueCore.this.parseNumber("0.000320"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("22500"), BitrueCore.this.parseNumber("0.000300"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("50000"), BitrueCore.this.parseNumber("0.000270"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("100000"), BitrueCore.this.parseNumber("0.000250"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("200000"), BitrueCore.this.parseNumber("0.000220"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("400000"), BitrueCore.this.parseNumber("0.000200"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("750000"), BitrueCore.this.parseNumber("0.000170"))))) );
-                            put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("0"), BitrueCore.this.parseNumber("0.000200"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("250"), BitrueCore.this.parseNumber("0.000160"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("2500"), BitrueCore.this.parseNumber("0.000140"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("7500"), BitrueCore.this.parseNumber("0.000120"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("22500"), BitrueCore.this.parseNumber("0.000100"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("50000"), BitrueCore.this.parseNumber("0.000080"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("100000"), BitrueCore.this.parseNumber("0.000060"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("200000"), BitrueCore.this.parseNumber("0.000040"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("400000"), BitrueCore.this.parseNumber("0.000020"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("750000"), BitrueCore.this.parseNumber("0"))))) );
+                            put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("0"), Bitrue.this.parseNumber("0.000400"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("250"), Bitrue.this.parseNumber("0.000400"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("2500"), Bitrue.this.parseNumber("0.000350"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("7500"), Bitrue.this.parseNumber("0.000320"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("22500"), Bitrue.this.parseNumber("0.000300"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("50000"), Bitrue.this.parseNumber("0.000270"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("100000"), Bitrue.this.parseNumber("0.000250"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("200000"), Bitrue.this.parseNumber("0.000220"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("400000"), Bitrue.this.parseNumber("0.000200"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("750000"), Bitrue.this.parseNumber("0.000170"))))) );
+                            put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("0"), Bitrue.this.parseNumber("0.000200"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("250"), Bitrue.this.parseNumber("0.000160"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("2500"), Bitrue.this.parseNumber("0.000140"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("7500"), Bitrue.this.parseNumber("0.000120"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("22500"), Bitrue.this.parseNumber("0.000100"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("50000"), Bitrue.this.parseNumber("0.000080"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("100000"), Bitrue.this.parseNumber("0.000060"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("200000"), Bitrue.this.parseNumber("0.000040"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("400000"), Bitrue.this.parseNumber("0.000020"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("750000"), Bitrue.this.parseNumber("0"))))) );
                         }} );
                     }} );
                 }} );
@@ -445,11 +445,11 @@ public class BitrueCore extends BitrueApi
                         put( "feeSide", "base" );
                         put( "tierBased", true );
                         put( "percentage", true );
-                        put( "taker", BitrueCore.this.parseNumber("0.000500") );
-                        put( "maker", BitrueCore.this.parseNumber("0.000100") );
+                        put( "taker", Bitrue.this.parseNumber("0.000500") );
+                        put( "maker", Bitrue.this.parseNumber("0.000100") );
                         put( "tiers", new java.util.HashMap<String, Object>() {{
-                            put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("0"), BitrueCore.this.parseNumber("0.000500"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("250"), BitrueCore.this.parseNumber("0.000450"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("2500"), BitrueCore.this.parseNumber("0.000400"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("7500"), BitrueCore.this.parseNumber("0.000300"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("22500"), BitrueCore.this.parseNumber("0.000250"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("50000"), BitrueCore.this.parseNumber("0.000240"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("100000"), BitrueCore.this.parseNumber("0.000240"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("200000"), BitrueCore.this.parseNumber("0.000240"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("400000"), BitrueCore.this.parseNumber("0.000240"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("750000"), BitrueCore.this.parseNumber("0.000240"))))) );
-                            put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("0"), BitrueCore.this.parseNumber("0.000100"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("250"), BitrueCore.this.parseNumber("0.000080"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("2500"), BitrueCore.this.parseNumber("0.000050"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("7500"), BitrueCore.this.parseNumber("0.0000030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("22500"), BitrueCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("50000"), BitrueCore.this.parseNumber("-0.000050"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("100000"), BitrueCore.this.parseNumber("-0.000060"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("200000"), BitrueCore.this.parseNumber("-0.000070"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("400000"), BitrueCore.this.parseNumber("-0.000080"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BitrueCore.this.parseNumber("750000"), BitrueCore.this.parseNumber("-0.000090"))))) );
+                            put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("0"), Bitrue.this.parseNumber("0.000500"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("250"), Bitrue.this.parseNumber("0.000450"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("2500"), Bitrue.this.parseNumber("0.000400"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("7500"), Bitrue.this.parseNumber("0.000300"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("22500"), Bitrue.this.parseNumber("0.000250"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("50000"), Bitrue.this.parseNumber("0.000240"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("100000"), Bitrue.this.parseNumber("0.000240"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("200000"), Bitrue.this.parseNumber("0.000240"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("400000"), Bitrue.this.parseNumber("0.000240"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("750000"), Bitrue.this.parseNumber("0.000240"))))) );
+                            put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("0"), Bitrue.this.parseNumber("0.000100"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("250"), Bitrue.this.parseNumber("0.000080"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("2500"), Bitrue.this.parseNumber("0.000050"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("7500"), Bitrue.this.parseNumber("0.0000030"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("22500"), Bitrue.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("50000"), Bitrue.this.parseNumber("-0.000050"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("100000"), Bitrue.this.parseNumber("-0.000060"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("200000"), Bitrue.this.parseNumber("-0.000070"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("400000"), Bitrue.this.parseNumber("-0.000080"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Bitrue.this.parseNumber("750000"), Bitrue.this.parseNumber("-0.000090"))))) );
                         }} );
                     }} );
                 }} );
@@ -893,15 +893,15 @@ public class BitrueCore extends BitrueApi
     put( "info", entry );
     put( "id", networkId );
     put( "network", finalNetwork );
-    put( "deposit", BitrueCore.this.safeBool(entry, "enableDeposit") );
-    put( "withdraw", BitrueCore.this.safeBool(entry, "enableWithdraw") );
+    put( "deposit", Bitrue.this.safeBool(entry, "enableDeposit") );
+    put( "withdraw", Bitrue.this.safeBool(entry, "enableWithdraw") );
     put( "active", null );
-    put( "fee", BitrueCore.this.safeNumber(entry, "withdrawFee") );
+    put( "fee", Bitrue.this.safeNumber(entry, "withdrawFee") );
     put( "precision", null );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", BitrueCore.this.safeNumber(entry, "minWithdraw") );
-            put( "max", BitrueCore.this.safeNumber(entry, "maxWithdraw") );
+            put( "min", Bitrue.this.safeNumber(entry, "minWithdraw") );
+            put( "max", Bitrue.this.safeNumber(entry, "maxWithdraw") );
         }} );
     }} );
 }});
@@ -1150,14 +1150,14 @@ public class BitrueCore extends BitrueApi
             put( "contract", isContract );
             put( "linear", finalIsLinear );
             put( "inverse", finalIsInverse );
-            put( "contractSize", BitrueCore.this.parseNumber(Precise.stringAbs(multiplier)) );
+            put( "contractSize", Bitrue.this.parseNumber(Precise.stringAbs(multiplier)) );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", BitrueCore.this.parseNumber(BitrueCore.this.parsePrecision(amountPrecision)) );
-                put( "price", BitrueCore.this.parseNumber(BitrueCore.this.parsePrecision(pricePrecision)) );
+                put( "amount", Bitrue.this.parseNumber(Bitrue.this.parsePrecision(amountPrecision)) );
+                put( "price", Bitrue.this.parseNumber(Bitrue.this.parsePrecision(pricePrecision)) );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -1165,12 +1165,12 @@ public class BitrueCore extends BitrueApi
                     put( "max", null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", BitrueCore.this.safeNumber(amountFilter, "minQty") );
+                    put( "min", Bitrue.this.safeNumber(amountFilter, "minQty") );
                     put( "max", finalMaxQuantity );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", BitrueCore.this.safeNumber(priceFilter, "minPrice") );
-                    put( "max", BitrueCore.this.safeNumber(priceFilter, "maxPrice") );
+                    put( "min", Bitrue.this.safeNumber(priceFilter, "minPrice") );
+                    put( "max", Bitrue.this.safeNumber(priceFilter, "maxPrice") );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
                     put( "min", finalMinCost );
@@ -1455,23 +1455,23 @@ public class BitrueCore extends BitrueApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BitrueCore.this.iso8601(timestamp) );
-            put( "high", BitrueCore.this.safeString2(ticker, "highPrice", "high") );
-            put( "low", BitrueCore.this.safeString2(ticker, "lowPrice", "low") );
-            put( "bid", BitrueCore.this.safeString2(ticker, "bidPrice", "buy") );
-            put( "bidVolume", BitrueCore.this.safeString(ticker, "bidQty") );
-            put( "ask", BitrueCore.this.safeString2(ticker, "askPrice", "sell") );
-            put( "askVolume", BitrueCore.this.safeString(ticker, "askQty") );
-            put( "vwap", BitrueCore.this.safeString(ticker, "weightedAvgPrice") );
-            put( "open", BitrueCore.this.safeString(ticker, "openPrice") );
+            put( "datetime", Bitrue.this.iso8601(timestamp) );
+            put( "high", Bitrue.this.safeString2(ticker, "highPrice", "high") );
+            put( "low", Bitrue.this.safeString2(ticker, "lowPrice", "low") );
+            put( "bid", Bitrue.this.safeString2(ticker, "bidPrice", "buy") );
+            put( "bidVolume", Bitrue.this.safeString(ticker, "bidQty") );
+            put( "ask", Bitrue.this.safeString2(ticker, "askPrice", "sell") );
+            put( "askVolume", Bitrue.this.safeString(ticker, "askQty") );
+            put( "vwap", Bitrue.this.safeString(ticker, "weightedAvgPrice") );
+            put( "open", Bitrue.this.safeString(ticker, "openPrice") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
-            put( "change", BitrueCore.this.safeString(ticker, "priceChange") );
+            put( "change", Bitrue.this.safeString(ticker, "priceChange") );
             put( "percentage", finalPercentage );
             put( "average", null );
-            put( "baseVolume", BitrueCore.this.safeString2(ticker, "volume", "vol") );
-            put( "quoteVolume", BitrueCore.this.safeString(ticker, "quoteVolume") );
+            put( "baseVolume", Bitrue.this.safeString2(ticker, "volume", "vol") );
+            put( "quoteVolume", Bitrue.this.safeString(ticker, "quoteVolume") );
             put( "info", ticker );
         }}, market);
     }
@@ -1603,7 +1603,7 @@ public class BitrueCore extends BitrueApi
                 Object timeframesFuture = this.safeDict(timeframes, "future", new java.util.HashMap<String, Object>() {{}});
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "contractName", Helpers.GetValue(market, "id") );
-                    put( "interval", BitrueCore.this.safeString(timeframesFuture, timeframe, "1min") );
+                    put( "interval", Bitrue.this.safeString(timeframesFuture, timeframe, "1min") );
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
@@ -1622,7 +1622,7 @@ public class BitrueCore extends BitrueApi
                 Object timeframesSpot = this.safeDict(timeframes, "spot", new java.util.HashMap<String, Object>() {{}});
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
-                    put( "scale", BitrueCore.this.safeString(timeframesSpot, timeframe, "1m") );
+                    put( "scale", Bitrue.this.safeString(timeframesSpot, timeframe, "1m") );
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
@@ -1978,8 +1978,8 @@ public class BitrueCore extends BitrueApi
         if (Helpers.isTrue(Helpers.inOp(trade, "commission")))
         {
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", BitrueCore.this.safeString2(trade, "commission", "fee") );
-                put( "currency", BitrueCore.this.safeCurrencyCode(BitrueCore.this.safeString(trade, "commissionAssert")) );
+                put( "cost", Bitrue.this.safeString2(trade, "commission", "fee") );
+                put( "currency", Bitrue.this.safeCurrencyCode(Bitrue.this.safeString(trade, "commissionAssert")) );
             }};
         }
         String takerOrMaker = null;
@@ -1994,7 +1994,7 @@ public class BitrueCore extends BitrueApi
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BitrueCore.this.iso8601(timestamp) );
+            put( "datetime", Bitrue.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
             put( "order", orderId );
@@ -2193,7 +2193,7 @@ public class BitrueCore extends BitrueApi
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BitrueCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Bitrue.this.iso8601(finalTimestamp) );
             put( "lastTradeTimestamp", finalLastTradeTimestamp );
             put( "symbol", symbol );
             put( "type", finalType );
@@ -2240,7 +2240,7 @@ public class BitrueCore extends BitrueApi
                 throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports swap orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
         });
 
     }
@@ -3257,7 +3257,7 @@ public class BitrueCore extends BitrueApi
             put( "id", id );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", BitrueCore.this.iso8601(timestamp) );
+            put( "datetime", Bitrue.this.iso8601(timestamp) );
             put( "network", finalNetwork );
             put( "address", finalAddressTo );
             put( "addressTo", finalAddressTo );
@@ -3384,7 +3384,7 @@ public class BitrueCore extends BitrueApi
         put( "percentage", null );
     }} );
     put( "withdraw", new java.util.HashMap<String, Object>() {{
-        put( "fee", BitrueCore.this.safeNumber(chainDetail, "withdrawFee") );
+        put( "fee", Bitrue.this.safeNumber(chainDetail, "withdrawFee") );
         put( "percentage", false );
     }} );
 }});
@@ -3460,9 +3460,9 @@ public class BitrueCore extends BitrueApi
             put( "info", transfer );
             put( "id", null );
             put( "timestamp", timestamp );
-            put( "datetime", BitrueCore.this.iso8601(timestamp) );
-            put( "currency", BitrueCore.this.safeString(currency, "code") );
-            put( "amount", BitrueCore.this.safeNumber(transfer, "amount") );
+            put( "datetime", Bitrue.this.iso8601(timestamp) );
+            put( "currency", Bitrue.this.safeString(currency, "code") );
+            put( "amount", Bitrue.this.safeNumber(transfer, "amount") );
             put( "fromAccount", finalFromAccount );
             put( "toAccount", finalToAccount );
             put( "status", "ok" );
@@ -3574,7 +3574,7 @@ public class BitrueCore extends BitrueApi
             final Object finalFromId = fromId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coinSymbol", Helpers.GetValue(currency, "id") );
-                put( "amount", BitrueCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Bitrue.this.currencyToPrecision(code, amount) );
                 put( "transferType", Helpers.add(Helpers.add(finalFromId, "_to_"), toId) );
             }};
             java.util.Map<String, Object> response = (this.fapiV2PrivatePostFuturesTransfer(this.extend(request, parameters))).join();
@@ -3658,7 +3658,7 @@ public class BitrueCore extends BitrueApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", BitrueCore.this.safeString(market, "symbol") );
+            put( "symbol", Bitrue.this.safeString(market, "symbol") );
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );
@@ -3699,7 +3699,7 @@ public class BitrueCore extends BitrueApi
             Object response = null;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractName", Helpers.GetValue(market, "id") );
-                put( "amount", BitrueCore.this.parseToNumeric(amount) );
+                put( "amount", Bitrue.this.parseToNumeric(amount) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
@@ -3747,13 +3747,13 @@ public class BitrueCore extends BitrueApi
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "open"))))
             {
                 Object query = this.urlencode(this.extend(new java.util.HashMap<String, Object>() {{
-                    put( "timestamp", BitrueCore.this.nonce() );
+                    put( "timestamp", Bitrue.this.nonce() );
                     put( "recvWindow", recvWindow );
                 }}, parameters));
                 Object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256());
                 query = Helpers.add(query, Helpers.add(Helpers.add("&", "signature="), signature));
                 headers = new java.util.HashMap<String, Object>() {{
-                    put( "X-MBX-APIKEY", BitrueCore.this.apiKey );
+                    put( "X-MBX-APIKEY", Bitrue.this.apiKey );
                 }};
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
                 {
@@ -3787,7 +3787,7 @@ public class BitrueCore extends BitrueApi
                     Object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
                     final Object finalTimestamp = timestamp;
                     headers = new java.util.HashMap<String, Object>() {{
-                        put( "X-CH-APIKEY", BitrueCore.this.apiKey );
+                        put( "X-CH-APIKEY", Bitrue.this.apiKey );
                         put( "X-CH-SIGN", signature );
                         put( "X-CH-TS", finalTimestamp );
                     }};
@@ -3803,7 +3803,7 @@ public class BitrueCore extends BitrueApi
                     final Object finalTimestamp_2 = timestamp;
                     headers = new java.util.HashMap<String, Object>() {{
                         put( "Content-Type", "application/json" );
-                        put( "X-CH-APIKEY", BitrueCore.this.apiKey );
+                        put( "X-CH-APIKEY", Bitrue.this.apiKey );
                         put( "X-CH-SIGN", signature );
                         put( "X-CH-TS", finalTimestamp_2 );
                     }};

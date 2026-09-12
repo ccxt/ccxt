@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class KucoinfuturesCore extends KucoinfuturesApi
+public class Kucoinfutures extends KucoinfuturesApi
 {
-   public KucoinfuturesCore () {
+   public Kucoinfutures () {
        super();
    }
 
-   public KucoinfuturesCore (Object options) {
+   public Kucoinfutures (Object options) {
        super(options);
    }
 
@@ -67,7 +67,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
                 put( "method", "futuresPublicGetAllTickers" );
             }};
             java.util.Map<String, Object> extendedRequest = this.extend(request, parameters);
-            return (this.fetchTickers(symbols, extendedRequest)).join();
+            return (this.fetchTickers((Object)(symbols), (Object)(extendedRequest))).join();
         });
 
     }
@@ -96,7 +96,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object amountToPrecision = this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "currency", KucoinfuturesCore.this.safeString(currency, "id") );
+                put( "currency", Kucoinfutures.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
             String toAccountString = this.parseTransferType(toAccount);
@@ -116,7 +116,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             final Object finalToAccount = toAccount;
             return this.extend(this.parseTransfer(data, currency), new java.util.HashMap<String, Object>() {{
-                put( "amount", KucoinfuturesCore.this.parseNumber(amountToPrecision) );
+                put( "amount", Kucoinfutures.this.parseNumber(amountToPrecision) );
                 put( "fromAccount", fromAccount );
                 put( "toAccount", finalToAccount );
             }});

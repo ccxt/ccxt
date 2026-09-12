@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BlockchaincomCore extends BlockchaincomApi
+public class Blockchaincom extends BlockchaincomApi
 {
-   public BlockchaincomCore () {
+   public Blockchaincom () {
        super();
    }
 
-   public BlockchaincomCore (Object options) {
+   public Blockchaincom (Object options) {
        super(options);
    }
 
@@ -191,8 +191,8 @@ public class BlockchaincomCore extends BlockchaincomApi
                     put( "tierBased", true );
                     put( "percentage", true );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("0"), BlockchaincomCore.this.parseNumber("0.0045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("10000"), BlockchaincomCore.this.parseNumber("0.0035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("50000"), BlockchaincomCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("100000"), BlockchaincomCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("500000"), BlockchaincomCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("1000000"), BlockchaincomCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("2500000"), BlockchaincomCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("5000000"), BlockchaincomCore.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("25000000"), BlockchaincomCore.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("100000000"), BlockchaincomCore.this.parseNumber("0.0011"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("500000000"), BlockchaincomCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("1000000000"), BlockchaincomCore.this.parseNumber("0.0006"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("0"), BlockchaincomCore.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("10000"), BlockchaincomCore.this.parseNumber("0.0017"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("50000"), BlockchaincomCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("100000"), BlockchaincomCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("500000"), BlockchaincomCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("1000000"), BlockchaincomCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("2500000"), BlockchaincomCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("5000000"), BlockchaincomCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("25000000"), BlockchaincomCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("100000000"), BlockchaincomCore.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("500000000"), BlockchaincomCore.this.parseNumber("0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(BlockchaincomCore.this.parseNumber("1000000000"), BlockchaincomCore.this.parseNumber("0"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("0"), Blockchaincom.this.parseNumber("0.0045"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("10000"), Blockchaincom.this.parseNumber("0.0035"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("50000"), Blockchaincom.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("100000"), Blockchaincom.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("500000"), Blockchaincom.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("1000000"), Blockchaincom.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("2500000"), Blockchaincom.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("5000000"), Blockchaincom.this.parseNumber("0.0016"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("25000000"), Blockchaincom.this.parseNumber("0.0014"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("100000000"), Blockchaincom.this.parseNumber("0.0011"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("500000000"), Blockchaincom.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("1000000000"), Blockchaincom.this.parseNumber("0.0006"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("0"), Blockchaincom.this.parseNumber("0.004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("10000"), Blockchaincom.this.parseNumber("0.0017"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("50000"), Blockchaincom.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("100000"), Blockchaincom.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("500000"), Blockchaincom.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("1000000"), Blockchaincom.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("2500000"), Blockchaincom.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("5000000"), Blockchaincom.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("25000000"), Blockchaincom.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("100000000"), Blockchaincom.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("500000000"), Blockchaincom.this.parseNumber("0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Blockchaincom.this.parseNumber("1000000000"), Blockchaincom.this.parseNumber("0"))))) );
                     }} );
                 }} );
             }} );
@@ -429,8 +429,8 @@ public class BlockchaincomCore extends BlockchaincomApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", BlockchaincomCore.this.parseNumber(amountPrecisionString) );
-                        put( "price", BlockchaincomCore.this.parseNumber(pricePrecisionString) );
+                        put( "amount", Blockchaincom.this.parseNumber(amountPrecisionString) );
+                        put( "price", Blockchaincom.this.parseNumber(pricePrecisionString) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -475,7 +475,7 @@ public class BlockchaincomCore extends BlockchaincomApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchL3OrderBook(symbol, limit, parameters)).join();
+            return (this.fetchL3OrderBook((Object)(symbol), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -747,7 +747,7 @@ public class BlockchaincomCore extends BlockchaincomApi
                 put( "ordType", finalUppercaseOrderType );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", ((String)finalSide).toUpperCase() );
-                put( "orderQty", BlockchaincomCore.this.amountToPrecision(symbol, amount) );
+                put( "orderQty", Blockchaincom.this.amountToPrecision(symbol, amount) );
                 put( "clOrdId", clientOrderId );
             }};
             Object triggerPrice = this.safeValueN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
@@ -1232,7 +1232,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             put( "id", finalId );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", BlockchaincomCore.this.iso8601(timestamp) );
+            put( "datetime", Blockchaincom.this.iso8601(timestamp) );
             put( "network", null );
             put( "addressFrom", null );
             put( "address", address );
@@ -1243,7 +1243,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             put( "type", finalType );
             put( "amount", amount );
             put( "currency", code );
-            put( "status", BlockchaincomCore.this.parseTransactionState(state) );
+            put( "status", Blockchaincom.this.parseTransactionState(state) );
             put( "updated", null );
             put( "comment", null );
             put( "internal", null );
@@ -1571,7 +1571,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         {
             this.checkRequiredCredentials();
             headers = new java.util.HashMap<String, Object>() {{
-                put( "X-API-Token", BlockchaincomCore.this.secret );
+                put( "X-API-Token", Blockchaincom.this.secret );
             }};
             if (Helpers.isTrue((Helpers.isEqual(method, "GET"))))
             {

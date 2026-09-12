@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BitgetCore extends io.github.ccxt.exchanges.Bitget
+public class Bitget extends io.github.ccxt.exchanges.Bitget
 {
-   public BitgetCore () {
+   public Bitget () {
        super();
    }
 
-   public BitgetCore (Object options) {
+   public Bitget (Object options) {
        super(options);
    }
 
@@ -451,23 +451,23 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
-            put( "high", BitgetCore.this.safeString2(ticker, "high24h", "highPrice24h") );
-            put( "low", BitgetCore.this.safeString2(ticker, "low24h", "lowPrice24h") );
-            put( "bid", BitgetCore.this.safeString2(ticker, "bidPr", "bid1Price") );
-            put( "bidVolume", BitgetCore.this.safeString2(ticker, "bidSz", "bid1Size") );
-            put( "ask", BitgetCore.this.safeString2(ticker, "askPr", "ask1Price") );
-            put( "askVolume", BitgetCore.this.safeString2(ticker, "askSz", "ask1Size") );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
+            put( "high", Bitget.this.safeString2(ticker, "high24h", "highPrice24h") );
+            put( "low", Bitget.this.safeString2(ticker, "low24h", "lowPrice24h") );
+            put( "bid", Bitget.this.safeString2(ticker, "bidPr", "bid1Price") );
+            put( "bidVolume", Bitget.this.safeString2(ticker, "bidSz", "bid1Size") );
+            put( "ask", Bitget.this.safeString2(ticker, "askPr", "ask1Price") );
+            put( "askVolume", Bitget.this.safeString2(ticker, "askSz", "ask1Size") );
             put( "vwap", null );
-            put( "open", BitgetCore.this.safeString2(ticker, "open24h", "openPrice24h") );
+            put( "open", Bitget.this.safeString2(ticker, "open24h", "openPrice24h") );
             put( "close", close );
             put( "last", close );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", changePercentage );
             put( "average", null );
-            put( "baseVolume", BitgetCore.this.safeString2(ticker, "baseVolume", "volume24h") );
-            put( "quoteVolume", BitgetCore.this.safeString2(ticker, "quoteVolume", "turnover24h") );
+            put( "baseVolume", Bitget.this.safeString2(ticker, "baseVolume", "volume24h") );
+            put( "quoteVolume", Bitget.this.safeString2(ticker, "quoteVolume", "turnover24h") );
             put( "info", ticker );
         }}, market);
     }
@@ -567,11 +567,11 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
-            put( "ask", BitgetCore.this.safeString2(ticker, "askPr", "ask1Price") );
-            put( "askVolume", BitgetCore.this.safeString2(ticker, "askSz", "ask1Size") );
-            put( "bid", BitgetCore.this.safeString2(ticker, "bidPr", "bid1Price") );
-            put( "bidVolume", BitgetCore.this.safeString2(ticker, "bidSz", "bid1Size") );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
+            put( "ask", Bitget.this.safeString2(ticker, "askPr", "ask1Price") );
+            put( "askVolume", Bitget.this.safeString2(ticker, "askSz", "ask1Size") );
+            put( "bid", Bitget.this.safeString2(ticker, "bidPr", "bid1Price") );
+            put( "bidVolume", Bitget.this.safeString2(ticker, "bidSz", "bid1Size") );
             put( "info", ticker );
         }}, market);
     }
@@ -870,7 +870,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1215,7 +1215,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1513,7 +1513,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFirst = first;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", Precise.stringAbs(BitgetCore.this.safeString2(finalFirst, "totalFee", "fee")) );
+                put( "cost", Precise.stringAbs(Bitget.this.safeString2(finalFirst, "totalFee", "fee")) );
                 put( "currency", feeCurrencyCode );
             }};
         }
@@ -1521,17 +1521,17 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", BitgetCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("tradeId", "i", "execId"))) );
-            put( "order", BitgetCore.this.safeString2(trade, "orderId", "L") );
+            put( "id", Bitget.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("tradeId", "i", "execId"))) );
+            put( "order", Bitget.this.safeString2(trade, "orderId", "L") );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "type", BitgetCore.this.safeString(trade, "orderType") );
-            put( "side", BitgetCore.this.safeString2(trade, "side", "S") );
-            put( "takerOrMaker", BitgetCore.this.safeString(trade, "tradeScope") );
-            put( "price", BitgetCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("priceAvg", "price", "execPrice", "P"))) );
-            put( "amount", BitgetCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("size", "baseVolume", "execQty", "v"))) );
-            put( "cost", BitgetCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("amount", "quoteVolume", "execValue"))) );
+            put( "type", Bitget.this.safeString(trade, "orderType") );
+            put( "side", Bitget.this.safeString2(trade, "side", "S") );
+            put( "takerOrMaker", Bitget.this.safeString(trade, "tradeScope") );
+            put( "price", Bitget.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("priceAvg", "price", "execPrice", "P"))) );
+            put( "amount", Bitget.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("size", "baseVolume", "execQty", "v"))) );
+            put( "cost", Bitget.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("amount", "quoteVolume", "execValue"))) );
             put( "fee", finalFee );
         }}, market);
     }
@@ -1804,28 +1804,28 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         final Object finalContractSize = contractSize;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", BitgetCore.this.safeString(position, "posId") );
-            put( "symbol", BitgetCore.this.safeSymbol(marketId, finalMarket, null, "contract") );
+            put( "id", Bitget.this.safeString(position, "posId") );
+            put( "symbol", Bitget.this.safeSymbol(marketId, finalMarket, null, "contract") );
             put( "notional", null );
             put( "marginMode", marginMode );
-            put( "liquidationPrice", BitgetCore.this.safeNumber2(position, "liquidationPrice", "liqPrice") );
-            put( "entryPrice", BitgetCore.this.safeNumber2(position, "openPriceAvg", "avgPrice") );
-            put( "unrealizedPnl", BitgetCore.this.safeNumber2(position, "unrealizedPL", "unrealisedPnl") );
-            put( "percentage", BitgetCore.this.parseNumber(percentage) );
-            put( "contracts", BitgetCore.this.safeNumber2(position, "total", "size") );
+            put( "liquidationPrice", Bitget.this.safeNumber2(position, "liquidationPrice", "liqPrice") );
+            put( "entryPrice", Bitget.this.safeNumber2(position, "openPriceAvg", "avgPrice") );
+            put( "unrealizedPnl", Bitget.this.safeNumber2(position, "unrealizedPL", "unrealisedPnl") );
+            put( "percentage", Bitget.this.parseNumber(percentage) );
+            put( "contracts", Bitget.this.safeNumber2(position, "total", "size") );
             put( "contractSize", finalContractSize );
-            put( "markPrice", BitgetCore.this.safeNumber(position, "markPrice") );
-            put( "side", BitgetCore.this.safeString2(position, "holdSide", "posSide") );
+            put( "markPrice", Bitget.this.safeNumber(position, "markPrice") );
+            put( "side", Bitget.this.safeString2(position, "holdSide", "posSide") );
             put( "hedged", hedged );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "maintenanceMargin", null );
-            put( "maintenanceMarginPercentage", BitgetCore.this.safeNumber2(position, "keepMarginRate", "mmr") );
-            put( "collateral", BitgetCore.this.safeNumber(position, "available") );
-            put( "initialMargin", BitgetCore.this.safeNumber(position, "marginSize") );
+            put( "maintenanceMarginPercentage", Bitget.this.safeNumber2(position, "keepMarginRate", "mmr") );
+            put( "collateral", Bitget.this.safeNumber(position, "available") );
+            put( "initialMargin", Bitget.this.safeNumber(position, "marginSize") );
             put( "initialMarginPercentage", null );
-            put( "leverage", BitgetCore.this.safeNumber(position, "leverage") );
-            put( "marginRatio", BitgetCore.this.safeNumber(position, "marginRate") );
+            put( "leverage", Bitget.this.safeNumber(position, "leverage") );
+            put( "marginRatio", Bitget.this.safeNumber(position, "marginRate") );
         }});
     }
 
@@ -2328,8 +2328,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             String feeCurrency = this.safeString(fee, "feeCoin");
             final Object finalFeeAmount = feeAmount;
             feeObject = new java.util.HashMap<String, Object>() {{
-                put( "cost", BitgetCore.this.parseNumber(Precise.stringAbs(finalFeeAmount)) );
-                put( "currency", BitgetCore.this.safeCurrencyCode(feeCurrency) );
+                put( "cost", Bitget.this.parseNumber(Precise.stringAbs(finalFeeAmount)) );
+                put( "currency", Bitget.this.safeCurrencyCode(feeCurrency) );
             }};
         }
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
@@ -2408,13 +2408,13 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
-            put( "id", BitgetCore.this.safeString(order, "orderId") );
-            put( "clientOrderId", BitgetCore.this.safeString(order, "clientOid") );
+            put( "id", Bitget.this.safeString(order, "orderId") );
+            put( "clientOrderId", Bitget.this.safeString(order, "clientOid") );
             put( "timestamp", timestamp );
-            put( "datetime", BitgetCore.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", BitgetCore.this.safeInteger2(order, "uTime", "updatedTime") );
+            put( "datetime", Bitget.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", Bitget.this.safeInteger2(order, "uTime", "updatedTime") );
             put( "type", finalType );
-            put( "timeInForce", BitgetCore.this.safeStringUpper2(order, "force", "timeInForce") );
+            put( "timeInForce", Bitget.this.safeStringUpper2(order, "force", "timeInForce") );
             put( "postOnly", null );
             put( "side", finalSide );
             put( "price", finalPrice );
@@ -2424,7 +2424,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             put( "average", avgPrice );
             put( "filled", finalFilledAmount );
             put( "remaining", finalRemaining );
-            put( "status", BitgetCore.this.parseWsOrderStatus(rawStatus) );
+            put( "status", Bitget.this.parseWsOrderStatus(rawStatus) );
             put( "fee", finalFeeObject );
             put( "trades", null );
         }}, market);
@@ -3028,8 +3028,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "op", operation );
                     put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
-        put( "apiKey", BitgetCore.this.apiKey );
-        put( "passphrase", BitgetCore.this.password );
+        put( "apiKey", Bitget.this.apiKey );
+        put( "passphrase", Bitget.this.password );
         put( "timestamp", finalTimestamp );
         put( "sign", signature );
     }})) );

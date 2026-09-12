@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class IndodaxCore extends IndodaxApi
+public class Indodax extends IndodaxApi
 {
-   public IndodaxCore () {
+   public Indodax () {
        super();
    }
 
-   public IndodaxCore (Object options) {
+   public Indodax (Object options) {
        super(options);
    }
 
@@ -453,7 +453,7 @@ public class IndodaxCore extends IndodaxApi
                     put( "contract", false );
                     put( "linear", null );
                     put( "inverse", null );
-                    put( "taker", IndodaxCore.this.safeNumber(market, "trade_fee_percent") );
+                    put( "taker", Indodax.this.safeNumber(market, "trade_fee_percent") );
                     put( "contractSize", null );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
@@ -461,9 +461,9 @@ public class IndodaxCore extends IndodaxApi
                     put( "optionType", null );
                     put( "percentage", true );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", IndodaxCore.this.parseNumber("1e-8") );
-                        put( "price", IndodaxCore.this.parseNumber(IndodaxCore.this.parsePrecision(IndodaxCore.this.safeString(market, "price_round"))) );
-                        put( "cost", IndodaxCore.this.parseNumber(IndodaxCore.this.parsePrecision(IndodaxCore.this.safeString(market, "volume_precision"))) );
+                        put( "amount", Indodax.this.parseNumber("1e-8") );
+                        put( "price", Indodax.this.parseNumber(Indodax.this.parsePrecision(Indodax.this.safeString(market, "price_round"))) );
+                        put( "cost", Indodax.this.parseNumber(Indodax.this.parsePrecision(Indodax.this.safeString(market, "volume_precision"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -471,11 +471,11 @@ public class IndodaxCore extends IndodaxApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", IndodaxCore.this.safeNumber(market, "trade_min_traded_currency") );
+                            put( "min", Indodax.this.safeNumber(market, "trade_min_traded_currency") );
                             put( "max", null );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
-                            put( "min", IndodaxCore.this.safeNumber(market, "trade_min_base_currency") );
+                            put( "min", Indodax.this.safeNumber(market, "trade_min_base_currency") );
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
@@ -501,7 +501,7 @@ public class IndodaxCore extends IndodaxApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
-            put( "datetime", IndodaxCore.this.iso8601(timestamp) );
+            put( "datetime", Indodax.this.iso8601(timestamp) );
         }};
         Object currencyIds = Helpers.objectKeys(free);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
@@ -627,12 +627,12 @@ public class IndodaxCore extends IndodaxApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", IndodaxCore.this.iso8601(timestamp) );
-            put( "high", IndodaxCore.this.safeString(ticker, "high") );
-            put( "low", IndodaxCore.this.safeString(ticker, "low") );
-            put( "bid", IndodaxCore.this.safeString(ticker, "buy") );
+            put( "datetime", Indodax.this.iso8601(timestamp) );
+            put( "high", Indodax.this.safeString(ticker, "high") );
+            put( "low", Indodax.this.safeString(ticker, "low") );
+            put( "bid", Indodax.this.safeString(ticker, "buy") );
             put( "bidVolume", null );
-            put( "ask", IndodaxCore.this.safeString(ticker, "sell") );
+            put( "ask", Indodax.this.safeString(ticker, "sell") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -642,8 +642,8 @@ public class IndodaxCore extends IndodaxApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", IndodaxCore.this.safeString(ticker, baseVolume) );
-            put( "quoteVolume", IndodaxCore.this.safeString(ticker, quoteVolume) );
+            put( "baseVolume", Indodax.this.safeString(ticker, baseVolume) );
+            put( "quoteVolume", Indodax.this.safeString(ticker, quoteVolume) );
             put( "info", ticker );
         }}, market);
     }
@@ -751,17 +751,17 @@ public class IndodaxCore extends IndodaxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(trade, "date");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", IndodaxCore.this.safeString(trade, "tid") );
+            put( "id", Indodax.this.safeString(trade, "tid") );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", IndodaxCore.this.iso8601(timestamp) );
-            put( "symbol", IndodaxCore.this.safeSymbol(null, market) );
+            put( "datetime", Indodax.this.iso8601(timestamp) );
+            put( "symbol", Indodax.this.safeSymbol(null, market) );
             put( "type", null );
-            put( "side", IndodaxCore.this.safeString(trade, "type") );
+            put( "side", Indodax.this.safeString(trade, "type") );
             put( "order", null );
             put( "takerOrMaker", null );
-            put( "price", IndodaxCore.this.safeString(trade, "price") );
-            put( "amount", IndodaxCore.this.safeString(trade, "amount") );
+            put( "price", Indodax.this.safeString(trade, "price") );
+            put( "amount", Indodax.this.safeString(trade, "amount") );
             put( "cost", null );
             put( "fee", null );
         }}, market);
@@ -981,9 +981,9 @@ public class IndodaxCore extends IndodaxApi
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
-            put( "clientOrderId", IndodaxCore.this.safeString(order, "client_order_id") );
+            put( "clientOrderId", Indodax.this.safeString(order, "client_order_id") );
             put( "timestamp", timestamp );
-            put( "datetime", IndodaxCore.this.iso8601(timestamp) );
+            put( "datetime", Indodax.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", finalSymbol );
             put( "type", "limit" );
@@ -1340,8 +1340,8 @@ public class IndodaxCore extends IndodaxApi
             String currencyId = this.safeString(data, "currency");
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "rate", IndodaxCore.this.safeNumber(data, "withdraw_fee") );
-                put( "currency", IndodaxCore.this.safeCurrencyCode(currencyId, currency) );
+                put( "rate", Indodax.this.safeNumber(data, "withdraw_fee") );
+                put( "currency", Indodax.this.safeCurrencyCode(currencyId, currency) );
             }};
         });
 
@@ -1628,7 +1628,7 @@ public class IndodaxCore extends IndodaxApi
         {
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "currency", IndodaxCore.this.safeCurrencyCode(null, currency) );
+                put( "currency", Indodax.this.safeCurrencyCode(null, currency) );
                 put( "cost", finalFeeCost );
                 put( "rate", null );
             }};
@@ -1636,23 +1636,23 @@ public class IndodaxCore extends IndodaxApi
         final Object finalDepositId = depositId;
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", IndodaxCore.this.safeString2(transaction, "withdraw_id", "deposit_id") );
-            put( "txid", IndodaxCore.this.safeString2(transaction, "txid", "tx") );
+            put( "id", Indodax.this.safeString2(transaction, "withdraw_id", "deposit_id") );
+            put( "txid", Indodax.this.safeString2(transaction, "txid", "tx") );
             put( "timestamp", timestamp );
-            put( "datetime", IndodaxCore.this.iso8601(timestamp) );
+            put( "datetime", Indodax.this.iso8601(timestamp) );
             put( "network", null );
             put( "addressFrom", null );
-            put( "address", IndodaxCore.this.safeString(transaction, "withdraw_address") );
+            put( "address", Indodax.this.safeString(transaction, "withdraw_address") );
             put( "addressTo", null );
-            put( "amount", IndodaxCore.this.safeNumberN(transaction, new java.util.ArrayList<Object>(java.util.Arrays.asList("amount", "withdraw_amount", "deposit_amount"))) );
+            put( "amount", Indodax.this.safeNumberN(transaction, new java.util.ArrayList<Object>(java.util.Arrays.asList("amount", "withdraw_amount", "deposit_amount"))) );
             put( "type", ((Helpers.isTrue((Helpers.isEqual(finalDepositId, null))))) ? "withdraw" : "deposit" );
-            put( "currency", IndodaxCore.this.safeCurrencyCode(null, currency) );
-            put( "status", IndodaxCore.this.parseTransactionStatus(status) );
+            put( "currency", Indodax.this.safeCurrencyCode(null, currency) );
+            put( "status", Indodax.this.parseTransactionStatus(status) );
             put( "updated", null );
             put( "tagFrom", null );
             put( "tag", null );
             put( "tagTo", null );
-            put( "comment", IndodaxCore.this.safeString(transaction, "withdraw_memo") );
+            put( "comment", Indodax.this.safeString(transaction, "withdraw_memo") );
             put( "internal", null );
             put( "fee", finalFee );
             put( "info", transaction );
@@ -1813,14 +1813,14 @@ public class IndodaxCore extends IndodaxApi
             this.checkRequiredCredentials();
             body = this.urlencode(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "method", path );
-                put( "timestamp", IndodaxCore.this.nonce() );
-                put( "recvWindow", Helpers.GetValue(IndodaxCore.this.options, "recvWindow") );
+                put( "timestamp", Indodax.this.nonce() );
+                put( "recvWindow", Helpers.GetValue(Indodax.this.options, "recvWindow") );
             }}, parameters));
             final Object finalBody = body;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
-                put( "Key", IndodaxCore.this.apiKey );
-                put( "Sign", IndodaxCore.this.hmac(IndodaxCore.this.encode(finalBody), IndodaxCore.this.encode(IndodaxCore.this.secret), sha512()) );
+                put( "Key", Indodax.this.apiKey );
+                put( "Sign", Indodax.this.hmac(Indodax.this.encode(finalBody), Indodax.this.encode(Indodax.this.secret), sha512()) );
             }};
         }
         final Object finalUrl = url;

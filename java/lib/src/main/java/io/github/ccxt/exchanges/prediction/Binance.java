@@ -9,13 +9,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BinanceCore extends BinanceApi
+public class Binance extends BinanceApi
 {
-   public BinanceCore () {
+   public Binance () {
        super();
    }
 
-   public BinanceCore (Object options) {
+   public Binance (Object options) {
        super(options);
    }
 
@@ -203,7 +203,7 @@ public class BinanceCore extends BinanceApi
             if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
             {
                 Object eventParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("limit")));
-                Object events = (this.fetchEvents(eventParams)).join();
+                Object events = (this.fetchEvents((Object)(eventParams))).join();
                 Object eventsLength = Helpers.getArrayLength(events);
                 java.util.List<Object> queryMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var ei = 0; Helpers.isLessThan(ei, eventsLength); ei++)
@@ -625,9 +625,9 @@ public class BinanceCore extends BinanceApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object events = (this.fetchEvents(this.extend(new java.util.HashMap<String, Object>() {{
+            Object events = (this.fetchEvents((Object)(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "eventId", id );
-            }}, parameters))).join();
+            }}, parameters)))).join();
             return this.safeDict(events, 0);
         });
 
@@ -706,20 +706,20 @@ public class BinanceCore extends BinanceApi
         return new java.util.HashMap<String, Object>() {{
             put( "id", topicId );
             put( "slug", finalSlug );
-            put( "event", ((Helpers.isTrue((!Helpers.isEqual(finalSlug, null))))) ? BinanceCore.this.shortenSlug(finalSlug) : null );
+            put( "event", ((Helpers.isTrue((!Helpers.isEqual(finalSlug, null))))) ? Binance.this.shortenSlug(finalSlug) : null );
             put( "title", title );
-            put( "description", BinanceCore.this.safeString(rawTopic, "description") );
+            put( "description", Binance.this.safeString(rawTopic, "description") );
             put( "markets", marketsList );
             put( "active", finalActive );
-            put( "volume", BinanceCore.this.safeNumber(rawTopic, "tradeVolume") );
-            put( "liquidity", BinanceCore.this.safeNumber(rawTopic, "liquidity") );
+            put( "volume", Binance.this.safeNumber(rawTopic, "tradeVolume") );
+            put( "liquidity", Binance.this.safeNumber(rawTopic, "liquidity") );
             put( "url", null );
-            put( "image", BinanceCore.this.safeString(rawTopic, "imageUrl") );
+            put( "image", Binance.this.safeString(rawTopic, "imageUrl") );
             put( "created", created );
-            put( "createdDatetime", BinanceCore.this.iso8601(created) );
+            put( "createdDatetime", Binance.this.iso8601(created) );
             put( "end", endDate );
-            put( "endDatetime", BinanceCore.this.iso8601(endDate) );
-            put( "category", BinanceCore.this.safeString(rawTopic, "chartType") );
+            put( "endDatetime", Binance.this.iso8601(endDate) );
+            put( "category", Binance.this.safeString(rawTopic, "chartType") );
             put( "resolved", finalResolved );
             put( "info", rawTopic );
         }};
@@ -813,7 +813,7 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "outcome", outcomeHandle );
                 put( "market", finalMarketSymbol );
                 put( "label", label );
-                put( "price", BinanceCore.this.parseNumber(finalPrice) );
+                put( "price", Binance.this.parseNumber(finalPrice) );
                 put( "active", finalActive );
                 put( "winner", winner );
                 put( "settleFraction", settleFraction );
@@ -823,18 +823,18 @@ final Object finalMarketSymbol = marketSymbol;
                     put( "marketId", marketId );
                     put( "marketTopicId", topicId );
                     put( "vendor", vendor );
-                    put( "chainId", BinanceCore.this.safeString(rawTopic, "chainId") );
+                    put( "chainId", Binance.this.safeString(rawTopic, "chainId") );
                     put( "slug", topicSlug );
                     put( "marketTitle", title );
                     put( "outcomeLabel", label );
-                    put( "index", BinanceCore.this.safeString(rawOutcome, "index") );
+                    put( "index", Binance.this.safeString(rawOutcome, "index") );
                     put( "price", finalPrice );
-                    put( "chance", BinanceCore.this.safeString(rawOutcome, "chance") );
+                    put( "chance", Binance.this.safeString(rawOutcome, "chance") );
                     put( "collateral", collateral );
                     put( "feeRateBps", feeRateBps );
-                    put( "slippageBps", BinanceCore.this.safeString(rawTopic, "slippageBps") );
-                    put( "conditionId", BinanceCore.this.safeString(rawMarket, "conditionId") );
-                    put( "externalId", BinanceCore.this.safeString(rawMarket, "externalId") );
+                    put( "slippageBps", Binance.this.safeString(rawTopic, "slippageBps") );
+                    put( "conditionId", Binance.this.safeString(rawMarket, "conditionId") );
+                    put( "externalId", Binance.this.safeString(rawMarket, "externalId") );
                 }} );
             }});
         }
@@ -869,7 +869,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "inverse", null );
             put( "contractSize", null );
             put( "expiry", endDate );
-            put( "expiryDatetime", BinanceCore.this.iso8601(endDate) );
+            put( "expiryDatetime", Binance.this.iso8601(endDate) );
             put( "strike", null );
             put( "optionType", null );
             put( "taker", feeRate );
@@ -897,14 +897,14 @@ final Object finalMarketSymbol = marketSymbol;
                 }} );
             }} );
             put( "outcomes", outcomes );
-            put( "info", BinanceCore.this.extend(rawMarket, new java.util.HashMap<String, Object>() {{
+            put( "info", Binance.this.extend(rawMarket, new java.util.HashMap<String, Object>() {{
                 put( "marketTopicId", topicId );
                 put( "vendor", vendor );
                 put( "slug", topicSlug );
                 put( "volume", volume );
                 put( "liquidity", liquidity );
             }}) );
-            put( "created", BinanceCore.this.safeInteger(rawTopic, "publishedAt") );
+            put( "created", Binance.this.safeInteger(rawTopic, "publishedAt") );
         }};
     }
 
@@ -927,7 +927,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcomeObj = this.outcome(outcome);
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "marketId", BinanceCore.this.safeString(info, "marketId") );
+                put( "marketId", Binance.this.safeString(info, "marketId") );
             }};
             Object response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
             //
@@ -983,12 +983,12 @@ final Object finalMarketSymbol = marketSymbol;
         Long now = this.milliseconds();
         final Object finalLast = last;
         return this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
-            put( "outcome", BinanceCore.this.safeString(outcomeObj, "outcome") );
-            put( "outcomeId", BinanceCore.this.safeString2(outcomeObj, "outcomeId", "id") );
-            put( "label", BinanceCore.this.safeString(outcomeObj, "label") );
-            put( "market", BinanceCore.this.safeString(outcomeObj, "market") );
+            put( "outcome", Binance.this.safeString(outcomeObj, "outcome") );
+            put( "outcomeId", Binance.this.safeString2(outcomeObj, "outcomeId", "id") );
+            put( "label", Binance.this.safeString(outcomeObj, "label") );
+            put( "market", Binance.this.safeString(outcomeObj, "market") );
             put( "timestamp", now );
-            put( "datetime", BinanceCore.this.iso8601(now) );
+            put( "datetime", Binance.this.iso8601(now) );
             put( "high", null );
             put( "low", null );
             put( "bid", null );
@@ -1082,9 +1082,9 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcomeObj = this.outcome(outcome);
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "vendor", BinanceCore.this.safeString(info, "vendor", BinanceCore.this.safeString(BinanceCore.this.options, "defaultVendor")) );
-                put( "marketId", BinanceCore.this.safeString(info, "marketId") );
-                put( "tokenId", BinanceCore.this.safeString2(outcomeObj, "outcomeId", "id") );
+                put( "vendor", Binance.this.safeString(info, "vendor", Binance.this.safeString(Binance.this.options, "defaultVendor")) );
+                put( "marketId", Binance.this.safeString(info, "marketId") );
+                put( "tokenId", Binance.this.safeString2(outcomeObj, "outcomeId", "id") );
             }};
             Object response = (this.sapiPrivateGetOrderBook(this.extend(request, parameters))).join();
             //
@@ -1212,23 +1212,23 @@ final Object finalMarketSymbol = marketSymbol;
         Long timestamp = this.safeInteger(order, "createTime");
         final Object finalOutcomeObj = outcomeObj;
         return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", BinanceCore.this.safeString(order, "orderId") );
+            put( "id", Binance.this.safeString(order, "orderId") );
             put( "clientOrderId", null );
             put( "info", order );
             put( "timestamp", timestamp );
-            put( "datetime", BinanceCore.this.iso8601(timestamp) );
+            put( "datetime", Binance.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "status", status );
-            put( "outcome", BinanceCore.this.safeString(finalOutcomeObj, "outcome") );
-            put( "outcomeId", BinanceCore.this.safeString(finalOutcomeObj, "id") );
-            put( "label", BinanceCore.this.safeString(finalOutcomeObj, "label") );
-            put( "market", BinanceCore.this.safeString(finalOutcomeObj, "market") );
-            put( "type", BinanceCore.this.safeStringLower(order, "orderType") );
+            put( "outcome", Binance.this.safeString(finalOutcomeObj, "outcome") );
+            put( "outcomeId", Binance.this.safeString(finalOutcomeObj, "id") );
+            put( "label", Binance.this.safeString(finalOutcomeObj, "label") );
+            put( "market", Binance.this.safeString(finalOutcomeObj, "market") );
+            put( "type", Binance.this.safeStringLower(order, "orderType") );
             put( "timeInForce", null );
             put( "postOnly", null );
             put( "reduceOnly", null );
             put( "side", side );
-            put( "price", BinanceCore.this.safeNumber(order, "price") );
+            put( "price", Binance.this.safeNumber(order, "price") );
             put( "triggerPrice", null );
             put( "amount", null );
             put( "cost", null );
@@ -1641,32 +1641,32 @@ final Object finalMarketSymbol = marketSymbol;
         Object totalCost = this.parseNumber(this.safeString(position, "totalCost"));
         final Object finalOutcomeObj = outcomeObj;
         return this.safePredictionPosition(new java.util.HashMap<String, Object>() {{
-            put( "id", BinanceCore.this.safeInteger(position, "positionId") );
-            put( "outcome", BinanceCore.this.safeString(finalOutcomeObj, "outcome") );
-            put( "outcomeId", BinanceCore.this.safeString2(finalOutcomeObj, "outcomeId", "id") );
-            put( "market", BinanceCore.this.safeString(finalOutcomeObj, "market") );
+            put( "id", Binance.this.safeInteger(position, "positionId") );
+            put( "outcome", Binance.this.safeString(finalOutcomeObj, "outcome") );
+            put( "outcomeId", Binance.this.safeString2(finalOutcomeObj, "outcomeId", "id") );
+            put( "market", Binance.this.safeString(finalOutcomeObj, "market") );
             put( "timestamp", timestamp );
-            put( "datetime", BinanceCore.this.iso8601(timestamp) );
+            put( "datetime", Binance.this.iso8601(timestamp) );
             put( "isolated", false );
             put( "hedged", null );
             put( "side", "long" );
             put( "contracts", null );
-            put( "contractSize", BinanceCore.this.parseNumber(BinanceCore.this.safeString(position, "shares")) );
-            put( "entryPrice", BinanceCore.this.parseNumber(BinanceCore.this.safeString(position, "avgPrice")) );
+            put( "contractSize", Binance.this.parseNumber(Binance.this.safeString(position, "shares")) );
+            put( "entryPrice", Binance.this.parseNumber(Binance.this.safeString(position, "avgPrice")) );
             put( "markPrice", null );
-            put( "notional", BinanceCore.this.parseNumber(BinanceCore.this.safeString(position, "value")) );
+            put( "notional", Binance.this.parseNumber(Binance.this.safeString(position, "value")) );
             put( "leverage", null );
             put( "collateral", totalCost );
             put( "initialMargin", totalCost );
             put( "maintenanceMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMarginPercentage", null );
-            put( "unrealizedPnl", BinanceCore.this.parseNumber(BinanceCore.this.safeString(position, "unrealizedPnl")) );
-            put( "realizedPnl", BinanceCore.this.parseNumber(BinanceCore.this.safeString(position, "realizedPnl")) );
+            put( "unrealizedPnl", Binance.this.parseNumber(Binance.this.safeString(position, "unrealizedPnl")) );
+            put( "realizedPnl", Binance.this.parseNumber(Binance.this.safeString(position, "realizedPnl")) );
             put( "liquidationPrice", null );
             put( "marginRatio", null );
             put( "marginMode", "cross" );
-            put( "percentage", BinanceCore.this.parseNumber(BinanceCore.this.safeString(position, "unrealizedPnlPercent")) );
+            put( "percentage", Binance.this.parseNumber(Binance.this.safeString(position, "unrealizedPnlPercent")) );
             put( "info", position );
         }});
     }
@@ -1848,7 +1848,7 @@ final Object finalMarketSymbol = marketSymbol;
             String feeCost = Precise.stringAbs(Precise.stringSub(cost, Precise.stringMul(price, filled)));
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", "USDT" );
-                put( "cost", BinanceCore.this.parseNumber(feeCost) );
+                put( "cost", Binance.this.parseNumber(feeCost) );
             }};
         }
         final Object finalOutcomeObj = outcomeObj;
@@ -1861,18 +1861,18 @@ final Object finalMarketSymbol = marketSymbol;
             put( "id", null );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BinanceCore.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", BinanceCore.this.safeInteger(trade, "modifyTime") );
-            put( "outcome", BinanceCore.this.safeString(finalOutcomeObj, "outcome") );
-            put( "outcomeId", BinanceCore.this.safeString(finalOutcomeObj, "id") );
-            put( "label", BinanceCore.this.safeString(finalOutcomeObj, "label") );
-            put( "market", BinanceCore.this.safeString(finalOutcomeObj, "market") );
-            put( "order", BinanceCore.this.safeString(trade, "orderId") );
+            put( "datetime", Binance.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", Binance.this.safeInteger(trade, "modifyTime") );
+            put( "outcome", Binance.this.safeString(finalOutcomeObj, "outcome") );
+            put( "outcomeId", Binance.this.safeString(finalOutcomeObj, "id") );
+            put( "label", Binance.this.safeString(finalOutcomeObj, "label") );
+            put( "market", Binance.this.safeString(finalOutcomeObj, "market") );
+            put( "order", Binance.this.safeString(trade, "orderId") );
             put( "type", finalOrderType );
-            put( "side", BinanceCore.this.safeStringLower(trade, "side") );
+            put( "side", Binance.this.safeStringLower(trade, "side") );
             put( "takerOrMaker", null );
             put( "price", finalPrice );
-            put( "amount", BinanceCore.this.safeString(trade, "makerShareQty") );
+            put( "amount", Binance.this.safeString(trade, "makerShareQty") );
             put( "filled", finalFilled );
             put( "cost", finalCost );
             put( "fee", finalFee );
@@ -2116,7 +2116,7 @@ final Object finalMarketSymbol = marketSymbol;
             java.util.Map<String, Object> quoteRequest = this.extend(commonRequest, new java.util.HashMap<String, Object>() {{
                 put( "tokenId", Helpers.GetValue(outcomeObj, "id") );
                 put( "side", finalSideUpper );
-                put( "amountIn", Precise.stringMul(BinanceCore.this.amountToPrecision(marketSymbol, finalAmountStr), "1000000000000000000") );
+                put( "amountIn", Precise.stringMul(Binance.this.amountToPrecision(marketSymbol, finalAmountStr), "1000000000000000000") );
             }});
             Object quote = (this.fetchQuote(quoteRequest, parameters)).join();
             String quoteId = this.safeString(quote, "quoteId");
@@ -2130,16 +2130,16 @@ final Object finalMarketSymbol = marketSymbol;
             Object response = (this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, parameters))).join();
             final Object finalPrice = price;
             return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
-                put( "id", BinanceCore.this.safeString(response, "orderId") );
+                put( "id", Binance.this.safeString(response, "orderId") );
                 put( "clientOrderId", null );
                 put( "info", response );
                 put( "timestamp", null );
                 put( "datetime", null );
                 put( "status", null );
-                put( "outcome", BinanceCore.this.safeString(outcomeObj, "outcome", outcome) );
-                put( "outcomeId", BinanceCore.this.safeString(outcomeObj, "id") );
-                put( "label", BinanceCore.this.safeString(outcomeObj, "label") );
-                put( "market", BinanceCore.this.safeString(outcomeObj, "market") );
+                put( "outcome", Binance.this.safeString(outcomeObj, "outcome", outcome) );
+                put( "outcomeId", Binance.this.safeString(outcomeObj, "id") );
+                put( "label", Binance.this.safeString(outcomeObj, "label") );
+                put( "market", Binance.this.safeString(outcomeObj, "market") );
                 put( "type", type );
                 put( "side", side );
                 put( "price", finalPrice );
@@ -2282,11 +2282,11 @@ final Object finalMarketSymbol = marketSymbol;
                     put( "info", status );
                     put( "status", "canceled" );
                     put( "outcome", outcomeSymbol );
-                    put( "outcomeId", BinanceCore.this.safeString(finalOutcomeObj, "id") );
-                    put( "label", BinanceCore.this.safeString(finalOutcomeObj, "label") );
-                    put( "market", BinanceCore.this.safeString(finalOutcomeObj, "market") );
-                    put( "timestamp", BinanceCore.this.milliseconds() );
-                    put( "datetime", BinanceCore.this.iso8601(BinanceCore.this.milliseconds()) );
+                    put( "outcomeId", Binance.this.safeString(finalOutcomeObj, "id") );
+                    put( "label", Binance.this.safeString(finalOutcomeObj, "label") );
+                    put( "market", Binance.this.safeString(finalOutcomeObj, "market") );
+                    put( "timestamp", Binance.this.milliseconds() );
+                    put( "datetime", Binance.this.iso8601(Binance.this.milliseconds()) );
                 }};
                 ((java.util.List<Object>)orders).add(this.safePredictionOrder(order));
             }
@@ -2340,7 +2340,7 @@ final Object finalMarketSymbol = marketSymbol;
         Object query = this.omit(parameters, this.extractParams(path));
         this.checkRequiredCredentials();
         java.util.Map<String, Object> extendedParams = this.extend(new java.util.HashMap<String, Object>() {{
-            put( "timestamp", BinanceCore.this.nonce() );
+            put( "timestamp", Binance.this.nonce() );
         }}, query);
         Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
         if (Helpers.isTrue(!Helpers.isEqual(defaultRecvWindow, null)))
@@ -2353,7 +2353,7 @@ final Object finalMarketSymbol = marketSymbol;
         Object signature = this.hmac(this.encode(querystring), this.encode(this.secret), sha256());
         querystring = Helpers.add(Helpers.add(querystring, "&signature="), signature);
         headers = new java.util.HashMap<String, Object>() {{
-            put( "X-MBX-APIKEY", BinanceCore.this.apiKey );
+            put( "X-MBX-APIKEY", Binance.this.apiKey );
         }};
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
         {

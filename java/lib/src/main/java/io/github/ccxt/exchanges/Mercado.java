@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class MercadoCore extends MercadoApi
+public class Mercado extends MercadoApi
 {
-   public MercadoCore () {
+   public Mercado () {
        super();
    }
 
-   public MercadoCore (Object options) {
+   public Mercado (Object options) {
        super(options);
    }
 
@@ -406,8 +406,8 @@ public class MercadoCore extends MercadoApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", MercadoCore.this.parseNumber("1e-8") );
-                        put( "price", MercadoCore.this.parseNumber("1e-5") );
+                        put( "amount", Mercado.this.parseNumber("1e-8") );
+                        put( "price", Mercado.this.parseNumber("1e-5") );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -415,11 +415,11 @@ public class MercadoCore extends MercadoApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", MercadoCore.this.safeNumber(amountLimits, baseId) );
+                            put( "min", Mercado.this.safeNumber(amountLimits, baseId) );
                             put( "max", null );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
-                            put( "min", MercadoCore.this.parseNumber("1e-5") );
+                            put( "min", Mercado.this.parseNumber("1e-5") );
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
@@ -487,12 +487,12 @@ public class MercadoCore extends MercadoApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", MercadoCore.this.iso8601(timestamp) );
-            put( "high", MercadoCore.this.safeString(ticker, "high") );
-            put( "low", MercadoCore.this.safeString(ticker, "low") );
-            put( "bid", MercadoCore.this.safeString(ticker, "buy") );
+            put( "datetime", Mercado.this.iso8601(timestamp) );
+            put( "high", Mercado.this.safeString(ticker, "high") );
+            put( "low", Mercado.this.safeString(ticker, "low") );
+            put( "bid", Mercado.this.safeString(ticker, "buy") );
             put( "bidVolume", null );
-            put( "ask", MercadoCore.this.safeString(ticker, "sell") );
+            put( "ask", Mercado.this.safeString(ticker, "sell") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -502,7 +502,7 @@ public class MercadoCore extends MercadoApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", MercadoCore.this.safeString(ticker, "vol") );
+            put( "baseVolume", Mercado.this.safeString(ticker, "vol") );
             put( "quoteVolume", null );
             put( "info", ticker );
         }}, market);
@@ -577,7 +577,7 @@ public class MercadoCore extends MercadoApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", MercadoCore.this.iso8601(timestamp) );
+            put( "datetime", Mercado.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "order", null );
             put( "type", type );
@@ -868,7 +868,7 @@ public class MercadoCore extends MercadoApi
         Object timestamp = this.safeTimestamp(order, "created_timestamp");
         final Object finalMarket = market;
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
-            put( "cost", MercadoCore.this.safeString(order, "fee") );
+            put( "cost", Mercado.this.safeString(order, "fee") );
             put( "currency", Helpers.GetValue(finalMarket, "quote") );
         }};
         String price = this.safeString(order, "limit_price");
@@ -885,7 +885,7 @@ public class MercadoCore extends MercadoApi
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", MercadoCore.this.iso8601(timestamp) );
+            put( "datetime", Mercado.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", lastTradeTimestamp );
             put( "symbol", symbol );
             put( "type", "limit" );
@@ -1048,7 +1048,7 @@ public class MercadoCore extends MercadoApi
         currency = this.safeCurrency(null, currency);
         final Object finalCurrency = currency;
         return new java.util.HashMap<String, Object>() {{
-            put( "id", MercadoCore.this.safeString(transaction, "id") );
+            put( "id", Mercado.this.safeString(transaction, "id") );
             put( "txid", null );
             put( "timestamp", null );
             put( "datetime", null );
@@ -1103,7 +1103,7 @@ public class MercadoCore extends MercadoApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "resolution", MercadoCore.this.safeString(MercadoCore.this.timeframes, timeframe, timeframe) );
+                put( "resolution", Mercado.this.safeString(Mercado.this.timeframes, timeframe, timeframe) );
                 put( "symbol", Helpers.add(Helpers.add(Helpers.GetValue(market, "base"), "-"), Helpers.GetValue(market, "quote")) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -1290,8 +1290,8 @@ public class MercadoCore extends MercadoApi
             Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/tapi/", this.version), "/"), "?"), body);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
-                put( "TAPI-ID", MercadoCore.this.apiKey );
-                put( "TAPI-MAC", MercadoCore.this.hmac(MercadoCore.this.encode(auth), MercadoCore.this.encode(MercadoCore.this.secret), sha512()) );
+                put( "TAPI-ID", Mercado.this.apiKey );
+                put( "TAPI-MAC", Mercado.this.hmac(Mercado.this.encode(auth), Mercado.this.encode(Mercado.this.secret), sha512()) );
             }};
         }
         final Object finalUrl = url;

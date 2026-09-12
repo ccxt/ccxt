@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class HollaexCore extends HollaexApi
+public class Hollaex extends HollaexApi
 {
-   public HollaexCore () {
+   public Hollaex () {
        super();
    }
 
-   public HollaexCore (Object options) {
+   public Hollaex (Object options) {
        super(options);
    }
 
@@ -340,7 +340,7 @@ public class HollaexCore extends HollaexApi
                 }} );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
-                put( "api-expires", HollaexCore.this.parseToInt(Helpers.divide(HollaexCore.this.timeout, 1000)) );
+                put( "api-expires", Hollaex.this.parseToInt(Helpers.divide(Hollaex.this.timeout, 1000)) );
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "BTC", "btc" );
                     put( "ETH", "eth" );
@@ -436,7 +436,7 @@ public class HollaexCore extends HollaexApi
                 Object quote = this.commonCurrencyCode(quoteId.toUpperCase());
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
-                    put( "id", HollaexCore.this.safeString(market, "name") );
+                    put( "id", Hollaex.this.safeString(market, "name") );
                     put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
@@ -450,7 +450,7 @@ public class HollaexCore extends HollaexApi
                     put( "swap", false );
                     put( "future", false );
                     put( "option", false );
-                    put( "active", HollaexCore.this.safeValue(market, "active") );
+                    put( "active", Hollaex.this.safeValue(market, "active") );
                     put( "contract", false );
                     put( "linear", null );
                     put( "inverse", null );
@@ -460,8 +460,8 @@ public class HollaexCore extends HollaexApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", HollaexCore.this.safeNumber(market, "increment_size") );
-                        put( "price", HollaexCore.this.safeNumber(market, "increment_price") );
+                        put( "amount", Hollaex.this.safeNumber(market, "increment_size") );
+                        put( "price", Hollaex.this.safeNumber(market, "increment_price") );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -469,19 +469,19 @@ public class HollaexCore extends HollaexApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", HollaexCore.this.safeNumber(market, "min_size") );
-                            put( "max", HollaexCore.this.safeNumber(market, "max_size") );
+                            put( "min", Hollaex.this.safeNumber(market, "min_size") );
+                            put( "max", Hollaex.this.safeNumber(market, "max_size") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
-                            put( "min", HollaexCore.this.safeNumber(market, "min_price") );
-                            put( "max", HollaexCore.this.safeNumber(market, "max_price") );
+                            put( "min", Hollaex.this.safeNumber(market, "min_price") );
+                            put( "max", Hollaex.this.safeNumber(market, "max_price") );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
                     }} );
-                    put( "created", HollaexCore.this.parse8601(HollaexCore.this.safeString(market, "created_at")) );
+                    put( "created", Hollaex.this.parse8601(Hollaex.this.safeString(market, "created_at")) );
                     put( "info", market );
                 }});
             }
@@ -599,10 +599,10 @@ public class HollaexCore extends HollaexApi
                 Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
-    put( "active", HollaexCore.this.safeBool(networkEntry, "active") );
+    put( "active", Hollaex.this.safeBool(networkEntry, "active") );
     put( "deposit", null );
     put( "withdraw", null );
-    put( "fee", HollaexCore.this.safeNumber(networkEntry, "value") );
+    put( "fee", Hollaex.this.safeNumber(networkEntry, "value") );
     put( "precision", null );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -616,23 +616,23 @@ public class HollaexCore extends HollaexApi
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
-            put( "numericId", HollaexCore.this.safeInteger(rawCurrency, "id") );
+            put( "numericId", Hollaex.this.safeInteger(rawCurrency, "id") );
             put( "code", code );
             put( "info", rawCurrency );
-            put( "name", HollaexCore.this.safeString(rawCurrency, "fullname") );
-            put( "active", HollaexCore.this.safeBool(rawCurrency, "active") );
-            put( "deposit", HollaexCore.this.safeBool(rawCurrency, "allow_deposit") );
-            put( "withdraw", HollaexCore.this.safeBool(rawCurrency, "allow_withdrawal") );
-            put( "fee", HollaexCore.this.safeNumber(rawCurrency, "withdrawal_fee") );
-            put( "precision", HollaexCore.this.safeNumber(rawCurrency, "increment_unit") );
+            put( "name", Hollaex.this.safeString(rawCurrency, "fullname") );
+            put( "active", Hollaex.this.safeBool(rawCurrency, "active") );
+            put( "deposit", Hollaex.this.safeBool(rawCurrency, "allow_deposit") );
+            put( "withdraw", Hollaex.this.safeBool(rawCurrency, "allow_withdrawal") );
+            put( "fee", Hollaex.this.safeNumber(rawCurrency, "withdrawal_fee") );
+            put( "precision", Hollaex.this.safeNumber(rawCurrency, "increment_unit") );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", HollaexCore.this.safeNumber(rawCurrency, "min") );
-                    put( "max", HollaexCore.this.safeNumber(rawCurrency, "max") );
+                    put( "min", Hollaex.this.safeNumber(rawCurrency, "min") );
+                    put( "max", Hollaex.this.safeNumber(rawCurrency, "max") );
                 }} );
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", HollaexCore.this.safeValue(withdrawalLimits, 0) );
+                    put( "max", Hollaex.this.safeValue(withdrawalLimits, 0) );
                 }} );
             }} );
             put( "networks", networks );
@@ -868,22 +868,22 @@ public class HollaexCore extends HollaexApi
             put( "symbol", symbol );
             put( "info", ticker );
             put( "timestamp", timestamp );
-            put( "datetime", HollaexCore.this.iso8601(timestamp) );
-            put( "high", HollaexCore.this.safeString(ticker, "high") );
-            put( "low", HollaexCore.this.safeString(ticker, "low") );
+            put( "datetime", Hollaex.this.iso8601(timestamp) );
+            put( "high", Hollaex.this.safeString(ticker, "high") );
+            put( "low", Hollaex.this.safeString(ticker, "low") );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", HollaexCore.this.safeString(ticker, "open") );
+            put( "open", Hollaex.this.safeString(ticker, "open") );
             put( "close", close );
-            put( "last", HollaexCore.this.safeString(ticker, "last", close) );
+            put( "last", Hollaex.this.safeString(ticker, "last", close) );
             put( "previousClose", null );
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", HollaexCore.this.safeString(ticker, "volume") );
+            put( "baseVolume", Hollaex.this.safeString(ticker, "volume") );
             put( "quoteVolume", null );
         }}, market);
     }
@@ -977,7 +977,7 @@ public class HollaexCore extends HollaexApi
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
-                put( "currency", HollaexCore.this.safeCurrencyCode(feeCoin) );
+                put( "currency", Hollaex.this.safeCurrencyCode(feeCoin) );
             }};
         }
         final Object finalFee = fee;
@@ -1059,8 +1059,8 @@ public class HollaexCore extends HollaexApi
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", fees );
         put( "symbol", symbol );
-        put( "maker", HollaexCore.this.parseNumber(Precise.stringDiv(makerString, "100")) );
-        put( "taker", HollaexCore.this.parseNumber(Precise.stringDiv(takerString, "100")) );
+        put( "maker", Hollaex.this.parseNumber(Precise.stringDiv(makerString, "100")) );
+        put( "taker", Hollaex.this.parseNumber(Precise.stringDiv(takerString, "100")) );
         put( "percentage", true );
         put( "tierBased", true );
     }});
@@ -1099,7 +1099,7 @@ public class HollaexCore extends HollaexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "resolution", HollaexCore.this.safeString(HollaexCore.this.timeframes, timeframe, timeframe) );
+                put( "resolution", Hollaex.this.safeString(Hollaex.this.timeframes, timeframe, timeframe) );
             }};
             Object paginate = false;
             Integer maxLimit = 500;
@@ -1167,7 +1167,7 @@ public class HollaexCore extends HollaexApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
-            put( "datetime", HollaexCore.this.iso8601(timestamp) );
+            put( "datetime", Hollaex.this.iso8601(timestamp) );
         }};
         Object currenciesById = this.currencies_by_id;
         if (Helpers.isTrue(Helpers.isEqual(currenciesById, null)))
@@ -1303,7 +1303,7 @@ public class HollaexCore extends HollaexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "open", true );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -1331,7 +1331,7 @@ public class HollaexCore extends HollaexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "open", false );
             }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -1526,7 +1526,7 @@ public class HollaexCore extends HollaexApi
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", HollaexCore.this.iso8601(timestamp) );
+            put( "datetime", Hollaex.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "status", status );
             put( "symbol", symbol );
@@ -1535,7 +1535,7 @@ public class HollaexCore extends HollaexApi
             put( "postOnly", postOnly );
             put( "side", side );
             put( "price", price );
-            put( "triggerPrice", HollaexCore.this.safeString(order, "stop") );
+            put( "triggerPrice", Hollaex.this.safeString(order, "stop") );
             put( "amount", amount );
             put( "filled", filled );
             put( "remaining", null );
@@ -1578,7 +1578,7 @@ public class HollaexCore extends HollaexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", side );
-                put( "size", HollaexCore.this.amountToPrecision(symbol, amount) );
+                put( "size", Hollaex.this.amountToPrecision(symbol, amount) );
                 put( "type", finalType );
             }};
             Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop")));
@@ -2190,7 +2190,7 @@ public class HollaexCore extends HollaexApi
             put( "id", id );
             put( "txid", txid );
             put( "timestamp", timestamp );
-            put( "datetime", HollaexCore.this.iso8601(timestamp) );
+            put( "datetime", Hollaex.this.iso8601(timestamp) );
             put( "network", null );
             put( "addressFrom", addressFrom );
             put( "address", finalAddress );
@@ -2203,7 +2203,7 @@ public class HollaexCore extends HollaexApi
             put( "currency", Helpers.GetValue(finalCurrency, "code") );
             put( "status", finalStatus );
             put( "updated", updated );
-            put( "comment", HollaexCore.this.safeString(transaction, "message") );
+            put( "comment", Hollaex.this.safeString(transaction, "message") );
             put( "internal", null );
             put( "fee", finalFee );
         }};
@@ -2253,7 +2253,7 @@ public class HollaexCore extends HollaexApi
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
                 put( "address", finalAddress );
-                put( "network", HollaexCore.this.networkCodeToId(finalNetwork, code) );
+                put( "network", Hollaex.this.networkCodeToId(finalNetwork, code) );
             }};
             java.util.Map<String, Object> response = (this.privatePostUserWithdrawal(this.extend(request, parameters))).join();
             //
@@ -2320,7 +2320,7 @@ public class HollaexCore extends HollaexApi
         if (Helpers.isTrue(Helpers.isEqual(allowWithdrawal, true)))
         {
             Helpers.addElementToObject(result, "withdraw", new java.util.HashMap<String, Object>() {{
-    put( "fee", HollaexCore.this.safeNumber(fee, "withdrawal_fee") );
+    put( "fee", Hollaex.this.safeNumber(fee, "withdrawal_fee") );
     put( "percentage", false );
 }});
         }
@@ -2434,7 +2434,7 @@ public class HollaexCore extends HollaexApi
             Object expiresString = String.valueOf(expires);
             Object auth = Helpers.add(Helpers.add(method, path), expiresString);
             headers = new java.util.HashMap<String, Object>() {{
-                put( "api-key", HollaexCore.this.apiKey );
+                put( "api-key", Hollaex.this.apiKey );
                 put( "api-expires", expiresString );
             }};
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))

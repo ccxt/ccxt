@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class CoinsphCore extends CoinsphApi
+public class Coinsph extends CoinsphApi
 {
-   public CoinsphCore () {
+   public Coinsph () {
        super();
    }
 
-   public CoinsphCore (Object options) {
+   public Coinsph (Object options) {
        super(options);
    }
 
@@ -458,11 +458,11 @@ public class CoinsphCore extends CoinsphApi
                     put( "feeSide", "get" );
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "maker", CoinsphCore.this.parseNumber("0.0025") );
-                    put( "taker", CoinsphCore.this.parseNumber("0.003") );
+                    put( "maker", Coinsph.this.parseNumber("0.0025") );
+                    put( "taker", Coinsph.this.parseNumber("0.003") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("0"), CoinsphCore.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("500000"), CoinsphCore.this.parseNumber("0.0027"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("1000000"), CoinsphCore.this.parseNumber("0.0024"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("2500000"), CoinsphCore.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("5000000"), CoinsphCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("10000000"), CoinsphCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("100000000"), CoinsphCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("500000000"), CoinsphCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("1000000000"), CoinsphCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("2500000000"), CoinsphCore.this.parseNumber("0.0005"))))) );
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("0"), CoinsphCore.this.parseNumber("0.0025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("500000"), CoinsphCore.this.parseNumber("0.0022"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("1000000"), CoinsphCore.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("2500000"), CoinsphCore.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("5000000"), CoinsphCore.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("10000000"), CoinsphCore.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("100000000"), CoinsphCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("500000000"), CoinsphCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("1000000000"), CoinsphCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(CoinsphCore.this.parseNumber("2500000000"), CoinsphCore.this.parseNumber("0.0005"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("0"), Coinsph.this.parseNumber("0.003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("500000"), Coinsph.this.parseNumber("0.0027"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("1000000"), Coinsph.this.parseNumber("0.0024"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("2500000"), Coinsph.this.parseNumber("0.002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("5000000"), Coinsph.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("10000000"), Coinsph.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("100000000"), Coinsph.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("500000000"), Coinsph.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("1000000000"), Coinsph.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("2500000000"), Coinsph.this.parseNumber("0.0005"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("0"), Coinsph.this.parseNumber("0.0025"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("500000"), Coinsph.this.parseNumber("0.0022"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("1000000"), Coinsph.this.parseNumber("0.0018"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("2500000"), Coinsph.this.parseNumber("0.0015"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("5000000"), Coinsph.this.parseNumber("0.0012"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("10000000"), Coinsph.this.parseNumber("0.001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("100000000"), Coinsph.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("500000000"), Coinsph.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("1000000000"), Coinsph.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Coinsph.this.parseNumber("2500000000"), Coinsph.this.parseNumber("0.0005"))))) );
                     }} );
                 }} );
             }} );
@@ -791,14 +791,14 @@ public class CoinsphCore extends CoinsphApi
     put( "id", network );
     put( "network", finalNetworkCode );
     put( "active", null );
-    put( "deposit", CoinsphCore.this.safeBool(networkItem, "depositEnable") );
-    put( "withdraw", CoinsphCore.this.safeBool(networkItem, "withdrawEnable") );
-    put( "fee", CoinsphCore.this.safeNumber(networkItem, "withdrawFee") );
-    put( "precision", CoinsphCore.this.safeNumber(networkItem, "withdrawIntegerMultiple") );
+    put( "deposit", Coinsph.this.safeBool(networkItem, "depositEnable") );
+    put( "withdraw", Coinsph.this.safeBool(networkItem, "withdrawEnable") );
+    put( "fee", Coinsph.this.safeNumber(networkItem, "withdrawFee") );
+    put( "precision", Coinsph.this.safeNumber(networkItem, "withdrawIntegerMultiple") );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", CoinsphCore.this.safeNumber(networkItem, "withdrawMin") );
-            put( "max", CoinsphCore.this.safeNumber(networkItem, "withdrawMax") );
+            put( "min", Coinsph.this.safeNumber(networkItem, "withdrawMin") );
+            put( "max", Coinsph.this.safeNumber(networkItem, "withdrawMax") );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
             put( "min", null );
@@ -811,14 +811,14 @@ public class CoinsphCore extends CoinsphApi
         final Object finalIsFiat = isFiat;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
-            put( "name", CoinsphCore.this.safeString(rawCurrency, "name") );
+            put( "name", Coinsph.this.safeString(rawCurrency, "name") );
             put( "code", code );
             put( "type", ((Helpers.isTrue((Helpers.isEqual(finalIsFiat, true))))) ? "fiat" : "crypto" );
-            put( "precision", CoinsphCore.this.parseNumber(CoinsphCore.this.parsePrecision(CoinsphCore.this.safeString(rawCurrency, "transferPrecision"))) );
+            put( "precision", Coinsph.this.parseNumber(Coinsph.this.parsePrecision(Coinsph.this.safeString(rawCurrency, "transferPrecision"))) );
             put( "info", rawCurrency );
             put( "active", null );
-            put( "deposit", CoinsphCore.this.safeBool(rawCurrency, "depositAllEnable") );
-            put( "withdraw", CoinsphCore.this.safeBool(rawCurrency, "withdrawAllEnable") );
+            put( "deposit", Coinsph.this.safeBool(rawCurrency, "depositAllEnable") );
+            put( "withdraw", Coinsph.this.safeBool(rawCurrency, "withdrawAllEnable") );
             put( "networks", networks );
             put( "fee", null );
             put( "fees", null );
@@ -1017,7 +1017,7 @@ public class CoinsphCore extends CoinsphApi
                     put( "swap", false );
                     put( "future", false );
                     put( "option", false );
-                    put( "active", Helpers.isEqual(CoinsphCore.this.safeStringLower(market, "status"), "trading") );
+                    put( "active", Helpers.isEqual(Coinsph.this.safeStringLower(market, "status"), "trading") );
                     put( "contract", false );
                     put( "linear", null );
                     put( "inverse", null );
@@ -1029,8 +1029,8 @@ public class CoinsphCore extends CoinsphApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", CoinsphCore.this.parseNumber(CoinsphCore.this.safeString(amountLimits, "stepSize")) );
-                        put( "price", CoinsphCore.this.parseNumber(CoinsphCore.this.safeString(priceLimits, "tickSize")) );
+                        put( "amount", Coinsph.this.parseNumber(Coinsph.this.safeString(amountLimits, "stepSize")) );
+                        put( "price", Coinsph.this.parseNumber(Coinsph.this.safeString(priceLimits, "tickSize")) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -1038,15 +1038,15 @@ public class CoinsphCore extends CoinsphApi
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", CoinsphCore.this.parseNumber(CoinsphCore.this.safeString(amountLimits, "minQty")) );
-                            put( "max", CoinsphCore.this.parseNumber(CoinsphCore.this.safeString(amountLimits, "maxQty")) );
+                            put( "min", Coinsph.this.parseNumber(Coinsph.this.safeString(amountLimits, "minQty")) );
+                            put( "max", Coinsph.this.parseNumber(Coinsph.this.safeString(amountLimits, "maxQty")) );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
-                            put( "min", CoinsphCore.this.parseNumber(CoinsphCore.this.safeString(priceLimits, "minPrice")) );
-                            put( "max", CoinsphCore.this.parseNumber(CoinsphCore.this.safeString(priceLimits, "maxPrice")) );
+                            put( "min", Coinsph.this.parseNumber(Coinsph.this.safeString(priceLimits, "minPrice")) );
+                            put( "max", Coinsph.this.parseNumber(Coinsph.this.safeString(priceLimits, "maxPrice")) );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", CoinsphCore.this.parseNumber(CoinsphCore.this.safeString(costLimits, "minNotional")) );
+                            put( "min", Coinsph.this.parseNumber(Coinsph.this.safeString(costLimits, "minNotional")) );
                             put( "max", null );
                         }} );
                     }} );
@@ -1220,11 +1220,11 @@ public class CoinsphCore extends CoinsphApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", CoinsphCore.this.iso8601(timestamp) );
+            put( "datetime", Coinsph.this.iso8601(timestamp) );
             put( "open", open );
             put( "high", high );
             put( "low", low );
-            put( "close", CoinsphCore.this.safeString2(ticker, "lastPrice", "price") );
+            put( "close", Coinsph.this.safeString2(ticker, "lastPrice", "price") );
             put( "bid", bid );
             put( "bidVolume", bidVolume );
             put( "ask", ask );
@@ -1512,7 +1512,7 @@ public class CoinsphCore extends CoinsphApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -1574,7 +1574,7 @@ public class CoinsphCore extends CoinsphApi
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
-                put( "currency", CoinsphCore.this.safeCurrencyCode(feeCurrencyId) );
+                put( "currency", Coinsph.this.safeCurrencyCode(feeCurrencyId) );
             }};
         }
         Object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker");
@@ -1603,7 +1603,7 @@ public class CoinsphCore extends CoinsphApi
             put( "id", id );
             put( "order", finalOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", CoinsphCore.this.iso8601(timestamp) );
+            put( "datetime", Coinsph.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "type", type );
             put( "side", finalSide );
@@ -2110,21 +2110,21 @@ public class CoinsphCore extends CoinsphApi
         final Object finalTriggerPrice = triggerPrice;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
-            put( "clientOrderId", CoinsphCore.this.safeString(order, "clientOrderId") );
+            put( "clientOrderId", Coinsph.this.safeString(order, "clientOrderId") );
             put( "timestamp", timestamp );
-            put( "datetime", CoinsphCore.this.iso8601(timestamp) );
+            put( "datetime", Coinsph.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "status", CoinsphCore.this.parseOrderStatus(CoinsphCore.this.safeString(order, "status")) );
+            put( "status", Coinsph.this.parseOrderStatus(Coinsph.this.safeString(order, "status")) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "type", CoinsphCore.this.parseOrderType(CoinsphCore.this.safeString(order, "type")) );
-            put( "timeInForce", CoinsphCore.this.parseOrderTimeInForce(CoinsphCore.this.safeString(order, "timeInForce")) );
-            put( "side", CoinsphCore.this.parseOrderSide(CoinsphCore.this.safeString(order, "side")) );
-            put( "price", CoinsphCore.this.safeString(order, "price") );
+            put( "type", Coinsph.this.parseOrderType(Coinsph.this.safeString(order, "type")) );
+            put( "timeInForce", Coinsph.this.parseOrderTimeInForce(Coinsph.this.safeString(order, "timeInForce")) );
+            put( "side", Coinsph.this.parseOrderSide(Coinsph.this.safeString(order, "side")) );
+            put( "price", Coinsph.this.safeString(order, "price") );
             put( "triggerPrice", finalTriggerPrice );
             put( "average", null );
-            put( "amount", CoinsphCore.this.safeString(order, "origQty") );
-            put( "cost", CoinsphCore.this.safeString(order, "cummulativeQuoteQty") );
-            put( "filled", CoinsphCore.this.safeString(order, "executedQty") );
+            put( "amount", Coinsph.this.safeString(order, "origQty") );
+            put( "cost", Coinsph.this.safeString(order, "cummulativeQuoteQty") );
+            put( "filled", Coinsph.this.safeString(order, "executedQty") );
             put( "remaining", null );
             put( "fee", null );
             put( "fees", null );
@@ -2330,8 +2330,8 @@ public class CoinsphCore extends CoinsphApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", CoinsphCore.this.safeNumber(fee, "makerCommission") );
-            put( "taker", CoinsphCore.this.safeNumber(fee, "takerCommission") );
+            put( "maker", Coinsph.this.safeNumber(fee, "makerCommission") );
+            put( "taker", Coinsph.this.safeNumber(fee, "takerCommission") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -2376,7 +2376,7 @@ public class CoinsphCore extends CoinsphApi
             final Object finalNetworkId = networkId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
-                put( "amount", CoinsphCore.this.numberToString(amount) );
+                put( "amount", Coinsph.this.numberToString(amount) );
                 put( "network", finalNetworkId );
                 put( "address", address );
             }};
@@ -2634,7 +2634,7 @@ public class CoinsphCore extends CoinsphApi
             put( "id", id );
             put( "txid", txid );
             put( "timestamp", finalTimestamp );
-            put( "datetime", CoinsphCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Coinsph.this.iso8601(finalTimestamp) );
             put( "network", finalNetwork );
             put( "address", address );
             put( "addressTo", address );
@@ -2730,8 +2730,8 @@ public class CoinsphCore extends CoinsphApi
             put( "info", depositAddress );
             put( "currency", parsedCurrency );
             put( "network", null );
-            put( "address", CoinsphCore.this.safeString(depositAddress, "address") );
-            put( "tag", CoinsphCore.this.safeString(depositAddress, "addressTag") );
+            put( "address", Coinsph.this.safeString(depositAddress, "address") );
+            put( "tag", Coinsph.this.safeString(depositAddress, "addressTag") );
         }};
     }
 
@@ -2802,7 +2802,7 @@ public class CoinsphCore extends CoinsphApi
             Object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256());
             url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(url, "?"), query), "&signature="), signature);
             headers = new java.util.HashMap<String, Object>() {{
-                put( "X-COINS-APIKEY", CoinsphCore.this.apiKey );
+                put( "X-COINS-APIKEY", Coinsph.this.apiKey );
             }};
         } else
         {

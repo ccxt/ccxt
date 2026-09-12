@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class P2bCore extends P2bApi
+public class P2b extends P2bApi
 {
-   public P2bCore () {
+   public P2b () {
        super();
    }
 
-   public P2bCore (Object options) {
+   public P2b (Object options) {
        super(options);
    }
 
@@ -227,8 +227,8 @@ public class P2bCore extends P2bApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("0"), P2bCore.this.parseNumber("0.2"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("1"), P2bCore.this.parseNumber("0.19"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("5"), P2bCore.this.parseNumber("0.18"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("10"), P2bCore.this.parseNumber("0.17"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("25"), P2bCore.this.parseNumber("0.16"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("75"), P2bCore.this.parseNumber("0.15"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("100"), P2bCore.this.parseNumber("0.14"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("150"), P2bCore.this.parseNumber("0.13"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("300"), P2bCore.this.parseNumber("0.12"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("450"), P2bCore.this.parseNumber("0.11"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("500"), P2bCore.this.parseNumber("0.1"))))) );
-                    put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("0"), P2bCore.this.parseNumber("0.2"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("1"), P2bCore.this.parseNumber("0.18"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("5"), P2bCore.this.parseNumber("0.16"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("10"), P2bCore.this.parseNumber("0.14"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("25"), P2bCore.this.parseNumber("0.12"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("75"), P2bCore.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("100"), P2bCore.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("150"), P2bCore.this.parseNumber("0.06"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("300"), P2bCore.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("450"), P2bCore.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2bCore.this.parseNumber("500"), P2bCore.this.parseNumber("0.01"))))) );
+                    put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("0"), P2b.this.parseNumber("0.2"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("1"), P2b.this.parseNumber("0.19"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("5"), P2b.this.parseNumber("0.18"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("10"), P2b.this.parseNumber("0.17"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("25"), P2b.this.parseNumber("0.16"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("75"), P2b.this.parseNumber("0.15"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("100"), P2b.this.parseNumber("0.14"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("150"), P2b.this.parseNumber("0.13"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("300"), P2b.this.parseNumber("0.12"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("450"), P2b.this.parseNumber("0.11"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("500"), P2b.this.parseNumber("0.1"))))) );
+                    put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("0"), P2b.this.parseNumber("0.2"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("1"), P2b.this.parseNumber("0.18"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("5"), P2b.this.parseNumber("0.16"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("10"), P2b.this.parseNumber("0.14"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("25"), P2b.this.parseNumber("0.12"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("75"), P2b.this.parseNumber("0.1"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("100"), P2b.this.parseNumber("0.08"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("150"), P2b.this.parseNumber("0.06"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("300"), P2b.this.parseNumber("0.04"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("450"), P2b.this.parseNumber("0.02"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(P2b.this.parseNumber("500"), P2b.this.parseNumber("0.01"))))) );
                 }} );
             }} );
             put( "features", new java.util.HashMap<String, Object>() {{
@@ -433,8 +433,8 @@ public class P2bCore extends P2bApi
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", P2bCore.this.safeNumber(limits, "step_size") );
-                put( "price", P2bCore.this.safeNumber(limits, "tick_size") );
+                put( "amount", P2b.this.safeNumber(limits, "step_size") );
+                put( "price", P2b.this.safeNumber(limits, "tick_size") );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -442,15 +442,15 @@ public class P2bCore extends P2bApi
                     put( "max", null );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
-                    put( "min", P2bCore.this.safeNumber(limits, "min_amount") );
-                    put( "max", P2bCore.this.parseNumber(P2bCore.this.omitZero(maxAmount)) );
+                    put( "min", P2b.this.safeNumber(limits, "min_amount") );
+                    put( "max", P2b.this.parseNumber(P2b.this.omitZero(maxAmount)) );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", P2bCore.this.safeNumber(limits, "min_price") );
-                    put( "max", P2bCore.this.parseNumber(P2bCore.this.omitZero(maxPrice)) );
+                    put( "min", P2b.this.safeNumber(limits, "min_price") );
+                    put( "max", P2b.this.parseNumber(P2b.this.omitZero(maxPrice)) );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", P2bCore.this.safeNumber(limits, "min_total") );
+                    put( "min", P2b.this.safeNumber(limits, "min_total") );
                     put( "max", null );
                 }} );
             }} );
@@ -559,7 +559,7 @@ public class P2bCore extends P2bApi
             Long timestamp = this.safeIntegerProduct(response, "cache_time", 1000);
             return this.extend(new java.util.HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
-                put( "datetime", P2bCore.this.iso8601(timestamp) );
+                put( "datetime", P2b.this.iso8601(timestamp) );
             }}, this.parseTicker(result, market));
         });
 
@@ -607,25 +607,25 @@ public class P2bCore extends P2bApi
         String last = this.safeString(ticker, "last");
         final Object finalTicker = ticker;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
-            put( "symbol", P2bCore.this.safeString(market, "symbol") );
+            put( "symbol", P2b.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", P2bCore.this.iso8601(timestamp) );
-            put( "high", P2bCore.this.safeString(finalTicker, "high") );
-            put( "low", P2bCore.this.safeString(finalTicker, "low") );
-            put( "bid", P2bCore.this.safeString(finalTicker, "bid") );
+            put( "datetime", P2b.this.iso8601(timestamp) );
+            put( "high", P2b.this.safeString(finalTicker, "high") );
+            put( "low", P2b.this.safeString(finalTicker, "low") );
+            put( "bid", P2b.this.safeString(finalTicker, "bid") );
             put( "bidVolume", null );
-            put( "ask", P2bCore.this.safeString(finalTicker, "ask") );
+            put( "ask", P2b.this.safeString(finalTicker, "ask") );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", P2bCore.this.safeString(finalTicker, "open") );
+            put( "open", P2b.this.safeString(finalTicker, "open") );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", P2bCore.this.safeString(finalTicker, "change") );
+            put( "percentage", P2b.this.safeString(finalTicker, "change") );
             put( "average", null );
-            put( "baseVolume", P2bCore.this.safeString2(finalTicker, "vol", "volume") );
-            put( "quoteVolume", P2bCore.this.safeString(finalTicker, "deal") );
+            put( "baseVolume", P2b.this.safeString2(finalTicker, "vol", "volume") );
+            put( "quoteVolume", P2b.this.safeString(finalTicker, "deal") );
             put( "info", finalTicker );
         }}, market);
     }
@@ -815,20 +815,20 @@ public class P2bCore extends P2bApi
         final Object finalTakerOrMaker = takerOrMaker;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "id", P2bCore.this.safeString2(trade, "id", "deal_id") );
+            put( "id", P2b.this.safeString2(trade, "id", "deal_id") );
             put( "timestamp", timestamp );
-            put( "datetime", P2bCore.this.iso8601(timestamp) );
-            put( "symbol", P2bCore.this.safeString(market, "symbol") );
-            put( "order", P2bCore.this.safeString2(trade, "dealOrderId", "deal_order_id") );
+            put( "datetime", P2b.this.iso8601(timestamp) );
+            put( "symbol", P2b.this.safeString(market, "symbol") );
+            put( "order", P2b.this.safeString2(trade, "dealOrderId", "deal_order_id") );
             put( "type", null );
-            put( "side", P2bCore.this.safeString2(trade, "type", "side") );
+            put( "side", P2b.this.safeString2(trade, "type", "side") );
             put( "takerOrMaker", finalTakerOrMaker );
-            put( "price", P2bCore.this.safeString(trade, "price") );
-            put( "amount", P2bCore.this.safeString(trade, "amount") );
-            put( "cost", P2bCore.this.safeString(trade, "deal") );
+            put( "price", P2b.this.safeString(trade, "price") );
+            put( "amount", P2b.this.safeString(trade, "amount") );
+            put( "cost", P2b.this.safeString(trade, "deal") );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "currency", P2bCore.this.safeString(market, "quote") );
-                put( "cost", P2bCore.this.safeString2(trade, "fee", "deal_fee") );
+                put( "currency", P2b.this.safeString(market, "quote") );
+                put( "cost", P2b.this.safeString2(trade, "fee", "deal_fee") );
             }} );
         }}, market);
     }
@@ -1023,8 +1023,8 @@ public class P2bCore extends P2bApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "side", side );
-                put( "amount", P2bCore.this.amountToPrecision(symbol, amount) );
-                put( "price", P2bCore.this.priceToPrecision(symbol, price) );
+                put( "amount", P2b.this.amountToPrecision(symbol, amount) );
+                put( "price", P2b.this.priceToPrecision(symbol, price) );
             }};
             java.util.Map<String, Object> response = (this.privatePostOrderNew(this.extend(request, parameters))).join();
             //
@@ -1505,27 +1505,27 @@ public class P2bCore extends P2bApi
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "id", P2bCore.this.safeString2(order, "id", "orderId") );
+            put( "id", P2b.this.safeString2(order, "id", "orderId") );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", P2bCore.this.iso8601(timestamp) );
+            put( "datetime", P2b.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "type", P2bCore.this.safeString(order, "type") );
+            put( "type", P2b.this.safeString(order, "type") );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "side", P2bCore.this.safeString(order, "side") );
-            put( "price", P2bCore.this.safeString(order, "price") );
+            put( "side", P2b.this.safeString(order, "side") );
+            put( "price", P2b.this.safeString(order, "price") );
             put( "triggerPrice", null );
-            put( "amount", P2bCore.this.safeString(order, "amount") );
+            put( "amount", P2b.this.safeString(order, "amount") );
             put( "cost", null );
             put( "average", null );
-            put( "filled", P2bCore.this.safeString(order, "dealStock") );
-            put( "remaining", P2bCore.this.safeString(order, "left") );
+            put( "filled", P2b.this.safeString(order, "dealStock") );
+            put( "remaining", P2b.this.safeString(order, "left") );
             put( "status", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(finalMarket, "quote") );
-                put( "cost", P2bCore.this.safeString(order, "dealFee") );
+                put( "cost", P2b.this.safeString(order, "dealFee") );
             }} );
             put( "trades", null );
         }}, market);
@@ -1554,9 +1554,9 @@ public class P2bCore extends P2bApi
             Object payload = this.stringToBase64(this.json(parameters)); // Body json encoded in base64
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
-                put( "X-TXC-APIKEY", P2bCore.this.apiKey );
+                put( "X-TXC-APIKEY", P2b.this.apiKey );
                 put( "X-TXC-PAYLOAD", payload );
-                put( "X-TXC-SIGNATURE", P2bCore.this.hmac(P2bCore.this.encode(payload), P2bCore.this.encode(P2bCore.this.secret), sha512()) );
+                put( "X-TXC-SIGNATURE", P2b.this.hmac(P2b.this.encode(payload), P2b.this.encode(P2b.this.secret), sha512()) );
             }};
             body = this.json(parameters);
         }

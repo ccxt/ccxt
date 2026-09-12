@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
+public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 {
-   public HashkeyCore () {
+   public Hashkey () {
        super();
    }
 
-   public HashkeyCore (Object options) {
+   public Hashkey (Object options) {
        super(options);
    }
 
@@ -565,31 +565,31 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         final Object finalReduceOnly = reduceOnly;
         final Object finalPostOnly = postOnly;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
-            put( "id", HashkeyCore.this.safeString(order, "i") );
-            put( "clientOrderId", HashkeyCore.this.safeString(order, "c") );
-            put( "datetime", HashkeyCore.this.iso8601(timestamp) );
+            put( "id", Hashkey.this.safeString(order, "i") );
+            put( "clientOrderId", Hashkey.this.safeString(order, "c") );
+            put( "datetime", Hashkey.this.iso8601(timestamp) );
             put( "timestamp", timestamp );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", null );
-            put( "status", HashkeyCore.this.parseOrderStatus(HashkeyCore.this.safeString(order, "X")) );
+            put( "status", Hashkey.this.parseOrderStatus(Hashkey.this.safeString(order, "X")) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", finalType );
             put( "timeInForce", finalTimeInForce );
             put( "side", finalSide );
-            put( "price", HashkeyCore.this.safeString(order, "p") );
-            put( "average", HashkeyCore.this.safeString(order, "V") );
-            put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "q")) );
-            put( "filled", HashkeyCore.this.safeString(order, "z") );
-            put( "remaining", HashkeyCore.this.safeString(order, "r") );
+            put( "price", Hashkey.this.safeString(order, "p") );
+            put( "average", Hashkey.this.safeString(order, "V") );
+            put( "amount", Hashkey.this.omitZero(Hashkey.this.safeString(order, "q")) );
+            put( "filled", Hashkey.this.safeString(order, "z") );
+            put( "remaining", Hashkey.this.safeString(order, "r") );
             put( "stopPrice", null );
             put( "triggerPrice", null );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
-            put( "cost", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "Z")) );
+            put( "cost", Hashkey.this.omitZero(Hashkey.this.safeString(order, "Z")) );
             put( "trades", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "currency", HashkeyCore.this.safeCurrencyCode(HashkeyCore.this.safeString(order, "N")) );
-                put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "n")) );
+                put( "currency", Hashkey.this.safeCurrencyCode(Hashkey.this.safeString(order, "N")) );
+                put( "amount", Hashkey.this.omitZero(Hashkey.this.safeString(order, "n")) );
             }} );
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );
@@ -724,17 +724,17 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", HashkeyCore.this.safeString2(trade, "v", "T") );
+            put( "id", Hashkey.this.safeString2(trade, "v", "T") );
             put( "timestamp", timestamp );
-            put( "datetime", HashkeyCore.this.iso8601(timestamp) );
+            put( "datetime", Hashkey.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "side", finalSide );
-            put( "price", HashkeyCore.this.safeString(trade, "p") );
-            put( "amount", HashkeyCore.this.safeString(trade, "q") );
+            put( "price", Hashkey.this.safeString(trade, "p") );
+            put( "amount", Hashkey.this.safeString(trade, "q") );
             put( "cost", null );
             put( "takerOrMaker", finalTakerOrMaker );
             put( "type", null );
-            put( "order", HashkeyCore.this.safeString(trade, "o") );
+            put( "order", Hashkey.this.safeString(trade, "o") );
             put( "fee", null );
             put( "info", trade );
         }}, market);
@@ -837,23 +837,23 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "id", null );
             put( "timestamp", timestamp );
-            put( "datetime", HashkeyCore.this.iso8601(timestamp) );
-            put( "contracts", HashkeyCore.this.safeNumber(position, "P") );
+            put( "datetime", Hashkey.this.iso8601(timestamp) );
+            put( "contracts", Hashkey.this.safeNumber(position, "P") );
             put( "contractSize", null );
-            put( "side", HashkeyCore.this.safeStringLower(position, "S") );
-            put( "notional", HashkeyCore.this.safeNumber(position, "pv") );
-            put( "leverage", HashkeyCore.this.safeInteger(position, "v") );
-            put( "unrealizedPnl", HashkeyCore.this.safeNumber(position, "up") );
-            put( "realizedPnl", HashkeyCore.this.safeNumber(position, "r") );
+            put( "side", Hashkey.this.safeStringLower(position, "S") );
+            put( "notional", Hashkey.this.safeNumber(position, "pv") );
+            put( "leverage", Hashkey.this.safeInteger(position, "v") );
+            put( "unrealizedPnl", Hashkey.this.safeNumber(position, "up") );
+            put( "realizedPnl", Hashkey.this.safeNumber(position, "r") );
             put( "collateral", null );
-            put( "entryPrice", HashkeyCore.this.safeNumber(position, "p") );
+            put( "entryPrice", Hashkey.this.safeNumber(position, "p") );
             put( "markPrice", null );
-            put( "liquidationPrice", HashkeyCore.this.safeNumber(position, "f") );
-            put( "marginMode", HashkeyCore.this.safeStringLower(position, "mt") );
+            put( "liquidationPrice", Hashkey.this.safeNumber(position, "f") );
+            put( "marginMode", Hashkey.this.safeStringLower(position, "mt") );
             put( "hedged", true );
-            put( "maintenanceMargin", HashkeyCore.this.safeNumber(position, "mm") );
+            put( "maintenanceMargin", Hashkey.this.safeNumber(position, "mm") );
             put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", HashkeyCore.this.safeNumber(position, "m") );
+            put( "initialMargin", Hashkey.this.safeNumber(position, "m") );
             put( "initialMarginPercentage", null );
             put( "marginRatio", null );
             put( "lastUpdateTimestamp", null );

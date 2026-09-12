@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
+public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 {
-   public BitfinexCore () {
+   public Bitfinex () {
        super();
    }
 
-   public BitfinexCore (Object options) {
+   public Bitfinex (Object options) {
        super(options);
    }
 
@@ -679,7 +679,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BitfinexCore.this.iso8601(timestamp) );
+            put( "datetime", Bitfinex.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
             put( "order", orderId );
@@ -748,21 +748,21 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", BitfinexCore.this.safeString(ticker, 8) );
-            put( "low", BitfinexCore.this.safeString(ticker, 9) );
-            put( "bid", BitfinexCore.this.safeString(ticker, 0) );
-            put( "bidVolume", BitfinexCore.this.safeString(ticker, 1) );
-            put( "ask", BitfinexCore.this.safeString(ticker, 2) );
-            put( "askVolume", BitfinexCore.this.safeString(ticker, 3) );
+            put( "high", Bitfinex.this.safeString(ticker, 8) );
+            put( "low", Bitfinex.this.safeString(ticker, 9) );
+            put( "bid", Bitfinex.this.safeString(ticker, 0) );
+            put( "bidVolume", Bitfinex.this.safeString(ticker, 1) );
+            put( "ask", Bitfinex.this.safeString(ticker, 2) );
+            put( "askVolume", Bitfinex.this.safeString(ticker, 3) );
             put( "vwap", null );
             put( "open", null );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", change );
-            put( "percentage", BitfinexCore.this.safeString(ticker, 5) );
+            put( "percentage", Bitfinex.this.safeString(ticker, 5) );
             put( "average", null );
-            put( "baseVolume", BitfinexCore.this.safeString(ticker, 7) );
+            put( "baseVolume", Bitfinex.this.safeString(ticker, 7) );
             put( "quoteVolume", null );
             put( "info", ticker );
         }}, market);
@@ -1231,7 +1231,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384(), "hex");
                 String eventVar = "auth";
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                    put( "apiKey", BitfinexCore.this.apiKey );
+                    put( "apiKey", Bitfinex.this.apiKey );
                     put( "authSig", signature );
                     put( "authNonce", nonce );
                     put( "authPayload", payload );
@@ -1477,7 +1477,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", BitfinexCore.this.iso8601(timestamp) );
+            put( "datetime", Bitfinex.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "symbol", symbol );
             put( "type", finalType );

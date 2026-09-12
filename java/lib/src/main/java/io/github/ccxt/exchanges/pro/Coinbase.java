@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
+public class Coinbase extends io.github.ccxt.exchanges.Coinbase
 {
-   public CoinbaseCore () {
+   public Coinbase () {
        super();
    }
 
-   public CoinbaseCore (Object options) {
+   public Coinbase (Object options) {
        super(options);
    }
 
@@ -625,24 +625,24 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Double last = this.safeNumber(ticker, "price");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
-            put( "symbol", CoinbaseCore.this.safeSymbol(marketId, market, "-") );
+            put( "symbol", Coinbase.this.safeSymbol(marketId, market, "-") );
             put( "timestamp", timestamp );
-            put( "datetime", CoinbaseCore.this.iso8601(timestamp) );
-            put( "high", CoinbaseCore.this.safeString(ticker, "high_24_h") );
-            put( "low", CoinbaseCore.this.safeString(ticker, "low_24_h") );
-            put( "bid", CoinbaseCore.this.safeString(ticker, "best_bid") );
-            put( "bidVolume", CoinbaseCore.this.safeString(ticker, "best_bid_quantity") );
-            put( "ask", CoinbaseCore.this.safeString(ticker, "best_ask") );
-            put( "askVolume", CoinbaseCore.this.safeString(ticker, "best_ask_quantity") );
+            put( "datetime", Coinbase.this.iso8601(timestamp) );
+            put( "high", Coinbase.this.safeString(ticker, "high_24_h") );
+            put( "low", Coinbase.this.safeString(ticker, "low_24_h") );
+            put( "bid", Coinbase.this.safeString(ticker, "best_bid") );
+            put( "bidVolume", Coinbase.this.safeString(ticker, "best_bid_quantity") );
+            put( "ask", Coinbase.this.safeString(ticker, "best_ask") );
+            put( "askVolume", Coinbase.this.safeString(ticker, "best_ask_quantity") );
             put( "vwap", null );
             put( "open", null );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", CoinbaseCore.this.safeString(ticker, "price_percent_chg_24_h") );
+            put( "percentage", Coinbase.this.safeString(ticker, "price_percent_chg_24_h") );
             put( "average", null );
-            put( "baseVolume", CoinbaseCore.this.safeString(ticker, "volume_24_h") );
+            put( "baseVolume", Coinbase.this.safeString(ticker, "volume_24_h") );
             put( "quoteVolume", null );
         }});
     }
@@ -1079,28 +1079,28 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
-            put( "symbol", CoinbaseCore.this.safeString(finalMarket, "symbol") );
+            put( "symbol", Coinbase.this.safeString(finalMarket, "symbol") );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
-            put( "timestamp", CoinbaseCore.this.parse8601(datetime) );
+            put( "timestamp", Coinbase.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "lastTradeTimestamp", null );
-            put( "type", CoinbaseCore.this.safeString(order, "order_type") );
+            put( "type", Coinbase.this.safeString(order, "order_type") );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "side", CoinbaseCore.this.safeStringLower2(order, "side", "order_side") );
-            put( "price", CoinbaseCore.this.safeString(order, "limit_price") );
+            put( "side", Coinbase.this.safeStringLower2(order, "side", "order_side") );
+            put( "price", Coinbase.this.safeString(order, "limit_price") );
             put( "stopPrice", stopPrice );
             put( "triggerPrice", stopPrice );
-            put( "amount", CoinbaseCore.this.safeString(order, "cumulative_quantity") );
-            put( "cost", CoinbaseCore.this.omitZero(CoinbaseCore.this.safeString(order, "filled_value")) );
-            put( "average", CoinbaseCore.this.safeString(order, "avg_price") );
-            put( "filled", CoinbaseCore.this.safeString(order, "cumulative_quantity") );
-            put( "remaining", CoinbaseCore.this.safeString(order, "leaves_quantity") );
-            put( "status", CoinbaseCore.this.parseOrderStatus(CoinbaseCore.this.safeString(order, "status")) );
+            put( "amount", Coinbase.this.safeString(order, "cumulative_quantity") );
+            put( "cost", Coinbase.this.omitZero(Coinbase.this.safeString(order, "filled_value")) );
+            put( "average", Coinbase.this.safeString(order, "avg_price") );
+            put( "filled", Coinbase.this.safeString(order, "cumulative_quantity") );
+            put( "remaining", Coinbase.this.safeString(order, "leaves_quantity") );
+            put( "status", Coinbase.this.parseOrderStatus(Coinbase.this.safeString(order, "status")) );
             put( "fee", new java.util.HashMap<String, Object>() {{
-                put( "amount", CoinbaseCore.this.safeString(order, "total_fees") );
-                put( "currency", CoinbaseCore.this.safeString(finalMarket, "quote") );
+                put( "amount", Coinbase.this.safeString(order, "total_fees") );
+                put( "currency", Coinbase.this.safeString(finalMarket, "quote") );
             }} );
             put( "trades", null );
         }});

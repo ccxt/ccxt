@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
+public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 {
-   public BitstampCore () {
+   public Bitstamp () {
        super();
    }
 
-   public BitstampCore (Object options) {
+   public Bitstamp (Object options) {
        super(options);
    }
 
@@ -280,7 +280,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BitstampCore.this.iso8601(timestamp) );
+            put( "datetime", Bitstamp.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
             put( "order", null );
@@ -495,7 +495,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
-            put( "datetime", BitstampCore.this.iso8601(timestamp) );
+            put( "datetime", Bitstamp.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "type", finalOrderType );
             put( "timeInForce", finalTimeInForce );
@@ -763,7 +763,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
                 put( "event", "bts:subscribe" );
                 put( "data", new java.util.HashMap<String, Object>() {{
                     put( "channel", finalMessageHash );
-                    put( "auth", Helpers.GetValue(BitstampCore.this.options, "wsSessionToken") );
+                    put( "auth", Helpers.GetValue(Bitstamp.this.options, "wsSessionToken") );
                 }} );
             }};
             Helpers.addElementToObject(subscription, "messageHash", messageHash);

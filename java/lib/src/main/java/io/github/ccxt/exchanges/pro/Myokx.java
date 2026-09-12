@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class MyokxCore extends io.github.ccxt.exchanges.Myokx
+public class Myokx extends io.github.ccxt.exchanges.Myokx
 {
-   public MyokxCore () {
+   public Myokx () {
        super();
    }
 
-   public MyokxCore (Object options) {
+   public Myokx (Object options) {
        super(options);
    }
 

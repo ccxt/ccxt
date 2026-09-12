@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class HitbtcCore extends HitbtcApi
+public class Hitbtc extends HitbtcApi
 {
-   public HitbtcCore () {
+   public Hitbtc () {
        super();
    }
 
-   public HitbtcCore (Object options) {
+   public Hitbtc (Object options) {
        super(options);
    }
 
@@ -513,11 +513,11 @@ public class HitbtcCore extends HitbtcApi
                 put( "trading", new java.util.HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", HitbtcCore.this.parseNumber("0.0009") );
-                    put( "maker", HitbtcCore.this.parseNumber("0.0009") );
+                    put( "taker", Hitbtc.this.parseNumber("0.0009") );
+                    put( "maker", Hitbtc.this.parseNumber("0.0009") );
                     put( "tiers", new java.util.HashMap<String, Object>() {{
-                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("0"), HitbtcCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("10"), HitbtcCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("100"), HitbtcCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("500"), HitbtcCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("1000"), HitbtcCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("5000"), HitbtcCore.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("10000"), HitbtcCore.this.parseNumber("0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("20000"), HitbtcCore.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("50000"), HitbtcCore.this.parseNumber("-0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("100000"), HitbtcCore.this.parseNumber("-0.0001"))))) );
-                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("0"), HitbtcCore.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("10"), HitbtcCore.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("100"), HitbtcCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("500"), HitbtcCore.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("1000"), HitbtcCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("5000"), HitbtcCore.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("10000"), HitbtcCore.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("20000"), HitbtcCore.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("50000"), HitbtcCore.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(HitbtcCore.this.parseNumber("100000"), HitbtcCore.this.parseNumber("0.0002"))))) );
+                        put( "maker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("0"), Hitbtc.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("10"), Hitbtc.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("100"), Hitbtc.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("500"), Hitbtc.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("1000"), Hitbtc.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("5000"), Hitbtc.this.parseNumber("0.0002"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("10000"), Hitbtc.this.parseNumber("0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("20000"), Hitbtc.this.parseNumber("0"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("50000"), Hitbtc.this.parseNumber("-0.0001"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("100000"), Hitbtc.this.parseNumber("-0.0001"))))) );
+                        put( "taker", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("0"), Hitbtc.this.parseNumber("0.0009"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("10"), Hitbtc.this.parseNumber("0.0008"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("100"), Hitbtc.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("500"), Hitbtc.this.parseNumber("0.0007"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("1000"), Hitbtc.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("5000"), Hitbtc.this.parseNumber("0.0006"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("10000"), Hitbtc.this.parseNumber("0.0005"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("20000"), Hitbtc.this.parseNumber("0.0004"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("50000"), Hitbtc.this.parseNumber("0.0003"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(Hitbtc.this.parseNumber("100000"), Hitbtc.this.parseNumber("0.0002"))))) );
                     }} );
                 }} );
             }} );
@@ -961,8 +961,8 @@ public class HitbtcCore extends HitbtcApi
                     put( "contract", finalContract );
                     put( "linear", finalLinear );
                     put( "inverse", finalInverse );
-                    put( "taker", HitbtcCore.this.safeNumber(market, "take_rate") );
-                    put( "maker", HitbtcCore.this.safeNumber(market, "make_rate") );
+                    put( "taker", Hitbtc.this.safeNumber(market, "take_rate") );
+                    put( "maker", Hitbtc.this.safeNumber(market, "make_rate") );
                     put( "contractSize", finalContractSize );
                     put( "expiry", finalExpiry );
                     put( "expiryDatetime", null );
@@ -975,8 +975,8 @@ public class HitbtcCore extends HitbtcApi
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", HitbtcCore.this.parseNumber("1") );
-                            put( "max", HitbtcCore.this.safeNumber(market, "max_initial_leverage", 1) );
+                            put( "min", Hitbtc.this.parseNumber("1") );
+                            put( "max", Hitbtc.this.safeNumber(market, "max_initial_leverage", 1) );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
                             put( "min", lot );
@@ -987,7 +987,7 @@ public class HitbtcCore extends HitbtcApi
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", HitbtcCore.this.parseNumber(Precise.stringMul(lotString, stepString)) );
+                            put( "min", Hitbtc.this.parseNumber(Precise.stringMul(lotString, stepString)) );
                             put( "max", null );
                         }} );
                     }} );
@@ -1084,10 +1084,10 @@ public class HitbtcCore extends HitbtcApi
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", null );
-    put( "fee", HitbtcCore.this.safeNumber(rawNetwork, "payout_fee") );
-    put( "deposit", HitbtcCore.this.safeBool(rawNetwork, "payin_enabled") );
-    put( "withdraw", HitbtcCore.this.safeBool(rawNetwork, "payout_enabled") );
-    put( "precision", HitbtcCore.this.safeNumber(rawNetwork, "precision_payout") );
+    put( "fee", Hitbtc.this.safeNumber(rawNetwork, "payout_fee") );
+    put( "deposit", Hitbtc.this.safeBool(rawNetwork, "payin_enabled") );
+    put( "withdraw", Hitbtc.this.safeBool(rawNetwork, "payout_enabled") );
+    put( "precision", Hitbtc.this.safeNumber(rawNetwork, "precision_payout") );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
             put( "min", null );
@@ -1101,11 +1101,11 @@ public class HitbtcCore extends HitbtcApi
             put( "info", entry );
             put( "code", code );
             put( "id", currencyId );
-            put( "precision", HitbtcCore.this.safeNumber(entry, "precision_transfer") );
-            put( "name", HitbtcCore.this.safeString(entry, "full_name") );
-            put( "active", !Helpers.isEqual(HitbtcCore.this.safeBool(entry, "delisted"), true) );
-            put( "deposit", HitbtcCore.this.safeBool(entry, "payin_enabled") );
-            put( "withdraw", HitbtcCore.this.safeBool(entry, "payout_enabled") );
+            put( "precision", Hitbtc.this.safeNumber(entry, "precision_transfer") );
+            put( "name", Hitbtc.this.safeString(entry, "full_name") );
+            put( "active", !Helpers.isEqual(Hitbtc.this.safeBool(entry, "delisted"), true) );
+            put( "deposit", Hitbtc.this.safeBool(entry, "payin_enabled") );
+            put( "withdraw", Hitbtc.this.safeBool(entry, "payout_enabled") );
             put( "networks", networks );
             put( "fee", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
@@ -1158,9 +1158,9 @@ public class HitbtcCore extends HitbtcApi
             //
             String currencyId = this.safeString(response, "currency");
             return new java.util.HashMap<String, Object>() {{
-                put( "currency", HitbtcCore.this.safeCurrencyCode(currencyId) );
-                put( "address", HitbtcCore.this.safeString(response, "address") );
-                put( "tag", HitbtcCore.this.safeString(response, "payment_id") );
+                put( "currency", Hitbtc.this.safeCurrencyCode(currencyId) );
+                put( "address", Hitbtc.this.safeString(response, "address") );
+                put( "tag", Hitbtc.this.safeString(response, "payment_id") );
                 put( "network", null );
                 put( "info", response );
             }};
@@ -1420,12 +1420,12 @@ public class HitbtcCore extends HitbtcApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", HitbtcCore.this.iso8601(timestamp) );
-            put( "high", HitbtcCore.this.safeString(ticker, "high") );
-            put( "low", HitbtcCore.this.safeString(ticker, "low") );
-            put( "bid", HitbtcCore.this.safeString(ticker, "bid") );
+            put( "datetime", Hitbtc.this.iso8601(timestamp) );
+            put( "high", Hitbtc.this.safeString(ticker, "high") );
+            put( "low", Hitbtc.this.safeString(ticker, "low") );
+            put( "bid", Hitbtc.this.safeString(ticker, "bid") );
             put( "bidVolume", null );
-            put( "ask", HitbtcCore.this.safeString(ticker, "ask") );
+            put( "ask", Hitbtc.this.safeString(ticker, "ask") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", open );
@@ -1674,7 +1674,7 @@ public class HitbtcCore extends HitbtcApi
             put( "id", id );
             put( "order", orderId );
             put( "timestamp", timestamp );
-            put( "datetime", HitbtcCore.this.iso8601(timestamp) );
+            put( "datetime", Hitbtc.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "type", null );
             put( "side", side );
@@ -1846,7 +1846,7 @@ public class HitbtcCore extends HitbtcApi
             put( "amount", amount );
             put( "status", status );
             put( "timestamp", timestamp );
-            put( "datetime", HitbtcCore.this.iso8601(timestamp) );
+            put( "datetime", Hitbtc.this.iso8601(timestamp) );
             put( "address", address );
             put( "addressFrom", addressFrom );
             put( "addressTo", addressTo );
@@ -2187,7 +2187,7 @@ public class HitbtcCore extends HitbtcApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "period", HitbtcCore.this.safeString(HitbtcCore.this.timeframes, timeframe, timeframe) );
+                put( "period", Hitbtc.this.safeString(Hitbtc.this.timeframes, timeframe, timeframe) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -2857,7 +2857,7 @@ public class HitbtcCore extends HitbtcApi
             final Object finalSymbol = symbol;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "client_order_id", id );
-                put( "quantity", HitbtcCore.this.amountToPrecision(finalSymbol, amount) );
+                put( "quantity", Hitbtc.this.amountToPrecision(finalSymbol, amount) );
             }};
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "limit"))) || Helpers.isTrue((Helpers.isEqual(type, "stopLimit")))))
             {
@@ -2979,7 +2979,7 @@ public class HitbtcCore extends HitbtcApi
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "type", finalType );
             put( "side", side );
-            put( "quantity", HitbtcCore.this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount) );
+            put( "quantity", Hitbtc.this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount) );
             put( "symbol", Helpers.GetValue(market, "id") );
         }};
         if (Helpers.isTrue(!Helpers.isEqual(reduceOnly, null)))
@@ -3160,7 +3160,7 @@ public class HitbtcCore extends HitbtcApi
             put( "id", id );
             put( "clientOrderId", id );
             put( "timestamp", timestamp );
-            put( "datetime", HitbtcCore.this.iso8601(timestamp) );
+            put( "datetime", Hitbtc.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", finalLastTradeTimestamp );
             put( "lastUpdateTimestamp", finalLastTradeTimestamp );
             put( "symbol", symbol );
@@ -3170,7 +3170,7 @@ public class HitbtcCore extends HitbtcApi
             put( "side", side );
             put( "timeInForce", timeInForce );
             put( "postOnly", postOnly );
-            put( "reduceOnly", HitbtcCore.this.safeValue(order, "reduce_only") );
+            put( "reduceOnly", Hitbtc.this.safeValue(order, "reduce_only") );
             put( "filled", filled );
             put( "remaining", null );
             put( "cost", null );
@@ -3178,7 +3178,7 @@ public class HitbtcCore extends HitbtcApi
             put( "average", average );
             put( "trades", rawTrades );
             put( "fee", null );
-            put( "triggerPrice", HitbtcCore.this.safeString(order, "stop_price") );
+            put( "triggerPrice", Hitbtc.this.safeString(order, "stop_price") );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
         }}, market);
@@ -3238,8 +3238,8 @@ public class HitbtcCore extends HitbtcApi
         String marketId = this.safeString(marginMode, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", HitbtcCore.this.safeSymbol(marketId, market) );
-            put( "marginMode", HitbtcCore.this.safeStringLower(marginMode, "margin_mode") );
+            put( "symbol", Hitbtc.this.safeSymbol(marketId, market) );
+            put( "marginMode", Hitbtc.this.safeStringLower(marginMode, "margin_mode") );
         }};
     }
 
@@ -3308,10 +3308,10 @@ public class HitbtcCore extends HitbtcApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         return new java.util.HashMap<String, Object>() {{
-            put( "id", HitbtcCore.this.safeString(transfer, 0) );
+            put( "id", Hitbtc.this.safeString(transfer, 0) );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", HitbtcCore.this.safeCurrencyCode(null, currency) );
+            put( "currency", Hitbtc.this.safeCurrencyCode(null, currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
@@ -3357,7 +3357,7 @@ public class HitbtcCore extends HitbtcApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "from_currency", finalFromNetwork );
                 put( "to_currency", finalToNetwork );
-                put( "amount", HitbtcCore.this.currencyToPrecision(finalCode, amount) );
+                put( "amount", Hitbtc.this.currencyToPrecision(finalCode, amount) );
             }};
             java.util.List<Object> response = (this.privatePostWalletConvert(this.extend(request, parameters))).join();
             // {"result":["587a1868-e62d-4d8e-b27c-dbdb2ee96149","e168df74-c041-41f2-b76c-e43e4fed5bc7"]}
@@ -3594,7 +3594,7 @@ public class HitbtcCore extends HitbtcApi
                         put( "info", entry );
                         put( "symbol", symbolInner );
                         put( "fundingRate", fundingRate );
-                        put( "timestamp", HitbtcCore.this.parse8601(datetime) );
+                        put( "timestamp", Hitbtc.this.parse8601(datetime) );
                         put( "datetime", datetime );
                     }});
                 }
@@ -3870,7 +3870,7 @@ public class HitbtcCore extends HitbtcApi
             put( "lastPrice", null );
             put( "side", null );
             put( "hedged", null );
-            put( "timestamp", HitbtcCore.this.parse8601(datetime) );
+            put( "timestamp", Hitbtc.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "lastUpdateTimestamp", null );
             put( "maintenanceMargin", null );
@@ -3906,10 +3906,10 @@ public class HitbtcCore extends HitbtcApi
         String datetime = this.safeString(interest, "timestamp");
         Double value = this.safeNumber(interest, "open_interest");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", HitbtcCore.this.safeSymbol(null, market) );
+            put( "symbol", Hitbtc.this.safeSymbol(null, market) );
             put( "openInterestAmount", null );
             put( "openInterestValue", value );
-            put( "timestamp", HitbtcCore.this.parse8601(datetime) );
+            put( "timestamp", Hitbtc.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "info", interest );
         }}, market);
@@ -4093,17 +4093,17 @@ public class HitbtcCore extends HitbtcApi
         String datetime = this.safeString(contract, "timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", HitbtcCore.this.safeSymbol(null, market) );
-            put( "markPrice", HitbtcCore.this.safeNumber(contract, "mark_price") );
-            put( "indexPrice", HitbtcCore.this.safeNumber(contract, "index_price") );
-            put( "interestRate", HitbtcCore.this.safeNumber(contract, "interest_rate") );
+            put( "symbol", Hitbtc.this.safeSymbol(null, market) );
+            put( "markPrice", Hitbtc.this.safeNumber(contract, "mark_price") );
+            put( "indexPrice", Hitbtc.this.safeNumber(contract, "index_price") );
+            put( "interestRate", Hitbtc.this.safeNumber(contract, "interest_rate") );
             put( "estimatedSettlePrice", null );
-            put( "timestamp", HitbtcCore.this.parse8601(datetime) );
+            put( "timestamp", Hitbtc.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "fundingRate", HitbtcCore.this.safeNumber(contract, "funding_rate") );
-            put( "fundingTimestamp", HitbtcCore.this.parse8601(fundingDateTime) );
+            put( "fundingRate", Hitbtc.this.safeNumber(contract, "funding_rate") );
+            put( "fundingTimestamp", Hitbtc.this.parse8601(fundingDateTime) );
             put( "fundingDatetime", fundingDateTime );
-            put( "nextFundingRate", HitbtcCore.this.safeNumber(contract, "indicative_funding_rate") );
+            put( "nextFundingRate", Hitbtc.this.safeNumber(contract, "indicative_funding_rate") );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
             put( "previousFundingRate", null );
@@ -4223,14 +4223,14 @@ public class HitbtcCore extends HitbtcApi
         String datetime = this.safeString(data, "updated_at");
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", HitbtcCore.this.safeString(market, "symbol") );
+            put( "symbol", Hitbtc.this.safeString(market, "symbol") );
             put( "type", null );
             put( "marginMode", "isolated" );
             put( "amount", null );
             put( "total", null );
-            put( "code", HitbtcCore.this.safeString(currencyInfo, "code") );
+            put( "code", Hitbtc.this.safeString(currencyInfo, "code") );
             put( "status", null );
-            put( "timestamp", HitbtcCore.this.parse8601(datetime) );
+            put( "timestamp", Hitbtc.this.parse8601(datetime) );
             put( "datetime", datetime );
         }};
     }
@@ -4380,8 +4380,8 @@ public class HitbtcCore extends HitbtcApi
         Long leverageValue = this.safeInteger(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", HitbtcCore.this.safeSymbol(marketId, market) );
-            put( "marginMode", HitbtcCore.this.safeStringLower(leverage, "type") );
+            put( "symbol", Hitbtc.this.safeSymbol(marketId, market) );
+            put( "marginMode", Hitbtc.this.safeStringLower(leverage, "type") );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
         }};
@@ -4432,7 +4432,7 @@ public class HitbtcCore extends HitbtcApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "leverage", String.valueOf(finalLeverage) );
-                put( "margin_balance", HitbtcCore.this.amountToPrecision(finalSymbol, amount) );
+                put( "margin_balance", Hitbtc.this.amountToPrecision(finalSymbol, amount) );
             }};
             return (this.privatePutFuturesAccountIsolatedSymbol(this.extend(request, parameters))).join();
         });

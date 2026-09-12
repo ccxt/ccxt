@@ -8,13 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 
-public class BinanceCore extends io.github.ccxt.exchanges.Binance
+public class Binance extends io.github.ccxt.exchanges.Binance
 {
-   public BinanceCore () {
+   public Binance () {
        super();
    }
 
-   public BinanceCore (Object options) {
+   public Binance (Object options) {
        super(options);
    }
 
@@ -155,7 +155,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     put( "option", 200 );
                     put( "optionMarket", 200 );
                 }} );
-                put( "streamBySubscriptionsHash", BinanceCore.this.createSafeDictionary() );
+                put( "streamBySubscriptionsHash", Binance.this.createSafeDictionary() );
                 put( "streamIndex", Helpers.opNeg(1) );
                 put( "watchOrderBookRate", 100 );
                 put( "liquidationsLimit", 1000 );
@@ -163,7 +163,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 put( "tradesLimit", 1000 );
                 put( "ordersLimit", 1000 );
                 put( "OHLCVLimit", 1000 );
-                put( "requestId", BinanceCore.this.createSafeDictionary() );
+                put( "requestId", Binance.this.createSafeDictionary() );
                 put( "watchOrderBookLimit", 1000 );
                 put( "watchTrades", new java.util.HashMap<String, Object>() {{
                     put( "name", "trade" );
@@ -405,7 +405,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchLiquidationsForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -633,15 +633,15 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         final Object finalMarket = market;
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
-            put( "symbol", BinanceCore.this.safeSymbol(marketId, finalMarket) );
-            put( "contracts", BinanceCore.this.safeNumber(liquidation, "l") );
-            put( "contractSize", BinanceCore.this.safeNumber(finalMarket, "contractSize") );
-            put( "price", BinanceCore.this.safeNumber(liquidation, "ap") );
-            put( "side", BinanceCore.this.safeStringLower(liquidation, "S") );
+            put( "symbol", Binance.this.safeSymbol(marketId, finalMarket) );
+            put( "contracts", Binance.this.safeNumber(liquidation, "l") );
+            put( "contractSize", Binance.this.safeNumber(finalMarket, "contractSize") );
+            put( "price", Binance.this.safeNumber(liquidation, "ap") );
+            put( "side", Binance.this.safeStringLower(liquidation, "S") );
             put( "baseValue", null );
             put( "quoteValue", null );
             put( "timestamp", timestamp );
-            put( "datetime", BinanceCore.this.iso8601(timestamp) );
+            put( "datetime", Binance.this.iso8601(timestamp) );
         }});
     }
 
@@ -665,7 +665,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchMyLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchMyLiquidationsForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -829,7 +829,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly and https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
+            return (this.watchOrderBookForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1088,7 +1088,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "depth" );
-                put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
+                put( "params", Binance.this.signParams(Binance.this.extend(payload, finalParameters)) );
             }};
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "method", "handleFetchOrderBook");
@@ -1702,7 +1702,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTrades");
-            return (this.watchTradesForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
+            return (this.watchTradesForSymbols((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         });
 
     }
@@ -1873,7 +1873,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BinanceCore.this.iso8601(timestamp) );
+            put( "datetime", Binance.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
             put( "order", orderId );
@@ -2345,7 +2345,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", finalMethod );
-                put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
+                put( "params", Binance.this.signParams(Binance.this.extend(payload, finalParameters)) );
             }};
             Object ticker = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return ticker;
@@ -2397,9 +2397,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalReturnRateLimits = returnRateLimits;
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BinanceCore.this.marketId(symbol) );
+                put( "symbol", Binance.this.marketId(symbol) );
                 put( "returnRateLimits", finalReturnRateLimits );
-                put( "interval", Helpers.GetValue(BinanceCore.this.timeframes, timeframe) );
+                put( "interval", Helpers.GetValue(Binance.this.timeframes, timeframe) );
             }};
             Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
@@ -2419,7 +2419,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "klines" );
-                put( "params", BinanceCore.this.extend(payload, finalParameters) );
+                put( "params", Binance.this.extend(payload, finalParameters) );
             }};
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "method", "handleFetchOHLCV");
@@ -2498,9 +2498,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             symbol = this.symbol(symbol);
             final Object finalSymbol = symbol;
-            Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(finalSymbol)), this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            Object tickers = (this.watchTickers((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(finalSymbol))), (Object)(this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "callerMethodName", "watchTicker" );
-            }}))).join();
+            }})))).join();
             return Helpers.GetValue(tickers, symbol);
         });
 
@@ -2528,9 +2528,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             symbol = this.symbol(symbol);
             final Object finalSymbol = symbol;
-            Object tickers = (this.watchMarkPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(finalSymbol)), this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            Object tickers = (this.watchMarkPrices((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(finalSymbol))), (Object)(this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "callerMethodName", "watchMarkPrice" );
-            }}))).join();
+            }})))).join();
             return Helpers.GetValue(tickers, symbol);
         });
 
@@ -3130,11 +3130,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             // futures use 'p' for mark price; options use 'mp'
             return this.safeTicker(new java.util.HashMap<String, Object>() {{
                 put( "symbol", symbol );
-                put( "timestamp", BinanceCore.this.safeInteger(message, "E") );
-                put( "datetime", BinanceCore.this.iso8601(BinanceCore.this.safeInteger(message, "E")) );
+                put( "timestamp", Binance.this.safeInteger(message, "E") );
+                put( "datetime", Binance.this.iso8601(Binance.this.safeInteger(message, "E")) );
                 put( "info", message );
-                put( "markPrice", BinanceCore.this.safeString2(message, "mp", "p") );
-                put( "indexPrice", BinanceCore.this.safeString(message, "i") );
+                put( "markPrice", Binance.this.safeString2(message, "mp", "p") );
+                put( "indexPrice", Binance.this.safeString(message, "i") );
             }});
         }
         Object timestamp = null;
@@ -3174,20 +3174,20 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BinanceCore.this.iso8601(finalTimestamp) );
-            put( "high", BinanceCore.this.safeString(message, "h") );
-            put( "low", BinanceCore.this.safeString(message, "l") );
-            put( "bid", BinanceCore.this.safeString2(message, "b", "bidPrice") );
-            put( "bidVolume", BinanceCore.this.safeString2(message, "B", "bidQty") );
-            put( "ask", BinanceCore.this.safeString2(message, "a", "askPrice") );
-            put( "askVolume", BinanceCore.this.safeString2(message, "A", "askQty") );
-            put( "vwap", BinanceCore.this.safeString(message, "w") );
-            put( "open", BinanceCore.this.safeString(message, "o") );
+            put( "datetime", Binance.this.iso8601(finalTimestamp) );
+            put( "high", Binance.this.safeString(message, "h") );
+            put( "low", Binance.this.safeString(message, "l") );
+            put( "bid", Binance.this.safeString2(message, "b", "bidPrice") );
+            put( "bidVolume", Binance.this.safeString2(message, "B", "bidQty") );
+            put( "ask", Binance.this.safeString2(message, "a", "askPrice") );
+            put( "askVolume", Binance.this.safeString2(message, "A", "askQty") );
+            put( "vwap", Binance.this.safeString(message, "w") );
+            put( "open", Binance.this.safeString(message, "o") );
             put( "close", last );
             put( "last", last );
-            put( "previousClose", BinanceCore.this.safeString(message, "x") );
-            put( "change", BinanceCore.this.safeString(message, "p") );
-            put( "percentage", BinanceCore.this.safeString(message, "P") );
+            put( "previousClose", Binance.this.safeString(message, "x") );
+            put( "change", Binance.this.safeString(message, "p") );
+            put( "percentage", Binance.this.safeString(message, "P") );
             put( "average", null );
             put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", finalQuoteVolume );
@@ -3381,8 +3381,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Helpers.addElementToObject(parameters, "recvWindow", recvWindow);
         }
         java.util.Map<String, Object> extendedParams = this.extend(new java.util.HashMap<String, Object>() {{
-            put( "timestamp", BinanceCore.this.nonce() );
-            put( "apiKey", BinanceCore.this.apiKey );
+            put( "timestamp", Binance.this.nonce() );
+            put( "apiKey", Binance.this.apiKey );
         }}, parameters);
         extendedParams = this.keysort(extendedParams);
         Object query = this.rawencode(extendedParams);
@@ -3442,7 +3442,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", requestHash );
                 put( "method", "userDataStream.subscribe.signature" );
-                put( "params", BinanceCore.this.signParams(new java.util.HashMap<String, Object>() {{}}) );
+                put( "params", Binance.this.signParams(new java.util.HashMap<String, Object>() {{}}) );
             }};
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", requestHash );
@@ -4033,7 +4033,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", finalMethod );
-                put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
+                put( "params", Binance.this.signParams(Binance.this.extend(payload, finalParameters)) );
             }};
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "method", ((Helpers.isTrue((Helpers.isEqual(finalMethod, "account.status"))))) ? "handleAccountStatusWs" : "handleBalanceWs");
@@ -4132,7 +4132,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchPositionsWs(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            return (this.fetchPositionsWs((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
         });
 
     }
@@ -4200,7 +4200,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", finalMethod );
-                put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
+                put( "params", Binance.this.signParams(Binance.this.extend(payload, finalParameters)) );
             }};
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "method", "handlePositionsWs");
@@ -4602,7 +4602,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "order.place" );
-                put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
+                put( "params", Binance.this.signParams(Binance.this.extend(payload, finalParameters)) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(test, true)))
             {
@@ -4782,7 +4782,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", ((Helpers.isTrue((isSwap)))) ? "order.modify" : "order.cancelReplace" );
-                put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(finalPayload, finalParameters)) );
+                put( "params", Binance.this.signParams(Binance.this.extend(finalPayload, finalParameters)) );
             }};
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "method", "handleEditOrderWs");
@@ -4948,7 +4948,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             final Object finalSymbol = symbol;
             final Object finalReturnRateLimits = returnRateLimits;
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BinanceCore.this.marketId(finalSymbol) );
+                put( "symbol", Binance.this.marketId(finalSymbol) );
                 put( "returnRateLimits", finalReturnRateLimits );
             }};
             Object isConditional = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "conditional")));
@@ -4978,7 +4978,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "order.cancel" );
-                put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
+                put( "params", Binance.this.signParams(Binance.this.extend(payload, finalParameters)) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(shouldUseAlgoOrder, true)))
             {
@@ -5032,14 +5032,14 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             final Object finalSymbol = symbol;
             final Object finalReturnRateLimits = returnRateLimits;
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BinanceCore.this.marketId(finalSymbol) );
+                put( "symbol", Binance.this.marketId(finalSymbol) );
                 put( "returnRateLimits", finalReturnRateLimits );
             }};
             final Object finalParameters = parameters;
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "openOrders.cancelAll" );
-                put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
+                put( "params", Binance.this.signParams(Binance.this.extend(payload, finalParameters)) );
             }};
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "method", "handleOrdersWs");
@@ -5092,7 +5092,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             final Object finalSymbol = symbol;
             final Object finalReturnRateLimits = returnRateLimits;
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BinanceCore.this.marketId(finalSymbol) );
+                put( "symbol", Binance.this.marketId(finalSymbol) );
                 put( "returnRateLimits", finalReturnRateLimits );
             }};
             String clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
@@ -5107,7 +5107,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "order.status" );
-                put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
+                put( "params", Binance.this.signParams(Binance.this.extend(payload, finalParameters)) );
             }};
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "method", "handleOrderWs");
@@ -5165,14 +5165,14 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             final Object finalSymbol = symbol;
             final Object finalReturnRateLimits = returnRateLimits;
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BinanceCore.this.marketId(finalSymbol) );
+                put( "symbol", Binance.this.marketId(finalSymbol) );
                 put( "returnRateLimits", finalReturnRateLimits );
             }};
             final Object finalParameters = parameters;
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "allOrders" );
-                put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
+                put( "params", Binance.this.signParams(Binance.this.extend(payload, finalParameters)) );
             }};
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "method", "handleOrdersWs");
@@ -5203,7 +5203,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object orders = (this.fetchOrdersWs(symbol, since, limit, parameters)).join();
+            Object orders = (this.fetchOrdersWs((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             java.util.List<Object> closedOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -5267,7 +5267,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "openOrders.status" );
-                put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
+                put( "params", Binance.this.signParams(Binance.this.extend(payload, finalParameters)) );
             }};
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "method", "handleOrdersWs");
@@ -5596,20 +5596,20 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", order );
                 put( "symbol", stockSymbol );
-                put( "id", BinanceCore.this.safeString(order, "i") );
+                put( "id", Binance.this.safeString(order, "i") );
                 put( "timestamp", stockTimestamp );
-                put( "datetime", BinanceCore.this.iso8601(stockTimestamp) );
+                put( "datetime", Binance.this.iso8601(stockTimestamp) );
                 put( "lastUpdateTimestamp", stockLastUpdateTimestamp );
-                put( "type", BinanceCore.this.parseOrderTypeByMarket(BinanceCore.this.safeStringLower(order, "o"), "spot") );
+                put( "type", Binance.this.parseOrderTypeByMarket(Binance.this.safeStringLower(order, "o"), "spot") );
                 put( "timeInForce", null );
                 put( "postOnly", null );
                 put( "reduceOnly", null );
-                put( "side", BinanceCore.this.safeStringLower(order, "S") );
-                put( "price", BinanceCore.this.safeString(order, "p") );
+                put( "side", Binance.this.safeStringLower(order, "S") );
+                put( "price", Binance.this.safeString(order, "p") );
                 put( "stopPrice", null );
                 put( "triggerPrice", null );
                 put( "amount", finalStockAmount );
-                put( "cost", BinanceCore.this.safeString(order, "FN") );
+                put( "cost", Binance.this.safeString(order, "FN") );
                 put( "average", null );
                 put( "filled", finalStockFilled );
                 put( "remaining", finalStockRemaining );
@@ -5671,24 +5671,24 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
-            put( "id", BinanceCore.this.safeString2(order, "i", "aid") );
+            put( "id", Binance.this.safeString2(order, "i", "aid") );
             put( "clientOrderId", finalClientOrderId );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BinanceCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Binance.this.iso8601(finalTimestamp) );
             put( "lastTradeTimestamp", finalLastTradeTimestamp );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "type", BinanceCore.this.parseOrderTypeByMarket(BinanceCore.this.safeStringLower(order, "o"), marketType) );
+            put( "type", Binance.this.parseOrderTypeByMarket(Binance.this.safeStringLower(order, "o"), marketType) );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", null );
-            put( "reduceOnly", BinanceCore.this.safeBool(order, "R") );
-            put( "side", BinanceCore.this.safeStringLower(order, "S") );
-            put( "price", BinanceCore.this.safeString(order, "p") );
+            put( "reduceOnly", Binance.this.safeBool(order, "R") );
+            put( "side", Binance.this.safeStringLower(order, "S") );
+            put( "price", Binance.this.safeString(order, "p") );
             put( "stopPrice", stopPrice );
             put( "triggerPrice", stopPrice );
-            put( "amount", BinanceCore.this.safeString(order, "q") );
-            put( "cost", BinanceCore.this.safeString(order, "Z") );
-            put( "average", BinanceCore.this.safeString(order, "ap") );
-            put( "filled", BinanceCore.this.safeString(order, "z") );
+            put( "amount", Binance.this.safeString(order, "q") );
+            put( "cost", Binance.this.safeString(order, "Z") );
+            put( "average", Binance.this.safeString(order, "ap") );
+            put( "filled", Binance.this.safeString(order, "z") );
             put( "remaining", null );
             put( "status", status );
             put( "fee", finalFee );
@@ -5869,10 +5869,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object parsed = this.safeTicker(new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "timestamp", timestamp );
-                put( "datetime", BinanceCore.this.iso8601(timestamp) );
-                put( "last", BinanceCore.this.safeString(rate, "p") );
-                put( "close", BinanceCore.this.safeString(rate, "p") );
-                put( "previousClose", BinanceCore.this.safeString(rate, "pc") );
+                put( "datetime", Binance.this.iso8601(timestamp) );
+                put( "last", Binance.this.safeString(rate, "p") );
+                put( "close", Binance.this.safeString(rate, "p") );
+                put( "previousClose", Binance.this.safeString(rate, "pc") );
                 put( "info", rate );
             }});
             Helpers.addElementToObject(this.tickers, symbol, parsed);
@@ -5895,11 +5895,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object parsed = this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
             put( "timestamp", timestamp );
-            put( "datetime", BinanceCore.this.iso8601(timestamp) );
-            put( "bid", BinanceCore.this.safeString(message, "bp") );
-            put( "ask", BinanceCore.this.safeString(message, "ap") );
-            put( "bidVolume", BinanceCore.this.safeString(message, "bs") );
-            put( "askVolume", BinanceCore.this.safeString(message, "as") );
+            put( "datetime", Binance.this.iso8601(timestamp) );
+            put( "bid", Binance.this.safeString(message, "bp") );
+            put( "ask", Binance.this.safeString(message, "ap") );
+            put( "bidVolume", Binance.this.safeString(message, "bs") );
+            put( "askVolume", Binance.this.safeString(message, "as") );
             put( "info", message );
         }});
         Helpers.addElementToObject(this.bidsasks, symbol, parsed);
@@ -5964,21 +5964,21 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             final Object finalSide = side;
             final Object finalExecutionType = executionType;
             java.util.Map<String, Object> normalizedOrder = new java.util.HashMap<String, Object>() {{
-                put( "s", BinanceCore.this.safeString(order, "s") );
-                put( "i", BinanceCore.this.safeString(order, "oid") );
-                put( "c", BinanceCore.this.safeString(order, "c") );
+                put( "s", Binance.this.safeString(order, "s") );
+                put( "i", Binance.this.safeString(order, "oid") );
+                put( "c", Binance.this.safeString(order, "c") );
                 put( "S", finalSide );
-                put( "o", BinanceCore.this.safeString(order, "oty") );
-                put( "f", BinanceCore.this.safeString(order, "tif") );
+                put( "o", Binance.this.safeString(order, "oty") );
+                put( "f", Binance.this.safeString(order, "tif") );
                 put( "q", absQty );
-                put( "p", BinanceCore.this.safeString(order, "p") );
-                put( "X", BinanceCore.this.safeString(order, "S") );
+                put( "p", Binance.this.safeString(order, "p") );
+                put( "X", Binance.this.safeString(order, "S") );
                 put( "x", finalExecutionType );
-                put( "z", BinanceCore.this.safeString(order, "e") );
-                put( "Z", BinanceCore.this.safeString(order, "ec") );
-                put( "n", BinanceCore.this.safeString(order, "f") );
-                put( "T", BinanceCore.this.safeInteger(order, "t") );
-                put( "O", BinanceCore.this.safeInteger(order, "T") );
+                put( "z", Binance.this.safeString(order, "e") );
+                put( "Z", Binance.this.safeString(order, "ec") );
+                put( "n", Binance.this.safeString(order, "f") );
+                put( "T", Binance.this.safeInteger(order, "t") );
+                put( "O", Binance.this.safeInteger(order, "T") );
             }};
             this.handleOrder(client, normalizedOrder);
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(fills)); j++)
@@ -5988,16 +5988,16 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 // normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
                 java.util.Map<String, Object> normalizedTrade = new java.util.HashMap<String, Object>() {{
                     put( "x", "TRADE" );
-                    put( "s", BinanceCore.this.safeString(order, "s") );
-                    put( "t", BinanceCore.this.safeString(fill, "t") );
-                    put( "L", BinanceCore.this.safeString(fill, "p") );
-                    put( "l", BinanceCore.this.safeString(fill, "q") );
-                    put( "T", BinanceCore.this.safeInteger(fill, "T") );
+                    put( "s", Binance.this.safeString(order, "s") );
+                    put( "t", Binance.this.safeString(fill, "t") );
+                    put( "L", Binance.this.safeString(fill, "p") );
+                    put( "l", Binance.this.safeString(fill, "q") );
+                    put( "T", Binance.this.safeInteger(fill, "T") );
                     put( "m", isMaker );
-                    put( "n", BinanceCore.this.safeString(fill, "f") );
-                    put( "i", BinanceCore.this.safeString(order, "oid") );
+                    put( "n", Binance.this.safeString(fill, "f") );
+                    put( "i", Binance.this.safeString(order, "oid") );
                     put( "S", finalSide );
-                    put( "o", BinanceCore.this.safeString(order, "oty") );
+                    put( "o", Binance.this.safeString(order, "oty") );
                 }};
                 this.handleMyTrade(client, normalizedTrade);
             }
@@ -6284,14 +6284,14 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", BinanceCore.this.safeSymbol(marketId, null, null, "swap") );
+            put( "symbol", Binance.this.safeSymbol(marketId, null, null, "swap") );
             put( "notional", null );
-            put( "marginMode", BinanceCore.this.safeString(position, "mt") );
+            put( "marginMode", Binance.this.safeString(position, "mt") );
             put( "liquidationPrice", null );
-            put( "entryPrice", BinanceCore.this.safeNumber(position, "ep") );
-            put( "unrealizedPnl", BinanceCore.this.safeNumber(position, "up") );
+            put( "entryPrice", Binance.this.safeNumber(position, "ep") );
+            put( "unrealizedPnl", Binance.this.safeNumber(position, "up") );
             put( "percentage", null );
-            put( "contracts", BinanceCore.this.parseNumber(contractsAbs) );
+            put( "contracts", Binance.this.parseNumber(contractsAbs) );
             put( "contractSize", null );
             put( "markPrice", null );
             put( "side", finalPositionSide );
@@ -6338,14 +6338,14 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", BinanceCore.this.safeSymbol(marketId, market, null, "option") );
-            put( "notional", BinanceCore.this.safeString(position, "p") );
+            put( "symbol", Binance.this.safeSymbol(marketId, market, null, "option") );
+            put( "notional", Binance.this.safeString(position, "p") );
             put( "marginMode", null );
             put( "liquidationPrice", null );
-            put( "entryPrice", BinanceCore.this.safeNumber(position, "a") );
+            put( "entryPrice", Binance.this.safeNumber(position, "a") );
             put( "unrealizedPnl", null );
             put( "percentage", null );
-            put( "contracts", BinanceCore.this.parseNumber(contractsAbs) );
+            put( "contracts", Binance.this.parseNumber(contractsAbs) );
             put( "contractSize", null );
             put( "markPrice", null );
             put( "side", finalSide );
@@ -6408,7 +6408,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             final Object finalSymbol = symbol;
             final Object finalReturnRateLimits = returnRateLimits;
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BinanceCore.this.marketId(finalSymbol) );
+                put( "symbol", Binance.this.marketId(finalSymbol) );
                 put( "returnRateLimits", finalReturnRateLimits );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -6428,7 +6428,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "myTrades" );
-                put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
+                put( "params", Binance.this.signParams(Binance.this.extend(payload, finalParameters)) );
             }};
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "method", "handleTradesWs");
@@ -6480,7 +6480,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalReturnRateLimits = returnRateLimits;
             java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
-                put( "symbol", BinanceCore.this.marketId(symbol) );
+                put( "symbol", Binance.this.marketId(symbol) );
                 put( "returnRateLimits", finalReturnRateLimits );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -6491,7 +6491,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "trades.historical" );
-                put( "params", BinanceCore.this.extend(payload, finalParameters) );
+                put( "params", Binance.this.extend(payload, finalParameters) );
             }};
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "method", "handleTradesWs");

@@ -6,9 +6,9 @@
 // -------------------------------------------------------------------------------
 
 package io.github.ccxt.api;
-import io.github.ccxt.exchanges.KucoinCore;
+import io.github.ccxt.exchanges.Kucoin;
 
-public class KucoinfuturesApi extends KucoinCore
+public class KucoinfuturesApi extends Kucoin
 {
 
     public KucoinfuturesApi () {

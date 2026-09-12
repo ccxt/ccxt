@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BinanceusdmCore extends BinanceusdmApi
+public class Binanceusdm extends BinanceusdmApi
 {
-   public BinanceusdmCore () {
+   public Binanceusdm () {
        super();
    }
 
-   public BinanceusdmCore (Object options) {
+   public Binanceusdm (Object options) {
        super(options);
    }
 

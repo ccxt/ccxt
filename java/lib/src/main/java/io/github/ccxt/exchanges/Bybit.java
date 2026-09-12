@@ -7,13 +7,13 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 
-public class BybitCore extends BybitApi
+public class Bybit extends BybitApi
 {
-   public BybitCore () {
+   public Bybit () {
        super();
    }
 
-   public BybitCore (Object options) {
+   public Bybit (Object options) {
        super(options);
    }
 
@@ -2501,11 +2501,11 @@ public class BybitCore extends BybitApi
             put( "option", true );
             put( "margin", false );
             put( "contract", true );
-            put( "contractSize", BybitCore.this.parseNumber("1") );
+            put( "contractSize", Bybit.this.parseNumber("1") );
             put( "expiry", timestamp );
             put( "expiryDatetime", datetime );
             put( "optionType", ((Helpers.isTrue((Helpers.isEqual(finalOptionType, "C"))))) ? "call" : "put" );
-            put( "strike", BybitCore.this.parseNumber(strike) );
+            put( "strike", Bybit.this.parseNumber(strike) );
             put( "precision", new java.util.HashMap<String, Object>() {{
                 put( "amount", finalAmountPrecision );
                 put( "price", finalPricePrecision );
@@ -2788,17 +2788,17 @@ public class BybitCore extends BybitApi
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", null );
-    put( "deposit", Helpers.isEqual(BybitCore.this.safeInteger(chain, "chainDeposit"), 1) );
-    put( "withdraw", Helpers.isEqual(BybitCore.this.safeInteger(chain, "chainWithdraw"), 1) );
-    put( "fee", BybitCore.this.safeNumber(chain, "withdrawFee") );
-    put( "precision", BybitCore.this.parseNumber(BybitCore.this.parsePrecision(BybitCore.this.safeString(chain, "minAccuracy"))) );
+    put( "deposit", Helpers.isEqual(Bybit.this.safeInteger(chain, "chainDeposit"), 1) );
+    put( "withdraw", Helpers.isEqual(Bybit.this.safeInteger(chain, "chainWithdraw"), 1) );
+    put( "fee", Bybit.this.safeNumber(chain, "withdrawFee") );
+    put( "precision", Bybit.this.parseNumber(Bybit.this.parsePrecision(Bybit.this.safeString(chain, "minAccuracy"))) );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
-            put( "min", BybitCore.this.safeNumber(chain, "withdrawMin") );
+            put( "min", Bybit.this.safeNumber(chain, "withdrawMin") );
             put( "max", null );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
-            put( "min", BybitCore.this.safeNumber(chain, "depositMin") );
+            put( "min", Bybit.this.safeNumber(chain, "depositMin") );
             put( "max", null );
         }} );
     }} );
@@ -3016,25 +3016,25 @@ public class BybitCore extends BybitApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", BybitCore.this.safeNumber(lotSizeFilter, "basePrecision") );
-                        put( "price", BybitCore.this.safeNumber(priceFilter, "tickSize", quotePrecision) );
+                        put( "amount", Bybit.this.safeNumber(lotSizeFilter, "basePrecision") );
+                        put( "price", Bybit.this.safeNumber(priceFilter, "tickSize", quotePrecision) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", BybitCore.this.parseNumber("1") );
+                            put( "min", Bybit.this.parseNumber("1") );
                             put( "max", null );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", BybitCore.this.safeNumber(lotSizeFilter, "minOrderQty") );
-                            put( "max", BybitCore.this.safeNumber(lotSizeFilter, "maxOrderQty") );
+                            put( "min", Bybit.this.safeNumber(lotSizeFilter, "minOrderQty") );
+                            put( "max", Bybit.this.safeNumber(lotSizeFilter, "maxOrderQty") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", BybitCore.this.safeNumber(lotSizeFilter, "minOrderAmt") );
-                            put( "max", BybitCore.this.safeNumber(lotSizeFilter, "maxOrderAmt") );
+                            put( "min", Bybit.this.safeNumber(lotSizeFilter, "minOrderAmt") );
+                            put( "max", Bybit.this.safeNumber(lotSizeFilter, "maxOrderAmt") );
                         }} );
                     }} );
                     put( "created", null );
@@ -3232,36 +3232,36 @@ public class BybitCore extends BybitApi
                     put( "contract", true );
                     put( "linear", linear );
                     put( "inverse", inverse );
-                    put( "taker", BybitCore.this.safeNumber(market, "takerFee", BybitCore.this.parseNumber("0.0006")) );
-                    put( "maker", BybitCore.this.safeNumber(market, "makerFee", BybitCore.this.parseNumber("0.0001")) );
+                    put( "taker", Bybit.this.safeNumber(market, "takerFee", Bybit.this.parseNumber("0.0006")) );
+                    put( "maker", Bybit.this.safeNumber(market, "makerFee", Bybit.this.parseNumber("0.0001")) );
                     put( "contractSize", contractSize );
                     put( "expiry", finalExpiry );
                     put( "expiryDatetime", expiryDatetime );
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new java.util.HashMap<String, Object>() {{
-                        put( "amount", BybitCore.this.safeNumber(lotSizeFilter, "qtyStep") );
-                        put( "price", BybitCore.this.safeNumber(priceFilter, "tickSize") );
+                        put( "amount", Bybit.this.safeNumber(lotSizeFilter, "qtyStep") );
+                        put( "price", Bybit.this.safeNumber(priceFilter, "tickSize") );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{
                         put( "leverage", new java.util.HashMap<String, Object>() {{
-                            put( "min", BybitCore.this.safeNumber(leverage, "minLeverage") );
-                            put( "max", BybitCore.this.safeNumber(leverage, "maxLeverage") );
+                            put( "min", Bybit.this.safeNumber(leverage, "minLeverage") );
+                            put( "max", Bybit.this.safeNumber(leverage, "maxLeverage") );
                         }} );
                         put( "amount", new java.util.HashMap<String, Object>() {{
-                            put( "min", BybitCore.this.safeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty") );
-                            put( "max", BybitCore.this.safeNumber2(lotSizeFilter, "maxTradingQty", "maxOrderQty") );
+                            put( "min", Bybit.this.safeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty") );
+                            put( "max", Bybit.this.safeNumber2(lotSizeFilter, "maxTradingQty", "maxOrderQty") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
-                            put( "min", BybitCore.this.safeNumber(priceFilter, "minPrice") );
-                            put( "max", BybitCore.this.safeNumber(priceFilter, "maxPrice") );
+                            put( "min", Bybit.this.safeNumber(priceFilter, "minPrice") );
+                            put( "max", Bybit.this.safeNumber(priceFilter, "maxPrice") );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", ((Helpers.isTrue(linear))) ? BybitCore.this.safeNumber(lotSizeFilter, "minNotionalValue") : null );
+                            put( "min", ((Helpers.isTrue(linear))) ? Bybit.this.safeNumber(lotSizeFilter, "minNotionalValue") : null );
                             put( "max", null );
                         }} );
                     }} );
-                    put( "created", BybitCore.this.safeInteger(market, "launchTime") );
+                    put( "created", Bybit.this.safeInteger(market, "launchTime") );
                     put( "info", market );
                 }});
                 ((java.util.List<Object>)result).add(parsedMarket);
@@ -3387,7 +3387,7 @@ public class BybitCore extends BybitApi
                     final Object finalIsActive = isActive;
                                     ((java.util.List<Object>)result).add(this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                         put( "id", finalId );
-                        put( "symbol", Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(finalBase, "/"), quote), ":"), settle), "-"), BybitCore.this.yymmdd(expiry)), "-"), strike), "-"), optionLetter) );
+                        put( "symbol", Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(finalBase, "/"), quote), ":"), settle), "-"), Bybit.this.yymmdd(expiry)), "-"), strike), "-"), optionLetter) );
                         put( "base", finalBase );
                         put( "quote", quote );
                         put( "settle", settle );
@@ -3405,16 +3405,16 @@ public class BybitCore extends BybitApi
                         put( "contract", true );
                         put( "linear", !Helpers.isTrue(isInverse) );
                         put( "inverse", isInverse );
-                        put( "taker", BybitCore.this.safeNumber(market, "takerFee", BybitCore.this.parseNumber("0.0006")) );
-                        put( "maker", BybitCore.this.safeNumber(market, "makerFee", BybitCore.this.parseNumber("0.0001")) );
-                        put( "contractSize", BybitCore.this.parseNumber("1") );
+                        put( "taker", Bybit.this.safeNumber(market, "takerFee", Bybit.this.parseNumber("0.0006")) );
+                        put( "maker", Bybit.this.safeNumber(market, "makerFee", Bybit.this.parseNumber("0.0001")) );
+                        put( "contractSize", Bybit.this.parseNumber("1") );
                         put( "expiry", expiry );
-                        put( "expiryDatetime", BybitCore.this.iso8601(expiry) );
-                        put( "strike", BybitCore.this.parseNumber(strike) );
-                        put( "optionType", BybitCore.this.safeStringLower(market, "optionsType") );
+                        put( "expiryDatetime", Bybit.this.iso8601(expiry) );
+                        put( "strike", Bybit.this.parseNumber(strike) );
+                        put( "optionType", Bybit.this.safeStringLower(market, "optionsType") );
                         put( "precision", new java.util.HashMap<String, Object>() {{
-                            put( "amount", BybitCore.this.safeNumber(lotSizeFilter, "qtyStep") );
-                            put( "price", BybitCore.this.safeNumber(priceFilter, "tickSize") );
+                            put( "amount", Bybit.this.safeNumber(lotSizeFilter, "qtyStep") );
+                            put( "price", Bybit.this.safeNumber(priceFilter, "tickSize") );
                         }} );
                         put( "limits", new java.util.HashMap<String, Object>() {{
                             put( "leverage", new java.util.HashMap<String, Object>() {{
@@ -3422,19 +3422,19 @@ public class BybitCore extends BybitApi
                                 put( "max", null );
                             }} );
                             put( "amount", new java.util.HashMap<String, Object>() {{
-                                put( "min", BybitCore.this.safeNumber(lotSizeFilter, "minOrderQty") );
-                                put( "max", BybitCore.this.safeNumber(lotSizeFilter, "maxOrderQty") );
+                                put( "min", Bybit.this.safeNumber(lotSizeFilter, "minOrderQty") );
+                                put( "max", Bybit.this.safeNumber(lotSizeFilter, "maxOrderQty") );
                             }} );
                             put( "price", new java.util.HashMap<String, Object>() {{
-                                put( "min", BybitCore.this.safeNumber(priceFilter, "minPrice") );
-                                put( "max", BybitCore.this.safeNumber(priceFilter, "maxPrice") );
+                                put( "min", Bybit.this.safeNumber(priceFilter, "minPrice") );
+                                put( "max", Bybit.this.safeNumber(priceFilter, "maxPrice") );
                             }} );
                             put( "cost", new java.util.HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
                             }} );
                         }} );
-                        put( "created", BybitCore.this.safeInteger(market, "launchTime") );
+                        put( "created", Bybit.this.safeInteger(market, "launchTime") );
                         put( "info", market );
                     }}));
                 }
@@ -3544,13 +3544,13 @@ public class BybitCore extends BybitApi
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
             put( "high", high );
             put( "low", low );
             put( "bid", bid );
-            put( "bidVolume", BybitCore.this.safeString2(ticker, "bidSize", "bid1Size") );
+            put( "bidVolume", Bybit.this.safeString2(ticker, "bidSize", "bid1Size") );
             put( "ask", ask );
-            put( "askVolume", BybitCore.this.safeString2(ticker, "askSize", "ask1Size") );
+            put( "askVolume", Bybit.this.safeString2(ticker, "askSize", "ask1Size") );
             put( "vwap", null );
             put( "open", open );
             put( "close", last );
@@ -3561,8 +3561,8 @@ public class BybitCore extends BybitApi
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-            put( "markPrice", BybitCore.this.safeString(ticker, "markPrice") );
-            put( "indexPrice", BybitCore.this.safeString(ticker, "indexPrice") );
+            put( "markPrice", Bybit.this.safeString(ticker, "markPrice") );
+            put( "indexPrice", Bybit.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
         }}, market);
     }
@@ -3792,7 +3792,7 @@ public class BybitCore extends BybitApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchTickers(symbols, parameters)).join();
+            return (this.fetchTickers((Object)(symbols), (Object)(parameters))).join();
         });
 
     }
@@ -4021,10 +4021,10 @@ public class BybitCore extends BybitApi
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
             put( "fundingRate", fundingRate );
             put( "fundingTimestamp", fundingTimestamp );
-            put( "fundingDatetime", BybitCore.this.iso8601(fundingTimestamp) );
+            put( "fundingDatetime", Bybit.this.iso8601(fundingTimestamp) );
             put( "nextFundingRate", null );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
@@ -4241,10 +4241,10 @@ public class BybitCore extends BybitApi
                 Long timestamp = this.safeInteger(entry, "fundingRateTimestamp");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", BybitCore.this.safeSymbol(BybitCore.this.safeString(entry, "symbol"), null, null, "swap") );
-                    put( "fundingRate", BybitCore.this.safeNumber(entry, "fundingRate") );
+                    put( "symbol", Bybit.this.safeSymbol(Bybit.this.safeString(entry, "symbol"), null, null, "swap") );
+                    put( "fundingRate", Bybit.this.safeNumber(entry, "fundingRate") );
                     put( "timestamp", timestamp );
-                    put( "datetime", BybitCore.this.iso8601(timestamp) );
+                    put( "datetime", Bybit.this.iso8601(timestamp) );
                 }});
             }
             java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
@@ -4493,7 +4493,7 @@ public class BybitCore extends BybitApi
             final Object finalFeeCurrencyCode = feeCurrencyCode;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
-                put( "currency", BybitCore.this.safeString(trade, "feeCoin", finalFeeCurrencyCode) );
+                put( "currency", Bybit.this.safeString(trade, "feeCoin", finalFeeCurrencyCode) );
                 put( "rate", feeRateString );
             }};
         }
@@ -4505,9 +4505,9 @@ public class BybitCore extends BybitApi
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
             put( "symbol", symbol );
-            put( "order", BybitCore.this.safeString(trade, "orderId") );
+            put( "order", Bybit.this.safeString(trade, "orderId") );
             put( "type", finalOrderType );
             put( "side", finalSide );
             put( "takerOrMaker", finalTakerOrMaker );
@@ -4785,7 +4785,7 @@ public class BybitCore extends BybitApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
         }};
         Object responseResult = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
         Object currencyList = this.safeListN(responseResult, new java.util.ArrayList<Object>(java.util.Arrays.asList("loanAccountList", "list", "balance")));
@@ -5210,9 +5210,9 @@ public class BybitCore extends BybitApi
                 return this.safeOrder(new java.util.HashMap<String, Object>() {{
                     put( "info", order );
                     put( "status", "rejected" );
-                    put( "id", BybitCore.this.safeString(order, "orderId") );
-                    put( "clientOrderId", BybitCore.this.safeString(order, "orderLinkId") );
-                    put( "symbol", BybitCore.this.safeSymbol(BybitCore.this.safeString(order, "symbol"), null, null, inferredMarketType) );
+                    put( "id", Bybit.this.safeString(order, "orderId") );
+                    put( "clientOrderId", Bybit.this.safeString(order, "orderLinkId") );
+                    put( "symbol", Bybit.this.safeSymbol(Bybit.this.safeString(order, "symbol"), null, null, inferredMarketType) );
                 }});
             }
         }
@@ -5261,7 +5261,7 @@ public class BybitCore extends BybitApi
         {
             final Object finalFeeCoinId = feeCoinId;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", BybitCore.this.safeNumber(cumFeeDetail, finalFeeCoinId) );
+                put( "cost", Bybit.this.safeNumber(cumFeeDetail, finalFeeCoinId) );
                 put( "currency", finalFeeCoinId );
             }};
         }
@@ -5322,14 +5322,14 @@ public class BybitCore extends BybitApi
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", lastTradeTimestamp );
             put( "lastUpdateTimestamp", lastTradeTimestamp );
             put( "symbol", symbol );
             put( "type", finalType );
             put( "timeInForce", timeInForce );
             put( "postOnly", null );
-            put( "reduceOnly", BybitCore.this.safeBool(order, "reduceOnly") );
+            put( "reduceOnly", Bybit.this.safeBool(order, "reduceOnly") );
             put( "side", finalSide );
             put( "price", price );
             put( "triggerPrice", finalTriggerPrice );
@@ -5374,7 +5374,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", "buy", Helpers.opNeg(1), null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(Helpers.opNeg(1)), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -5413,7 +5413,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", "sell", Helpers.opNeg(1), null, this.extend(req, parameters))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(Helpers.opNeg(1)), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         });
 
     }
@@ -6115,8 +6115,8 @@ public class BybitCore extends BybitApi
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
-                put( "id", BybitCore.this.safeString(result, "orderId") );
-                put( "clientOrderId", BybitCore.this.safeString(result, "orderLinkId") );
+                put( "id", Bybit.this.safeString(result, "orderId") );
+                put( "clientOrderId", Bybit.this.safeString(result, "orderLinkId") );
             }}, market);
         });
 
@@ -6354,7 +6354,7 @@ public class BybitCore extends BybitApi
     final Object finalI = i;
                             ((java.util.List<Object>)ordersRequests).add(new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
-                    put( "orderLinkId", BybitCore.this.safeString(clientOrderIds, finalI) );
+                    put( "orderLinkId", Bybit.this.safeString(clientOrderIds, finalI) );
                 }});
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
@@ -6362,7 +6362,7 @@ public class BybitCore extends BybitApi
     final Object finalI = i;
                             ((java.util.List<Object>)ordersRequests).add(new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
-                    put( "orderId", BybitCore.this.safeString(ids, finalI) );
+                    put( "orderId", Bybit.this.safeString(ids, finalI) );
                 }});
             }
             final Object finalCategory = category;
@@ -6439,7 +6439,7 @@ public class BybitCore extends BybitApi
             }
             final Object finalTimeout = timeout;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "timeWindow", BybitCore.this.parseToInt(Helpers.divide(finalTimeout, 1000)) );
+                put( "timeWindow", Bybit.this.parseToInt(Helpers.divide(finalTimeout, 1000)) );
             }};
             Object type = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters, "swap");
@@ -7008,7 +7008,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            Object result = (this.fetchClosedOrders(symbol, null, null, this.extend(request, parameters))).join();
+            Object result = (this.fetchClosedOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
             Object length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
@@ -7056,7 +7056,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            Object result = (this.fetchOpenOrders(symbol, null, null, this.extend(request, parameters))).join();
+            Object result = (this.fetchOpenOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
             Object length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
@@ -7250,7 +7250,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderStatus", "Filled" );
             }};
-            return (this.fetchCanceledAndClosedOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -7289,7 +7289,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderStatus", "Cancelled" );
             }};
-            return (this.fetchCanceledAndClosedOrders(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -7468,7 +7468,7 @@ public class BybitCore extends BybitApi
                 Helpers.addElementToObject(request, "orderId", id);
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "orderLinkId")));
-            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
+            return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         });
 
     }
@@ -7598,7 +7598,7 @@ public class BybitCore extends BybitApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
-            put( "network", BybitCore.this.networkIdToCode(BybitCore.this.safeString(depositAddress, "chain"), code) );
+            put( "network", Bybit.this.networkIdToCode(Bybit.this.safeString(depositAddress, "chain"), code) );
             put( "address", address );
             put( "tag", tag );
         }};
@@ -7967,19 +7967,19 @@ public class BybitCore extends BybitApi
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
-            put( "id", BybitCore.this.safeString2(transaction, "id", "withdrawId") );
-            put( "txid", BybitCore.this.safeString(transaction, "txID") );
+            put( "id", Bybit.this.safeString2(transaction, "id", "withdrawId") );
+            put( "txid", Bybit.this.safeString(transaction, "txID") );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
-            put( "network", BybitCore.this.networkIdToCode(BybitCore.this.safeString(transaction, "chain"), code) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
+            put( "network", Bybit.this.networkIdToCode(Bybit.this.safeString(transaction, "chain"), code) );
             put( "address", null );
             put( "addressTo", toAddress );
             put( "addressFrom", null );
-            put( "tag", BybitCore.this.safeString(transaction, "tag") );
+            put( "tag", Bybit.this.safeString(transaction, "tag") );
             put( "tagTo", null );
             put( "tagFrom", null );
             put( "type", type );
-            put( "amount", BybitCore.this.safeNumber(transaction, "amount") );
+            put( "amount", Bybit.this.safeNumber(transaction, "amount") );
             put( "currency", code );
             put( "status", status );
             put( "updated", updated );
@@ -8246,22 +8246,22 @@ public class BybitCore extends BybitApi
         final Object finalAfter = after;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", BybitCore.this.safeString(item, "id") );
+            put( "id", Bybit.this.safeString(item, "id") );
             put( "direction", finalDirection );
-            put( "account", BybitCore.this.safeString(item, "wallet_id") );
-            put( "referenceId", BybitCore.this.safeString(item, "tx_id") );
+            put( "account", Bybit.this.safeString(item, "wallet_id") );
+            put( "referenceId", Bybit.this.safeString(item, "tx_id") );
             put( "referenceAccount", null );
-            put( "type", BybitCore.this.parseLedgerEntryType(BybitCore.this.safeString(item, "type")) );
+            put( "type", Bybit.this.parseLedgerEntryType(Bybit.this.safeString(item, "type")) );
             put( "currency", code );
             put( "amount", finalAmount );
             put( "timestamp", finalTimestamp );
-            put( "datetime", BybitCore.this.iso8601(finalTimestamp) );
+            put( "datetime", Bybit.this.iso8601(finalTimestamp) );
             put( "before", finalBefore );
             put( "after", finalAfter );
             put( "status", "ok" );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", BybitCore.this.safeNumber(item, "fee") );
+                put( "cost", Bybit.this.safeNumber(item, "fee") );
             }} );
         }}, currency);
     }
@@ -8334,9 +8334,9 @@ public class BybitCore extends BybitApi
             final Object finalAccountType = accountType;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
-                put( "amount", BybitCore.this.numberToString(amount) );
+                put( "amount", Bybit.this.numberToString(amount) );
                 put( "address", address );
-                put( "timestamp", BybitCore.this.milliseconds() );
+                put( "timestamp", Bybit.this.milliseconds() );
                 put( "accountType", finalAccountType );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
@@ -8844,29 +8844,29 @@ public class BybitCore extends BybitApi
             put( "id", null );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
             put( "lastUpdateTimestamp", finalLastUpdateTimestamp );
-            put( "initialMargin", BybitCore.this.parseNumber(finalInitialMarginString) );
-            put( "initialMarginPercentage", BybitCore.this.parseNumber(Precise.stringDiv(finalInitialMarginString, finalNotional)) );
-            put( "maintenanceMargin", BybitCore.this.parseNumber(finalMaintenanceMarginString) );
-            put( "maintenanceMarginPercentage", BybitCore.this.parseNumber(maintenanceMarginPercentage) );
-            put( "entryPrice", BybitCore.this.parseNumber(finalEntryPrice) );
-            put( "notional", BybitCore.this.parseNumber(finalNotional) );
-            put( "leverage", BybitCore.this.parseNumber(leverage) );
-            put( "unrealizedPnl", BybitCore.this.parseNumber(unrealisedPnl) );
-            put( "realizedPnl", BybitCore.this.safeNumber2(position, "curRealisedPnl", "closedPnl") );
-            put( "contracts", BybitCore.this.parseNumber(size) );
-            put( "contractSize", BybitCore.this.safeNumber(finalMarket, "contractSize") );
-            put( "marginRatio", BybitCore.this.parseNumber(marginRatio) );
-            put( "liquidationPrice", BybitCore.this.parseNumber(finalLiquidationPrice) );
-            put( "markPrice", BybitCore.this.parseNumber(markPrice) );
-            put( "lastPrice", BybitCore.this.safeNumber(position, "avgExitPrice") );
-            put( "collateral", BybitCore.this.parseNumber(finalCollateralString) );
+            put( "initialMargin", Bybit.this.parseNumber(finalInitialMarginString) );
+            put( "initialMarginPercentage", Bybit.this.parseNumber(Precise.stringDiv(finalInitialMarginString, finalNotional)) );
+            put( "maintenanceMargin", Bybit.this.parseNumber(finalMaintenanceMarginString) );
+            put( "maintenanceMarginPercentage", Bybit.this.parseNumber(maintenanceMarginPercentage) );
+            put( "entryPrice", Bybit.this.parseNumber(finalEntryPrice) );
+            put( "notional", Bybit.this.parseNumber(finalNotional) );
+            put( "leverage", Bybit.this.parseNumber(leverage) );
+            put( "unrealizedPnl", Bybit.this.parseNumber(unrealisedPnl) );
+            put( "realizedPnl", Bybit.this.safeNumber2(position, "curRealisedPnl", "closedPnl") );
+            put( "contracts", Bybit.this.parseNumber(size) );
+            put( "contractSize", Bybit.this.safeNumber(finalMarket, "contractSize") );
+            put( "marginRatio", Bybit.this.parseNumber(marginRatio) );
+            put( "liquidationPrice", Bybit.this.parseNumber(finalLiquidationPrice) );
+            put( "markPrice", Bybit.this.parseNumber(markPrice) );
+            put( "lastPrice", Bybit.this.safeNumber(position, "avgExitPrice") );
+            put( "collateral", Bybit.this.parseNumber(finalCollateralString) );
             put( "marginMode", null );
             put( "side", finalSide );
             put( "percentage", null );
-            put( "stopLossPrice", BybitCore.this.safeNumber2(position, "stop_loss", "stopLoss") );
-            put( "takeProfitPrice", BybitCore.this.safeNumber2(position, "take_profit", "takeProfit") );
+            put( "stopLossPrice", Bybit.this.safeNumber2(position, "stop_loss", "stopLoss") );
+            put( "takeProfitPrice", Bybit.this.safeNumber2(position, "take_profit", "takeProfit") );
             put( "hedged", finalHedged );
         }});
     }
@@ -8891,7 +8891,7 @@ public class BybitCore extends BybitApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object position = (this.fetchPosition(symbol, parameters)).join();
+            Object position = (this.fetchPosition((Object)(symbol), (Object)(parameters))).join();
             return this.parseLeverage(position, market);
         });
 
@@ -8904,8 +8904,8 @@ public class BybitCore extends BybitApi
         Long leverageValue = this.safeInteger(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", BybitCore.this.safeSymbol(marketId, market) );
-            put( "marginMode", BybitCore.this.safeStringLower(leverage, "marginMode") );
+            put( "symbol", Bybit.this.safeSymbol(marketId, market) );
+            put( "marginMode", Bybit.this.safeStringLower(leverage, "marginMode") );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
         }};
@@ -9404,11 +9404,11 @@ public class BybitCore extends BybitApi
         Object amount = ((Helpers.isTrue(isLinear))) ? openInterest : null;
         Object value = ((Helpers.isTrue(isInverse))) ? openInterest : null;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
-            put( "symbol", BybitCore.this.safeString(market, "symbol") );
+            put( "symbol", Bybit.this.safeString(market, "symbol") );
             put( "openInterestAmount", amount );
             put( "openInterestValue", value );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
     }
@@ -9507,11 +9507,11 @@ public class BybitCore extends BybitApi
         Object period = ((Helpers.isTrue((!Helpers.isEqual(hourlyBorrowRate, null))))) ? 3600000 : 86400000; // 1h or 1d
         final Object finalHourlyBorrowRate = hourlyBorrowRate;
         return new java.util.HashMap<String, Object>() {{
-            put( "currency", BybitCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "rate", BybitCore.this.safeNumber(info, "interestRate", finalHourlyBorrowRate) );
+            put( "currency", Bybit.this.safeCurrencyCode(currencyId, currency) );
+            put( "rate", Bybit.this.safeNumber(info, "interestRate", finalHourlyBorrowRate) );
             put( "period", period );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
             put( "info", info );
         }};
     }
@@ -9659,10 +9659,10 @@ public class BybitCore extends BybitApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", null );
-            put( "currency", BybitCore.this.safeCurrencyCode(BybitCore.this.safeString(info, "tokenId")) );
-            put( "interest", BybitCore.this.safeNumber(info, "interest") );
+            put( "currency", Bybit.this.safeCurrencyCode(Bybit.this.safeString(info, "tokenId")) );
+            put( "interest", Bybit.this.safeNumber(info, "interest") );
             put( "interestRate", null );
-            put( "amountBorrowed", BybitCore.this.safeNumber(info, "loan") );
+            put( "amountBorrowed", Bybit.this.safeNumber(info, "loan") );
             put( "marginMode", "cross" );
             put( "timestamp", null );
             put( "datetime", null );
@@ -9723,8 +9723,8 @@ public class BybitCore extends BybitApi
             String status = this.parseTransferStatus(statusRaw);
             return this.extend(this.parseTransfer(transfer, currency), new java.util.HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
-                put( "datetime", BybitCore.this.iso8601(timestamp) );
-                put( "amount", BybitCore.this.parseNumber(amountToPrecision) );
+                put( "datetime", Bybit.this.iso8601(timestamp) );
+                put( "amount", Bybit.this.parseNumber(amountToPrecision) );
                 put( "fromAccount", fromAccount );
                 put( "toAccount", toAccount );
                 put( "status", status );
@@ -9837,7 +9837,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
-                put( "amount", BybitCore.this.currencyToPrecision(code, amount) );
+                put( "amount", Bybit.this.currencyToPrecision(code, amount) );
             }};
             java.util.Map<String, Object> response = (this.privatePostV5AccountBorrow(this.extend(request, parameters))).join();
             //
@@ -9881,7 +9881,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
-                put( "amount", BybitCore.this.numberToString(amount) );
+                put( "amount", Bybit.this.numberToString(amount) );
             }};
             java.util.Map<String, Object> response = (this.privatePostV5AccountNoConvertRepay(this.extend(request, parameters))).join();
             //
@@ -9924,8 +9924,8 @@ public class BybitCore extends BybitApi
         String currencyId = this.safeString(info, "coin");
         return new java.util.HashMap<String, Object>() {{
             put( "id", null );
-            put( "currency", BybitCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", BybitCore.this.safeNumber(info, "amount") );
+            put( "currency", Bybit.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Bybit.this.safeNumber(info, "amount") );
             put( "symbol", null );
             put( "timestamp", null );
             put( "datetime", null );
@@ -9974,14 +9974,14 @@ public class BybitCore extends BybitApi
         String toAccount = this.safeString(accountIds, toAccountId, toAccountId);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", BybitCore.this.safeString(transfer, "transferId") );
+            put( "id", Bybit.this.safeString(transfer, "transferId") );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
-            put( "currency", BybitCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "amount", BybitCore.this.safeNumber(transfer, "amount") );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
+            put( "currency", Bybit.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Bybit.this.safeNumber(transfer, "amount") );
             put( "fromAccount", fromAccount );
             put( "toAccount", toAccount );
-            put( "status", BybitCore.this.parseTransferStatus(BybitCore.this.safeString(transfer, "status")) );
+            put( "status", Bybit.this.parseTransferStatus(Bybit.this.safeString(transfer, "status")) );
         }};
     }
 
@@ -10085,8 +10085,8 @@ public class BybitCore extends BybitApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", BybitCore.this.safeNumber(fee, "makerFeeRate") );
-            put( "taker", BybitCore.this.safeNumber(fee, "takerFeeRate") );
+            put( "maker", Bybit.this.safeNumber(fee, "makerFeeRate") );
+            put( "taker", Bybit.this.safeNumber(fee, "takerFeeRate") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -10261,7 +10261,7 @@ public class BybitCore extends BybitApi
         put( "percentage", null );
     }} );
     put( "withdraw", new java.util.HashMap<String, Object>() {{
-        put( "fee", BybitCore.this.safeNumber(chain, "withdrawFee") );
+        put( "fee", Bybit.this.safeNumber(chain, "withdrawFee") );
         put( "percentage", false );
     }} );
 }});
@@ -10518,10 +10518,10 @@ public class BybitCore extends BybitApi
         String marketId = this.safeString(settlement, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", settlement );
-            put( "symbol", BybitCore.this.safeSymbol(marketId, market) );
-            put( "price", BybitCore.this.safeNumber(settlement, "deliveryPrice") );
+            put( "symbol", Bybit.this.safeSymbol(marketId, market) );
+            put( "price", Bybit.this.safeNumber(settlement, "deliveryPrice") );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
         }};
     }
 
@@ -10624,8 +10624,8 @@ public class BybitCore extends BybitApi
             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                 put( "info", volatility );
                 put( "timestamp", timestamp );
-                put( "datetime", BybitCore.this.iso8601(timestamp) );
-                put( "volatility", BybitCore.this.safeNumber(entry, "value") );
+                put( "datetime", Bybit.this.iso8601(timestamp) );
+                put( "volatility", Bybit.this.safeNumber(entry, "value") );
             }});
         }
         return result;
@@ -10702,7 +10702,7 @@ public class BybitCore extends BybitApi
             Object greeks = this.parseGreeks(Helpers.GetValue(data, 0), market);
             return this.extend(greeks, new java.util.HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
-                put( "datetime", BybitCore.this.iso8601(timestamp) );
+                put( "datetime", Bybit.this.iso8601(timestamp) );
             }});
         });
 
@@ -10831,21 +10831,21 @@ public class BybitCore extends BybitApi
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "delta", BybitCore.this.safeNumber(greeks, "delta") );
-            put( "gamma", BybitCore.this.safeNumber(greeks, "gamma") );
-            put( "theta", BybitCore.this.safeNumber(greeks, "theta") );
-            put( "vega", BybitCore.this.safeNumber(greeks, "vega") );
+            put( "delta", Bybit.this.safeNumber(greeks, "delta") );
+            put( "gamma", Bybit.this.safeNumber(greeks, "gamma") );
+            put( "theta", Bybit.this.safeNumber(greeks, "theta") );
+            put( "vega", Bybit.this.safeNumber(greeks, "vega") );
             put( "rho", null );
-            put( "bidSize", BybitCore.this.safeNumber(greeks, "bid1Size") );
-            put( "askSize", BybitCore.this.safeNumber(greeks, "ask1Size") );
-            put( "bidImpliedVolatility", BybitCore.this.safeNumber(greeks, "bid1Iv") );
-            put( "askImpliedVolatility", BybitCore.this.safeNumber(greeks, "ask1Iv") );
-            put( "markImpliedVolatility", BybitCore.this.safeNumber(greeks, "markIv") );
-            put( "bidPrice", BybitCore.this.safeNumber(greeks, "bid1Price") );
-            put( "askPrice", BybitCore.this.safeNumber(greeks, "ask1Price") );
-            put( "markPrice", BybitCore.this.safeNumber(greeks, "markPrice") );
-            put( "lastPrice", BybitCore.this.safeNumber(greeks, "lastPrice") );
-            put( "underlyingPrice", BybitCore.this.safeNumber(greeks, "underlyingPrice") );
+            put( "bidSize", Bybit.this.safeNumber(greeks, "bid1Size") );
+            put( "askSize", Bybit.this.safeNumber(greeks, "ask1Size") );
+            put( "bidImpliedVolatility", Bybit.this.safeNumber(greeks, "bid1Iv") );
+            put( "askImpliedVolatility", Bybit.this.safeNumber(greeks, "ask1Iv") );
+            put( "markImpliedVolatility", Bybit.this.safeNumber(greeks, "markIv") );
+            put( "bidPrice", Bybit.this.safeNumber(greeks, "bid1Price") );
+            put( "askPrice", Bybit.this.safeNumber(greeks, "ask1Price") );
+            put( "markPrice", Bybit.this.safeNumber(greeks, "markPrice") );
+            put( "lastPrice", Bybit.this.safeNumber(greeks, "lastPrice") );
+            put( "underlyingPrice", Bybit.this.safeNumber(greeks, "underlyingPrice") );
             put( "info", greeks );
         }};
     }
@@ -10997,14 +10997,14 @@ public class BybitCore extends BybitApi
         String quoteValueString = Precise.stringMul(baseValueString, priceString);
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
-            put( "symbol", BybitCore.this.safeSymbol(marketId, market, null, "contract") );
-            put( "contracts", BybitCore.this.parseNumber(contractsString) );
-            put( "contractSize", BybitCore.this.parseNumber(contractSizeString) );
-            put( "price", BybitCore.this.parseNumber(priceString) );
-            put( "baseValue", BybitCore.this.parseNumber(baseValueString) );
-            put( "quoteValue", BybitCore.this.parseNumber(quoteValueString) );
+            put( "symbol", Bybit.this.safeSymbol(marketId, market, null, "contract") );
+            put( "contracts", Bybit.this.parseNumber(contractsString) );
+            put( "contractSize", Bybit.this.parseNumber(contractSizeString) );
+            put( "price", Bybit.this.parseNumber(priceString) );
+            put( "baseValue", Bybit.this.parseNumber(baseValueString) );
+            put( "quoteValue", Bybit.this.parseNumber(quoteValueString) );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
         }});
     }
 
@@ -11168,13 +11168,13 @@ public class BybitCore extends BybitApi
 final Object finalMarket = market;
             final Object finalMinNotional = minNotional;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
-                put( "tier", BybitCore.this.safeInteger(tier, "id") );
-                put( "symbol", BybitCore.this.safeSymbol(marketId, finalMarket) );
+                put( "tier", Bybit.this.safeInteger(tier, "id") );
+                put( "symbol", Bybit.this.safeSymbol(marketId, finalMarket) );
                 put( "currency", Helpers.GetValue(finalMarket, "settle") );
                 put( "minNotional", finalMinNotional );
-                put( "maxNotional", BybitCore.this.safeNumber(tier, "riskLimitValue") );
-                put( "maintenanceMarginRate", BybitCore.this.safeNumber(tier, "maintenanceMargin") );
-                put( "maxLeverage", BybitCore.this.safeNumber(tier, "maxLeverage") );
+                put( "maxNotional", Bybit.this.safeNumber(tier, "riskLimitValue") );
+                put( "maintenanceMarginRate", Bybit.this.safeNumber(tier, "maintenanceMargin") );
+                put( "maxLeverage", Bybit.this.safeNumber(tier, "maxLeverage") );
                 put( "info", tier );
             }});
         }
@@ -11302,13 +11302,13 @@ final Object finalMarket = market;
         final Object finalCode = code;
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", BybitCore.this.safeSymbol(marketId, finalMarket, "-", "swap") );
+            put( "symbol", Bybit.this.safeSymbol(marketId, finalMarket, "-", "swap") );
             put( "code", finalCode );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
-            put( "id", BybitCore.this.safeString(income, "execId") );
-            put( "amount", BybitCore.this.safeNumber(income, "execFee") );
-            put( "rate", BybitCore.this.safeNumber(income, "feeRate") );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
+            put( "id", Bybit.this.safeString(income, "execId") );
+            put( "amount", Bybit.this.safeNumber(income, "execFee") );
+            put( "rate", Bybit.this.safeNumber(income, "feeRate") );
         }};
     }
 
@@ -11499,17 +11499,17 @@ final Object finalMarket = market;
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "impliedVolatility", BybitCore.this.safeNumber(chain, "markIv") );
-            put( "openInterest", BybitCore.this.safeNumber(chain, "openInterest") );
-            put( "bidPrice", BybitCore.this.safeNumber(chain, "bid1Price") );
-            put( "askPrice", BybitCore.this.safeNumber(chain, "ask1Price") );
+            put( "impliedVolatility", Bybit.this.safeNumber(chain, "markIv") );
+            put( "openInterest", Bybit.this.safeNumber(chain, "openInterest") );
+            put( "bidPrice", Bybit.this.safeNumber(chain, "bid1Price") );
+            put( "askPrice", Bybit.this.safeNumber(chain, "ask1Price") );
             put( "midPrice", null );
-            put( "markPrice", BybitCore.this.safeNumber(chain, "markPrice") );
-            put( "lastPrice", BybitCore.this.safeNumber(chain, "lastPrice") );
-            put( "underlyingPrice", BybitCore.this.safeNumber(chain, "underlyingPrice") );
-            put( "change", BybitCore.this.safeNumber(chain, "change24h") );
+            put( "markPrice", Bybit.this.safeNumber(chain, "markPrice") );
+            put( "lastPrice", Bybit.this.safeNumber(chain, "lastPrice") );
+            put( "underlyingPrice", Bybit.this.safeNumber(chain, "underlyingPrice") );
+            put( "change", Bybit.this.safeNumber(chain, "change24h") );
             put( "percentage", null );
-            put( "baseVolume", BybitCore.this.safeNumber(chain, "totalVolume") );
+            put( "baseVolume", Bybit.this.safeNumber(chain, "totalVolume") );
             put( "quoteVolume", null );
         }};
     }
@@ -11708,17 +11708,17 @@ final Object finalMarket = market;
         put( "id", id );
         put( "code", finalCode );
         put( "networks", null );
-        put( "type", BybitCore.this.safeString(entry, "coinType") );
-        put( "name", BybitCore.this.safeString(entry, "fullName") );
+        put( "type", Bybit.this.safeString(entry, "coinType") );
+        put( "name", Bybit.this.safeString(entry, "fullName") );
         put( "active", !Helpers.isTrue(inactive) );
         put( "deposit", null );
-        put( "withdraw", BybitCore.this.safeNumber(entry, "balance") );
+        put( "withdraw", Bybit.this.safeNumber(entry, "balance") );
         put( "fee", null );
         put( "precision", null );
         put( "limits", new java.util.HashMap<String, Object>() {{
             put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", BybitCore.this.safeNumber(entry, "singleFromMinLimit") );
-                put( "max", BybitCore.this.safeNumber(entry, "singleFromMaxLimit") );
+                put( "min", Bybit.this.safeNumber(entry, "singleFromMinLimit") );
+                put( "max", Bybit.this.safeNumber(entry, "singleFromMaxLimit") );
             }} );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
                 put( "min", null );
@@ -11774,7 +11774,7 @@ final Object finalMarket = market;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "fromCoin", fromCode );
                 put( "toCoin", toCode );
-                put( "requestAmount", BybitCore.this.numberToString(amount) );
+                put( "requestAmount", Bybit.this.numberToString(amount) );
                 put( "requestCoin", fromCode );
                 put( "accountType", finalAccountType );
             }};
@@ -12053,12 +12053,12 @@ final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
-            put( "id", BybitCore.this.safeString2(conversion, "quoteTxId", "exchangeTxId") );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
+            put( "id", Bybit.this.safeString2(conversion, "quoteTxId", "exchangeTxId") );
             put( "fromCurrency", fromCode );
-            put( "fromAmount", BybitCore.this.safeNumber(conversion, "fromAmount") );
+            put( "fromAmount", Bybit.this.safeNumber(conversion, "fromAmount") );
             put( "toCurrency", toCode );
-            put( "toAmount", BybitCore.this.safeNumber(conversion, "toAmount") );
+            put( "toAmount", Bybit.this.safeNumber(conversion, "toAmount") );
             put( "price", null );
             put( "fee", null );
         }};
@@ -12157,11 +12157,11 @@ final Object finalMarket = market;
         String shortString = this.safeString(info, "sellRatio");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", BybitCore.this.safeSymbol(marketId, market, null, "contract") );
+            put( "symbol", Bybit.this.safeSymbol(marketId, market, null, "contract") );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
             put( "timeframe", null );
-            put( "longShortRatio", BybitCore.this.parseToNumeric(Precise.stringDiv(longString, shortString)) );
+            put( "longShortRatio", Bybit.this.parseToNumeric(Precise.stringDiv(longString, shortString)) );
         }};
     }
 
@@ -12308,12 +12308,12 @@ final Object finalMarket = market;
         Long timestamp = this.safeInteger(info, "updatedTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", BybitCore.this.safeSymbol(marketId, market, null, "contract") );
-            put( "rank", BybitCore.this.safeInteger(info, "adlRankIndicator") );
+            put( "symbol", Bybit.this.safeSymbol(marketId, market, null, "contract") );
+            put( "rank", Bybit.this.safeInteger(info, "adlRankIndicator") );
             put( "rating", null );
             put( "percentage", null );
             put( "timestamp", timestamp );
-            put( "datetime", BybitCore.this.iso8601(timestamp) );
+            put( "datetime", Bybit.this.iso8601(timestamp) );
         }};
     }
 
@@ -12366,8 +12366,8 @@ final Object finalMarket = market;
         String marginType = this.safeString(marginMode, "marginMode");
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", BybitCore.this.safeSymbol(null, market) );
-            put( "marginMode", BybitCore.this.parseMarginModeType(marginType) );
+            put( "symbol", Bybit.this.safeSymbol(null, market) );
+            put( "marginMode", Bybit.this.parseMarginModeType(marginType) );
         }};
     }
 
@@ -12419,7 +12419,7 @@ final Object finalMarket = market;
                 final Object finalTimestamp = timestamp;
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
-                    put( "X-BAPI-API-KEY", BybitCore.this.apiKey );
+                    put( "X-BAPI-API-KEY", Bybit.this.apiKey );
                     put( "X-BAPI-TIMESTAMP", finalTimestamp );
                     put( "X-BAPI-SIGN", signature );
                 }};
@@ -12428,9 +12428,9 @@ final Object finalMarket = market;
                 final Object finalTimestamp_2 = timestamp;
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
-                    put( "X-BAPI-API-KEY", BybitCore.this.apiKey );
+                    put( "X-BAPI-API-KEY", Bybit.this.apiKey );
                     put( "X-BAPI-TIMESTAMP", finalTimestamp_2 );
-                    put( "X-BAPI-RECV-WINDOW", String.valueOf(Helpers.GetValue(BybitCore.this.options, "recvWindow")) );
+                    put( "X-BAPI-RECV-WINDOW", String.valueOf(Helpers.GetValue(Bybit.this.options, "recvWindow")) );
                 }};
                 if (Helpers.isTrue(Helpers.isTrue(isV3UnifiedMargin) || Helpers.isTrue(isV3Contract)))
                 {
@@ -12462,8 +12462,8 @@ final Object finalMarket = market;
             {
                 final Object finalTimestamp_3 = timestamp;
                 java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
-                    put( "api_key", BybitCore.this.apiKey );
-                    put( "recv_window", Helpers.GetValue(BybitCore.this.options, "recvWindow") );
+                    put( "api_key", Bybit.this.apiKey );
+                    put( "recv_window", Helpers.GetValue(Bybit.this.options, "recvWindow") );
                     put( "timestamp", finalTimestamp_3 );
                 }});
                 java.util.Map<String, Object> sortedQuery = this.keysort(query);
