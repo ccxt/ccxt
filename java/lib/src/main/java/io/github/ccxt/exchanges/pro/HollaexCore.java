@@ -81,7 +81,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String messageHash = (String) Helpers.add(Helpers.add("orderbook", ":"), Helpers.GetValue(market, "id"));
+            String messageHash = Helpers.add(Helpers.add("orderbook", ":"), Helpers.GetValue(market, "id"));
             Object orderbook = (this.watchPublic(messageHash, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -166,7 +166,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = (String) Helpers.add(Helpers.add("trade", ":"), Helpers.GetValue(market, "id"));
+            String messageHash = Helpers.add(Helpers.add("trade", ":"), Helpers.GetValue(market, "id"));
             Object trades = (this.watchPublic(messageHash, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -240,7 +240,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             {
                 (this.loadMarkets()).join();
             }
-            String messageHash = (String) "usertrade";
+            String messageHash = "usertrade";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -347,7 +347,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             {
                 (this.loadMarkets()).join();
             }
-            String messageHash = (String) "order";
+            String messageHash = "order";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -486,7 +486,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            String messageHash = (String) "wallet";
+            String messageHash = "wallet";
             return (this.watchPrivate(messageHash, parameters)).join();
         });
 

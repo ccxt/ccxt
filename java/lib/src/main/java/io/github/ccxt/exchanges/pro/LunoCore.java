@@ -71,13 +71,13 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
+            String subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
             final Object finalSymbol = symbol;
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
-            String messageHash = (String) Helpers.add("trades:", symbol);
+            String messageHash = Helpers.add("trades:", symbol);
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "api_key_id", LunoCore.this.apiKey );
                 put( "api_key_secret", LunoCore.this.secret );
@@ -118,7 +118,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         }
         Object symbol = Helpers.GetValue(subscription, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        String messageHash = (String) Helpers.add("trades:", symbol);
+        String messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -193,13 +193,13 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
+            String subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
             final Object finalSymbol = symbol;
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
-            String messageHash = (String) Helpers.add("orderbook:", symbol);
+            String messageHash = Helpers.add("orderbook:", symbol);
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "api_key_id", LunoCore.this.apiKey );
                 put( "api_key_secret", LunoCore.this.secret );
@@ -246,7 +246,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         //     }
         //
         Object symbol = Helpers.GetValue(subscription, "symbol");
-        String messageHash = (String) Helpers.add("orderbook:", symbol);
+        String messageHash = Helpers.add("orderbook:", symbol);
         Long timestamp = this.safeInteger(message, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {

@@ -339,7 +339,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         {
             Object ticker = Helpers.GetValue(tickers, i);
             Object symbol = Helpers.GetValue(ticker, "symbol");
-            String messageHash = (String) Helpers.add("ticker:", symbol);
+            String messageHash = Helpers.add("ticker:", symbol);
             Long timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -555,7 +555,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         Object timeframe = this.findTimeframe(interval);
         if (Helpers.isTrue(!Helpers.isEqual(timeframe, null)))
         {
-            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
+            String messageHash = Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
             java.util.List<Object> ohlcvs = this.parseOHLCVs(candles, market);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
@@ -607,7 +607,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId();
             Object subscriptionHash = Helpers.add(name, ".subscribe");
-            String messageHash = (String) Helpers.add("ticker:", symbol);
+            String messageHash = Helpers.add("ticker:", symbol);
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", subscriptionHash );
                 put( "id", requestId );
@@ -711,7 +711,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Boolean settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             Boolean isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
             String name = ((Helpers.isTrue(isUsdtSwap))) ? "trade_p" : "trade";
-            String messageHash = (String) Helpers.add("trade:", symbol);
+            String messageHash = Helpers.add("trade:", symbol);
             Object method = Helpers.add(name, ".subscribe");
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
@@ -761,7 +761,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Boolean settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             Boolean isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
             String name = ((Helpers.isTrue(isUsdtSwap))) ? "orderbook_p" : "orderbook";
-            String messageHash = (String) Helpers.add("orderbook:", symbol);
+            String messageHash = Helpers.add("orderbook:", symbol);
             Object method = Helpers.add(name, ".subscribe");
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
@@ -810,7 +810,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Boolean settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             Boolean isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
             String name = ((Helpers.isTrue(isUsdtSwap))) ? "kline_p" : "kline";
-            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
+            String messageHash = Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
             Object method = Helpers.add(name, ".subscribe");
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
@@ -1401,7 +1401,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             client.resolve(this.orders, currentMessageHash);
         }
         // resolve generic subscription (spot or swap)
-        String messageHash = (String) Helpers.add("orders:", type);
+        String messageHash = Helpers.add("orders:", type);
         client.resolve(this.orders, messageHash);
     }
 
@@ -1742,7 +1742,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //
         Object result = this.safeValue(message, "result");
         String status = this.safeString(result, "status");
-        String messageHash = (String) "authenticated";
+        String messageHash = "authenticated";
         if (Helpers.isTrue(Helpers.isEqual(status, "success")))
         {
             client.resolve(message, messageHash);
@@ -1803,7 +1803,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
             Object requestId = this.requestId();
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {

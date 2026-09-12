@@ -119,7 +119,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             String urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), urlUid);
             Object requestId = this.requestId(url);
-            Object unsubHash = Helpers.add("unsubscribe::", subHash);
+            String unsubHash = Helpers.add("unsubscribe::", subHash);
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "event", "unsubscribe" );
@@ -1130,14 +1130,14 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             this.checkRequiredCredentials();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.uid);
             Client client = this.client(url);
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             String eventVar = "auth";
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 Object ts = String.valueOf(this.nonce());
-                Object auth = Helpers.add("|", ts);
+                String auth = Helpers.add("|", ts);
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "event", eventVar );
@@ -1271,7 +1271,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
             String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreportv2" : "executionreport";
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            String messageHash = (String) "myTrades";
+            String messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -1553,7 +1553,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         }
         Object trade = this.parseWsTrade(message);
         Helpers.callDynamically(myTrades, "append", new Object[]{trade});
-        String messageHash = (String) Helpers.add("myTrades:", Helpers.GetValue(trade, "symbol"));
+        String messageHash = Helpers.add("myTrades:", Helpers.GetValue(trade, "symbol"));
         client.resolve(myTrades, messageHash);
         messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
@@ -1634,7 +1634,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
-            String messageHash = (String) "fetchPositionsSnapshot";
+            String messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
                 client.future((String)messageHash);
@@ -1719,7 +1719,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             Object position = this.parsePosition(rawPosition, market);
             ((java.util.List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
-            String messageHash = (String) Helpers.add("positions::", Helpers.GetValue(market, "symbol"));
+            String messageHash = Helpers.add("positions::", Helpers.GetValue(market, "symbol"));
             client.resolve(position, messageHash);
         }
         client.resolve(newPositions, "positions");
@@ -1899,7 +1899,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         {
             if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
             {
-                String messageHash = (String) "authenticated";
+                String messageHash = "authenticated";
                 client.reject(error, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
@@ -1925,7 +1925,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         //     }
         //
         String subscribeHash = this.safeString(message, "data");
-        Object unsubscribeHash = Helpers.add("unsubscribe::", subscribeHash);
+        String unsubscribeHash = Helpers.add("unsubscribe::", subscribeHash);
         Object subscription = this.safeDict(client.subscriptions, unsubscribeHash, new java.util.HashMap<String, Object>() {{}});
         Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2072,7 +2072,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         //         "ts": 1657463158812
         //     }
         //
-        String messageHash = (String) "authenticated";
+        String messageHash = "authenticated";
         Object success = this.safeValue(message, "success");
         if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {

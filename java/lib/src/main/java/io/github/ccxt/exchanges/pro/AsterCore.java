@@ -505,7 +505,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object ticker = message;
         Object parsed = this.parseWsTicker(ticker, marketType);
         Object symbol = Helpers.GetValue(parsed, "symbol");
-        String messageHash = (String) Helpers.add("ticker:", symbol);
+        String messageHash = Helpers.add("ticker:", symbol);
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
             Helpers.addElementToObject(this.tickers, symbol, parsed);
@@ -695,7 +695,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         {
             Helpers.addElementToObject(this.bidsasks, symbol, ticker);
         }
-        String messageHash = (String) Helpers.add("bidask:", symbol);
+        String messageHash = Helpers.add("bidask:", symbol);
         client.resolve(ticker, messageHash);
     }
 
@@ -1296,7 +1296,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
-        String messageHash = (String) Helpers.add(Helpers.add("orderbook", ":"), symbol);
+        String messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
@@ -1547,7 +1547,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         Object parsed = this.parseWsOHLCV(kline);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
-        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv:", symbol), ":"), timeframe);
+        String messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv:", symbol), ":"), timeframe);
         java.util.List<Object> resolveData = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
@@ -1581,7 +1581,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 // client.future () is the atomic check-and-insert and
                 // client.resolve () / client.reject () settle and remove the entry
                 // under the same lock in every port
-                String messageHash = (String) Helpers.add("authenticate:", type);
+                String messageHash = Helpers.add("authenticate:", type);
                 Client client = this.client("authenticationFlights");
                 if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
@@ -1832,7 +1832,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         //     }
         //
         String accountType = this.getAccountTypeFromUrl(client.url);
-        String messageHash = (String) Helpers.add(accountType, ":balance");
+        String messageHash = Helpers.add(accountType, ":balance");
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.balance, accountType), null)))
         {
             Helpers.addElementToObject(this.balance, accountType, new java.util.HashMap<String, Object>() {{}});
@@ -1932,7 +1932,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
-            String messageHash = (String) "fetchPositionsSnapshot";
+            String messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
                 client.future((String)messageHash);
@@ -2134,7 +2134,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
-            String messageHash = (String) "orders";
+            String messageHash = "orders";
             Object type = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
@@ -2189,7 +2189,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
-            String messageHash = (String) "myTrades";
+            String messageHash = "myTrades";
             Object type = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);

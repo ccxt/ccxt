@@ -308,7 +308,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = (String) Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
+            String messageHash = Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"));
             Object trades = (this.subscribePublic(url, symbol, messageHash, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -432,7 +432,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
-            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
+            String messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"));
             Object ohlcv = (this.subscribePublic(url, symbol, messageHash, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -563,7 +563,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
             }
-            String messageHash = (String) null;
+            String messageHash = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".mbp."), this.numberToString(limit));
@@ -1217,7 +1217,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Boolean swap = (Helpers.isEqual(type, "swap"));
             Boolean future = (Helpers.isEqual(type, "future"));
             Boolean isV5Linear = (Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future))));
-            String messageHash = (String) null;
+            String messageHash = null;
             Object channel = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
@@ -2378,7 +2378,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             }
             Object first = this.safeValue(data, 0, new java.util.HashMap<String, Object>() {{}});
             Object splitTopic = Helpers.split(topic, ".");
-            String messageHash = (String) this.safeString(splitTopic, 0);
+            String messageHash = this.safeString(splitTopic, 0);
             Object subscription = this.safeValue2(client.subscriptions, messageHash, Helpers.add(messageHash, ".*"));
             if (Helpers.isTrue(Helpers.isEqual(subscription, null)))
             {
@@ -3336,7 +3336,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 put( "unsub", subMessageHash );
                 put( "id", requestId );
             }};
-            String messageHash = (String) Helpers.add("unsubscribe::", subMessageHash);
+            String messageHash = Helpers.add("unsubscribe::", subMessageHash);
             Boolean isFeed = (Helpers.isEqual(topic, "orderbook"));
             if (Helpers.isTrue(Helpers.isEqual(market, null)))
             {
@@ -3425,7 +3425,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " authenticate requires a url, hostname and type argument")) ;
             }
             this.checkRequiredCredentials();
-            String messageHash = (String) "auth";
+            String messageHash = "auth";
             Object relativePath = Helpers.replace((String)url, (String)Helpers.add("wss://", hostname), (String)"");
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);

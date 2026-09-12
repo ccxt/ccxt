@@ -1199,7 +1199,7 @@ public class HyperliquidCore extends HyperliquidApi
                     continue;
                 }
                 // the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
-                Object tradeCoin = Helpers.add("#", Helpers.slice(coin, 1, null));
+                String tradeCoin = Helpers.add("#", Helpers.slice(coin, 1, null));
                 Object outcomeObj = this.safeOutcome(tradeCoin);
                 if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
                 {

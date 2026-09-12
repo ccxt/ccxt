@@ -98,7 +98,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.authenticate(parameters)).join();
-            String messageHash = (String) "balance";
+            String messageHash = "balance";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object currencies = this.safeList(this.options, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -176,7 +176,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         {
             Helpers.addElementToObject(this.balance, currencyCode, balance);
         }
-        String messageHash = (String) "balance";
+        String messageHash = "balance";
         client.resolve(this.balance, messageHash);
     }
 
@@ -534,7 +534,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
-        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("trades|", symbol), "|"), interval);
+        String messageHash = Helpers.add(Helpers.add(Helpers.add("trades|", symbol), "|"), interval);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
@@ -568,7 +568,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String interval = this.safeString(parameters, "interval", "raw");
             parameters = this.omit(parameters, "interval");
-            Object channel = Helpers.add("user.trades.any.any.", interval);
+            String channel = Helpers.add("user.trades.any.any.", interval);
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "private/subscribe" );
@@ -796,7 +796,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Helpers.addElementToObject(storedOrderBook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(storedOrderBook, "symbol", symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, storedOrderBook);
-        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("book|", symbol), "|"), descriptor);
+        String messageHash = Helpers.add(Helpers.add(Helpers.add("book|", symbol), "|"), descriptor);
         client.resolve(storedOrderBook, messageHash);
     }
 
@@ -1068,7 +1068,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe), stored);
         java.util.List<Object> resolveData = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, unifiedTimeframe, stored));
-        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("chart.trades|", symbol), "|"), rawTimeframe);
+        String messageHash = Helpers.add(Helpers.add(Helpers.add("chart.trades|", symbol), "|"), rawTimeframe);
         client.resolve(resolveData, messageHash);
     }
 
@@ -1274,7 +1274,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         //         "testnet": false
         //     }
         //
-        String messageHash = (String) "authenticated";
+        String messageHash = "authenticated";
         client.resolve(message, messageHash);
         return message;
     }
@@ -1290,7 +1290,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Long time = this.milliseconds();
             Object timeString = this.numberToString(time);
             Object nonce = timeString;
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {

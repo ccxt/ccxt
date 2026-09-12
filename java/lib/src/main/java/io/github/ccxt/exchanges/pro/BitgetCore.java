@@ -161,7 +161,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = (String) Helpers.add("ticker:", symbol);
+            String messageHash = Helpers.add("ticker:", symbol);
             Object instType = null;
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "uta", false);
@@ -334,7 +334,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         {
             Helpers.addElementToObject(this.tickers, symbol, ticker);
         }
-        String messageHash = (String) Helpers.add("ticker:", symbol);
+        String messageHash = Helpers.add("ticker:", symbol);
         client.resolve(ticker, messageHash);
     }
 
@@ -546,7 +546,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         {
             Helpers.addElementToObject(this.bidsasks, symbol, ticker);
         }
-        String messageHash = (String) Helpers.add("bidask:", symbol);
+        String messageHash = Helpers.add("bidask:", symbol);
         client.resolve(ticker, messageHash);
     }
 
@@ -608,7 +608,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             symbol = Helpers.GetValue(market, "symbol");
             Object timeframes = this.safeValue(this.options, "timeframes");
             String interval = this.safeString(timeframes, timeframe);
-            String messageHash = (String) null;
+            String messageHash = null;
             Object instType = null;
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOHLCV", "uta", false);
@@ -804,7 +804,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        String messageHash = (String) null;
+        String messageHash = null;
         if (Helpers.isTrue(isUta))
         {
             messageHash = Helpers.add("kline:", symbol);
@@ -921,7 +921,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("unsubscribe:", messageHashTopic), ":"), Helpers.GetValue(market, "symbol"));
+            String messageHash = Helpers.add(Helpers.add(Helpers.add("unsubscribe:", messageHashTopic), ":"), Helpers.GetValue(market, "symbol"));
             Object instType = null;
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "uta", false);
@@ -1081,7 +1081,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         String marketId = this.safeString2(arg, "instId", "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("orderbook:", symbol);
+        String messageHash = Helpers.add("orderbook:", symbol);
         Object data = this.safeValue(message, "data");
         Object rawOrderBook = this.safeValue(data, 0);
         Long timestamp = this.safeInteger(rawOrderBook, "ts");
@@ -1387,7 +1387,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object parsed = this.parseWsTrade(rawTrade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        String messageHash = (String) Helpers.add("trade:", symbol);
+        String messageHash = Helpers.add("trade:", symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -2644,7 +2644,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object stored = this.myTrades;
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object length = Helpers.getArrayLength(data);
-        String messageHash = (String) "myTrades";
+        String messageHash = "myTrades";
         Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
         String instType = (String)this.safeStringLower(arg, "instType");
         for (var i = 0; Helpers.isLessThan(i, length); i++)
@@ -2668,7 +2668,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object parsed = this.parseWsTrade(trade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(parsed, "symbol");
-            Object symbolSpecificMessageHash = Helpers.add("myTrades:", symbol);
+            String symbolSpecificMessageHash = Helpers.add("myTrades:", symbol);
             client.resolve(stored, symbolSpecificMessageHash);
         }
         client.resolve(stored, messageHash);
@@ -2753,7 +2753,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 }});
             }
             Object instTypeLower = ((Helpers.isTrue((Helpers.isEqual(instType, null))))) ? "" : ((String)instType).toLowerCase();
-            String messageHash = (String) Helpers.add("balance:", instTypeLower);
+            String messageHash = Helpers.add("balance:", instTypeLower);
             return (this.watchPrivate(uta, messageHash, messageHash, args, parameters)).join();
         });
 
@@ -2911,7 +2911,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         // see https://github.com/ccxt/ccxt/issues/21973
         Helpers.addElementToObject(this.balance, "info", message);
         this.balance = this.safeBalance(this.balance);
-        String messageHash = (String) Helpers.add("balance:", instType);
+        String messageHash = Helpers.add("balance:", instType);
         client.resolve(this.balance, messageHash);
     }
 
@@ -3015,7 +3015,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             this.checkRequiredCredentials();
             String url = this.safeString(parameters, "url", "");
             Client client = this.client(url);
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
@@ -3083,7 +3083,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //
         //  { event: "login", code: 0 }
         //
-        String messageHash = (String) "authenticated";
+        String messageHash = "authenticated";
         Object future = this.safeValue(client.futures, messageHash);
         ((io.github.ccxt.ws.Future)future).resolve(true);
     }
@@ -3110,7 +3110,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         {
             if (Helpers.isTrue(Helpers.isInstance(e, AuthenticationError.class)))
             {
-                String messageHash = (String) "authenticated";
+                String messageHash = "authenticated";
                 client.reject(e, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
@@ -3310,7 +3310,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         String instId = this.safeString2(arg, "instId", "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("unsubscribe:orderbook:", Helpers.GetValue(market, "symbol"));
+        String messageHash = Helpers.add("unsubscribe:orderbook:", Helpers.GetValue(market, "symbol"));
         Object subMessageHash = Helpers.add("orderbook:", symbol);
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
@@ -3343,7 +3343,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         String instId = this.safeString2(arg, "instId", "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("unsubscribe:trade:", Helpers.GetValue(market, "symbol"));
+        String messageHash = Helpers.add("unsubscribe:trade:", Helpers.GetValue(market, "symbol"));
         Object subMessageHash = Helpers.add("trade:", symbol);
         if (Helpers.isTrue(Helpers.inOp(this.trades, symbol)))
         {
@@ -3376,7 +3376,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         String instId = this.safeString2(arg, "instId", "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("unsubscribe:ticker:", Helpers.GetValue(market, "symbol"));
+        String messageHash = Helpers.add("unsubscribe:ticker:", Helpers.GetValue(market, "symbol"));
         Object subMessageHash = Helpers.add("ticker:", symbol);
         if (Helpers.isTrue(Helpers.inOp(this.tickers, symbol)))
         {
@@ -3426,7 +3426,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object timeframe = this.findTimeframe(interval, timeframes);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) null;
+        String messageHash = null;
         Object subMessageHash = null;
         if (Helpers.isTrue(isUta))
         {

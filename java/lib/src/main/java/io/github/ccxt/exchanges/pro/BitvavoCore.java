@@ -982,7 +982,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
-            Object flagKey = Helpers.add("watchingOrderBookSnapshot@", marketId);
+            String flagKey = Helpers.add("watchingOrderBookSnapshot@", marketId);
             Object watchingOrderBookSnapshot = this.safeValue(subscription, flagKey);
             if (Helpers.isTrue(Helpers.isEqual(watchingOrderBookSnapshot, null)))
             {
@@ -1224,7 +1224,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object marketId = Helpers.GetValue(market, "id");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String name = "account";
-            String messageHash = (String) Helpers.add("order:", symbol);
+            String messageHash = Helpers.add("order:", symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -1275,7 +1275,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object marketId = Helpers.GetValue(market, "id");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String name = "account";
-            String messageHash = (String) Helpers.add("myTrades:", symbol);
+            String messageHash = Helpers.add("myTrades:", symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -2148,7 +2148,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         String marketId = this.safeString(message, "market");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("order:", symbol);
+        String messageHash = Helpers.add("order:", symbol);
         Object order = this.parseOrder(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -2180,7 +2180,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         String marketId = this.safeString(message, "market");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("myTrades:", symbol);
+        String messageHash = Helpers.add("myTrades:", symbol);
         Object trade = this.parseTrade(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
@@ -2228,7 +2228,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {
@@ -2260,7 +2260,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //         "authenticated": true
         //     }
         //
-        String messageHash = (String) "authenticated";
+        String messageHash = "authenticated";
         Object authenticated = this.safeBool(message, "authenticated", false);
         if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {

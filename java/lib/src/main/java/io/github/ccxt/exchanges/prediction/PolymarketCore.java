@@ -3006,12 +3006,12 @@ final Object finalClobTokenId = clobTokenId;
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         Object orderTypeHash = this.hash(this.encode(orderTypeString), keccak(), "binary");
         Object contentsData = this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32")), new java.util.ArrayList<Object>(java.util.Arrays.asList(orderTypeHash, this.convertToBigInt(Helpers.GetValue(message, "salt")), Helpers.GetValue(message, "maker"), Helpers.GetValue(message, "signer"), this.convertToBigInt(Helpers.GetValue(message, "tokenId")), this.convertToBigInt(Helpers.GetValue(message, "makerAmount")), this.convertToBigInt(Helpers.GetValue(message, "takerAmount")), Helpers.GetValue(message, "side"), Helpers.GetValue(message, "signatureType"), this.convertToBigInt(Helpers.GetValue(message, "timestamp")), this.base16ToBinary(this.remove0xPrefix(Helpers.GetValue(message, "metadata"))), this.base16ToBinary(this.remove0xPrefix(Helpers.GetValue(message, "builder"))))));
-        Object contentsHash = Helpers.add("0x", this.hash(contentsData, keccak(), "hex"));
+        String contentsHash = Helpers.add("0x", this.hash(contentsData, keccak(), "hex"));
         Object domainTypeHash = this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak(), "binary");
         Object nameHash = this.hash(this.encode(domainName), keccak(), "binary");
         Object versionHash = this.hash(this.encode(domainVersion), keccak(), "binary");
         Object appDomainData = this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("bytes32", "bytes32", "bytes32", "uint256", "address")), new java.util.ArrayList<Object>(java.util.Arrays.asList(domainTypeHash, nameHash, versionHash, this.convertToBigInt(this.numberToString(chainIdValue)), exchangeAddress)));
-        Object appDomainSep = Helpers.add("0x", this.hash(appDomainData, keccak(), "hex"));
+        String appDomainSep = Helpers.add("0x", this.hash(appDomainData, keccak(), "hex"));
         java.util.List<Object> typedDataSignStruct = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "name", "contents" );
     put( "type", "Order" );
@@ -3588,7 +3588,7 @@ final Object finalClobTokenId = clobTokenId;
             // string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by
             // '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
             // would corrupt the literal to 'auth/derive-$api-key' and break this check
-            Object deriveApiKeyPath = Helpers.add("auth/derive-", "api-key");
+            String deriveApiKeyPath = Helpers.add("auth/derive-", "api-key");
             Boolean isL1Auth = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(path, "auth/api-key"))) || Helpers.isTrue((Helpers.isEqual(path, deriveApiKeyPath)))) || Helpers.isTrue((Helpers.isEqual(path, "auth/api-keys")));
             if (Helpers.isTrue(isL1Auth))
             {
@@ -3621,7 +3621,7 @@ final Object finalClobTokenId = clobTokenId;
                 Object timestamp = String.valueOf(this.seconds());
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
-                Object requestPath = Helpers.add("/", this.implodeParams(path, parameters));
+                String requestPath = Helpers.add("/", this.implodeParams(path, parameters));
                 Object auth = Helpers.add(Helpers.add(timestamp, method), requestPath);
                 if (Helpers.isTrue(!Helpers.isEqual(body, null)))
                 {
@@ -4061,8 +4061,8 @@ final Object finalOutcome = outcome;
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
-            Object messageHash = Helpers.add("orderbook::", outcome);
-            Object subscribeHash = Helpers.add("subscribe::", tokenId);
+            String messageHash = Helpers.add("orderbook::", outcome);
+            String subscribeHash = Helpers.add("subscribe::", tokenId);
             java.util.Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>() {{
                 put( "assets_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList(tokenId)) );
                 put( "type", "market" );
@@ -4095,8 +4095,8 @@ final Object finalOutcome = outcome;
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
-            Object messageHash = Helpers.add("trades::", outcome);
-            Object subscribeHash = Helpers.add("subscribe::", tokenId);
+            String messageHash = Helpers.add("trades::", outcome);
+            String subscribeHash = Helpers.add("subscribe::", tokenId);
             java.util.Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>() {{
                 put( "assets_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList(tokenId)) );
                 put( "type", "market" );
@@ -4125,8 +4125,8 @@ final Object finalOutcome = outcome;
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
-            Object messageHash = Helpers.add("ticker::", outcome);
-            Object subscribeHash = Helpers.add("subscribe::", tokenId);
+            String messageHash = Helpers.add("ticker::", outcome);
+            String subscribeHash = Helpers.add("subscribe::", tokenId);
             java.util.Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>() {{
                 put( "assets_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList(tokenId)) );
                 put( "type", "market" );

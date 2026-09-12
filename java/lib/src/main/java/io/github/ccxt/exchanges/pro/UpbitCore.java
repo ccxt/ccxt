@@ -308,7 +308,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         {
             Helpers.addElementToObject(this.tickers, symbol, ticker);
         }
-        String messageHash = (String) Helpers.add("ticker:", symbol);
+        String messageHash = Helpers.add("ticker:", symbol);
         client.resolve(ticker, messageHash);
     }
 
@@ -366,7 +366,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         String datetime = this.iso8601(timestamp);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", datetime);
-        String messageHash = (String) Helpers.add("orderbook:", symbol);
+        String messageHash = Helpers.add("orderbook:", symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -400,7 +400,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Helpers.callDynamically(stored, "append", new Object[]{trade});
-        String messageHash = (String) Helpers.add("trade:", symbol);
+        String messageHash = Helpers.add("trade:", symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -422,7 +422,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         //   }
         String marketId = this.safeString(message, "code");
         String symbol = (String) this.safeSymbol(marketId);
-        String messageHash = (String) Helpers.add("candle.1s:", symbol);
+        String messageHash = Helpers.add("candle.1s:", symbol);
         Object ohlcv = this.parseOHLCV(message);
         client.resolve(ohlcv, messageHash);
     }
@@ -550,7 +550,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
                 (this.loadMarkets()).join();
             }
             Object channel = "myOrder";
-            String messageHash = (String) "myOrder";
+            String messageHash = "myOrder";
             Object orders = (this.watchPrivate(symbol, channel, messageHash)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -586,7 +586,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
                 (this.loadMarkets()).join();
             }
             Object channel = "myOrder";
-            String messageHash = (String) "myTrades";
+            String messageHash = "myTrades";
             Object trades = (this.watchPrivate(symbol, channel, messageHash)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -761,7 +761,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         }
         Object trade = this.parseWsTrade(message);
         Helpers.callDynamically(myTrades, "append", new Object[]{trade});
-        String messageHash = (String) "myTrades";
+        String messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
         messageHash = Helpers.add("myTrades:", Helpers.GetValue(trade, "symbol"));
         client.resolve(myTrades, messageHash);
@@ -822,7 +822,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
                 (this.loadMarkets()).join();
             }
             Object channel = "myAsset";
-            String messageHash = (String) "myAsset";
+            String messageHash = "myAsset";
             return (this.watchPrivate(null, channel, messageHash)).join();
         });
 

@@ -297,7 +297,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Helpers.addElementToObject(trade, "symbol", symbol);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
-        String messageHash = (String) Helpers.add("trade::", symbol);
+        String messageHash = Helpers.add("trade::", symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -456,7 +456,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
+        String messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
         java.util.List<Object> resolveData = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
@@ -615,7 +615,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             {
                 Helpers.addElementToObject(newTickers, symbol, parsed);
             }
-            String messageHash = (String) Helpers.add("ticker::", symbol);
+            String messageHash = Helpers.add("ticker::", symbol);
             client.resolve(parsed, messageHash);
         }
         client.resolve(newTickers, "tickers");
@@ -741,7 +741,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object entry = Helpers.GetValue(data, i);
-            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("orderBook::", symbol), "::"), "diffDepth");
+            String messageHash = Helpers.add(Helpers.add(Helpers.add("orderBook::", symbol), "::"), "diffDepth");
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
             {
                 Long limit = this.safeInteger(Helpers.GetValue(this.options, "ws"), "orderBookLimit", 1000);
@@ -805,7 +805,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object entry = Helpers.GetValue(data, i);
             String marketId = this.safeString(entry, "s");
             String symbol = (String) this.safeSymbol(marketId);
-            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("orderBook::", symbol), "::"), channel);
+            String messageHash = Helpers.add(Helpers.add(Helpers.add("orderBook::", symbol), "::"), channel);
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
             {
                 Long limit = this.safeInteger(Helpers.GetValue(this.options, "ws"), "orderBookLimit", 1000);
@@ -1056,7 +1056,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         Object orders = this.orders;
         Object order = this.parseWsOrder(message);
         Helpers.callDynamically(orders, "append", new Object[]{order});
-        String messageHash = (String) "orders";
+        String messageHash = "orders";
         client.resolve(orders, messageHash);
         messageHash = Helpers.add("orders:", this.safeString(order, "symbol"));
         client.resolve(orders, messageHash);
@@ -1187,7 +1187,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         }
         Object trade = this.parseMyTrade(message);
         Helpers.callDynamically(myTrades, "append", new Object[]{trade});
-        String messageHash = (String) Helpers.add("myTrades:", Helpers.GetValue(trade, "symbol"));
+        String messageHash = Helpers.add("myTrades:", Helpers.GetValue(trade, "symbol"));
         client.resolve(myTrades, messageHash);
         messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
@@ -1454,7 +1454,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
                 // so the flight must not live on that client or later callers would look at a different one.
                 // client.futures is the registry: client.future () is the atomic check-and-insert and
                 // client.resolve () / client.reject () settle and remove the entry under the same lock in every port
-                String messageHash = (String) "authenticate";
+                String messageHash = "authenticate";
                 Client client = this.client("authenticationFlights");
                 if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {

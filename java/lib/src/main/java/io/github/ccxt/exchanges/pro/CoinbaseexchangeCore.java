@@ -196,7 +196,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 throw new BadSymbol((String)Helpers.add(this.id, " watchTickers requires a non-empty symbols array")) ;
             }
             Object channel = "ticker";
-            String messageHash = (String) "ticker";
+            String messageHash = "ticker";
             Object ticker = (this.subscribeMultiple(channel, symbols, messageHash, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -313,7 +313,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             }
             symbol = this.symbol(symbol);
             Object name = "user";
-            String messageHash = (String) "myTrades";
+            String messageHash = "myTrades";
             Object authentication = this.authenticate();
             Object trades = (this.subscribe(name, symbol, messageHash, this.extend(parameters, authentication))).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -349,7 +349,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 (this.loadMarkets()).join();
             }
             Object name = "user";
-            String messageHash = (String) "myTrades";
+            String messageHash = "myTrades";
             Object authentication = this.authenticate();
             Object trades = (this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication))).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -387,7 +387,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object name = "user";
-            String messageHash = (String) "orders";
+            String messageHash = "orders";
             Object authentication = this.authenticate();
             Object orders = (this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication))).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -430,7 +430,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             }
             symbol = this.symbol(symbol);
             Object name = "user";
-            String messageHash = (String) "orders";
+            String messageHash = "orders";
             Object authentication = this.authenticate();
             Object orders = (this.subscribe(name, symbol, messageHash, this.extend(parameters, authentication))).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -800,7 +800,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         String marketId = this.safeString(message, "product_id");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
-            String messageHash = (String) Helpers.add("orders:", marketId);
+            String messageHash = Helpers.add("orders:", marketId);
             String symbol = (String) this.safeSymbol(marketId);
             String orderId = this.safeString(message, "order_id");
             String makerOrderId = this.safeString(message, "maker_order_id");
@@ -996,8 +996,8 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             {
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
             }
-            String messageHash = (String) Helpers.add("ticker:", symbol);
-            Object idMessageHash = Helpers.add("ticker:", marketId);
+            String messageHash = Helpers.add("ticker:", symbol);
+            String idMessageHash = Helpers.add("ticker:", marketId);
             client.resolve(ticker, messageHash);
             client.resolve(ticker, idMessageHash);
         }

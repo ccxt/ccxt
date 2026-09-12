@@ -924,7 +924,7 @@ public class MyriadCore extends MyriadApi
         // byte-identical to ethers' serialization
         Object accessList = this.rlpEncodeList(new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> fields = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.rlpEncodeBytes(this.intToRlpHex(this.safeInteger(tx, "chainId"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
-        Object payload = Helpers.add("02", this.rlpEncodeList(fields));
+        String payload = Helpers.add("02", this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
         Object signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
         String rHex = this.safeString(signature, "r");
@@ -2496,7 +2496,7 @@ public class MyriadCore extends MyriadApi
             Long decimals = this.safeInteger(parameters, "decimals", this.safeInteger(chainConfig, "collateralDecimals", 18));
             String owner = this.walletAddressFromKeys();
             // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
-            Object callData = Helpers.add("0x70a08231", this.padHexAddress(owner));
+            String callData = Helpers.add("0x70a08231", this.padHexAddress(owner));
             final Object finalToken = token;
             java.util.List<Object> callParams = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "to", finalToken );
@@ -4061,7 +4061,7 @@ final Object finalNetworkId = networkId;
             String marketId = this.safeString(info, "marketId");
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
             Object channel = Helpers.add(Helpers.add(Helpers.add("orderbook:", networkId), ":"), marketId);
-            Object messageHash = Helpers.add("orderbook::", sym);
+            String messageHash = Helpers.add("orderbook::", sym);
             String url = this.safeString(Helpers.GetValue(this.urls, "api"), "ws");
             // finish the connect handshake first so the client exists and the subscribe follows the connect reply
             (this.connectCentrifugo(url)).join();
@@ -4173,7 +4173,7 @@ final Object finalNetworkId = networkId;
             String marketId = this.safeString(info, "marketId");
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
             Object channel = Helpers.add(Helpers.add(Helpers.add("trades:", networkId), ":"), marketId);
-            Object messageHash = Helpers.add("trades::", sym);
+            String messageHash = Helpers.add("trades::", sym);
             Object trades = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         });
@@ -4369,7 +4369,7 @@ final Object finalNetworkId = networkId;
             String marketId = this.safeString(info, "marketId");
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
             Object channel = Helpers.add(Helpers.add(Helpers.add("prices:", networkId), ":"), marketId);
-            Object messageHash = Helpers.add("ticker::", sym);
+            String messageHash = Helpers.add("ticker::", sym);
             return (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
         });
 

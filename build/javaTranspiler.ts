@@ -241,13 +241,6 @@ const STRING_ACCESSORS = new Set([
     'safeStringLower', 'safeStringLower2', 'safeStringLowerN',
 ]);
 
-// `String x = this.safeStringUpper(...)`-style declarations that postProcessWsJava's
-// "String type fixes" pass must leave alone (SS-01). The case family is hand-written and
-// declared `String` in the base, so the printer's narrowed declaration is correct for a
-// pro/prediction file too; the `(String)` checkcast that used to shield these lines from
-// the revert regex is gone.
-const WS_STRING_REVERT_EXEMPT = /^this\.safeString(?:Upper|Lower)/;
-
 // hand-written base methods declared with a String return in Java
 // (BaseExchange.iso8601 / numberToString) — used only to prove a later
 // reassignment keeps the local a String
@@ -3627,52 +3620,13 @@ class NewTranspiler {
         // `this.method` → `"method"`). Dispatch dynamically via Helpers.callDynamically.
         content = this.rewriteDelayWithStringCallback(content);
 
-        // ── String type fixes ──
-        // WS-tier revert, applied to the ws (pro) branch above: every `String x = this.<m>(...)`
-        // / `String x = Helpers.<...>(...)` declaration goes back to `Object`.
-        // SS-08: the prediction branch skips this revert. The printer's local-typing hooks
-        // (patchJavaLocalTypes below + build/java-local-types.js) only print a `String x = ...`
-        // declaration after proving every value reaching the local is a String in the printed
-        // Java, and this branch's compile gate proved all 583 declarations they narrow in the
-        // 7 prediction cores compile as `String`. A prediction core's chain is
-        // `<Id>Core extends <Id>Api extends PredictionExchange` (the typed REST-wrapper
-        // subclass sits BELOW the core), so it never inherits typed-wrapper overloads either.
-        // Before SS-08 the revert — plus the dataflow guard that deferred to it — turned 583
-        // locals (521 of them safeString family) back into `Object` on every regeneration.
-        if (!prediction) {
-            content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
-        }
-        // Revert `String x = this.<m>(...)` / `String x = Helpers....` declarations to
-        // `Object`: the typed REST wrapper's overloads (e.g. `Ticker fetchTicker(String)`)
-        // can hand a non-String box back to the inherited async call. WS_STRING_REVERT_EXEMPT
-        // (SS-01) keeps the hand-written safeStringUpper/Lower* family typed — those calls
-        // are declared `String` in the base and carry no checkcast any more.
-        content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, (match: string, name: string, value: string) => {
-            if (WS_STRING_REVERT_EXEMPT.test(value)) {
-                return match;
-            }
-            return `Object ${name} = ${value};`;
-        });
-        // ── String type fixes pass REMOVED (SS-15, 2026-09-12) ──
-        // The pass rewrote every declaration in pro/prediction files whose value starts
-        // with `this.<m>(` / `Helpers.` back to `Object`:
-        //     content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
-        // It predates the local-typing machinery (build/java-local-types.js + the
-        // patchJavaLocalTypes safeString hook) — back then no GENERATED pro/prediction
-        // `String` local was proven, and the blanket de-typing kept javac green. Today
-        // every `String` declaration the typing machinery emits carries a proof
-        // (declared-`String` callee, an audited cast family with an explicit `(String)`
-        // checkcast, a literal, or a proven local read/write), the compiler enforces it
-        // (the gradle gate compiles the whole tree), and this pass was silently undoing
-        // 2,579 proven safeString locals (2,058 pro / 521 prediction — 93% of every
-        // remaining `Object x = this.safeString*` line; SS-15 census). Removed so the
-        // pro/prediction tiers get the same `String` declarations as REST, with no
-        // defeat-casts and no ternaries.
-        //
-        // SS-15 census hook: records every `String <name> = this.safeString*(...)`
-        // declaration still present at this (former de-typing) point. In the BASELINE
-        // census (pass present) each such record was a `revert` event; with the pass
-        // removed they are the declarations that now survive as `String`.
+        // ── String type fixes: revert pass REMOVED (SS-07 / SS-15) ──
+        // The pass rewrote every `String x = this.<m>(...)` / `String x = Helpers.<...>(...)`
+        // declaration in pro/prediction files back to `Object`. Every such declaration is
+        // emitted only after the local-typing layers prove the value String-or-null, so the
+        // pass only de-typed the WS tree; pro/prediction now match the REST tier.
+        // SS-15 census hook: records every `String <name> = this.safeString*(...)` declaration
+        // present at this point (with the pass gone these are the survivors).
         if (SS15_CENSUS) {
             const ss15Lines = content.split('\n');
             for (let i = 0; i < ss15Lines.length; i++) {

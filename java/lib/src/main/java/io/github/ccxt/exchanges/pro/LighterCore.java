@@ -1471,7 +1471,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId(url);
-            String messageHash = (String) Helpers.add("jsonapi/sendtx:", requestId);
+            String messageHash = Helpers.add("jsonapi/sendtx:", requestId);
             var txTypetxInfoordermarketVariable = (this.signAndCreateOrder("createOrderWs", symbol, type, side, amount, price, parameters)).join();
             var txType = ((java.util.List<Object>) txTypetxInfoordermarketVariable).get(0);
             var txInfo = ((java.util.List<Object>) txTypetxInfoordermarketVariable).get(1);
@@ -1516,7 +1516,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId(url);
-            String messageHash = (String) Helpers.add("jsonapi/sendtx:", requestId);
+            String messageHash = Helpers.add("jsonapi/sendtx:", requestId);
             var txTypetxInfomarketVariable = (this.signAndCancelOrder("cancelOrderWs", id, symbol, parameters)).join();
             var txType = ((java.util.List<Object>) txTypetxInfomarketVariable).get(0);
             var txInfo = ((java.util.List<Object>) txTypetxInfomarketVariable).get(1);
@@ -1559,7 +1559,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId(url);
-            String messageHash = (String) Helpers.add("jsonapi/sendtx:", requestId);
+            String messageHash = Helpers.add("jsonapi/sendtx:", requestId);
             var txTypetxInfoVariable = (this.signAndCancelAllOrders("cancelAllOrdersWs", symbol, parameters)).join();
             var txType = ((java.util.List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((java.util.List<Object>) txTypetxInfoVariable).get(1);
