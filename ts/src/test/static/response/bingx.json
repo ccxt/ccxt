@@ -4655,6 +4655,56 @@
                         "quoteVolume": "0"
                     }
                 }
+            },
+            {
+                "description": "Coin-M ticker without contract size (synthetic market)",
+                "method": "fetchTicker",
+                "input": [
+                    "TEST/USD:TEST"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "TEST-USD",
+                            "lastQty": "2",
+                            "lastPrice": "100",
+                            "volume": "2",
+                            "quoteVolume": "0.5"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "TEST/USD:TEST",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 100,
+                    "last": 100,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0.5,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "TEST-USD",
+                        "lastQty": "2",
+                        "lastPrice": "100",
+                        "volume": "2",
+                        "quoteVolume": "0.5"
+                    }
+                }
             }
         ],
         "fetchTickers": [
