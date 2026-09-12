@@ -3185,7 +3185,8 @@ public partial class BaseExchange
             // close (using average)
             if (isTrue(isTrue(isEqual(close, null)) && isTrue(!isEqual(average, null))))
             {
-                close = Precise.stringMul(average, "2");
+                // average is the midpoint of open and close, so twice it is their sum
+                close = Precise.stringSub(Precise.stringMul(average, "2"), open);
             }
             // average
             if (isTrue(isTrue(isEqual(average, null)) && isTrue(!isEqual(close, null))))

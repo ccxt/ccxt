@@ -1840,11 +1840,10 @@ class bingx extends \ccxt\async\bingx {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'a');
             $code = $this->safe_currency_code($currencyId);
-            $previous = $this->safe_dict($this->balance[$type], $code, array());
             $account = $this->account();
             $account['info'] = $balance;
-            $account['total'] = $this->safe_string($balance, 'wb');
-            $account['used'] = $this->safe_string($previous, 'used');
+            $account['used'] = $this->safe_string($balance, 'lk');
+            $account['free'] = $this->safe_string($balance, 'wb');
             if (($type !== null) && ($code !== null)) {
                 $this->balance[$type][$code] = $account;
             }

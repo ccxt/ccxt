@@ -5,7 +5,7 @@ env:
   HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
   CARGO_PROFILE_DEV_DEBUG: "0"
   CARGO_PROFILE_TEST_DEBUG: "0"
-  CARGO_BUILD_JOBS: "2"
+  CARGO_BUILD_JOBS: "4"
 
 on:
   workflow_dispatch:
@@ -207,16 +207,9 @@ jobs:
 
   live-tests:
     needs: build
-    runs-on: [ self-hosted, linux, x64, rust ]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        run: |
-          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal --component clippy
-          fi
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          "$HOME/.cargo/bin/cargo" --version || cargo --version
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
@@ -228,6 +221,10 @@ jobs:
           path: rust/
       - name: Restore shared_env
         run: ./build/utils/restore_shared_env.sh
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Export exchanges

@@ -4785,7 +4785,8 @@ class BaseExchange {
             }
             // close (using average)
             if (close === undefined && average !== undefined) {
-                close = Precise["default"].stringMul(average, '2');
+                // average is the midpoint of open and close, so twice it is their sum
+                close = Precise["default"].stringSub(Precise["default"].stringMul(average, '2'), open);
             }
             // average
             if (average === undefined && close !== undefined) {

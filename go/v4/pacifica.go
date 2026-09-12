@@ -4209,14 +4209,22 @@ func (this *Pacifica) transferBody(ch chan any, code any, amount any, fromAccoun
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes324412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes324412)
+	}
+	var currency any = this.Currency(code)
 	var operationType string = "transfer_funds"
 	var sigPayload map[string]any = map[string]any{
 		"to_account": toAccount,
-		"amount":     amount,
+		"amount":     this.NumberToString(amount),
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 	params = this.Omit(params, []any{"expiryWindow"})
-	var response any = this.PrivatePostAccountSubaccountTransfer(this.Extend(request, params))
+
+	response := (<-this.PrivatePostAccountSubaccountTransfer(this.Extend(request, params)))
+	PanicOnError(response)
 	//
 	// {
 	//   "success": true,
@@ -4230,7 +4238,11 @@ func (this *Pacifica) transferBody(ch chan any, code any, amount any, fromAccoun
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 
-	ch <- this.ParseTransfer(data)
+	ch <- this.Extend(this.ParseTransfer(data, currency), map[string]any{
+		"amount":      amount,
+		"fromAccount": this.SafeString(request, "account"),
+		"toAccount":   toAccount,
+	})
 	return nil
 }
 func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) any {
@@ -4247,16 +4259,21 @@ func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
+	var success any = this.SafeBool(transfer, "success")
+	var status any = nil
+	if IsTrue(!IsEqual(success, nil)) {
+		status = Ternary(IsTrue((IsEqual(success, true))), "ok", "failed")
+	}
 	return map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   nil,
 		"datetime":    nil,
-		"currency":    nil,
+		"currency":    this.SafeCurrencyCode(nil, currency),
 		"amount":      nil,
 		"fromAccount": nil,
 		"toAccount":   nil,
-		"status":      "ok",
+		"status":      status,
 	}
 }
 
@@ -4372,9 +4389,9 @@ func (this *Pacifica) bindAgentWalletBody(ch chan any, agentAddress any, optiona
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes337115 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
-	PanicOnError(retRes337115)
-	ch <- retRes337115
+	retRes338415 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
+	PanicOnError(retRes338415)
+	ch <- retRes338415
 	return nil
 }
 func (this *Pacifica) CreateApiKeyAsync(optionalArgs ...any) <-chan any {
@@ -4391,9 +4408,9 @@ func (this *Pacifica) createApiKeyBody(ch chan any, optionalArgs ...any) any {
 	var sigPayload map[string]any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes337815 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
-	PanicOnError(retRes337815)
-	ch <- retRes337815
+	retRes339115 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
+	PanicOnError(retRes339115)
+	ch <- retRes339115
 	return nil
 }
 func (this *Pacifica) RevokeApiKeyAsync(apiKey any, optionalArgs ...any) <-chan any {
@@ -4412,9 +4429,9 @@ func (this *Pacifica) revokeApiKeyBody(ch chan any, apiKey any, optionalArgs ...
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes338715 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
-	PanicOnError(retRes338715)
-	ch <- retRes338715
+	retRes340015 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
+	PanicOnError(retRes340015)
+	ch <- retRes340015
 	return nil
 }
 func (this *Pacifica) FetchApiKeysAsync(optionalArgs ...any) <-chan any {
@@ -4431,9 +4448,9 @@ func (this *Pacifica) fetchApiKeysBody(ch chan any, optionalArgs ...any) any {
 	var sigPayload map[string]any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes339415 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
-	PanicOnError(retRes339415)
-	ch <- retRes339415
+	retRes340715 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
+	PanicOnError(retRes340715)
+	ch <- retRes340715
 	return nil
 }
 func (this *Pacifica) ApproveBuilderCodeAsync(builderCode any, maxFeeRate any, optionalArgs ...any) <-chan any {
@@ -4453,9 +4470,9 @@ func (this *Pacifica) approveBuilderCodeBody(ch chan any, builderCode any, maxFe
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes340415 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
-	PanicOnError(retRes340415)
-	ch <- retRes340415
+	retRes341715 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
+	PanicOnError(retRes341715)
+	ch <- retRes341715
 	return nil
 }
 func (this *Pacifica) FetchBuilderApprovalsAsync(address any) <-chan any {
@@ -4470,9 +4487,9 @@ func (this *Pacifica) fetchBuilderApprovalsBody(ch chan any, address any) any {
 		"account": address,
 	}
 
-	retRes341115 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
-	PanicOnError(retRes341115)
-	ch <- retRes341115
+	retRes342415 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
+	PanicOnError(retRes342415)
+	ch <- retRes342415
 	return nil
 }
 func (this *Pacifica) RevokeBuilderCodeAsync(builderCode any, optionalArgs ...any) <-chan any {
@@ -4491,9 +4508,9 @@ func (this *Pacifica) revokeBuilderCodeBody(ch chan any, builderCode any, option
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes342015 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
-	PanicOnError(retRes342015)
-	ch <- retRes342015
+	retRes343315 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
+	PanicOnError(retRes343315)
+	ch <- retRes343315
 	return nil
 }
 func (this *Pacifica) HandleOriginAndSingleAddress(methodName any, params any) any {

@@ -141,5 +141,18 @@ public partial class BaseTest
             Assert(preciseEqualStr(exchange, result9, "percentage", "0"));
             Assert(preciseEqualStr(exchange, result9, "open", "6.0"));
             Assert(preciseEqualStr(exchange, result9, "last", "6.0"));
+            // CASE 10 - by open and average, the pair that derives close from average
+            Dictionary<string, object> ticker10 = new Dictionary<string, object>() {
+                { "open", 5 },
+                { "average", 5.5 },
+            };
+            Dictionary<string, object> result10 = exchange.safeTicker(ticker10);
+            Assert(preciseEqualStr(exchange, result10, "close", "6.0"));
+            Assert(preciseEqualStr(exchange, result10, "last", "6.0"));
+            // the supplied average must survive untouched, and this path deliberately
+            // leaves change and percentage underived - pin that boundary
+            Assert(preciseEqualStr(exchange, result10, "average", "5.5"));
+            Assert(isEqual(getValue(result10, "change"), null));
+            Assert(isEqual(getValue(result10, "percentage"), null));
         }
 }

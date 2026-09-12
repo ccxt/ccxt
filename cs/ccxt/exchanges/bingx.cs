@@ -2029,19 +2029,9 @@ public partial class bingx : Exchange
         string? amount = this.safeStringN(trade, new List<object>() {"qty", "amount", "q"});
         if (isTrue(isTrue(isTrue((!isEqual(market, null))) && isTrue((isEqual(getValue(market, "swap"), true)))) && isTrue((inOp(trade, "volume")))))
         {
-            if (isTrue(isEqual(getValue(market, "linear"), true)))
-            {
-                // private linear swap trades report 'amount' as the notional (quote) value, not the base amount;
-                // 'volume' is the exchange's own base-currency fill quantity (bingx linear contractSize is always 1),
-                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
-                amount = this.safeString(trade, "volume");
-            } else
-            {
-                // private trade returns num of contracts instead of base currency (as the order-related methods do)
-                string? contractSize = this.safeString(getValue(market, "info"), "tradeMinQuantity");
-                string? volume = this.safeString(trade, "volume");
-                amount = Precise.stringMul(volume, contractSize);
-            }
+            // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
+            // safeTrade applies contractSize when calculating inverse cost.
+            amount = this.safeString(trade, "volume");
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", this.safeString2(trade, "id", "t") },
@@ -5532,7 +5522,6 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["toAccount"] = toId;
         }
-        parameters = this.omit(parameters, new List<object>() {"fromAccount", "toAccount"});
         int maxLimit = 100;
         object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
@@ -5540,8 +5529,9 @@ public partial class bingx : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", null, since, limit, parameters, maxLimit));
+            return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters, maxLimit));
         }
+        parameters = this.omit(parameters, new List<object>() {"fromAccount", "toAccount"});
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
