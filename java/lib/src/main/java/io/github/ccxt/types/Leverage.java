@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Leverage {
+public final class Leverage extends TypedMap {
     public String symbol;
     public String marginMode;
     public Double longLeverage;
@@ -14,6 +14,7 @@ public final class Leverage {
 
     @SuppressWarnings("unchecked")
     public Leverage(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.marginMode = TypeHelper.safeString(data, "marginMode");

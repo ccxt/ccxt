@@ -9,7 +9,7 @@ import java.util.Map;
 // fields (flat typed access) and adds the prediction identity
 // fields. Identity is the `outcome` handle ("MARKET:LABEL"), no symbol. Mirrors the standalone
 // `PredictionTicker` interface in ts/src/base/types.ts.
-public final class PredictionTicker {
+public final class PredictionTicker extends TypedMap {
     public Long timestamp;
     public String datetime;
     public Double high;
@@ -37,6 +37,7 @@ public final class PredictionTicker {
 
     @SuppressWarnings("unchecked")
     public PredictionTicker(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
         this.datetime = TypeHelper.safeString(data, "datetime");

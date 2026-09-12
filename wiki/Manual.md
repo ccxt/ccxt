@@ -2256,6 +2256,14 @@ Ticker tick = ws.watchTicker("BTC/USDT");
 CompletableFuture<Ticker> stream = ws.watchTickerAsync("BTC/USDT", null);
 ```
 
+Every unified Java type (`Ticker`, `Order`, `Trade`, ..., `OHLCV`) is a *view* over the
+unified payload map the exchange produced, not a copy: `Ticker extends TypedMap` implements
+`Map<String, Object>` (and `OHLCV extends TypedList` implements `List<Object>`), so a typed
+value can be passed anywhere a plain map is accepted, serialised with `exchange.json(ticker)`,
+or read by key with `ticker.get("info")`. The public fields (`ticker.last`, `order.status`)
+are projections captured when the object was constructed; `ticker.raw()` returns the
+underlying map with the same identity the library holds internally.
+
 <!-- tabs:end -->
 
 ### Returned JSON Objects

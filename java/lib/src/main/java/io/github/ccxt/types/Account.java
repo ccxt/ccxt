@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Account {
+public final class Account extends TypedMap {
     public String id;
     public String type;
     public String code;
@@ -13,6 +13,7 @@ public final class Account {
 
     @SuppressWarnings("unchecked")
     public Account(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.type = TypeHelper.safeString(data, "type");

@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class TradingFeeInterface {
+public final class TradingFeeInterface extends TypedMap {
     public String symbol;
     public Double maker;
     public Double taker;
@@ -16,6 +16,7 @@ public final class TradingFeeInterface {
 
     @SuppressWarnings("unchecked")
     public TradingFeeInterface(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.maker = TypeHelper.safeFloat(data, "maker");

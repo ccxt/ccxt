@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public final class Order {
+public final class Order extends TypedMap {
     public String id;
     public String clientOrderId;
     public Long timestamp;
@@ -37,6 +37,7 @@ public final class Order {
 
     @SuppressWarnings("unchecked")
     public Order(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.clientOrderId = TypeHelper.safeString(data, "clientOrderId");

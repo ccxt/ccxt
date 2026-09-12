@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class LongShortRatio {
+public final class LongShortRatio extends TypedMap {
     public String symbol;
     public Long timestamp;
     public String datetime;
@@ -15,6 +15,7 @@ public final class LongShortRatio {
 
     @SuppressWarnings("unchecked")
     public LongShortRatio(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

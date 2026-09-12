@@ -3,7 +3,7 @@ package io.github.ccxt.types;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public final class Balances {
+public final class Balances extends TypedMap {
     public Map<String, Balance> balances;
     public Map<String, Double> free;
     public Map<String, Double> used;
@@ -14,6 +14,7 @@ public final class Balances {
 
     @SuppressWarnings("unchecked")
     public Balances(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.info = TypeHelper.getInfo(data);
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
