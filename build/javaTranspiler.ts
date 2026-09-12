@@ -298,6 +298,205 @@ function accessorCast (node: any): string {
     return (STRING_CASE_ACCESSORS[node.expression.name.escapedText] !== undefined) ? '(String)' : '';
 }
 
+// ===== SS-03: value-identity of the add overload switch (measured) =====
+//
+// Measured with a javac harness against the built Helpers (72-row matrix): with a
+// String-OR-NULL left box — exactly what BaseExchange.safeString / safeString2 /
+// safeStringN hand back — the overload a retyped local selects (add(String,String) /
+// add(String,Object)) is value-IDENTICAL to today's add(Object,Object) iff the right
+// operand is a provably NON-NULL String: every path then string-concatenates, a null left
+// included ("null" + r). The measured divergences (add(Object,Object) -> add(String,*)):
+//
+//   (null, null)              null         -> "nullnull"
+//   (null, Long/Integer)      null         -> "null5"
+//   (null, Boolean/Map/List)  null         -> "nulltrue" / "null{}" / "null[]"
+//   (any,  Double)            numeric box  -> string   (the Double branch wins first)
+//
+// In a `x + r0 + r1` chain the accumulated left of every ENCLOSING add is a NON-NULL
+// String (r0 is a non-null String), so there only a possibly-numeric right operand can
+// move the result. A local on the LEFT of `+` is therefore admitted exactly when the
+// first right operand is a provably non-null String and every deeper right operand is
+// not possibly numeric. This mirrors the predicates the guarded-string family in
+// build/java-local-types.js already uses for its own `+=`/add-left rule
+// (isProvablyNonNullStringExpression / isPossiblyNumericDeep); no ternary is emitted —
+// the acceptance is a compile-time predicate on the printed shape only.
+
+// unwrap `( ... )` layers
+function unwrapParensAll (node: any): any {
+    while (node !== undefined && ts.isParenthesizedExpression (node)) {
+        node = node.expression;
+    }
+    return node;
+}
+
+// true when the printed Java for `node` is statically a String — a real String box, NOT
+// the null/undefined literals (those print `Helpers.add(null, r)`, whose Object overload
+// returns null when r is numeric): the deep form — a `+` chain counts when its LEFT spine
+// is statically a String, because `Helpers.add(String, ..)` returns a String on every
+// path. The inline hook's isProvablyStringExpression above is deliberately left untouched
+// (it gates the already-accepted set); this is the predicate the `+` proof needs, and it
+// is deliberately STRICTER than the module's same-named predicate (no NullKeyword /
+// undefined / selfName acceptance).
+function isStaticallyStringExpression (printer: any, node: any, selfName: string | undefined): boolean {
+    node = unwrapParensAll (node);
+    if (node === undefined) {
+        return false;
+    }
+    switch (node.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+            return true;
+        case ts.SyntaxKind.ConditionalExpression:
+            return isStaticallyStringExpression (printer, node.whenTrue, selfName)
+                && isStaticallyStringExpression (printer, node.whenFalse, selfName);
+        case ts.SyntaxKind.BinaryExpression:
+            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
+                && isStaticallyStringExpression (printer, node.left, selfName);
+        case ts.SyntaxKind.CallExpression: {
+            if (isBaseStringAccessorCall (printer, node)) {
+                return true; // BaseExchange.safeString* are declared String
+            }
+            const callee = node.expression;
+            if (!ts.isPropertyAccessExpression (callee)) {
+                return false;
+            }
+            const method = String (callee.name.escapedText);
+            if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
+                return STRING_RETURNING_BASE_METHODS.has (method);
+            }
+            return callee.expression.kind === ts.SyntaxKind.Identifier
+                && (callee.expression as any).escapedText === 'Precise'
+                && PRECISE_STRING_STATICS.has (method);
+        }
+        default:
+            return false;
+    }
+}
+
+// true when the TYPE the checker gives `node` could hold a Java-Double box at runtime
+// (number / bigint members, or an any/unknown/error type we cannot rule out).
+function isPossiblyNumericExpression (printer: any, node: any): boolean {
+    try {
+        const type = printer.getChecker ().getTypeAtLocation (node);
+        return typeIsPossiblyNumeric (type);
+    } catch (e) {
+        return true; // unprovable — treat as possibly numeric
+    }
+}
+
+function typeIsPossiblyNumeric (type: any): boolean {
+    if (type === undefined) {
+        return true;
+    }
+    const flags = type.flags;
+    if (flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) {
+        return true;
+    }
+    if (flags & (ts.TypeFlags.NumberLike | ts.TypeFlags.BigIntLike)) {
+        return true;
+    }
+    if (flags & ts.TypeFlags.Union) {
+        return type.types.some ((member: any) => typeIsPossiblyNumeric (member));
+    }
+    if (flags & ts.TypeFlags.Intersection) {
+        return type.types.some ((member: any) => typeIsPossiblyNumeric (member));
+    }
+    return false;
+}
+
+// true when any operand of the `+` chain (through parentheses) could be a Java Double
+// box: Helpers.add tests `a instanceof Double || b instanceof Double` BEFORE its String
+// branches, so a single Double operand silently turns the whole call numeric.
+function isPossiblyNumericDeep (printer: any, node: any): boolean {
+    node = unwrapParensAll (node);
+    if (node === undefined) {
+        return true;
+    }
+    if (ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        return isPossiblyNumericDeep (printer, node.left) || isPossiblyNumericDeep (printer, node.right);
+    }
+    return isPossiblyNumericExpression (printer, node);
+}
+
+// true when the printed Java for `node` is a String GUARANTEED non-null at runtime
+// (given the named local holds String-or-null): literals, templates, ternaries of these,
+// and `+` chains with a statically-String or non-null-String-plus-non-numeric shape.
+// Calls do NOT qualify — even an audited non-null call is only proven for the narrowed
+// local, not for arbitrary call sites (same rule as the module's predicate).
+function isProvablyNonNullStringExpression (printer: any, node: any, selfName: string | undefined): boolean {
+    node = unwrapParensAll (node);
+    if (node === undefined) {
+        return false;
+    }
+    switch (node.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+            return true;
+        case ts.SyntaxKind.ConditionalExpression:
+            return isProvablyNonNullStringExpression (printer, node.whenTrue, selfName)
+                && isProvablyNonNullStringExpression (printer, node.whenFalse, selfName);
+        case ts.SyntaxKind.BinaryExpression: {
+            if (node.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+                return false;
+            }
+            return isStaticallyStringExpression (printer, node.left, selfName)
+                || (isProvablyNonNullStringExpression (printer, node.left, selfName) && !isPossiblyNumericDeep (printer, node.right))
+                || (isProvablyNonNullStringExpression (printer, node.right, selfName) && !isPossiblyNumericDeep (printer, node.left));
+        }
+        default:
+            return false;
+    }
+}
+
+// `x = x + r0 + r1 ...` (and the `x += r` form, which prints `x = Helpers.add(x, r)`):
+// measured-safe when the level-0 right operand is a provably non-null String and every
+// enclosing right operand is not possibly numeric. Walks DOWN the left spine to find the
+// level-0 `+`, then UP for the enclosing levels.
+function plusWriteRightIsSafe (printer: any, right: any, sourceName: string): boolean {
+    let node = unwrapParensAll (right);
+    if (node === undefined || !ts.isBinaryExpression (node) || node.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return false;
+    }
+    let level0;
+    while (node !== undefined && ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        const left = unwrapParensAll (node.left);
+        if (left !== undefined && ts.isIdentifier (left) && left.escapedText === sourceName) {
+            level0 = node;
+            break;
+        }
+        if (left !== undefined && ts.isBinaryExpression (left) && left.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+            node = left;
+            continue;
+        }
+        break;
+    }
+    if (level0 === undefined) {
+        return false;
+    }
+    if (!isProvablyNonNullStringExpression (printer, level0.right, sourceName)) {
+        return false;
+    }
+    let child = level0;
+    let parent = level0.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        child = parent;
+        parent = parent.parent;
+    }
+    while (parent !== undefined && ts.isBinaryExpression (parent)
+        && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && parent.left === child) {
+        if (isPossiblyNumericDeep (printer, parent.right)) {
+            return false;
+        }
+        child = parent;
+        parent = parent.parent;
+        while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+            child = parent;
+            parent = parent.parent;
+        }
+    }
+    return true;
+}
+
 // true when the printed Java for `node` is statically a String (or null).
 // `selfName` is the local being classified: a self-reference (`x = cond ? 'a' : x`)
 // is consistent with whatever type that local ends up with.
@@ -402,8 +601,49 @@ function isAsyncMethodCall (printer: any, callNode: any): boolean {
         && ts.isIdentifier (returnType.typeName) && returnType.typeName.escapedText === 'Promise';
 }
 
+// env-gated calibration trace (same convention as the module's
+// CCXT_JAVA_LOCAL_TYPES_DEBUG / JAVA_STRING_HELPERS_DEBUG): CCXT_JAVA_SAFESTRING_DEBUG=1
+// prints one line per rejected safeString-family declaration with the reason the
+// use-scan declined it (write-rhs / write-plus-safe / write-plus-unsafe /
+// compound-plus-unsafe / compound-plus-ws / compound-assign / pro-async / ...).
+const SAFESTRING_DEBUG = process.env['CCXT_JAVA_SAFESTRING_DEBUG'] === '1';
+let safeStringRejectReason: string | undefined;
+function safeStringReject (reason: string): boolean {
+    safeStringRejectReason = reason;
+    return false;
+}
+
+// would postProcessWsJava's "String type fixes" pass rewrite this declaration back to
+// `Object`? (mirror of build/java-local-types.js#dataflowWsReverts): pro/prediction source
+// file + a printed value starting with `this.<m>(` / `Helpers.<...>(`. The SS-03 `+`
+// acceptance must not fire there — the retype would be silently reverted, and it would
+// also pre-empt a declaration the pro messageHash family types WITH the redundant
+// `(String)` checkcast that defeats the revert (measured: pro/HtxCore messageHash would
+// lose its String type). Files that survive the revert (REST/base) keep the relaxation.
+const WS_REVERT_SOURCE_FILE = /[\\/](pro|prediction)[\\/]/;
+function wsPostProcessReverts (declaration: any): boolean {
+    if (!WS_REVERT_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
+        return false;
+    }
+    let initializer = declaration.initializer;
+    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
+        initializer = initializer.expression;
+    }
+    if (initializer === undefined || initializer.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = initializer.expression;
+    if (ts.isPropertyAccessExpression (callee)) {
+        return callee.expression.kind === ts.SyntaxKind.ThisKeyword;
+    }
+    return ts.isIdentifier (callee) && callee.escapedText === 'Helpers';
+}
+
 // reject the refinement when a later use needs the local to stay `Object`
-function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean): boolean {
+function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean, plusRelaxationAllowed = false): boolean {
+    if (SAFESTRING_DEBUG) {
+        safeStringRejectReason = undefined;
+    }
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
         return false;
@@ -426,27 +666,49 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
         if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
             const op = parent.operator;
             if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
-                return false;
+                return SAFESTRING_DEBUG ? safeStringReject ('inc-dec') : false;
             }
         }
         if (ts.isSpreadElement (parent)) {
-            return false;
+            return SAFESTRING_DEBUG ? safeStringReject ('spread') : false;
         }
         if (ts.isTypeOfExpression (parent)) {
-            return false; // `typeof x === 'number'` prints `x instanceof Long`: inconvertible for a String
+            return SAFESTRING_DEBUG ? safeStringReject ('typeof') : false; // `typeof x === 'number'` prints `x instanceof Long`: inconvertible for a String
         }
         if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-            return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
+            return SAFESTRING_DEBUG ? safeStringReject ('destructure') : false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
         if (ts.isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
-                if (!isProvablyStringExpression (printer, parent.right, sourceName)) {
+                // SS-03: a write whose printed Java is `Helpers.add(<local>, ..)`, i.e. the
+                // local is the LEFT operand of a `+` inside the RHS. Admitted when the
+                // measured add-overload identity holds (see the SS-03 block above) so the
+                // declaration can be a String: with the local retyped, the emitted call
+                // binds add(String, ..), and its value is unchanged for every reachable
+                // input.
+                if (!isProvablyStringExpression (printer, parent.right, sourceName)
+                    && !(plusRelaxationAllowed && plusWriteRightIsSafe (printer, parent.right, sourceName))) {
+                    if (SAFESTRING_DEBUG) {
+                        const right = unwrapParensAll (parent.right);
+                        const isPlus = right !== undefined && ts.isBinaryExpression (right)
+                            && right.operatorToken.kind === ts.SyntaxKind.PlusToken;
+                        const safe = isPlus && plusWriteRightIsSafe (printer, parent.right, sourceName);
+                        safeStringReject (isPlus ? ('write-plus-' + (safe ? 'safe' : 'unsafe')) : 'write-rhs');
+                    }
                     return false;
                 }
+            } else if (op === ts.SyntaxKind.PlusEqualsToken) {
+                // `x += r` prints `x = Helpers.add (x, r)`: same measured identity, with the
+                // whole right operand as the level-0 right (the local itself is on the left
+                // by construction). Other compound operators print numeric helpers whose
+                // Object result cannot assign to a String local.
+                if (!plusRelaxationAllowed || !isProvablyNonNullStringExpression (printer, parent.right, sourceName)) {
+                    return SAFESTRING_DEBUG ? safeStringReject (plusRelaxationAllowed ? 'compound-plus-unsafe' : 'compound-plus-ws') : false;
+                }
             } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
-                return false;
+                return SAFESTRING_DEBUG ? safeStringReject ('compound-assign') : false;
             }
         }
         // A pro core extends the REST *wrapper* class, whose typed overloads
@@ -456,7 +718,7 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
         // `Helpers.add(String, String)` also returns String) so the call keeps
         // binding to the core.
         if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
-            return false;
+            return SAFESTRING_DEBUG ? safeStringReject ('pro-async') : false;
         }
     }
     return true;
@@ -500,7 +762,12 @@ function javaLocalType (printer: any, declaration: any): string | undefined {
     const sourceName = declaration.name.escapedText;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
-    if (!isSafeToNarrow (printer, declaration, sourceName, isProFile)) {
+    const plusRelaxationAllowed = !wsPostProcessReverts (declaration);
+    if (!isSafeToNarrow (printer, declaration, sourceName, isProFile, plusRelaxationAllowed)) {
+        if (SAFESTRING_DEBUG) {
+            console.error (`[java-safestring] reject ${fileName}:${declaration.getStart ()} ${sourceName} (${safeStringRejectReason ?? 'unknown'})`);
+            safeStringRejectReason = undefined;
+        }
         return undefined;
     }
     return 'String';

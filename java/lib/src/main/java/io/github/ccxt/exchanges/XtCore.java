@@ -6028,7 +6028,7 @@ final Object finalMarket = market;
         String marketId = this.safeString(contract, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market, "_", "swap");
         Long timestamp = this.safeInteger(contract, "nextCollectionTime");
-        Object interval = this.safeString(contract, "collectionInternal");
+        String interval = this.safeString(contract, "collectionInternal");
         if (Helpers.isTrue(!Helpers.isEqual(interval, null)))
         {
             interval = Helpers.add(interval, "h");
