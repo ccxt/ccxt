@@ -38,10 +38,16 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
             # match the (symbol, side) PAIR strictly - a plainly concatenated
             # key is ambiguous, so the symbol is length prefixed, which makes
             # the encoding injective and cannot splice the wrong position out
+            $last_index = count($this->index) - 1;
             $index = array_search($this->index_key($symbol, $side), $this->index, true);
             # a miss must not splice - array_splice() coerces false to 0 and
             # would silently remove the first row
-            if ($index !== false) {
+            if ($index !== false && $index === $last_index && count($this->deque) === $last_index + 1 && array_is_list($this->deque)) {
+                // Keep the public deque's sparse-array fallback, but avoid
+                // copying a dense array just to remove its final element.
+                array_pop($this->index);
+                array_pop($this->deque);
+            } elseif ($index !== false) {
                 array_splice($this->index, $index, 1);
                 array_splice($this->deque, $index, 1);
             }

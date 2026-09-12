@@ -273,8 +273,12 @@ func (c *ArrayCache) Append(item any) {
 		// match on both the key field (e.g. symbol) and id - different symbols can
 		// share an order id (binance uses per-symbol id sequences), and matching on
 		// id alone would move the wrong row, see ccxt/ccxt#26092
+		// Keep the raw, post-merge keys: the hashmap's string-normalized keys do
+		// not have the same equality semantics. Read each once, outside the scan.
+		itemId := GetValue(item, "id")
+		itemKey := GetValue(item, keyField)
 		for i, v := range c.Data {
-			if (GetValue(v, "id") == GetValue(item, "id")) && (GetValue(v, keyField) == GetValue(item, keyField)) {
+			if (GetValue(v, "id") == itemId) && (GetValue(v, keyField) == itemKey) {
 				// remove from current position
 				c.Data = append(c.Data[:i], c.Data[i+1:]...)
 				// append to the end

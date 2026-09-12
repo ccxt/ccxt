@@ -8235,12 +8235,16 @@ impl std::ops::DerefMut for ${coreName} {
             '#![allow(non_snake_case, unused, dead_code, clippy::all)]',
             '',
             modLines,
+            ...(names.includes('test.cache') ? [
+                '#[path = "../../../build/tests/arrayCacheRust.rs"] mod cache_native;',
+            ] : []),
             '',
             '/// Aggregator: mirrors `testBaseWs` from',
             '/// `ts/src/pro/test/base/tests.init.ts`. Called by the',
             '/// hand-written runner under `--baseTests --ws`.',
             'pub fn run_all() {',
             calls,
+            ...(names.includes('test.cache') ? ['    cache_native::test_ws_cache_native();'] : []),
             '}',
             '',
         ].join('\n');

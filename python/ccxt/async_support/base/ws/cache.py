@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+from itertools import islice
 
 
 class Delegate:
@@ -14,6 +15,15 @@ class Delegate:
 
 
 class BaseCache(list):
+    """Mutable cache for serialized use on its owning asyncio event loop.
+
+    Cache reads and writes are synchronous but are not protected against other
+    threads. Keep access on the owning loop, or externally synchronize all
+    reads and mutations, including changes through returned row references.
+    Slices are shallow lists, not thread-safe snapshots; concurrent deque
+    mutation during slice traversal may raise RuntimeError.
+    """
+
     # implicitly called magic methods don't invoke __getattribute__
     # https://docs.python.org/3/reference/datamodel.html#special-method-lookup
     # all method lookups obey the descriptor protocol
@@ -48,8 +58,31 @@ class BaseCache(list):
         # deque doesn't support slicing
         deque = super(list, self).__getattribute__('_deque')
         if isinstance(item, slice):
-            start, stop, step = item.indices(len(deque))
-            return [deque[i] for i in range(start, stop, step)]
+            size = len(deque)
+            start, stop, step = item.indices(size)
+            indices = range(start, stop, step)
+            count = len(indices)
+            if count == 0:
+                return []
+            if count <= 64 or abs(step) != 1 or len(deque) != size:
+                # Keep direct probes for small or strided slices: walking all
+                # skipped entries can cost more than indexing those rows.
+                # A slice bound's __index__ can mutate storage; retain the
+                # original indexing errors if normalization changed its size.
+                return [deque[i] for i in indices]
+            # Repeated deque indexing makes a full slice quadratic. Traverse
+            # once from the nearer end, so small tail slices stay cheap too.
+            last = indices[-1]
+            low, high = (start, last) if step > 0 else (last, start)
+            if low <= size - 1 - high:
+                result = list(islice(deque, low, high + 1))
+                if step < 0:
+                    result.reverse()
+            else:
+                result = list(islice(reversed(deque), size - 1 - high, size - low))
+                if step > 0:
+                    result.reverse()
+            return result
         else:
             return deque[item]
 

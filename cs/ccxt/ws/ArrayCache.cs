@@ -25,6 +25,24 @@ public class BaseCache : SlimConcurrentList<object>
         get { return (this.maxSize != null) && (this.maxSize != 0); }
     }
 
+    /// <summary>
+    /// Reads the usual string-valued dictionary key without allocating the
+    /// temporary key list used by SafeString. Other shapes and conversions
+    /// retain SafeString's behavior, including custom dictionary subclasses.
+    /// </summary>
+    protected static string cacheStringKey(object item, string field)
+    {
+        if (item != null && item.GetType() == typeof(Dictionary<string, object>))
+        {
+            var row = (Dictionary<string, object>)item;
+            if (row.TryGetValue(field, out var value) && value is string text && text.Length > 0)
+            {
+                return text;
+            }
+        }
+        return Exchange.SafeString(item, field);
+    }
+
     // Mirrors the TS `for (const prop in item) reference[prop] = item[prop]`
     // update path: the *stored* object is mutated in place so that any external
     // reference handed out earlier (and the hashmap entry pointing at it) stays
@@ -402,7 +420,7 @@ public class ArrayCacheBySymbolById : ArrayCache
             // match on both the key field (e.g. symbol) and id - different symbols can
             // share an order id (binance uses per-symbol id sequences), and matching on
             // id alone would remove the wrong row, see ccxt/ccxt#26092
-            var indexInt = this.FindIndex(x => (Exchange.SafeString(x, "id") == itemId) && (Exchange.SafeString(x, this.keyField) == itemSymbol));
+            var indexInt = this.FindIndex(x => (cacheStringKey(x, "id") == itemId) && (cacheStringKey(x, this.keyField) == itemSymbol));
             // move the order to the end of the array
             if (indexInt >= 0)
             {
@@ -550,7 +568,7 @@ public class ArrayCacheBySymbolBySide : ArrayCache
             {
                 bySide[itemSide] = item;
             }
-            var indexInt = this.FindIndex(x => Exchange.SafeString(x, "symbol") == itemSymbol && Exchange.SafeString(x, "side") == itemSide);
+            var indexInt = this.FindIndex(x => cacheStringKey(x, "symbol") == itemSymbol && cacheStringKey(x, "side") == itemSide);
             // move to the end
             if (indexInt >= 0)
             {

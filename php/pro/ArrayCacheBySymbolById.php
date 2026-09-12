@@ -41,10 +41,16 @@ class ArrayCacheBySymbolById extends ArrayCache {
             # collides, eg ('BTC/USDT1', '2') and ('BTC/USDT', '12') both
             # yield "BTC/USDT12", whereas "9:BTC/USDT12" and "8:BTC/USDT12"
             # are distinct for every possible pair
+            $last_index = count($this->index) - 1;
             $index = array_search($this->index_key($key, $id), $this->index, true);
             # a miss must not splice - array_splice() coerces false to 0 and
             # would silently remove the first row
-            if ($index !== false) {
+            if ($index !== false && $index === $last_index && count($this->deque) === $last_index + 1 && array_is_list($this->deque)) {
+                // Preserve first-match lookup even if public hashmap edits
+                // left duplicate tokens. Pop avoids copying a dense array.
+                array_pop($this->index);
+                array_pop($this->deque);
+            } elseif ($index !== false) {
                 array_splice($this->index, $index, 1);
                 array_splice($this->deque, $index, 1);
             }
