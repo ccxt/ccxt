@@ -38,7 +38,8 @@ const TYPENORM_RX = new RegExp('\\b(?:' + TYPE_ALT + ')\\b', 'g');
 function stripCasts(s) {
   return s
     .replace(/\(\(String\)[ \t]*([A-Za-z_$][A-Za-z0-9_$]*)\)/g, '$1')
-    .replace(/\(String\)[ \t]*/g, '');
+    .replace(/\(String\)[ \t]*/g, '')
+    .replace(/\(Object\)[ \t]+(?=[A-Za-z_$])/g, ''); // SS-05: `(Object) arg` dropped at String-typed wrapper positions
 }
 function typeNorm(s) {
   return s.replace(TYPENORM_RX, '<T>');

@@ -6528,7 +6528,7 @@ export function patchJavaRedundantStringCasts (transpiler) {
                 && typeof out === 'string' && out.length > '((String))'.length
                 && out.startsWith ('((String)') && out.endsWith (')')
                 && operandIsString (this, node.expression)) {
-                return '(' + out.slice ('((String)'.length, -1) + ')';
+                return out.slice ('((String)'.length, -1);
             }
             return out;
         };
