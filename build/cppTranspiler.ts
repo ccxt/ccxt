@@ -37,6 +37,7 @@ if (process.platform === 'win32') {
 
 const TS_BASE_FILE          = './ts/src/base/Exchange.ts';
 const BASE_METHODS_FILE     = './cpp/ccxt/base/Exchange.BaseMethods.inc';
+const SET_MARKETS_FILE      = './cpp/ccxt/base/Exchange.SetMarkets.inc';
 const TRADING_METHODS_FILE  = './cpp/ccxt/base/Exchange.TradingMethods.inc';
 const BASE_DISPATCH_FILE    = './cpp/ccxt/base/Exchange.Dispatch.inc';
 const TYPED_API_FILE        = './cpp/ccxt/base/Exchange.TypedApi.inc';
@@ -627,6 +628,118 @@ class CppTranspilerDriver {
 
     transpiler!: Transpiler;
 
+    // Whole-file extraction of every generated member definition (virtual
+    // std::any/void NAME(...) { ... }) from the base-methods content: each body
+    // becomes an out-of-line definition qualified with `qualifier::name` and the
+    // in-class position keeps a declaration. Reverse-order processing keeps the
+    // earlier match indices valid. Members that fail to parse stay inline.
+    extractAllMembers (content: string, qualifier: string): { content: string, impls: string } {
+        const matches: { index: number, name: string }[] = [];
+        const re = /(^|\n)(\s*)(virtual )?(std::any|void) (\w+)\s*\(/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec (content)) !== null) {
+            matches.push ({ index: m.index + m[1].length + m[2].length, name: m[5] });
+        }
+        let out = content;
+        const impls: string[] = [];
+        for (let i = matches.length - 1; i >= 0; i--) {
+            const extracted = this.extractMemberFromIndex (out, matches[i].index, matches[i].name, qualifier);
+            if (!extracted) continue;
+            out = out.slice (0, extracted.start) + extracted.decl + out.slice (extracted.end);
+            impls.unshift (extracted.impl);
+        }
+        return { content: out, impls: impls.join ('\n\n') };
+    }
+
+    extractMemberFromIndex (content: string, at: number, name: string, qualifier: string): { start: number, end: number, decl: string, impl: string } | undefined {
+        // the body brace is the first '{' after the signature's terminating ')'
+        // — the backend emits both `) {` and `)\n    {` (brace on the next line,
+        // indented), so match whitespace-agnostically. Defaults like
+        // `= std::any{}` contain no ')' followed by '{'.
+        const tail = content.slice (at);
+        const bodyBrace = /\)\s*\{/.exec (tail);
+        if (!bodyBrace) return undefined;
+        const open = at + bodyBrace.index + bodyBrace[0].length - 1;
+        let depth = 0;
+        let end = -1;
+        for (let i = open; i < content.length; i++) {
+            if (content[i] === '{') depth++;
+            else if (content[i] === '}') {
+                depth--;
+                if (depth === 0) { end = i + 1; break; }
+            }
+        }
+        if (end === -1) return undefined;
+        const decl = content.slice (at, open).trimEnd () + ';';
+        // build the out-of-line signature from the SAME text as the declaration:
+        // strip default args with a depth/string-aware scanner (defaults can be
+        // arbitrary expressions with commas and parens — regex can't see them),
+        // drop `virtual `, and qualify the name. The body is untouched.
+        let sig = this.stripDefaultArgs (content.slice (at, open).trimEnd ());
+        sig = sig.replace (/^virtual /, '');
+        const firstParen = sig.indexOf ('(');
+        const before = sig.slice (0, firstParen).trimEnd ();
+        const nameMatch = /(\w+)$/.exec (before);
+        if (nameMatch) {
+            const nameStart = before.length - nameMatch[1].length;
+            sig = before.slice (0, nameStart) + qualifier + '::'
+                + before.slice (nameStart) + sig.slice (firstParen);
+        }
+        return { start: at, end, decl, impl: sig + content.slice (open, end) };
+    }
+
+    // removes `= <default>` from every top-level parameter of a member signature;
+    // tracks paren depth, brace depth and string literals so defaults may contain
+    // commas, parens and quotes (`= this->handleOptionAndParams("a", "b")`)
+    stripDefaultArgs (sig: string): string {
+        let out = '';
+        let i = 0;
+        let depth = 0;
+        let brace = 0;
+        while (i < sig.length) {
+            const c = sig[i];
+            if (c === '"' || c === '\'') {
+                const quote = c;
+                out += c;
+                i++;
+                while (i < sig.length && sig[i] !== quote) { out += sig[i]; i++; }
+                if (i < sig.length) { out += sig[i]; i++; }
+                continue;
+            }
+            if (c === '(') { depth++; out += c; i++; continue; }
+            if (c === ')') { depth--; out += c; i++; continue; }
+            if (c === '{') { brace++; out += c; i++; continue; }
+            if (c === '}') { brace--; out += c; i++; continue; }
+            if (c === '=' && depth === 1 && brace === 0) {
+                // skip the default expression with a LOCAL depth counter; the
+                // parameter list's closing ')' and top-level ',' separators are
+                // left in place for the outer loop to emit
+                let d2 = 1;
+                while (i < sig.length) {
+                    const d = sig[i];
+                    if (d === '"' || d === '\'') {
+                        const quote = d;
+                        i++;
+                        while (i < sig.length && sig[i] !== quote) { i++; }
+                        if (i < sig.length) i++;
+                        continue;
+                    }
+                    if (d === '(') d2++;
+                    if (d === ')') {
+                        d2--;
+                        if (d2 === 0) { break; }   // the list's closing paren
+                    }
+                    if (d === ',' && d2 === 1) { break; }
+                    i++;
+                }
+                continue;
+            }
+            out += c;
+            i++;
+        }
+        return out.trimEnd ();
+    }
+
     constructor () {
         this.setupTranspiler ();
     }
@@ -673,7 +786,7 @@ class CppTranspilerDriver {
     transpileBaseMethods (baseExchangeFile = TS_BASE_FILE, force = true) {
         if (skipUpToDateStage ('cpp', 'base methods', force,
             [ baseExchangeFile, './ts/src/base/types.ts', './exchanges.json' ],
-            [ BASE_METHODS_FILE, TRADING_METHODS_FILE ])) {
+            [ BASE_METHODS_FILE, TRADING_METHODS_FILE, SET_MARKETS_FILE ])) {
             return;
         }
         assertNoDroppedConstructs (baseExchangeFile);
@@ -715,7 +828,29 @@ class CppTranspilerDriver {
             /virtual std::any parseTransaction\(std::any transaction, std::any currency = std::any\{\}\)/,
             'virtual std::any parseTransaction(std::any transaction, std::any currency = std::any{}, std::any since = std::any{}, std::any limit = std::any{})');
 
-        overwriteFileAndFolder (BASE_METHODS_FILE, header + applyCommonFixes (baseMethods) + '\n');
+        // The whole generated base-methods surface is the live hot path (per-market
+        // safe*/deepExtend/sortBy work over thousands of entries in setMarkets, and
+        // every other generated call site). ALL members are extracted into
+        // out-of-line definitions so a dedicated -O2 TU (Exchange.SetMarkets.cpp)
+        // compiles them while the per-exchange TUs keep the fast -O0 build regime.
+        // Probe-measured ~2.6x on a warm binance load (4.6s -> 1.7s) with this
+        // surface at -O2 — and only the WHOLE surface: extracting a subset left
+        // the remaining -O0 inline copies in the loop. If a member fails to parse
+        // (upstream rename), it simply stays inline.
+        const fixed = applyCommonFixes (baseMethods);
+        const { content: inc, impls } = this.extractAllMembers (fixed, 'Exchange');
+        if (impls.length) {
+            overwriteFileAndFolder (SET_MARKETS_FILE,
+                createGeneratedHeader ().join ('\n')
+                + '\n// Out-of-line definitions of the generated ccxt::Exchange base members;\n'
+                + '// included by cpp/ccxt/base/Exchange.SetMarkets.cpp, which compiles at\n'
+                + '// -O2 (the per-market safe*/deepExtend loops dominate live loadMarkets).\n\n'
+                + 'namespace ccxt {\n\n'
+                + impls + '\n\n'
+                + '} // namespace ccxt\n');
+        }
+
+        overwriteFileAndFolder (BASE_METHODS_FILE, header + inc + '\n');
         log.green ('[cpp] Transpiled base methods to', (BASE_METHODS_FILE as any).yellow);
 
         if (tradingMethods.length) {
