@@ -489,7 +489,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList(portfolioId, parameters));
                 }
             }
-            throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
+            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
         });
 
     }
@@ -514,7 +514,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                     // find default network
                     if (Helpers.isTrue(this.isEmpty(networks)))
                     {
-                        throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createDepositAddress network not found for currency "), currencyCode), " please specify networkId in params")) ;
+                        throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " createDepositAddress network not found for currency "), currencyCode), " please specify networkId in params")) ;
                     }
                     Object defaultNetwork = this.findDefaultNetwork(networks);
                     networkId = Helpers.GetValue(defaultNetwork, "id");
@@ -639,7 +639,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 Helpers.addElementToObject(request, "start", this.iso8601(since));
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a since argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV() requires a since argument")) ;
             }
             Long unitl = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(unitl, null)))
@@ -707,7 +707,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1230,7 +1230,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMargin() only allows setting margin to full portfolio")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMargin() only allows setting margin to full portfolio")) ;
             }
             final Object finalPortfolio = portfolio;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1823,7 +1823,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Object isInverse = ((Helpers.isTrue(isSpot))) ? null : (!Helpers.isEqual(settleId, quoteId));
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
         final Object finalMarketId = marketId;
         final Object finalSymbol = symbol;
@@ -2240,7 +2240,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             clientOrderId = Helpers.slice(clientOrderId, 0, 17);
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalClientOrderId = clientOrderId;
             final Object finalSide = side;
@@ -2266,7 +2266,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a price parameter for a limit order types")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires a price parameter for a limit order types")) ;
                 }
                 Helpers.addElementToObject(request, "price", price);
             }
@@ -2285,7 +2285,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(tif, null)) && Helpers.isTrue(!Helpers.isEqual(tif, "IOC"))))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() market orders must have tif set to \"IOC\"")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() market orders must have tif set to \"IOC\"")) ;
                 }
                 tif = "IOC";
             } else
@@ -2581,7 +2581,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             String clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " editOrder() requires a clientOrderId parameter")) ;
+                throw new BadRequest(Helpers.add(this.id, " editOrder() requires a clientOrderId parameter")) ;
             }
             Helpers.addElementToObject(request, "client_order_id", clientOrderId);
             java.util.Map<String, Object> order = (this.v1PrivatePutOrdersId(this.extend(request, parameters))).join();
@@ -2717,7 +2717,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchOpenOrders() maximum limit is 100")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchOpenOrders() maximum limit is 100")) ;
                 }
                 Helpers.addElementToObject(request, "result_limit", limit);
             }
@@ -2819,7 +2819,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.")) ;
                 }
                 Helpers.addElementToObject(request, "result_limit", limit);
             }

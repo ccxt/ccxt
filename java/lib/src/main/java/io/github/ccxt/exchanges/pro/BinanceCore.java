@@ -260,7 +260,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Long subscriptionLimitByStream = this.safeInteger(Helpers.GetValue(this.options, "subscriptionLimitByStream"), type, 200);
             if (Helpers.isTrue(Helpers.isGreaterThan(newNumSubscriptions, subscriptionLimitByStream)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.")) ;
+                throw new BadRequest(Helpers.add(this.id, " reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.")) ;
             }
             Helpers.addElementToObject(Helpers.GetValue(this.options, "numSubscriptionsByStream"), stream, Helpers.add(subscriptionsByStream, numSubscriptions));
         }
@@ -291,7 +291,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (Helpers.isTrue(((String)baseUrl).endsWith(((String)"/ws"))))
+            if (Helpers.isTrue(((String)baseUrl).endsWith("/ws")))
             {
                 Object prefix = Helpers.slice(baseUrl, 0, Helpers.subtract(((String)baseUrl).length(), 3));
                 return Helpers.add(Helpers.add(Helpers.add(prefix, "/"), category), "/ws");
@@ -325,7 +325,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object baseUrl = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "stock");
         if (Helpers.isTrue(Helpers.isEqual(streamType, "combined")))
         {
-            return Helpers.replace((String)baseUrl, (String)"/ws", (String)"/stream");
+            return Helpers.replace(((String)baseUrl), "/ws", "/stream");
         }
         return baseUrl;
     }
@@ -450,7 +450,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     ((java.util.List<Object>)subscriptionHashes).add(Helpers.add(Helpers.GetValue(market, "lowercaseId"), "@forceOrder"));
                     ((java.util.List<Object>)messageHashes).add(Helpers.add("liquidations::", Helpers.GetValue(symbols, i)));
                 }
-                streamHash = Helpers.add(streamHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
+                streamHash = Helpers.add(streamHash, Helpers.add("::", String.join(",", (java.util.List<String>)symbols)));
             }
             Object firstMarket = null;
             if (!Helpers.isTrue(this.isEmpty(symbols)))
@@ -466,11 +466,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             // there and only a request that still resolves to spot throws
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " watchLiquidationsForSymbols is not supported for spot symbols")) ;
+                throw new BadRequest(Helpers.add(this.id, " watchLiquidationsForSymbols is not supported for spot symbols")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(type, "option")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions")) ;
             }
             Object numSubscriptions = Helpers.getArrayLength(subscriptionHashes);
             Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory("forceOrder")), "/"), this.stream(type, streamHash, numSubscriptions));
@@ -879,9 +879,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 200)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " watchOrderBookForSymbols() accepts 200 symbols at most. To watch more symbols call watchOrderBookForSymbols() multiple times")) ;
+                    throw new BadRequest(Helpers.add(this.id, " watchOrderBookForSymbols() accepts 200 symbols at most. To watch more symbols call watchOrderBookForSymbols() multiple times")) ;
                 }
-                streamHash = Helpers.add(streamHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
+                streamHash = Helpers.add(streamHash, Helpers.add("::", String.join(",", (java.util.List<String>)symbols)));
             }
             Object watchOrderBookRate = null;
             java.util.List<Object> watchOrderBookRateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "watchOrderBookRate", "100");
@@ -906,7 +906,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 Object subscriptionHash = Helpers.add(Helpers.add(Helpers.GetValue(market, "lowercaseId"), "@"), name);
                 if (Helpers.isTrue(Helpers.isEqual(watchOrderBookRate, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBookForSymbols() watchOrderBookRate is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " watchOrderBookForSymbols() watchOrderBookRate is required")) ;
                 }
                 Object symbolHash = Helpers.add(Helpers.add(Helpers.add(subscriptionHash, "@"), String.valueOf(watchOrderBookRate)), "ms");
                 ((java.util.List<Object>)subParams).add(symbolHash);
@@ -976,7 +976,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object streamHash = "multipleOrderbook";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                streamHash = Helpers.add(streamHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
+                streamHash = Helpers.add(streamHash, Helpers.add("::", String.join(",", (java.util.List<String>)symbols)));
             }
             String watchOrderBookRate = this.safeString(this.options, "watchOrderBookRate", "100");
             java.util.List<Object> subParams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1073,7 +1073,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object marketType = this.getMarketType("fetchOrderBookWs", market, parameters);
             if (Helpers.isTrue(!Helpers.isEqual(marketType, "future")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOrderBookWs only supports swap markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOrderBookWs only supports swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), marketType);
             Object requestId = this.requestId(url);
@@ -1203,7 +1203,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 client.resolve(orderbook, messageHash);
             } catch(Exception e)
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
                 client.reject(e, messageHash);
             }
             return null;
@@ -1331,7 +1331,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
                             if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
                             {
-                                throw new ChecksumError((String)Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
+                                throw new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
                             }
                         }
                     }
@@ -1355,7 +1355,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
                             if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
                             {
-                                throw new ChecksumError((String)Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
+                                throw new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
                             }
                         }
                     }
@@ -1368,7 +1368,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 }
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
-                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
                 }
                 client.reject(e, messageHash);
             }
@@ -1472,9 +1472,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 200)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times")) ;
+                    throw new BadRequest(Helpers.add(this.id, " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times")) ;
                 }
-                streamHash = Helpers.add(streamHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
+                streamHash = Helpers.add(streamHash, Helpers.add("::", String.join(",", (java.util.List<String>)symbols)));
             }
             Object name = null;
             java.util.List<Object> nameparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTradesForSymbols", "name", "trade");
@@ -1577,9 +1577,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 200)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times")) ;
+                    throw new BadRequest(Helpers.add(this.id, " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times")) ;
                 }
-                streamHash = Helpers.add(streamHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
+                streamHash = Helpers.add(streamHash, Helpers.add("::", String.join(",", (java.util.List<String>)symbols)));
             }
             Object name = null;
             java.util.List<Object> nameparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTradesForSymbols", "name", "trade");
@@ -1951,7 +1951,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeframe, "5m"))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1h")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1d")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1w")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1M")))))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
+                    throw new BadRequest(Helpers.add(this.id, " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
                 }
                 Helpers.addElementToObject(parameters, "stock", true);
             }
@@ -2009,7 +2009,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     String stockInterval = this.safeString(this.timeframes, stockTimeframeString, stockTimeframeString);
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stockInterval, "5m"))) && Helpers.isTrue((!Helpers.isEqual(stockInterval, "1h")))) && Helpers.isTrue((!Helpers.isEqual(stockInterval, "1d")))) && Helpers.isTrue((!Helpers.isEqual(stockInterval, "1w")))) && Helpers.isTrue((!Helpers.isEqual(stockInterval, "1M")))))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
+                        throw new BadRequest(Helpers.add(this.id, " watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
                     }
                     ((java.util.List<Object>)stockStreams).add(Helpers.add(Helpers.add(stockTickerString, "@kline_"), stockInterval));
                     ((java.util.List<Object>)stockMessageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv::", Helpers.GetValue(stockMarket, "symbol")), "::"), stockTimeframeString));
@@ -2062,12 +2062,12 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 Object marketId = Helpers.GetValue(market, "lowercaseId");
                 if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() marketId is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " watchOHLCVForSymbols() marketId is required")) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(klineType, "indexPriceKline")))
                 {
                     // weird behavior for index price kline we can't use the perp suffix
-                    marketId = Helpers.replace((String)marketId, (String)"_perp", (String)"");
+                    marketId = Helpers.replace(((String)marketId), "_perp", "");
                 }
                 Boolean shouldUseUTC8 = (Helpers.isTrue(isUtc8) && Helpers.isTrue(isSpot));
                 String suffix = "@+08:00";
@@ -2160,12 +2160,12 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 Object marketId = Helpers.GetValue(market, "lowercaseId");
                 if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchOHLCVForSymbols() marketId is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " unWatchOHLCVForSymbols() marketId is required")) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(klineType, "indexPriceKline")))
                 {
                     // weird behavior for index price kline we can't use the perp suffix
-                    marketId = Helpers.replace((String)marketId, (String)"_perp", (String)"");
+                    marketId = Helpers.replace(((String)marketId), "_perp", "");
                 }
                 Boolean shouldUseUTC8 = (Helpers.isTrue(isUtc8) && Helpers.isTrue(isSpot));
                 String suffix = "@+08:00";
@@ -2322,7 +2322,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object type = this.getMarketType("fetchTickerWs", market, parameters);
             if (Helpers.isTrue(!Helpers.isEqual(type, "future")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchTickerWs only supports swap markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchTickerWs only supports swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
@@ -2386,7 +2386,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object marketType = this.getMarketType("fetchOHLCVWs", market, parameters);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marketType, "spot")) && Helpers.isTrue(!Helpers.isEqual(marketType, "future"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOHLCVWs only supports spot or swap markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOHLCVWs only supports spot or swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), marketType);
             Object requestId = this.requestId(url);
@@ -2601,7 +2601,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers() with stock stream requires symbols")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " watchTickers() with stock stream requires symbols")) ;
                 }
                 symbols = this.marketSymbols(symbols, null, false, false, true);
                 Object stockResult = (this.watchStockMarketStream(new java.util.ArrayList<Object>(java.util.Arrays.asList("price")), new java.util.ArrayList<Object>(java.util.Arrays.asList("stock:price")), parameters)).join();
@@ -2617,7 +2617,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             parameters = ((java.util.List<Object>) channelNameparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(channelName, "bookTicker")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
+                throw new BadRequest(Helpers.add(this.id, " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
             }
             Object newTickers = (this.watchMultiTickerHelper("watchTickers", channelName, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -2656,7 +2656,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             parameters = ((java.util.List<Object>) channelNameparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(channelName, "bookTicker")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
+                throw new BadRequest(Helpers.add(this.id, " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
             }
             return (this.watchMultiTickerHelper("unWatchTickers", channelName, symbols, parameters, true)).join();
         });
@@ -2791,7 +2791,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchBidsAsks() with stock stream requires symbols")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " watchBidsAsks() with stock stream requires symbols")) ;
                 }
                 symbols = this.marketSymbols(symbols, null, false, false, true);
                 Object stockStreams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2871,14 +2871,14 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 rawMarketType = marketType;
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support options markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support options markets")) ;
             }
             // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
             // so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
             Boolean isOptionTicker = (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marketType, "option")) && !Helpers.isTrue(isMarkPrice)) && !Helpers.isTrue(isBidAsk));
             if (Helpers.isTrue(Helpers.isTrue(isMarkPrice) && !Helpers.isTrue(this.inArray(marketType, new java.util.ArrayList<Object>(java.util.Arrays.asList("swap", "future", "option"))))))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support "), marketType), " markets yet")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support "), marketType), " markets yet")) ;
             }
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2951,7 +2951,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     String underlying = (String)this.safeStringLower(parameters, "underlying");
                     if (Helpers.isTrue(Helpers.isEqual(underlying, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires either symbols or params[\"underlying\"] for eOptions")) ;
+                        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires either symbols or params[\"underlying\"] for eOptions")) ;
                     }
                     if (Helpers.isTrue(isOptionTicker))
                     {
@@ -2959,7 +2959,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         String expirationDate = this.safeString(parameters, "expirationDate");
                         if (Helpers.isTrue(Helpers.isEqual(expirationDate, null)))
                         {
-                            throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires params[\"expirationDate\"] (e.g. \"260227\") for eOptions tickers when no symbols are provided")) ;
+                            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires params[\"expirationDate\"] (e.g. \"260227\") for eOptions tickers when no symbols are provided")) ;
                         }
                         ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(Helpers.add(underlying, "@optionTicker@"), expirationDate));
                     } else
@@ -2973,7 +2973,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 {
                     if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires symbols for this channel for spot markets")) ;
+                        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires symbols for this channel for spot markets")) ;
                     }
                     ((java.util.List<Object>)subscriptionArgs).add(Helpers.add("!", channelName));
                     ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(unifiedPrefix, "s:"), channelName));
@@ -2993,7 +2993,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object streamHash = channelName;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                streamHash = Helpers.add(Helpers.add(channelName, "::"), String.join((String)",", (java.util.List<String>)symbols));
+                streamHash = Helpers.add(Helpers.add(channelName, "::"), String.join(",", (java.util.List<String>)symbols));
             }
             Object url = Helpers.add(Helpers.add(this.getWsUrl(rawMarketType, this.getFutureWsCategory(channelName)), "/"), this.stream(rawMarketType, streamHash));
             Object requestId = this.requestId(url);
@@ -3389,7 +3389,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object signature = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), Helpers.opNeg(1))))
         {
-            if (Helpers.isTrue(Helpers.isGreaterThan(((String)this.secret).length(), 120)))
+            if (Helpers.isTrue(Helpers.isGreaterThan(this.secret.length(), 120)))
             {
                 signature = rsa(query, this.secret, sha256());
             } else
@@ -3432,10 +3432,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
             {
                 // another caller is already subscribing, wait for it instead of subscribing again
-                client.future((String)messageHash).getFuture().join();
+                client.future(messageHash).getFuture().join();
                 return null;
             }
-            client.future((String)messageHash); // created ahead of the request below, so concurrent callers can find it
+            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
             Helpers.addElementToObject(client.subscriptions, marketType, true);
             Object requestId = this.requestId(url);
             Object requestHash = String.valueOf(requestId);
@@ -3525,10 +3525,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
                     // another caller is already fetching, wait for it instead of fetching again
-                    client.future((String)messageHash).getFuture().join();
+                    client.future(messageHash).getFuture().join();
                     return null;
                 }
-                client.future((String)messageHash); // created ahead of the request below, so concurrent callers can find it
+                client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
                 try
                 {
                     // Step 1: Create listenToken via REST API
@@ -3540,7 +3540,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     {
                         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                         {
-                            throw new ArgumentsRequired((String)Helpers.add(this.id, " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode")) ;
+                            throw new ArgumentsRequired(Helpers.add(this.id, " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode")) ;
                         }
                         Object marketId = this.marketId(symbol);
                         Helpers.addElementToObject(request, "symbol", marketId);
@@ -3554,7 +3554,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     String listenToken = this.safeString(response, "token");
                     if (Helpers.isTrue(Helpers.isEqual(listenToken, null)))
                     {
-                        throw new AuthenticationError((String)Helpers.add(this.id, " ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken")) ;
+                        throw new AuthenticationError(Helpers.add(this.id, " ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken")) ;
                     }
                     Long expirationTime = this.safeInteger(response, "expirationTime");
                     // Step 2: Subscribe to user data stream via WebSocket API
@@ -3707,13 +3707,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the listenKey is then in the bucket
-                    client.future((String)messageHash).getFuture().join();
+                    client.future(messageHash).getFuture().join();
                     return null;
                 }
                 // reusableFuture (), not future () - the two match in
                 // js/py/php/cs/java, but go's Client.Future () yields a channel
                 // that the trailing suspension point below would panic on
-                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
                 try
                 {
                     Object response = null;
@@ -3743,7 +3743,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     String listenKey = this.safeString(response, "listenKey");
                     if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
                     {
-                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                        throw new AuthenticationError(Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
                     }
                     final Object finalListenKey = listenKey;
                     final Object finalTime = time;
@@ -4011,7 +4011,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object type = this.getMarketType("fetchBalanceWs", null, parameters);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "spot")) && Helpers.isTrue(!Helpers.isEqual(type, "future"))) && Helpers.isTrue(!Helpers.isEqual(type, "delivery"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchBalanceWs only supports spot or swap markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchBalanceWs only supports spot or swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
@@ -4181,7 +4181,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "future")) && Helpers.isTrue(!Helpers.isEqual(type, "delivery"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchPositionsWs only supports swap markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchPositionsWs only supports swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
@@ -4312,7 +4312,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue(this.isSandboxModeEnabled)))
                     {
-                        throw new NotSupported((String)Helpers.add(this.id, " watchBalance() does not support option markets in demo/testnet mode")) ;
+                        throw new NotSupported(Helpers.add(this.id, " watchBalance() does not support option markets in demo/testnet mode")) ;
                     }
                     urlType = "optionPrivate";
                 }
@@ -4569,7 +4569,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object marketType = this.getMarketType("createOrderWs", market, parameters);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marketType, "spot")) && Helpers.isTrue(!Helpers.isEqual(marketType, "future"))) && Helpers.isTrue(!Helpers.isEqual(marketType, "delivery"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrderWs only supports spot or swap markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrderWs only supports spot or swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), marketType);
             Object requestId = this.requestId(url);
@@ -4758,7 +4758,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object marketType = this.getMarketType("editOrderWs", market, parameters);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marketType, "spot")) && Helpers.isTrue(!Helpers.isEqual(marketType, "future"))) && Helpers.isTrue(!Helpers.isEqual(marketType, "delivery"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " editOrderWs only supports spot or swap markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " editOrderWs only supports spot or swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), marketType);
             Object requestId = this.requestId(url);
@@ -4934,7 +4934,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelOrderWs requires a symbol")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelOrderWs requires a symbol")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object type = this.getMarketType("cancelOrderWs", market, parameters);
@@ -5010,7 +5010,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrdersWs() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrdersWs() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5020,7 +5020,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object type = this.getMarketType("cancelAllOrdersWs", market, parameters);
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrdersWs only supports spot markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelAllOrdersWs only supports spot markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
@@ -5074,13 +5074,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelOrderWs requires a symbol")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelOrderWs requires a symbol")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object type = this.getMarketType("fetchOrderWs", market, parameters);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "spot")) && Helpers.isTrue(!Helpers.isEqual(type, "future"))) && Helpers.isTrue(!Helpers.isEqual(type, "delivery"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOrderWs only supports spot or swap markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOrderWs only supports spot or swap markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
@@ -5147,13 +5147,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOrdersWs requires a symbol")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOrdersWs requires a symbol")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object type = this.getMarketType("fetchOrdersWs", market, parameters);
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOrdersWs only supports spot markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOrdersWs only supports spot markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
@@ -5246,7 +5246,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object type = this.getMarketType("fetchOpenOrdersWs", market, parameters);
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenOrdersWs only supports spot markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenOrdersWs only supports spot markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
@@ -5324,7 +5324,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 String stockListenKey = this.safeString(stockOptions, "listenKey");
                 if (Helpers.isTrue(Helpers.isEqual(stockListenKey, null)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " watchOrders() failed to initialize stock listenKey")) ;
+                    throw new BadRequest(Helpers.add(this.id, " watchOrders() failed to initialize stock listenKey")) ;
                 }
                 Object stockUrl = this.getStockWsUrl("user");
                 Object stockStreamName = Helpers.add(stockListenKey, "@orderReport");
@@ -5401,7 +5401,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue(this.isSandboxModeEnabled)))
                     {
-                        throw new NotSupported((String)Helpers.add(this.id, " watchOrders() does not support option markets in demo/testnet mode")) ;
+                        throw new NotSupported(Helpers.add(this.id, " watchOrders() does not support option markets in demo/testnet mode")) ;
                     }
                     urlType = "optionPrivate";
                 }
@@ -6036,9 +6036,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 market = this.getMarketFromSymbols(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPositions() symbols is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " watchPositions() symbols is required")) ;
                 }
-                messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add("::", String.join(",", (java.util.List<String>)symbols));
             }
             Object type = null;
             Object subType = null;
@@ -6075,7 +6075,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue(this.isSandboxModeEnabled)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " watchPositions() does not support option markets in demo/testnet mode")) ;
+                    throw new NotSupported(Helpers.add(this.id, " watchPositions() does not support option markets in demo/testnet mode")) ;
                 }
                 urlType = "optionPrivate";
             }
@@ -6390,13 +6390,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchMyTradesWs requires a symbol")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchMyTradesWs requires a symbol")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object type = this.getMarketType("fetchMyTradesWs", market, parameters);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "spot")) && Helpers.isTrue(!Helpers.isEqual(type, "future"))))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMyTradesWs does not support "), type), " markets")) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMyTradesWs does not support "), type), " markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
@@ -6422,7 +6422,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Long fromId = this.safeInteger(parameters, "fromId");
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fromId, null)) && Helpers.isTrue(!Helpers.isEqual(since, null))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time")) ;
             }
             final Object finalParameters = parameters;
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
@@ -6469,7 +6469,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object type = this.getMarketType("fetchTradesWs", market, parameters);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "spot")) && Helpers.isTrue(!Helpers.isEqual(type, "future"))))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradesWs does not support "), type), " markets")) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradesWs does not support "), type), " markets")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
@@ -6633,7 +6633,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue(this.isSandboxModeEnabled)))
                     {
-                        throw new NotSupported((String)Helpers.add(this.id, " watchMyTrades() does not support option markets in demo/testnet mode")) ;
+                        throw new NotSupported(Helpers.add(this.id, " watchMyTrades() does not support option markets in demo/testnet mode")) ;
                     }
                     urlType = "optionPrivate";
                 }

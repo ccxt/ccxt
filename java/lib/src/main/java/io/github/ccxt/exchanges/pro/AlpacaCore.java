@@ -731,7 +731,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             this.checkRequiredCredentials();
             String messageHash = "authenticated";
             Client client = this.client(url);
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -769,7 +769,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //
         String code = this.safeString(message, "code");
         Object msg = this.safeValue(message, "msg", new java.util.HashMap<String, Object>() {{}});
-        throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " code: "), code), " message: "), msg)) ;
+        throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " code: "), code), " message: "), msg)) ;
     }
 
     public Object handleConnected(Client client, Object message)
@@ -881,7 +881,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             ((io.github.ccxt.ws.Future)promise).resolve(message);
             return;
         }
-        throw new AuthenticationError((String)Helpers.add(this.id, " failed to authenticate.")) ;
+        throw new AuthenticationError(Helpers.add(this.id, " failed to authenticate.")) ;
     }
 
     public Object handleSubscription(Client client, Object message)

@@ -1518,7 +1518,7 @@ public class MexcCore extends MexcApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "coin");
-        String code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
@@ -1664,8 +1664,8 @@ public class MexcCore extends MexcApi
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
-                String base = this.safeCurrencyCode(baseId);
-                String quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 String status = this.safeString(market, "status");
                 Object isSpotTradingAllowed = this.safeValue(market, "isSpotTradingAllowed");
                 Boolean active = false;
@@ -1808,9 +1808,9 @@ public class MexcCore extends MexcApi
                 String baseId = this.safeString(market, "baseCoin");
                 String quoteId = this.safeString(market, "quoteCoin");
                 String settleId = this.safeString(market, "settleCoin");
-                String base = this.safeCurrencyCode(baseId);
-                String quote = this.safeCurrencyCode(quoteId);
-                String settle = this.safeCurrencyCode(settleId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
+                String settle = (String) this.safeCurrencyCode(settleId);
                 String state = this.safeString(market, "state");
                 Boolean isLinear = Helpers.isEqual(quote, settle);
     final Object finalBase = base;
@@ -2013,14 +2013,14 @@ public class MexcCore extends MexcApi
                     Helpers.addElementToObject(request, "startTime", since);
                     if (Helpers.isTrue(Helpers.isEqual(until, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTrades() requires an until parameter when since is provided")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " fetchTrades() requires an until parameter when since is provided")) ;
                     }
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(until, null)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(since, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTrades() requires a since parameter when until is provided")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " fetchTrades() requires a since parameter when until is provided")) ;
                     }
                     Helpers.addElementToObject(request, "endTime", until);
                 }
@@ -2038,7 +2038,7 @@ public class MexcCore extends MexcApi
                     trades = (this.spotPublicGetTrades(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchTrades() not support this method")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchTrades() not support this method")) ;
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -2071,15 +2071,15 @@ public class MexcCore extends MexcApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = null;
         Object timestamp = null;
-        String orderId = null;
+        Object orderId = null;
         Object symbol = null;
         Object fee = null;
         Object type = null;
         String side = null;
         String takerOrMaker = null;
-        String priceString = null;
-        String amountString = null;
-        String costString = null;
+        Object priceString = null;
+        Object amountString = null;
+        Object costString = null;
         // if swap
         if (Helpers.isTrue(Helpers.inOp(trade, "v")))
         {
@@ -2357,7 +2357,7 @@ public class MexcCore extends MexcApi
                     response = (this.contractPublicGetKlineFairPriceSymbol(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOHLCV() not support this price type, [default, index, mark]")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOHLCV() not support this price type, [default, index, mark]")) ;
                 }
                 //
                 //     {
@@ -2545,18 +2545,18 @@ public class MexcCore extends MexcApi
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         Object timestamp = null;
-        String bid = null;
-        String ask = null;
-        String bidVolume = null;
-        String askVolume = null;
-        String baseVolume = null;
-        String quoteVolume = null;
-        String open = null;
-        String high = null;
-        String low = null;
-        String changePcnt = null;
-        String changeValue = null;
-        String prevClose = null;
+        Object bid = null;
+        Object ask = null;
+        Object bidVolume = null;
+        Object askVolume = null;
+        Object baseVolume = null;
+        Object quoteVolume = null;
+        Object open = null;
+        Object high = null;
+        Object low = null;
+        Object changePcnt = null;
+        Object changeValue = null;
+        Object prevClose = null;
         Object isSwap = this.safeValue(market, "swap");
         // if swap
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isSwap, true))) || Helpers.isTrue((Helpers.inOp(ticker, "timestamp")))))
@@ -2713,7 +2713,7 @@ public class MexcCore extends MexcApi
                 tickers = (this.spotPublicGetTickerBookTicker(query)).join();
             } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBidsAsks() is not available for "), marketType), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBidsAsks() is not available for "), marketType), " markets")) ;
             }
             // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
             if (Helpers.isTrue(isSingularMarket))
@@ -2748,7 +2748,7 @@ public class MexcCore extends MexcApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
@@ -2781,7 +2781,7 @@ public class MexcCore extends MexcApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
@@ -2897,7 +2897,7 @@ public class MexcCore extends MexcApi
         {
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated")))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support marginMode "), marginMode), " for spot-margin trading")) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support marginMode "), marginMode), " for spot-margin trading")) ;
             }
         }
         Boolean postOnly = null;
@@ -3049,7 +3049,7 @@ public class MexcCore extends MexcApi
                     openType = 1;
                 } else
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createSwapOrder() marginMode parameter should be either \"cross\" or \"isolated\"")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createSwapOrder() marginMode parameter should be either \"cross\" or \"isolated\"")) ;
                 }
             } else
             {
@@ -3057,7 +3057,7 @@ public class MexcCore extends MexcApi
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, "limit"))) && Helpers.isTrue((!Helpers.isEqual(type, "market")))) && Helpers.isTrue((!Helpers.isEqual(type, 1)))) && Helpers.isTrue((!Helpers.isEqual(type, 2)))) && Helpers.isTrue((!Helpers.isEqual(type, 3)))) && Helpers.isTrue((!Helpers.isEqual(type, 4)))) && Helpers.isTrue((!Helpers.isEqual(type, 5)))) && Helpers.isTrue((!Helpers.isEqual(type, 6)))))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")) ;
             }
             Boolean postOnly = null;
             java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, 2), parameters);
@@ -3101,7 +3101,7 @@ public class MexcCore extends MexcApi
                 Long leverage = this.safeInteger(parameters, "leverage");
                 if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createSwapOrder() requires a leverage parameter for isolated margin orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createSwapOrder() requires a leverage parameter for isolated margin orders")) ;
                 }
             }
             Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
@@ -3188,7 +3188,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            String symbol = null;
+            Object symbol = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -3196,7 +3196,7 @@ public class MexcCore extends MexcApi
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " createOrders() is only supported for spot markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " createOrders() is only supported for spot markets")) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
@@ -3205,7 +3205,7 @@ public class MexcCore extends MexcApi
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(symbol, marketId)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
                     }
                 }
                 String type = this.safeString(rawOrder, "type");
@@ -3270,7 +3270,7 @@ public class MexcCore extends MexcApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3299,7 +3299,7 @@ public class MexcCore extends MexcApi
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated")))
                     {
-                        throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() does not support marginMode "), marginMode), " for spot-margin trading")) ;
+                        throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() does not support marginMode "), marginMode), " for spot-margin trading")) ;
                     }
                     data = (this.spotPrivateGetMarginOrder(this.extend(request, query))).join();
                 } else
@@ -3393,7 +3393,7 @@ public class MexcCore extends MexcApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument for spot market")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument for spot market")) ;
                 }
                 java.util.List<Object> marginModequeryInnerVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOrders", parameters);
                 var marginMode = ((java.util.List<Object>) marginModequeryInnerVariable).get(0);
@@ -3415,7 +3415,7 @@ public class MexcCore extends MexcApi
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated")))
                     {
-                        throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() does not support marginMode "), marginMode), " for spot-margin trading")) ;
+                        throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() does not support marginMode "), marginMode), " for spot-margin trading")) ;
                     }
                     response = (this.spotPrivateGetMarginAllOrders(this.extend(request, queryInner))).join();
                 } else
@@ -3484,7 +3484,7 @@ public class MexcCore extends MexcApi
                     {
                         if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(end, since)), Helpers.GetValue(this.options, "maxTimeTillEnd"))))
                         {
-                            throw new BadRequest((String)Helpers.add(this.id, " end is invalid, i.e. exceeds allowed 90 days.")) ;
+                            throw new BadRequest(Helpers.add(this.id, " end is invalid, i.e. exceeds allowed 90 days.")) ;
                         } else
                         {
                             Helpers.addElementToObject(request, "end_time", until);
@@ -3603,10 +3603,10 @@ public class MexcCore extends MexcApi
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchOrdersByIds() is not supported for "), marketType)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchOrdersByIds() is not supported for "), marketType)) ;
             } else
             {
-                Helpers.addElementToObject(request, "order_ids", String.join((String)",", (java.util.List<String>)ids));
+                Helpers.addElementToObject(request, "order_ids", String.join(",", (java.util.List<String>)ids));
                 java.util.Map<String, Object> response = (this.contractPrivateGetOrderBatchQuery(this.extend(request, query))).join();
                 //
                 //     {
@@ -3700,7 +3700,7 @@ public class MexcCore extends MexcApi
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated")))
                     {
-                        throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenOrders() does not support marginMode "), marginMode), " for spot-margin trading")) ;
+                        throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenOrders() does not support marginMode "), marginMode), " for spot-margin trading")) ;
                     }
                     response = (this.spotPrivateGetMarginOpenOrders(this.extend(request, query))).join();
                 } else
@@ -3847,7 +3847,7 @@ public class MexcCore extends MexcApi
             var marketType = ((java.util.List<Object>) marketTypeVariable).get(0);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " fetchOrdersByState() is not supported for "), marketType)) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, " fetchOrdersByState() is not supported for "), marketType)) ;
             } else
             {
                 Helpers.addElementToObject(request, "states", state);
@@ -3900,7 +3900,7 @@ public class MexcCore extends MexcApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
                 }
                 final Object finalMarket = market;
                 java.util.Map<String, Object> requestInner = new java.util.HashMap<String, Object>() {{
@@ -3919,7 +3919,7 @@ public class MexcCore extends MexcApi
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated")))
                     {
-                        throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrder() does not support marginMode "), marginMode), " for spot-margin trading")) ;
+                        throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrder() does not support marginMode "), marginMode), " for spot-margin trading")) ;
                     }
                     data = (this.spotPrivateDeleteMarginOrder(this.extend(requestInner, query))).join();
                 } else
@@ -3940,7 +3940,7 @@ public class MexcCore extends MexcApi
                     response = (this.contractPrivatePostPlanorderCancel(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)))).join(); // the request cannot be changed or extended. This is the only way to send.
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() not support this method")) ;
+                    throw new NotSupported(Helpers.add(this.id, " cancelOrder() not support this method")) ;
                 }
                 //
                 //     {
@@ -3960,7 +3960,7 @@ public class MexcCore extends MexcApi
                 Object errorMsg = this.safeValue(order, "errorMsg", "");
                 if (Helpers.isTrue(!Helpers.isEqual(errorMsg, "success")))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrder() the order with id "), id), " cannot be cancelled: "), errorMsg)) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrder() the order with id "), id), " cannot be cancelled: "), errorMsg)) ;
                 }
             }
             return this.parseOrder(data, market);
@@ -3994,7 +3994,7 @@ public class MexcCore extends MexcApi
             var marketType = ((java.util.List<Object>) marketTypeVariable).get(0);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " cancelOrders() is not supported for "), marketType)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " cancelOrders() is not supported for "), marketType)) ;
             } else
             {
                 java.util.Map<String, Object> response = (this.contractPrivatePostOrderCancel(ids)).join(); // the request cannot be changed or extended. The only way to send.
@@ -4308,7 +4308,7 @@ public class MexcCore extends MexcApi
         String typeRaw = this.safeString(order, "type");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
         {
-            timeInForce = ((String)this.getTifFromRawOrderType(typeRaw));
+            timeInForce = (this.getTifFromRawOrderType(typeRaw));
         }
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
@@ -4486,7 +4486,7 @@ public class MexcCore extends MexcApi
             {
                 Object account = Helpers.GetValue(data, i);
                 String currencyId = this.safeString2(account, "asset", "currency");
-                String code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", MexcCore.this.safeString(account, "id") );
                     put( "type", MexcCore.this.safeString(account, "type") );
@@ -4521,7 +4521,7 @@ public class MexcCore extends MexcApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchTradingFee() supports spot markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchTradingFee() supports spot markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4634,8 +4634,8 @@ public class MexcCore extends MexcApi
                 Object entry = Helpers.GetValue(wallet, i);
                 Object base = this.safeValue(entry, "baseAsset", new java.util.HashMap<String, Object>() {{}});
                 Object quote = this.safeValue(entry, "quoteAsset", new java.util.HashMap<String, Object>() {{}});
-                String baseCode = this.safeCurrencyCode(this.safeString(base, "asset"));
-                String quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
+                String baseCode = (String) this.safeCurrencyCode(this.safeString(base, "asset"));
+                String quoteCode = (String) this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if (Helpers.isTrue(!Helpers.isEqual(baseCode, null)))
                 {
                     result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
@@ -4652,7 +4652,7 @@ public class MexcCore extends MexcApi
             {
                 Object entry = Helpers.GetValue(wallet, i);
                 String currencyId = this.safeString(entry, "currency");
-                String code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "availableBalance"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "frozenBalance"));
@@ -4668,7 +4668,7 @@ public class MexcCore extends MexcApi
             {
                 Object entry = Helpers.GetValue(wallet, i);
                 String currencyId = this.safeString(entry, "asset");
-                String code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
@@ -4735,7 +4735,7 @@ public class MexcCore extends MexcApi
                         Object symbolIds = this.marketIds(symbols);
                         if (Helpers.isTrue(!Helpers.isEqual(symbolIds, null)))
                         {
-                            parsedSymbols = String.join((String)",", (java.util.List<String>)symbolIds);
+                            parsedSymbols = String.join(",", (java.util.List<String>)symbolIds);
                         }
                     }
                 } else
@@ -4756,7 +4756,7 @@ public class MexcCore extends MexcApi
                 response = (this.contractPrivateGetAccountAssets(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchBalance() not support this method")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchBalance() not support this method")) ;
             }
             //
             // spot
@@ -4871,7 +4871,7 @@ public class MexcCore extends MexcApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4989,7 +4989,7 @@ public class MexcCore extends MexcApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
                 }
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 Helpers.addElementToObject(request, "orderId", id);
@@ -5037,7 +5037,7 @@ public class MexcCore extends MexcApi
             Long positionId = this.safeInteger(parameters, "positionId");
             if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " modifyMarginHelper() requires a positionId parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " modifyMarginHelper() requires a positionId parameter")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5134,7 +5134,7 @@ public class MexcCore extends MexcApi
                 Object market = ((Helpers.isTrue((!Helpers.isEqual(symbol, null))))) ? this.market(symbol) : null;
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(openType, null))) || Helpers.isTrue((Helpers.isEqual(positionType, null)))) || Helpers.isTrue((Helpers.isEqual(market, null)))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "openType", openType);
@@ -5266,7 +5266,7 @@ public class MexcCore extends MexcApi
         Double nextFundingRate = this.safeNumber2(contract, "fundingRate", "rate");
         Long nextFundingTimestamp = this.safeInteger(contract, "nextSettleTime");
         String marketId = this.safeString(contract, "symbol");
-        String symbol = this.safeSymbol(marketId, market, null, "contract");
+        String symbol = (String) this.safeSymbol(marketId, market, null, "contract");
         Long timestamp = this.safeInteger(contract, "timestamp");
         String interval = this.safeString(contract, "collectCycle");
         Object intervalString = null;
@@ -5384,7 +5384,7 @@ public class MexcCore extends MexcApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5430,7 +5430,7 @@ public class MexcCore extends MexcApi
             {
                 Object entry = Helpers.GetValue(result, i);
                 String marketId = this.safeString(entry, "symbol");
-                String symbolInner = this.safeSymbol(marketId);
+                String symbolInner = (String) this.safeSymbol(marketId);
                 Long timestamp = this.safeInteger(entry, "settleTime");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
@@ -5602,7 +5602,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             }});
             initialMarginRate = Precise.stringAdd(initialMarginRate, riskIncrImr);
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, riskIncrMmr);
-            floor = ((String)cap);
+            floor = (cap);
         }
         return tiers;
     }
@@ -5620,7 +5620,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String address = this.safeString(depositAddress, "address");
         String currencyId = this.safeString(depositAddress, "coin");
-        String code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         String networkId = this.safeString(depositAddress, "netWork");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
@@ -5721,7 +5721,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             String networkCode = this.safeString(parameters, "network");
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createDepositAddress requires a `network` parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createDepositAddress requires a `network` parameter")) ;
             }
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             Object networkId = null;
@@ -5792,7 +5792,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             }
             if (Helpers.isTrue(Helpers.isEqual(result, null)))
             {
-                throw new InvalidAddress((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", and network"), network), "consider creating one using .createDepositAddress() method or in MEXC website")) ;
+                throw new InvalidAddress(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", and network"), network), "consider creating one using .createDepositAddress() method or in MEXC website")) ;
             }
             return result;
         });
@@ -5846,7 +5846,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(limit, 1000)))
                 {
-                    throw new ExchangeError((String)"This exchange supports a maximum limit of 1000") ;
+                    throw new ExchangeError("This exchange supports a maximum limit of 1000") ;
                 }
                 Helpers.addElementToObject(request, "limit", limit);
             }
@@ -5914,7 +5914,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(limit, 1000)))
                 {
-                    throw new ExchangeError((String)"This exchange supports a maximum limit of 1000") ;
+                    throw new ExchangeError("This exchange supports a maximum limit of 1000") ;
                 }
                 Helpers.addElementToObject(request, "limit", limit);
             }
@@ -6013,7 +6013,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         {
             currencyId = Helpers.GetValue(Helpers.split(currencyWithNetwork, "-"), 0);
         }
-        String code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object network = null;
         String rawNetwork = this.safeString(transaction, "network");
         if (Helpers.isTrue(!Helpers.isEqual(rawNetwork, null)))
@@ -6369,9 +6369,9 @@ final Object finalRiskIncrVol = riskIncrVol;
                 return this.parseTransfer(data);
             } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchTransfer() is not supported for "), marketType)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchTransfer() is not supported for "), marketType)) ;
             }
-            throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchTransfer() is not supported for "), marketType)) ;
+            throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchTransfer() is not supported for "), marketType)) ;
         });
 
     }
@@ -6429,7 +6429,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 Helpers.addElementToObject(request, "fromAccountType", this.safeString(accountTypes, fromAccountType, fromAccountType));
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
             }
             Object toAccountType = null;
             java.util.List<Object> toAccountTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "toAccountType");
@@ -6440,7 +6440,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 Helpers.addElementToObject(request, "toAccountType", this.safeString(accountTypes, toAccountType, toAccountType));
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTransfers() requires a toAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTransfers() requires a toAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
             }
             Object resultList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -6453,7 +6453,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 {
                     if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
                     {
-                        throw new ExchangeError((String)"This exchange supports a maximum limit of 50") ;
+                        throw new ExchangeError("This exchange supports a maximum limit of 50") ;
                     }
                     Helpers.addElementToObject(request, "size", limit);
                 }
@@ -6526,12 +6526,12 @@ final Object finalRiskIncrVol = riskIncrVol;
             if (Helpers.isTrue(Helpers.isEqual(fromId, null)))
             {
                 Object keys = Helpers.objectKeys(accounts);
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fromAccount must be one of "), String.join((String)", ", (java.util.List<String>)keys))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fromAccount must be one of "), String.join(", ", (java.util.List<String>)keys))) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(toId, null)))
             {
                 Object keys = Helpers.objectKeys(accounts);
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " toAccount must be one of "), String.join((String)", ", (java.util.List<String>)keys))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " toAccount must be one of "), String.join(", ", (java.util.List<String>)keys))) ;
             }
             final Object finalFromId = fromId;
             final Object finalToId = toId;
@@ -6547,7 +6547,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 parameters = this.omit(parameters, "symbol");
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires a symbol argument for isolated margin")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires a symbol argument for isolated margin")) ;
                 }
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
@@ -6618,8 +6618,8 @@ final Object finalRiskIncrVol = riskIncrVol;
         Long timestamp = (Long) this.safeInteger2(transfer, "createTime", "timestamp");
         String datetime = ((Helpers.isTrue((!Helpers.isEqual(timestamp, null))))) ? this.iso8601(timestamp) : null;
         String direction = this.safeString(transfer, "type");
-        String accountFrom = null;
-        String accountTo = null;
+        Object accountFrom = null;
+        Object accountTo = null;
         String fromAccountType = this.safeString(transfer, "fromAccountType");
         String toAccountType = this.safeString(transfer, "toAccountType");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fromAccountType, null))) && Helpers.isTrue((!Helpers.isEqual(toAccountType, null)))))
@@ -6714,7 +6714,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 String toAccountType = this.safeString(parameters, "toAccountType");
                 if (Helpers.isTrue(Helpers.isEqual(toAccountType, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE")) ;
                 }
                 java.util.Map<String, Object> responseForInternal = (this.spotPrivatePostCapitalTransferInternal(this.extend(requestForInternal, parameters))).join();
                 //
@@ -6887,7 +6887,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             String code = this.safeString(currency, "code");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))
             {
-                Helpers.addElementToObject(withdrawFees, code, this.parseTransactionFee(entry, currency));
+                Helpers.addElementToObject(withdrawFees, (code), this.parseTransactionFee(entry, currency));
             }
         }
         return new java.util.HashMap<String, Object>() {{
@@ -6934,7 +6934,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             String networkId = this.safeString(networkEntry, "network");
             String networkCode = this.safeString(Helpers.GetValue(this.options, "networks"), networkId, networkId);
             Double fee = this.safeNumber(networkEntry, "withdrawFee");
-            Helpers.addElementToObject(result, networkCode, fee);
+            Helpers.addElementToObject(result, (networkCode), fee);
         }
         return result;
     }
@@ -7280,19 +7280,19 @@ final Object finalRiskIncrVol = riskIncrVol;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports contract markets only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setMarginMode() supports contract markets only")) ;
             }
             Object marginModeLower = ((String)marginMode).toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginModeLower, "isolated")) && Helpers.isTrue(!Helpers.isEqual(marginModeLower, "cross"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
             }
             Long leverage = this.safeInteger(parameters, "leverage");
             if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a leverage parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a leverage parameter")) ;
             }
-            String direction = this.safeStringLower2(parameters, "direction", "positionId");
+            String direction = (String)this.safeStringLower2(parameters, "direction", "positionId");
             final Object finalLeverage = leverage;
             final Object finalMarginModeLower = marginModeLower;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -7339,10 +7339,10 @@ final Object finalRiskIncrVol = riskIncrVol;
         {
             if (Helpers.isTrue(Helpers.isEqual(section, "broker")))
             {
-                url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), access), "/"), path);
+                url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), (access)), "/"), path);
             } else
             {
-                url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), access), "/api/"), this.version), "/"), path);
+                url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), (access)), "/api/"), this.version), "/"), path);
             }
             Object urlParams = parameters;
             if (Helpers.isTrue(Helpers.isEqual(access, "private")))
@@ -7383,7 +7383,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(section, "contract")) || Helpers.isTrue(Helpers.isEqual(section, "spot2"))))
         {
-            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), access), "/"), this.implodeParams(path, parameters));
+            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), (access)), "/"), this.implodeParams(path, parameters));
             parameters = this.omit(parameters, this.extractParams(path));
             if (Helpers.isTrue(Helpers.isEqual(access, "public")))
             {

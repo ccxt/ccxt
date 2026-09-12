@@ -1979,11 +1979,11 @@ public class ModetradeCore extends ModetradeApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         /**
          * @method
@@ -2003,7 +2003,7 @@ public class ModetradeCore extends ModetradeApi
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
         }
         Object orderSide = ((String)side).toUpperCase();
         final Object finalOrderSide = orderSide;
@@ -2188,7 +2188,7 @@ public class ModetradeCore extends ModetradeApi
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
                 }
                 String type = this.safeString(rawOrder, "type", "");
                 String side = this.safeString(rawOrder, "side");
@@ -2201,7 +2201,7 @@ public class ModetradeCore extends ModetradeApi
                 Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLoss, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfit, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(orderParams, "childOrders"), null)));
                 if (Helpers.isTrue(isConditional))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " createOrders() only support non-stop order")) ;
+                    throw new NotSupported(Helpers.add(this.id, " createOrders() only support non-stop order")) ;
                 }
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
@@ -2365,7 +2365,7 @@ public class ModetradeCore extends ModetradeApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(trigger, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2474,11 +2474,11 @@ public class ModetradeCore extends ModetradeApi
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
-                Helpers.addElementToObject(request, "client_order_ids", String.join((String)",", (java.util.List<String>)clientOrderIds));
+                Helpers.addElementToObject(request, "client_order_ids", String.join(",", (java.util.List<String>)clientOrderIds));
                 response = (this.v1PrivateDeleteClientBatchOrder(this.extend(request, parameters))).join();
             } else
             {
-                Helpers.addElementToObject(request, "order_ids", String.join((String)",", (java.util.List<String>)ids));
+                Helpers.addElementToObject(request, "order_ids", String.join(",", (java.util.List<String>)ids));
                 response = (this.v1PrivateDeleteBatchOrder(this.extend(request, parameters))).join();
             }
             //
@@ -3371,7 +3371,7 @@ public class ModetradeCore extends ModetradeApi
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
-        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), v);
+        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0))), Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))), v);
     }
 
     public Object signMessage(Object message, Object privateKey)
@@ -3408,7 +3408,7 @@ public class ModetradeCore extends ModetradeApi
                 code = ((String)code).toUpperCase();
                 if (Helpers.isTrue(!Helpers.isEqual(code, "USDC")))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " withdraw() only support USDC")) ;
+                    throw new NotSupported(Helpers.add(this.id, " withdraw() only support USDC")) ;
                 }
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
@@ -3419,7 +3419,7 @@ public class ModetradeCore extends ModetradeApi
             Double coinNetworkId = this.safeNumber(coinNetwork, "id");
             if (Helpers.isTrue(Helpers.isEqual(coinNetworkId, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " withdraw() require chainId parameter")) ;
+                throw new BadRequest(Helpers.add(this.id, " withdraw() require chainId parameter")) ;
             }
             Object withdrawNonce = (this.getWithdrawNonce(parameters)).join();
             Object nonce = this.nonce();
@@ -3581,7 +3581,7 @@ public class ModetradeCore extends ModetradeApi
             Boolean isMaxLeverage = Helpers.isGreaterThan(leverage, 50);
             if (Helpers.isTrue(Helpers.isTrue(isMinLeverage) || Helpers.isTrue(isMaxLeverage)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " leverage should be between 1 and 50")) ;
+                throw new BadRequest(Helpers.add(this.id, " leverage should be between 1 and 50")) ;
             }
             final Object finalLeverage = leverage;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3691,7 +3691,7 @@ public class ModetradeCore extends ModetradeApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPosition() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchPosition() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{

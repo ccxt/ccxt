@@ -578,18 +578,18 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             put( "side", finalSide );
             put( "price", HashkeyCore.this.safeString(order, "p") );
             put( "average", HashkeyCore.this.safeString(order, "V") );
-            put( "amount", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(order, "q"))) );
+            put( "amount", HashkeyCore.this.omitZero((HashkeyCore.this.safeString(order, "q"))) );
             put( "filled", HashkeyCore.this.safeString(order, "z") );
             put( "remaining", HashkeyCore.this.safeString(order, "r") );
             put( "stopPrice", null );
             put( "triggerPrice", null );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
-            put( "cost", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(order, "Z"))) );
+            put( "cost", HashkeyCore.this.omitZero((HashkeyCore.this.safeString(order, "Z"))) );
             put( "trades", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", HashkeyCore.this.safeCurrencyCode(HashkeyCore.this.safeString(order, "N")) );
-                put( "amount", HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(order, "n"))) );
+                put( "amount", HashkeyCore.this.omitZero((HashkeyCore.this.safeString(order, "n"))) );
             }} );
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );
@@ -1021,12 +1021,12 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
-                client.future((String)messageHash).getFuture().join();
+                client.future(messageHash).getFuture().join();
                 return this.safeString(this.options, "listenKey");
             }
             // register the flight BEFORE the first await, so a caller arriving
             // during the fetch below finds it and waits instead of re-leading
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             try
             {
                 java.util.Map<String, Object> response = (this.privatePostApiV1UserDataStream(parameters)).join();
@@ -1038,7 +1038,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
                 listenKey = this.safeString(response, "listenKey");
                 if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
                 {
-                    throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                    throw new AuthenticationError(Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
                 }
                 Helpers.addElementToObject(this.options, "listenKey", listenKey);
                 Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);

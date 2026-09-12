@@ -991,7 +991,7 @@ public class DigifinexCore extends DigifinexApi
                 String id = this.safeString(market, "market");
                 if (Helpers.isTrue(Helpers.isEqual(id, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchMarketsV1() missing id")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchMarketsV1() missing id")) ;
                 }
                 var baseIdquoteIdVariable = Helpers.split(id, "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
@@ -1142,7 +1142,7 @@ public class DigifinexCore extends DigifinexApi
                 response = (this.privateSwapGetAccountBalance(query)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchBalance() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchBalance() not support this market type")) ;
             }
             //
             // spot and margin
@@ -1484,7 +1484,7 @@ public class DigifinexCore extends DigifinexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(result, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchTicker() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchTicker() returned empty response")) ;
             }
             return this.parseTicker(result, market);
         });
@@ -1685,7 +1685,7 @@ public class DigifinexCore extends DigifinexApi
         {
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseTrade() returned no side")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseTrade() returned no side")) ;
             }
             Object parts = Helpers.split(side, "_");
             side = this.safeString(parts, 0);
@@ -1981,7 +1981,7 @@ public class DigifinexCore extends DigifinexApi
                         {
                             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
                             {
-                                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a limit argument")) ;
+                                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV() requires a limit argument")) ;
                             }
                             Helpers.addElementToObject(request, "end_time", this.sum(startTime, Helpers.multiply(limit, duration)));
                         }
@@ -2096,7 +2096,7 @@ public class DigifinexCore extends DigifinexApi
             //
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " createOrder() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " createOrder() returned empty response")) ;
             }
             Object order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "symbol", Helpers.GetValue(market, "symbol"));
@@ -2143,7 +2143,7 @@ public class DigifinexCore extends DigifinexApi
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(symbol, marketId)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
                     }
                 }
                 String type = this.safeString(rawOrder, "type");
@@ -2162,7 +2162,7 @@ public class DigifinexCore extends DigifinexApi
                     {
                         if (Helpers.isTrue(!Helpers.isEqual(marginMode, currentMarginMode)))
                         {
-                            throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
+                            throw new BadRequest(Helpers.add(this.id, " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
                         }
                     }
                 }
@@ -2233,11 +2233,11 @@ public class DigifinexCore extends DigifinexApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         /**
          * @method
@@ -2341,7 +2341,7 @@ public class DigifinexCore extends DigifinexApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(price, null)))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
                         Object amountString = this.numberToString(amount);
@@ -2396,7 +2396,7 @@ public class DigifinexCore extends DigifinexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
@@ -2444,7 +2444,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
                 }
                 Helpers.addElementToObject(request, "instrument_id", this.safeString(market, "id"));
             } else
@@ -2467,7 +2467,7 @@ public class DigifinexCore extends DigifinexApi
                 response = (this.privateSwapPostTradeCancelOrder(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelOrder() not support this market type")) ;
             }
             //
             // spot and margin
@@ -2496,7 +2496,7 @@ public class DigifinexCore extends DigifinexApi
                 Object numCanceledOrders = Helpers.getArrayLength(canceledOrders);
                 if (Helpers.isTrue(!Helpers.isEqual(numCanceledOrders, 1)))
                 {
-                    throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrder() "), id), " not found")) ;
+                    throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrder() "), id), " not found")) ;
                 }
                 Object orders = this.parseCancelOrders(response);
                 return this.safeDict(orders, 0);
@@ -2565,7 +2565,7 @@ public class DigifinexCore extends DigifinexApi
             parameters = this.omit(parameters, "type");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", orderType );
-                put( "order_id", String.join((String)",", (java.util.List<String>)ids) );
+                put( "order_id", String.join(",", (java.util.List<String>)ids) );
             }};
             java.util.Map<String, Object> response = (this.privateSpotPostSpotOrderCancel(this.extend(request, parameters))).join();
             //
@@ -2830,7 +2830,7 @@ public class DigifinexCore extends DigifinexApi
                 response = (this.privateSwapGetTradeOpenOrders(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrders() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOpenOrders() not support this market type")) ;
             }
             //
             // spot and margin
@@ -2963,7 +2963,7 @@ public class DigifinexCore extends DigifinexApi
                 response = (this.privateSwapGetTradeHistoryOrders(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrders() not support this market type")) ;
             }
             //
             // spot and margin
@@ -3082,7 +3082,7 @@ public class DigifinexCore extends DigifinexApi
                 response = (this.privateSwapGetTradeOrderInfo(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrder() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrder() not support this market type")) ;
             }
             //
             // spot and margin
@@ -3136,7 +3136,7 @@ public class DigifinexCore extends DigifinexApi
             Object order = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? data : this.safeValue(data, 0);
             if (Helpers.isTrue(Helpers.isEqual(order, null)))
             {
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() order "), String.valueOf(id)), " not found")) ;
+                throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() order "), String.valueOf(id)), " not found")) ;
             }
             return this.parseOrder(order, market);
         });
@@ -3217,7 +3217,7 @@ public class DigifinexCore extends DigifinexApi
                 response = (this.privateSwapGetTradeHistoryTrades(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchMyTrades() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchMyTrades() not support this market type")) ;
             }
             //
             // spot and margin
@@ -3402,7 +3402,7 @@ public class DigifinexCore extends DigifinexApi
                 response = (this.privateSwapGetAccountFinanceRecord(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchLedger() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchLedger() not support this market type")) ;
             }
             //
             // spot and margin
@@ -3517,7 +3517,7 @@ public class DigifinexCore extends DigifinexApi
             Object address = this.safeValue(addresses, code);
             if (Helpers.isTrue(Helpers.isEqual(address, null)))
             {
-                throw new InvalidAddress((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchDepositAddress() did not return an address for "), code), " - create the deposit address in the user settings on the exchange website first.")) ;
+                throw new InvalidAddress(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchDepositAddress() did not return an address for "), code), " - create the deposit address in the user settings on the exchange website first.")) ;
             }
             return address;
         });
@@ -3828,7 +3828,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fromId, "1"))) && Helpers.isTrue((!Helpers.isEqual(toId, "1")))))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " transfer() supports transferring between spot and swap, spot and margin, spot and OTC only")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " transfer() supports transferring between spot and swap, spot and margin, spot and OTC only")) ;
                 }
                 Helpers.addElementToObject(request, "type", ((Helpers.isTrue(toSwap))) ? 1 : 2); // 1 = spot to swap, 2 = swap to spot
                 Helpers.addElementToObject(request, "currency", currencyId);
@@ -3859,7 +3859,7 @@ public class DigifinexCore extends DigifinexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " transfer() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " transfer() returned empty response")) ;
             }
             return this.parseTransfer(response, currency);
         });
@@ -4166,7 +4166,7 @@ public class DigifinexCore extends DigifinexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_id", Helpers.GetValue(market, "id") );
@@ -4284,7 +4284,7 @@ public class DigifinexCore extends DigifinexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4293,7 +4293,7 @@ public class DigifinexCore extends DigifinexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_id", Helpers.GetValue(market, "id") );
@@ -4367,7 +4367,7 @@ public class DigifinexCore extends DigifinexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchTradingFee() supports swap markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchTradingFee() supports swap markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_id", Helpers.GetValue(market, "id") );
@@ -4444,7 +4444,7 @@ public class DigifinexCore extends DigifinexApi
                     Object symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
                     symbol = Helpers.GetValue(symbols, 0);
                 } else
@@ -4477,7 +4477,7 @@ public class DigifinexCore extends DigifinexApi
                 response = (this.privateSwapGetAccountPositions(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchPositions() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchPositions() not support this market type")) ;
             }
             //
             // swap
@@ -4588,7 +4588,7 @@ public class DigifinexCore extends DigifinexApi
                 response = (this.privateSwapGetAccountPositions(this.extend(request, query))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchPosition() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchPosition() not support this market type")) ;
             }
             //
             // swap
@@ -4771,7 +4771,7 @@ public class DigifinexCore extends DigifinexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4780,11 +4780,11 @@ public class DigifinexCore extends DigifinexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setLeverage() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setLeverage() supports swap contracts only")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 100)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " leverage should be between 1 and 100")) ;
+                throw new BadRequest(Helpers.add(this.id, " leverage should be between 1 and 100")) ;
             }
             final Object finalLeverage = leverage;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -4847,7 +4847,7 @@ public class DigifinexCore extends DigifinexApi
                 currency = this.currency(code);
                 if (Helpers.isTrue(Helpers.isEqual(currency, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchTransfers() could not resolve currency")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchTransfers() could not resolve currency")) ;
                 }
                 Helpers.addElementToObject(request, "currency", this.safeString(currency, "id"));
             }
@@ -4960,7 +4960,7 @@ public class DigifinexCore extends DigifinexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchMarketLeverageTiers() supports swap markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchMarketLeverageTiers() supports swap markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_id", Helpers.GetValue(market, "id") );
@@ -5070,7 +5070,7 @@ final Object finalI = i;
         {
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, "cross")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " only cross margin is supported")) ;
+                throw new NotSupported(Helpers.add(this.id, " only cross margin is supported")) ;
             }
         } else
         {
@@ -5446,7 +5446,7 @@ final Object finalI = i;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {

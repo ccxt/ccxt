@@ -4357,11 +4357,11 @@ public class BinanceCore extends BinanceApi
     {
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " market() requires a symbol argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " market() requires a symbol argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
+            throw new ExchangeError(Helpers.add(this.id, " markets not loaded")) ;
         }
         // defaultType has legacy support on binance
         String defaultType = this.safeString(this.options, "defaultType");
@@ -4431,7 +4431,7 @@ public class BinanceCore extends BinanceApi
                 return this.createExpiredOptionMarket(symbol);
             }
         }
-        throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " does not have market symbol "), symbol)) ;
+        throw new BadSymbol(Helpers.add(Helpers.add(this.id, " does not have market symbol "), symbol)) ;
     }
 
     public Object safeMarket(Object... optionalArgs)
@@ -4621,7 +4621,7 @@ public class BinanceCore extends BinanceApi
     {
         if (Helpers.isTrue(this.isSandboxModeEnabled))
         {
-            throw new NotSupported((String)Helpers.add(this.id, " demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
+            throw new NotSupported(Helpers.add(this.id, " demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
         }
         if (Helpers.isTrue(enable))
         {
@@ -4742,17 +4742,17 @@ public class BinanceCore extends BinanceApi
             Object parsed = this.parseCurrency(Helpers.GetValue(responseCurrencies, i));
             if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
             }
             Object code = Helpers.GetValue(parsed, "code");
             if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
             }
             Object marginEntry = this.safeDict(marginablesById, Helpers.GetValue(parsed, "id"));
             if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
             }
             Helpers.addElementToObject(parsed, "margin", this.safeBool(marginEntry, "isBorrowable"));
             Helpers.addElementToObject(result, code, parsed);
@@ -5043,7 +5043,7 @@ public class BinanceCore extends BinanceApi
                     }
                 } else
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
                 }
             }
             Object results = (Helpers.promiseAll(promisesRaw)).join();
@@ -5335,7 +5335,7 @@ public class BinanceCore extends BinanceApi
         String id = this.safeString(market, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing id")) ;
         }
         Object optionParts = Helpers.split(id, "-");
         String optionBase = this.safeString(optionParts, 0);
@@ -6460,7 +6460,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchTicker() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchTicker() returned empty response")) ;
             }
             return this.parseTicker(response, market);
         });
@@ -6479,7 +6479,7 @@ public class BinanceCore extends BinanceApi
             Object stock = this.safeBool(symbolMarket, "stock", false);
             if (Helpers.isTrue(Helpers.isEqual(stock, true)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support tokenized stock symbols ("), Helpers.GetValue(symbols, i)), "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support tokenized stock symbols ("), Helpers.GetValue(symbols, i)), "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
             }
         }
     }
@@ -6547,7 +6547,7 @@ public class BinanceCore extends BinanceApi
                 response = (this.publicGetTickerBookTicker(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBidsAsks() does not support "), type), " markets yet")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBidsAsks() does not support "), type), " markets yet")) ;
             }
             if (!Helpers.isTrue(Helpers.isArray(response)))
             {
@@ -6603,7 +6603,7 @@ public class BinanceCore extends BinanceApi
                 response = (this.publicGetTickerPrice(parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLastPrices() does not support "), type), " markets yet")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLastPrices() does not support "), type), " markets yet")) ;
             }
             return this.parseLastPrices(response, symbols);
         });
@@ -6726,7 +6726,7 @@ public class BinanceCore extends BinanceApi
                 response = (this.eapiPublicGetTicker(parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTickers() does not support "), type), " markets yet")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTickers() does not support "), type), " markets yet")) ;
             }
             return this.parseTickers(response, symbols);
         });
@@ -6793,7 +6793,7 @@ public class BinanceCore extends BinanceApi
                 response = (this.dapiPublicGetPremiumIndex(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkPrice() does not support "), type), " markets yet")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkPrice() does not support "), type), " markets yet")) ;
             }
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
@@ -6801,7 +6801,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchMarkPrice() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchMarkPrice() returned empty response")) ;
             }
             return this.parseTicker(response, market);
         });
@@ -6853,7 +6853,7 @@ public class BinanceCore extends BinanceApi
                 response = (this.dapiPublicGetPremiumIndex(parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkPrices() does not support "), type), " markets yet")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkPrices() does not support "), type), " markets yet")) ;
             }
             return this.parseTickers(response, symbols);
         });
@@ -6985,7 +6985,7 @@ public class BinanceCore extends BinanceApi
             Object marketId = Helpers.GetValue(market, "id");
             if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing marketId")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchOHLCV() missing marketId")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(price, "index")))
             {
@@ -7525,7 +7525,7 @@ public class BinanceCore extends BinanceApi
                 response = (this.eapiPublicGetHistoricalTrades(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTrades() does not support this method")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTrades() does not support this method")) ;
             }
             //
             // Caveats:
@@ -7633,7 +7633,7 @@ public class BinanceCore extends BinanceApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editSpotOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " editSpotOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
             Object payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, parameters);
             java.util.Map<String, Object> response = (this.privatePostOrderCancelReplace(payload)).join();
@@ -7688,11 +7688,11 @@ public class BinanceCore extends BinanceApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         /**
          * @method
@@ -7713,7 +7713,7 @@ public class BinanceCore extends BinanceApi
         String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("newClientOrderId", "clientOrderId", "origClientOrderId")));
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " editSpotOrderRequest() requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " editSpotOrderRequest() requires a side argument")) ;
         }
         final Object finalSide = side;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -7744,10 +7744,10 @@ public class BinanceCore extends BinanceApi
         {
             if (Helpers.isTrue(!Helpers.isEqual(initialUppercaseType, uppercaseType)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " triggerPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " triggerPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
             } else
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
             }
         }
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
@@ -7822,7 +7822,7 @@ public class BinanceCore extends BinanceApi
         {
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() requires a price argument for a "), type), " order")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() requires a price argument for a "), type), " order")) ;
             }
             Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
         }
@@ -7834,7 +7834,7 @@ public class BinanceCore extends BinanceApi
         {
             if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() requires a triggerPrice extra param for a "), type), " order")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() requires a triggerPrice extra param for a "), type), " order")) ;
             } else
             {
                 Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -7861,24 +7861,24 @@ public class BinanceCore extends BinanceApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && !Helpers.isTrue((Helpers.inOp(parameters, "priceMatch")))))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() and editOrderWs() require a price argument for swap orders")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() and editOrderWs() require a price argument for swap orders")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editContractOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " editContractOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " editContractOrder() requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " editContractOrder() requires a side argument")) ;
         }
         final Object finalSide = side;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -7984,7 +7984,7 @@ public class BinanceCore extends BinanceApi
             //
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
         });
@@ -8022,7 +8022,7 @@ public class BinanceCore extends BinanceApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
@@ -8074,7 +8074,7 @@ public class BinanceCore extends BinanceApi
                 orderParams = ((java.util.List<Object>) isPortfolioMarginorderParamsVariable).get(1);
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " editOrders() does not support portfolio margin orders")) ;
+                    throw new NotSupported(Helpers.add(this.id, " editOrders() does not support portfolio margin orders")) ;
                 }
                 Object orderRequest = this.editContractOrderRequest(id, marketId, type, side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
@@ -8083,7 +8083,7 @@ public class BinanceCore extends BinanceApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "option"), true)))))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " editOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
             Object response = null;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -8920,7 +8920,7 @@ public class BinanceCore extends BinanceApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
             Object response = null;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -9133,7 +9133,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
         });
@@ -9159,11 +9159,11 @@ public class BinanceCore extends BinanceApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         String marketType = this.safeString(parameters, "type", Helpers.GetValue(market, "type"));
@@ -9230,7 +9230,7 @@ public class BinanceCore extends BinanceApi
                     parameters = this.omit(parameters, "stopLossOrTakeProfit");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossOrTakeProfit, "stopLoss"))) && Helpers.isTrue((!Helpers.isEqual(stopLossOrTakeProfit, "takeProfit")))))
                     {
-                        throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, symbol), " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
+                        throw new InvalidOrder(Helpers.add(Helpers.add(this.id, symbol), " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
                     }
                     if (Helpers.isTrue(isMarketOrder))
                     {
@@ -9290,7 +9290,7 @@ public class BinanceCore extends BinanceApi
         {
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
             }
         } else
         {
@@ -9303,10 +9303,10 @@ public class BinanceCore extends BinanceApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(initialUppercaseType, uppercaseType)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " triggerPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " triggerPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
                 } else
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
                 }
             }
         }
@@ -9523,7 +9523,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(Helpers.isEqual(trailingPercent, null)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a trailingPercent param for a "), type), " order")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a trailingPercent param for a "), type), " order")) ;
             }
         }
         if (Helpers.isTrue(quantityIsRequired))
@@ -9542,7 +9542,7 @@ public class BinanceCore extends BinanceApi
         {
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
             }
             String pricePrecision = this.safeString(Helpers.GetValue(market, "precision"), "price");
             Boolean isPricePrecisionAvailable = (!Helpers.isEqual(pricePrecision, null));
@@ -9560,14 +9560,14 @@ public class BinanceCore extends BinanceApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(stopPrice, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice extra param for a "), type), " order")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice extra param for a "), type), " order")) ;
                 }
             } else
             {
                 // check for delta price as well
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(trailingDelta, null)) && Helpers.isTrue(Helpers.isEqual(stopPrice, null))) && Helpers.isTrue(Helpers.isEqual(trailingPercent, null))))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a "), type), " order")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a "), type), " order")) ;
                 }
             }
             if (Helpers.isTrue(!Helpers.isEqual(stopPrice, null)))
@@ -9614,7 +9614,7 @@ public class BinanceCore extends BinanceApi
             Object warnOnStpForInverse = this.handleOption("createOrder", "warnOnSTPForInverse");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true))) && Helpers.isTrue((Helpers.isEqual(warnOnStpForInverse, true)))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the .options[\"createOrder\"][\"warnOnSTPForInverse\"] to false.")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the .options[\"createOrder\"][\"warnOnSTPForInverse\"] to false.")) ;
             }
             Helpers.addElementToObject(request, "selfTradePreventionMode", ((String)selfTradePrevention).toUpperCase()); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
@@ -9655,7 +9655,7 @@ public class BinanceCore extends BinanceApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCost() supports spot orders only")) ;
             }
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
@@ -9688,7 +9688,7 @@ public class BinanceCore extends BinanceApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
@@ -9721,7 +9721,7 @@ public class BinanceCore extends BinanceApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "quoteOrderQty", cost);
             return (this.createOrder(symbol, "market", "sell", cost, null, parameters)).join();
@@ -9778,7 +9778,7 @@ public class BinanceCore extends BinanceApi
                 }
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             Object type = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters, "spot");
@@ -9872,7 +9872,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
         });
@@ -9940,7 +9940,7 @@ public class BinanceCore extends BinanceApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             } else if (!Helpers.isTrue(stock))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             Object type = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters, "spot");
@@ -10341,7 +10341,7 @@ public class BinanceCore extends BinanceApi
                 Object optValue = this.safeBool(this.options, "warnOnFetchOpenOrdersWithoutSymbol"); // for backward compatibility
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(optValue, true))) || Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(optValue, null)) && Helpers.isTrue((Helpers.isEqual(warnWithoutSymbol, true)))))))
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnWithoutSymbol\"] = false to suppress this warning message.")) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnWithoutSymbol\"] = false to suppress this warning message.")) ;
                 }
             }
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, "spot");
@@ -10418,7 +10418,7 @@ public class BinanceCore extends BinanceApi
                         Helpers.addElementToObject(request, "isIsolated", true);
                         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                         {
-                            throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument for isolated markets")) ;
+                            throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument for isolated markets")) ;
                         }
                     }
                     response = (this.sapiGetMarginOpenOrders(this.extend(request, parameters))).join();
@@ -10461,7 +10461,7 @@ public class BinanceCore extends BinanceApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -10515,10 +10515,10 @@ public class BinanceCore extends BinanceApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrder() does not support option markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOpenOrder() does not support option markets")) ;
                 } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrder() does not support spot markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOpenOrder() does not support spot markets")) ;
                 }
             }
             //
@@ -10671,7 +10671,7 @@ public class BinanceCore extends BinanceApi
             //
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
         });
@@ -10722,7 +10722,7 @@ public class BinanceCore extends BinanceApi
                 stock = this.safeBool(market, "stock", false);
             } else if (!Helpers.isTrue(stock))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(stock, true)))
             {
@@ -10780,7 +10780,7 @@ public class BinanceCore extends BinanceApi
                 stock = this.safeBool(market, "stock", false);
             } else if (!Helpers.isTrue(stock))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchCanceledOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchCanceledOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(stock, true)))
             {
@@ -10838,7 +10838,7 @@ public class BinanceCore extends BinanceApi
                 stock = this.safeBool(market, "stock", false);
             } else if (!Helpers.isTrue(stock))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(stock, true)))
             {
@@ -10906,7 +10906,7 @@ public class BinanceCore extends BinanceApi
                 }
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             Object type = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters, "spot");
@@ -11030,7 +11030,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
         });
@@ -11088,7 +11088,7 @@ public class BinanceCore extends BinanceApi
                 }
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             Object isPortfolioMargin = null;
             java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "cancelAllOrders", "papi", "portfolioMargin", false);
@@ -11211,7 +11211,7 @@ public class BinanceCore extends BinanceApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -11220,7 +11220,7 @@ public class BinanceCore extends BinanceApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelOrders is only supported for swap markets.")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelOrders is only supported for swap markets.")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -11308,7 +11308,7 @@ public class BinanceCore extends BinanceApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -11319,7 +11319,7 @@ public class BinanceCore extends BinanceApi
             parameters = this.omit(parameters, "type");
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrderTrades() supports spot markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrderTrades() supports spot markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
@@ -11391,7 +11391,7 @@ public class BinanceCore extends BinanceApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stock, true))) && Helpers.isTrue((!Helpers.isEqual(type, "option")))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             Object endTime = this.safeInteger2(parameters, "until", "endTime");
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -11923,7 +11923,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " method() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " method() returned empty response")) ;
             }
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
@@ -12021,7 +12021,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " method() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " method() returned empty response")) ;
             }
             if (Helpers.isTrue((response instanceof String)))
             {
@@ -12432,14 +12432,14 @@ public class BinanceCore extends BinanceApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(this.id, " transfer () requires params[\"symbol\"] when fromAccount is "), fromAccount)) ;
+                        throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " transfer () requires params[\"symbol\"] when fromAccount is "), fromAccount)) ;
                     }
                 }
                 if (Helpers.isTrue(Helpers.isEqual(toId, "ISOLATED")))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(this.id, " transfer () requires params[\"symbol\"] when toAccount is "), toAccount)) ;
+                        throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " transfer () requires params[\"symbol\"] when toAccount is "), toAccount)) ;
                     }
                 }
                 Object accountsById = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
@@ -12464,7 +12464,7 @@ public class BinanceCore extends BinanceApi
                     Boolean prohibitedWithIsolated = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(fromFuture) || Helpers.isTrue(toFuture)) || Helpers.isTrue(funding)) || Helpers.isTrue(option);
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(fromIsolated) || Helpers.isTrue(toIsolated))) && Helpers.isTrue(prohibitedWithIsolated)))
                     {
-                        throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " transfer () does not allow transfers between "), fromAccount), " and "), toAccount)) ;
+                        throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " transfer () does not allow transfers between "), fromAccount), " and "), toAccount)) ;
                     } else if (Helpers.isTrue(Helpers.isTrue(toSpot) && Helpers.isTrue(fromIsolated)))
                     {
                         fromId = "ISOLATED_MARGIN";
@@ -12571,12 +12571,12 @@ public class BinanceCore extends BinanceApi
                     if (Helpers.isTrue(Helpers.isEqual(fromId, null)))
                     {
                         Object keys = Helpers.objectKeys(accountsByType);
-                        throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fromAccount parameter must be one of "), String.join((String)", ", (java.util.List<String>)keys))) ;
+                        throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fromAccount parameter must be one of "), String.join(", ", (java.util.List<String>)keys))) ;
                     }
                     if (Helpers.isTrue(Helpers.isEqual(toId, null)))
                     {
                         Object keys = Helpers.objectKeys(accountsByType);
-                        throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " toAccount parameter must be one of "), String.join((String)", ", (java.util.List<String>)keys))) ;
+                        throw new ExchangeError(Helpers.add(Helpers.add(this.id, " toAccount parameter must be one of "), String.join(", ", (java.util.List<String>)keys))) ;
                     }
                     type = Helpers.add(Helpers.add(fromId, "_"), toId);
                 }
@@ -13152,7 +13152,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(Helpers.isEqual(data, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseTradingFee() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseTradingFee() returned empty response")) ;
             }
             return this.parseTradingFee(data, market);
         });
@@ -13270,7 +13270,7 @@ public class BinanceCore extends BinanceApi
                 java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(Helpers.isEqual(response, null)))
                 {
-                    throw new NullResponse((String)Helpers.add(this.id, " method() returned empty response")) ;
+                    throw new NullResponse(Helpers.add(this.id, " method() returned empty response")) ;
                 }
                 java.util.List<Object> fees = this.toArray(response);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
@@ -13309,7 +13309,7 @@ public class BinanceCore extends BinanceApi
                 Object markets = this.markets;
                 if (Helpers.isTrue(Helpers.isEqual(markets, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " markets not loaded")) ;
                 }
                 Object symbols = Helpers.objectKeys(markets);
                 java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
@@ -13349,7 +13349,7 @@ public class BinanceCore extends BinanceApi
                 Object markets = this.markets;
                 if (Helpers.isTrue(Helpers.isEqual(markets, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " markets not loaded")) ;
                 }
                 Object symbols = Helpers.objectKeys(markets);
                 java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
@@ -13376,7 +13376,7 @@ public class BinanceCore extends BinanceApi
                 }
                 return result;
             }
-            throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradingFees() is not supported for "), type), " markets")) ;
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradingFees() is not supported for "), type), " markets")) ;
         });
 
     }
@@ -13402,7 +13402,7 @@ public class BinanceCore extends BinanceApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(type, 1))) || Helpers.isTrue((Helpers.isGreaterThan(type, 4)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " type must be between 1 and 4")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " type must be between 1 and 4")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -13459,11 +13459,11 @@ public class BinanceCore extends BinanceApi
                 response = (this.dapiPublicGetPremiumIndex(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRate() supports linear and inverse contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingRate() supports linear and inverse contracts only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchFundingRate() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchFundingRate() returned empty response")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
@@ -13561,7 +13561,7 @@ public class BinanceCore extends BinanceApi
                 response = (this.dapiPublicGetFundingRate(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchFundingRateHistory() is not supported for "), type), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchFundingRateHistory() is not supported for "), type), " markets")) ;
             }
             //
             //     {
@@ -13634,7 +13634,7 @@ public class BinanceCore extends BinanceApi
                 response = (this.dapiPublicGetPremiumIndex(query)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRates() supports linear and inverse contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingRates() supports linear and inverse contracts only")) ;
             }
             return this.parseFundingRates(response, symbols);
         });
@@ -13858,7 +13858,7 @@ public class BinanceCore extends BinanceApi
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
             if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " method() missing leverage")) ;
+                throw new ExchangeError(Helpers.add(this.id, " method() missing leverage")) ;
             }
             Object rational = this.isRoundNumber(Helpers.mod(1000, leverage));
             if (!Helpers.isTrue(rational))
@@ -14357,12 +14357,12 @@ public class BinanceCore extends BinanceApi
                     }
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " loadLeverageBrackets() supports linear and inverse contracts only")) ;
+                    throw new NotSupported(Helpers.add(this.id, " loadLeverageBrackets() supports linear and inverse contracts only")) ;
                 }
                 Helpers.addElementToObject(this.options, "leverageBrackets", this.createSafeDictionary());
                 if (Helpers.isTrue(Helpers.isEqual(response, null)))
                 {
-                    throw new NullResponse((String)Helpers.add(this.id, " loadLeverageBrackets() returned empty response")) ;
+                    throw new NullResponse(Helpers.add(this.id, " loadLeverageBrackets() returned empty response")) ;
                 }
                 java.util.List<Object> entries = this.toArray(response);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entries)); i++)
@@ -14445,7 +14445,7 @@ public class BinanceCore extends BinanceApi
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchLeverageTiers() supports linear and inverse contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchLeverageTiers() supports linear and inverse contracts only")) ;
             }
             //
             // usdm
@@ -14559,7 +14559,7 @@ final Object finalMarket = market;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchPosition() supports option markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchPosition() supports option markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -14624,7 +14624,7 @@ final Object finalMarket = market;
                     Object symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
                     symbol = Helpers.GetValue(symbols, 0);
                 } else
@@ -14784,7 +14784,7 @@ final Object finalMarket = market;
                 return (this.fetchOptionPositions(symbols, parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")) ;
             }
         });
 
@@ -14819,7 +14819,7 @@ final Object finalMarket = market;
             {
                 if (!Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() requires an array argument for symbols")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositions() requires an array argument for symbols")) ;
                 }
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -14869,7 +14869,7 @@ final Object finalMarket = market;
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchPositions() supports linear and inverse contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchPositions() supports linear and inverse contracts only")) ;
             }
             Object filterClosed = null;
             java.util.List<Object> filterClosedparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
@@ -14910,7 +14910,7 @@ final Object finalMarket = market;
             {
                 if (!Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositionsRisk() requires an array argument for symbols")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositionsRisk() requires an array argument for symbols")) ;
                 }
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -14963,7 +14963,7 @@ final Object finalMarket = market;
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchPositionsRisk() supports linear and inverse contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchPositionsRisk() supports linear and inverse contracts only")) ;
             }
             // ### Response examples ###
             //
@@ -15049,7 +15049,7 @@ final Object finalMarket = market;
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " method() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " method() returned empty response")) ;
             }
             java.util.List<Object> positions = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
@@ -15107,7 +15107,7 @@ final Object finalMarket = market;
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
                 }
             }
             Object subType = null;
@@ -15153,7 +15153,7 @@ final Object finalMarket = market;
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingHistory() supports linear and inverse contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingHistory() supports linear and inverse contracts only")) ;
             }
             return this.parseIncomes(response, market, since, limit);
         });
@@ -15183,13 +15183,13 @@ final Object finalMarket = market;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 125)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " leverage should be between 1 and 125")) ;
+                throw new BadRequest(Helpers.add(this.id, " leverage should be between 1 and 125")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -15226,11 +15226,11 @@ final Object finalMarket = market;
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " setLeverage() supports linear and inverse contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " setLeverage() supports linear and inverse contracts only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " setLeverage() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " setLeverage() returned empty response")) ;
             }
             return response;
         });
@@ -15257,7 +15257,7 @@ final Object finalMarket = market;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             //
             // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
@@ -15273,7 +15273,7 @@ final Object finalMarket = market;
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "ISOLATED"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "CROSSED")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " marginMode must be either isolated or cross")) ;
+                throw new BadRequest(Helpers.add(this.id, " marginMode must be either isolated or cross")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -15296,7 +15296,7 @@ final Object finalMarket = market;
                     response = (this.dapiPrivatePostMarginType(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " setMarginMode() supports linear and inverse contracts only")) ;
+                    throw new NotSupported(Helpers.add(this.id, " setMarginMode() supports linear and inverse contracts only")) ;
                 }
             } catch(Exception e)
             {
@@ -15325,7 +15325,7 @@ final Object finalMarket = market;
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " setMarginMode() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " setMarginMode() returned empty response")) ;
             }
             return response;
         });
@@ -15404,7 +15404,7 @@ final Object finalMarket = market;
                 }
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setPositionMode() supports linear and inverse contracts only")) ;
+                throw new BadRequest(Helpers.add(this.id, " setPositionMode() supports linear and inverse contracts only")) ;
             }
             //
             //     {
@@ -15414,7 +15414,7 @@ final Object finalMarket = market;
             //
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " setPositionMode() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " setPositionMode() returned empty response")) ;
             }
             return response;
         });
@@ -15480,7 +15480,7 @@ final Object finalMarket = market;
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchLeverages() supports linear and inverse contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchLeverages() supports linear and inverse contracts only")) ;
             }
             Object leverages = this.safeList(response, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             if (Helpers.isTrue(Helpers.isArray(response)))
@@ -15565,7 +15565,7 @@ final Object finalMarket = market;
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "option")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchSettlementHistory() supports option markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchSettlementHistory() supports option markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -15631,7 +15631,7 @@ final Object finalMarket = market;
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "option")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchMySettlementHistory() supports option markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchMySettlementHistory() supports option markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -15789,7 +15789,7 @@ final Object finalMarket = market;
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "option")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchLedgerEntry() can only be used for type option")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchLedgerEntry() can only be used for type option")) ;
             }
             this.checkRequiredArgument("fetchLedgerEntry", code, "code");
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
@@ -15893,7 +15893,7 @@ final Object finalMarket = market;
                 this.checkRequiredArgument("fetchLedger", code, "code");
                 if (Helpers.isTrue(Helpers.isEqual(currency, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchLedger() could not resolve currency")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchLedger() could not resolve currency")) ;
                 }
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
                 response = (this.eapiPrivateGetBill(this.extend(request, parameters))).join();
@@ -15917,7 +15917,7 @@ final Object finalMarket = market;
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchLedger() supports contract wallets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchLedger() supports contract wallets only")) ;
             }
             //
             // options (eapi)
@@ -16098,7 +16098,7 @@ final Object finalMarket = market;
         Object urls = this.urls;
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(urls, "api"), api))))
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
         }
         Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api);
         url = Helpers.add(url, Helpers.add("/", path));
@@ -16111,7 +16111,7 @@ final Object finalMarket = market;
                 }};
             } else
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " historicalTrades endpoint requires `apiKey` credential")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " historicalTrades endpoint requires `apiKey` credential")) ;
             }
         }
         Boolean userDataStream = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(path, "userDataStream"))) || Helpers.isTrue((Helpers.isEqual(path, "listenKey")))) || Helpers.isTrue((Helpers.isEqual(path, "userListenToken")));
@@ -16130,14 +16130,14 @@ final Object finalMarket = market;
                 }
             } else
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " userDataStream endpoint requires `apiKey` credential")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " userDataStream endpoint requires `apiKey` credential")) ;
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(api, "private"))) || Helpers.isTrue((Helpers.isEqual(api, "eapiPrivate")))) || Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(api, "sapi")) && Helpers.isTrue(!Helpers.isEqual(path, "system/status"))))) || Helpers.isTrue((Helpers.isEqual(api, "sapiV2")))) || Helpers.isTrue((Helpers.isEqual(api, "sapiV3")))) || Helpers.isTrue((Helpers.isEqual(api, "sapiV4")))) || Helpers.isTrue((Helpers.isEqual(api, "dapiPrivate")))) || Helpers.isTrue((Helpers.isEqual(api, "dapiPrivateV2")))) || Helpers.isTrue((Helpers.isEqual(api, "fapiPrivate")))) || Helpers.isTrue((Helpers.isEqual(api, "fapiPrivateV2")))) || Helpers.isTrue((Helpers.isEqual(api, "fapiPrivateV3")))) || Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(api, "papiV2")) || Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "papi")) && Helpers.isTrue(!Helpers.isEqual(path, "ping")))))))
         {
             this.checkRequiredCredentials();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(url, "testnet.binancefuture.com"), Helpers.opNeg(1)))) && Helpers.isTrue(this.isSandboxModeEnabled)) && Helpers.isTrue((!Helpers.isEqual(this.safeBool(this.options, "disableFuturesSandboxWarning"), true)))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
+                throw new NotSupported(Helpers.add(this.id, " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "POST")) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(path, "order"))) || Helpers.isTrue((Helpers.isEqual(path, "sor/order")))))))
             {
@@ -16213,7 +16213,7 @@ final Object finalMarket = market;
                     Object origclientorderidlistLength = Helpers.getArrayLength(origclientorderidlist);
                     if (Helpers.isTrue(Helpers.isGreaterThan(orderidlistLength, 0)))
                     {
-                        query = Helpers.add(Helpers.add(Helpers.add(Helpers.add(query, "&"), "orderidlist=%5B"), String.join((String)"%2C", (java.util.List<String>)orderidlist)), "%5D");
+                        query = Helpers.add(Helpers.add(Helpers.add(Helpers.add(query, "&"), "orderidlist=%5B"), String.join("%2C", (java.util.List<String>)orderidlist)), "%5D");
                     }
                     if (Helpers.isTrue(Helpers.isGreaterThan(origclientorderidlistLength, 0)))
                     {
@@ -16223,7 +16223,7 @@ final Object finalMarket = market;
                         {
                             ((java.util.List<Object>)newClientOrderIds).add(Helpers.add(Helpers.add("%22", Helpers.GetValue(origclientorderidlist, i)), "%22"));
                         }
-                        query = Helpers.add(Helpers.add(Helpers.add(Helpers.add(query, "&"), "origclientorderidlist=%5B"), String.join((String)"%2C", (java.util.List<String>)newClientOrderIds)), "%5D");
+                        query = Helpers.add(Helpers.add(Helpers.add(Helpers.add(query, "&"), "origclientorderidlist=%5B"), String.join("%2C", (java.util.List<String>)newClientOrderIds)), "%5D");
                     }
                 } else
                 {
@@ -16236,7 +16236,7 @@ final Object finalMarket = market;
             Object signature = null;
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), Helpers.opNeg(1))))
             {
-                if (Helpers.isTrue(Helpers.isGreaterThan(((String)this.secret).length(), 120)))
+                if (Helpers.isTrue(Helpers.isGreaterThan(this.secret.length(), 120)))
                 {
                     signature = this.encodeURIComponent(rsa(query, this.secret, sha256()));
                 } else
@@ -16286,19 +16286,19 @@ final Object finalMarket = market;
         }
         String marketType = null;
         Object hostname = ((Helpers.isTrue((!Helpers.isEqual(this.hostname, null))))) ? this.hostname : "binance.com";
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(((String)url).startsWith(((String)Helpers.add(Helpers.add("https://api.", hostname), "/")))) || Helpers.isTrue(((String)url).startsWith(((String)"https://demo-api")))) || Helpers.isTrue(((String)url).startsWith(((String)"https://testnet.binance.vision")))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(((String)url).startsWith(Helpers.add(Helpers.add("https://api.", hostname), "/"))) || Helpers.isTrue(((String)url).startsWith("https://demo-api"))) || Helpers.isTrue(((String)url).startsWith("https://testnet.binance.vision"))))
         {
             marketType = "spot";
-        } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(((String)url).startsWith(((String)Helpers.add(Helpers.add("https://dapi.", hostname), "/")))) || Helpers.isTrue(((String)url).startsWith(((String)"https://demo-dapi")))) || Helpers.isTrue(((String)url).startsWith(((String)"https://testnet.binancefuture.com/dapi")))))
+        } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(((String)url).startsWith(Helpers.add(Helpers.add("https://dapi.", hostname), "/"))) || Helpers.isTrue(((String)url).startsWith("https://demo-dapi"))) || Helpers.isTrue(((String)url).startsWith("https://testnet.binancefuture.com/dapi"))))
         {
             marketType = "inverse";
-        } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(((String)url).startsWith(((String)Helpers.add(Helpers.add("https://fapi.", hostname), "/")))) || Helpers.isTrue(((String)url).startsWith(((String)"https://demo-fapi")))) || Helpers.isTrue(((String)url).startsWith(((String)"https://testnet.binancefuture.com/fapi")))))
+        } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(((String)url).startsWith(Helpers.add(Helpers.add("https://fapi.", hostname), "/"))) || Helpers.isTrue(((String)url).startsWith("https://demo-fapi"))) || Helpers.isTrue(((String)url).startsWith("https://testnet.binancefuture.com/fapi"))))
         {
             marketType = "linear";
-        } else if (Helpers.isTrue(((String)url).startsWith(((String)Helpers.add(Helpers.add("https://eapi.", hostname), "/")))))
+        } else if (Helpers.isTrue(((String)url).startsWith(Helpers.add(Helpers.add("https://eapi.", hostname), "/"))))
         {
             marketType = "option";
-        } else if (Helpers.isTrue(((String)url).startsWith(((String)Helpers.add(Helpers.add("https://papi.", hostname), "/")))))
+        } else if (Helpers.isTrue(((String)url).startsWith(Helpers.add(Helpers.add("https://papi.", hostname), "/"))))
         {
             marketType = "portfolioMargin";
         }
@@ -16314,7 +16314,7 @@ final Object finalMarket = market;
     {
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(code, 418))) || Helpers.isTrue((Helpers.isEqual(code, 429)))))
         {
-            throw new DDoSProtection((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " "), reason), " "), body)) ;
+            throw new DDoSProtection(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " "), reason), " "), body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -16323,15 +16323,15 @@ final Object finalMarket = market;
         {
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "Price * QTY is zero or less"), 0)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " order cost = amount * price is zero or less "), body)) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " order cost = amount * price is zero or less "), body)) ;
             }
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "LOT_SIZE"), 0)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " order amount should be evenly divisible by lot size "), body)) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " order amount should be evenly divisible by lot size "), body)) ;
             }
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "PRICE_FILTER"), 0)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) "), body)) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) "), body)) ;
             }
         }
         if (Helpers.isTrue(Helpers.isEqual(response, null)))
@@ -16383,7 +16383,7 @@ final Object finalMarket = market;
             // on a temporary ban, the API key is valid, but disabled for a while
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(error, "-2015"))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(this.options, "hasAlreadyAuthenticatedSuccessfully"), true)))))
             {
-                throw new DDoSProtection((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+                throw new DDoSProtection(Helpers.add(Helpers.add(this.id, " "), body)) ;
             }
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             if (Helpers.isTrue(Helpers.isEqual(message, "No need to change margin type.")))
@@ -16396,7 +16396,7 @@ final Object finalMarket = market;
         }
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), body)) ;
         }
         if (Helpers.isTrue(Helpers.isArray(response)))
         {
@@ -16482,7 +16482,7 @@ final Object finalMarket = market;
             String type = this.safeString(parameters, "type", defaultType);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "margin"))) || Helpers.isTrue((Helpers.isEqual(type, "spot")))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " add / reduce margin only supported with type future or delivery")) ;
+                throw new NotSupported(Helpers.add(this.id, " add / reduce margin only supported with type future or delivery")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -16517,7 +16517,7 @@ final Object finalMarket = market;
             //
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseMarginModification() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseMarginModification() returned empty response")) ;
             }
             final Object finalCode = code;
             return this.extend(this.parseMarginModification(response, market), new java.util.HashMap<String, Object>() {{
@@ -16773,7 +16773,7 @@ final Object finalMarket = market;
                 limit = 93;
             } else if (Helpers.isTrue(Helpers.isGreaterThan(limit, 93)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchBorrowRateHistory() limit parameter cannot exceed 92")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchBorrowRateHistory() limit parameter cannot exceed 92")) ;
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             final Object finalLimit = limit;
@@ -17363,7 +17363,7 @@ final Object finalMarket = market;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(timeframe, "1m")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -17463,7 +17463,7 @@ final Object finalMarket = market;
                 Helpers.addElementToObject(request, "underlyingAsset", Helpers.GetValue(market, "baseId"));
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "expiry"), null)))
                 {
-                    throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " fetchOpenInterest does not support "), symbol)) ;
+                    throw new NotSupported(Helpers.add(Helpers.add(this.id, " fetchOpenInterest does not support "), symbol)) ;
                 }
                 Helpers.addElementToObject(request, "expiration", this.yymmdd(Helpers.GetValue(market, "expiry")));
             } else
@@ -17523,7 +17523,7 @@ final Object finalMarket = market;
                         return item;
                     }
                 }
-                throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchOpenInterest() could not find open interest for "), symbol)) ;
+                throw new NullResponse(Helpers.add(Helpers.add(this.id, " fetchOpenInterest() could not find open interest for "), symbol)) ;
             } else
             {
                 return this.parseOpenInterest(response, market);
@@ -17673,7 +17673,7 @@ final Object finalMarket = market;
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMyLiquidations() does not support "), this.safeString(market, "type")), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMyLiquidations() does not support "), this.safeString(market, "type")), " markets")) ;
             }
             //
             // margin
@@ -18014,7 +18014,7 @@ final Object finalMarket = market;
                 String symbol = this.safeString(market, "symbol");
                 if (Helpers.isTrue(Helpers.isEqual(market, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchTradingLimits() could not resolve market")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchTradingLimits() could not resolve market")) ;
                 }
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue((this.inArray(symbol, symbols)))))
                 {
@@ -18123,7 +18123,7 @@ final Object finalMarket = market;
                 response = (this.dapiPrivateGetAccount(parameters)).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchMarginModes () supports linear and inverse subTypes only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchMarginModes () supports linear and inverse subTypes only")) ;
             }
             Object assets = this.safeList(response, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             if (Helpers.isTrue(Helpers.isArray(response)))
@@ -18174,11 +18174,11 @@ final Object finalMarket = market;
                 return Helpers.GetValue(fetchMarginModesResponse, symbol);
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchMarginMode () supports linear and inverse subTypes only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchMarginMode () supports linear and inverse subTypes only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchMarginMode() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchMarginMode() returned empty response")) ;
             }
             return this.parseMarginMode(Helpers.GetValue(response, 0), market);
         });
@@ -18344,7 +18344,7 @@ final Object finalMarket = market;
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Long until = this.safeInteger(parameters, "until");
@@ -18377,7 +18377,7 @@ final Object finalMarket = market;
                 response = (this.dapiPrivateGetPositionMarginHistory(this.extend(request, parameters))).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchMarginAdjustmentHistory () is not supported for markets of type "), Helpers.GetValue(market, "type"))) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchMarginAdjustmentHistory () is not supported for markets of type "), Helpers.GetValue(market, "type"))) ;
             }
             //
             //    [
@@ -18396,7 +18396,7 @@ final Object finalMarket = market;
             //
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseMarginModifications() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseMarginModifications() returned empty response")) ;
             }
             Object modifications = this.parseMarginModifications(this.toArray(response));
             return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
@@ -18497,7 +18497,7 @@ final Object finalMarket = market;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(amount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchConvertQuote() requires an amount argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchConvertQuote() requires an amount argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -18524,7 +18524,7 @@ final Object finalMarket = market;
             java.util.Map<String, Object> toCurrency = (java.util.Map<String, Object>) this.currency(toCode);
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseConversion() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseConversion() returned empty response")) ;
             }
             return this.parseConversion(response, fromCurrency, toCurrency);
         });
@@ -18562,7 +18562,7 @@ final Object finalMarket = market;
             {
                 if (Helpers.isTrue(Helpers.isEqual(amount, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createConvertTrade() requires an amount argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createConvertTrade() requires an amount argument")) ;
                 }
                 Helpers.addElementToObject(request, "clientTranId", id);
                 Helpers.addElementToObject(request, "asset", fromCode);
@@ -18578,7 +18578,7 @@ final Object finalMarket = market;
             java.util.Map<String, Object> toCurrency = (java.util.Map<String, Object>) this.currency(toCode);
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseConversion() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseConversion() returned empty response")) ;
             }
             return this.parseConversion(response, fromCurrency, toCurrency);
         });
@@ -18646,7 +18646,7 @@ final Object finalMarket = market;
             }
             if (Helpers.isTrue(Helpers.isEqual(data, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseConversion() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseConversion() returned empty response")) ;
             }
             return this.parseConversion(data, fromCurrency, toCurrency);
         });
@@ -18717,7 +18717,7 @@ final Object finalMarket = market;
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(Helpers.GetValue(request, "endTime"), Helpers.GetValue(request, "startTime"))), msInThirtyDays)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")) ;
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
@@ -18869,7 +18869,7 @@ final Object finalMarket = market;
                 response = (this.dapiPublicGetFundingInfo(parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingIntervals() supports linear and inverse swap contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingIntervals() supports linear and inverse swap contracts only")) ;
             }
             //
             //     [
@@ -18950,7 +18950,7 @@ final Object finalMarket = market;
                 response = (this.dapiDataGetGlobalLongShortAccountRatio(this.extend(request, parameters))).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchLongShortRatioHistory() supports linear and inverse subTypes only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchLongShortRatioHistory() supports linear and inverse subTypes only")) ;
             }
             return this.parseLongShortRatioHistory(response, market);
         });
@@ -19026,11 +19026,11 @@ final Object finalMarket = market;
                 response = (this.fapiPublicGetSymbolAdlRisk(this.extend(request, parameters))).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchADLRank() supports linear subTypes only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchADLRank() supports linear subTypes only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseADLRank() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseADLRank() returned empty response")) ;
             }
             return this.parseADLRank(response, market);
         });
@@ -19092,7 +19092,7 @@ final Object finalMarket = market;
                 }
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchPositionsADLRank() supports linear and inverse subTypes only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchPositionsADLRank() supports linear and inverse subTypes only")) ;
             }
             //
             //     [

@@ -106,12 +106,12 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the token is then in the bucket
-                    client.future((String)messageHash).getFuture().join();
+                    client.future(messageHash).getFuture().join();
                     return Helpers.GetValue(client.subscriptions, "token");
                 }
                 // client.futures is the same registry Exchange.watch () dedupes on, so registering
                 // the flight here, before any suspension point, makes concurrent callers wait
-                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
                 try
                 {
                     Object listenKey = null;
@@ -146,7 +146,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                     }
                     if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
                     {
-                        throw new AuthenticationError((String)Helpers.add(this.id, " getListenKey() received an empty listen key")) ;
+                        throw new AuthenticationError(Helpers.add(this.id, " getListenKey() received an empty listen key")) ;
                     }
                     Helpers.addElementToObject(client.subscriptions, "token", listenKey);
                     client.resolve(listenKey, messageHash);
@@ -264,7 +264,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object messageHash = Helpers.add(Helpers.add(name, "::"), tradeType);
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                messageHash = Helpers.add(Helpers.add(messageHash, "::"), String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add(Helpers.add(messageHash, "::"), String.join(",", (java.util.List<String>)symbols));
             }
             java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             Object tail = access;
@@ -494,7 +494,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object name = this.safeString(parameters, "method", defaultMethod);
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
             }
             String messageHash = Helpers.add("unsubscribe::", name);
             Object tickers = (this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", null, symbols, parameters)).join();
@@ -893,7 +893,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object market = this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchFundingRate() supports swap contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchFundingRate() supports swap contracts only")) ;
             }
             Object name = Helpers.add("fund_rate@", Helpers.GetValue(market, "id"));
             return (this.subscribe(name, "public", "watchFundingRate", market, null, parameters)).join();
@@ -923,7 +923,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object market = this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
             }
             Object name = Helpers.add("fund_rate@", Helpers.GetValue(market, "id"));
             String messageHash = Helpers.add("unsubscribe::", name);
@@ -979,7 +979,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             String messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         }

@@ -900,7 +900,7 @@ public class WoofiproCore extends WoofiproApi
         String marketId = this.safeString(market, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
         Object parts = Helpers.split(marketId, "_");
         String marketType = "swap";
@@ -1078,7 +1078,7 @@ public class WoofiproCore extends WoofiproApi
                 }});
                 if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchCurrencies() could not resolve parsed")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchCurrencies() could not resolve parsed")) ;
                 }
                 Helpers.addElementToObject(result, Helpers.GetValue(parsed, "code"), parsed);
             }
@@ -2346,11 +2346,11 @@ public class WoofiproCore extends WoofiproApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         /**
          * @method
@@ -2369,7 +2369,7 @@ public class WoofiproCore extends WoofiproApi
         Object orderType = ((String)type).toUpperCase();
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object orderSide = ((String)side).toUpperCase();
@@ -2561,7 +2561,7 @@ public class WoofiproCore extends WoofiproApi
                 Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLoss, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfit, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(orderParams, "childOrders"), null)));
                 if (Helpers.isTrue(isConditional))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " createOrders() only support non-stop order")) ;
+                    throw new NotSupported(Helpers.add(this.id, " createOrders() only support non-stop order")) ;
                 }
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
@@ -2648,7 +2648,7 @@ public class WoofiproCore extends WoofiproApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a side argument")) ;
             }
             if (Helpers.isTrue(isConditional))
             {
@@ -2726,7 +2726,7 @@ public class WoofiproCore extends WoofiproApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(trigger, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2836,11 +2836,11 @@ public class WoofiproCore extends WoofiproApi
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
-                Helpers.addElementToObject(request, "client_order_ids", String.join((String)",", (java.util.List<String>)clientOrderIds));
+                Helpers.addElementToObject(request, "client_order_ids", String.join(",", (java.util.List<String>)clientOrderIds));
                 response = (this.v1PrivateDeleteClientBatchOrder(this.extend(request, parameters))).join();
             } else
             {
-                Helpers.addElementToObject(request, "order_ids", String.join((String)",", (java.util.List<String>)ids));
+                Helpers.addElementToObject(request, "order_ids", String.join(",", (java.util.List<String>)ids));
                 response = (this.v1PrivateDeleteBatchOrder(this.extend(request, parameters))).join();
             }
             //
@@ -3735,7 +3735,7 @@ public class WoofiproCore extends WoofiproApi
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
-        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), v);
+        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0))), Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))), v);
     }
 
     public Object signMessage(Object message, Object privateKey)
@@ -3772,7 +3772,7 @@ public class WoofiproCore extends WoofiproApi
                 code = ((String)code).toUpperCase();
                 if (Helpers.isTrue(!Helpers.isEqual(code, "USDC")))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " withdraw() only support USDC")) ;
+                    throw new NotSupported(Helpers.add(this.id, " withdraw() only support USDC")) ;
                 }
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
@@ -3783,7 +3783,7 @@ public class WoofiproCore extends WoofiproApi
             Double coinNetworkId = this.safeNumber(coinNetwork, "id");
             if (Helpers.isTrue(Helpers.isEqual(coinNetworkId, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " withdraw() require chainId parameter")) ;
+                throw new BadRequest(Helpers.add(this.id, " withdraw() require chainId parameter")) ;
             }
             Object withdrawNonce = (this.getWithdrawNonce(parameters)).join();
             Object nonce = this.nonce();
@@ -3936,7 +3936,7 @@ public class WoofiproCore extends WoofiproApi
             Object marginMode = this.safeDict(marginModes, Helpers.GetValue(market, "symbol"));
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
             {
-                throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchMarginMode() did not return a margin mode for "), Helpers.GetValue(market, "symbol"))) ;
+                throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchMarginMode() did not return a margin mode for "), Helpers.GetValue(market, "symbol"))) ;
             }
             return marginMode;
         });
@@ -3962,7 +3962,7 @@ public class WoofiproCore extends WoofiproApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3971,7 +3971,7 @@ public class WoofiproCore extends WoofiproApi
             marginMode = ((String)marginMode).toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, "cross")) && Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalMarginMode = marginMode;
@@ -4192,7 +4192,7 @@ public class WoofiproCore extends WoofiproApi
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 50)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " leverage should be between 1 and 50")) ;
+                throw new BadRequest(Helpers.add(this.id, " leverage should be between 1 and 50")) ;
             }
             final Object finalLeverage = leverage;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{

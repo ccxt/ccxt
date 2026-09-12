@@ -1221,7 +1221,7 @@ public class BitbankCore extends BitbankApi
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             if (!Helpers.isTrue((Helpers.inOp(parameters, "uuid"))))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " uuid is required for withdrawal")) ;
+                throw new ExchangeError(Helpers.add(this.id, " uuid is required for withdrawal")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1460,7 +1460,7 @@ public class BitbankCore extends BitbankApi
             String code = this.safeString(data, "code");
             String message = this.safeString(errorMessages, code, "Error");
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, message);
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
         }
         return null;
     }

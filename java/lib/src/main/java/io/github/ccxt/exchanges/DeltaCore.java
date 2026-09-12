@@ -515,7 +515,7 @@ public class DeltaCore extends DeltaApi
         Object market = Helpers.getArg(optionalArgs, 1, null);
         Object delimiter = Helpers.getArg(optionalArgs, 2, null);
         Object marketType = Helpers.getArg(optionalArgs, 3, null);
-        Boolean isOption = Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((((String)marketId).endsWith(((String)"-C")))) || Helpers.isTrue((((String)marketId).endsWith(((String)"-P"))))) || Helpers.isTrue((((String)marketId).startsWith(((String)"C-"))))) || Helpers.isTrue((((String)marketId).startsWith(((String)"P-"))))));
+        Boolean isOption = Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((((String)marketId).endsWith("-C"))) || Helpers.isTrue((((String)marketId).endsWith("-P")))) || Helpers.isTrue((((String)marketId).startsWith("C-")))) || Helpers.isTrue((((String)marketId).startsWith("P-")))));
         if (Helpers.isTrue(Helpers.isTrue(isOption) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(this.markets_by_id, null))) || !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
@@ -1746,7 +1746,7 @@ public class DeltaCore extends DeltaApi
         String type = this.safeString(metaData, "order_type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
-            type = Helpers.replace((String)type, (String)"_order", (String)"");
+            type = Helpers.replace(((String)type), "_order", "");
         }
         String feeCostString = this.safeString(trade, "commission");
         Object fee = null;
@@ -1885,7 +1885,7 @@ public class DeltaCore extends DeltaApi
                 Helpers.addElementToObject(request, "end", end);
                 if (Helpers.isTrue(Helpers.isEqual(end, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing end")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchOHLCV() missing end")) ;
                 }
                 Helpers.addElementToObject(request, "start", Helpers.subtract(end, Helpers.multiply(limit, duration)));
             } else
@@ -2240,7 +2240,7 @@ public class DeltaCore extends DeltaApi
         String type = this.safeString(order, "order_type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
-            type = Helpers.replace((String)type, (String)"_order", (String)"");
+            type = Helpers.replace(((String)type), "_order", "");
         }
         String price = this.safeString(order, "limit_price");
         String amount = this.safeString(order, "size");
@@ -2462,7 +2462,7 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -2531,7 +2531,7 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3057,7 +3057,7 @@ public class DeltaCore extends DeltaApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3411,7 +3411,7 @@ public class DeltaCore extends DeltaApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3614,7 +3614,7 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);

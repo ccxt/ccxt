@@ -648,7 +648,7 @@ public class CoincheckCore extends CoincheckApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(symbol, "BTC/JPY")))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchTicker() supports BTC/JPY only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchTicker() supports BTC/JPY only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -981,7 +981,7 @@ public class CoincheckCore extends CoincheckApi
                     parameters = this.omit(parameters, "cost");
                     if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")) ;
                     }
                     Helpers.addElementToObject(request, "market_buy_amount", cost);
                 }
@@ -1326,7 +1326,7 @@ public class CoincheckCore extends CoincheckApi
             Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), body, feedback);
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
         }
         return null;
     }

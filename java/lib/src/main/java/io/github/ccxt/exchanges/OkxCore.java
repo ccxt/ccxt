@@ -2411,7 +2411,7 @@ public class OkxCore extends OkxApi
         String quote = "USD";
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
-        String base = null;
+        Object base = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
             base = this.safeString(symbolBase, 0);
@@ -2419,7 +2419,7 @@ public class OkxCore extends OkxApi
         {
             base = this.safeString(optionParts, 0);
         }
-        String settle = base;
+        Object settle = base;
         String expiry = this.safeString(optionParts, 2);
         String strike = this.safeString(optionParts, 3);
         String optionType = this.safeString(optionParts, 4);
@@ -2491,7 +2491,7 @@ public class OkxCore extends OkxApi
             // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
             // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
             // on the missing expiry.
-            isOption = Helpers.isTrue((Helpers.isGreaterThan(partsLength, 3))) && Helpers.isTrue((Helpers.isTrue(((String)marketId).endsWith(((String)"-C"))) || Helpers.isTrue(((String)marketId).endsWith(((String)"-P")))));
+            isOption = Helpers.isTrue((Helpers.isGreaterThan(partsLength, 3))) && Helpers.isTrue((Helpers.isTrue(((String)marketId).endsWith("-C")) || Helpers.isTrue(((String)marketId).endsWith("-P"))));
         }
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isOption) && Helpers.isTrue((!Helpers.isEqual(marketId, null)))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(this.markets_by_id, null))) || !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))))
         {
@@ -2782,7 +2782,7 @@ public class OkxCore extends OkxApi
         //         state: "preopen",
         //
         String id = this.safeString(market, "instId", "");
-        String type = this.safeStringLower(market, "instType");
+        String type = (String)this.safeStringLower(market, "instType");
         if (Helpers.isTrue(Helpers.isEqual(type, "futures")))
         {
             type = "future";
@@ -2795,7 +2795,7 @@ public class OkxCore extends OkxApi
         String baseId = this.safeString(market, "baseCcy", ""); // defaulting to '' because some weird preopen markets have empty baseId
         String quoteId = this.safeString(market, "quoteCcy", "");
         String settleId = this.safeString(market, "settleCcy");
-        String settle = this.safeCurrencyCode(settleId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         String underlying = this.safeString(market, "uly");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(underlying, null))) && !Helpers.isTrue(spot)))
         {
@@ -2810,8 +2810,8 @@ public class OkxCore extends OkxApi
             baseId = this.safeString(parts, 0, "");
             quoteId = this.safeString(parts, 1, "");
         }
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         // handle preopen empty markets
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(base, "")) || Helpers.isTrue(Helpers.isEqual(quote, ""))))
@@ -2819,8 +2819,8 @@ public class OkxCore extends OkxApi
             symbol = id;
         }
         Object expiry = null;
-        String strikePrice = null;
-        String optionType = null;
+        Object strikePrice = null;
+        Object optionType = null;
         if (Helpers.isTrue(contract))
         {
             if (Helpers.isTrue(!Helpers.isEqual(settle, null)))
@@ -3001,7 +3001,7 @@ public class OkxCore extends OkxApi
                 if (Helpers.isTrue(this.isSandboxModeEnabled))
                 {
                     String instFamily = this.safeString(data, "instFamily", "");
-                    if (Helpers.isTrue(instFamily.startsWith(((String)"TEST"))))
+                    if (Helpers.isTrue(instFamily.startsWith("TEST")))
                     {
                         continue;
                     }
@@ -3099,7 +3099,7 @@ public class OkxCore extends OkxApi
         // currencies are grouped by chain entries, so there is at least one entry
         Object firstChain = this.safeDict(chains, 0, new java.util.HashMap<String, Object>() {{}});
         String currencyId = this.safeString(firstChain, "ccy");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         String type = "crypto";
         Object chainsLength = Helpers.getArrayLength(chains);
@@ -3115,7 +3115,7 @@ public class OkxCore extends OkxApi
             }
             Object idParts = Helpers.split(networkId, "-");
             Object parts = this.arraySlice(idParts, 1);
-            Object chainPart = String.join((String)"-", (java.util.List<String>)parts);
+            Object chainPart = String.join("-", (java.util.List<String>)parts);
             Object networkCode = this.networkIdToCode(chainPart, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -3304,7 +3304,7 @@ public class OkxCore extends OkxApi
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
         Object spot = this.safeBool(market, "spot", false);
-        String quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCcy24h") : null;
+        Object quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCcy24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
         String low = this.safeString(ticker, "low24h");
@@ -3427,7 +3427,7 @@ public class OkxCore extends OkxApi
                 String currencyId = this.safeString2(parameters, "uly", "marketId", defaultUnderlying);
                 if (Helpers.isTrue(Helpers.isEqual(currencyId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTickers() requires an underlying uly or marketId parameter for options markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchTickers() requires an underlying uly or marketId parameter for options markets")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "uly", currencyId);
@@ -3546,7 +3546,7 @@ public class OkxCore extends OkxApi
                 String currencyId = this.safeString2(parameters, "uly", "marketId", defaultUnderlying);
                 if (Helpers.isTrue(Helpers.isEqual(currencyId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarkPrices() requires an underlying uly or marketId parameter for options markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchMarkPrices() requires an underlying uly or marketId parameter for options markets")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "uly", currencyId);
@@ -3626,7 +3626,7 @@ public class OkxCore extends OkxApi
         {
             String feeCostSigned = Precise.stringNeg(feeCostString);
             String feeCurrencyId = this.safeString(trade, "feeCcy");
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", feeCostSigned );
                 put( "currency", feeCurrencyCode );
@@ -3841,7 +3841,7 @@ public class OkxCore extends OkxApi
                 limit = Helpers.mathMin(limit, maxLimit);
             }
             int duration = this.parseTimeframe(timeframe);
-            String bar = this.safeString(this.timeframes, timeframe, timeframe);
+            Object bar = this.safeString(this.timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(timezone, "UTC"))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(duration, 21600)))))
             {
                 bar = Helpers.add(bar, timezone.toLowerCase());
@@ -3853,7 +3853,7 @@ public class OkxCore extends OkxApi
                 put( "bar", finalBar );
                 put( "limit", finalLimit );
             }};
-            String defaultType = "Candles";
+            Object defaultType = "Candles";
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Long now = this.milliseconds();
@@ -3955,7 +3955,7 @@ public class OkxCore extends OkxApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4048,7 +4048,7 @@ public class OkxCore extends OkxApi
         {
             Object balance = Helpers.GetValue(details, i);
             String currencyId = this.safeString(balance, "ccy");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             // it may be incorrect to use total, free and used for swap accounts
             String eq = this.safeString(balance, "eq");
@@ -4082,7 +4082,7 @@ public class OkxCore extends OkxApi
         {
             Object balance = Helpers.GetValue(data, i);
             String currencyId = this.safeString(balance, "ccy");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             // it may be incorrect to use total, free and used for swap accounts
             Helpers.addElementToObject(account, "total", this.safeString(balance, "bal"));
@@ -4153,7 +4153,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "uly", Helpers.add(Helpers.add(Helpers.GetValue(market, "baseId"), "-"), Helpers.GetValue(market, "quoteId")));
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFee() supports spot, swap, future or option markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTradingFee() supports spot, swap, future or option markets only")) ;
             }
             java.util.Map<String, Object> response = (this.privateGetAccountTradeFee(this.extend(request, parameters))).join();
             //
@@ -4343,7 +4343,7 @@ public class OkxCore extends OkxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot markets only")) ;
             }
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "createMarketBuyOrderRequiresPrice", false );
@@ -4377,7 +4377,7 @@ public class OkxCore extends OkxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketSellOrderWithCost() supports spot markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() supports spot markets only")) ;
             }
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "createMarketBuyOrderRequiresPrice", false );
@@ -4394,11 +4394,11 @@ public class OkxCore extends OkxApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
@@ -4440,7 +4440,7 @@ public class OkxCore extends OkxApi
         Boolean trigger = Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue((Helpers.isEqual(type, "trigger")));
         Boolean isReduceOnly = Helpers.isTrue((Helpers.isEqual(this.safeBool(parameters, "reduceOnly", false), true))) || Helpers.isTrue((!Helpers.isEqual(closeFraction, null)));
         String defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
-        String marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not omitted so as to be extended into the request
+        Object marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not omitted so as to be extended into the request
         Object margin = false;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "cash")))))
         {
@@ -4458,7 +4458,7 @@ public class OkxCore extends OkxApi
                 String currency = this.safeString(parameters, "ccy", defaultCurrency);
                 Helpers.addElementToObject(request, "ccy", this.safeCurrencyCode(currency));
             }
-            String tradeMode = ((Helpers.isTrue((Helpers.isEqual(margin, true))))) ? marginMode : "cash";
+            Object tradeMode = ((Helpers.isTrue((Helpers.isEqual(margin, true))))) ? marginMode : "cash";
             Helpers.addElementToObject(request, "tdMode", tradeMode);
         } else if (Helpers.isTrue(Helpers.isEqual(contract, true)))
         {
@@ -4544,7 +4544,7 @@ public class OkxCore extends OkxApi
                             }
                         } else if (Helpers.isTrue(Helpers.isEqual(notional, null)))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")) ;
                         }
                     } else
                     {
@@ -4591,7 +4591,7 @@ public class OkxCore extends OkxApi
                 Object stopLossTriggerPrice = this.safeValueN(stopLoss, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "slTriggerPx")));
                 if (Helpers.isTrue(Helpers.isEqual(stopLossTriggerPrice, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")) ;
                 }
                 Object slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 java.util.Map<String, Object> slOrder = new java.util.HashMap<String, Object>() {{}};
@@ -4604,12 +4604,12 @@ public class OkxCore extends OkxApi
                     Boolean stopLossMarketOrderType = (Helpers.isEqual(stopLossOrderType, "market"));
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isTrue(stopLossLimitOrderType))) && Helpers.isTrue((!Helpers.isTrue(stopLossMarketOrderType)))))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() params[\"stopLoss\"][\"type\"] must be either \"limit\" or \"market\"")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() params[\"stopLoss\"][\"type\"] must be either \"limit\" or \"market\"")) ;
                     } else if (Helpers.isTrue(stopLossLimitOrderType))
                     {
                         if (Helpers.isTrue(Helpers.isEqual(stopLossLimitPrice, null)))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order")) ;
                         } else
                         {
                             Helpers.addElementToObject(slOrder, "slOrdPx", this.priceToPrecision(symbol, stopLossLimitPrice));
@@ -4630,7 +4630,7 @@ public class OkxCore extends OkxApi
                 {
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossTriggerPriceType, "last"))) && Helpers.isTrue((!Helpers.isEqual(stopLossTriggerPriceType, "index")))) && Helpers.isTrue((!Helpers.isEqual(stopLossTriggerPriceType, "mark")))))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() stop loss trigger price type must be one of \"last\", \"index\" or \"mark\"")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() stop loss trigger price type must be one of \"last\", \"index\" or \"mark\"")) ;
                     }
                     Helpers.addElementToObject(slOrder, "slTriggerPxType", stopLossTriggerPriceType);
                 }
@@ -4641,7 +4641,7 @@ public class OkxCore extends OkxApi
                 Object takeProfitTriggerPrice = this.safeValueN(takeProfit, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "tpTriggerPx")));
                 if (Helpers.isTrue(Helpers.isEqual(takeProfitTriggerPrice, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")) ;
                 }
                 java.util.Map<String, Object> tpOrder = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tpOrder, "tpTriggerPx", this.priceToPrecision(symbol, takeProfitTriggerPrice));
@@ -4653,12 +4653,12 @@ public class OkxCore extends OkxApi
                     Boolean takeProfitMarketOrderType = (Helpers.isEqual(takeProfitOrderType, "market"));
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isTrue(takeProfitLimitOrderType))) && Helpers.isTrue((!Helpers.isTrue(takeProfitMarketOrderType)))))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() params[\"takeProfit\"][\"type\"] must be either \"limit\" or \"market\"")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() params[\"takeProfit\"][\"type\"] must be either \"limit\" or \"market\"")) ;
                     } else if (Helpers.isTrue(takeProfitLimitOrderType))
                     {
                         if (Helpers.isTrue(Helpers.isEqual(takeProfitLimitPrice, null)))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order")) ;
                         } else
                         {
                             Helpers.addElementToObject(tpOrder, "tpOrdKind", takeProfitOrderType);
@@ -4681,7 +4681,7 @@ public class OkxCore extends OkxApi
                 {
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takeProfitTriggerPriceType, "last"))) && Helpers.isTrue((!Helpers.isEqual(takeProfitTriggerPriceType, "index")))) && Helpers.isTrue((!Helpers.isEqual(takeProfitTriggerPriceType, "mark")))))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() take profit trigger price type must be one of \"last\", \"index\" or \"mark\"")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() take profit trigger price type must be one of \"last\", \"index\" or \"mark\"")) ;
                     }
                     Helpers.addElementToObject(tpOrder, "tpTriggerPxType", takeProfitTriggerPriceType);
                 }
@@ -4813,7 +4813,7 @@ public class OkxCore extends OkxApi
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(method, "privatePostTradeOrder"))) && Helpers.isTrue((!Helpers.isEqual(method, "privatePostTradeOrderAlgo")))) && Helpers.isTrue((!Helpers.isEqual(method, "privatePostTradeBatchOrders")))))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " createOrder() this.options[\"createOrder\"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createOrder() this.options[\"createOrder\"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostTradeBatchOrders")))
             {
@@ -4869,7 +4869,7 @@ public class OkxCore extends OkxApi
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
                 }
                 String type = this.safeString(rawOrder, "type", "");
                 String side = this.safeString(rawOrder, "side");
@@ -4957,13 +4957,13 @@ public class OkxCore extends OkxApi
         {
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(stopLossTriggerPrice, null))) && Helpers.isTrue((Helpers.isEqual(takeProfitTriggerPrice, null)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order")) ;
+                throw new BadRequest(Helpers.add(this.id, " editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(stopLossTriggerPrice, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(stopLossPrice, null)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " editOrder() requires a newSlOrdPx parameter for editing an algo order")) ;
+                    throw new BadRequest(Helpers.add(this.id, " editOrder() requires a newSlOrdPx parameter for editing an algo order")) ;
                 }
                 Helpers.addElementToObject(request, "newSlTriggerPx", this.priceToPrecision(symbol, stopLossTriggerPrice));
                 Helpers.addElementToObject(request, "newSlOrdPx", ((Helpers.isTrue((Helpers.isEqual(type, "market"))))) ? "-1" : this.priceToPrecision(symbol, stopLossPrice));
@@ -4973,7 +4973,7 @@ public class OkxCore extends OkxApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(takeProfitPrice, null)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " editOrder() requires a newTpOrdPx parameter for editing an algo order")) ;
+                    throw new BadRequest(Helpers.add(this.id, " editOrder() requires a newTpOrdPx parameter for editing an algo order")) ;
                 }
                 Helpers.addElementToObject(request, "newTpTriggerPx", this.priceToPrecision(symbol, takeProfitTriggerPrice));
                 Helpers.addElementToObject(request, "newTpOrdPx", ((Helpers.isTrue((Helpers.isEqual(type, "market"))))) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice));
@@ -5133,7 +5133,7 @@ public class OkxCore extends OkxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
             Object trailing = this.safeBool(parameters, "trailing", false);
@@ -5210,7 +5210,7 @@ public class OkxCore extends OkxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5375,7 +5375,7 @@ public class OkxCore extends OkxApi
                 String symbol = this.safeString(order, "symbol");
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol for each order")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol for each order")) ;
                 }
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 String idKey = "ordId";
@@ -5724,14 +5724,14 @@ public class OkxCore extends OkxApi
         }
         String marketId = this.safeString(order, "instId");
         market = this.safeMarket(marketId, market);
-        String symbol = this.safeSymbol(marketId, market, "-");
+        String symbol = (String) this.safeSymbol(marketId, market, "-");
         String filled = this.safeString(order, "accFillSz");
         String price = this.safeString2(order, "px", "ordPx");
         String average = this.safeString(order, "avgPx");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         String feeCostString = this.safeString(order, "fee");
-        String amount = null;
-        String cost = null;
+        Object amount = null;
+        Object cost = null;
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
         // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
         String defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
@@ -5751,7 +5751,7 @@ public class OkxCore extends OkxApi
         {
             String feeCostSigned = Precise.stringNeg(feeCostString);
             String feeCurrencyId = this.safeString(order, "feeCcy");
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", OkxCore.this.parseNumber(feeCostSigned) );
                 put( "currency", feeCurrencyCode );
@@ -5829,7 +5829,7 @@ public class OkxCore extends OkxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6229,7 +6229,7 @@ public class OkxCore extends OkxApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(ordType, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchCanceledOrders() requires an \"ordType\" string parameter, \"conditional\", \"oco\", \"trigger\", \"move_order_stop\", \"iceberg\", or \"twap\"")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " fetchCanceledOrders() requires an \"ordType\" string parameter, \"conditional\", \"oco\", \"trigger\", \"move_order_stop\", \"iceberg\", or \"twap\"")) ;
                     }
                 }
             } else
@@ -6883,7 +6883,7 @@ public class OkxCore extends OkxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "ccy");
-        String code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Long timestamp = this.safeInteger(item, "ts");
         String feeCostString = this.safeString(item, "fee");
@@ -6897,7 +6897,7 @@ public class OkxCore extends OkxApi
             }};
         }
         String marketId = this.safeString(item, "instId");
-        String symbol = this.safeSymbol(marketId, null, "-");
+        String symbol = (String) this.safeSymbol(marketId, null, "-");
         final Object finalFee = fee;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
@@ -7105,7 +7105,7 @@ public class OkxCore extends OkxApi
                 Object result = this.safeDict(response, network);
                 if (Helpers.isTrue(Helpers.isEqual(result, null)))
                 {
-                    throw new InvalidAddress((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchDepositAddress() cannot find "), network), " deposit address for "), code)) ;
+                    throw new InvalidAddress(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchDepositAddress() cannot find "), network), " deposit address for "), code)) ;
                 }
                 return result;
             }
@@ -7179,7 +7179,7 @@ public class OkxCore extends OkxApi
                 fee = this.safeString(targetNetwork, "fee");
                 if (Helpers.isTrue(Helpers.isEqual(fee, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a \"fee\" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set \"0\". Withdrawing to external digital asset address requires network transaction fee.")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " withdraw() requires a \"fee\" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set \"0\". Withdrawing to external digital asset address requires network transaction fee.")) ;
                 }
             }
             Helpers.addElementToObject(request, "fee", this.numberToString(fee)); // withdrawals to OKCoin or OKX are fee-free, please set 0
@@ -7582,12 +7582,12 @@ public class OkxCore extends OkxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String type = null;
-        String id = null;
+        Object id = null;
         String withdrawalId = this.safeString(transaction, "wdId");
         String addressFrom = this.safeString(transaction, "from");
         String addressTo = this.safeString(transaction, "to");
-        String address = addressTo;
-        String tagTo = this.safeString2(transaction, "tag", "memo");
+        Object address = addressTo;
+        Object tagTo = this.safeString2(transaction, "tag", "memo");
         tagTo = ((Helpers.isTrue((Helpers.isEqual(tagTo, null))))) ? this.safeString(transaction, "pmtId") : this.safeString2(transaction, "pmtId", tagTo);
         if (Helpers.isTrue(!Helpers.isEqual(withdrawalId, null)))
         {
@@ -7600,14 +7600,14 @@ public class OkxCore extends OkxApi
             type = "deposit";
         }
         String currencyId = this.safeString(transaction, "ccy");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object network = null;
         String chain = this.safeString(transaction, "chain");
         if (Helpers.isTrue(!Helpers.isEqual(chain, null)))
         {
             Object chainParts = Helpers.split(chain, "-");
             Object networkParts = this.arraySlice(chainParts, 1);
-            Object networkId = String.join((String)"-", (java.util.List<String>)networkParts);
+            Object networkId = String.join("-", (java.util.List<String>)networkParts);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
             {
                 network = this.networkIdToCode(networkId, code);
@@ -7688,7 +7688,7 @@ public class OkxCore extends OkxApi
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "cross"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalMarginMode = marginMode;
@@ -7720,7 +7720,7 @@ public class OkxCore extends OkxApi
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marketId = null;
+        Object marketId = null;
         Object marginMode = null;
         Object longLeverage = null;
         Object shortLeverage = null;
@@ -7729,7 +7729,7 @@ public class OkxCore extends OkxApi
             Object entry = Helpers.GetValue(leverage, i);
             marginMode = this.safeStringLower(entry, "mgnMode");
             marketId = this.safeString(entry, "instId");
-            String positionSide = this.safeStringLower(entry, "posSide");
+            String positionSide = (String)this.safeStringLower(entry, "posSide");
             if (Helpers.isTrue(Helpers.isEqual(positionSide, "long")))
             {
                 longLeverage = this.safeInteger(entry, "lever");
@@ -7837,7 +7837,7 @@ public class OkxCore extends OkxApi
             Object position = this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isEqual(position, null)))
             {
-                throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
+                throw new NullResponse(Helpers.add(Helpers.add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
             }
             return this.parsePosition(position, market);
         });
@@ -7879,7 +7879,7 @@ public class OkxCore extends OkxApi
                 Object marketIdsLength = Helpers.getArrayLength(marketIds);
                 if (Helpers.isTrue(Helpers.isGreaterThan(marketIdsLength, 0)))
                 {
-                    Helpers.addElementToObject(request, "instId", String.join((String)",", (java.util.List<String>)marketIds));
+                    Helpers.addElementToObject(request, "instId", String.join(",", (java.util.List<String>)marketIds));
                 }
             }
             Object fetchPositionsOptions = this.safeDict(this.options, "fetchPositions", new java.util.HashMap<String, Object>() {{}});
@@ -8053,7 +8053,7 @@ public class OkxCore extends OkxApi
             if (Helpers.isTrue(Helpers.isEqual(side, "net")))
             {
                 String posCcy = this.safeString(position, "posCcy");
-                String parsedCurrency = this.safeCurrencyCode(posCcy);
+                String parsedCurrency = (String) this.safeCurrencyCode(posCcy);
                 if (Helpers.isTrue(!Helpers.isEqual(parsedCurrency, null)))
                 {
                     side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "base"), parsedCurrency))))) ? "long" : "short";
@@ -8092,12 +8092,12 @@ public class OkxCore extends OkxApi
         }
         Object notional = this.parseNumber(notionalString);
         String marginMode = this.safeString(position, "mgnMode");
-        String initialMarginString = null;
+        Object initialMarginString = null;
         String entryPriceString = this.safeString2(position, "avgPx", "openAvgPx");
         String unrealizedPnlString = this.safeString(position, "upl");
         String leverageString = this.safeString(position, "lever");
         Object initialMarginPercentage = null;
-        String collateralString = null;
+        Object collateralString = null;
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
         {
             initialMarginString = this.safeString(position, "imr");
@@ -8296,7 +8296,7 @@ public class OkxCore extends OkxApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(transfer, "transId", "billId");
         String currencyId = this.safeString(transfer, "ccy");
-        String code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object amount = this.safeNumber(transfer, "amt");
         String fromAccountId = this.safeString(transfer, "from");
         String toAccountId = this.safeString(transfer, "to");
@@ -8588,7 +8588,7 @@ public class OkxCore extends OkxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long nextFundingRateTimestamp = this.safeInteger(contract, "nextFundingTime");
         String marketId = this.safeString(contract, "instId");
-        String symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Double nextFundingRate = this.safeNumber(contract, "nextFundingRate");
         Long fundingTime = this.safeInteger(contract, "fundingTime");
         String fundingTimeString = this.safeString(contract, "fundingTime");
@@ -8676,7 +8676,7 @@ public class OkxCore extends OkxApi
             Boolean isExtendedPerpetual = (Helpers.isEqual(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && !Helpers.isTrue(isExtendedPerpetual)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchFundingRate() is only valid for swap markets or XPERP futures")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchFundingRate() is only valid for swap markets or XPERP futures")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
@@ -8736,7 +8736,7 @@ public class OkxCore extends OkxApi
                     Boolean isExtendedPerpetual = (Helpers.isEqual(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && !Helpers.isTrue(isExtendedPerpetual)))
                     {
-                        throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchFundingRates() symbols must be swap markets or XPERP futures, "), Helpers.GetValue(symbols, i)), " is not")) ;
+                        throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchFundingRates() symbols must be swap markets or XPERP futures, "), Helpers.GetValue(symbols, i)), " is not")) ;
                     }
                 }
             }
@@ -8857,10 +8857,10 @@ public class OkxCore extends OkxApi
                 String instId = this.safeString(entry, "instId");
                 java.util.Map<String, Object> marketInner = (java.util.Map<String, Object>) this.safeMarket(instId);
                 String currencyId = this.safeString(entry, "ccy");
-                String code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 String balanceChange = this.safeString(entry, "balChg");
                 String positionBalanceChange = this.safeString(entry, "posBalChg");
-                String amount = null;
+                Object amount = null;
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(balanceChange, null))) && Helpers.isTrue((!Helpers.isTrue(Precise.stringEq(balanceChange, "0"))))))
                 {
                     amount = balanceChange;
@@ -8906,13 +8906,13 @@ public class OkxCore extends OkxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 125)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setLeverage() leverage should be between 1 and 125")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() leverage should be between 1 and 125")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -8929,7 +8929,7 @@ public class OkxCore extends OkxApi
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "cross"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             final Object finalLeverage = leverage;
             final Object finalMarginMode = marginMode;
@@ -8943,7 +8943,7 @@ public class OkxCore extends OkxApi
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(posSide, "long")) && Helpers.isTrue(!Helpers.isEqual(posSide, "short"))) && Helpers.isTrue(!Helpers.isEqual(posSide, "net"))))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"")) ;
+                    throw new BadRequest(Helpers.add(this.id, " setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"")) ;
                 }
                 Helpers.addElementToObject(request, "posSide", posSide);
             }
@@ -8993,7 +8993,7 @@ public class OkxCore extends OkxApi
                 if (Helpers.isTrue(Helpers.isEqual(accountId, null)))
                 {
                     Object accountIds = this.getListFromObjectValues(accounts, "id");
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: "), String.join((String)", ", (java.util.List<String>)accountIds))) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: "), String.join(", ", (java.util.List<String>)accountIds))) ;
                 } else
                 {
                     java.util.Map<String, Object> accountsById = this.indexBy(accounts, "id");
@@ -9080,14 +9080,14 @@ public class OkxCore extends OkxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             marginMode = ((String)marginMode).toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "cross"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -9097,7 +9097,7 @@ public class OkxCore extends OkxApi
             Long lever = (Long) this.safeInteger2(parameters, "lever", "leverage");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(lever, null))) || Helpers.isTrue((Helpers.isLessThan(lever, 1)))) || Helpers.isTrue((Helpers.isGreaterThan(lever, 125)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("leverage")));
             final Object finalLever = lever;
@@ -9259,7 +9259,7 @@ public class OkxCore extends OkxApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object item = Helpers.GetValue(response, i);
-            String code = this.safeCurrencyCode(this.safeString(item, "ccy"));
+            String code = (String) this.safeCurrencyCode(this.safeString(item, "ccy"));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(codes, null)) || Helpers.isTrue(this.inArray(code, codes))))))
             {
                 if (!Helpers.isTrue((Helpers.inOp(borrowRateHistories, code))))
@@ -9490,7 +9490,7 @@ public class OkxCore extends OkxApi
         String amountRaw = this.safeString2(data, "amt", "posBalChg");
         String typeRaw = this.safeString(data, "type");
         // ledger uses numeric '6' (+/- amount); addMargin/reduceMargin already send 'add'/'reduce'
-        String type = null;
+        Object type = null;
         if (Helpers.isTrue(Helpers.isEqual(typeRaw, "6")))
         {
             type = ((Helpers.isTrue(Precise.stringGt(amountRaw, "0")))) ? "add" : "reduce";
@@ -9587,7 +9587,7 @@ public class OkxCore extends OkxApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(type, "MARGIN")))
                 {
-                    throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchMarketLeverageTiers() cannot fetch leverage tiers for "), symbol)) ;
+                    throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchMarketLeverageTiers() cannot fetch leverage tiers for "), symbol)) ;
                 }
             }
             Object marginMode = null;
@@ -9867,7 +9867,7 @@ public class OkxCore extends OkxApi
             parameters = this.omit(parameters, "id");
             if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " repayCrossMargin() requires an id parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " repayCrossMargin() requires an id parameter")) ;
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             final Object finalId = id;
@@ -9948,7 +9948,7 @@ public class OkxCore extends OkxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
             String type = this.convertToInstrumentType(Helpers.GetValue(market, "type"));
             String uly = this.safeString(Helpers.GetValue(market, "info"), "uly");
@@ -10036,7 +10036,7 @@ public class OkxCore extends OkxApi
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(instType, "OPTION")) && Helpers.isTrue(Helpers.isEqual(uly, null))) && Helpers.isTrue(Helpers.isEqual(instFamily, null))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")) ;
             }
             java.util.Map<String, Object> response = (this.publicGetPublicOpenInterest(this.extend(request, parameters))).join();
             //
@@ -10088,7 +10088,7 @@ public class OkxCore extends OkxApi
             timeframe = this.safeString(timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(timeframe, "5m")) && Helpers.isTrue(!Helpers.isEqual(timeframe, "1H"))) && Helpers.isTrue(!Helpers.isEqual(timeframe, "1D"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -10256,7 +10256,7 @@ public class OkxCore extends OkxApi
             if (Helpers.isTrue(!Helpers.isEqual(codes, null)))
             {
                 Object ids = this.currencyIds(codes);
-                Helpers.addElementToObject(request, "ccy", String.join((String)",", (java.util.List<String>)ids));
+                Helpers.addElementToObject(request, "ccy", String.join(",", (java.util.List<String>)ids));
             }
             java.util.Map<String, Object> response = (this.privateGetAssetCurrencies(this.extend(request, parameters))).join();
             //
@@ -10339,7 +10339,7 @@ public class OkxCore extends OkxApi
         {
             Object feeInfo = Helpers.GetValue(response, i);
             String currencyId = this.safeString(feeInfo, "ccy");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
             {
                 Object depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
@@ -10410,7 +10410,7 @@ public class OkxCore extends OkxApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchSettlementHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchSettlementHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -10423,7 +10423,7 @@ public class OkxCore extends OkxApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "future")) && Helpers.isTrue(!Helpers.isEqual(type, "option"))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchSettlementHistory() supports futures and options markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchSettlementHistory() supports futures and options markets only")) ;
             }
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -10545,7 +10545,7 @@ public class OkxCore extends OkxApi
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketType, "option"))) && Helpers.isTrue((!Helpers.isEqual(marketType, "swap")))) && Helpers.isTrue((!Helpers.isEqual(marketType, "future")))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchUnderlyingAssets() supports contract markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchUnderlyingAssets() supports contract markets only")) ;
             }
             final Object finalMarketType = marketType;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -10637,7 +10637,7 @@ public class OkxCore extends OkxApi
                     return this.parseGreeks(entry, market);
                 }
             }
-            throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchGreeks() could not find greeks for "), symbol)) ;
+            throw new NullResponse(Helpers.add(Helpers.add(this.id, " fetchGreeks() could not find greeks for "), symbol)) ;
         });
 
     }
@@ -10685,7 +10685,7 @@ public class OkxCore extends OkxApi
                 }
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uly, null))) && Helpers.isTrue((Helpers.isEqual(instFamily, null)))))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchAllGreeks() requires either a uly or instFamily parameter")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchAllGreeks() requires either a uly or instFamily parameter")) ;
                 }
             }
             Object market = null;
@@ -10766,7 +10766,7 @@ public class OkxCore extends OkxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(greeks, "ts");
         String marketId = this.safeString(greeks, "instId");
-        String symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -11358,9 +11358,9 @@ public class OkxCore extends OkxApi
         Object toCurrency = Helpers.getArg(optionalArgs, 1, null);
         Long timestamp = (Long) this.safeInteger2(conversion, "quoteTime", "ts");
         String fromCoin = this.safeString(conversion, "baseCcy");
-        String fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        String fromCode = (String) this.safeCurrencyCode(fromCoin, fromCurrency);
         String to = this.safeString(conversion, "quoteCcy");
-        String toCode = this.safeCurrencyCode(to, toCurrency);
+        String toCode = (String) this.safeCurrencyCode(to, toCurrency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
@@ -11413,7 +11413,7 @@ public class OkxCore extends OkxApi
             {
                 Object entry = Helpers.GetValue(data, i);
                 String id = this.safeString(entry, "ccy");
-                String code = this.safeCurrencyCode(id);
+                String code = (String) this.safeCurrencyCode(id);
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     final Object finalCode = code;
@@ -11528,7 +11528,7 @@ public class OkxCore extends OkxApi
             Object auto = this.safeBool(parameters, "auto");
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a type argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a type argument")) ;
             }
             Boolean isAdd = Helpers.isEqual(type, "add");
             String subType = ((Helpers.isTrue(isAdd))) ? "160" : "161";
@@ -11539,7 +11539,7 @@ public class OkxCore extends OkxApi
                     subType = "162";
                 } else
                 {
-                    throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " cannot fetch margin adjustments for type "), type)) ;
+                    throw new BadRequest(Helpers.add(Helpers.add(this.id, " cannot fetch margin adjustments for type "), type)) ;
                 }
             }
             final Object finalSubType = subType;
@@ -11573,7 +11573,7 @@ public class OkxCore extends OkxApi
                 response = (this.privateGetAccountBillsArchive(this.extend(request, parameters))).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months")) ;
             }
             //
             //    {
@@ -11657,7 +11657,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             String marginMode = this.safeString(parameters, "marginMode");
-            String instType = this.safeStringUpper(parameters, "instType");
+            String instType = (String)this.safeStringUpper(parameters, "instType");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "marginMode", "instType")));
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -11754,7 +11754,7 @@ public class OkxCore extends OkxApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLongShortRatioHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchLongShortRatioHistory() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{

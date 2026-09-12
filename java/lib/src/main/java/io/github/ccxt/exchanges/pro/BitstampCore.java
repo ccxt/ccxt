@@ -360,7 +360,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -707,10 +707,10 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the token is then in this.options
-                    client.future((String)messageHash).getFuture().join();
+                    client.future(messageHash).getFuture().join();
                     return null;
                 }
-                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
                 try
                 {
                     java.util.Map<String, Object> response = (this.privatePostWebsocketsToken(parameters)).join();
@@ -724,7 +724,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
                     String sessionToken = this.safeString(response, "token");
                     if (Helpers.isTrue(Helpers.isEqual(sessionToken, null)))
                     {
-                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty token")) ;
+                        throw new AuthenticationError(Helpers.add(this.id, " authenticate() received an empty token")) ;
                     }
                     String userId = this.safeString(response, "user_id");
                     Long validity = this.safeIntegerProduct(response, "valid_sec", 1000);

@@ -1090,11 +1090,11 @@ public class CoinoneCore extends CoinoneApi
             Object orderSide = ((String)((String)side)).toUpperCase(); // unified lowercase order sides, same override rule
             if (Helpers.isTrue(!Helpers.isEqual(orderType, "LIMIT")))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createOrder() allows limit orders only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument for the limit orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument for the limit orders")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1145,7 +1145,7 @@ public class CoinoneCore extends CoinoneApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1360,7 +1360,7 @@ public class CoinoneCore extends CoinoneApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchOpenOrders() allows fetching closed orders with a specific symbol")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchOpenOrders() allows fetching closed orders with a specific symbol")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1416,7 +1416,7 @@ public class CoinoneCore extends CoinoneApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1471,14 +1471,14 @@ public class CoinoneCore extends CoinoneApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")) ;
             }
             Double price = this.safeNumber(parameters, "price");
             Double qty = this.safeNumber(parameters, "qty");
             Long isAsk = this.safeInteger(parameters, "is_ask");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) || Helpers.isTrue((Helpers.isEqual(qty, null)))) || Helpers.isTrue((Helpers.isEqual(isAsk, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1636,7 +1636,7 @@ public class CoinoneCore extends CoinoneApi
             }}, parameters));
             Object payload = this.stringToBase64(json);
             body = payload;
-            Object secret = ((String)this.secret).toUpperCase();
+            Object secret = this.secret.toUpperCase();
             Object signature = this.hmac(this.encode(payload), this.encode(secret), sha512());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );

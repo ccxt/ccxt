@@ -571,7 +571,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
                 expires = this.sum(this.seconds(), timeout);
                 if (Helpers.isTrue(Helpers.isEqual(expires, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPrivate() expires is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " watchPrivate() expires is required")) ;
                 }
                 expires = String.valueOf(expires);
                 // we need to memoize these values to avoid generating a new url on each method execution

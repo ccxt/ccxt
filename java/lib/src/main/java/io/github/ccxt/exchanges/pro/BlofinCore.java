@@ -248,7 +248,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             // due to some problem, temporarily disable other channels
             if (Helpers.isTrue(!Helpers.isEqual(channelName, "books")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), callerMethodName), "() at this moment "), channelName), " is not supported, coming soon")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), callerMethodName), "() at this moment "), channelName), " is not supported, coming soon")) ;
             }
             Object orderbook = (this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -348,7 +348,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchTickers() requires a list of symbols")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchTickers() requires a list of symbols")) ;
             }
             Object ticker = (this.watchMultipleWrapper(true, "tickers", "watchTickers", symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -531,7 +531,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -572,7 +572,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         String marketId = this.safeString(arg, "instId");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object interval = Helpers.replace((String)((String)channelName), (String)"candle", (String)"");
+        Object interval = Helpers.replace(((String)((String)channelName)), "candle", "");
         Object unifiedTimeframe = this.findTimeframe(interval);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), unifiedTimeframe);
@@ -618,7 +618,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchBalance() is not supported for spot markets yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchBalance() is not supported for spot markets yet")) ;
             }
             Object messageHash = Helpers.add(marketType, ":balance");
             java.util.Map<String, Object> sub = new java.util.HashMap<String, Object>() {{
@@ -928,7 +928,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(marketType, "swap")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), callerMethodName), "() does not support "), marketType), " markets yet")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), callerMethodName), "() does not support "), marketType), " markets yet")) ;
             }
             java.util.List<Object> rawSubscriptions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1039,7 +1039,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
                 return;
             } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "error")))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " error: "), this.json(message))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " error: "), this.json(message))) ;
             }
             Object arg = this.safeDict(message, "arg");
             String channelName = this.safeString(arg, "channel");

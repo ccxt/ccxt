@@ -1499,7 +1499,7 @@ final Object finalBase = base;
             String direction = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fromAccount, "master"))) && Helpers.isTrue((Helpers.isEqual(toAccount, "master")))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
             } else if (Helpers.isTrue(Helpers.isEqual(fromAccount, "master")))
             {
                 direction = "masterToSub";
@@ -1516,11 +1516,11 @@ final Object finalBase = base;
                 }
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires either fromAccount or toAccount to be master")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires either fromAccount or toAccount to be master")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")) ;
             }
             final Object finalSubaccountId = subaccountId;
             final Object finalDirection = direction;
@@ -1584,7 +1584,7 @@ final Object finalBase = base;
             String subaccountId = this.safeString(parameters, "subaccountId");
             if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTransfers() requires a subaccountId parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTransfers() requires a subaccountId parameter")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -1769,11 +1769,11 @@ final Object finalBase = base;
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         final Object finalSide = side;
@@ -1858,7 +1858,7 @@ final Object finalBase = base;
             Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
         } else
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         Object selfTradePrevention = null;
         java.util.List<Object> selfTradePreventionparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
@@ -1989,7 +1989,7 @@ final Object finalBase = base;
         request = this.extend(request, parameters);
         if (Helpers.isTrue(this.isEmpty(request)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an amount argument, or a price argument, or non-empty params")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount argument, or a price argument, or non-empty params")) ;
         }
         String clientOrderId = this.safeString(parameters, "clientOrderId");
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
@@ -2005,7 +2005,7 @@ final Object finalBase = base;
             Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
         } else
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
         return request;
@@ -2051,7 +2051,7 @@ final Object finalBase = base;
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2071,7 +2071,7 @@ final Object finalBase = base;
             Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
         } else
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         return this.extend(request, parameters);
     }
@@ -2146,7 +2146,7 @@ final Object finalBase = base;
                 Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
             }
             java.util.List<Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
             //
@@ -2179,11 +2179,11 @@ final Object finalBase = base;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isGreaterThan(timeout, 300000)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))) && Helpers.isTrue((Helpers.isLessThan(timeout, 10000)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2229,7 +2229,7 @@ final Object finalBase = base;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2332,7 +2332,7 @@ final Object finalBase = base;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2641,7 +2641,7 @@ final Object finalBase = base;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {

@@ -655,22 +655,22 @@ public class AlpacaCore extends AlpacaApi
             String timestamp = this.safeString(response, "timestamp");
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
             Object localTime = Helpers.slice(timestamp, 0, 23);
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
             Object jetlagStrStart = Helpers.subtract(timestamp.length(), 6);
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
             Object jetlagStrEnd = Helpers.subtract(timestamp.length(), 3);
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
             Object jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
             Object iso = Helpers.subtract(this.parseToInt(this.parse8601(localTime)), Helpers.multiply(Helpers.multiply(this.parseToNumeric(jetlag), 3600), 1000));
@@ -750,7 +750,7 @@ public class AlpacaCore extends AlpacaApi
         String marketId = this.safeString(asset, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
         Object parts = Helpers.split(marketId, "/");
         String assetClass = this.safeString(asset, "class");
@@ -918,7 +918,7 @@ public class AlpacaCore extends AlpacaApi
                 symbolTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbolTrade));
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
             }
             Object symbolTradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbolTrades, null)))
@@ -1151,7 +1151,7 @@ public class AlpacaCore extends AlpacaApi
                 ohlcvs = new java.util.ArrayList<Object>(java.util.Arrays.asList(bar));
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
             }
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
@@ -1236,7 +1236,7 @@ public class AlpacaCore extends AlpacaApi
             String loc = this.safeString(parameters, "loc", "us");
             Object ids = this.marketIds(symbols);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbols", String.join((String)",", (java.util.List<String>)ids) );
+                put( "symbols", String.join(",", (java.util.List<String>)ids) );
                 put( "loc", loc );
             }};
             parameters = this.omit(parameters, "loc");
@@ -1340,7 +1340,7 @@ public class AlpacaCore extends AlpacaApi
         String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         Object uuid = this.uuid();
         Object parts = Helpers.split(uuid, "-");
-        Object random_id = String.join((String)"", (java.util.List<String>)parts);
+        Object random_id = String.join("", (java.util.List<String>)parts);
         Object defaultClientId = this.implodeParams(clientOrderIdprefix, new java.util.HashMap<String, Object>() {{
             put( "id", random_id );
         }});
@@ -1475,7 +1475,7 @@ public class AlpacaCore extends AlpacaApi
                     newType = "stop_limit";
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support stop orders for "), type), " orders, only stop_limit orders are supported")) ;
+                    throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support stop orders for "), type), " orders, only stop_limit orders are supported")) ;
                 }
                 Helpers.addElementToObject(request, "stop_price", this.priceToPrecision(symbol, triggerPrice));
                 Helpers.addElementToObject(request, "type", newType);

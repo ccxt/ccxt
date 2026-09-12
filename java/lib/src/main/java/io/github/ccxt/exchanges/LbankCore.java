@@ -703,7 +703,7 @@ public class LbankCore extends LbankApi
             {
                 Object market = Helpers.GetValue(data, i);
                 String marketId = this.safeString(market, "symbol");
-                Object parts = Helpers.split(((String)marketId), "_");
+                Object parts = Helpers.split((marketId), "_");
                 String baseId = (String) Helpers.GetValue(parts, 0);
                 String quoteId = (String) Helpers.GetValue(parts, 1);
                 String base = this.safeCurrencyCode(baseId);
@@ -1836,7 +1836,7 @@ public class LbankCore extends LbankApi
             Object balanceResult = this.parseBalance(balanceResponse);
             if (Helpers.isTrue(Helpers.isEqual(balanceResult, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchBalance() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchBalance() returned empty response")) ;
             }
             return balanceResult;
         });
@@ -1946,7 +1946,7 @@ public class LbankCore extends LbankApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
@@ -1994,7 +1994,7 @@ public class LbankCore extends LbankApi
             Boolean maker = (Helpers.isTrue((Helpers.isEqual(postOnly, true))) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO"))));
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "market"))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(ioc) || Helpers.isTrue(fok)) || Helpers.isTrue(maker)))))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
@@ -2034,7 +2034,7 @@ public class LbankCore extends LbankApi
                     {
                         if (Helpers.isTrue(Helpers.isEqual(price, null)))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
                             Object amountString = this.numberToString(amount);
@@ -2199,7 +2199,7 @@ public class LbankCore extends LbankApi
         Boolean postOnly = false;
         String type = "limit";
         String rawType = this.safeString2(order, "type", "tradeType"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        Object parts = Helpers.split(((String)rawType), "_");
+        Object parts = Helpers.split((rawType), "_");
         String side = this.safeString(parts, 0);
         String typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (Helpers.isTrue(Helpers.isEqual(typePart, "market")))
@@ -2303,7 +2303,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2352,7 +2352,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2391,7 +2391,7 @@ public class LbankCore extends LbankApi
                 return this.parseOrder(Helpers.GetValue(result, 0));
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOrder() can only fetch one order at a time")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOrder() can only fetch one order at a time")) ;
             }
         });
 
@@ -2419,7 +2419,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2491,7 +2491,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2565,7 +2565,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2636,7 +2636,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2691,7 +2691,7 @@ public class LbankCore extends LbankApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3707,7 +3707,7 @@ public class LbankCore extends LbankApi
                 put( "api_key", LbankCore.this.apiKey );
             }}, query);
             String signatureMethod = null;
-            if (Helpers.isTrue(Helpers.isGreaterThan(((String)this.secret).length(), 32)))
+            if (Helpers.isTrue(Helpers.isGreaterThan(this.secret.length(), 32)))
             {
                 signatureMethod = "RSA";
             } else
@@ -3786,7 +3786,7 @@ public class LbankCore extends LbankApi
     {
         if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
-            throw new NullResponse((String)Helpers.add(this.id, " parseBalance() returned empty response")) ;
+            throw new NullResponse(Helpers.add(this.id, " parseBalance() returned empty response")) ;
         }
         Object success = this.safeValue(response, "result");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, "false"))) || Helpers.isTrue((Helpers.isEqual(success, null)))) || Helpers.isTrue((Helpers.isEqual(success, null)))) || Helpers.isTrue((Helpers.isEqual(success, false)))))

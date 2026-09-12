@@ -239,7 +239,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object marketIds = this.marketIds(symbols);
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", String.join((String)",", (java.util.List<String>)marketIds) );
+                put( "symbol", String.join(",", (java.util.List<String>)marketIds) );
                 put( "topic", "trade" );
                 put( "event", "sub" );
             }};
@@ -375,7 +375,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
                 String rawTimeframe = this.safeString(timeframes, unfiedTimeframe, unfiedTimeframe);
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(selectedTimeframe, null)) && Helpers.isTrue(!Helpers.isEqual(selectedTimeframe, rawTimeframe))))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " watchOHLCVForSymbols() only supports a single timeframe for all symbols")) ;
+                    throw new NotSupported(Helpers.add(this.id, " watchOHLCVForSymbols() only supports a single timeframe for all symbols")) ;
                 } else
                 {
                     selectedTimeframe = rawTimeframe;
@@ -385,7 +385,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             }
             final Object finalSelectedTimeframe = selectedTimeframe;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", String.join((String)",", (java.util.List<String>)marketIds) );
+                put( "symbol", String.join(",", (java.util.List<String>)marketIds) );
                 put( "topic", Helpers.add("kline_", finalSelectedTimeframe) );
                 put( "event", "sub" );
             }};
@@ -543,7 +543,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object marketIds = this.marketIds(symbols);
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", String.join((String)",", (java.util.List<String>)marketIds) );
+                put( "symbol", String.join(",", (java.util.List<String>)marketIds) );
                 put( "topic", "realtimes" );
                 put( "event", "sub" );
             }};
@@ -695,7 +695,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
             final Object finalChannel = channel;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", String.join((String)",", (java.util.List<String>)marketIds) );
+                put( "symbol", String.join(",", (java.util.List<String>)marketIds) );
                 put( "topic", finalChannel );
                 put( "event", "sub" );
             }};
@@ -853,12 +853,12 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             String subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotSubHash : swapSubHash;
             if (Helpers.isTrue(Helpers.isEqual(subscriptionHash, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchBalance() requires a subscription hash")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchBalance() requires a subscription hash")) ;
             }
             Object url = this.getUserStreamUrl();
             Client client = this.client(url);
             this.setBalanceCache(client, marketType, subscriptionHash, parameters);
-            client.future((String)Helpers.add(type, ":fetchBalanceSnapshot"));
+            client.future(Helpers.add(type, ":fetchBalanceSnapshot"));
             return (this.watch(url, messageHash, parameters, subscriptionHash, null)).join();
         });
 
@@ -1249,9 +1249,9 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
                 symbols = this.marketSymbols(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPositions() symbols is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " watchPositions() symbols is required")) ;
                 }
-                messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add("::", String.join(",", (java.util.List<String>)symbols));
             }
             messageHash = Helpers.add(Helpers.add(type, ":positions"), messageHash);
             Object url = this.getUserStreamUrl();
@@ -1260,7 +1260,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object cache = this.safeValue(this.positions, type);
             if (Helpers.isTrue(Helpers.isEqual(cache, null)))
             {
-                Object snapshot = client.future((String)Helpers.add(type, ":fetchPositionsSnapshot")).getFuture().join();
+                Object snapshot = client.future(Helpers.add(type, ":fetchPositionsSnapshot")).getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
             }
             Object newPositions = (this.watch(url, messageHash, null, messageHash, null)).join();
@@ -1460,20 +1460,20 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the listenKey is then in the bucket
-                    client.future((String)messageHash).getFuture().join();
+                    client.future(messageHash).getFuture().join();
                     return null;
                 }
                 // reusableFuture (), not future () - the two match in
                 // js/py/php/cs/java, but go's Client.Future () yields a channel
                 // that the trailing suspension point below would panic on
-                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
                 try
                 {
                     java.util.Map<String, Object> response = (this.privatePostApiV1UserDataStream(parameters)).join();
                     String listenKey = this.safeString(response, "listenKey");
                     if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
                     {
-                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                        throw new AuthenticationError(Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
                     }
                     Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "listenKey", listenKey);
                     Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "lastAuthenticatedTime", time);

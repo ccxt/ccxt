@@ -1075,7 +1075,7 @@ public class BtcboxCore extends BtcboxApi
                 response = this.strip(response);
                 if (!Helpers.isTrue(this.isJsonEncodedObject(response)))
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), response)) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), response)) ;
                 }
                 response = Helpers.parseJson(response);
             }

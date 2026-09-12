@@ -1196,7 +1196,7 @@ public class LatokenCore extends LatokenApi
                 return (this.fetchPublicTradingFee(symbol, parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " not support this method")) ;
+                throw new NotSupported(Helpers.add(this.id, " not support this method")) ;
             }
         });
 
@@ -1508,7 +1508,7 @@ public class LatokenCore extends LatokenApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1738,7 +1738,7 @@ public class LatokenCore extends LatokenApi
             Object uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalSide = side;
             final Object finalUppercaseType = uppercaseType;

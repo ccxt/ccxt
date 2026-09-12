@@ -1171,12 +1171,12 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             {
                 continue;
             }
-            if (!Helpers.isTrue(((String)key).startsWith(((String)"unsubscribe:"))))
+            if (!Helpers.isTrue(((String)key).startsWith("unsubscribe:")))
             {
                 continue;
             }
             Object subscription = Helpers.GetValue(client.subscriptions, key);
-            Object subHash = Helpers.replace((String)key, (String)"unsubscribe:", (String)"");
+            Object subHash = Helpers.replace(((String)key), "unsubscribe:", "");
             this.cleanCache(subscription);
             this.cleanUnsubscription(client, subHash, key);
             // bitvavo resolves-and-deletes the data futures on every message, so at
@@ -1212,7 +1212,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1263,7 +1263,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1427,7 +1427,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
             }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1481,7 +1481,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1520,7 +1520,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrdersWs() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrdersWs() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1616,7 +1616,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTradesWs() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTradesWs() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2117,7 +2117,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         String orderId = this.safeString(parameters, "orderId");
         if (Helpers.isTrue(Helpers.isEqual(orderId, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " privateUpdateOrderMessageHash requires a orderId parameter")) ;
+            throw new ExchangeError(Helpers.add(this.id, " privateUpdateOrderMessageHash requires a orderId parameter")) ;
         }
         return Helpers.add(action, orderId);
     }
@@ -2273,7 +2273,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             // allows further authentication attempts
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
     }

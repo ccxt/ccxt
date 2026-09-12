@@ -127,7 +127,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             Long channel = this.safeInteger(timeframes, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(channel, null)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " watchOHLCV cannot take a timeframe of "), timeframe)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " watchOHLCV cannot take a timeframe of "), timeframe)) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), channel));
@@ -597,7 +597,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         String error = this.safeString(message, "error");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " error: "), this.json(error))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " error: "), this.json(error))) ;
         }
         return false;
     }

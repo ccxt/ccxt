@@ -922,7 +922,7 @@ public class CexCore extends CexApi
             parameters = ((java.util.List<Object>) dataTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(dataType, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -953,10 +953,10 @@ public class CexCore extends CexApi
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(since, null)) && Helpers.isTrue(!Helpers.isEqual(until, null))) && Helpers.isTrue(!Helpers.isEqual(limit, null))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV does not support fetching candles with both a limit and since/until")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV does not support fetching candles with both a limit and since/until")) ;
             } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(since, null)) || Helpers.isTrue(!Helpers.isEqual(until, null)))) && Helpers.isTrue(Helpers.isEqual(limit, null))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV requires a limit parameter when fetching candles with since or until")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV requires a limit parameter when fetching candles with since or until")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -1556,7 +1556,7 @@ public class CexCore extends CexApi
             parameters = ((java.util.List<Object>) accountIdparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(accountId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1565,7 +1565,7 @@ public class CexCore extends CexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalAccountId = accountId;
             final Object finalType = type;
@@ -2152,7 +2152,7 @@ public class CexCore extends CexApi
             parameters = ((java.util.List<Object>) accountIdparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(accountId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2264,14 +2264,14 @@ public class CexCore extends CexApi
         {
             if (Helpers.isTrue(Helpers.isEqual(body, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " returned empty response")) ;
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(body, 0), "{")))
             {
                 Object fixedVar = this.fixStringifiedJsonMembers(body);
                 response = this.parseJson(fixedVar);
             } else
             {
-                throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " returned unparsed response: "), body)) ;
+                throw new NullResponse(Helpers.add(Helpers.add(this.id, " returned unparsed response: "), body)) ;
             }
         }
         String error = this.safeString(response, "error");
@@ -2290,7 +2290,7 @@ public class CexCore extends CexApi
             if (Helpers.isTrue(!Helpers.isEqual(rejectReason, null)))
             {
                 this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), rejectReason, rejectReason);
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " createOrder() "), rejectReason)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " createOrder() "), rejectReason)) ;
             }
         }
         return null;

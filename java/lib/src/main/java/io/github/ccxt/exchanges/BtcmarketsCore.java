@@ -1213,7 +1213,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), "order")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), "order")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
@@ -1225,7 +1225,7 @@ public class BtcmarketsCore extends BtcmarketsApi
                 parameters = this.omit(parameters, "triggerPrice");
                 if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter for a "), type), "order")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter for a "), type), "order")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));

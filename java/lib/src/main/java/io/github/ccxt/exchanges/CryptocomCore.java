@@ -1188,7 +1188,7 @@ public class CryptocomCore extends CryptocomApi
                     Object symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
                     }
                     symbol = Helpers.GetValue(symbols, 0);
                 } else
@@ -1755,11 +1755,11 @@ public class CryptocomCore extends CryptocomApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object uppercaseType = ((String)type).toUpperCase();
@@ -2044,11 +2044,11 @@ public class CryptocomCore extends CryptocomApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
@@ -2181,7 +2181,7 @@ public class CryptocomCore extends CryptocomApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                 } else
                 {
                     Object amountString = this.numberToString(amount);
@@ -2250,7 +2250,7 @@ public class CryptocomCore extends CryptocomApi
             String originalClientOrderId = this.safeString2(parameters, "orig_client_oid", "clientOrderId");
             if (Helpers.isTrue(Helpers.isEqual(originalClientOrderId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an id argument or orig_client_oid parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an id argument or orig_client_oid parameter")) ;
             } else
             {
                 Helpers.addElementToObject(request, "orig_client_oid", originalClientOrderId);
@@ -2259,7 +2259,7 @@ public class CryptocomCore extends CryptocomApi
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(amount, null))) || Helpers.isTrue((Helpers.isEqual(price, null)))))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
         }
         Helpers.addElementToObject(request, "new_quantity", this.amountToPrecision(symbol, amount));
         Helpers.addElementToObject(request, "new_price", this.priceToPrecision(symbol, price));
@@ -2368,7 +2368,7 @@ public class CryptocomCore extends CryptocomApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2424,7 +2424,7 @@ public class CryptocomCore extends CryptocomApi
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 java.util.Map<String, Object> orderItem = new java.util.HashMap<String, Object>() {{
                     put( "instrument_name", Helpers.GetValue(market, "id") );
-                    put( "order_id", String.valueOf(((String)id)) );
+                    put( "order_id", String.valueOf((id)) );
                 }};
                 ((java.util.List<Object>)orderRequests).add(orderItem);
             }
@@ -2742,7 +2742,7 @@ public class CryptocomCore extends CryptocomApi
             Object addressesLength = Helpers.getArrayLength(addresses);
             if (Helpers.isTrue(Helpers.isEqual(addressesLength, 0)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddressesByNetwork() generating address...")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchDepositAddressesByNetwork() generating address...")) ;
             }
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, addressesLength); i++)
@@ -2793,9 +2793,9 @@ public class CryptocomCore extends CryptocomApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
             Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             Object depositAddresses = depositAddressesRaw;
-            if (Helpers.isTrue(Helpers.inOp(depositAddresses, ((String)network))))
+            if (Helpers.isTrue(Helpers.inOp(depositAddresses, (network))))
             {
-                return Helpers.GetValue(depositAddresses, ((String)network));
+                return Helpers.GetValue(depositAddresses, (network));
             }
             Object keys = Helpers.objectKeys(depositAddresses);
             return Helpers.GetValue(depositAddresses, Helpers.GetValue(keys, 0));
@@ -3378,7 +3378,7 @@ public class CryptocomCore extends CryptocomApi
         {
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, "cross")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " only cross margin is supported")) ;
+                throw new NotSupported(Helpers.add(this.id, " only cross margin is supported")) ;
             }
         } else
         {
@@ -3880,7 +3880,7 @@ public class CryptocomCore extends CryptocomApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
@@ -3975,7 +3975,7 @@ public class CryptocomCore extends CryptocomApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3992,7 +3992,7 @@ public class CryptocomCore extends CryptocomApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
@@ -4135,7 +4135,7 @@ public class CryptocomCore extends CryptocomApi
                     Object symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
                     symbol = Helpers.GetValue(symbols, 0);
                 } else
@@ -4490,7 +4490,7 @@ public class CryptocomCore extends CryptocomApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         String type = this.safeString(api, 0);
         String access = this.safeString(api, 1);
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), ((String)type)), "/"), path);
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), (type)), "/"), path);
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {
@@ -4526,7 +4526,7 @@ public class CryptocomCore extends CryptocomApi
             {
                 String paramsString = "{}";
                 String arrayString = "[]";
-                body = Helpers.replace((String)body, (String)arrayString, (String)paramsString);
+                body = Helpers.replace(((String)body), arrayString, paramsString);
             }
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
@@ -4550,7 +4550,7 @@ public class CryptocomCore extends CryptocomApi
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), body)) ;
         }
         return null;
     }

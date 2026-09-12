@@ -622,7 +622,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             java.util.Map<String, Object> message = this.extend(request, parameters);
             if (Helpers.isTrue(Helpers.isEqual(userAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires a user address")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchMyTrades() requires a user address")) ;
             }
             String subscribeHash = Helpers.add("subscribe:userFills::", ((String)userAddress).toLowerCase());
             Object trades = (this.watch(url, messageHash, message, subscribeHash, null)).join();
@@ -658,7 +658,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
             }
             Object userAddress = null;
             Object userAddressResult = this.handlePublicAddress("unWatchMyTrades", parameters);
@@ -1378,13 +1378,13 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         }
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.balance, account), null)))
         {
-            Helpers.addElementToObject(this.balance, ((String)account), new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(this.balance, (account), new java.util.HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, ((String)account)), "info", info);
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, ((String)account)), "timestamp", timestamp);
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, ((String)account)), "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(this.balance, ((String)account), this.safeBalance(Helpers.GetValue(this.balance, ((String)account))));
-        client.resolve(Helpers.GetValue(this.balance, ((String)account)), messageHash);
+        Helpers.addElementToObject(Helpers.GetValue(this.balance, (account)), "info", info);
+        Helpers.addElementToObject(Helpers.GetValue(this.balance, (account)), "timestamp", timestamp);
+        Helpers.addElementToObject(Helpers.GetValue(this.balance, (account)), "datetime", this.iso8601(timestamp));
+        Helpers.addElementToObject(this.balance, (account), this.safeBalance(Helpers.GetValue(this.balance, (account))));
+        client.resolve(Helpers.GetValue(this.balance, (account)), messageHash);
     }
 
     public void parseWsBalance(Object balance, Object... optionalArgs)
@@ -1488,7 +1488,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
                 symbols = this.marketSymbols(symbols);
-                messageHash = Helpers.add(messageHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
+                messageHash = Helpers.add(messageHash, Helpers.add("::", String.join(",", (java.util.List<String>)symbols)));
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             final Object finalTopic = topic;
@@ -1591,7 +1591,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
             }
             String messageHash = "unsubscribe:clearinghouseState";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
@@ -1668,7 +1668,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             // note: orderUpdates payloads carry no user, so resolution/data stays shared across users
             if (Helpers.isTrue(Helpers.isEqual(userAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires a user address")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrders() requires a user address")) ;
             }
             String subscribeHash = Helpers.add("subscribe:orderUpdates::", ((String)userAddress).toLowerCase());
             Object orders = (this.watch(url, messageHash, message, subscribeHash, null)).join();
@@ -1704,7 +1704,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
             }
             String messageHash = "unsubscribe:order";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
@@ -1877,7 +1877,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
-            ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+            ((java.util.Map<String,Object>)this.orderbooks).remove(symbol);
         }
     }
 
@@ -1892,7 +1892,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (Helpers.isTrue(Helpers.inOp(this.trades, symbol)))
         {
-            ((java.util.Map<String,Object>)this.trades).remove((String)symbol);
+            ((java.util.Map<String,Object>)this.trades).remove(symbol);
         }
     }
 
@@ -1920,7 +1920,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (Helpers.isTrue(Helpers.inOp(this.tickers, symbol)))
         {
-            ((java.util.Map<String,Object>)this.tickers).remove((String)symbol);
+            ((java.util.Map<String,Object>)this.tickers).remove(symbol);
         }
     }
 
@@ -1999,7 +1999,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         // clean swap balance if it existed
         if (Helpers.isTrue(Helpers.inOp(this.balance, "swap")))
         {
-            ((java.util.Map<String,Object>)this.balance).remove((String)"swap");
+            ((java.util.Map<String,Object>)this.balance).remove("swap");
         }
     }
 
@@ -2010,7 +2010,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         this.cleanUnsubscription(client, subHash, unSubHash, true);
         if (Helpers.isTrue(Helpers.inOp(this.balance, "spot")))
         {
-            ((java.util.Map<String,Object>)this.balance).remove((String)"spot");
+            ((java.util.Map<String,Object>)this.balance).remove("spot");
         }
     }
 

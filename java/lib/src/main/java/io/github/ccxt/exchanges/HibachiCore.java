@@ -347,10 +347,10 @@ public class HibachiCore extends HibachiApi
         String marketType = "swap";
         String baseId = this.safeString(market, "underlyingSymbol");
         String quoteId = this.safeString(market, "settlementSymbol");
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         String settleId = this.safeString(market, "settlementSymbol");
-        String settle = this.safeCurrencyCode(settleId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Long created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
         final Object finalBase = base;
@@ -477,7 +477,7 @@ public class HibachiCore extends HibachiApi
     put( "withdraw", null );
     put( "info", new java.util.HashMap<String, Object>() {{}} );
 }});
-        String code = this.safeCurrencyCode("USDT");
+        String code = (String) this.safeCurrencyCode("USDT");
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
         {
             final Object finalCode = code;
@@ -514,7 +514,7 @@ public class HibachiCore extends HibachiApi
             put( "info", response );
         }};
         // Hibachi only supports USDT on Arbitrum at this time
-        String code = this.safeCurrencyCode("USDT");
+        String code = (String) this.safeCurrencyCode("USDT");
         Object account = this.account();
         Helpers.addElementToObject(account, "total", this.safeString(response, "balance"));
         Helpers.addElementToObject(account, "free", this.safeString(response, "maximalWithdraw"));
@@ -637,7 +637,7 @@ public class HibachiCore extends HibachiApi
         Object side = null;
         Object fee = null;
         Object orderType = null;
-        String orderId = null;
+        Object orderId = null;
         String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
@@ -813,7 +813,7 @@ public class HibachiCore extends HibachiApi
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         String status = this.safeString(order, "status");
-        String type = this.safeStringLower(order, "orderType");
+        String type = (String)this.safeStringLower(order, "orderType");
         String price = this.safeString2(order, "price", "avgFillPrice");
         String rawSide = this.safeString(order, "side");
         String side = null;
@@ -833,7 +833,7 @@ public class HibachiCore extends HibachiApi
         {
             filled = Precise.stringSub(totalQuantity, availableQuantity);
         }
-        String remainingString = remaining;
+        Object remainingString = remaining;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(remainingString, null)) && Helpers.isTrue(!Helpers.isEqual(totalQuantity, null))) && Helpers.isTrue(!Helpers.isEqual(filled, null))))
         {
             remainingString = Precise.stringSub(totalQuantity, filled);
@@ -981,11 +981,11 @@ public class HibachiCore extends HibachiApi
         Object price = Helpers.getArg(optionalArgs, 0, null);
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         Integer sideInternal = 0;
         if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
@@ -1011,19 +1011,19 @@ public class HibachiCore extends HibachiApi
         String feeRateInternal = Precise.stringDiv(Precise.stringMul(feeRateStr, feeRateFactor), one, 0);
         // Encoding
         String nonce16 = this.intToBase16(nonce);
-        Object noncePadded = Helpers.padStart(nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        Object noncePadded = Helpers.padStart(nonce16, ((Number)16).intValue(), "0".charAt(0));
         Object encodedNonce = this.base16ToBinary(noncePadded);
         String numericId = this.intToBase16(this.safeInteger(market, "numericId"));
-        Object numericIdPadded = Helpers.padStart(numericId, ((Number)8).intValue(), ((String)"0").charAt(0));
+        Object numericIdPadded = Helpers.padStart(numericId, ((Number)8).intValue(), "0".charAt(0));
         Object encodedMarketId = this.base16ToBinary(numericIdPadded);
         String quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
-        Object quantityPadded = Helpers.padStart(quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        Object quantityPadded = Helpers.padStart(quantity16, ((Number)16).intValue(), "0".charAt(0));
         Object encodedQuantity = this.base16ToBinary(quantityPadded);
         String sideInternal16 = this.intToBase16(sideInternal);
-        Object sidePadded = Helpers.padStart(sideInternal16, ((Number)8).intValue(), ((String)"0").charAt(0));
+        Object sidePadded = Helpers.padStart(sideInternal16, ((Number)8).intValue(), "0".charAt(0));
         Object encodedSide = this.base16ToBinary(sidePadded);
         String feeRateInternal16 = this.intToBase16(this.parseToInt(feeRateInternal));
-        Object feeRatePadded = Helpers.padStart(feeRateInternal16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        Object feeRatePadded = Helpers.padStart(feeRateInternal16, ((Number)16).intValue(), "0".charAt(0));
         Object encodedFeeRate = this.base16ToBinary(feeRatePadded);
         Object encodedPrice = this.binaryConcat();
         if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
@@ -1031,7 +1031,7 @@ public class HibachiCore extends HibachiApi
             Object priceStr = this.priceToPrecision(this.safeString(market, "symbol"), price);
             String priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             String price16 = this.intToBase16(this.parseToInt(priceInternal));
-            Object pricePadded = Helpers.padStart(price16, ((Number)16).intValue(), ((String)"0").charAt(0));
+            Object pricePadded = Helpers.padStart(price16, ((Number)16).intValue(), "0".charAt(0));
             // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
@@ -1045,11 +1045,11 @@ public class HibachiCore extends HibachiApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object takerFee = this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045));
@@ -1087,7 +1087,7 @@ public class HibachiCore extends HibachiApi
         }};
         Object postOnly = this.isPostOnly(Helpers.isEqual(((String)type).toUpperCase(), "MARKET"), null, parameters);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        String timeInForce = this.safeStringLower(parameters, "timeInForce");
+        String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         if (Helpers.isTrue(postOnly))
         {
@@ -1213,11 +1213,11 @@ public class HibachiCore extends HibachiApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object takerFee = this.safeNumber(market, "taker", 0);
@@ -1343,7 +1343,7 @@ public class HibachiCore extends HibachiApi
     {
         Object bigid = this.convertToBigInt(id);
         String idbase16 = this.intToBase16(bigid);
-        Object idPadded = Helpers.padStart(idbase16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        Object idPadded = Helpers.padStart(idbase16, ((Number)16).intValue(), "0".charAt(0));
         Object message = this.base16ToBinary(idPadded);
         Object signature = this.signMessage(message, this.privateKey);
         return new java.util.HashMap<String, Object>() {{
@@ -1455,7 +1455,7 @@ public class HibachiCore extends HibachiApi
             }
             Object nonce = this.nonce();
             String nonce16 = this.intToBase16(nonce);
-            Object noncePadded = Helpers.padStart(nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
+            Object noncePadded = Helpers.padStart(nonce16, ((Number)16).intValue(), "0".charAt(0));
             Object message = this.base16ToBinary(noncePadded);
             Object signature = this.signMessage(message, this.privateKey);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1495,13 +1495,13 @@ public class HibachiCore extends HibachiApi
         String maxFeesInternal = Precise.stringDiv(Precise.stringMul(maxFeesStr, USDTFactor), one, 0);
         // Encoding
         String usdtAsset16 = this.intToBase16(USDTAssetId);
-        Object usdtAssetPadded = Helpers.padStart(usdtAsset16, ((Number)8).intValue(), ((String)"0").charAt(0));
+        Object usdtAssetPadded = Helpers.padStart(usdtAsset16, ((Number)8).intValue(), "0".charAt(0));
         Object encodedAssetId = this.base16ToBinary(usdtAssetPadded);
         String quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
-        Object quantityPadded = Helpers.padStart(quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        Object quantityPadded = Helpers.padStart(quantity16, ((Number)16).intValue(), "0".charAt(0));
         Object encodedQuantity = this.base16ToBinary(quantityPadded);
         String maxFees16 = this.intToBase16(this.parseToInt(maxFeesInternal));
-        Object maxFeesPadded = Helpers.padStart(maxFees16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        Object maxFeesPadded = Helpers.padStart(maxFees16, ((Number)16).intValue(), "0".charAt(0));
         Object encodedMaxFees = this.base16ToBinary(maxFeesPadded);
         Object encodedAddress = this.base16ToBinary(address);
         Object message = this.binaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);
@@ -1607,7 +1607,7 @@ public class HibachiCore extends HibachiApi
             Object r = Helpers.GetValue(signature, "r");
             Object s = Helpers.GetValue(signature, "s");
             String v = this.intToBase16(Helpers.GetValue(signature, "v"));
-            return Helpers.add(Helpers.add(Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0)), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart(v, ((Number)2).intValue(), ((String)"0").charAt(0)));
+            return Helpers.add(Helpers.add(Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0)), Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))), Helpers.padStart(v, ((Number)2).intValue(), "0".charAt(0)));
         }
     }
 
@@ -2132,7 +2132,7 @@ public class HibachiCore extends HibachiApi
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String side = this.safeStringLower(position, "direction");
+        String side = (String)this.safeStringLower(position, "direction");
         String quantity = this.safeString(position, "quantity");
         String unrealizedFunding = this.safeString(position, "unrealizedFundingPnl", "0");
         String unrealizedTrading = this.safeString(position, "unrealizedTradingPnl", "0");
@@ -2264,8 +2264,8 @@ public class HibachiCore extends HibachiApi
         String direction = null;
         Object amount = null;
         Object fee = null;
-        String referenceId = null;
-        String referenceAccount = null;
+        Object referenceId = null;
+        Object referenceAccount = null;
         String status = null;
         if (Helpers.isTrue(Helpers.isEqual(transactionType, null)))
         {
@@ -2490,7 +2490,7 @@ public class HibachiCore extends HibachiApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeIntegerProduct(transaction, "timestampSec", 1000);
         String address = this.safeString(transaction, "withdrawalAddress");
-        String transactionType = this.safeString(transaction, "transactionType");
+        Object transactionType = this.safeString(transaction, "transactionType");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(transactionType, "deposit")) && Helpers.isTrue(!Helpers.isEqual(transactionType, "withdrawal"))))
         {
             transactionType = this.parseTransactionType(transactionType);

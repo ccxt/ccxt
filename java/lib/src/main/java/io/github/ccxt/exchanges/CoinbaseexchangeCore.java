@@ -850,7 +850,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 Object market = Helpers.GetValue(rawMarkets, i);
                 String id = this.safeString(market, "id");
-                var baseIdquoteIdVariable = Helpers.split(((String)id), "-");
+                var baseIdquoteIdVariable = Helpers.split((id), "-");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
@@ -1401,7 +1401,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             Object paginate = false;
             java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
@@ -2209,7 +2209,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() error: "), this.json(response))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() error: "), this.json(response))) ;
             }
             return this.parseTransaction(response, currency);
         });
@@ -2336,7 +2336,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLedger() requires a code param")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchLedger() requires a code param")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2348,7 +2348,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object account = this.safeValue(accountsByCurrencyCode, code);
             if (Helpers.isTrue(Helpers.isEqual(account, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchLedger() could not find account id for "), code)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchLedger() could not find account id for "), code)) ;
             }
             final Object finalAccount = account;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2417,7 +2417,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                     Object account = this.safeValue(accountsByCurrencyCode, code);
                     if (Helpers.isTrue(Helpers.isEqual(account, null)))
                     {
-                        throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchDepositsWithdrawals() could not find account id for "), code)) ;
+                        throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchDepositsWithdrawals() could not find account id for "), code)) ;
                     }
                     id = Helpers.GetValue(account, "id");
                 }
@@ -2708,7 +2708,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object account = this.safeValue(Helpers.GetValue(this.options, "coinbaseAccountsByCurrencyId"), currencyId);
             if (Helpers.isTrue(Helpers.isEqual(account, null)))
             {
-                throw new InvalidAddress((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " createDepositAddress() could not find currency code "), code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")) ;
+                throw new InvalidAddress(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " createDepositAddress() could not find currency code "), code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")) ;
             }
             final Object finalAccount = account;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2765,7 +2765,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 secret = this.base64ToBinary(this.secret);
             } catch(Exception e)
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " sign() invalid base64 secret")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " sign() invalid base64 secret")) ;
             }
             Object signature = this.hmac(this.encode(what), secret, sha256(), "base64");
             final Object finalNonce = nonce;
@@ -2800,7 +2800,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
                 throw new ExchangeError((String)feedback) ;
             }
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), body)) ;
         }
         return null;
     }
@@ -2821,7 +2821,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 if (Helpers.isTrue(Helpers.inOp(response, "message")))
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
                 }
             }
             return response;

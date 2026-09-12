@@ -680,11 +680,11 @@ public class PaymiumCore extends PaymiumApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(toAccount, "@"), 0)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " transfer() only allows transfers to an email address")) ;
+                throw new ExchangeError(Helpers.add(this.id, " transfer() only allows transfers to an email address")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(code, "BTC")) && Helpers.isTrue(!Helpers.isEqual(code, "EUR"))))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " transfer() only allows BTC or EUR")) ;
+                throw new ExchangeError(Helpers.add(this.id, " transfer() only allows BTC or EUR")) ;
             }
             final Object finalCode = code;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -857,7 +857,7 @@ public class PaymiumCore extends PaymiumApi
         Object errors = this.safeValue(response, "errors");
         if (Helpers.isTrue(!Helpers.isEqual(errors, null)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
         }
         return null;
     }

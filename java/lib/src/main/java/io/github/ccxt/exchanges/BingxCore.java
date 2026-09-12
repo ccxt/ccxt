@@ -1509,7 +1509,7 @@ public class BingxCore extends BingxApi
 
     public Object parseMarket(Object market)
     {
-        Object id = ((String)this.safeString(market, "symbol"));
+        Object id = (this.safeString(market, "symbol"));
         Object symbolParts = Helpers.split(id, "-");
         String baseId = (String) Helpers.GetValue(symbolParts, 0);
         String quoteId = (String) Helpers.GetValue(symbolParts, 1);
@@ -1882,7 +1882,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTrades() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTrades() is not supported for inverse swap markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -2430,7 +2430,7 @@ public class BingxCore extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2439,7 +2439,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
             }
             Object paginate = false;
             java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
@@ -2542,7 +2542,7 @@ public class BingxCore extends BingxApi
             Object isInverse = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? (Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)) : (Helpers.isEqual(subType, "inverse"));
             if (Helpers.isTrue(isInverse))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingHistory() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingHistory() is not supported for inverse swap markets")) ;
             }
             Object paginate = false;
             java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
@@ -3097,7 +3097,7 @@ public class BingxCore extends BingxApi
         Object percentage = this.safeString(ticker, "priceChangePercent");
         if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
         {
-            percentage = Helpers.replace((String)percentage, (String)"%", (String)"");
+            percentage = Helpers.replace(((String)percentage), "%", "");
         }
         String change = this.safeString(ticker, "priceChange");
         Long ts = this.safeInteger(ticker, "closeTime");
@@ -3369,7 +3369,7 @@ public class BingxCore extends BingxApi
                 response = (this.swapV1PrivateGetTradePositionHistory(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchPositionHistory() is not supported for inverse swap positions")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchPositionHistory() is not supported for inverse swap positions")) ;
             }
             //
             //     {
@@ -3492,7 +3492,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchPosition() supports swap markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchPosition() supports swap markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3597,8 +3597,8 @@ public class BingxCore extends BingxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = ((String)this.safeString(position, "symbol", ""));
-        marketId = Helpers.replace((String)marketId, (String)"/", (String)"-"); // standard return different format
+        Object marketId = (this.safeString(position, "symbol", ""));
+        marketId = Helpers.replace(((String)marketId), "/", "-"); // standard return different format
         Object isolated = this.safeBool(position, "isolated");
         String marginMode = null;
         if (Helpers.isTrue(!Helpers.isEqual(isolated, null)))
@@ -3710,11 +3710,11 @@ public class BingxCore extends BingxApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         /**
          * @method
@@ -3748,7 +3748,7 @@ public class BingxCore extends BingxApi
         Boolean isTwapOrder = Helpers.isEqual(type, "TWAP");
         if (Helpers.isTrue(Helpers.isTrue(isTwapOrder) && Helpers.isTrue(isSpot)))
         {
-            throw new BadSymbol((String)Helpers.add(this.id, " createOrder() twap order supports swap contracts only")) ;
+            throw new BadSymbol(Helpers.add(this.id, " createOrder() twap order supports swap contracts only")) ;
         }
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -3803,7 +3803,7 @@ public class BingxCore extends BingxApi
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isMarketOrder) && Helpers.isTrue((Helpers.isEqual(side, "buy")))) && Helpers.isTrue(Helpers.isEqual(this.safeString(request, "quoteOrderQty"), null))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders")) ;
                 }
                 Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 if (Helpers.isTrue(Helpers.isEqual(type, "LIMIT")))
@@ -4216,7 +4216,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrders() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrders() is not supported for inverse swap markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
@@ -4224,7 +4224,7 @@ public class BingxCore extends BingxApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 5)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrders() can not create more than 5 orders at once for swap markets")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrders() can not create more than 5 orders at once for swap markets")) ;
                 }
                 Helpers.addElementToObject(request, "batchOrders", this.json(ordersRequests));
                 response = (this.swapV2PrivatePostTradeBatchOrders(request)).join();
@@ -4784,7 +4784,7 @@ public class BingxCore extends BingxApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
                 }
                 market = this.market(symbol);
                 final Object finalMarket = market;
@@ -4981,7 +4981,7 @@ public class BingxCore extends BingxApi
                 }
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrders is only supported for spot and swap markets.")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelAllOrders is only supported for spot and swap markets.")) ;
             }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.safeList2(data, "success", "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -5011,7 +5011,7 @@ public class BingxCore extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5040,7 +5040,7 @@ public class BingxCore extends BingxApi
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 String spotReqKey = ((Helpers.isTrue(areClientOrderIds))) ? "clientOrderIDs" : "orderIds";
-                Helpers.addElementToObject(request, spotReqKey, String.join((String)",", (java.util.List<String>)parsedIds));
+                Helpers.addElementToObject(request, spotReqKey, String.join(",", (java.util.List<String>)parsedIds));
                 response = (this.spotV1PrivatePostTradeCancelOrders(this.extend(request, parameters))).join();
             } else
             {
@@ -5098,7 +5098,7 @@ public class BingxCore extends BingxApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) && Helpers.isTrue((Helpers.isEqual(subType, "inverse")))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrdersAfter() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelAllOrdersAfter() is not supported for inverse swap markets")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
@@ -5108,7 +5108,7 @@ public class BingxCore extends BingxApi
                 response = (this.swapV2PrivatePostTradeCancelAllAfter(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrdersAfter() is not supported for "), type), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrdersAfter() is not supported for "), type), " markets")) ;
             }
             //
             //     {
@@ -5165,7 +5165,7 @@ public class BingxCore extends BingxApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
                 }
                 market = this.market(symbol);
                 final Object finalMarket = market;
@@ -5242,7 +5242,7 @@ public class BingxCore extends BingxApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "swap")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() is only supported for swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrders() is only supported for swap markets")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -5811,7 +5811,7 @@ public class BingxCore extends BingxApi
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(transferId, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(fromId, null))) || Helpers.isTrue((Helpers.isEqual(toId, null)))))))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchTransfers() requires params[\"transferId\"] or both params[\"fromAccount\"] and params[\"toAccount\"]")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchTransfers() requires params[\"transferId\"] or both params[\"fromAccount\"] and params[\"toAccount\"]")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(fromAccount, null)))
             {
@@ -6016,7 +6016,7 @@ public class BingxCore extends BingxApi
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
-            Boolean isPrefixed = Helpers.isTrue(((String)address).startsWith(((String)"0x"))) || Helpers.isTrue(((String)address).startsWith(((String)"0X")));
+            Boolean isPrefixed = Helpers.isTrue(address.startsWith("0x")) || Helpers.isTrue(address.startsWith("0X"));
             java.util.List<Object> evmNetworks = new java.util.ArrayList<Object>(java.util.Arrays.asList("BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"));
             if (Helpers.isTrue(!Helpers.isTrue(isPrefixed) && Helpers.isTrue(this.inArray(networkCode, evmNetworks))))
             {
@@ -6237,7 +6237,7 @@ public class BingxCore extends BingxApi
         {
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
-                code = Helpers.replace((String)code, (String)network, (String)"");
+                code = Helpers.replace(((String)code), network, "");
             }
         }
         String rawType = this.safeString(transaction, "transferType");
@@ -6315,7 +6315,7 @@ public class BingxCore extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6324,7 +6324,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
             }
             marginMode = ((String)marginMode).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "CROSS")))
@@ -6333,7 +6333,7 @@ public class BingxCore extends BingxApi
             }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, "ISOLATED")) && Helpers.isTrue(!Helpers.isEqual(marginMode, "CROSSED"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
             }
             final Object finalMarginMode = marginMode;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -6402,11 +6402,11 @@ public class BingxCore extends BingxApi
             Long type = this.safeInteger(parameters, "type"); // 1 increase margin 2 decrease margin
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")) ;
             }
             if (!Helpers.isTrue(this.inArray(type, new java.util.ArrayList<Object>(java.util.Arrays.asList(1, 2)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6560,7 +6560,7 @@ public class BingxCore extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             String side = (String)this.safeStringUpper(parameters, "side");
             this.checkRequiredArgument("setLeverage", side, "side", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT", "BOTH")));
@@ -6613,7 +6613,7 @@ public class BingxCore extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6632,7 +6632,7 @@ public class BingxCore extends BingxApi
                 String orderId = this.safeString(parameters, "orderId");
                 if (Helpers.isTrue(Helpers.isEqual(orderId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires an orderId argument for inverse swap trades")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires an orderId argument for inverse swap trades")) ;
                 }
                 response = (this.cswapV1PrivateGetTradeAllFillOrders(this.extend(request, parameters))).join();
                 fills = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -7067,7 +7067,7 @@ public class BingxCore extends BingxApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " closePosition() with a positionId is only supported for linear swap markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " closePosition() with a positionId is only supported for linear swap markets")) ;
                 }
                 response = (this.swapV1PrivatePostTradeClosePosition(this.extend(request, parameters))).join();
             } else
@@ -7119,7 +7119,7 @@ public class BingxCore extends BingxApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "margin")))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " closePositions () cannot be used for "), marketType), " markets")) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " closePositions () cannot be used for "), marketType), " markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "recvWindow", recvWindow );
@@ -7176,7 +7176,7 @@ public class BingxCore extends BingxApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subType, "inverse"))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchPositionMode() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchPositionMode() is not supported for inverse swap markets")) ;
             }
             java.util.Map<String, Object> response = (this.swapV1PrivateGetPositionSideDual(parameters)).join();
             //
@@ -7229,7 +7229,7 @@ public class BingxCore extends BingxApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subType, "inverse"))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " setPositionMode() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " setPositionMode() is not supported for inverse swap markets")) ;
             }
             String dualSidePosition = null;
             if (Helpers.isTrue(hedged))
@@ -7550,11 +7550,11 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchMarketLeverageTiers() supports swap markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchMarketLeverageTiers() supports swap markets only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchMarketLeverageTiers() is not supported for inverse swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchMarketLeverageTiers() is not supported for inverse swap markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -7602,7 +7602,7 @@ public class BingxCore extends BingxApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
         {
             Object tier = this.safeDict(info, i);
-            Object tierString = ((String)this.safeString(tier, "tier"));
+            Object tierString = (this.safeString(tier, "tier"));
             Object tierParts = Helpers.split(tierString, " ");
             String marketId = this.safeString(tier, "symbol");
             market = this.safeMarket(marketId, market, null, "swap");
@@ -7635,7 +7635,7 @@ final Object finalMarket = market;
         String url = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type));
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isSandbox, true))) && Helpers.isTrue(Helpers.isEqual(url, null))))
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), type), " endpoints")) ;
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), type), " endpoints")) ;
         }
         path = this.implodeParams(path, parameters);
         Boolean versionIsTransfer = (Helpers.isEqual(version, "transfer"));

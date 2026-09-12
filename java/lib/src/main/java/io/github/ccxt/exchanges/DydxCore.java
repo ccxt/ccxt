@@ -636,7 +636,7 @@ public class DydxCore extends DydxApi
         String marketId = this.safeString(market, "ticker");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
         Object parts = Helpers.split(marketId, "-");
         String baseName = this.safeString(parts, 0);
@@ -974,7 +974,7 @@ public class DydxCore extends DydxApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1046,7 +1046,7 @@ public class DydxCore extends DydxApi
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.walletAddress, parameters));
         }
-        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a user parameter inside 'params' or the walletAddress set")) ;
+        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a user parameter inside 'params' or the walletAddress set")) ;
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -1477,8 +1477,8 @@ public class DydxCore extends DydxApi
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         return new java.util.HashMap<String, Object>() {{
-            put( "r", Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0)) );
-            put( "s", Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0)) );
+            put( "r", Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0)) );
+            put( "s", Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0)) );
             put( "v", DydxCore.this.sum(27, Helpers.GetValue(signature, "v")) );
         }};
     }
@@ -1507,7 +1507,7 @@ public class DydxCore extends DydxApi
         Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(this.privateKey, null)) || Helpers.isTrue(Helpers.isEqual(this.privateKey, ""))))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " signOnboardingAction() requires a privateKey to be set.")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " signOnboardingAction() requires a privateKey to be set.")) ;
         }
         Object signature = this.signMessage(msg, this.privateKey);
         return signature;
@@ -1557,11 +1557,11 @@ public class DydxCore extends DydxApi
             }
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz")) ;
             }
-            if (!Helpers.isTrue(((String)this.walletAddress).startsWith(((String)"dydx"))))
+            if (!Helpers.isTrue(((String)this.walletAddress).startsWith("dydx")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "dydxAddress", DydxCore.this.walletAddress );
@@ -1608,18 +1608,18 @@ public class DydxCore extends DydxApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         Object orderType = ((String)type).toUpperCase();
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
         }
         Object orderSide = ((String)side).toUpperCase();
         Object subaccountId = 0;
@@ -1649,7 +1649,7 @@ public class DydxCore extends DydxApi
         Object timeInForceNumber = null;
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "FOK")))
         {
-            throw new InvalidOrder((String)Helpers.add(this.id, " timeInForce fok has been deprecated")) ;
+            throw new InvalidOrder(Helpers.add(this.id, " timeInForce fok has been deprecated")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(orderType, "MARKET")))
         {
@@ -1682,7 +1682,7 @@ public class DydxCore extends DydxApi
                     timeInForceNumber = 1;
                 } else
                 {
-                    throw new InvalidOrder((String)"unexpected code path: timeInForce") ;
+                    throw new InvalidOrder("unexpected code path: timeInForce") ;
                 }
             }
         }
@@ -1715,7 +1715,7 @@ public class DydxCore extends DydxApi
                 // short term order
                 if (Helpers.isTrue(Helpers.isEqual(latestBlockHeight, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " method() missing latestBlockHeight")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " method() missing latestBlockHeight")) ;
                 }
                 goodTillBlock = Helpers.add(latestBlockHeight, 20);
             }
@@ -1723,7 +1723,7 @@ public class DydxCore extends DydxApi
         {
             if (Helpers.isTrue(Helpers.isEqual(goodTillBlockTimeInSeconds, null)))
             {
-                throw new ArgumentsRequired((String)"goodTillBlockTimeInSeconds is required.") ;
+                throw new ArgumentsRequired("goodTillBlockTimeInSeconds is required.") ;
             }
             goodTillBlockTime = Helpers.add(this.seconds(), goodTillBlockTimeInSeconds);
         }
@@ -1813,7 +1813,7 @@ public class DydxCore extends DydxApi
             Long height = this.safeInteger(info, "last_block_height");
             if (Helpers.isTrue(Helpers.isEqual(height, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchLatestBlockHeight() could not parse last_block_height")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchLatestBlockHeight() could not parse last_block_height")) ;
             }
             return height;
         });
@@ -1920,7 +1920,7 @@ public class DydxCore extends DydxApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isTrigger, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1930,12 +1930,12 @@ public class DydxCore extends DydxApi
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId", id);
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
             }
             Object idString = String.valueOf(id);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(id, null)) && Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(idString, "-"), Helpers.opNeg(1)))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
             }
             Object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
             Object goodTillBlockTimeInSeconds = 2592000;
@@ -1952,17 +1952,17 @@ public class DydxCore extends DydxApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId")));
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(orderFlags, 0)) && Helpers.isTrue(!Helpers.isEqual(orderFlags, 64))) && Helpers.isTrue(!Helpers.isEqual(orderFlags, 32))))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " invalid orderFlags, allowed values are (0, 64, 32).")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " invalid orderFlags, allowed values are (0, 64, 32).")) ;
             }
             if (Helpers.isTrue(Helpers.isGreaterThan(orderFlags, 0)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(goodTillBlockTimeInSeconds, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " goodTillBlockTimeInSeconds is required in params for long term or conditional order.")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " goodTillBlockTimeInSeconds is required in params for long term or conditional order.")) ;
                 }
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(goodTillBlock, null)) && Helpers.isTrue(Helpers.isGreaterThan(goodTillBlock, 0))))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " goodTillBlock should be 0 for long term or conditional order.")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " goodTillBlock should be 0 for long term or conditional order.")) ;
                 }
                 goodTillBlockTime = Helpers.add(this.seconds(), goodTillBlockTimeInSeconds);
             } else
@@ -2051,7 +2051,7 @@ public class DydxCore extends DydxApi
             Object clientOrderIds = this.safeList(parameters, "clientOrderIds");
             if (Helpers.isTrue(Helpers.isEqual(clientOrderIds, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelOrders only support clientOrderIds.")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelOrders only support clientOrderIds.")) ;
             }
             Object subAccountId = 0;
             java.util.List<Object> subAccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
@@ -2293,12 +2293,12 @@ public class DydxCore extends DydxApi
             Object gasInfo = this.safeDict(response, "gas_info");
             if (Helpers.isTrue(Helpers.isEqual(gasInfo, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " failed to simulate transaction.")) ;
+                throw new ExchangeError(Helpers.add(this.id, " failed to simulate transaction.")) ;
             }
             String gasUsed = this.safeString(gasInfo, "gas_used");
             if (Helpers.isTrue(Helpers.isEqual(gasUsed, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " failed to simulate transaction.")) ;
+                throw new ExchangeError(Helpers.add(this.id, " failed to simulate transaction.")) ;
             }
             String defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
             String defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
@@ -2318,7 +2318,7 @@ public class DydxCore extends DydxApi
             Object feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
             if (Helpers.isTrue(Helpers.isEqual(feeAmount, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " estimateTxFee() missing feeAmount")) ;
+                throw new ExchangeError(Helpers.add(this.id, " estimateTxFee() missing feeAmount")) ;
             }
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(feeAmount, "."), 0)))
             {
@@ -2360,7 +2360,7 @@ public class DydxCore extends DydxApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(code, "USDC")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " transfer() only support USDC")) ;
+                throw new NotSupported(Helpers.add(this.id, " transfer() only support USDC")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2373,11 +2373,11 @@ public class DydxCore extends DydxApi
                 // throw error if from subaccount id is undefined
                 if (Helpers.isTrue(Helpers.isEqual(fromAccount, null)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " transfer only support main > subaccount and subaccount <> subaccount.")) ;
+                    throw new NotSupported(Helpers.add(this.id, " transfer only support main > subaccount and subaccount <> subaccount.")) ;
                 }
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(fromSubaccountId, null)) || Helpers.isTrue(Helpers.isEqual(toSubaccountId, null))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer requires fromSubaccountId and toSubaccountId.")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " transfer requires fromSubaccountId and toSubaccountId.")) ;
                 }
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("fromSubaccountId", "toSubaccountId")));
@@ -2391,7 +2391,7 @@ public class DydxCore extends DydxApi
                 // deposit to subaccount
                 if (Helpers.isTrue(Helpers.isEqual(toSubaccountId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requeire toSubaccoutnId.")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requeire toSubaccoutnId.")) ;
                 }
                 final Object finalToSubaccountId = toSubaccountId;
                 payload = new java.util.HashMap<String, Object>() {{
@@ -2621,7 +2621,7 @@ public class DydxCore extends DydxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(code, "USDC")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " withdraw() only support USDC")) ;
+                throw new NotSupported(Helpers.add(this.id, " withdraw() only support USDC")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2631,7 +2631,7 @@ public class DydxCore extends DydxApi
             Long subaccountId = this.safeInteger(parameters, "subaccountId");
             if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw requires subaccountId.")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " withdraw requires subaccountId.")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("subaccountId")));
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
@@ -3073,7 +3073,7 @@ public class DydxCore extends DydxApi
                 return wallet;
             }
         }
-        throw new ArgumentsRequired((String)Helpers.add(this.id, " getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.")) ;
+        throw new ArgumentsRequired(Helpers.add(this.id, " getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.")) ;
     }
 
     public Object sign(Object path, Object... optionalArgs)

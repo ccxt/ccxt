@@ -764,10 +764,10 @@ public class KrakenCore extends KrakenApi
                 Object market = Helpers.GetValue(markets, id);
                 String baseIdRaw = this.safeString(market, "base");
                 String quoteIdRaw = this.safeString(market, "quote");
-                String baseId = this.safeCurrencyCode(baseIdRaw);
-                String quoteId = this.safeCurrencyCode(quoteIdRaw);
-                String base = baseId;
-                String quote = quoteId;
+                Object baseId = this.safeCurrencyCode(baseIdRaw);
+                Object quoteId = this.safeCurrencyCode(quoteIdRaw);
+                Object base = baseId;
+                Object quote = quoteId;
                 Object makerFees = this.safeList(market, "fees_maker", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object firstMakerFee = this.safeList(makerFees, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 String firstMakerFeeRate = this.safeString(firstMakerFee, 1);
@@ -792,7 +792,7 @@ public class KrakenCore extends KrakenApi
                 // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
                 if (Helpers.isTrue(Helpers.isEqual(base, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " method() missing base")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " method() missing base")) ;
                 }
                 if (Helpers.isTrue(Helpers.isTrue(spot) && Helpers.isTrue((Helpers.inOp(cachedCurrencies, base)))))
                 {
@@ -801,7 +801,7 @@ public class KrakenCore extends KrakenApi
                     // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                     if (Helpers.isTrue(Helpers.isEqual(currencyPrecision, null)))
                     {
-                        throw new ExchangeError((String)Helpers.add(this.id, " method() missing currencyPrecision")) ;
+                        throw new ExchangeError(Helpers.add(this.id, " method() missing currencyPrecision")) ;
                     }
                     if (Helpers.isTrue(Helpers.isGreaterThan(currencyPrecision, precisionAmount)))
                     {
@@ -1000,11 +1000,11 @@ public class KrakenCore extends KrakenApi
         // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
         //
         String id = this.safeString(rawCurrency, "_coin_id");
-        String code = this.safeCurrencyCode(id);
+        Object code = this.safeCurrencyCode(id);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseCurrency() missing id")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseCurrency() missing id")) ;
         }
         if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(id, "."), 0)))
         {
@@ -1017,9 +1017,9 @@ public class KrakenCore extends KrakenApi
             // ZUSD  |  USD
             if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseCurrency() missing id")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseCurrency() missing id")) ;
             }
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(id, altName)) && Helpers.isTrue((Helpers.isTrue(id.startsWith(((String)"X"))) || Helpers.isTrue(id.startsWith(((String)"Z")))))))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(id, altName)) && Helpers.isTrue((Helpers.isTrue(id.startsWith("X")) || Helpers.isTrue(id.startsWith("Z"))))))
             {
                 code = this.safeCurrencyCode(altName);
                 // also, add map in commonCurrencies:
@@ -1034,7 +1034,7 @@ public class KrakenCore extends KrakenApi
         }
         if (Helpers.isTrue(Helpers.isEqual(code, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseCurrency() missing code")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseCurrency() missing code")) ;
         }
         Boolean isFiat = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(code, ".HOLD"), 0);
         rawCurrency = this.omit(rawCurrency, "_coin_id");
@@ -1066,12 +1066,12 @@ public class KrakenCore extends KrakenApi
         }});
     }
 
-    public String safeCurrencyCode(Object currencyId, Object... optionalArgs)
+    public Object safeCurrencyCode(Object currencyId, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         if (Helpers.isTrue(Helpers.isEqual(currencyId, null)))
         {
-            return (String) currencyId;
+            return currencyId;
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(currencyId, "."), 0)))
         {
@@ -1251,7 +1251,7 @@ public class KrakenCore extends KrakenApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = this.safeSymbol(null, market);
+        String symbol = (String) this.safeSymbol(null, market);
         Object v = this.safeValue(ticker, "v", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String baseVolume = this.safeString(v, 1);
         Object p = this.safeValue(ticker, "p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1321,7 +1321,7 @@ public class KrakenCore extends KrakenApi
                         ((java.util.List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
                     }
                 }
-                Helpers.addElementToObject(request, "pair", String.join((String)",", (java.util.List<String>)marketIds));
+                Helpers.addElementToObject(request, "pair", String.join(",", (java.util.List<String>)marketIds));
             }
             java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             Object tickers = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
@@ -1440,7 +1440,7 @@ public class KrakenCore extends KrakenApi
                 Long scaledSince = this.parseToInt(Helpers.divide(since, 1000));
                 if (Helpers.isTrue(Helpers.isEqual(parsedTimeframe, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing parsedTimeframe")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchOHLCV() missing parsedTimeframe")) ;
                 }
                 Object timeFrameInSeconds = Helpers.multiply(parsedTimeframe, 60);
                 Helpers.addElementToObject(request, "since", this.numberToString(Helpers.subtract(scaledSince, timeFrameInSeconds))); // expected to be in seconds
@@ -1503,7 +1503,7 @@ public class KrakenCore extends KrakenApi
         Object referenceAccount = null;
         Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
         String currencyId = this.safeString(item, "asset");
-        String code = this.safeCurrencyCode(currencyId, currency);
+        Object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amount = this.safeString(item, "amount");
         if (Helpers.isTrue(Precise.stringLt(amount, "0")))
@@ -1622,7 +1622,7 @@ public class KrakenCore extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            ids = String.join((String)",", (java.util.List<String>)ids);
+            ids = String.join(",", (java.util.List<String>)ids);
             final Object finalIds = ids;
             java.util.Map<String, Object> request = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", finalIds );
@@ -1731,13 +1731,13 @@ public class KrakenCore extends KrakenApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = null;
-        String datetime = null;
-        String side = null;
-        String type = null;
-        String price = null;
-        String amount = null;
+        Object datetime = null;
+        Object side = null;
+        Object type = null;
+        Object price = null;
+        Object amount = null;
         Object id = null;
-        String orderId = null;
+        Object orderId = null;
         Object fee = null;
         Object symbol = null;
         if (Helpers.isTrue(Helpers.isArray(trade)))
@@ -1922,7 +1922,7 @@ public class KrakenCore extends KrakenApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
-            String code = this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object balance = this.safeValue(balances, currencyId, new java.util.HashMap<String, Object>() {{}});
             Object account = this.account();
             Helpers.addElementToObject(account, "used", this.safeString(balance, "hold_trade"));
@@ -2114,7 +2114,7 @@ public class KrakenCore extends KrakenApi
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object orderSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            String symbol = null;
+            Object symbol = null;
             Object market = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -2127,7 +2127,7 @@ public class KrakenCore extends KrakenApi
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(symbol, marketId)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
                     }
                 }
                 market = this.market(marketId);
@@ -2222,8 +2222,8 @@ public class KrakenCore extends KrakenApi
         }
         Object baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
         Object quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        Object base = this.safeCurrencyCode(baseId);
+        Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
         market = new java.util.HashMap<String, Object>() {{
@@ -2370,7 +2370,7 @@ public class KrakenCore extends KrakenApi
         order = this.omit(order, "usingCost");
         Object description = this.safeDict(order, "descr", new java.util.HashMap<String, Object>() {{}});
         Object orderDescriptionObj = this.safeDict(order, "descr"); // can be null
-        String orderDescription = null;
+        Object orderDescription = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderDescriptionObj, null)))
         {
             orderDescription = this.safeString(orderDescriptionObj, "order");
@@ -2378,13 +2378,13 @@ public class KrakenCore extends KrakenApi
         {
             orderDescription = this.safeString(order, "descr");
         }
-        String side = null;
+        Object side = null;
         Object rawType = null;
-        String marketId = null;
+        Object marketId = null;
         Object price = null;
-        String amount = null;
-        String cost = null;
-        String triggerPrice = null;
+        Object amount = null;
+        Object cost = null;
+        Object triggerPrice = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderDescription, null)))
         {
             Object parts = Helpers.split(orderDescription, " ");
@@ -2436,7 +2436,7 @@ public class KrakenCore extends KrakenApi
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, "price", price);
         // when type = trailing stop returns price = '+50.0000%'
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(((String)price).endsWith(((String)"%"))) || Helpers.isTrue(Precise.stringEquals(price, "0.00000"))) || Helpers.isTrue(Precise.stringEquals(price, "0"))))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(((String)price).endsWith("%")) || Helpers.isTrue(Precise.stringEquals(price, "0.00000"))) || Helpers.isTrue(Precise.stringEquals(price, "0"))))))
         {
             price = null; // this is not the price we want
         }
@@ -2469,7 +2469,7 @@ public class KrakenCore extends KrakenApi
         }
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "txid", "order_id", "amend_id")));
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(id, null))) || Helpers.isTrue((id.startsWith(((String)"["))))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(id, null))) || Helpers.isTrue((id.startsWith("[")))))
         {
             Object txid = this.safeList(order, "txid");
             id = this.safeString(txid, 0);
@@ -2498,17 +2498,17 @@ final Object finalId = id;
         }
         // as mentioned in #24192 PR, this field is not something consistent/actual
         // triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
-        String stopLossPrice = null;
-        String takeProfitPrice = null;
+        Object stopLossPrice = null;
+        Object takeProfitPrice = null;
         // the dashed strings are not provided from fields (eg. fetch order)
         // while spaced strings from "order" sentence (when other fields not available)
         if (Helpers.isTrue(!Helpers.isEqual(rawType, null)))
         {
-            if (Helpers.isTrue(((String)rawType).startsWith(((String)"take-profit"))))
+            if (Helpers.isTrue(((String)rawType).startsWith("take-profit")))
             {
                 takeProfitPrice = this.safeString(description, "price");
                 price = this.omitZero(this.safeString(description, "price2"));
-            } else if (Helpers.isTrue(((String)rawType).startsWith(((String)"stop-loss"))))
+            } else if (Helpers.isTrue(((String)rawType).startsWith("stop-loss")))
             {
                 stopLossPrice = this.safeString(description, "price");
                 price = this.omitZero(this.safeString(description, "price2"));
@@ -2596,7 +2596,7 @@ final Object finalId = id;
         String trailingLimitPercent = this.safeString(parameters, "trailingLimitPercent");
         Boolean isTrailingAmountOrder = !Helpers.isEqual(trailingAmount, null);
         Boolean isTrailingPercentOrder = !Helpers.isEqual(trailingPercent, null);
-        Boolean isLimitOrder = Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue(((String)type).endsWith(((String)"limit"))); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        Boolean isLimitOrder = Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue(((String)type).endsWith("limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
         Boolean isMarketOrder = Helpers.isEqual(type, "market");
         String cost = this.safeString(parameters, "cost");
         String flags = this.safeString(parameters, "oflags");
@@ -2770,7 +2770,7 @@ final Object finalId = id;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders, only spot orders are accepted")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders, only spot orders are accepted")) ;
             }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "txid", id );
@@ -2902,7 +2902,7 @@ final Object finalId = id;
             Object result = this.safeValue(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             if (!Helpers.isTrue((Helpers.inOp(result, id))))
             {
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " fetchOrder() could not find order id "), id)) ;
+                throw new OrderNotFound(Helpers.add(Helpers.add(this.id, " fetchOrder() could not find order id "), id)) ;
             }
             return this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", finalId );
@@ -2936,7 +2936,7 @@ final Object finalId = id;
             java.util.List<Object> tradeIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(orderTrades, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
             } else
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderTrades)); i++)
@@ -2977,7 +2977,7 @@ final Object finalId = id;
                     }
                 }
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                    put( "txid", String.join((String)",", (java.util.List<String>)requestIds) );
+                    put( "txid", String.join(",", (java.util.List<String>)requestIds) );
                 }};
                 java.util.Map<String, Object> response = (this.privatePostQueryTrades(request)).join();
                 //
@@ -3039,7 +3039,7 @@ final Object finalId = id;
             }
             java.util.Map<String, Object> response = (this.privatePostQueryOrders(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "trades", true );
-                put( "txid", String.join((String)",", (java.util.List<String>)ids) );
+                put( "txid", String.join(",", (java.util.List<String>)ids) );
             }}, parameters))).join();
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -3188,7 +3188,7 @@ final Object finalId = id;
                 {
                     if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.last_http_response, "EOrder:Unknown order"), 0)))
                     {
-                        throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " cancelOrder() error "), this.last_http_response)) ;
+                        throw new OrderNotFound(Helpers.add(Helpers.add(this.id, " cancelOrder() error "), this.last_http_response)) ;
                     }
                 }
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
@@ -3290,11 +3290,11 @@ final Object finalId = id;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+                throw new ExchangeError(Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
             }
             if (Helpers.isTrue(Helpers.isGreaterThan(timeout, 86400000)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3302,7 +3302,7 @@ final Object finalId = id;
             }
             if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+                throw new ExchangeError(Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
             }
             final Object finalTimeout = timeout;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3622,7 +3622,7 @@ final Object finalId = id;
         String txid = this.safeString(transaction, "txid");
         Object timestamp = this.safeTimestamp(transaction, "time");
         String currencyId = this.safeString(transaction, "asset");
-        String code = this.safeCurrencyCode(currencyId, currency);
+        Object code = this.safeCurrencyCode(currencyId, currency);
         String address = this.safeString(transaction, "info");
         Double amount = this.safeNumber(transaction, "amount");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
@@ -4001,7 +4001,7 @@ final Object finalId = id;
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            String network = this.safeStringUpper(parameters, "network");
+            String network = (String)this.safeStringUpper(parameters, "network");
             Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
             parameters = this.omit(parameters, "network");
@@ -4011,7 +4011,7 @@ final Object finalId = id;
             }
             Object defaultDepositMethods = this.safeValue(this.options, "depositMethods", new java.util.HashMap<String, Object>() {{}});
             String defaultDepositMethod = this.safeString(defaultDepositMethods, code);
-            String depositMethod = this.safeString(parameters, "method", defaultDepositMethod);
+            Object depositMethod = this.safeString(parameters, "method", defaultDepositMethod);
             // if the user has specified an exchange-specific method in params
             // we pass it as is, otherwise we take the 'network' unified param
             if (Helpers.isTrue(Helpers.isEqual(depositMethod, null)))
@@ -4025,7 +4025,7 @@ final Object finalId = id;
                         String entry = this.safeString(Helpers.GetValue(depositMethods, i), "method");
                         if (Helpers.isTrue(Helpers.isEqual(entry, null)))
                         {
-                            throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() missing entry")) ;
+                            throw new ExchangeError(Helpers.add(this.id, " fetchDepositAddress() missing entry")) ;
                         }
                         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(entry, network), 0)))
                         {
@@ -4059,7 +4059,7 @@ final Object finalId = id;
             Object firstResult = this.safeValue(result, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(firstResult, null)))
             {
-                throw new InvalidAddress((String)Helpers.add(Helpers.add(this.id, " privatePostDepositAddresses() returned no addresses for "), code)) ;
+                throw new InvalidAddress(Helpers.add(Helpers.add(this.id, " privatePostDepositAddresses() returned no addresses for "), code)) ;
             }
             return this.parseDepositAddress(firstResult, currency);
         });
@@ -4136,7 +4136,7 @@ final Object finalId = id;
                 Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
                 return this.parseTransaction(result, currency);
             }
-            throw new ExchangeError((String)Helpers.add(this.id, " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;
+            throw new ExchangeError(Helpers.add(this.id, " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;
         });
 
     }
@@ -4335,7 +4335,7 @@ final Object finalId = id;
             }};
             if (Helpers.isTrue(!Helpers.isEqual(fromAccountParsed, "Spot Wallet")))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " transfer cannot transfer from "), fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " transfer cannot transfer from "), fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")) ;
             }
             java.util.Map<String, Object> response = (this.privatePostWalletTransfer(this.extend(request, parameters))).join();
             //
@@ -4469,7 +4469,7 @@ final Object finalId = id;
     {
         if (Helpers.isTrue(Helpers.isEqual(code, 520)))
         {
-            throw new ExchangeNotAvailable((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " "), reason)) ;
+            throw new ExchangeNotAvailable(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " "), reason)) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {

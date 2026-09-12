@@ -734,7 +734,7 @@ public class MercadoCore extends MercadoApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(price, null)))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")) ;
                     }
                     Object amountString = this.numberToString(amount);
                     Object priceString = this.numberToString(price);
@@ -775,7 +775,7 @@ public class MercadoCore extends MercadoApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -923,7 +923,7 @@ public class MercadoCore extends MercadoApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -979,14 +979,14 @@ public class MercadoCore extends MercadoApi
                 Boolean account_ref = (Helpers.inOp(parameters, "account_ref"));
                 if (!Helpers.isTrue(account_ref))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(this.id, " withdraw() requires account_ref parameter to withdraw "), code)) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " withdraw() requires account_ref parameter to withdraw "), code)) ;
                 }
             } else if (Helpers.isTrue(!Helpers.isEqual(code, "LTC")))
             {
                 Boolean tx_fee = (Helpers.inOp(parameters, "tx_fee"));
                 if (!Helpers.isTrue(tx_fee))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(this.id, " withdraw() requires tx_fee parameter to withdraw "), code)) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " withdraw() requires tx_fee parameter to withdraw "), code)) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(code, "XRP")))
                 {
@@ -994,7 +994,7 @@ public class MercadoCore extends MercadoApi
                     {
                         if (!Helpers.isTrue((Helpers.inOp(parameters, "destination_tag"))))
                         {
-                            throw new ArgumentsRequired((String)Helpers.add(Helpers.add(this.id, " withdraw() requires a tag argument or destination_tag parameter to withdraw "), code)) ;
+                            throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " withdraw() requires a tag argument or destination_tag parameter to withdraw "), code)) ;
                         }
                     } else
                     {
@@ -1148,7 +1148,7 @@ public class MercadoCore extends MercadoApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1187,7 +1187,7 @@ public class MercadoCore extends MercadoApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1227,7 +1227,7 @@ public class MercadoCore extends MercadoApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1319,7 +1319,7 @@ public class MercadoCore extends MercadoApi
         Object errorMessage = this.safeValue(response, "error_message");
         if (Helpers.isTrue(!Helpers.isEqual(errorMessage, null)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
         }
         return null;
     }

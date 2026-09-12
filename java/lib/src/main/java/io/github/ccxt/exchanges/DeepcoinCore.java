@@ -1483,12 +1483,12 @@ public class DeepcoinCore extends DeepcoinApi
             }
             if (Helpers.isTrue(Helpers.isEqual(codes, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddresses requires a list with one currency code")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddresses requires a list with one currency code")) ;
             }
             Object length = Helpers.getArrayLength(codes);
             if (Helpers.isTrue(!Helpers.isEqual(length, 1)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchDepositAddresses requires a list with one currency code")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchDepositAddresses requires a list with one currency code")) ;
             }
             Object code = Helpers.GetValue(codes, 0);
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
@@ -1780,7 +1780,7 @@ public class DeepcoinCore extends DeepcoinApi
             userId = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(userId, null)) && Helpers.isTrue(!Helpers.isEqual(userId, "")))))) ? userId : this.safeString(parameters, "uid");
             if (Helpers.isTrue(Helpers.isEqual(userId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires a userId parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires a userId parameter")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1938,11 +1938,11 @@ public class DeepcoinCore extends DeepcoinApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         String triggerPrice = this.safeString(parameters, "triggerPrice");
@@ -1953,7 +1953,7 @@ public class DeepcoinCore extends DeepcoinApi
         {
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrder() accepts a cost parameter for spot non-trigger market orders only")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrder() accepts a cost parameter for spot non-trigger market orders only")) ;
             }
         }
         if (Helpers.isTrue(isTriggerOrder))
@@ -1992,11 +1992,11 @@ public class DeepcoinCore extends DeepcoinApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object orderType = type;
@@ -2035,12 +2035,12 @@ public class DeepcoinCore extends DeepcoinApi
         {
             if (Helpers.isTrue(isMarketOrder))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrder() does not require a price argument for market orders")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrder() does not require a price argument for market orders")) ;
             }
             Helpers.addElementToObject(request, "px", this.priceToPrecision(symbol, price));
         } else if (!Helpers.isTrue(isMarketOrder))
         {
-            throw new BadRequest((String)Helpers.add(this.id, " createOrder() requires a price argument for limit orders")) ;
+            throw new BadRequest(Helpers.add(this.id, " createOrder() requires a price argument for limit orders")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
@@ -2049,7 +2049,7 @@ public class DeepcoinCore extends DeepcoinApi
             {
                 if (!Helpers.isTrue(isMarketOrder))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " createOrder() accepts a cost parameter for spot market orders only")) ;
+                    throw new BadRequest(Helpers.add(this.id, " createOrder() accepts a cost parameter for spot market orders only")) ;
                 }
                 parameters = this.omit(parameters, "cost");
                 Helpers.addElementToObject(request, "sz", this.costToPrecision(symbol, cost));
@@ -2120,11 +2120,11 @@ public class DeepcoinCore extends DeepcoinApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         final Object finalSide = side;
@@ -2154,7 +2154,7 @@ public class DeepcoinCore extends DeepcoinApi
             Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
         } else if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument for limit trigger orders")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument for limit trigger orders")) ;
         }
         Object marginMode = "cross";
         java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters, marginMode);
@@ -2311,7 +2311,7 @@ public class DeepcoinCore extends DeepcoinApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchClosedOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchClosedOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2395,7 +2395,7 @@ public class DeepcoinCore extends DeepcoinApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchClosedOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchClosedOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2407,7 +2407,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object length = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " fetchOpenOrder() could not find order id "), id)) ;
+                throw new OrderNotFound(Helpers.add(Helpers.add(this.id, " fetchOpenOrder() could not find order id "), id)) ;
             }
             Object entry = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(entry, market);
@@ -2479,11 +2479,11 @@ public class DeepcoinCore extends DeepcoinApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(methodName, "fetchCanceledAndClosedOrders")))
                 {
-                    throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support trigger orders")) ;
+                    throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support trigger orders")) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(market, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders")) ;
                 }
                 parameters = this.omit(parameters, "trigger");
                 //
@@ -2667,7 +2667,7 @@ public class DeepcoinCore extends DeepcoinApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Long index = this.safeInteger(parameters, "index", 1); // todo add pagination handling
@@ -2799,7 +2799,7 @@ public class DeepcoinCore extends DeepcoinApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2846,12 +2846,12 @@ public class DeepcoinCore extends DeepcoinApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() is not supported for spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() is not supported for spot markets")) ;
             }
             String productGroup = this.getProductGroupFromMarket(market);
             String marginMode = this.safeString(parameters, "marginMode");
@@ -2921,7 +2921,7 @@ public class DeepcoinCore extends DeepcoinApi
                 market = this.market(symbol);
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " editOrder() is not supported for spot markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " editOrder() is not supported for spot markets")) ;
                 }
                 symbol = Helpers.GetValue(market, "symbol");
             }
@@ -2933,7 +2933,7 @@ public class DeepcoinCore extends DeepcoinApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) || Helpers.isTrue((!Helpers.isEqual(amount, null)))))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.")) ;
+                    throw new BadRequest(Helpers.add(this.id, " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.")) ;
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
                 {
@@ -3001,7 +3001,7 @@ public class DeepcoinCore extends DeepcoinApi
                 market = this.market(symbol);
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " cancelOrders() is not supported for spot markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " cancelOrders() is not supported for spot markets")) ;
                 }
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3086,7 +3086,7 @@ public class DeepcoinCore extends DeepcoinApi
         String marketId = this.safeString(order, "instId");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeInteger(order, "cTime");
-        Object timestampString = ((String)this.safeString(order, "cTime", ""));
+        Object timestampString = (this.safeString(order, "cTime", ""));
         if (Helpers.isTrue(Helpers.isLessThan(((String)timestampString).length(), 13)))
         {
             timestamp = this.safeTimestamp(order, "cTime");
@@ -3310,7 +3310,7 @@ public class DeepcoinCore extends DeepcoinApi
             put( "contractSize", null );
             put( "side", DeepcoinCore.this.safeString(position, "posSide") );
             put( "notional", null );
-            put( "leverage", DeepcoinCore.this.parseNumber(DeepcoinCore.this.omitZero(((String)DeepcoinCore.this.safeString(position, "lever")))) );
+            put( "leverage", DeepcoinCore.this.parseNumber(DeepcoinCore.this.omitZero((DeepcoinCore.this.safeString(position, "lever")))) );
             put( "unrealizedPnl", null );
             put( "realizedPnl", null );
             put( "collateral", null );
@@ -3354,13 +3354,13 @@ public class DeepcoinCore extends DeepcoinApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             if (Helpers.isTrue(Helpers.isLessThan(leverage, 1)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setLeverage() leverage should be minimum 1")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() leverage should be minimum 1")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3373,7 +3373,7 @@ public class DeepcoinCore extends DeepcoinApi
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "cross"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             Object mrgPosition = "merge";
             java.util.List<Object> mrgPositionparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "setLeverage", "mrgPosition", mrgPosition);
@@ -3381,7 +3381,7 @@ public class DeepcoinCore extends DeepcoinApi
             parameters = ((java.util.List<Object>) mrgPositionparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(mrgPosition, "merge")) && Helpers.isTrue(!Helpers.isEqual(mrgPosition, "split"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setLeverage() mrgPosition parameter must be either merge or split")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() mrgPosition parameter must be either merge or split")) ;
             }
             final Object finalLeverage = leverage;
             final Object finalMarginMode = marginMode;
@@ -3450,7 +3450,7 @@ public class DeepcoinCore extends DeepcoinApi
                 instType = "Swap";
             } else if (Helpers.isTrue(!Helpers.isEqual(subType, "linear")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRates() subType parameter must be either linear or inverse")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchFundingRates() subType parameter must be either linear or inverse")) ;
             }
             final Object finalInstType = instType;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3504,7 +3504,7 @@ public class DeepcoinCore extends DeepcoinApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchFundingRate() is only valid for swap markets")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchFundingRate() is only valid for swap markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
@@ -3589,7 +3589,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3784,7 +3784,7 @@ public class DeepcoinCore extends DeepcoinApi
             String marketType = this.safeString(parameters, "type");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbol, null)) && Helpers.isTrue(Helpers.isEqual(marketType, null))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrderTrades requires a symbol argument or a market type in the params")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrderTrades requires a symbol argument or a market type in the params")) ;
             }
             parameters = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "ordId", id );

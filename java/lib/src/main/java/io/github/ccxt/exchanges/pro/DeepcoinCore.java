@@ -181,7 +181,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             Object existingSubscription = this.safeDict(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(existingSubscription, null)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " no subscription for "), messageHash)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " no subscription for "), messageHash)) ;
             }
             Object subId = this.safeInteger(existingSubscription, "id");
             Object request = this.createPublicRequest(market, subId, topicID, suffix, true); // unsubscribe message uses the same id as the original subscribe message
@@ -229,10 +229,10 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
-                client.future((String)messageHash).getFuture().join();
+                client.future(messageHash).getFuture().join();
                 return this.safeString(this.options, "listenKey");
             }
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object listenKey = null;
             try
             {
@@ -265,7 +265,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
                     listenKey = this.safeString(data, "listenkey");
                     if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
                     {
-                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                        throw new AuthenticationError(Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
                     }
                     listenKeyExpiryTimestamp = this.safeTimestamp(data, "expire_time");
                     Helpers.addElementToObject(this.options, "listenKey", listenKey);
@@ -1377,7 +1377,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             put( "contractSize", null );
             put( "side", DeepcoinCore.this.parsePositionSide(direction) );
             put( "notional", null );
-            put( "leverage", DeepcoinCore.this.omitZero(((String)DeepcoinCore.this.safeString(position, "l"))) );
+            put( "leverage", DeepcoinCore.this.omitZero((DeepcoinCore.this.safeString(position, "l"))) );
             put( "unrealizedPnl", null );
             put( "realizedPnl", null );
             put( "collateral", null );

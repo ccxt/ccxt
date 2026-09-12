@@ -2780,7 +2780,7 @@ public class CoinexCore extends CoinexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
@@ -2794,11 +2794,11 @@ public class CoinexCore extends CoinexApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object swap = Helpers.GetValue(market, "swap");
@@ -2815,7 +2815,7 @@ public class CoinexCore extends CoinexApi
         {
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support reduceOnly for "), Helpers.GetValue(market, "type")), " orders, reduceOnly orders are supported for swap markets only")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support reduceOnly for "), Helpers.GetValue(market, "type")), " orders, reduceOnly orders are supported for swap markets only")) ;
             }
         }
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2904,7 +2904,7 @@ public class CoinexCore extends CoinexApi
                 {
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isEqual(cost, null)))))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
                         Object amountString = this.numberToString(amount);
@@ -3055,7 +3055,7 @@ public class CoinexCore extends CoinexApi
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(symbol, marketId)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
                     }
                 }
                 String type = this.safeString(rawOrder, "type");
@@ -3065,7 +3065,7 @@ public class CoinexCore extends CoinexApi
                 Object orderParams = this.safeValue(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
                 {
-                    throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), type), " orders, only limit orders are accepted")) ;
+                    throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), type), " orders, only limit orders are accepted")) ;
                 }
                 reduceOnly = this.safeValue(orderParams, "reduceOnly");
                 Double triggerPrice = this.safeNumber2(orderParams, "stopPrice", "triggerPrice");
@@ -3100,12 +3100,12 @@ public class CoinexCore extends CoinexApi
                     response = (this.v2PrivatePostFuturesBatchStopOrder(request)).join();
                 } else if (Helpers.isTrue(isStopLossOrTakeProfitTrigger))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " createOrders() does not support stopLossPrice or takeProfitPrice orders")) ;
+                    throw new NotSupported(Helpers.add(this.id, " createOrders() does not support stopLossPrice or takeProfitPrice orders")) ;
                 } else
                 {
                     if (Helpers.isTrue(reduceOnly))
                     {
-                        throw new NotSupported((String)Helpers.add(this.id, " createOrders() does not support reduceOnly orders")) ;
+                        throw new NotSupported(Helpers.add(this.id, " createOrders() does not support reduceOnly orders")) ;
                     } else
                     {
                         response = (this.v2PrivatePostFuturesBatchOrder(request)).join();
@@ -3170,7 +3170,7 @@ public class CoinexCore extends CoinexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3257,7 +3257,7 @@ public class CoinexCore extends CoinexApi
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3408,7 +3408,7 @@ public class CoinexCore extends CoinexApi
                 Object entry = Helpers.GetValue(data, i);
                 String code = this.safeString(entry, "code");
                 String message = this.safeString(entry, "message", "");
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(message.toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
                 {
                     Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
                     this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
@@ -3452,7 +3452,7 @@ public class CoinexCore extends CoinexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3564,7 +3564,7 @@ public class CoinexCore extends CoinexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3622,7 +3622,7 @@ public class CoinexCore extends CoinexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3847,7 +3847,7 @@ public class CoinexCore extends CoinexApi
             String network = this.safeString2(parameters, "chain", "network");
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createDepositAddress() requires a network parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createDepositAddress() requires a network parameter")) ;
             }
             parameters = this.omit(parameters, "network");
             final Object finalNetwork = network;
@@ -3902,7 +3902,7 @@ public class CoinexCore extends CoinexApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires a \"network\" parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() requires a \"network\" parameter")) ;
             }
             Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"))); // required for on-chain, not required for inter-user transfer
             java.util.Map<String, Object> response = (this.v2PrivateGetAssetsDepositAddress(this.extend(request, parameters))).join();
@@ -3980,7 +3980,7 @@ public class CoinexCore extends CoinexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4066,7 +4066,7 @@ public class CoinexCore extends CoinexApi
                     Object symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
                     symbol = Helpers.GetValue(symbols, 0);
                 } else
@@ -4305,12 +4305,12 @@ public class CoinexCore extends CoinexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             marginMode = ((String)marginMode).toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated")) && Helpers.isTrue(!Helpers.isEqual(marginMode, "cross"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4319,17 +4319,17 @@ public class CoinexCore extends CoinexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
             }
             Long leverage = this.safeInteger(parameters, "leverage");
             Long maxLeverage = this.safeInteger(Helpers.GetValue(Helpers.GetValue(market, "limits"), "leverage"), "max", 100);
             if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a leverage parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a leverage parameter")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, maxLeverage)))))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " setMarginMode() leverage should be between 1 and "), String.valueOf(maxLeverage)), " for "), symbol)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " setMarginMode() leverage should be between 1 and "), String.valueOf(maxLeverage)), " for "), symbol)) ;
             }
             final Object finalMarginMode = marginMode;
             final Object finalLeverage = leverage;
@@ -4364,7 +4364,7 @@ public class CoinexCore extends CoinexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4373,7 +4373,7 @@ public class CoinexCore extends CoinexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setLeverage() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setLeverage() supports swap contracts only")) ;
             }
             Object marginMode = null;
             java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
@@ -4383,7 +4383,7 @@ public class CoinexCore extends CoinexApi
             Long maxLeverage = this.safeInteger(Helpers.GetValue(Helpers.GetValue(market, "limits"), "leverage"), "max", 100);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, minLeverage))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, maxLeverage)))))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " setLeverage() leverage should be between "), String.valueOf(minLeverage)), " and "), String.valueOf(maxLeverage)), " for "), symbol)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " setLeverage() leverage should be between "), String.valueOf(minLeverage)), " and "), String.valueOf(maxLeverage)), " for "), symbol)) ;
             }
             final Object finalMarginMode = marginMode;
             final Object finalLeverage = leverage;
@@ -4422,7 +4422,7 @@ public class CoinexCore extends CoinexApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object marketIds = this.marketIds(symbols);
-                Helpers.addElementToObject(request, "market", String.join((String)",", (java.util.List<String>)marketIds));
+                Helpers.addElementToObject(request, "market", String.join(",", (java.util.List<String>)marketIds));
             }
             java.util.Map<String, Object> response = (this.v2PublicGetFuturesPositionLevel(this.extend(request, parameters))).join();
             //
@@ -4698,7 +4698,7 @@ final Object finalI = i;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4788,7 +4788,7 @@ final Object finalI = i;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
@@ -4925,10 +4925,10 @@ final Object finalI = i;
                 market = this.market(symbol);
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
-                    throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRates() supports swap contracts only")) ;
+                    throw new BadSymbol(Helpers.add(this.id, " fetchFundingRates() supports swap contracts only")) ;
                 }
                 Object marketIds = this.marketIds(symbols);
-                Helpers.addElementToObject(request, "market", String.join((String)",", (java.util.List<String>)marketIds));
+                Helpers.addElementToObject(request, "market", String.join(",", (java.util.List<String>)marketIds));
             }
             java.util.Map<String, Object> response = (this.v2PublicGetFuturesFundingRate(this.extend(request, parameters))).join();
             //
@@ -5075,7 +5075,7 @@ final Object finalI = i;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5195,7 +5195,7 @@ final Object finalI = i;
         String tag = this.safeString(transaction, "memo");
         if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(((String)tag).length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(tag.length(), 1)))
             {
                 tag = null;
             }
@@ -5203,7 +5203,7 @@ final Object finalI = i;
         String remark = this.safeString(transaction, "remark");
         if (Helpers.isTrue(!Helpers.isEqual(remark, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(((String)remark).length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(remark.length(), 1)))
             {
                 remark = null;
             }
@@ -5211,7 +5211,7 @@ final Object finalI = i;
         String txid = this.safeString(transaction, "tx_id");
         if (Helpers.isTrue(!Helpers.isEqual(txid, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(((String)txid).length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(txid.length(), 1)))
             {
                 txid = null;
             }
@@ -5309,14 +5309,14 @@ final Object finalI = i;
                 String symbol = this.safeString(parameters, "symbol");
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() the symbol parameter must be defined for a margin account")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " transfer() the symbol parameter must be defined for a margin account")) ;
                 }
                 parameters = this.omit(parameters, "symbol");
                 Helpers.addElementToObject(request, "market", this.marketId(symbol));
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fromAccount, "spot"))) && Helpers.isTrue((!Helpers.isEqual(toAccount, "spot")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot")) ;
+                throw new BadRequest(Helpers.add(this.id, " transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot")) ;
             }
             java.util.Map<String, Object> response = (this.v2PrivatePostAssetsTransfer(this.extend(request, parameters))).join();
             //
@@ -5396,7 +5396,7 @@ final Object finalI = i;
             }
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTransfers() requires a code argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTransfers() requires a code argument")) ;
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -5661,7 +5661,7 @@ final Object finalI = i;
             String code = this.safeString(parameters, "code");
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchIsolatedBorrowRate() requires a code parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchIsolatedBorrowRate() requires a code parameter")) ;
             }
             parameters = this.omit(parameters, "code");
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
@@ -6175,7 +6175,7 @@ final Object finalI = i;
             String code = this.safeString(parameters, "code");
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLeverage() requires a code parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchLeverage() requires a code parameter")) ;
             }
             parameters = this.omit(parameters, "code");
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
@@ -6574,7 +6574,7 @@ final Object finalI = i;
         String code = this.safeString(response, "code");
         Object data = this.safeValue(response, "data");
         String message = this.safeString(response, "message", "");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(message.toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
@@ -6614,13 +6614,13 @@ final Object finalI = i;
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarginAdjustmentHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMarginAdjustmentHistory() requires a symbol argument")) ;
             }
             Long positionId = (Long) this.safeInteger2(parameters, "positionId", "position_id");
             parameters = this.omit(parameters, "positionId");
             if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarginAdjustmentHistory() requires a positionId parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMarginAdjustmentHistory() requires a positionId parameter")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalPositionId = positionId;

@@ -110,8 +110,8 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Helpers.isTrue(isGenerationTwo))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "publicGen2") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
-            String tickTypes = this.safeString(parameters, "tickTypes", "24H");
+            String messageHash = (String) Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
+            Object tickTypes = this.safeString(parameters, "tickTypes", "24H");
             parameters = this.omit(parameters, "tickTypes");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "ticker" );
@@ -166,7 +166,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Object symbolsLength = ((Helpers.isTrue((Helpers.isEqual(symbols, null))))) ? 0 : Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isTrue(isGenerationTwo) && Helpers.isTrue((Helpers.isEqual(symbolsLength, 0)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers() requires symbols for the generation 2 API")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTickers() requires symbols for the generation 2 API")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -191,7 +191,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 ((java.util.List<Object>)streamMarketIds).add(streamMarketId);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("ticker:", Helpers.GetValue(market, "symbol")));
             }
-            String tickTypes = this.safeString(parameters, "tickTypes", "24H");
+            Object tickTypes = this.safeString(parameters, "tickTypes", "24H");
             parameters = this.omit(parameters, "tickTypes");
             Object message = new java.util.HashMap<String, Object>() {{
                 put( "type", "ticker" );
@@ -297,7 +297,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         {
             tickerMessage = content;
         }
-        String marketId = this.safeString2(tickerMessage, "symbol", "code");
+        Object marketId = this.safeString2(tickerMessage, "symbol", "code");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
             return;
@@ -315,7 +315,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             return;
         }
         Object ticker = this.parseWsTicker(tickerMessage);
-        String messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = (String) Helpers.add("ticker:", symbol);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
     }
@@ -381,14 +381,14 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String code = this.safeString(ticker, "code");
+        Object code = this.safeString(ticker, "code");
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
         {
             Helpers.addElementToObject(ticker, "market", this.safeString(ticker, "market", code));
             return this.parseTicker(ticker, market);
         }
-        Object date = ((String)this.safeString(ticker, "date", ""));
-        Object time = ((String)this.safeString(ticker, "time", ""));
+        Object date = (this.safeString(ticker, "date", ""));
+        Object time = (this.safeString(ticker, "time", ""));
         Object kstDatetime = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.slice(date, 0, 4), "-"), Helpers.slice(date, 4, 6)), "-"), Helpers.slice(date, 6, 8)), "T"), Helpers.slice(time, 0, 2)), ":"), Helpers.slice(time, 2, 4)), ":"), Helpers.slice(time, 4, 6));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         Object timestamp = this.parse8601(kstDatetime);
@@ -396,7 +396,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         {
             timestamp = (Helpers.subtract(timestamp, 32400000));
         }
-        String marketId = this.safeString(ticker, "symbol");
+        Object marketId = this.safeString(ticker, "symbol");
         final Object finalTimestamp = timestamp;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", BithumbCore.this.safeSymbol(marketId, market, "_") );
@@ -453,7 +453,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Object url = ((Helpers.isTrue(isGenerationTwo))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "publicGen2") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
+            String messageHash = (String) Helpers.add(Helpers.add("orderbook", ":"), symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "orderbookdepth" );
                 put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.add(Helpers.add(Helpers.GetValue(market, "base"), "_"), Helpers.GetValue(market, "quote")))) );
@@ -529,13 +529,13 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         {
             Object list = this.safeList(content, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(list, 0, new java.util.HashMap<String, Object>() {{}});
-            String legacyMarketId = this.safeString(first, "symbol");
+            Object legacyMarketId = this.safeString(first, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(legacyMarketId, null)))
             {
                 return;
             }
             String legacySymbol = (String) this.safeSymbol(legacyMarketId, null, "_");
-            Object timestampStr = ((String)this.safeString(content, "datetime"));
+            Object timestampStr = (this.safeString(content, "datetime"));
             if (Helpers.isTrue(Helpers.isEqual(timestampStr, null)))
             {
                 return;
@@ -555,13 +555,13 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             client.resolve(legacyOrderbook, legacyMessageHash);
             return;
         }
-        String marketId = this.safeString(message, "code");
+        Object marketId = this.safeString(message, "code");
         String symbol = (String) this.safeSymbol(marketId, null, "-");
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
             return;
         }
-        String streamType = this.safeString(message, "stream_type");
+        Object streamType = this.safeString(message, "stream_type");
         Object options = this.safeValue(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
         Long obLimit = this.safeInteger(options, "limit", 1000);
         if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))) || Helpers.isTrue((Helpers.isEqual(streamType, "SNAPSHOT")))))
@@ -590,7 +590,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 Helpers.callDynamically(asks, "store", new Object[]{askPrice, askSize});
             }
         }
-        Object gen2TimestampStr = ((String)this.safeString2(message, "timestamp", "datetime"));
+        Object gen2TimestampStr = (this.safeString2(message, "timestamp", "datetime"));
         Object timestamp = null;
         if (Helpers.isTrue(!Helpers.isEqual(gen2TimestampStr, null)))
         {
@@ -602,7 +602,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         }
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-        String messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
+        String messageHash = (String) Helpers.add(Helpers.add("orderbook", ":"), symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -617,7 +617,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         //        total: "0",
         //    }
         //
-        String sideId = this.safeString(delta, "orderType");
+        Object sideId = this.safeString(delta, "orderType");
         String side = ((Helpers.isTrue((Helpers.isEqual(sideId, "bid"))))) ? "bids" : "asks";
         Object bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
         Object orderbookSide = Helpers.GetValue(orderbook, side);
@@ -665,7 +665,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Object url = ((Helpers.isTrue(isGenerationTwo))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "publicGen2") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = Helpers.add("trade:", symbol);
+            String messageHash = (String) Helpers.add("trade:", symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "transaction" );
                 put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.add(Helpers.add(Helpers.GetValue(market, "base"), "_"), Helpers.GetValue(market, "quote")))) );
@@ -743,12 +743,12 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
         {
             Object rawTrade = Helpers.GetValue(rawTrades, i);
-            String marketId = this.safeString2(rawTrade, "symbol", "code");
+            Object marketId = this.safeString2(rawTrade, "symbol", "code");
             if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
             {
                 continue;
             }
-            String code = this.safeString(rawTrade, "code");
+            Object code = this.safeString(rawTrade, "code");
             Boolean isGenerationTwo = (!Helpers.isEqual(code, null));
             Object fallbackSymbol = null;
             if (Helpers.isTrue(isGenerationTwo))
@@ -759,7 +759,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 fallbackSymbol = this.safeSymbol(marketId, null, "_");
             }
             Object parsed = this.parseWsTrade(rawTrade);
-            String symbol = this.safeString(parsed, "symbol", fallbackSymbol);
+            Object symbol = this.safeString(parsed, "symbol", fallbackSymbol);
             if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
             {
                 Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -768,7 +768,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             }
             io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
-            String messageHash = Helpers.add(Helpers.add("trade", ":"), symbol);
+            String messageHash = (String) Helpers.add(Helpers.add("trade", ":"), symbol);
             client.resolve(trades, messageHash);
         }
     }
@@ -808,7 +808,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marketCode = this.safeString(trade, "code");
+        Object marketCode = this.safeString(trade, "code");
         if (Helpers.isTrue(!Helpers.isEqual(marketCode, null)))
         {
             Long tradeTimestamp = this.safeInteger(trade, "trade_timestamp");
@@ -819,11 +819,11 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             }});
             return this.parseTrade(normalized, market);
         }
-        String marketId = this.safeString(trade, "symbol");
-        String datetime = this.safeString(trade, "contDtm");
+        Object marketId = this.safeString(trade, "symbol");
+        Object datetime = this.safeString(trade, "contDtm");
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
         Object timestamp = Helpers.subtract(this.parseToInt(this.parse8601(datetime)), 32400000);
-        String sideId = this.safeString(trade, "buySellGb");
+        Object sideId = this.safeString(trade, "buySellGb");
         final Object finalSideId = sideId;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", null );
@@ -853,8 +853,8 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         Object error = this.safeDict(message, "error");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
-            String errorName = this.safeString(error, "name", "Error");
-            String errorMessage = this.safeString(error, "message", "");
+            Object errorName = this.safeString(error, "name", "Error");
+            Object errorMessage = this.safeString(error, "message", "");
             String addedMessage = null;
             if (Helpers.isTrue((Helpers.isGreaterThan(((String)errorMessage).length(), 0))))
             {
@@ -870,7 +870,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         {
             return true;
         }
-        String errorCode = this.safeString(message, "status");
+        Object errorCode = this.safeString(message, "status");
         try
         {
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(errorCode, "UP"))) || Helpers.isTrue((Helpers.isEqual(errorCode, "0000")))))
@@ -879,8 +879,8 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             }
             if (Helpers.isTrue(!Helpers.isEqual(errorCode, "0000")))
             {
-                String msg = this.safeString(message, "resmsg");
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), msg)) ;
+                Object msg = this.safeString(message, "resmsg");
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), msg)) ;
             }
             return true;
         } catch(Exception e)
@@ -915,11 +915,11 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " watchBalance() is only supported for the generation 2 API")) ;
+                throw new BadRequest(Helpers.add(this.id, " watchBalance() is only supported for the generation 2 API")) ;
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateGen2");
-            String messageHash = "myAsset";
+            String messageHash = (String) "myAsset";
             Object request = this.buildGen2SubscriptionRequest(messageHash, new java.util.HashMap<String, Object>() {{
                 put( "type", messageHash );
             }});
@@ -946,7 +946,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         //        "stream_type": "REALTIME"
         //    }
         //
-        String messageHash = "myAsset";
+        String messageHash = (String) "myAsset";
         Object assets = this.safeList(message, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isEqual(this.balance, null)))
         {
@@ -955,7 +955,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
         {
             Object asset = Helpers.GetValue(assets, i);
-            String currencyId = this.safeString(asset, "currency");
+            Object currencyId = this.safeString(asset, "currency");
             String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(asset, "balance"));
@@ -1011,7 +1011,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             Object wsOptions = this.safeDict(this.options, "ws", new java.util.HashMap<String, Object>() {{}});
-            String authenticated = this.safeString(wsOptions, "token");
+            Object authenticated = this.safeString(wsOptions, "token");
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
@@ -1067,7 +1067,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " watchOrders() is only supported for the generation 2 API")) ;
+                throw new BadRequest(Helpers.add(this.id, " watchOrders() is only supported for the generation 2 API")) ;
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateGen2");
@@ -1122,7 +1122,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         //
         String messageHash = "myOrder";
         Object parsed = this.parseWsOrder(message);
-        String symbol = this.safeString(parsed, "symbol");
+        Object symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -1163,16 +1163,16 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marketId = this.safeString(order, "code");
+        Object marketId = this.safeString(order, "code");
         String symbol = (String) this.safeSymbol(marketId, market, "-");
         Long timestamp = this.safeInteger(order, "order_timestamp");
-        String sideId = this.safeString(order, "ask_bid");
+        Object sideId = this.safeString(order, "ask_bid");
         String side = (String)this.safeStringLower(order, "side");
         if (Helpers.isTrue(!Helpers.isEqual(sideId, null)))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(sideId, "BID"))))) ? ("buy") : ("sell");
         }
-        String typeId = this.safeString(order, "order_type");
+        Object typeId = this.safeString(order, "order_type");
         String type = null;
         if (Helpers.isTrue(Helpers.isEqual(typeId, "limit")))
         {
@@ -1184,7 +1184,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         {
             type = "market";
         }
-        String stateId = this.safeString(order, "state");
+        Object stateId = this.safeString(order, "state");
         String status = null;
         if (Helpers.isTrue(Helpers.isEqual(stateId, "wait")))
         {
@@ -1199,17 +1199,17 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         {
             status = "canceled";
         }
-        String price = this.safeString2(order, "price", "order_price");
-        String amount = this.safeString2(order, "volume", "order_quantity");
-        String remaining = this.safeString(order, "remaining_volume");
-        String filled = this.safeString(order, "executed_volume");
-        String cost = this.safeString(order, "executed_funds");
-        String feeCost = this.safeString(order, "paid_fee");
+        Object price = this.safeString2(order, "price", "order_price");
+        Object amount = this.safeString2(order, "volume", "order_quantity");
+        Object remaining = this.safeString(order, "remaining_volume");
+        Object filled = this.safeString(order, "executed_volume");
+        Object cost = this.safeString(order, "executed_funds");
+        Object feeCost = this.safeString(order, "paid_fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             java.util.Map<String, Object> marketForFee = (java.util.Map<String, Object>) this.safeMarket(marketId, market);
-            String feeCurrency = this.safeString(marketForFee, "quote");
+            Object feeCurrency = this.safeString(marketForFee, "quote");
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1263,7 +1263,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             }
             return;
         }
-        String status = this.safeString(message, "status");
+        Object status = this.safeString(message, "status");
         if (Helpers.isTrue(Helpers.isEqual(status, "UP")))
         {
             this.handlePong(client, message);
@@ -1283,7 +1283,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         {
             return;
         }
-        String topic = this.safeString(message, "type");
+        Object topic = this.safeString(message, "type");
         if (Helpers.isTrue(!Helpers.isEqual(topic, null)))
         {
             java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{

@@ -882,7 +882,7 @@ public class HitbtcCore extends HitbtcApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
-                if (Helpers.isTrue(((String)id).endsWith(((String)"_BQX"))))
+                if (Helpers.isTrue(((String)id).endsWith("_BQX")))
                 {
                     continue;
                 }
@@ -1276,7 +1276,7 @@ public class HitbtcCore extends HitbtcApi
             } else
             {
                 Object keys = Helpers.objectKeys(accountsByType);
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchBalance() type parameter must be one of "), String.join((String)", ", (java.util.List<String>)keys))) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchBalance() type parameter must be one of "), String.join(", ", (java.util.List<String>)keys))) ;
             }
             //
             //     [
@@ -1361,7 +1361,7 @@ public class HitbtcCore extends HitbtcApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object marketIds = this.marketIds(symbols);
-                Object delimited = String.join((String)",", (java.util.List<String>)marketIds);
+                Object delimited = String.join(",", (java.util.List<String>)marketIds);
                 Helpers.addElementToObject(request, "symbols", delimited);
             }
             java.util.Map<String, Object> response = (this.publicGetPublicTicker(this.extend(request, parameters))).join();
@@ -1566,7 +1566,7 @@ public class HitbtcCore extends HitbtcApi
                     response = (this.privateGetMarginHistoryTrade(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchMyTrades() not support this market type")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchMyTrades() not support this market type")) ;
                 }
             }
             return this.parseTrades(response, market, since, limit);
@@ -1961,7 +1961,7 @@ public class HitbtcCore extends HitbtcApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object marketIdsInner = this.marketIds(symbols);
-                Helpers.addElementToObject(request, "symbols", String.join((String)",", (java.util.List<String>)marketIdsInner));
+                Helpers.addElementToObject(request, "symbols", String.join(",", (java.util.List<String>)marketIdsInner));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -2076,7 +2076,7 @@ public class HitbtcCore extends HitbtcApi
                 response = (this.privateGetFuturesFeeSymbol(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFee() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTradingFee() not support this market type")) ;
             }
             //
             //     {
@@ -2120,7 +2120,7 @@ public class HitbtcCore extends HitbtcApi
                 response = (this.privateGetFuturesFee(query)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFees() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTradingFees() not support this market type")) ;
             }
             //
             //     [
@@ -2347,7 +2347,7 @@ public class HitbtcCore extends HitbtcApi
                     response = (this.privateGetMarginHistoryOrder(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchClosedOrders() not support this market type")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchClosedOrders() not support this market type")) ;
                 }
             }
             java.util.List<Object> parsed = this.parseOrders(response, market, since, limit);
@@ -2415,7 +2415,7 @@ public class HitbtcCore extends HitbtcApi
                     response = (this.privateGetMarginHistoryOrder(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOrder() not support this market type")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOrder() not support this market type")) ;
                 }
             }
             //
@@ -2506,7 +2506,7 @@ public class HitbtcCore extends HitbtcApi
                     response = (this.privateGetMarginHistoryTrade(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOrderTrades() not support this market type")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOrderTrades() not support this market type")) ;
                 }
             }
             //
@@ -2613,7 +2613,7 @@ public class HitbtcCore extends HitbtcApi
                     response = (this.privateGetMarginOrder(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrders() not support this market type")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOpenOrders() not support this market type")) ;
                 }
             }
             //
@@ -2699,7 +2699,7 @@ public class HitbtcCore extends HitbtcApi
                     response = (this.privateGetMarginOrderClientOrderId(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrder() not support this market type")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOpenOrder() not support this market type")) ;
                 }
             }
             return this.parseOrder(response, market);
@@ -2764,7 +2764,7 @@ public class HitbtcCore extends HitbtcApi
                     response = (this.privateDeleteMarginOrder(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() not support this market type")) ;
+                    throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() not support this market type")) ;
                 }
             }
             return this.parseOrders(response, market);
@@ -2831,7 +2831,7 @@ public class HitbtcCore extends HitbtcApi
                     response = (this.privateDeleteMarginOrderClientOrderId(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() not support this market type")) ;
+                    throw new NotSupported(Helpers.add(this.id, " cancelOrder() not support this market type")) ;
                 }
             }
             return this.parseOrder(response, market);
@@ -2863,7 +2863,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " editOrder() limit order requires price")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " editOrder() limit order requires price")) ;
                 }
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
@@ -2897,7 +2897,7 @@ public class HitbtcCore extends HitbtcApi
                     response = (this.privatePatchMarginOrderClientOrderId(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " editOrder() not support this market type")) ;
+                    throw new NotSupported(Helpers.add(this.id, " editOrder() not support this market type")) ;
                 }
             }
             return this.parseOrder(response, market);
@@ -2986,7 +2986,7 @@ public class HitbtcCore extends HitbtcApi
         {
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "type"), "swap"))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "type"), "margin")))))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support reduce_only for "), Helpers.GetValue(market, "type")), " orders, reduce_only orders are supported for swap and margin markets only")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support reduce_only for "), Helpers.GetValue(market, "type")), " orders, reduce_only orders are supported for swap and margin markets only")) ;
             }
         }
         if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
@@ -3005,7 +3005,7 @@ public class HitbtcCore extends HitbtcApi
         {
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " createOrder() requires a price argument for limit orders")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createOrder() requires a price argument for limit orders")) ;
             }
             Helpers.addElementToObject(request, "price", this.priceToPrecision(Helpers.GetValue(market, "symbol"), price));
         }
@@ -3014,7 +3014,7 @@ public class HitbtcCore extends HitbtcApi
             String expireTime = this.safeString(parameters, "expire_time");
             if (Helpers.isTrue(Helpers.isEqual(expireTime, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " createOrder() requires an expire_time parameter for a GTD order")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createOrder() requires an expire_time parameter for a GTD order")) ;
             }
         }
         if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
@@ -3029,7 +3029,7 @@ public class HitbtcCore extends HitbtcApi
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "stopLimit"))) || Helpers.isTrue((Helpers.isEqual(type, "stopMarket")))) || Helpers.isTrue((Helpers.isEqual(type, "takeProfitLimit")))) || Helpers.isTrue((Helpers.isEqual(type, "takeProfitMarket")))))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")) ;
+            throw new ExchangeError(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")) ;
         }
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly")));
         if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
@@ -3224,7 +3224,7 @@ public class HitbtcCore extends HitbtcApi
                 response = (this.privateGetFuturesConfig(parameters)).join();
             } else
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchMarginModes () supports swap contracts and margin only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchMarginModes () supports swap contracts and margin only")) ;
             }
             Object config = this.safeList(response, "config", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarginModes(config, symbols, "symbol");
@@ -3277,7 +3277,7 @@ public class HitbtcCore extends HitbtcApi
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             if (Helpers.isTrue(Helpers.isEqual(fromId, toId)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " transfer() fromAccount and toAccount arguments cannot be the same account")) ;
+                throw new BadRequest(Helpers.add(this.id, " transfer() fromAccount and toAccount arguments cannot be the same account")) ;
             }
             final Object finalFromId = fromId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3335,7 +3335,7 @@ public class HitbtcCore extends HitbtcApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(code, "USDT")))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " convertCurrencyNetwork() only supports USDT currently")) ;
+                throw new ExchangeError(Helpers.add(this.id, " convertCurrencyNetwork() only supports USDT currently")) ;
             }
             Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             fromNetwork = ((String)fromNetwork).toUpperCase();
@@ -3344,12 +3344,12 @@ public class HitbtcCore extends HitbtcApi
             toNetwork = this.safeString(networks, toNetwork); // handle ETH>ERC20 alias
             if (Helpers.isTrue(Helpers.isEqual(fromNetwork, toNetwork)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork")) ;
+                throw new BadRequest(Helpers.add(this.id, " convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fromNetwork, null))) || Helpers.isTrue((Helpers.isEqual(toNetwork, null)))))
             {
                 Object keys = Helpers.objectKeys(networks);
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(this.id, " convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are "), String.join((String)", ", (java.util.List<String>)keys))) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are "), String.join(", ", (java.util.List<String>)keys))) ;
             }
             final Object finalFromNetwork = fromNetwork;
             final Object finalToNetwork = toNetwork;
@@ -3460,7 +3460,7 @@ public class HitbtcCore extends HitbtcApi
                 symbols = this.marketSymbols(symbols);
                 market = this.market(Helpers.GetValue(symbols, 0));
                 Object queryMarketIds = this.marketIds(symbols);
-                Helpers.addElementToObject(request, "symbols", String.join((String)",", (java.util.List<String>)queryMarketIds));
+                Helpers.addElementToObject(request, "symbols", String.join(",", (java.util.List<String>)queryMarketIds));
             }
             Object type = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchFundingRates", market, parameters);
@@ -3468,7 +3468,7 @@ public class HitbtcCore extends HitbtcApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "swap")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchFundingRates() does not support "), type), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchFundingRates() does not support "), type), " markets")) ;
             }
             java.util.Map<String, Object> response = (this.publicGetPublicFuturesInfo(this.extend(request, parameters))).join();
             //
@@ -3656,7 +3656,7 @@ public class HitbtcCore extends HitbtcApi
                     response = (this.privateGetMarginAccount(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchPositions() not support this market type")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchPositions() not support this market type")) ;
                 }
             }
             //
@@ -3750,7 +3750,7 @@ public class HitbtcCore extends HitbtcApi
                     response = (this.privateGetMarginAccountIsolatedSymbol(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchPosition() not support this market type")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchPosition() not support this market type")) ;
                 }
             }
             //
@@ -3941,7 +3941,7 @@ public class HitbtcCore extends HitbtcApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 marketIds = this.marketIds(symbols);
-                Helpers.addElementToObject(request, "symbols", String.join((String)",", (java.util.List<String>)marketIds));
+                Helpers.addElementToObject(request, "symbols", String.join(",", (java.util.List<String>)marketIds));
             }
             java.util.Map<String, Object> response = (this.publicGetPublicFuturesInfo(this.extend(request, parameters))).join();
             //
@@ -3997,7 +3997,7 @@ public class HitbtcCore extends HitbtcApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4045,7 +4045,7 @@ public class HitbtcCore extends HitbtcApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4129,7 +4129,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " modifyMarginHelper() requires a leverage parameter for swap markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " modifyMarginHelper() requires a leverage parameter for swap markets")) ;
                 }
             }
             Object stringAmount = this.numberToString(amount);
@@ -4166,7 +4166,7 @@ public class HitbtcCore extends HitbtcApi
                 response = (this.privatePutMarginAccountIsolatedSymbol(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " modifyMarginHelper() not support this market type")) ;
+                throw new NotSupported(Helpers.add(this.id, " modifyMarginHelper() not support this market type")) ;
             }
             //
             //     {
@@ -4256,7 +4256,7 @@ public class HitbtcCore extends HitbtcApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(this.numberToString(amount), "0")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")) ;
+                throw new BadRequest(Helpers.add(this.id, " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")) ;
             }
             return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
         });
@@ -4335,7 +4335,7 @@ public class HitbtcCore extends HitbtcApi
                     response = (this.privateGetMarginAccountIsolatedSymbol(this.extend(request, parameters))).join();
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchLeverage() not support this market type")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchLeverage() not support this market type")) ;
                 }
             }
             //
@@ -4406,7 +4406,7 @@ public class HitbtcCore extends HitbtcApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4414,18 +4414,18 @@ public class HitbtcCore extends HitbtcApi
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(parameters, "margin_balance"), null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Double amount = this.safeNumber(parameters, "margin_balance");
             Long maxLeverage = this.safeInteger(Helpers.GetValue(Helpers.GetValue(market, "limits"), "leverage"), "max", 50);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setLeverage() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setLeverage() supports swap contracts only")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, maxLeverage)))))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " setLeverage() leverage should be between 1 and "), String.valueOf(maxLeverage)), " for "), symbol)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " setLeverage() leverage should be between 1 and "), String.valueOf(maxLeverage)), " for "), symbol)) ;
             }
             final Object finalLeverage = leverage;
             final Object finalSymbol = symbol;
@@ -4708,7 +4708,7 @@ public class HitbtcCore extends HitbtcApi
                 }
             }
             ((java.util.List<Object>)payload).add(timestamp);
-            Object payloadString = String.join((String)"", (java.util.List<String>)payload);
+            Object payloadString = String.join("", (java.util.List<String>)payload);
             Object signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
             Object secondPayload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.apiKey, ":"), signature), ":"), timestamp);
             Object encoded = this.stringToBase64(secondPayload);

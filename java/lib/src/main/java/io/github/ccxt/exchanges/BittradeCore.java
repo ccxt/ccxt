@@ -676,7 +676,7 @@ public class BittradeCore extends BittradeApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
+                throw new ExchangeError(Helpers.add(this.id, " markets not loaded")) ;
             }
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -775,7 +775,7 @@ public class BittradeCore extends BittradeApi
                 response = (this.publicGetCommonSymbols(parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() does not support the "), method), " method")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() does not support the "), method), " method")) ;
             }
             //
             //    {
@@ -813,7 +813,7 @@ public class BittradeCore extends BittradeApi
             Object numMarkets = Helpers.getArrayLength(markets);
             if (Helpers.isTrue(Helpers.isLessThan(numMarkets, 1)))
             {
-                throw new NetworkError((String)Helpers.add(Helpers.add(this.id, " fetchMarkets() returned empty response: "), this.json(markets))) ;
+                throw new NetworkError(Helpers.add(Helpers.add(this.id, " fetchMarkets() returned empty response: "), this.json(markets))) ;
             }
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
@@ -830,11 +830,11 @@ public class BittradeCore extends BittradeApi
                 Object fee = ((Helpers.isTrue((Helpers.isEqual(base, "OMG"))))) ? this.parseNumber("0") : this.parseNumber("0.002");
                 if (Helpers.isTrue(Helpers.isEqual(baseId, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchMarkets() missing baseId")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchMarkets() missing baseId")) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(quoteId, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchMarkets() missing quoteId")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchMarkets() missing quoteId")) ;
                 }
     final Object finalBaseId = baseId;
                 final Object finalQuoteId = quoteId;
@@ -1048,7 +1048,7 @@ public class BittradeCore extends BittradeApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(response, "tick"), null))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(response, "tick"), null)))))
                 {
-                    throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned empty response: "), this.json(response))) ;
+                    throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned empty response: "), this.json(response))) ;
                 }
                 Object tick = this.safeValue(response, "tick");
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
@@ -1056,7 +1056,7 @@ public class BittradeCore extends BittradeApi
                 Helpers.addElementToObject(result, "nonce", this.safeInteger(tick, "version"));
                 return result;
             }
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned unrecognized response: "), this.json(response))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned unrecognized response: "), this.json(response))) ;
         });
 
     }
@@ -1618,7 +1618,7 @@ public class BittradeCore extends BittradeApi
             }
             if (Helpers.isTrue(Helpers.isEqual(account, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseBalance() could not resolve account")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseBalance() could not resolve account")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(balance, "type"), "trade")))
             {
@@ -1626,7 +1626,7 @@ public class BittradeCore extends BittradeApi
             }
             if (Helpers.isTrue(Helpers.isEqual(account, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseBalance() could not resolve account")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseBalance() could not resolve account")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(balance, "type"), "frozen")))
             {
@@ -1668,7 +1668,7 @@ public class BittradeCore extends BittradeApi
                 response = (this.privateGetAccountAccountsIdBalance(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() does not support the "), method), " method")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() does not support the "), method), " method")) ;
             }
             return this.parseBalance(response);
         });
@@ -1822,7 +1822,7 @@ public class BittradeCore extends BittradeApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrdersV1() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrdersV1() requires a symbol argument")) ;
             }
             return (this.fetchOrdersByStates("pre-submitted,submitted,partial-filled", symbol, since, limit, parameters)).join();
         });
@@ -2053,7 +2053,7 @@ public class BittradeCore extends BittradeApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
@@ -2122,7 +2122,7 @@ public class BittradeCore extends BittradeApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(price, null)))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
                         // despite that cost = amount * price is in quote currency and should have quote precision
@@ -2155,7 +2155,7 @@ public class BittradeCore extends BittradeApi
                 response = (this.privatePostOrderOrdersPlace(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support the "), method), " method")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support the "), method), " method")) ;
             }
             String id = this.safeString(response, "data");
             final Object finalResponse = response;
@@ -2739,7 +2739,7 @@ public class BittradeCore extends BittradeApi
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(method, this.hostname, url, auth));
             // eslint-disable-next-line quotes
-            Object payload = String.join((String)"\n", (java.util.List<String>)content);
+            Object payload = String.join("\n", (java.util.List<String>)content);
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             auth = Helpers.add(auth, Helpers.add("&", this.urlencode(new java.util.HashMap<String, Object>() {{
     put( "Signature", signature );

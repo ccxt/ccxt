@@ -1459,7 +1459,7 @@ public class CoinsphCore extends CoinsphApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1507,7 +1507,7 @@ public class CoinsphCore extends CoinsphApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
@@ -1733,7 +1733,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
                 }
                 newOrderRespType = this.safeString(newOrderRespType, "limit", "FULL");
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
@@ -1764,7 +1764,7 @@ public class CoinsphCore extends CoinsphApi
                     {
                         if (Helpers.isTrue(Helpers.isEqual(price, null)))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
                             Object amountString = this.numberToString(amount);
@@ -1784,7 +1784,7 @@ public class CoinsphCore extends CoinsphApi
                 String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
                 if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")) ;
                 }
                 Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
             }
@@ -1926,7 +1926,7 @@ public class CoinsphCore extends CoinsphApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2006,7 +2006,7 @@ public class CoinsphCore extends CoinsphApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2360,13 +2360,13 @@ public class CoinsphCore extends CoinsphApi
             Object warning = this.safeBool(options, "warning", true);
             if (Helpers.isTrue(Helpers.isEqual(warning, true)))
             {
-                throw new InvalidAddress((String)Helpers.add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
+                throw new InvalidAddress(Helpers.add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
             }
             String networkCode = this.safeString(parameters, "network");
             Object networkId = ((Helpers.isTrue((Helpers.isEqual(networkCode, null))))) ? null : this.networkCodeToId(networkCode, code);
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " withdraw() require network parameter")) ;
+                throw new BadRequest(Helpers.add(this.id, " withdraw() require network parameter")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2688,7 +2688,7 @@ public class CoinsphCore extends CoinsphApi
             Object networkId = ((Helpers.isTrue((Helpers.isEqual(networkCode, null))))) ? null : this.networkCodeToId(networkCode, code);
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchDepositAddress() require network parameter")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchDepositAddress() require network parameter")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2768,8 +2768,8 @@ public class CoinsphCore extends CoinsphApi
     public Object parseArrayParam(Object array, Object key)
     {
         Object stringifiedArray = this.json(array);
-        stringifiedArray = Helpers.replace((String)stringifiedArray, (String)"[", (String)"%5B");
-        stringifiedArray = Helpers.replace((String)stringifiedArray, (String)"]", (String)"%5D");
+        stringifiedArray = Helpers.replace(((String)stringifiedArray), "[", "%5B");
+        stringifiedArray = Helpers.replace(((String)stringifiedArray), "]", "%5D");
         Object urlEncodedParam = Helpers.add(Helpers.add(key, "="), stringifiedArray);
         return urlEncodedParam;
     }

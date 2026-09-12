@@ -621,7 +621,7 @@ public class RevolutxCore extends RevolutxApi
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                     ((java.util.List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
                 }
-                Helpers.addElementToObject(request, "symbols", String.join((String)",", (java.util.List<String>)marketIds));
+                Helpers.addElementToObject(request, "symbols", String.join(",", (java.util.List<String>)marketIds));
             }
             String region = this.safeString2(parameters, "region", "region", Helpers.GetValue(this.options, "region"));
             if (Helpers.isTrue(!Helpers.isEqual(region, null)))
@@ -697,7 +697,7 @@ public class RevolutxCore extends RevolutxApi
             Object ticker = this.safeDict(tickers, symbol);
             if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchTicker() could not find ticker for symbol "), symbol)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchTicker() could not find ticker for symbol "), symbol)) ;
             }
             return ticker;
         });
@@ -1189,11 +1189,11 @@ public class RevolutxCore extends RevolutxApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() timeInForce is only supported for limit orders")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() timeInForce is only supported for limit orders")) ;
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(executionInstructions, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() executionInstructions are only supported for limit orders")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() executionInstructions are only supported for limit orders")) ;
                 }
                 java.util.Map<String, Object> marketConfig = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
@@ -1206,7 +1206,7 @@ public class RevolutxCore extends RevolutxApi
                 Helpers.addElementToObject(orderConfiguration, "market", marketConfig);
             } else
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " createOrder() does not support order type "), type)) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " createOrder() does not support order type "), type)) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "client_order_id", clientOrderId );
@@ -1394,12 +1394,12 @@ public class RevolutxCore extends RevolutxApi
             Object orderStates = this.safeList2(parameters, "orderStates", "order_states");
             if (Helpers.isTrue(!Helpers.isEqual(orderStates, null)))
             {
-                Helpers.addElementToObject(request, "order_states", String.join((String)",", (java.util.List<String>)orderStates));
+                Helpers.addElementToObject(request, "order_states", String.join(",", (java.util.List<String>)orderStates));
             }
             Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types");
             if (Helpers.isTrue(!Helpers.isEqual(orderTypes, null)))
             {
-                Helpers.addElementToObject(request, "order_types", String.join((String)",", (java.util.List<String>)orderTypes));
+                Helpers.addElementToObject(request, "order_types", String.join(",", (java.util.List<String>)orderTypes));
             }
             String side = this.safeString(parameters, "side");
             if (Helpers.isTrue(!Helpers.isEqual(side, null)))
@@ -1489,12 +1489,12 @@ public class RevolutxCore extends RevolutxApi
             Object orderStates = this.safeList2(parameters, "orderStates", "order_states");
             if (Helpers.isTrue(!Helpers.isEqual(orderStates, null)))
             {
-                Helpers.addElementToObject(request, "order_states", String.join((String)",", (java.util.List<String>)orderStates));
+                Helpers.addElementToObject(request, "order_states", String.join(",", (java.util.List<String>)orderStates));
             }
             Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types");
             if (Helpers.isTrue(!Helpers.isEqual(orderTypes, null)))
             {
-                Helpers.addElementToObject(request, "order_types", String.join((String)",", (java.util.List<String>)orderTypes));
+                Helpers.addElementToObject(request, "order_types", String.join(",", (java.util.List<String>)orderTypes));
             }
             Object response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types")))))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1613,7 +1613,7 @@ public class RevolutxCore extends RevolutxApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol parameter")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{

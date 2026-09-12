@@ -2360,7 +2360,7 @@ public class PoloniexCore extends PoloniexApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchClosedOrders() is not supported for spot markets yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchClosedOrders() is not supported for spot markets yet")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -2495,7 +2495,7 @@ public class PoloniexCore extends PoloniexApi
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
             {
                 this.checkRequiredArgument("createOrder", marginMode, "marginMode", new java.util.ArrayList<Object>(java.util.Arrays.asList("cross", "isolated")));
-                Helpers.addElementToObject(request, "mgnMode", ((String)marginMode).toUpperCase());
+                Helpers.addElementToObject(request, "mgnMode", marginMode.toUpperCase());
             }
             String hedged = null;
             java.util.List<Object> hedgedparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "hedged");
@@ -2505,11 +2505,11 @@ public class PoloniexCore extends PoloniexApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")) ;
                 }
                 if (!Helpers.isTrue((Helpers.inOp(parameters, "posSide"))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders")) ;
                 }
             }
         }
@@ -2521,7 +2521,7 @@ public class PoloniexCore extends PoloniexApi
         {
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support trigger orders for "), Helpers.GetValue(market, "type")), " markets")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support trigger orders for "), Helpers.GetValue(market, "type")), " markets")) ;
             }
             upperCaseType = ((Helpers.isTrue((Helpers.isEqual(price, null))))) ? "STOP" : "STOP_LIMIT";
             Helpers.addElementToObject(request, "stopPrice", triggerPrice);
@@ -2548,7 +2548,7 @@ public class PoloniexCore extends PoloniexApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(price, null)))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                     } else
                     {
                         Object amountString = this.numberToString(amount);
@@ -2615,7 +2615,7 @@ public class PoloniexCore extends PoloniexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders, only spot orders are accepted")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders, only spot orders are accepted")) ;
             }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
@@ -2669,7 +2669,7 @@ public class PoloniexCore extends PoloniexApi
             (this.loadMarkets()).join();
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
@@ -2842,7 +2842,7 @@ public class PoloniexCore extends PoloniexApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(marketType, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() is not supported for "), marketType), " markets yet")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() is not supported for "), marketType), " markets yet")) ;
             }
             Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
@@ -3292,7 +3292,7 @@ public class PoloniexCore extends PoloniexApi
             Object length = Helpers.getArrayLength(keys);
             if (Helpers.isTrue(Helpers.isLessThan(length, 1)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
             }
             return this.parseDepositAddressSpecial(response, currency, networkEntry);
         });
@@ -3304,7 +3304,7 @@ public class PoloniexCore extends PoloniexApi
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         if (!Helpers.isTrue((Helpers.inOp(this.currencies, code))))
         {
-            throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchDepositAddress(): can not recognize "), code), " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
+            throw new BadSymbol(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchDepositAddress(): can not recognize "), code), " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
         }
         java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
         Object networkCode = null;
@@ -3313,7 +3313,7 @@ public class PoloniexCore extends PoloniexApi
         parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchDepositAddress requires a network parameter for "), code), ".")) ;
+            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchDepositAddress requires a network parameter for "), code), ".")) ;
         }
         Object exchangeNetworkId = null;
         networkCode = this.networkIdToCode(networkCode, code);
@@ -3458,7 +3458,7 @@ public class PoloniexCore extends PoloniexApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw requires a network parameter for "), code), ".")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw requires a network parameter for "), code), ".")) ;
             }
             Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode, code));
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
@@ -3697,7 +3697,7 @@ public class PoloniexCore extends PoloniexApi
                 Object entry = Helpers.GetValue(entries, i);
                 Object currencies = Helpers.objectKeys(entry);
                 String currencyId = this.safeString(currencies, 0);
-                Helpers.addElementToObject(data, ((String)currencyId), Helpers.GetValue(entry, ((String)currencyId)));
+                Helpers.addElementToObject(data, (currencyId), Helpers.GetValue(entry, (currencyId)));
             }
             return this.parseDepositWithdrawFees(data, codes);
         });
@@ -3748,7 +3748,7 @@ public class PoloniexCore extends PoloniexApi
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(childChains)); j++)
                     {
                         Object networkId = Helpers.GetValue(childChains, j);
-                        networkId = Helpers.replace((String)networkId, (String)code, (String)"");
+                        networkId = Helpers.replace(((String)networkId), code, "");
                         Object networkCode = this.networkIdToCode(networkId, Helpers.GetValue(currency, "code"));
                         Object networkInfo = this.safeValue(response, networkId);
                         java.util.Map<String, Object> networkObject = new java.util.HashMap<String, Object>() {{}};
@@ -3780,7 +3780,7 @@ public class PoloniexCore extends PoloniexApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object depositWithdrawFee = this.depositWithdrawFee(new java.util.HashMap<String, Object>() {{}});
         String currencyCode = this.safeString(currency, "code");
-        Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "info"), ((String)currencyCode), fee);
+        Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "info"), (currencyCode), fee);
         String networkId = this.safeString(fee, "blockchain");
         Double withdrawFee = this.safeNumber(fee, "withdrawalFee");
         final Object finalWithdrawFee = withdrawFee;
@@ -3900,7 +3900,7 @@ public class PoloniexCore extends PoloniexApi
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId);
         Object status = this.safeString(transaction, "status", "pending");
-        status = ((String)this.parseTransactionStatus(status));
+        status = (this.parseTransactionStatus(status));
         String txid = this.safeString(transaction, "txid");
         String type = ((Helpers.isTrue((Helpers.inOp(transaction, "withdrawalRequestsId"))))) ? "withdrawal" : "deposit";
         String id = this.safeString2(transaction, "withdrawalRequestsId", "depositNumber");
@@ -3964,7 +3964,7 @@ public class PoloniexCore extends PoloniexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3974,7 +3974,7 @@ public class PoloniexCore extends PoloniexApi
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
             }
             Boolean hedged = null;
             java.util.List<Object> hedgedparametersVariable = (java.util.List<Object>) this.handleParamBool(parameters, "hedged", false);
@@ -3984,7 +3984,7 @@ public class PoloniexCore extends PoloniexApi
             {
                 if (!Helpers.isTrue((Helpers.inOp(parameters, "posSide"))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")) ;
                 }
             }
             final Object finalMarginMode = marginMode;
@@ -4025,7 +4025,7 @@ public class PoloniexCore extends PoloniexApi
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
             }
             Helpers.addElementToObject(request, "mgnMode", ((String)marginMode).toUpperCase());
             java.util.Map<String, Object> response = (this.swapPrivateGetV3PositionLeverages(this.extend(request, parameters))).join();
@@ -4313,7 +4313,7 @@ public class PoloniexCore extends PoloniexApi
             put( "collateral", collateral );
             put( "initialMargin", initialMargin );
             put( "initialMarginPercentage", null );
-            put( "leverage", Helpers.parseInt(((String)leverage)) );
+            put( "leverage", Helpers.parseInt((leverage)) );
             put( "marginRatio", PoloniexCore.this.safeNumber(position, "mgnRatio") );
             put( "stopLossPrice", PoloniexCore.this.safeNumber(position, "slTrgPx") );
             put( "takeProfitPrice", PoloniexCore.this.safeNumber(position, "tpTrgPx") );

@@ -1538,7 +1538,7 @@ public class TokocryptoCore extends TokocryptoApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(this.isNativeMarket(market)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTicker() does not support "), symbol), " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTicker() does not support "), symbol), " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", TokocryptoCore.this.getMarketIdByType(market) );
@@ -2072,10 +2072,10 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(initialUppercaseType, uppercaseType)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " triggerPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " triggerPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
                 } else
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
                 }
             }
             java.util.Map<String, Object> reverseOrderTypeMapping = new java.util.HashMap<String, Object>() {{
@@ -2148,7 +2148,7 @@ public class TokocryptoCore extends TokocryptoApi
                     {
                         if (Helpers.isTrue(Helpers.isEqual(price, null)))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                         } else
                         {
                             Object amountString = this.numberToString(amount);
@@ -2194,7 +2194,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
                 }
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
@@ -2202,7 +2202,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice extra param for a "), type), " order")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice extra param for a "), type), " order")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -2324,7 +2324,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2515,7 +2515,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3019,7 +3019,7 @@ public class TokocryptoCore extends TokocryptoApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), api))))
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
         }
         Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), api);
         url = Helpers.add(url, Helpers.add("/", path));
@@ -3043,7 +3043,7 @@ public class TokocryptoCore extends TokocryptoApi
                 }
             } else
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " userDataStream endpoint requires `apiKey` credential")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " userDataStream endpoint requires `apiKey` credential")) ;
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(api, "private"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(api, "sapi")) && Helpers.isTrue(!Helpers.isEqual(path, "system/status"))))) || Helpers.isTrue((Helpers.isEqual(api, "sapiV3")))) || Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(api, "wapi")) && Helpers.isTrue(!Helpers.isEqual(path, "systemStatus"))))) || Helpers.isTrue((Helpers.isEqual(api, "dapiPrivate")))) || Helpers.isTrue((Helpers.isEqual(api, "dapiPrivateV2")))) || Helpers.isTrue((Helpers.isEqual(api, "fapiPrivate")))) || Helpers.isTrue((Helpers.isEqual(api, "fapiPrivateV2")))))
         {
@@ -3108,7 +3108,7 @@ public class TokocryptoCore extends TokocryptoApi
     {
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(code, 418))) || Helpers.isTrue((Helpers.isEqual(code, 429)))))
         {
-            throw new DDoSProtection((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " "), reason), " "), body)) ;
+            throw new DDoSProtection(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " "), reason), " "), body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -3117,15 +3117,15 @@ public class TokocryptoCore extends TokocryptoApi
         {
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "Price * QTY is zero or less"), 0)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " order cost = amount * price is zero or less "), body)) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " order cost = amount * price is zero or less "), body)) ;
             }
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "LOT_SIZE"), 0)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " order amount should be evenly divisible by lot size "), body)) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " order amount should be evenly divisible by lot size "), body)) ;
             }
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "PRICE_FILTER"), 0)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) "), body)) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) "), body)) ;
             }
         }
         if (Helpers.isTrue(Helpers.isEqual(response, null)))
@@ -3176,7 +3176,7 @@ public class TokocryptoCore extends TokocryptoApi
             // on a temporary ban, the API key is valid, but disabled for a while
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(error, "-2015"))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(this.options, "hasAlreadyAuthenticatedSuccessfully"), true)))))
             {
-                throw new DDoSProtection((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+                throw new DDoSProtection(Helpers.add(Helpers.add(this.id, " "), body)) ;
             }
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             if (Helpers.isTrue(Helpers.isEqual(message, "No need to change margin type.")))
@@ -3188,7 +3188,7 @@ public class TokocryptoCore extends TokocryptoApi
         }
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), body)) ;
         }
         return null;
     }

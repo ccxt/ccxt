@@ -88,7 +88,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, 5))) && Helpers.isTrue((!Helpers.isEqual(limit, 10)))) && Helpers.isTrue((!Helpers.isEqual(limit, 20)))) && Helpers.isTrue((!Helpers.isEqual(limit, 50)))) && Helpers.isTrue((!Helpers.isEqual(limit, 100)))) && Helpers.isTrue((!Helpers.isEqual(limit, 500)))) && Helpers.isTrue((!Helpers.isEqual(limit, 1000)))))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")) ;
                 }
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))

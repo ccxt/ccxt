@@ -761,7 +761,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbolString);
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), Helpers.GetValue(firstMarket, "type"))))
                 {
-                    throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), callerMethodName), " market symbols must be of the same type")) ;
+                    throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " "), callerMethodName), " market symbols must be of the same type")) ;
                 }
                 symbolString = Helpers.GetValue(market, "symbol");
                 String unifiedTimeframe = this.safeString(data, 1, "1");
@@ -852,7 +852,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbolString);
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), Helpers.GetValue(firstMarket, "type"))))
                 {
-                    throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), callerMethodName), " market symbols must be of the same type")) ;
+                    throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " "), callerMethodName), " market symbols must be of the same type")) ;
                 }
                 symbolString = Helpers.GetValue(market, "symbol");
                 String unifiedTimeframe = this.safeString(data, 1, "1");
@@ -1204,7 +1204,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object firstMarket = this.getMarketFromSymbols(symbols);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchBidsAsks is supported for spot markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchBidsAsks is supported for spot markets only")) ;
             }
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1253,7 +1253,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object firstMarket = this.getMarketFromSymbols(symbols);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchBidsAsks is supported for spot markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchBidsAsks is supported for spot markets only")) ;
             }
             java.util.List<Object> subHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1402,7 +1402,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.")) ;
             }
             Object marketType = null;
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("unWatchMyTrades", null, parameters);
@@ -1653,7 +1653,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.")) ;
             }
             Object marketType = null;
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("unWatchOrders", null, parameters);
@@ -2143,7 +2143,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object subscriptionHash = messageHash;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                messageHash = Helpers.add(messageHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
+                messageHash = Helpers.add(messageHash, Helpers.add("::", String.join(",", (java.util.List<String>)symbols)));
             }
             Object channel = "positions";
             this.setPositionsCache(client, parameters);
@@ -2173,7 +2173,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             String messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
@@ -2222,7 +2222,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchPositions does not support a symbols argument. Unsubscribing from positions is global for all symbols.")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchPositions does not support a symbols argument. Unsubscribing from positions is global for all symbols.")) ;
             }
             String subHash = "positions";
             Object unSubHash = Helpers.add("unsubscribe::", subHash);

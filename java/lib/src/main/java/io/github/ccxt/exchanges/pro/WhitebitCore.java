@@ -520,7 +520,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -675,7 +675,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1210,7 +1210,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 // checked before the subscriptions one because watch () registers
                 // subscriptions['authenticated'] immediately, long before the
                 // venue acks the authorize frame
-                client.future((String)messageHash).getFuture().join();
+                client.future(messageHash).getFuture().join();
                 return authorized;
             }
             Object authenticated = this.safeValue(client.subscriptions, subscribeHash);
@@ -1223,7 +1223,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             // during the fetch or the authorize round-trip finds it and waits
             // instead of re-leading, and so client.reject () below always has a
             // waiter and can never park the error in client.rejections
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             try
             {
                 java.util.Map<String, Object> authToken = (this.v4PrivatePostProfileWebsocketToken()).join();
@@ -1235,7 +1235,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 String token = this.safeString(authToken, "websocket_token");
                 if (Helpers.isTrue(Helpers.isEqual(token, null)))
                 {
-                    throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty websocket_token")) ;
+                    throw new AuthenticationError(Helpers.add(this.id, " authenticate() received an empty websocket_token")) ;
                 }
                 Object id = this.nonce();
                 final Object finalToken = token;
@@ -1316,7 +1316,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 client.reject(e, "authenticated");
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, "authenticated")))
                 {
-                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)"authenticated");
+                    ((java.util.Map<String,Object>)client.subscriptions).remove("authenticated");
                 }
                 return false;
             }

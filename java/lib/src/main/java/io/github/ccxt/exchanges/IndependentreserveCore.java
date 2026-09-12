@@ -1358,7 +1358,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " withdraw () does not accept params[\"networkCode\"]")) ;
+                throw new BadRequest(Helpers.add(this.id, " withdraw () does not accept params[\"networkCode\"]")) ;
             }
             java.util.Map<String, Object> response = (this.privatePostWithdrawDigitalCurrency(this.extend(request, parameters))).join();
             //
@@ -1464,7 +1464,7 @@ public class IndependentreserveCore extends IndependentreserveApi
                 Object value = String.valueOf(Helpers.GetValue(parameters, key));
                 ((java.util.List<Object>)auth).add(Helpers.add(Helpers.add(key, "="), value));
             }
-            Object message = String.join((String)",", (java.util.List<String>)auth);
+            Object message = String.join(",", (java.util.List<String>)auth);
             Object signature = this.hmac(this.encode(message), this.encode(this.secret), sha256());
             java.util.Map<String, Object> query = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(query, "apiKey", this.apiKey);

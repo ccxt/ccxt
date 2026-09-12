@@ -962,7 +962,7 @@ public class BullishCore extends BullishApi
         //         "premiumCapRatio": "0.1000"
         //     }
         //
-        Object id = ((String)this.safeString(market, "symbol"));
+        Object id = (this.safeString(market, "symbol"));
         String baseId = this.safeString(market, "baseSymbol");
         String quoteId = this.safeString(market, "quoteSymbol");
         String base = this.safeCurrencyCode(baseId);
@@ -1012,7 +1012,7 @@ public class BullishCore extends BullishApi
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
                 Object idParts = Helpers.split(id, "-");
-                Object datePart = ((String)this.safeString(idParts, 2));
+                Object datePart = (this.safeString(idParts, 2));
                 Object dateYmd = Helpers.slice(datePart, 2, null);
                 symbol = Helpers.add(symbol, Helpers.add("-", dateYmd));
                 if (Helpers.isTrue(Helpers.isEqual(type, "future")))
@@ -1603,7 +1603,7 @@ public class BullishCore extends BullishApi
             parameters = ((java.util.List<Object>) maxRetriesparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(method, "fetchOHLCV"))) && Helpers.isTrue((!Helpers.isEqual(method, "fetchFundingRateHistory")))) && Helpers.isTrue((!Helpers.isEqual(method, "fetchTrades")))))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " safeDeterministicCall() does not support the "), method), " method")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " safeDeterministicCall() does not support the "), method), " method")) ;
             }
             Object errors = 0;
             parameters = this.omit(parameters, "until");
@@ -1753,7 +1753,7 @@ public class BullishCore extends BullishApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1772,7 +1772,7 @@ public class BullishCore extends BullishApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchFundingRateHistory() supports swap markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1907,7 +1907,7 @@ public class BullishCore extends BullishApi
                 response = (this.privateGetV2HistoryOrders(this.extend(request, parameters))).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOrders() method parameter must be either \"privateGetV2Orders\" or \"privateGetV2HistoryOrders\"")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOrders() method parameter must be either \"privateGetV2Orders\" or \"privateGetV2HistoryOrders\"")) ;
             }
             return this.parseOrders(response, market, since, limit);
         });
@@ -1923,7 +1923,7 @@ public class BullishCore extends BullishApi
         Object allowedSince = Helpers.subtract(now, ninetyDays);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(since, null))) && Helpers.isTrue((Helpers.isLessThan(since, allowedSince)))))
         {
-            throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), method), "() only allows fetching entries up to 90 days in the past")) ;
+            throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " "), method), "() only allows fetching entries up to 90 days in the past")) ;
         }
         parameters = this.omit(parameters, "paginate");
         parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
@@ -2227,7 +2227,7 @@ public class BullishCore extends BullishApi
             {
                 if (Helpers.isTrue(isMarketOrder))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support market trigger orders")) ;
+                    throw new NotSupported(Helpers.add(this.id, " createOrder() does not support market trigger orders")) ;
                 }
                 Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 type = "STOP_LIMIT";
@@ -2333,7 +2333,7 @@ public class BullishCore extends BullishApi
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2657,7 +2657,7 @@ public class BullishCore extends BullishApi
                 Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode, code));
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a network parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " withdraw() requires a network parameter")) ;
             }
             java.util.Map<String, Object> response = (this.privatePostV1WalletsWithdrawal(this.extend(request, parameters))).join();
             //
@@ -2800,7 +2800,7 @@ public class BullishCore extends BullishApi
             }
             if (Helpers.isTrue(Helpers.isEqual(tradingAccountId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
             }
             Helpers.addElementToObject(this.options, "tradingAccountId", tradingAccountId);
             return tradingAccountId;
@@ -3663,7 +3663,7 @@ public class BullishCore extends BullishApi
                 Object token = this.token;
                 if (Helpers.isTrue((Helpers.isEqual(token, null))))
                 {
-                    throw new AuthenticationError((String)Helpers.add(this.id, " requires a token, please call signIn() first")) ;
+                    throw new AuthenticationError(Helpers.add(this.id, " requires a token, please call signIn() first")) ;
                 }
                 headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
                 Helpers.addElementToObject(headers, "Authorization", Helpers.add("Bearer ", token));
@@ -3714,7 +3714,7 @@ public class BullishCore extends BullishApi
             String token = this.safeString(response, "token");
             String authorizer = this.safeString(response, "authorizer");
             Helpers.addElementToObject(this.options, "authorizer", authorizer);
-            this.token = ((String)token);
+            this.token = (token);
             Helpers.addElementToObject(this.options, "tokenExpires", this.sum(this.milliseconds(), Helpers.multiply(Helpers.multiply(Helpers.multiply(1000, 60), 60), 24))); // token expires in 24 hours
             return token;
         });
@@ -3771,7 +3771,7 @@ public class BullishCore extends BullishApi
                 message = errorCodeName;
             } else
             {
-                message = ((String)type);
+                message = (type);
             }
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);

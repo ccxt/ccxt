@@ -445,7 +445,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
             }
             (this.loadMarkets()).join();
             Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -493,7 +493,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
             }
             (this.loadMarkets()).join();
             Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -929,7 +929,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             put( "cost", null );
             put( "trades", null );
             put( "fee", finalFee );
-            put( "average", BydfiCore.this.omitZero(((String)BydfiCore.this.safeString(order, "ap"))) );
+            put( "average", BydfiCore.this.omitZero((BydfiCore.this.safeString(order, "ap"))) );
         }}, market);
     }
 
@@ -1156,7 +1156,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             String messageHash = "fetchBalanceSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         }
@@ -1279,7 +1279,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object unsubHash = Helpers.GetValue(messageHashes, i);
-            Object subHash = Helpers.replace((String)unsubHash, (String)"unsubscribe::", (String)"");
+            Object subHash = Helpers.replace(((String)unsubHash), "unsubscribe::", "");
             this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
         }
         this.cleanCache(subscription);

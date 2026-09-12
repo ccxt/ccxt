@@ -1039,7 +1039,7 @@ public class ParadexCore extends ParadexApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTradingFee() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTradingFee() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1454,7 +1454,7 @@ public class ParadexCore extends ParadexApi
             Object rate = this.safeDict(rates, Helpers.GetValue(market, "symbol"));
             if (Helpers.isTrue(Helpers.isEqual(rate, null)))
             {
-                throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchFundingRate() could not find a funding rate for "), symbol)) ;
+                throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchFundingRate() could not find a funding rate for "), symbol)) ;
             }
             return rate;
         });
@@ -1746,7 +1746,7 @@ public class ParadexCore extends ParadexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
@@ -1825,7 +1825,7 @@ public class ParadexCore extends ParadexApi
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
-        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), v);
+        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0))), Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))), v);
     }
 
     public Object signMessage(Object message, Object privateKey)
@@ -1976,7 +1976,7 @@ public class ParadexCore extends ParadexApi
                 Long cachedExpires = this.safeInteger(this.options, "expires");
                 if (Helpers.isTrue(Helpers.isEqual(cachedExpires, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " authenticateRest() missing cachedExpires")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " authenticateRest() missing cachedExpires")) ;
                 }
                 if (Helpers.isTrue(Helpers.isLessThan(now, cachedExpires)))
                 {
@@ -2177,11 +2177,11 @@ public class ParadexCore extends ParadexApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
@@ -2292,7 +2292,7 @@ public class ParadexCore extends ParadexApi
             String orderType = this.safeString(request, "type");
             if (Helpers.isTrue(Helpers.isEqual(orderType, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " signOrderRequest() missing orderType")) ;
+                throw new ExchangeError(Helpers.add(this.id, " signOrderRequest() missing orderType")) ;
             }
             Boolean isMarket = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "MARKET"), 0));
             final Object finalNow = now;
@@ -2447,11 +2447,11 @@ public class ParadexCore extends ParadexApi
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(amount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an amount argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a price argument")) ;
             }
             (this.authenticateRest()).join();
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2650,7 +2650,7 @@ public class ParadexCore extends ParadexApi
             Boolean hasClientOrderIds = Helpers.isTrue((!Helpers.isEqual(clientOrderIds, null))) && Helpers.isTrue((Helpers.isArray(clientOrderIds)));
             if (Helpers.isTrue(!Helpers.isTrue(hasOrderIds) && !Helpers.isTrue(hasClientOrderIds)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(hasOrderIds))
@@ -2737,7 +2737,7 @@ public class ParadexCore extends ParadexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             (this.authenticateRest()).join();
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4159,7 +4159,7 @@ public class ParadexCore extends ParadexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
             }
             (this.authenticateRest()).join();
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4268,7 +4268,7 @@ public class ParadexCore extends ParadexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4348,7 +4348,7 @@ public class ParadexCore extends ParadexApi
         if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(path, "v2/"), 0)))
         {
             version = "v2";
-            path = Helpers.replace((String)path, (String)"v2/", (String)"");
+            path = Helpers.replace(((String)path), "v2/", "");
         }
         Object url = Helpers.add(Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), ((String)version))), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));

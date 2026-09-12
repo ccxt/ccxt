@@ -1149,14 +1149,14 @@ public class FoxbitCore extends FoxbitApi
             type = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "LIMIT")) && Helpers.isTrue(!Helpers.isEqual(type, "MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_LIMIT"))) && Helpers.isTrue(!Helpers.isEqual(type, "INSTANT"))))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
             }
             String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
             Object postOnly = this.safeBool(parameters, "postOnly", false);
             Double triggerPrice = this.safeNumber(parameters, "triggerPrice");
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalSide = side;
             final Object finalType = type;
@@ -1169,7 +1169,7 @@ public class FoxbitCore extends FoxbitApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add("Invalid order type: ", type), ". Must have triggerPrice.")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add("Invalid order type: ", type), ". Must have triggerPrice.")) ;
                 }
             }
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
@@ -1247,7 +1247,7 @@ public class FoxbitCore extends FoxbitApi
                 Object orderParams = this.safeDict(order, "params", new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "LIMIT")) && Helpers.isTrue(!Helpers.isEqual(type, "MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_LIMIT"))) && Helpers.isTrue(!Helpers.isEqual(type, "INSTANT"))))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
                 }
                 String timeInForce = (String)this.safeStringUpper(orderParams, "timeInForce");
                 Object postOnly = this.safeBool(orderParams, "postOnly", false);
@@ -1262,7 +1262,7 @@ public class FoxbitCore extends FoxbitApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
                     {
-                        throw new InvalidOrder((String)Helpers.add(Helpers.add("Invalid order type: ", type), ". Must have triggerPrice.")) ;
+                        throw new InvalidOrder(Helpers.add(Helpers.add("Invalid order type: ", type), ". Must have triggerPrice.")) ;
                     }
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
@@ -1274,17 +1274,17 @@ public class FoxbitCore extends FoxbitApi
                     {
                         Helpers.addElementToObject(request, "time_in_force", timeInForce);
                     }
-                    ((java.util.Map<String,Object>)orderParams).remove((String)"timeInForce");
+                    ((java.util.Map<String,Object>)orderParams).remove("timeInForce");
                 }
                 if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
                 {
                     Helpers.addElementToObject(request, "post_only", true);
-                    ((java.util.Map<String,Object>)orderParams).remove((String)"postOnly");
+                    ((java.util.Map<String,Object>)orderParams).remove("postOnly");
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
                 {
                     Helpers.addElementToObject(request, "stop_price", this.priceToPrecision(symbol, triggerPrice));
-                    ((java.util.Map<String,Object>)orderParams).remove((String)"triggerPrice");
+                    ((java.util.Map<String,Object>)orderParams).remove("triggerPrice");
                 }
                 if (Helpers.isTrue(Helpers.isEqual(type, "INSTANT")))
                 {
@@ -1556,7 +1556,7 @@ public class FoxbitCore extends FoxbitApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1896,12 +1896,12 @@ public class FoxbitCore extends FoxbitApi
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a symbol argument")) ;
             }
             type = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "LIMIT")) && Helpers.isTrue(!Helpers.isEqual(type, "MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "INSTANT"))))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1910,7 +1910,7 @@ public class FoxbitCore extends FoxbitApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a side argument")) ;
             }
             final Object finalType = type;
             final Object finalSide = side;
@@ -2043,7 +2043,7 @@ public class FoxbitCore extends FoxbitApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLedger() requires a code argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchLedger() requires a code argument")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -2443,24 +2443,24 @@ public class FoxbitCore extends FoxbitApi
         }};
         if (Helpers.isTrue(Helpers.isEqual(amount, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " parseLedgerEntry() requires a amount argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " parseLedgerEntry() requires a amount argument")) ;
         }
         if (Helpers.isTrue(Helpers.isLessThan(amount, 0)))
         {
             direction = "out";
             if (Helpers.isTrue(Helpers.isEqual(amount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " parseLedgerEntry() requires a amount argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " parseLedgerEntry() requires a amount argument")) ;
             }
             realAmount = Helpers.multiply(amount, Helpers.opNeg(1));
         }
         if (Helpers.isTrue(Helpers.isEqual(balance, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseLedgerEntry() missing balance")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseLedgerEntry() missing balance")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(amount, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " parseLedgerEntry() requires a amount argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " parseLedgerEntry() requires a amount argument")) ;
         }
         final Object finalDirection = direction;
         final Object finalRealAmount = realAmount;

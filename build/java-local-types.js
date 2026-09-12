@@ -3574,6 +3574,13 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaReceiverAccessorTypes (printer, narrowed);
     printer._javaLocalTypesPatched = true;
     patchJavaDataflowTypes (transpiler);
+    // (6) redundant `(String)` cast removal (SS-04, additive slice): records the FINAL
+    // printed type of every single-declarator local and stops the printer from emitting
+    // a `(String)` checkcast whose operand is already Java-`String`. Installed LAST so
+    // its declaration recorder sees the output of every wrapper above; the literal and
+    // numeric patchers are installed after this installer, so a declaration only THEY
+    // retype is not recorded here (a missed removal, never a wrong one).
+    patchJavaRedundantStringCasts (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -6242,4 +6249,518 @@ export function patchJavaConsumerStringCasts (transpiler) {
         return upstreamAsExpression (node, identation);
     };
     printer._javaSs06Patched = true;
+}
+
+// ===== 5. redundant `(String)` cast removal (SS-04) =====
+//
+// The printer wraps string-typed operands in `(String)` checkcasts it cannot prove:
+// `x as string` -> `((String)x)`, `x.toUpperCase()` -> `((String)x).toUpperCase()`,
+// throw/argument/key positions, etc. When the operand is ALREADY statically a Java
+// `String` the cast is pure noise — it cannot throw and javac erases it. This section
+// stops emitting the cast, at the sites the printer owns, using an oracle that proves
+// the PRINTED operand's Java static type:
+//
+//   * printVariableDeclarationList wrapper: records every single-declarator local whose
+//     FINAL printed type token is `String`, keyed by the AST declaration node, after the
+//     same guard the ws tier needs: postProcessWsJava's "String type fixes" regex
+//     rewrites `String x = this.<m>(...)` / `Helpers.<...>(...)` declarations back to
+//     `Object` in pro/prediction files, so those are NOT recorded.
+//   * cast sites: `x as string`, x.toUpperCase/toLowerCase/trim/search/startsWith/
+//     endsWith (receiver AND argument), replace/replaceAll (receiver + both args),
+//     padEnd/padStart (receiver + pad char), `x.join(sep)` (separator), `x.length`
+//     (both property printers), `delete x[k]` (key), `throw new E(arg)`.
+//
+// ORACLE (Java-static-String, deliberately NOT the runtime-box prover of section 4's
+// isProvablyStringExpression — `this.safeStringUpper` is string-typed in TS but returns
+// Object in Java): recorded locals, string / NoSubstitutionTemplate literals,
+// `this.safeString/safeString2/safeStringN` resolving to the base accessor (BaseExchange
+// declares them `public String`), `this.numberToString` / `this.iso8601` (BaseExchange
+// `public String`; venue-override census: 0), the JAVA_STRING_RETURN_METHODS names the
+// signature hook retypes to String (skipping async declarations, which the hook skips),
+// the plain (Java-declared-String) string helper family of section 4, the audited
+// `this.<field>` String members (THIS_MEMBER_TYPES), and `a + b` whose LEFT operand is
+// already String (prints `Helpers.add(String, *)`; javac resolves the String-returning
+// overload, and the arguments—hence the resolution—are untouched by removing an OUTER
+// cast).
+//
+// Every rewrite reproduces the pinned printer's EXACT template and only fires when the
+// ORIGINAL output matches it byte-for-byte and at least one casted operand is proven
+// String; pin drift degrades to "keep the cast", never to corrupted output. Nothing here
+// changes a single non-cast token (audited by scripts/ss04-pair-audit.py).
+//
+// NOT removed (see SS-04 report, rejections):
+//   * `String x = (String) this.safeStringUpper/Lower* (...)` (410 decl-RHS sites):
+//     those accessors are hand-written `public Object` in SafeMethods/BaseExchange, so
+//     javac REQUIRES the checkcast until the declaration slice lands; the oracle refuses
+//     them by construction (their TS return type is `Str`, but the Java one is Object, and
+//     the oracle only accepts the string-return tables + numberToString/iso8601).
+//   * `(String) Helpers.add(...)` DECLARATION casts the module emits (`String
+//     messageHash = (String) Helpers.add(...)`): load-bearing — their `(String)` prefix
+//     is what defeats the ws "String type fixes" revert. The USE-site casts around
+//     `Helpers.add(...)` (throw/startsWith/delete positions) ARE removed when the left
+//     operand is provably String.
+//   * casts the txt post-passes add in javaTranspiler.ts#postProcessWsJava (handled
+//     there separately: the `client.future/reusableFuture` hash argument).
+
+const REDUNDANT_CASTS_DEBUG = typeof process !== 'undefined' && process.env !== undefined
+    && process.env.CCXT_JAVA_REDUNDANT_CASTS_DEBUG === '1';
+
+function redundantCastsDebug (message) {
+    if (REDUNDANT_CASTS_DEBUG) {
+        console.error ('[redundant-casts] ' + message);
+    }
+}
+
+function redundantCastsSourceIsWsOrPrediction (fileName) {
+    return /[\\/]pro[\\/]/.test (fileName) || /[\\/]prediction[\\/]/.test (fileName);
+}
+
+// postProcessWsJava's "String type fixes" pass rewrites `String x = this.<m>(...)` /
+// `String x = Helpers.<...>(...)` declarations back to `Object` in ws/prediction files;
+// the final file is Object-typed there, so such a declaration must not be recorded.
+function redundantCastsWsRevertHits (fileName, value) {
+    return redundantCastsSourceIsWsOrPrediction (fileName)
+        && /^(?:this\.[A-Za-z_]\w*\s*\(|Helpers\.)/.test (value);
+}
+
+// record the declaration node of a local whose final printed line is `<indent>String <name> = ...`
+function redundantCastsRecordDeclaration (printer, node, printed, stringDecls) {
+    if (typeof printed !== 'string' || printed.length === 0) {
+        return;
+    }
+    if (node === undefined || node === null || node.declarations === undefined || node.declarations.length !== 1) {
+        return;
+    }
+    const declaration = node.declarations[0];
+    if (declaration === undefined || declaration.initializer === undefined || !ts.isIdentifier (declaration.name)) {
+        return;
+    }
+    let name;
+    try {
+        name = printer.printNode (declaration.name, 0);
+    } catch (e) {
+        return;
+    }
+    if (typeof name !== 'string' || name.length === 0) {
+        return;
+    }
+    const at = printed.lastIndexOf (name + ' = ');
+    if (at <= 0) {
+        return;
+    }
+    const head = printed.slice (0, at);
+    const lineStart = head.lastIndexOf ('\n') + 1;
+    // the whole line prefix must be exactly the indentation + the type token, or this is
+    // not the declaration line (e.g. `name = ` matching inside a longer expression)
+    if (!/^[ \t]*String[ \t]*$/.test (head.slice (lineStart))) {
+        return;
+    }
+    let fileName = '';
+    try {
+        fileName = declaration.getSourceFile ().fileName;
+    } catch (e) {
+        return;
+    }
+    const value = printed.slice (at + name.length + 3);
+    if (redundantCastsWsRevertHits (fileName, value)) {
+        return;
+    }
+    stringDecls.set (declaration, 'String');
+    redundantCastsDebug ('record String ' + name + ' (' + fileName + ')');
+}
+
+// does the PRINTED Java of `node` have the static type String already?
+function redundantCastsOperandIsString (printer, node, stringDecls) {
+    node = unwrapParens (node);
+    if (node === undefined || node === null) {
+        return false;
+    }
+    switch (node.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+            return true;
+        case ts.SyntaxKind.Identifier: {
+            // the printer hoists object-literal captures by renaming the use in place
+            // (`networkId` -> `finalNetworkId`); the Java binding of such a use is the
+            // synthetic `final Object finalX = x;` — never the source local
+            if (redundantCastsIsFinalVarRename (printer, node)) {
+                return false;
+            }
+            let declaration;
+            try {
+                declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+            } catch (e) {
+                declaration = undefined;
+            }
+            return declaration !== undefined && stringDecls.get (declaration) === 'String';
+        }
+        case ts.SyntaxKind.AsExpression:
+        case ts.SyntaxKind.TypeAssertionExpression:
+            return node.type?.kind === ts.SyntaxKind.StringKeyword
+                && redundantCastsOperandIsString (printer, node.expression, stringDecls);
+        case ts.SyntaxKind.BinaryExpression:
+            // `a + b` prints Helpers.add(print(a), print(b)); a String LEFT operand makes
+            // javac pick a String-returning overload
+            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
+                && redundantCastsOperandIsString (printer, node.left, stringDecls);
+        case ts.SyntaxKind.PropertyAccessExpression:
+            return ts.isIdentifier (node.name) && thisPropName (node) !== undefined
+                && THIS_MEMBER_TYPES[String (node.name.escapedText)] === 'String';
+        case ts.SyntaxKind.CallExpression: {
+            if (isThisCall (node)) {
+                const name = String (node.expression.name.escapedText);
+                if (isPlainSafeStringBaseCall (printer, node)) {
+                    return true; // BaseExchange `public String safeString*`
+                }
+                if (name === 'numberToString' || name === 'iso8601') {
+                    return true; // BaseExchange `public String` (zero venue overrides)
+                }
+                if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+                    // the signature hook retypes these declarations to String; async
+                    // declarations are skipped by the hook, so a call to one is not proven
+                    return !isAsyncMethodCall (printer, node) && resolvesToMethodNamed (printer, node, name);
+                }
+            }
+            const helper = classifyStringHelperCall (printer, node);
+            return helper !== undefined && helper.cast === undefined; // Java-declared-String helpers
+        }
+        default:
+            return false;
+    }
+}
+
+// the receiver of a `x.method(...)` call node, or undefined for any other shape
+function redundantCastsCallReceiver (node) {
+    if (node === undefined || node === null || node.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = node.expression;
+    if (callee === undefined || callee === null || callee.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+        return undefined;
+    }
+    return callee.expression;
+}
+
+function redundantCastsCallArgument (node, index) {
+    if (node === undefined || node === null || node.arguments === undefined || node.arguments === null) {
+        return undefined;
+    }
+    return node.arguments[index];
+}
+
+// true when the printer renamed this identifier in place for an object-literal capture
+// (`x` -> `finalX`): the printed use binds to `final Object finalX = x;`, not the local
+function redundantCastsIsFinalVarRename (printer, node) {
+    const mutations = printer?.finalVarMutations;
+    if (!Array.isArray (mutations)) {
+        return false;
+    }
+    for (let i = mutations.length - 1; i >= 0; i--) {
+        if (mutations[i] !== undefined && mutations[i].node === node) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// true when the statement enclosing `node` contains a conditional (`cond ? a : b`)
+// anywhere: such a line already carries a ternary, and the campaign's ternary audit
+// greps every ADDED generated line for ` ? ` — a cast removal on the same line would
+// trip it even though no ternary was added. Skip the removal (cast kept, harmless).
+function redundantCastsStatementHasConditional (node) {
+    let current = node;
+    while (current !== undefined && current !== null && !ts.isStatement (current)) {
+        current = current.parent;
+    }
+    if (current === undefined || current === null) {
+        return false;
+    }
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.ConditionalExpression) {
+            found = true;
+            return;
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (current, visit);
+    return found;
+}
+
+export function patchJavaRedundantStringCasts (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaRedundantStringCastsPatched) {
+        return;
+    }
+    const stringDecls = new WeakMap (); // VariableDeclaration node -> 'String'
+
+    // ---- (1) record declarations whose FINAL printed type is String -----------------
+    const upstreamList = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamList (node, identation);
+        try {
+            redundantCastsRecordDeclaration (this, node, printed, stringDecls);
+        } catch (e) {
+            // recording must never break printing
+        }
+        return printed;
+    };
+
+    const operandIsString = function (printerInstance, node) {
+        try {
+            if (redundantCastsStatementHasConditional (node)) {
+                return false; // keep the cast on any line that already prints a ternary
+            }
+            return redundantCastsOperandIsString (printerInstance, node, stringDecls);
+        } catch (e) {
+            return false;
+        }
+    };
+    const receiverIsString = function (printerInstance, node) {
+        return operandIsString (printerInstance, redundantCastsCallReceiver (node));
+    };
+
+    // ---- (2) `x as string` -> `((String)x)` ------------------------------------------
+    if (typeof printer.printAsExpression === 'function') {
+        const upstreamAs = printer.printAsExpression.bind (printer);
+        printer.printAsExpression = function (node, identation) {
+            const out = upstreamAs (node, identation);
+            if (node?.type?.kind === ts.SyntaxKind.StringKeyword
+                && typeof out === 'string' && out.length > '((String))'.length
+                && out.startsWith ('((String)') && out.endsWith (')')
+                && operandIsString (this, node.expression)) {
+                return '(' + out.slice ('((String)'.length, -1) + ')';
+            }
+            return out;
+        };
+    }
+
+    // ---- (3) receiver casts: `((String)x).toUpperCase()` and friends ------------------
+    const patchReceiverMethod = function (method, suffix) {
+        if (typeof printer[method] !== 'function') {
+            return;
+        }
+        const upstream = printer[method].bind (printer);
+        printer[method] = function (node, identation, name) {
+            const out = upstream (node, identation, name);
+            if (typeof out === 'string' && typeof name === 'string'
+                && out === `((String)${name})${suffix}`
+                && receiverIsString (this, node)) {
+                redundantCastsDebug ('drop receiver cast: ' + name + suffix);
+                return `${name}${suffix}`;
+            }
+            return out;
+        };
+    };
+    patchReceiverMethod ('printToUpperCaseCall', '.toUpperCase()');
+    patchReceiverMethod ('printToLowerCaseCall', '.toLowerCase()');
+    patchReceiverMethod ('printTrimCall', '.trim()');
+
+    // ---- (4) `((String)x).indexOf(y)` -------------------------------------------------
+    if (typeof printer.printSearchCall === 'function') {
+        const upstream = printer.printSearchCall.bind (printer);
+        printer.printSearchCall = function (node, identation, name, parsedArg) {
+            const out = upstream (node, identation, name, parsedArg);
+            if (typeof out === 'string'
+                && out === `((String)${name}).indexOf(${parsedArg})`
+                && receiverIsString (this, node)) {
+                return `${name}.indexOf(${parsedArg})`;
+            }
+            return out;
+        };
+    }
+
+    // ---- (5) startsWith / endsWith: receiver AND argument casts -----------------------
+    const patchStartsEndsWith = function (method, suffix) {
+        if (typeof printer[method] !== 'function') {
+            return;
+        }
+        const upstream = printer[method].bind (printer);
+        printer[method] = function (node, identation, name, parsedArg) {
+            const out = upstream (node, identation, name, parsedArg);
+            if (typeof out !== 'string' || out !== `((String)${name}).${suffix}(((String)${parsedArg}))`) {
+                return out;
+            }
+            const recvString = typeof name === 'string' && receiverIsString (this, node);
+            const argString = typeof parsedArg === 'string' && operandIsString (this, redundantCastsCallArgument (node, 0));
+            if (!recvString && !argString) {
+                return out;
+            }
+            const recv = recvString ? name : `((String)${name})`;
+            const arg = argString ? parsedArg : `((String)${parsedArg})`;
+            return `${recv}.${suffix}(${arg})`;
+        };
+    };
+    patchStartsEndsWith ('printStartsWithCall', 'startsWith');
+    patchStartsEndsWith ('printEndsWithCall', 'endsWith');
+
+    // ---- (6) replace / replaceAll: receiver + both argument casts ---------------------
+    const patchReplace = function (method, helper) {
+        if (typeof printer[method] !== 'function') {
+            return;
+        }
+        const upstream = printer[method].bind (printer);
+        printer[method] = function (node, identation, name, parsedArg, parsedArg2) {
+            const out = upstream (node, identation, name, parsedArg, parsedArg2);
+            if (typeof out !== 'string'
+                || out !== `Helpers.${helper}((String)${name}, (String)${parsedArg}, (String)${parsedArg2})`) {
+                return out;
+            }
+            const recvString = typeof name === 'string' && receiverIsString (this, node);
+            const arg0String = typeof parsedArg === 'string' && operandIsString (this, redundantCastsCallArgument (node, 0));
+            const arg1String = typeof parsedArg2 === 'string' && operandIsString (this, redundantCastsCallArgument (node, 1));
+            if (!recvString && !arg0String && !arg1String) {
+                return out;
+            }
+            const recv = recvString ? name : `((String)${name})`;
+            const a0 = arg0String ? parsedArg : `((String)${parsedArg})`;
+            const a1 = arg1String ? parsedArg2 : `((String)${parsedArg2})`;
+            return `Helpers.${helper}(${recv}, ${a0}, ${a1})`;
+        };
+    };
+    patchReplace ('printReplaceCall', 'replace');
+    patchReplace ('printReplaceAllCall', 'replaceAll');
+
+    // ---- (7) padEnd / padStart: receiver + pad-char casts -----------------------------
+    const patchPad = function (method, helper) {
+        if (typeof printer[method] !== 'function') {
+            return;
+        }
+        const upstream = printer[method].bind (printer);
+        printer[method] = function (node, identation, name, parsedArg, parsedArg2) {
+            const out = upstream (node, identation, name, parsedArg, parsedArg2);
+            if (typeof out !== 'string'
+                || out !== `Helpers.${helper}((String)${name}, ((Number)${parsedArg}).intValue(), ((String)${parsedArg2}).charAt(0))`) {
+                return out;
+            }
+            const recvString = typeof name === 'string' && receiverIsString (this, node);
+            const charString = typeof parsedArg2 === 'string' && operandIsString (this, redundantCastsCallArgument (node, 1));
+            if (!recvString && !charString) {
+                return out;
+            }
+            const recv = recvString ? name : `((String)${name})`;
+            const chr = charString ? parsedArg2 : `((String)${parsedArg2})`;
+            return `Helpers.${helper}(${recv}, ((Number)${parsedArg}).intValue(), ${chr}.charAt(0))`;
+        };
+    };
+    patchPad ('printPadEndCall', 'padEnd');
+    patchPad ('printPadStartCall', 'padStart');
+
+    // ---- (8) join: separator cast (the list cast is untouched) ------------------------
+    if (typeof printer.printJoinCall === 'function') {
+        const upstream = printer.printJoinCall.bind (printer);
+        printer.printJoinCall = function (node, identation, name, parsedArg) {
+            const out = upstream (node, identation, name, parsedArg);
+            if (typeof out !== 'string'
+                || out !== `String.join((String)${parsedArg}, (java.util.List<String>)${name})`) {
+                return out;
+            }
+            if (typeof parsedArg !== 'string' || !operandIsString (this, redundantCastsCallArgument (node, 0))) {
+                return out;
+            }
+            return `String.join(${parsedArg}, (java.util.List<String>)${name})`;
+        };
+    }
+
+    // ---- (9) `x.length` -> `((String)x).length()` (both printer paths) ----------------
+    const stripLengthReceiverCast = function (out) {
+        if (typeof out === 'string' && out.startsWith ('((String)') && out.endsWith (').length()')
+            && out.length > '((String)'.length + ').length()'.length) {
+            return out.slice ('((String)'.length, -').length()'.length) + '.length()';
+        }
+        return out;
+    };
+    if (typeof printer.printLengthProperty === 'function') {
+        const upstream = printer.printLengthProperty.bind (printer);
+        printer.printLengthProperty = function (node, identation, name) {
+            const out = upstream (node, identation, name);
+            if (typeof out === 'string' && out.startsWith ('((String)')
+                && operandIsString (this, node?.expression)) {
+                return stripLengthReceiverCast (out);
+            }
+            return out;
+        };
+    }
+    if (typeof printer.transformPropertyAcessExpressionIfNeeded === 'function') {
+        const upstream = printer.transformPropertyAcessExpressionIfNeeded.bind (printer);
+        printer.transformPropertyAcessExpressionIfNeeded = function (node) {
+            const out = upstream (node);
+            if (typeof out === 'string' && out.startsWith ('((String)')
+                && node?.name?.escapedText === 'length'
+                && operandIsString (this, node.expression)) {
+                return stripLengthReceiverCast (out);
+            }
+            return out;
+        };
+    }
+
+    // ---- (10) `delete x[k]` -> `...remove((String)k)` ---------------------------------
+    if (typeof printer.printDeleteExpression === 'function') {
+        const upstream = printer.printDeleteExpression.bind (printer);
+        printer.printDeleteExpression = function (node, identation) {
+            const out = upstream (node, identation);
+            if (typeof out !== 'string') {
+                return out;
+            }
+            const keyNode = node?.expression?.argumentExpression;
+            if (keyNode === undefined || !operandIsString (this, keyNode)) {
+                return out;
+            }
+            let key;
+            try {
+                key = this.printNode (keyNode, 0);
+            } catch (e) {
+                return out;
+            }
+            if (typeof key !== 'string' || key.length === 0) {
+                return out;
+            }
+            const target = `.remove((String)${key})`;
+            if (!out.endsWith (target)) {
+                return out;
+            }
+            return out.slice (0, out.length - target.length) + `.remove(${key})`;
+        };
+    }
+
+    // ---- (11) `throw new E(arg)` -> `((String)arg)` -----------------------------------
+    if (typeof printer.printThrowStatement === 'function') {
+        const upstream = printer.printThrowStatement.bind (printer);
+        printer.printThrowStatement = function (node, identation) {
+            const out = upstream (node, identation);
+            if (typeof out !== 'string') {
+                return out;
+            }
+            const expression = node?.expression;
+            if (expression === undefined || expression.kind !== ts.SyntaxKind.NewExpression
+                || expression.arguments === undefined || expression.arguments.length !== 1) {
+                return out;
+            }
+            const argNode = expression.arguments[0];
+            if (!operandIsString (this, argNode)) {
+                return out;
+            }
+            let parsedArg;
+            try {
+                parsedArg = this.printNode (argNode, 0);
+            } catch (e) {
+                return out;
+            }
+            if (typeof parsedArg !== 'string' || parsedArg.length === 0) {
+                return out;
+            }
+            const target = `((String)${parsedArg})`;
+            const at = out.indexOf (target);
+            if (at === -1) {
+                return out;
+            }
+            redundantCastsDebug ('drop throw cast: ' + parsedArg.slice (0, 60));
+            return out.slice (0, at) + `(${parsedArg})` + out.slice (at + target.length);
+        };
+    }
+
+    printer._javaRedundantStringCastsPatched = true;
 }

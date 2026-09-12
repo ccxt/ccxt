@@ -256,7 +256,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(isSpot))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchTickers does not support spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchTickers does not support spot markets")) ;
             } else
             {
                 Helpers.addElementToObject(request, "method", "sub.tickers");
@@ -341,7 +341,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         String channel = this.safeString(message, "c", "");
         String marketId = this.safeString(message, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        Object channelStartsWithSpot = ((String)channel).startsWith(((String)"spot"));
+        Object channelStartsWithSpot = ((String)channel).startsWith("spot");
         Boolean marketIdIsUndefined = Helpers.isEqual(marketId, null);
         Object isSpot = ((Helpers.isTrue(marketIdIsUndefined))) ? channelStartsWithSpot : Helpers.GetValue(market, "spot");
         String spotPrefix = "spot:";
@@ -457,7 +457,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object marketType = null;
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchBidsAsks required symbols argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchBidsAsks required symbols argument")) ;
             }
             Object markets = this.requireValue(this.marketsForSymbols(symbols), "watchBidsAsks() markets is required");
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", Helpers.GetValue(markets, 0), parameters);
@@ -466,7 +466,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Boolean isSpot = Helpers.isEqual(marketType, "spot");
             if (!Helpers.isTrue(isSpot))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchBidsAsks only support spot market")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchBidsAsks only support spot market")) ;
             }
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1029,7 +1029,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Helpers.addElementToObject(storedOrderBook, "datetime", this.iso8601(timestamp));
         } catch(Exception e)
         {
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             client.reject(e, messageHash);
             // return;
             shouldReturn = true;
@@ -2024,7 +2024,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(isSpot))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchTickers does not support spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchTickers does not support spot markets")) ;
             } else
             {
                 Helpers.addElementToObject(request, "method", "unsub.tickers");
@@ -2062,7 +2062,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object marketType = null;
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchBidsAsks required symbols argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchBidsAsks required symbols argument")) ;
             }
             Object markets = this.requireValue(this.marketsForSymbols(symbols), "unWatchBidsAsks() markets is required");
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", Helpers.GetValue(markets, 0), parameters);
@@ -2071,7 +2071,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Boolean isSpot = Helpers.isEqual(marketType, "spot");
             if (!Helpers.isTrue(isSpot))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchBidsAsks only support spot market")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchBidsAsks only support spot market")) ;
             }
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2248,11 +2248,11 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object subMessageHash = Helpers.replace((String)messageHash, (String)"unsubscribe:", (String)"");
+            Object subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "ticker"), 0)))
             {
-                Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:ticker:", (String)"");
+                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:ticker:", "");
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(symbol, "unsubscribe"), 0)))
                 {
                     // unWatchTickers
@@ -2267,7 +2267,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 }
             } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "bidask"), 0)))
             {
-                Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:bidask:", (String)"");
+                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:bidask:", "");
                 if (Helpers.isTrue(Helpers.inOp(this.bidsasks, symbol)))
                 {
                     ((java.util.Map<String,Object>)this.bidsasks).remove((String)symbol);
@@ -2287,21 +2287,21 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 }
             } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "orderbook"), 0)))
             {
-                Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:orderbook:", (String)"");
+                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:orderbook:", "");
                 if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
                 {
                     ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
                 }
             } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "trades"), 0)))
             {
-                Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:trades:", (String)"");
+                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:trades:", "");
                 if (Helpers.isTrue(Helpers.inOp(this.trades, symbol)))
                 {
                     ((java.util.Map<String,Object>)this.trades).remove((String)symbol);
                 }
             } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "fundingRate"), 0)))
             {
-                Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:fundingRate:", (String)"");
+                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:fundingRate:", "");
                 if (Helpers.isTrue(Helpers.inOp(this.fundingRates, symbol)))
                 {
                     ((java.util.Map<String,Object>)this.fundingRates).remove((String)symbol);
@@ -2331,11 +2331,11 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object isFetching = this.safeBool(this.options, "listenKeyFetching", false);
             if (Helpers.isTrue(Helpers.isEqual(isFetching, true)))
             {
-                client.future((String)messageHash).getFuture().join();
+                client.future(messageHash).getFuture().join();
                 return this.safeString(this.options, "listenKey");
             }
             Helpers.addElementToObject(this.options, "listenKeyFetching", true);
-            client.future((String)messageHash); // created ahead of the request below, so concurrent callers can find it
+            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
             Object response = null;
             try
             {

@@ -1009,7 +1009,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }
             var symboltimeframecandlesVariable = (this.watchMultipleWrapper("chart.trades", null, symbolsAndTimeframes, parameters)).join();
             var symbol = ((java.util.List<Object>) symboltimeframecandlesVariable).get(0);
@@ -1110,13 +1110,13 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             this.marketSymbols(symbols, null, false);
             if (Helpers.isTrue(Helpers.isEqual(symbolsArray, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMultipleWrapper() symbolsArray is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchMultipleWrapper() symbolsArray is required")) ;
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsArray)); i++)
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbolsArray, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMultipleWrapper() symbolsArray is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " watchMultipleWrapper() symbolsArray is required")) ;
                 }
                 Object current = Helpers.GetValue(symbolsArray, i);
                 Object market = null;
@@ -1147,7 +1147,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object jsonedText = this.json(extendedRequest);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(((String)jsonedText).length(), maxMessageByteLimit)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " requested subscription length over limit, try to reduce symbols amount")) ;
+                throw new ExchangeError(Helpers.add(this.id, " requested subscription length over limit, try to reduce symbols amount")) ;
             }
             return (this.watchMultiple(url, messageHashes, extendedRequest, rawSubscriptions, null)).join();
         });
@@ -1218,7 +1218,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object error = this.safeValue(message, "error");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(error))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(error))) ;
         }
         Object parameters = this.safeValue(message, "params");
         String channel = this.safeString(parameters, "channel");
@@ -1245,7 +1245,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 Helpers.callDynamically(this, handler, new Object[] {client, message});
                 return;
             }
-            throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " no handler found for this message "), this.json(message))) ;
+            throw new NotSupported(Helpers.add(Helpers.add(this.id, " no handler found for this message "), this.json(message))) ;
         }
         Object result = this.safeValue(message, "result", new java.util.HashMap<String, Object>() {{}});
         String accessToken = this.safeString(result, "access_token");
