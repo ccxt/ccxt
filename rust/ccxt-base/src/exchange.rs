@@ -1736,6 +1736,31 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 
 impl<T: crate::exchange_generated::ExchangeBase> ExchangeRuntime for T {}
 
+/// Normalize a TS dynamic method name for the generated Rust dispatch table.
+pub fn method_name_to_snake_case(name: &Value) -> String {
+    let name = match name {
+        Value::Str(name) => name,
+        _ => return String::new(),
+    };
+    let chars: Vec<char> = name.chars().collect();
+    let mut out = String::with_capacity(name.len() + 4);
+    for (i, &c) in chars.iter().enumerate() {
+        if c.is_ascii_uppercase() {
+            let lower_before = i > 0
+                && (chars[i - 1].is_ascii_lowercase() || chars[i - 1].is_ascii_digit());
+            let acronym_end = i > 0 && chars[i - 1].is_ascii_uppercase()
+                && chars.get(i + 1).map(|next| next.is_ascii_lowercase()).unwrap_or(false);
+            if lower_before || acronym_end {
+                out.push('_');
+            }
+            out.push(c.to_ascii_lowercase());
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
 /// A minimal Core wrapping a bare `Exchange` with NO overrides. Lets code that
 /// only has an `Exchange` value — `Value` snapshots (value.rs), the constructor
 /// (`after_construct`), and base unit tests — call `ExchangeBase`/`ExchangeRuntime`

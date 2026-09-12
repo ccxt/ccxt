@@ -2058,7 +2058,8 @@ class RustTranspilerBuilder {
     /**
      * Rewrites paren-balanced dynamic call sites of the form
      *   `get_value(&self, &name)(args...)`
-     * into `self.call_method(name.clone(), &[args])`. The `args` can contain
+     * into `self.call_dynamic(snake_name, vec![args])`. These calls may target
+     * unified methods, not just implicit endpoints. The `args` can contain
      * nested calls so we use paren-balancing instead of regex.
      */
     rewriteDynamicSelfCalls(content: string): string {
@@ -2093,9 +2094,10 @@ class RustTranspilerBuilder {
             const rawInside = content.slice(callStart, j);
             const inside = this.rewriteDynamicSelfCalls(rawInside);
             const args = this.splitArgs(inside) ?? [];
-            const argList = args.length === 0 ? '&[]'
-                : `&[${args.map(a => a.trim()).join(', ')}]`;
-            out += `self.call_method(${name}.clone(), ${argList})`;
+            // Dynamic pagination calls reuse their arguments on subsequent pages.
+            const argList = args.length === 0 ? 'vec![]'
+                : `vec![${args.map(a => `(${a.trim()}).clone()`).join(', ')}]`;
+            out += `self.call_dynamic(&crate::exchange::method_name_to_snake_case(&${name}), ${argList})`;
             i = j + 1;
         }
         return out;
@@ -6168,7 +6170,7 @@ ${arms.join('\n')}
                     ...this.extractAsyncFnNames('./rust/ccxt-base/src/prediction_exchange_generated.rs'),
                   })
                 : [];
-            let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), ...predAsync, 'call_method', 'fetch', 'load_markets', 'throttle']);
+            let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), ...predAsync, 'call_method', 'call_dynamic', 'fetch', 'load_markets', 'throttle']);
             for (let iter = 0; iter < 8; iter++) {
                 const before = content;
                 content = this.appendAwaitToAsyncCalls(content, currentSet);
@@ -7005,7 +7007,7 @@ impl std::ops::DerefMut for ${coreName} {
         // error became an immediate hard failure (review P0-B).
         basePart = this.rewriteTryCatchAsync(basePart);
 
-        // Rewrite dynamic `get_value(&self, &name)(args)` → `self.call_method`.
+        // Rewrite dynamic `get_value(&self, &name)(args)` through unified dispatch.
         basePart = this.rewriteDynamicSelfCalls(basePart);
 
         // Close implicit API call sites (`self.call_method("X", &[` opened by
@@ -7101,7 +7103,7 @@ impl std::ops::DerefMut for ${coreName} {
         // Propagate async-ness through the call graph (see above).
         {
             const asyncSnake = Array.from(asyncMethods).map(n => toSnakeCase(n));
-            let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), 'call_method', 'fetch', 'load_markets', 'throttle']);
+            let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), 'call_method', 'call_dynamic', 'fetch', 'load_markets', 'throttle']);
             for (let iter = 0; iter < 8; iter++) {
                 const before = basePart;
                 basePart = this.appendAwaitToAsyncCalls(basePart, currentSet);
