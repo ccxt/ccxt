@@ -2962,8 +2962,7 @@ class NewTranspiler {
     /**
      * Collect the typed `default` method names declared on the generated
      * TypedSurface / PredictionTypedSurface interface. Used by redirectToAsyncOnJoin
-     * and castLiteralArgsOnTypedCalls to scope rewrites to methods that actually
-     * shadow the untyped varargs core signature.
+     * to scope the rewrite to methods that shadow the untyped varargs core signature.
      */
     _typedSurfaceNames: Map<boolean, Set<string>> = new Map();
     collectTypedSurfaceMethodNames(prediction = false): Set<string> {
