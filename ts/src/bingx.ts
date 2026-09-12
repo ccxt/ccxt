@@ -1579,15 +1579,9 @@ export default class bingx extends Exchange {
         }
         let amount = this.safeStringN (trade, [ 'qty', 'amount', 'q' ]);
         if ((market !== undefined) && (market['swap'] === true) && ('volume' in trade)) {
-            if (market['linear'] === true) {
-                // private linear swap trades report 'amount' as the notional (quote) value, not the base amount;
-                // 'volume' is the exchange's own base-currency fill quantity (bingx linear contractSize is always 1),
-                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
-                amount = this.safeString (trade, 'volume');
-            } else {
-                // inverse volume is the number of contracts; safeTrade applies contractSize when calculating cost
-                amount = this.safeString (trade, 'volume');
-            }
+            // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
+            // safeTrade applies contractSize when calculating inverse cost.
+            amount = this.safeString (trade, 'volume');
         }
         return this.safeTrade ({
             'id': this.safeString2 (trade, 'id', 't'),
