@@ -443,11 +443,11 @@ public class P2bCore extends P2bApi
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", P2bCore.this.safeNumber(limits, "min_amount") );
-                    put( "max", P2bCore.this.parseNumber(P2bCore.this.omitZero((maxAmount))) );
+                    put( "max", P2bCore.this.parseNumber(P2bCore.this.omitZero(maxAmount)) );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", P2bCore.this.safeNumber(limits, "min_price") );
-                    put( "max", P2bCore.this.parseNumber(P2bCore.this.omitZero((maxPrice))) );
+                    put( "max", P2bCore.this.parseNumber(P2bCore.this.omitZero(maxPrice)) );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
                     put( "min", P2bCore.this.safeNumber(limits, "min_total") );

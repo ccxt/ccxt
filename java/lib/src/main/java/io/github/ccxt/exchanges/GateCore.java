@@ -5886,7 +5886,7 @@ final Object finalPointFee = pointFee;
         {
             Object rawOrder = Helpers.GetValue(orders, i);
             String marketId = this.safeString(rawOrder, "symbol");
-            ((java.util.List<Object>)orderSymbols).add((marketId));
+            ((java.util.List<Object>)orderSymbols).add(marketId);
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
             Object amount = this.safeValue(rawOrder, "amount");
@@ -8594,7 +8594,7 @@ final Object finalFloor = floor;
             }});
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, maintenanceMarginUnit);
             initialMarginRatio = Precise.stringAdd(initialMarginRatio, initialMarginUnit);
-            floor = (cap);
+            floor = cap;
         }
         return tiers;
     }
@@ -9063,7 +9063,7 @@ final Object finalI = i;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "futures"))) || Helpers.isTrue((Helpers.isEqual(type, "delivery"))))) && Helpers.isTrue(Helpers.isEqual(method, "POST"))))
             {
                 Object pathParts = Helpers.split(path, "/");
-                Object secondPart = (this.safeString(pathParts, 1, ""));
+                Object secondPart = this.safeString(pathParts, 1, "");
                 requiresURLEncoding = Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secondPart, "dual"), 0))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secondPart, "positions"), 0)));
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))) || Helpers.isTrue(requiresURLEncoding)) || Helpers.isTrue((Helpers.isEqual(method, "PATCH")))))
@@ -9349,7 +9349,7 @@ final Object finalI = i;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(interest, "time");
         return new java.util.HashMap<String, Object>() {{
-            put( "symbol", (GateCore.this.safeString(market, "symbol")) );
+            put( "symbol", GateCore.this.safeString(market, "symbol") );
             put( "openInterestAmount", GateCore.this.safeNumber(interest, "open_interest") );
             put( "openInterestValue", GateCore.this.safeNumber(interest, "open_interest_usd") );
             put( "timestamp", timestamp );
@@ -9840,10 +9840,10 @@ final Object finalI = i;
         Object timestamp = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(rawTimestamp.length(), 10)))
         {
-            timestamp = Helpers.parseInt((rawTimestamp));
+            timestamp = Helpers.parseInt(rawTimestamp);
         } else
         {
-            timestamp = Helpers.multiply(Helpers.parseInt((rawTimestamp)), 1000);
+            timestamp = Helpers.multiply(Helpers.parseInt(rawTimestamp), 1000);
         }
         String balanceString = this.safeString(item, "balance");
         String changeString = this.safeString(item, "change");

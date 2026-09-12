@@ -1509,7 +1509,7 @@ public class BingxCore extends BingxApi
 
     public Object parseMarket(Object market)
     {
-        Object id = (this.safeString(market, "symbol"));
+        Object id = this.safeString(market, "symbol");
         Object symbolParts = Helpers.split(id, "-");
         String baseId = (String) Helpers.GetValue(symbolParts, 0);
         String quoteId = (String) Helpers.GetValue(symbolParts, 1);
@@ -3597,7 +3597,7 @@ public class BingxCore extends BingxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = (this.safeString(position, "symbol", ""));
+        Object marketId = this.safeString(position, "symbol", "");
         marketId = Helpers.replace(((String)marketId), "/", "-"); // standard return different format
         Object isolated = this.safeBool(position, "isolated");
         String marginMode = null;
@@ -7602,7 +7602,7 @@ public class BingxCore extends BingxApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
         {
             Object tier = this.safeDict(info, i);
-            Object tierString = (this.safeString(tier, "tier"));
+            Object tierString = this.safeString(tier, "tier");
             Object tierParts = Helpers.split(tierString, " ");
             String marketId = this.safeString(tier, "symbol");
             market = this.safeMarket(marketId, market, null, "swap");

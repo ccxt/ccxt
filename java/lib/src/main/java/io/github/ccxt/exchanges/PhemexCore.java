@@ -963,7 +963,7 @@ public class PhemexCore extends PhemexApi
         String makerFeeRateEr = this.safeString(market, "makerFeeRateEr");
         String takerFeeRateEr = this.safeString(market, "takerFeeRateEr");
         String status = this.safeString(market, "status");
-        Object contractSizeString = (this.safeString(market, "contractSize", " "));
+        Object contractSizeString = this.safeString(market, "contractSize", " ");
         Object contractSize = null;
         if (Helpers.isTrue(Helpers.isEqual(settle, "USDT")))
         {
@@ -1432,7 +1432,7 @@ public class PhemexCore extends PhemexApi
         String id = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(id);
         String valueScaleString = this.safeString(rawCurrency, "valueScale");
-        Object valueScale = Helpers.parseInt((valueScaleString));
+        Object valueScale = Helpers.parseInt(valueScaleString);
         String minValueEv = this.safeString(rawCurrency, "minValueEv");
         String maxValueEv = this.safeString(rawCurrency, "maxValueEv");
         Object minAmount = null;

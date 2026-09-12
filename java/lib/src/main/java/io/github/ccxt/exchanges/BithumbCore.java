@@ -1737,7 +1737,7 @@ public class BithumbCore extends BithumbApi
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             String feeCurrencyId = this.safeString(trade, "fee_currency");
-            Object feeCurrencyCode = this.commonCurrencyCode((feeCurrencyId));
+            Object feeCurrencyCode = this.commonCurrencyCode(feeCurrencyId);
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );

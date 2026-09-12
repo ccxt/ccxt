@@ -876,7 +876,7 @@ public class PolymarketCore extends PolymarketApi
             {
                 // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
                 // so human-readable labels ("Fed Rates") must be slugified first
-                Helpers.addElementToObject(baseRequest, "tag_slug", this.tagToSlug((this.safeString(requestedTags, 0))));
+                Helpers.addElementToObject(baseRequest, "tag_slug", this.tagToSlug(this.safeString(requestedTags, 0)));
             }
             if (Helpers.isTrue(Helpers.isEqual(status, "active")))
             {

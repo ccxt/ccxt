@@ -1764,7 +1764,7 @@ public class HashkeyCore extends HashkeyApi
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            timeframe = (this.safeString(this.timeframes, timeframe, timeframe));
+            timeframe = this.safeString(this.timeframes, timeframe, timeframe);
             final Object finalTimeframe = timeframe;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4089,17 +4089,17 @@ public class HashkeyCore extends HashkeyApi
             put( "side", finalSide );
             put( "price", finalPrice );
             put( "average", average );
-            put( "amount", HashkeyCore.this.omitZero((HashkeyCore.this.safeString(order, "origQty"))) );
+            put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "origQty")) );
             put( "filled", HashkeyCore.this.safeString(order, "executedQty") );
             put( "remaining", null );
-            put( "triggerPrice", HashkeyCore.this.omitZero((HashkeyCore.this.safeString(order, "stopPrice"))) );
+            put( "triggerPrice", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "stopPrice")) );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
-            put( "cost", HashkeyCore.this.omitZero((HashkeyCore.this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty"))) );
+            put( "cost", HashkeyCore.this.omitZero(HashkeyCore.this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")) );
             put( "trades", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", HashkeyCore.this.safeCurrencyCode(finalFeeCurrncyId) );
-                put( "amount", HashkeyCore.this.omitZero((HashkeyCore.this.safeString(order, "feeAmount"))) );
+                put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "feeAmount")) );
             }} );
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );

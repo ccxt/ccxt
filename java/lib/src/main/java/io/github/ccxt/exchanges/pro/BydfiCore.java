@@ -929,7 +929,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             put( "cost", null );
             put( "trades", null );
             put( "fee", finalFee );
-            put( "average", BydfiCore.this.omitZero((BydfiCore.this.safeString(order, "ap"))) );
+            put( "average", BydfiCore.this.omitZero(BydfiCore.this.safeString(order, "ap")) );
         }}, market);
     }
 

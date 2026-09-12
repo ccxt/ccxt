@@ -155,7 +155,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 Helpers.addElementToObject(subscription, "symbolsAndTimeframes", symbolsAndTimeframes);
                 parameters = this.omit(parameters, "symbolsAndTimeframes");
             }
-            return (this.watch((url), messageHash, this.extend(request, parameters), subscribeHash, subscription)).join();
+            return (this.watch(url, messageHash, this.extend(request, parameters), subscribeHash, subscription)).join();
         });
 
     }
@@ -213,7 +213,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
-            return (this.watch((url), messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
         });
 
     }

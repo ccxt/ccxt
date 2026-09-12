@@ -3900,7 +3900,7 @@ public class PoloniexCore extends PoloniexApi
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId);
         String status = this.safeString(transaction, "status", "pending");
-        status = (this.parseTransactionStatus(status));
+        status = this.parseTransactionStatus(status);
         String txid = this.safeString(transaction, "txid");
         String type = ((Helpers.isTrue((Helpers.inOp(transaction, "withdrawalRequestsId"))))) ? "withdrawal" : "deposit";
         String id = this.safeString2(transaction, "withdrawalRequestsId", "depositNumber");
@@ -4313,7 +4313,7 @@ public class PoloniexCore extends PoloniexApi
             put( "collateral", collateral );
             put( "initialMargin", initialMargin );
             put( "initialMarginPercentage", null );
-            put( "leverage", Helpers.parseInt((leverage)) );
+            put( "leverage", Helpers.parseInt(leverage) );
             put( "marginRatio", PoloniexCore.this.safeNumber(position, "mgnRatio") );
             put( "stopLossPrice", PoloniexCore.this.safeNumber(position, "slTrgPx") );
             put( "takeProfitPrice", PoloniexCore.this.safeNumber(position, "tpTrgPx") );

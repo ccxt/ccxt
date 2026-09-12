@@ -578,18 +578,18 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             put( "side", finalSide );
             put( "price", HashkeyCore.this.safeString(order, "p") );
             put( "average", HashkeyCore.this.safeString(order, "V") );
-            put( "amount", HashkeyCore.this.omitZero((HashkeyCore.this.safeString(order, "q"))) );
+            put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "q")) );
             put( "filled", HashkeyCore.this.safeString(order, "z") );
             put( "remaining", HashkeyCore.this.safeString(order, "r") );
             put( "stopPrice", null );
             put( "triggerPrice", null );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
-            put( "cost", HashkeyCore.this.omitZero((HashkeyCore.this.safeString(order, "Z"))) );
+            put( "cost", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "Z")) );
             put( "trades", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", HashkeyCore.this.safeCurrencyCode(HashkeyCore.this.safeString(order, "N")) );
-                put( "amount", HashkeyCore.this.omitZero((HashkeyCore.this.safeString(order, "n"))) );
+                put( "amount", HashkeyCore.this.omitZero(HashkeyCore.this.safeString(order, "n")) );
             }} );
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );

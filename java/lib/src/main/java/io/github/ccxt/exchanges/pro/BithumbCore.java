@@ -387,8 +387,8 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Helpers.addElementToObject(ticker, "market", this.safeString(ticker, "market", code));
             return this.parseTicker(ticker, market);
         }
-        Object date = (this.safeString(ticker, "date", ""));
-        Object time = (this.safeString(ticker, "time", ""));
+        Object date = this.safeString(ticker, "date", "");
+        Object time = this.safeString(ticker, "time", "");
         Object kstDatetime = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.slice(date, 0, 4), "-"), Helpers.slice(date, 4, 6)), "-"), Helpers.slice(date, 6, 8)), "T"), Helpers.slice(time, 0, 2)), ":"), Helpers.slice(time, 2, 4)), ":"), Helpers.slice(time, 4, 6));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         Object timestamp = this.parse8601(kstDatetime);
@@ -535,7 +535,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 return;
             }
             String legacySymbol = this.safeSymbol(legacyMarketId, null, "_");
-            Object timestampStr = (this.safeString(content, "datetime"));
+            Object timestampStr = this.safeString(content, "datetime");
             if (Helpers.isTrue(Helpers.isEqual(timestampStr, null)))
             {
                 return;
@@ -590,7 +590,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 Helpers.callDynamically(asks, "store", new Object[]{askPrice, askSize});
             }
         }
-        Object gen2TimestampStr = (this.safeString2(message, "timestamp", "datetime"));
+        Object gen2TimestampStr = this.safeString2(message, "timestamp", "datetime");
         Object timestamp = null;
         if (Helpers.isTrue(!Helpers.isEqual(gen2TimestampStr, null)))
         {

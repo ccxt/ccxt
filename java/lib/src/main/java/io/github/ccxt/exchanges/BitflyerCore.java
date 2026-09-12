@@ -426,7 +426,7 @@ public class BitflyerCore extends BitflyerApi
                         String currencyIds = this.safeString(splitAlias, 0);
                         baseId = Helpers.slice(currencyIds, 0, Helpers.opNeg(3));
                         quoteId = Helpers.slice(currencyIds, Helpers.opNeg(3), null);
-                        Object splitId = Helpers.split(id, (currencyIds));
+                        Object splitId = Helpers.split(id, currencyIds);
                         String expiryDate = this.safeString(splitId, 1);
                         expiry = this.parseExpiryDate(expiryDate);
                     }

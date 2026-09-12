@@ -962,7 +962,7 @@ public class BullishCore extends BullishApi
         //         "premiumCapRatio": "0.1000"
         //     }
         //
-        Object id = (this.safeString(market, "symbol"));
+        Object id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseSymbol");
         String quoteId = this.safeString(market, "quoteSymbol");
         String base = this.safeCurrencyCode(baseId);
@@ -1012,7 +1012,7 @@ public class BullishCore extends BullishApi
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
                 Object idParts = Helpers.split(id, "-");
-                Object datePart = (this.safeString(idParts, 2));
+                Object datePart = this.safeString(idParts, 2);
                 Object dateYmd = Helpers.slice(datePart, 2, null);
                 symbol = Helpers.add(symbol, Helpers.add("-", dateYmd));
                 if (Helpers.isTrue(Helpers.isEqual(type, "future")))
@@ -3714,7 +3714,7 @@ public class BullishCore extends BullishApi
             String token = this.safeString(response, "token");
             String authorizer = this.safeString(response, "authorizer");
             Helpers.addElementToObject(this.options, "authorizer", authorizer);
-            this.token = (token);
+            this.token = token;
             Helpers.addElementToObject(this.options, "tokenExpires", this.sum(this.milliseconds(), Helpers.multiply(Helpers.multiply(Helpers.multiply(1000, 60), 60), 24))); // token expires in 24 hours
             return token;
         });
@@ -3771,7 +3771,7 @@ public class BullishCore extends BullishApi
                 message = errorCodeName;
             } else
             {
-                message = (type);
+                message = type;
             }
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);

@@ -3912,7 +3912,7 @@ public class CoinbaseCore extends CoinbaseApi
                 {
                     this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorTitle, errorMessage);
                     this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), errorTitle, errorMessage);
-                    throw new ExchangeError((errorMessage)) ;
+                    throw new ExchangeError(errorMessage) ;
                 }
             }
             Object data = this.safeDict(response, "success_response", new java.util.HashMap<String, Object>() {{}});

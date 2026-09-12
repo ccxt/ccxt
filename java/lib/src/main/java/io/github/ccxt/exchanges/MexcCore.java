@@ -4308,7 +4308,7 @@ public class MexcCore extends MexcApi
         String typeRaw = this.safeString(order, "type");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
         {
-            timeInForce = (this.getTifFromRawOrderType(typeRaw));
+            timeInForce = this.getTifFromRawOrderType(typeRaw);
         }
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
@@ -5602,7 +5602,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             }});
             initialMarginRate = Precise.stringAdd(initialMarginRate, riskIncrImr);
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, riskIncrMmr);
-            floor = (cap);
+            floor = cap;
         }
         return tiers;
     }

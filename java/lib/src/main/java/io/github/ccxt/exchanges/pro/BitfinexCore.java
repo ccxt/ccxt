@@ -949,12 +949,12 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             Object ask = this.safeValue(asks, i);
             if (Helpers.isTrue(!Helpers.isEqual(bid, null)))
             {
-                ((java.util.List<Object>)stringArray).add((this.numberToString(Helpers.GetValue(Helpers.GetValue(bids, i), idToCheck))));
-                ((java.util.List<Object>)stringArray).add((this.numberToString(Helpers.GetValue(Helpers.GetValue(bids, i), 1))));
+                ((java.util.List<Object>)stringArray).add(this.numberToString(Helpers.GetValue(Helpers.GetValue(bids, i), idToCheck)));
+                ((java.util.List<Object>)stringArray).add(this.numberToString(Helpers.GetValue(Helpers.GetValue(bids, i), 1)));
             }
             if (Helpers.isTrue(!Helpers.isEqual(ask, null)))
             {
-                ((java.util.List<Object>)stringArray).add((this.numberToString(Helpers.GetValue(Helpers.GetValue(asks, i), idToCheck))));
+                ((java.util.List<Object>)stringArray).add(this.numberToString(Helpers.GetValue(Helpers.GetValue(asks, i), idToCheck)));
                 Object aski1 = Helpers.GetValue(Helpers.GetValue(asks, i), 1);
                 ((java.util.List<Object>)stringArray).add(this.numberToString(Helpers.opNeg(aski1)));
             }

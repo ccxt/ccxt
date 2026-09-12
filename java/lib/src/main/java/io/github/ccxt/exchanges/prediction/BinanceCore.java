@@ -2052,7 +2052,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcomeObj = this.outcome(outcome);
             // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
             // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
-            Object marketSymbol = (this.safeString(outcomeObj, "market"));
+            Object marketSymbol = this.safeString(outcomeObj, "market");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketSymbol);
             Object typeUpper = ((String)type).toUpperCase();
             Object sideUpper = ((String)side).toUpperCase();

@@ -3132,7 +3132,7 @@ public class ExtendedCore extends ExtendedApi
         Object baseRoundUp = isBuy;
         Object quoteRoundUp = isBuy;
         Object baseAmount = this.getExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp);
-        Object collateralAmount = this.getExtendedStarkAmount((quoteAmount), collateralResolution, quoteRoundUp);
+        Object collateralAmount = this.getExtendedStarkAmount(quoteAmount, collateralResolution, quoteRoundUp);
         if (Helpers.isTrue(isBuy))
         {
             collateralAmount = ((String)Precise.stringNeg(collateralAmount));
@@ -3398,7 +3398,7 @@ public class ExtendedCore extends ExtendedApi
                     String stopLossTriggerPriceType = this.safeString(stopLoss, "triggerPriceType");
                     String stopLossExecutionPrice = this.safeString(stopLoss, "price");
                     String stopLossType = this.safeString(stopLoss, "type");
-                    Object stopLossSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), (stopLossExecutionPrice), settlementParams);
+                    Object stopLossSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), stopLossExecutionPrice, settlementParams);
                     java.util.Map<String, Object> requestStopLoss = new java.util.HashMap<String, Object>() {{
                         put( "triggerPrice", ExtendedCore.this.priceToPrecision(symbol, stopLossTrigger) );
                         put( "price", ExtendedCore.this.priceToPrecision(symbol, stopLossExecutionPrice) );
@@ -3427,7 +3427,7 @@ public class ExtendedCore extends ExtendedApi
                     String takeProfitTriggerPriceType = this.safeString(takeProfit, "triggerPriceType");
                     String takeProfitExecutionPrice = this.safeString(takeProfit, "price");
                     String takeProfitType = this.safeString(takeProfit, "type");
-                    Object takeProfitSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), (takeProfitExecutionPrice), settlementParams);
+                    Object takeProfitSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), takeProfitExecutionPrice, settlementParams);
                     java.util.Map<String, Object> requestTakeProfit = new java.util.HashMap<String, Object>() {{
                         put( "triggerPrice", ExtendedCore.this.priceToPrecision(symbol, takeProfitTrigger) );
                         put( "price", ExtendedCore.this.priceToPrecision(symbol, takeProfitExecutionPrice) );
@@ -4264,7 +4264,7 @@ public class ExtendedCore extends ExtendedApi
             decimalString = value;
         } else
         {
-            decimalString = (this.numberToString(value));
+            decimalString = this.numberToString(value);
         }
         java.util.List<Object> hexChars = new java.util.ArrayList<Object>(java.util.Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"));
         Object result = "";
@@ -4291,7 +4291,7 @@ public class ExtendedCore extends ExtendedApi
             }
             return Helpers.add("0x", this.getExtendedDecimalToBase16(signature));
         }
-        Object signatureString = (this.numberToString(signature));
+        Object signatureString = this.numberToString(signature);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(signatureString, "0x"), 0)))
         {
             return signatureString;

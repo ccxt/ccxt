@@ -1826,7 +1826,7 @@ public class BitfinexCore extends BitfinexApi
         String amountString = this.safeString(tradeList, amountIndex);
         Object priceIndex = ((Helpers.isTrue(isPrivate))) ? 5 : 3;
         String priceString = this.safeString(tradeList, priceIndex);
-        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue((amountString), 0), "-")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(amountString, 0), "-")))
         {
             side = "sell";
             amountString = Precise.stringAbs(amountString);

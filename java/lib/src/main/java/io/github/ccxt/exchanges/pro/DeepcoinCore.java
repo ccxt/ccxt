@@ -1377,7 +1377,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             put( "contractSize", null );
             put( "side", DeepcoinCore.this.parsePositionSide(direction) );
             put( "notional", null );
-            put( "leverage", DeepcoinCore.this.omitZero((DeepcoinCore.this.safeString(position, "l"))) );
+            put( "leverage", DeepcoinCore.this.omitZero(DeepcoinCore.this.safeString(position, "l")) );
             put( "unrealizedPnl", null );
             put( "realizedPnl", null );
             put( "collateral", null );

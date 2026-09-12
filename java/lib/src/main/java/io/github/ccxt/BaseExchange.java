@@ -5641,14 +5641,14 @@ public Object describe()
         // numberToString is typed as nullable under strictNullChecks; cast to string
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
-        Object stringifiedNumber = (this.numberToString(number));
+        Object stringifiedNumber = this.numberToString(number);
         Object convertedNumber = ((Object)Helpers.parseFloat(stringifiedNumber));
         return Helpers.parseInt(convertedNumber);
     }
 
     public Object parseToNumeric(Object number)
     {
-        Object stringVersion = (this.numberToString(number)); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        Object stringVersion = this.numberToString(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
         // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true

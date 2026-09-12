@@ -3086,7 +3086,7 @@ public class DeepcoinCore extends DeepcoinApi
         String marketId = this.safeString(order, "instId");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeInteger(order, "cTime");
-        Object timestampString = (this.safeString(order, "cTime", ""));
+        Object timestampString = this.safeString(order, "cTime", "");
         if (Helpers.isTrue(Helpers.isLessThan(((String)timestampString).length(), 13)))
         {
             timestamp = this.safeTimestamp(order, "cTime");
@@ -3310,7 +3310,7 @@ public class DeepcoinCore extends DeepcoinApi
             put( "contractSize", null );
             put( "side", DeepcoinCore.this.safeString(position, "posSide") );
             put( "notional", null );
-            put( "leverage", DeepcoinCore.this.parseNumber(DeepcoinCore.this.omitZero((DeepcoinCore.this.safeString(position, "lever")))) );
+            put( "leverage", DeepcoinCore.this.parseNumber(DeepcoinCore.this.omitZero(DeepcoinCore.this.safeString(position, "lever"))) );
             put( "unrealizedPnl", null );
             put( "realizedPnl", null );
             put( "collateral", null );
