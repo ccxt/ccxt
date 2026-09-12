@@ -1183,7 +1183,7 @@ export default class bingx extends bingxRest {
     async loadBalanceSnapshot (client: Client, messageHash: any, type: any, subType: any) {
         const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
         // Rebuild currency maps after retaining WS updates received during the REST request.
-        this.balance[type] = this.safeBalance (this.extend (response, this.safeValue (this.balance, type, {})));
+        this.balance[type] = this.safeBalance (this.extend (response, this.safeDict (this.balance, type, {})));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -1766,6 +1766,9 @@ export default class bingx extends bingxRest {
             const account = this.account ();
             account['info'] = balance;
             // wb is the total balance; missing lk does not imply zero used.
+            // Current spot docs also include lk (frozen assets), unlike the sample above:
+            // { "a": "USDT", "bc": "0.00", "cw": "0.00000000999999", "wb": "0.00000000999999", "lk": "0" }
+            // Without lk, wb alone does not determine free or used.
             account['used'] = this.safeString (balance, 'lk');
             account['total'] = this.safeString (balance, 'wb');
             if ((type !== undefined) && (code !== undefined)) {
