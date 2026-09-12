@@ -199,7 +199,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers requires a symbols argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTickers requires a symbols argument")) ;
             }
             Object channel = null;
             java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
@@ -577,7 +577,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object secondPart = this.safeString(parts, 1, "");
-        Object timeframeId = Helpers.replace((String)secondPart, (String)"-TRADE", (String)"");
+        Object timeframeId = Helpers.replace(((String)secondPart), "-TRADE", "");
         Object timeframe = this.findTimeframe(timeframeId);
         String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
@@ -658,7 +658,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -780,7 +780,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 Object cookieValue = this.safeString(this.options, "AuthCookieValue");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(cookieValue, null)) || Helpers.isTrue(Helpers.isEqual(accountId, null))))
                 {
-                    throw new AuthenticationError((String)Helpers.add(this.id, " : at first, you need to authenticate with exchange using signIn() method.")) ;
+                    throw new AuthenticationError(Helpers.add(this.id, " : at first, you need to authenticate with exchange using signIn() method.")) ;
                 }
                 final Object finalCookieValue = cookieValue;
                 final Object finalAccountId = accountId;
@@ -1178,7 +1178,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), body)) ;
         }
         return false;
     }

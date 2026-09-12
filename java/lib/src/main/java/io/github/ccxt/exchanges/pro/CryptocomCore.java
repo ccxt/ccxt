@@ -376,7 +376,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 Object checksum = this.handleOption("watchOrderBook", "checksum", true);
                 if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
                 {
-                    throw new ChecksumError((String)Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
+                    throw new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
                 }
             }
         }
@@ -562,7 +562,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
         }
-        Object channelReplaced = Helpers.replace((String)channel, (String)Helpers.add(".", marketId), (String)"");
+        Object channelReplaced = Helpers.replace(((String)channel), Helpers.add(".", marketId), "");
         client.resolve(stored, symbolSpecificMessageHash);
         client.resolve(stored, channelReplaced);
     }
@@ -1177,9 +1177,9 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPositions() symbols is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " watchPositions() symbols is required")) ;
                 }
-                messageHash = Helpers.add("positions::", String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add("positions::", String.join(",", (java.util.List<String>)symbols));
             }
             Client client = this.client(url);
             this.setPositionsCache(client, symbols);
@@ -1209,7 +1209,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             String messageHash = (String) "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
@@ -1724,7 +1724,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 client.reject(e, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
-                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
                 }
             } else
             {
@@ -1754,7 +1754,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             // channel might be user.trade.BTC_USDT
             this.handleTrades(client, result);
         }
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(channel, null))) && Helpers.isTrue(((String)channel).startsWith(((String)"user.order")))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(channel, null))) && Helpers.isTrue(((String)channel).startsWith("user.order"))))
         {
             // channel might be user.order.BTC_USDT
             this.handleOrders(client, result);
@@ -1835,7 +1835,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             Client client = this.client(url);
             String messageHash = (String) "authenticated";
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -1884,7 +1884,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             {
                 continue;
             }
-            if (Helpers.isTrue(((String)messageHash).startsWith(((String)"unsubscribe"))))
+            if (Helpers.isTrue(((String)messageHash).startsWith("unsubscribe")))
             {
                 Object subscription = Helpers.GetValue(client.subscriptions, messageHash);
                 Object subId = this.safeString(subscription, "id");

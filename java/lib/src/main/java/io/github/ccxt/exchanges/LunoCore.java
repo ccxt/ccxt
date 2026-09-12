@@ -1472,7 +1472,7 @@ public class LunoCore extends LunoApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1595,7 +1595,7 @@ public class LunoCore extends LunoApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
@@ -1618,7 +1618,7 @@ public class LunoCore extends LunoApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " createOrder() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " createOrder() returned empty response")) ;
             }
             final Object finalResponse = response;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -1729,14 +1729,14 @@ public class LunoCore extends LunoApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLedger() requires a currency code argument if no account id specified in params")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchLedger() requires a currency code argument if no account id specified in params")) ;
                 }
                 currency = this.currency(code);
                 java.util.Map<String, Object> accountsByCurrencyCode = this.indexBy(this.accounts, "currency");
                 Object account = this.safeValue(accountsByCurrencyCode, code);
                 if (Helpers.isTrue(Helpers.isEqual(account, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchLedger() could not find account id for "), code)) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchLedger() could not find account id for "), code)) ;
                 }
                 id = Helpers.GetValue(account, "id");
             }
@@ -1746,7 +1746,7 @@ public class LunoCore extends LunoApi
                 min_row = Helpers.opNeg(1000); // Maximum number of records supported
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(min_row, null)) || Helpers.isTrue(Helpers.isEqual(max_row, null))))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(limit, null)) && Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(max_row, min_row), limit))))
             {
@@ -1760,7 +1760,7 @@ public class LunoCore extends LunoApi
             }
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(max_row, min_row), 1000)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
             }
             final Object finalId = id;
             final Object finalMin_row = min_row;
@@ -2035,7 +2035,7 @@ public class LunoCore extends LunoApi
             String address = this.safeString(parameters, "address");
             if (Helpers.isTrue(Helpers.isEqual(address, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);

@@ -734,12 +734,12 @@ public class BlockchaincomCore extends BlockchaincomApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String orderType = this.safeString(parameters, "ordType", type);
-            Object uppercaseOrderType = ((String)orderType).toUpperCase();
+            Object uppercaseOrderType = orderType.toUpperCase();
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("ordType", "clientOrderId", "clOrdId")));
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalUppercaseOrderType = uppercaseOrderType;
             final Object finalSide = side;
@@ -756,7 +756,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a stopPx or triggerPrice param for a "), uppercaseOrderType), " order")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a stopPx or triggerPrice param for a "), uppercaseOrderType), " order")) ;
                 }
             }
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
@@ -1481,7 +1481,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             Object balances = this.safeValue(response, accountName);
             if (Helpers.isTrue(Helpers.isEqual(balances, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() could not find the \""), accountName), "\" account")) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() could not find the \""), accountName), "\" account")) ;
             }
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -1609,7 +1609,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         {
             if (Helpers.isTrue(Helpers.isEqual(text, "Insufficient Balance")))
             {
-                throw new InsufficientFunds((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+                throw new InsufficientFunds(Helpers.add(Helpers.add(this.id, " "), body)) ;
             }
         }
         String errorCode = this.safeString(response, "status");

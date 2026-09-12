@@ -497,9 +497,9 @@ public class BitoproCore extends BitoproApi
         String id = this.safeString(market, "pair");
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing id")) ;
         }
-        Object uppercaseId = ((String)id).toUpperCase();
+        Object uppercaseId = id.toUpperCase();
         String baseId = this.safeString(market, "base");
         String quoteId = this.safeString(market, "quote");
         String base = (String) this.safeCurrencyCode(baseId);
@@ -1250,7 +1250,7 @@ public class BitoproCore extends BitoproApi
         Object side = this.safeString(order, "action");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseOrder() returned no side")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseOrder() returned no side")) ;
         }
         side = ((String)side).toLowerCase();
         String amount = this.safeString2(order, "amount", "originalAmount");
@@ -1354,7 +1354,7 @@ public class BitoproCore extends BitoproApi
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice")));
                 if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter for "), orderType), " orders")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter for "), orderType), " orders")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -1362,7 +1362,7 @@ public class BitoproCore extends BitoproApi
                 String condition = this.safeString(parameters, "condition");
                 if (Helpers.isTrue(Helpers.isEqual(condition, null)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a condition parameter for "), orderType), " orders")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a condition parameter for "), orderType), " orders")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "condition", condition);
@@ -1408,7 +1408,7 @@ public class BitoproCore extends BitoproApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1474,7 +1474,7 @@ final Object finalJ = j;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1570,7 +1570,7 @@ final Object finalJ = j;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1632,7 +1632,7 @@ final Object finalJ = j;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1775,7 +1775,7 @@ final Object finalJ = j;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1936,7 +1936,7 @@ final Object finalJ = j;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDeposits() requires the code argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDeposits() requires the code argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2004,7 +2004,7 @@ final Object finalJ = j;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchWithdrawals() requires the code argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchWithdrawals() requires the code argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2068,7 +2068,7 @@ final Object finalJ = j;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchWithdrawal() requires the code argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchWithdrawal() requires the code argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2143,7 +2143,7 @@ final Object finalJ = j;
                 Object networkId = ((Helpers.isTrue((Helpers.isEqual(requestedNetwork, null))))) ? null : this.safeString(networks, requestedNetwork);
                 if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " invalid network "), requestedNetwork)) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(this.id, " invalid network "), requestedNetwork)) ;
                 }
                 Helpers.addElementToObject(request, "protocol", networkId);
             }

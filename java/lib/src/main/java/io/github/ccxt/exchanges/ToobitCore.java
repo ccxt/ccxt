@@ -1937,7 +1937,7 @@ public class ToobitCore extends ToobitApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2112,12 +2112,12 @@ public class ToobitCore extends ToobitApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
         }
         Object id = Helpers.GetValue(market, "id");
         final Object finalSide = side;
@@ -2137,7 +2137,7 @@ public class ToobitCore extends ToobitApi
         {
             if (Helpers.isTrue(Helpers.isEqual(cost, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires params[\"cost\"] for market buy order")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires params[\"cost\"] for market buy order")) ;
             }
             Helpers.addElementToObject(request, "quantity", this.costToPrecision(symbol, cost));
         } else
@@ -2164,11 +2164,11 @@ public class ToobitCore extends ToobitApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2449,7 +2449,7 @@ public class ToobitCore extends ToobitApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "none")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
             }
             java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -2463,7 +2463,7 @@ public class ToobitCore extends ToobitApi
             String status = this.parseOrderStatus(this.safeString(response, "status"));
             if (Helpers.isTrue(!Helpers.isEqual(status, "open")))
             {
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " order "), id), " can not be canceled, "), this.json(response))) ;
+                throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " order "), id), " can not be canceled, "), this.json(response))) ;
             }
             return this.parseOrder(response, market);
         });
@@ -2504,7 +2504,7 @@ public class ToobitCore extends ToobitApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "none")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -2544,7 +2544,7 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object idsString = String.join((String)",", (java.util.List<String>)ids);
+            Object idsString = String.join(",", (java.util.List<String>)ids);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ids", idsString );
             }};
@@ -2559,7 +2559,7 @@ public class ToobitCore extends ToobitApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "none")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -2595,7 +2595,7 @@ public class ToobitCore extends ToobitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2751,7 +2751,7 @@ public class ToobitCore extends ToobitApi
                 response = (this.privateGetApiV1SpotTradeOrders(request)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
             }
             return this.parseOrders(response, market, since, limit);
         });
@@ -2804,7 +2804,7 @@ public class ToobitCore extends ToobitApi
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
             } else
             {
                 response = (this.privateGetApiV1FuturesHistoryOrders(request)).join();
@@ -2852,7 +2852,7 @@ public class ToobitCore extends ToobitApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3044,7 +3044,7 @@ public class ToobitCore extends ToobitApi
         String amountRaw = this.safeString(item, "change", "");
         Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
         String direction = "in";
-        if (Helpers.isTrue(((String)amountRaw).startsWith(((String)"-"))))
+        if (Helpers.isTrue(amountRaw.startsWith("-")))
         {
             direction = "out";
         }
@@ -3104,7 +3104,7 @@ public class ToobitCore extends ToobitApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradingFees(): does not support "), marketType), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradingFees(): does not support "), marketType), " markets")) ;
             } else if (Helpers.isTrue(this.inArray(marketType, new java.util.ArrayList<Object>(java.util.Arrays.asList("swap", "future")))))
             {
                 String symbol = null;
@@ -3113,7 +3113,7 @@ public class ToobitCore extends ToobitApi
                 parameters = ((java.util.List<Object>) symbolparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchTradingFees requires a params[\"symbol\"]")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchTradingFees requires a params[\"symbol\"]")) ;
                 }
                 market = this.market(symbol);
                 final Object finalMarket = market;
@@ -3383,7 +3383,7 @@ public class ToobitCore extends ToobitApi
             var paramsOmitted = ((java.util.List<Object>) networkCodeparamsOmittedVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() : param[\"network\"] is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() : param[\"network\"] is required")) ;
             }
             Helpers.addElementToObject(request, "chainType", this.networkCodeToId(networkCode, code));
             java.util.Map<String, Object> response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsOmitted))).join();
@@ -3444,7 +3444,7 @@ public class ToobitCore extends ToobitApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() : param[\"network\"] is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " withdraw() : param[\"network\"] is required")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3497,7 +3497,7 @@ public class ToobitCore extends ToobitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3506,7 +3506,7 @@ public class ToobitCore extends ToobitApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
             }
             marginMode = ((String)marginMode).toUpperCase();
             final Object finalMarginMode = marginMode;
@@ -3542,7 +3542,7 @@ public class ToobitCore extends ToobitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3644,7 +3644,7 @@ public class ToobitCore extends ToobitApi
                 Object length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;
                 }
                 String firstSymbol = this.safeString(symbols, 0);
                 if (Helpers.isTrue(!Helpers.isEqual(firstSymbol, null)))

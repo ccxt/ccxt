@@ -127,7 +127,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             if (Helpers.isTrue(Helpers.isEqual(url, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " is not supported in sandbox environment")) ;
+                throw new NotSupported(Helpers.add(this.id, " is not supported in sandbox environment")) ;
             }
             Object timestamp = String.valueOf(this.nonce());
             Object auth = Helpers.add(Helpers.add(Helpers.add(timestamp, this.apiKey), "CBINTLMD"), this.password);
@@ -196,7 +196,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             if (Helpers.isTrue(Helpers.isEqual(url, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " is not supported in sandbox environment")) ;
+                throw new NotSupported(Helpers.add(this.id, " is not supported in sandbox environment")) ;
             }
             Object timestamp = this.numberToString(this.seconds());
             Object auth = Helpers.add(Helpers.add(Helpers.add(timestamp, this.apiKey), "CBINTLMD"), this.password);
@@ -255,7 +255,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchFundingRates() requires an array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchFundingRates() requires an array of symbols")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {

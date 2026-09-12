@@ -795,7 +795,7 @@ public class Bit2cCore extends Bit2cApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1242,7 +1242,7 @@ public class Bit2cCore extends Bit2cApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(this.isFiat(code)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchDepositAddress() does not support fiat currencies")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchDepositAddress() does not support fiat currencies")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "Coin", Helpers.GetValue(currency, "id") );

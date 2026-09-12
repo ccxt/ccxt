@@ -139,10 +139,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object requestId = this.safeString(wsRequest, "id");
             if (Helpers.isTrue(Helpers.isEqual(operationType, "create_stop_order")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrderWs() do not support stop order type of order. Check provided arguments correctly!")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrderWs() do not support stop order type of order. Check provided arguments correctly!")) ;
             } else if (Helpers.isTrue(Helpers.isEqual(operationType, "set_position_tpsl")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!")) ;
             }
             Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
             //
@@ -310,7 +310,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, "cancelOrders() requires a \"symbol\" argument!")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, "cancelOrders() requires a \"symbol\" argument!")) ;
             }
             Object request = this.cancelOrdersRequest(ids, symbol, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("originAddress", "agentAddress", "expiryWindow", "clientOrderIds")));
@@ -406,7 +406,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrderWs() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrderWs() requires a symbol argument")) ;
             }
             Object request = this.cancelOrderRequest(id, symbol, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("originAddress", "agentAddress", "expiryWindow", "trigger", "stop", "clientOrderId")));
@@ -844,7 +844,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
             }
             Object userAddress = null;
             java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("unWatchMyTrades", parameters);
@@ -1415,7 +1415,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
             }
             String messageHash = (String) "unsubscribe:order";
             Object isTestnet = this.isSandboxModeEnabled;
@@ -1745,7 +1745,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
     {
         if (Helpers.isTrue(Helpers.isEqual(operationType, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, "postAction() requires a \"operationType\" argument!")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, "postAction() requires a \"operationType\" argument!")) ;
         }
         Object requestId = this.requestId();
         java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{

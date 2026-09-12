@@ -111,7 +111,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
                 response = (this.futuresPrivatePostTransferIn(this.extend(request, parameters))).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
+                throw new BadRequest(Helpers.add(this.id, " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
             }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             final Object finalToAccount = toAccount;

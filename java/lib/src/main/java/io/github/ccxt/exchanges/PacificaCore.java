@@ -900,7 +900,7 @@ public class PacificaCore extends PacificaApi
         Object isolatedMargin = null;
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing id")) ;
         }
         if (Helpers.isTrue(isSpot))
         {
@@ -1516,11 +1516,11 @@ public class PacificaCore extends PacificaApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a \"since\" argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV() requires a \"since\" argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a \"symbol\" argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV() requires a \"symbol\" argument")) ;
             }
             Integer defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1937,11 +1937,11 @@ public class PacificaCore extends PacificaApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         /**
          * @method
@@ -2111,7 +2111,7 @@ public class PacificaCore extends PacificaApi
         {
             if (Helpers.isTrue(Helpers.isGreaterThan(lenActions, maxLen)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " batchOrdersRequest() too many orders to create/cancel. Limit is "), maxLen)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " batchOrdersRequest() too many orders to create/cancel. Limit is "), maxLen)) ;
             }
         }
         return new java.util.HashMap<String, Object>() {{
@@ -2138,7 +2138,7 @@ public class PacificaCore extends PacificaApi
             Object priceNumber = this.parseNumber(price);
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " createOrders() supports only type = \"limit\"! Your value type="), type)) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, " createOrders() supports only type = \"limit\"! Your value type="), type)) ;
             }
             Object requestList = this.createOrderRequest(symbol, type, side, amountNumber, priceNumber, orderParams);
             java.util.Map<String, Object> action = new java.util.HashMap<String, Object>() {{
@@ -2245,7 +2245,7 @@ public class PacificaCore extends PacificaApi
             (this.initializeClient()).join();
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a \"symbol\" argument!")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a \"symbol\" argument!")) ;
             }
             Object request = this.cancelOrdersRequest(ids, symbol, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiryWindow", "clientOrderIds")));
@@ -2422,7 +2422,7 @@ public class PacificaCore extends PacificaApi
             (this.initializeClient()).join();
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             Object request = this.cancelOrderRequest(id, symbol, parameters);
             Object isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
@@ -2541,15 +2541,15 @@ public class PacificaCore extends PacificaApi
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(amount, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an amount!")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount!")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(price, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a price")) ;
         }
         String operationType = "edit_order";
         String clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2562,7 +2562,7 @@ public class PacificaCore extends PacificaApi
         }};
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isEqual(id, null)))))
         {
-            throw new ArgumentsRequired((String)Helpers.add("this.id", "editOrder() requires either \"id\" or \"clientOrderId\"")) ;
+            throw new ArgumentsRequired(Helpers.add("this.id", "editOrder() requires either \"id\" or \"clientOrderId\"")) ;
         }
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
@@ -2603,7 +2603,7 @@ public class PacificaCore extends PacificaApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object paginate = false;
@@ -3464,7 +3464,7 @@ public class PacificaCore extends PacificaApi
             String operationType = "update_margin_mode";
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3508,7 +3508,7 @@ public class PacificaCore extends PacificaApi
             String operationType = "update_leverage";
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4097,7 +4097,7 @@ public class PacificaCore extends PacificaApi
             parameters = ((java.util.List<Object>) originAddressparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(originAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(agentAddress, null)))
             {
@@ -4113,11 +4113,11 @@ public class PacificaCore extends PacificaApi
             parameters = ((java.util.List<Object>) subAccountPrivateKeyparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(subAccountAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createSubAccount() requires a \"subAccountAddress\"!")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createSubAccount() requires a \"subAccountAddress\"!")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(subAccountPrivateKey, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
             }
             Long timestamp = this.milliseconds();
             Object expiryWindow = null;
@@ -4286,7 +4286,7 @@ public class PacificaCore extends PacificaApi
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(address1, parameters));
         }
-        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
+        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -4411,7 +4411,7 @@ public class PacificaCore extends PacificaApi
     {
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(header, "type"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(header, "timestamp"), null))) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(header, "expiry_window"), null))))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " prepareMessage() requires type, timestamp, expiry_window in header")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " prepareMessage() requires type, timestamp, expiry_window in header")) ;
         }
         java.util.Map<String, Object> data = this.extend(header, new java.util.HashMap<String, Object>() {{
             put( "data", payload );
@@ -4437,7 +4437,7 @@ public class PacificaCore extends PacificaApi
         this.checkRequiredCredentials(); // check credentials every post action
         if (Helpers.isTrue(Helpers.isEqual(operationType, "undefined")))
         {
-            throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " action: "), operationType), " postActionRequest() requires \"operationType\"")) ;
+            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " action: "), operationType), " postActionRequest() requires \"operationType\"")) ;
         }
         if (!Helpers.isTrue(this.isSandboxModeEnabled))
         {
@@ -4480,7 +4480,7 @@ public class PacificaCore extends PacificaApi
         parameters = ((java.util.List<Object>) originAddressparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(originAddress, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " action: "), operationType), " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
+            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " action: "), operationType), " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
         }
         Helpers.addElementToObject(finalHeaders, "account", originAddress);
         if (Helpers.isTrue(!Helpers.isEqual(agentAddress, null)))

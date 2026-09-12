@@ -936,20 +936,20 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             }
             if (!Helpers.isTrue(this.inArray(limit, limits)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " watchOrderBookForSymbols() limit must be one of "), String.join((String)", ", (java.util.List<String>)limits))) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, " watchOrderBookForSymbols() limit must be one of "), String.join(", ", (java.util.List<String>)limits))) ;
             }
             Object defaultAggregation = this.safeString(options, "defaultAggregation", "0");
             Object aggregations = this.safeList(options, "aggregations", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object aggregation = this.safeString(parameters, "aggregation", defaultAggregation);
             if (!Helpers.isTrue(this.inArray(aggregation, aggregations)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " watchOrderBookForSymbols() aggregation must be one of "), String.join((String)", ", (java.util.List<String>)aggregations))) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, " watchOrderBookForSymbols() aggregation must be one of "), String.join(", ", (java.util.List<String>)aggregations))) ;
             }
             parameters = this.omit(parameters, "aggregation");
             Boolean symbolsDefined = (!Helpers.isEqual(symbols, null));
             if (!Helpers.isTrue(symbolsDefined))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrderBookForSymbols() requires a symbol argument")) ;
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
@@ -1658,7 +1658,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             client.reject(error, messageHash);
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
     }
@@ -1689,7 +1689,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             Long time = this.milliseconds();
             Object timestamp = String.valueOf(time);
             String messageHash = (String) "authenticated";
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(!Helpers.isEqual(authenticated, null)))
             {

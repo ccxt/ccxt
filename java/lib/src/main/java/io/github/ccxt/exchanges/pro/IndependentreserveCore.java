@@ -282,7 +282,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             if (Helpers.isTrue(!Helpers.isEqual(calculatedChecksum, responseChecksum)))
             {
                 var error = new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol)));
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
                 ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
                 client.reject(error, messageHash);
                 return;
@@ -300,7 +300,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
         Object result = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
-        result = Helpers.replace((String)result, (String)".", (String)"");
+        result = Helpers.replace(((String)result), ".", "");
         // remove leading zeros
         result = this.parseNumber(result);
         result = this.numberToString(result);
@@ -360,6 +360,6 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             Helpers.callDynamically(this, handler, new Object[] {client, message});
             return;
         }
-        throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " received an unsupported message: "), this.json(message))) ;
+        throw new NotSupported(Helpers.add(Helpers.add(this.id, " received an unsupported message: "), this.json(message))) ;
     }
 }

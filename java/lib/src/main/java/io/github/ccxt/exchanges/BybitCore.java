@@ -2261,7 +2261,7 @@ public class BybitCore extends BybitApi
     {
         if (Helpers.isTrue(this.isSandboxModeEnabled))
         {
-            throw new NotSupported((String)Helpers.add(this.id, " demo trading does not support in sandbox environment")) ;
+            throw new NotSupported(Helpers.add(this.id, " demo trading does not support in sandbox environment")) ;
         }
         // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
         if (Helpers.isTrue(enable))
@@ -2433,7 +2433,7 @@ public class BybitCore extends BybitApi
             String symbolQuoteAndSettle = this.safeString(symbolBase, 1);
             if (Helpers.isTrue(Helpers.isEqual(symbolQuoteAndSettle, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " createExpiredOptionMarket() missing symbolQuoteAndSettle")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createExpiredOptionMarket() missing symbolQuoteAndSettle")) ;
             }
             Object splitQuote = Helpers.split(symbolQuoteAndSettle, ":");
             String quoteAndSettle = this.safeString(splitQuote, 0);
@@ -2443,7 +2443,7 @@ public class BybitCore extends BybitApi
         {
             base = this.safeString(optionParts, 0);
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
-            if (Helpers.isTrue(((String)symbol).endsWith(((String)"-USDT"))))
+            if (Helpers.isTrue(((String)symbol).endsWith("-USDT")))
             {
                 quote = "USDT";
                 settle = "USDT";
@@ -2892,7 +2892,7 @@ public class BybitCore extends BybitApi
                     }
                 } else
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
                 }
             }
             Object promises = (Helpers.promiseAll(promisesUnresolved)).join();
@@ -3372,7 +3372,7 @@ public class BybitCore extends BybitApi
                 Long expiry = this.safeInteger(market, "deliveryTime");
                 if (Helpers.isTrue(Helpers.isEqual(id, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " method() missing id")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " method() missing id")) ;
                 }
                 Object splitId = Helpers.split(id, "-");
                 String strike = this.safeString(splitId, 2);
@@ -3584,7 +3584,7 @@ public class BybitCore extends BybitApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTicker() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTicker() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3696,13 +3696,13 @@ public class BybitCore extends BybitApi
                         currentType = Helpers.GetValue(market, "type");
                     } else if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), currentType)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " fetchTickers can only accept a list of symbols of the same type")) ;
+                        throw new BadRequest(Helpers.add(this.id, " fetchTickers can only accept a list of symbols of the same type")) ;
                     }
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
                     {
                         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue(!Helpers.isEqual(code, Helpers.GetValue(market, "base")))))
                         {
-                            throw new BadRequest((String)Helpers.add(this.id, " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers")) ;
+                            throw new BadRequest(Helpers.add(this.id, " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers")) ;
                         }
                         if (Helpers.isTrue(Helpers.isEqual(code, null)))
                         {
@@ -3844,7 +3844,7 @@ public class BybitCore extends BybitApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3903,7 +3903,7 @@ public class BybitCore extends BybitApi
                     Helpers.addElementToObject(request, "category", "inverse");
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOHLCV() is not supported for option markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOHLCV() is not supported for option markets")) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(price, "mark")))
                 {
@@ -4073,7 +4073,7 @@ public class BybitCore extends BybitApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "swap")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchFundingRates() does not support "), type), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchFundingRates() does not support "), type), " markets")) ;
             } else
             {
                 Object subType = null;
@@ -4155,7 +4155,7 @@ public class BybitCore extends BybitApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4187,7 +4187,7 @@ public class BybitCore extends BybitApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "option"))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRateHistory() only support linear and inverse market")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingRateHistory() only support linear and inverse market")) ;
             }
             Helpers.addElementToObject(request, "category", type);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -4446,7 +4446,7 @@ public class BybitCore extends BybitApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(lastLiquidityInd, "TAKER"))) || Helpers.isTrue((Helpers.isEqual(lastLiquidityInd, "MAKER")))))
                 {
-                    takerOrMaker = ((String)lastLiquidityInd).toLowerCase();
+                    takerOrMaker = lastLiquidityInd.toLowerCase();
                 } else
                 {
                     takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(lastLiquidityInd, "AddedLiquidity"))))) ? "maker" : "taker";
@@ -4541,7 +4541,7 @@ public class BybitCore extends BybitApi
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4611,7 +4611,7 @@ public class BybitCore extends BybitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrderBook() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrderBook() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5266,7 +5266,7 @@ public class BybitCore extends BybitApi
             }};
         }
         String clientOrderId = this.safeString(order, "orderLinkId");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(((String)clientOrderId).length(), 1)))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(clientOrderId.length(), 1)))))
         {
             clientOrderId = null;
         }
@@ -5369,7 +5369,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
@@ -5403,12 +5403,12 @@ public class BybitCore extends BybitApi
             Object enableUnifiedAccount = Helpers.GetValue(types, 1);
             if (Helpers.isTrue(!Helpers.isEqual(enableUnifiedAccount, true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketSellOrderWithCost() supports UTA accounts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() supports UTA accounts only")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
             }
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
@@ -5518,11 +5518,11 @@ public class BybitCore extends BybitApi
         Object isUTA = Helpers.getArg(optionalArgs, 2, true);
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         symbol = Helpers.GetValue(market, "symbol");
@@ -5564,7 +5564,7 @@ public class BybitCore extends BybitApi
         Boolean endpointIsTradingStop = Helpers.isEqual(method, "privatePostV5PositionTradingStop");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isEqual(lowerCaseType, "limit")))) && !Helpers.isTrue(endpointIsTradingStop)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder requires a price argument for limit orders")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder requires a price argument for limit orders")) ;
         }
         // workaround, bcz for some langs we have to allow 0.0 as input (bcz of type)
         if (!Helpers.isTrue(Precise.stringGt(this.numberToString(amount), "0")))
@@ -5577,7 +5577,7 @@ public class BybitCore extends BybitApi
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)) || Helpers.isTrue(isTriggerOrder)) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue(isStopLossOrder) || Helpers.isTrue(isTakeProfitOrder)))
             {
@@ -5631,7 +5631,7 @@ public class BybitCore extends BybitApi
                 }
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isTakeProfitOrder) && Helpers.isTrue(isStopLossOrder)) && Helpers.isTrue(!Helpers.isEqual(tpslModeSl, tpslModeTp))))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination")) ;
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(tpslModeSl, null)))
                 {
@@ -5732,7 +5732,7 @@ public class BybitCore extends BybitApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isEqual(cost, null)))))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
                 {
                     Object quoteAmount = Precise.stringMul(this.numberToString(amount), priceString);
@@ -5774,13 +5774,13 @@ public class BybitCore extends BybitApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(triggerDirection, null)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " createOrder() : trigger order does not support triggerDirection for spot markets yet")) ;
+                    throw new NotSupported(Helpers.add(this.id, " createOrder() : trigger order does not support triggerDirection for spot markets yet")) ;
                 }
             } else
             {
                 if (Helpers.isTrue(Helpers.isEqual(triggerDirection, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " stop/trigger orders require a triggerDirection parameter, either \"ascending\" or \"descending\" to determine the direction of the trigger.")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " stop/trigger orders require a triggerDirection parameter, either \"ascending\" or \"descending\" to determine the direction of the trigger.")) ;
                 }
                 Boolean isAsending = (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(triggerDirection, "ascending"))) || Helpers.isTrue((Helpers.isEqual(triggerDirection, "above")))) || Helpers.isTrue((Helpers.isEqual(triggerDirection, "1"))));
                 Helpers.addElementToObject(request, "triggerDirection", ((Helpers.isTrue(isAsending))) ? 1 : 2);
@@ -5822,7 +5822,7 @@ public class BybitCore extends BybitApi
                 // for spot market, we need to add this
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue(isMarketOrder)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder(): attached stopLoss is not supported for spot market orders")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder(): attached stopLoss is not supported for spot market orders")) ;
                 }
             }
             if (Helpers.isTrue(hasTakeProfit))
@@ -5846,7 +5846,7 @@ public class BybitCore extends BybitApi
                 // for spot market, we need to add this
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue(isMarketOrder)))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder(): attached takeProfit is not supported for spot market orders")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder(): attached takeProfit is not supported for spot market orders")) ;
                 }
             }
         }
@@ -5897,7 +5897,7 @@ public class BybitCore extends BybitApi
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
-                ((java.util.Map<String,Object>)orderRequest).remove((String)"category");
+                ((java.util.Map<String,Object>)orderRequest).remove("category");
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             Object symbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -5909,7 +5909,7 @@ public class BybitCore extends BybitApi
             parameters = ((java.util.List<Object>) categoryparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(category, "inverse"))) && Helpers.isTrue((Helpers.isLessThan(unifiedMarginStatus, 5)))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrders does not allow inverse orders for non UTA2.0 account")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrders does not allow inverse orders for non UTA2.0 account")) ;
             }
             final Object finalCategory = category;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -5980,11 +5980,11 @@ public class BybitCore extends BybitApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -6095,7 +6095,7 @@ public class BybitCore extends BybitApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
@@ -6155,7 +6155,7 @@ public class BybitCore extends BybitApi
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, orderParams);
-                ((java.util.Map<String,Object>)orderRequest).remove((String)"category");
+                ((java.util.Map<String,Object>)orderRequest).remove("category");
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -6167,7 +6167,7 @@ public class BybitCore extends BybitApi
             parameters = ((java.util.List<Object>) categoryparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(category, "inverse"))) && Helpers.isTrue((Helpers.isLessThan(unifiedMarginStatus, 5)))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " editOrders does not allow inverse orders for non UTA2.0 account")) ;
+                throw new NotSupported(Helpers.add(this.id, " editOrders does not allow inverse orders for non UTA2.0 account")) ;
             }
             final Object finalCategory = category;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -6278,7 +6278,7 @@ public class BybitCore extends BybitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6325,7 +6325,7 @@ public class BybitCore extends BybitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6336,7 +6336,7 @@ public class BybitCore extends BybitApi
             Object enableUnifiedAccount = Helpers.GetValue(types, 1);
             if (Helpers.isTrue(!Helpers.isEqual(enableUnifiedAccount, true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelOrders() supports UTA accounts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelOrders() supports UTA accounts only")) ;
             }
             Object category = null;
             var categoryparametersVariable = this.getBybitType("cancelOrders", market, parameters);
@@ -6344,7 +6344,7 @@ public class BybitCore extends BybitApi
             parameters = ((java.util.List<Object>) categoryparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(category, "inverse")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelOrders does not allow inverse orders")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelOrders does not allow inverse orders")) ;
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object clientOrderIds = this.safeList2(parameters, "clientOrderIds", "clientOids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -6435,7 +6435,7 @@ public class BybitCore extends BybitApi
             }
             if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+                throw new ExchangeError(Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
             }
             final Object finalTimeout = timeout;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -6487,7 +6487,7 @@ public class BybitCore extends BybitApi
             Object enableUnifiedAccount = Helpers.GetValue(types, 1);
             if (Helpers.isTrue(!Helpers.isEqual(enableUnifiedAccount, true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelOrdersForSymbols() supports UTA accounts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelOrdersForSymbols() supports UTA accounts only")) ;
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object category = null;
@@ -6502,11 +6502,11 @@ public class BybitCore extends BybitApi
                 parameters = ((java.util.List<Object>) currentCategoryparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(currentCategory, "inverse")))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " cancelOrdersForSymbols does not allow inverse orders")) ;
+                    throw new NotSupported(Helpers.add(this.id, " cancelOrdersForSymbols does not allow inverse orders")) ;
                 }
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(category, null))) && Helpers.isTrue((!Helpers.isEqual(category, currentCategory)))))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " cancelOrdersForSymbols requires all orders to be of the same category (linear, spot or option))")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " cancelOrdersForSymbols requires all orders to be of the same category (linear, spot or option))")) ;
                 }
                 category = currentCategory;
                 String id = this.safeString(order, "id");
@@ -6614,7 +6614,7 @@ public class BybitCore extends BybitApi
             Helpers.addElementToObject(request, "category", type);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "option"))) && !Helpers.isTrue(isUnifiedAccount)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrders() Normal Account not support "), type), " market")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrders() Normal Account not support "), type), " market")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "linear"))) || Helpers.isTrue((Helpers.isEqual(type, "inverse")))))
             {
@@ -6692,7 +6692,7 @@ public class BybitCore extends BybitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6701,7 +6701,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrder() is not supported for spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrder() is not supported for spot markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
@@ -6712,11 +6712,11 @@ public class BybitCore extends BybitApi
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 String extra = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
+                throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
             }
             if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " returned more than one order")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " returned more than one order")) ;
             }
             return this.safeValue(result, 0);
         });
@@ -6759,7 +6759,7 @@ public class BybitCore extends BybitApi
             parameters = ((java.util.List<Object>) acknowledgeparametersVariable).get(1);
             if (!Helpers.isTrue(acknowledge))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params[\"acknowledged\"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params[\"acknowledged\"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object marketType = null;
@@ -6838,7 +6838,7 @@ public class BybitCore extends BybitApi
             if (Helpers.isTrue(Helpers.isEqual(innerListLength, 0)))
             {
                 String extra = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
+                throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
             }
             Object order = this.safeDict(innerList, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
@@ -6898,7 +6898,7 @@ public class BybitCore extends BybitApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrdersClassic() is not supported for spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrdersClassic() is not supported for spot markets")) ;
             }
             Helpers.addElementToObject(request, "category", type);
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
@@ -7014,11 +7014,11 @@ public class BybitCore extends BybitApi
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 String extra = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
+                throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
             }
             if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " returned more than one order")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " returned more than one order")) ;
             }
             return this.safeValue(result, 0);
         });
@@ -7062,11 +7062,11 @@ public class BybitCore extends BybitApi
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 String extra = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
+                throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
             }
             if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " returned more than one order")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " returned more than one order")) ;
             }
             return this.safeValue(result, 0);
         });
@@ -8386,7 +8386,7 @@ public class BybitCore extends BybitApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPosition() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchPosition() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -8494,7 +8494,7 @@ public class BybitCore extends BybitApi
                 Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() does not accept an array with more than one symbol")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositions() does not accept an array with more than one symbol")) ;
                 } else if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     symbol = Helpers.GetValue(symbols, 0);
@@ -8953,7 +8953,7 @@ public class BybitCore extends BybitApi
                     marginMode = "PORTFOLIO_MARGIN";
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " setMarginMode() marginMode must be either [isolated, cross, portfolio]")) ;
+                    throw new NotSupported(Helpers.add(this.id, " setMarginMode() marginMode must be either [isolated, cross, portfolio]")) ;
                 }
                 final Object finalMarginMode = marginMode;
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -8964,7 +8964,7 @@ public class BybitCore extends BybitApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol parameter for non unified account")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol parameter for non unified account")) ;
                 }
                 market = this.market(symbol);
                 Boolean isUsdcSettled = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC");
@@ -8978,7 +8978,7 @@ public class BybitCore extends BybitApi
                         marginMode = "PORTFOLIO_MARGIN";
                     } else
                     {
-                        throw new NotSupported((String)Helpers.add(this.id, " setMarginMode() for usdc market marginMode must be either [cross, portfolio]")) ;
+                        throw new NotSupported(Helpers.add(this.id, " setMarginMode() for usdc market marginMode must be either [cross, portfolio]")) ;
                     }
                     final Object finalMarginMode_2 = marginMode;
                     java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -9000,7 +9000,7 @@ public class BybitCore extends BybitApi
                         tradeMode = 1;
                     } else
                     {
-                        throw new NotSupported((String)Helpers.add(this.id, " setMarginMode() with symbol marginMode must be either [isolated, cross]")) ;
+                        throw new NotSupported(Helpers.add(this.id, " setMarginMode() with symbol marginMode must be either [isolated, cross]")) ;
                     }
                     Object sellLeverage = null;
                     Object buyLeverage = null;
@@ -9011,7 +9011,7 @@ public class BybitCore extends BybitApi
                         buyLeverage = this.safeString2(parameters, "buy_leverage", "buyLeverage");
                         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(sellLeverage, null)) && Helpers.isTrue(Helpers.isEqual(buyLeverage, null))))
                         {
-                            throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters")) ;
+                            throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters")) ;
                         }
                         if (Helpers.isTrue(Helpers.isEqual(buyLeverage, null)))
                         {
@@ -9069,7 +9069,7 @@ public class BybitCore extends BybitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -9096,7 +9096,7 @@ public class BybitCore extends BybitApi
                 Helpers.addElementToObject(request, "category", "inverse");
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " setLeverage() only support linear and inverse market")) ;
+                throw new NotSupported(Helpers.add(this.id, " setLeverage() only support linear and inverse market")) ;
             }
             java.util.Map<String, Object> response = (this.privatePostV5PositionSetLeverage(this.extend(request, parameters))).join();
             return response;
@@ -9197,7 +9197,7 @@ public class BybitCore extends BybitApi
             String interval = this.safeString(intervals, timeframe); // 5min,15min,30min,1h,4h,1d
             if (Helpers.isTrue(Helpers.isEqual(interval, null)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenInterestHistory() cannot use the "), timeframe), " timeframe")) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenInterestHistory() cannot use the "), timeframe), " timeframe")) ;
             }
             final Object finalInterval = interval;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -9282,14 +9282,14 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
             String timeframe = this.safeString(parameters, "interval", "1h");
             Object intervals = this.safeDict(this.options, "intervals");
             String interval = this.safeString(intervals, timeframe); // 5min,15min,30min,1h,4h,1d
             if (Helpers.isTrue(Helpers.isEqual(interval, null)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenInterest() cannot use the "), timeframe), " timeframe")) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenInterest() cannot use the "), timeframe), " timeframe")) ;
             }
             String subType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))))) ? "linear" : "inverse";
             String category = this.safeString(parameters, "category", subType);
@@ -9357,7 +9357,7 @@ public class BybitCore extends BybitApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(timeframe, "1m")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -9373,7 +9373,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "option"), true)))))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchOpenInterestHistory() symbol does not support market "), symbol)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchOpenInterestHistory() symbol does not support market "), symbol)) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -10061,7 +10061,7 @@ public class BybitCore extends BybitApi
             market = this.market(symbol);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "option"), true)))))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchMarketLeverageTiers() symbol does not support market "), symbol)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchMarketLeverageTiers() symbol does not support market "), symbol)) ;
             }
             Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             return (this.fetchDerivativesMarketLeverageTiers(symbol, parameters)).join();
@@ -10171,7 +10171,7 @@ public class BybitCore extends BybitApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFees() is not supported for spot market")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTradingFees() is not supported for spot market")) ;
             }
             java.util.Map<String, Object> response = (this.privateGetV5AccountFeeRate(parameters)).join();
             //
@@ -10374,7 +10374,7 @@ public class BybitCore extends BybitApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchSettlementHistory() is not supported for spot market")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchSettlementHistory() is not supported for spot market")) ;
             }
             Helpers.addElementToObject(request, "category", type);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -10449,7 +10449,7 @@ public class BybitCore extends BybitApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchMySettlementHistory() is not supported for spot market")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchMySettlementHistory() is not supported for spot market")) ;
             }
             Helpers.addElementToObject(request, "category", type);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -11085,7 +11085,7 @@ public class BybitCore extends BybitApi
                 market = this.market(Helpers.GetValue(symbols, 0));
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchLeverageTiers() is not supported for spot market")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchLeverageTiers() is not supported for spot market")) ;
                 }
                 symbol = Helpers.GetValue(market, "symbol");
             }
@@ -12097,7 +12097,7 @@ final Object finalMarket = market;
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "option"))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchLongShortRatioHistory() only support linear and inverse markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchLongShortRatioHistory() only support linear and inverse markets")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
             {
@@ -12183,7 +12183,7 @@ final Object finalMarket = market;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositionsADLRank() requires a symbols argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositionsADLRank() requires a symbols argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {

@@ -539,7 +539,7 @@ public class KalshiCore extends KalshiApi
                     }
                     if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
                     {
-                        throw new ExchangeError((String)Helpers.add(this.id, " fetchOutcome() could not resolve parsed")) ;
+                        throw new ExchangeError(Helpers.add(this.id, " fetchOutcome() could not resolve parsed")) ;
                     }
                     Helpers.addElementToObject(this.markets, Helpers.GetValue(parsed, "market"), parsed);
                     // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
@@ -640,7 +640,7 @@ public class KalshiCore extends KalshiApi
                     ((java.util.List<Object>)chunk).add(Helpers.GetValue(tickers, i));
                 }
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                    put( "tickers", String.join((String)",", (java.util.List<String>)chunk) );
+                    put( "tickers", String.join(",", (java.util.List<String>)chunk) );
                     put( "limit", chunkSize );
                 }};
                 java.util.Map<String, Object> response = (this.kalshiPublicGetMarkets(request)).join();
@@ -650,7 +650,7 @@ public class KalshiCore extends KalshiApi
                     Object parsed = this.parseMarket(Helpers.GetValue(rawMarkets, i));
                     if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
                     {
-                        throw new ExchangeError((String)Helpers.add(this.id, " fetchOutcomes() could not resolve parsed")) ;
+                        throw new ExchangeError(Helpers.add(this.id, " fetchOutcomes() could not resolve parsed")) ;
                     }
                     Helpers.addElementToObject(this.markets, Helpers.GetValue(parsed, "market"), parsed);
                     this.indexMarketOutcomes(parsed);
@@ -795,7 +795,7 @@ public class KalshiCore extends KalshiApi
         if (Helpers.isTrue(Helpers.isGreaterThan(eventPartsLength, 1)))
         {
             Object seriesParts = this.arraySlice(eventParts, 0, Helpers.subtract(eventPartsLength, 1));
-            seriesTicker = String.join((String)"-", (java.util.List<String>)seriesParts);
+            seriesTicker = String.join("-", (java.util.List<String>)seriesParts);
         }
         // market symbol (no outcome suffix)
         Object subtitleOrTicker = ((Helpers.isTrue((!Helpers.isEqual(subtitle, null))))) ? subtitle : ticker;
@@ -829,7 +829,7 @@ public class KalshiCore extends KalshiApi
             Object settleFractionRaw = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(resolved) && Helpers.isTrue((!Helpers.isEqual(result, null)))) && Helpers.isTrue((!Helpers.isEqual(result, "")))))
             {
-                winnerRaw = (Helpers.isEqual(((String)label).toLowerCase(), result));
+                winnerRaw = (Helpers.isEqual(label.toLowerCase(), result));
                 settleFractionRaw = ((Helpers.isTrue((winnerRaw)))) ? 1 : 0;
                 if (Helpers.isTrue(winnerRaw))
                 {
@@ -1103,7 +1103,7 @@ final Object finalOi = oi;
         }}, market);
         Helpers.addElementToObject(openInterest, "outcome", this.safeOutcomeSymbol(null, market));
         Helpers.addElementToObject(openInterest, "outcomeId", this.safeString(market, "outcomeId"));
-        ((java.util.Map<String,Object>)openInterest).remove((String)"symbol");
+        ((java.util.Map<String,Object>)openInterest).remove("symbol");
         return openInterest;
     }
 
@@ -1270,7 +1270,7 @@ final Object finalOi = oi;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
             }
             // batch-resolve the uncached outcomes (one markets request per 100 tickers)
             (this.loadOutcomes(outcomes)).join();
@@ -1317,7 +1317,7 @@ final Object finalOi = oi;
                     ((java.util.List<Object>)chunk).add(Helpers.GetValue(tickers, i));
                 }
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                    put( "tickers", String.join((String)",", (java.util.List<String>)chunk) );
+                    put( "tickers", String.join(",", (java.util.List<String>)chunk) );
                     put( "limit", chunkSize );
                 }};
                 java.util.Map<String, Object> response = (this.kalshiPublicGetMarkets(this.extend(request, parameters))).join();
@@ -1486,8 +1486,8 @@ final Object finalOi = oi;
                 // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
                 // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
                 Object tfKeys = Helpers.objectKeys(this.timeframes);
-                Object supported = String.join((String)", ", (java.util.List<String>)tfKeys);
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support the "), timeframe), " timeframe (supported: "), supported), ")")) ;
+                Object supported = String.join(", ", (java.util.List<String>)tfKeys);
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support the "), timeframe), " timeframe (supported: "), supported), ")")) ;
             }
             final Object finalPeriodMin = periodMin;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1781,7 +1781,7 @@ final Object finalOi = oi;
                 outcomeObj = this.outcome(outcome);
                 if (Helpers.isTrue(Helpers.isEqual(outcomeObj, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a valid outcome")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " requires a valid outcome")) ;
                 }
                 Helpers.addElementToObject(request, "ticker", this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker"));
             }
@@ -1999,7 +1999,7 @@ final Object finalOi = oi;
             java.util.Map<String, Object> wantedTickers = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchPositions() missing outcomes")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchPositions() missing outcomes")) ;
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
             {
@@ -2250,7 +2250,7 @@ final Object finalOi = oi;
                 outcomeObj = this.outcome(outcome);
                 if (Helpers.isTrue(Helpers.isEqual(outcomeObj, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a valid outcome")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " requires a valid outcome")) ;
                 }
                 Helpers.addElementToObject(request, "ticker", this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker"));
             }
@@ -2293,7 +2293,7 @@ final Object finalOi = oi;
                 outcomeObj = this.outcome(outcome);
                 if (Helpers.isTrue(Helpers.isEqual(outcomeObj, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a valid outcome")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " requires a valid outcome")) ;
                 }
                 Helpers.addElementToObject(request, "ticker", this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker"));
             }
@@ -2511,7 +2511,7 @@ final Object finalOi = oi;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }")) ;
             }
             (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
@@ -2637,11 +2637,11 @@ final Object finalOi = oi;
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price - kalshi has only limit orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a price - kalshi has only limit orders")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(amount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an amount")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount")) ;
             }
             (this.loadOutcome(outcome)).join();
             (this.cancelOrder(id, outcome)).join();
@@ -2773,7 +2773,7 @@ final Object finalOi = oi;
             Object queries = this.parseSearchQueries(parameters);
             if (Helpers.isTrue(Helpers.isEqual(queries, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchEvents() missing queries")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchEvents() missing queries")) ;
             }
             Object queriesLength = Helpers.getArrayLength(queries);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries")));
@@ -3363,7 +3363,7 @@ final Object finalOi = oi;
             Object payload = Helpers.add(Helpers.add(timestamp, method), pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
             Object keyParts = Helpers.split(this.privateKey, "\\n");
-            Object cleanPrivateKey = String.join((String)"\n", (java.util.List<String>)keyParts);
+            Object cleanPrivateKey = String.join("\n", (java.util.List<String>)keyParts);
             Object signature = rsa(payload, cleanPrivateKey, sha256(), "pss");
             final Object finalTimestamp = timestamp;
             headers = this.extend(headers, new java.util.HashMap<String, Object>() {{

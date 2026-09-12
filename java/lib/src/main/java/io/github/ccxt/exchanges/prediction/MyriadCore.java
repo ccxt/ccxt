@@ -697,7 +697,7 @@ public class MyriadCore extends MyriadApi
             Object address = this.safeString2(parameters, "address", "user", this.walletAddressOrUndefined());
             if (Helpers.isTrue(Helpers.isEqual(address, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() requires a walletAddress or an address parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositions() requires a walletAddress or an address parameter")) ;
             }
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "user")));
             final Object finalAddress = address;
@@ -931,7 +931,7 @@ public class MyriadCore extends MyriadApi
         Object sHex = this.safeString(signature, "s");
         if (Helpers.isTrue(Helpers.isEqual(rHex, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " signEvmTransaction() missing rHex")) ;
+            throw new ExchangeError(Helpers.add(this.id, " signEvmTransaction() missing rHex")) ;
         }
         Object rHexLength = ((String)rHex).length();
         if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(rHexLength, 2)), 0)))
@@ -940,7 +940,7 @@ public class MyriadCore extends MyriadApi
         }
         if (Helpers.isTrue(Helpers.isEqual(sHex, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " signEvmTransaction() missing sHex")) ;
+            throw new ExchangeError(Helpers.add(this.id, " signEvmTransaction() missing sHex")) ;
         }
         Object sHexLength = ((String)sHex).length();
         if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(sHexLength, 2)), 0)))
@@ -977,7 +977,7 @@ public class MyriadCore extends MyriadApi
             Object rpcError = this.safeValue(response, "error");
             if (Helpers.isTrue(!Helpers.isEqual(rpcError, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " rpc "), method), " error: "), this.json(rpcError))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " rpc "), method), " error: "), this.json(rpcError))) ;
             }
             // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
             // safeString would coerce a receipt object to "[object Object]"
@@ -1050,7 +1050,7 @@ public class MyriadCore extends MyriadApi
             Object enableAmm = this.safeBool2(parameters, "enableAmm", "enableAmmOrders", this.safeBool(this.options, "enableAmmOrders", false));
             if (Helpers.isTrue(!Helpers.isEqual(enableAmm, true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
             }
             return (this.createAmmOrder(outcome, type, side, amount, price, this.omit(rest, new java.util.ArrayList<Object>(java.util.Arrays.asList("enableAmm", "enableAmmOrders"))))).join();
         });
@@ -1163,7 +1163,7 @@ public class MyriadCore extends MyriadApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a privateKey to sign the order")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a privateKey to sign the order")) ;
         }
         Object outcomeObj = this.outcome(outcome);
         Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
@@ -1185,7 +1185,7 @@ public class MyriadCore extends MyriadApi
                 priceValue = ((Helpers.isTrue((Helpers.isEqual(sideInt, 0))))) ? 1 : 0;
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price for limit orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price for limit orders")) ;
             }
         }
         Object priceWei = this.toOrderbookWei(priceValue);
@@ -1196,13 +1196,13 @@ public class MyriadCore extends MyriadApi
         // price is a fraction in (0, 1] encoded as 1..1e18 wei (tick is 1 wei); reject out-of-range early
         if (Helpers.isTrue(Precise.stringGt(priceWei, "1000000000000000000")))
         {
-            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() price must be a fraction between 0 and 1")) ;
+            throw new InvalidOrder(Helpers.add(this.id, " createOrder() price must be a fraction between 0 and 1")) ;
         }
         Object amountWei = this.toOrderbookWei(amount);
         // shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
         if (Helpers.isTrue(Precise.stringLt(amountWei, "1")))
         {
-            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() amount is too small (rounds to zero shares)")) ;
+            throw new InvalidOrder(Helpers.add(this.id, " createOrder() amount is too small (rounds to zero shares)")) ;
         }
         Object nonce = this.safeString(parameters, "nonce", this.numberToString(this.milliseconds()));
         Object expiration = this.safeString(parameters, "expiration", "0");
@@ -1339,11 +1339,11 @@ public class MyriadCore extends MyriadApi
             Object isCostDenominated = this.safeBool(parameters, "costDenominated", false);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sideLower, "buy"))) && Helpers.isTrue((!Helpers.isEqual(isCostDenominated, true)))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a privateKey to sign the on-chain transaction")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a privateKey to sign the on-chain transaction")) ;
             }
             (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
@@ -1353,7 +1353,7 @@ public class MyriadCore extends MyriadApi
             Object chainConfig = this.safeDict(chains, networkId);
             if (Helpers.isTrue(Helpers.isEqual(chainConfig, null)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " createOrder() has no on-chain config for network "), networkId)) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, " createOrder() has no on-chain config for network "), networkId)) ;
             }
             Object rpcUrl = this.safeString2(parameters, "rpcUrl", "rpc", this.safeString(chainConfig, "rpcUrl"));
             Object predictionMarket = this.safeString(chainConfig, "predictionMarket");
@@ -1369,7 +1369,7 @@ public class MyriadCore extends MyriadApi
             Object calldata = this.safeString(this.safeDict(quote, "info", new java.util.HashMap<String, Object>() {{}}), "calldata");
             if (Helpers.isTrue(Helpers.isEqual(calldata, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createAmmOrder is missing calldata from fetchTradeQuote")) ;
+                throw new BadRequest(Helpers.add(this.id, " createAmmOrder is missing calldata from fetchTradeQuote")) ;
             }
             Object fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
             Object txHashParam = this.safeString2(parameters, "transactionHash", "txHash");
@@ -1435,7 +1435,7 @@ public class MyriadCore extends MyriadApi
         Object exchangeAddress = this.safeString(chainConfig, "obExchangeAddress");
         if (Helpers.isTrue(Helpers.isEqual(exchangeAddress, null)))
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " order book trading is not configured for network "), networkId)) ;
+            throw new NotSupported(Helpers.add(Helpers.add(this.id, " order book trading is not configured for network "), networkId)) ;
         }
         Object domainName = this.safeString(this.options, "obDomainName", "MyriadCTFExchange");
         Object domainVersion = this.safeString(this.options, "obDomainVersion", "1");
@@ -1451,8 +1451,8 @@ public class MyriadCore extends MyriadApi
         Object signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1(), null);
         Object rRaw = Helpers.GetValue(signature, "r");
         Object sRaw = Helpers.GetValue(signature, "s");
-        Object r = Helpers.padStart((String)rRaw, ((Number)64).intValue(), ((String)"0").charAt(0));
-        Object s = Helpers.padStart((String)sRaw, ((Number)64).intValue(), ((String)"0").charAt(0));
+        Object r = Helpers.padStart(((String)rRaw), ((Number)64).intValue(), "0".charAt(0));
+        Object s = Helpers.padStart(((String)sRaw), ((Number)64).intValue(), "0".charAt(0));
         Object v = this.sum(27, Helpers.GetValue(signature, "v"));
         Object sigHex = Helpers.add(Helpers.add(Helpers.add("0x", r), s), this.intToBase16(v));
         return ((String)sigHex).toLowerCase();
@@ -1621,12 +1621,12 @@ public class MyriadCore extends MyriadApi
         // coerces to true (wrongly truncating to empty), whereas false > -1 correctly coerces to false
         if (Helpers.isTrue(Helpers.isEqual(scaled, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " toOrderbookWei() missing scaled")) ;
+            throw new ExchangeError(Helpers.add(this.id, " toOrderbookWei() missing scaled")) ;
         }
         Object dotIndex = Helpers.getIndexOf(scaled, ".");
         if (Helpers.isTrue(Helpers.isEqual(scaled, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " toOrderbookWei() missing scaled")) ;
+            throw new ExchangeError(Helpers.add(this.id, " toOrderbookWei() missing scaled")) ;
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(dotIndex, Helpers.opNeg(1))))
         {
@@ -1831,7 +1831,7 @@ public class MyriadCore extends MyriadApi
             }
             if (Helpers.isTrue(Helpers.isEqual(trader, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() for AMM history requires a trader address or wallet/privateKey")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() for AMM history requires a trader address or wallet/privateKey")) ;
             }
             final Object finalTrader = trader;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1936,7 +1936,7 @@ public class MyriadCore extends MyriadApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a privateKey to sign the cancellation")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a privateKey to sign the cancellation")) ;
             }
             Object fetched = this.getOrderResponseFromParams(id, parameters);
             Object networkIdParam = this.safeString2(parameters, "networkId", "network_id");
@@ -2017,7 +2017,7 @@ public class MyriadCore extends MyriadApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a privateKey to sign the cancellation")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a privateKey to sign the cancellation")) ;
             }
             Object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
             Object marketId = this.safeString(parameters, "market_id", "0");
@@ -2084,7 +2084,7 @@ public class MyriadCore extends MyriadApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a privateKey to sign the cancellations")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a privateKey to sign the cancellations")) ;
             }
             Object paramsForLookup = parameters;
             Object networkIdParam = this.safeString2(parameters, "networkId", "network_id");
@@ -2490,7 +2490,7 @@ public class MyriadCore extends MyriadApi
             Object token = this.safeString2(parameters, "token", "tokenAddress", this.safeString(chainConfig, "collateralToken"));
             if (Helpers.isTrue(Helpers.isEqual(token, null)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " fetchBalance() has no collateral token configured for network "), networkId)) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, " fetchBalance() has no collateral token configured for network "), networkId)) ;
             }
             Object currency = this.safeString(parameters, "currency", this.safeString(chainConfig, "collateralCurrency", "USD1"));
             Long decimals = this.safeInteger(parameters, "decimals", this.safeInteger(chainConfig, "collateralDecimals", 18));
@@ -2555,7 +2555,7 @@ public class MyriadCore extends MyriadApi
         Object scale = "1";
         if (Helpers.isTrue(Helpers.isEqual(decimals, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " fromWeiWithDecimals() missing decimals")) ;
+            throw new ExchangeError(Helpers.add(this.id, " fromWeiWithDecimals() missing decimals")) ;
         }
         for (var i = 0; Helpers.isLessThan(i, decimals); i++)
         {
@@ -3059,7 +3059,7 @@ final Object finalNetworkId = networkId;
             previousClose = Helpers.subtract(price, change);
             if (Helpers.isTrue(Helpers.isEqual(previousClose, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " method() missing previousClose")) ;
+                throw new ExchangeError(Helpers.add(this.id, " method() missing previousClose")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(previousClose, 0)))
             {
@@ -3485,7 +3485,7 @@ final Object finalNetworkId = networkId;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
             }
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             // resolve the uncached outcomes first, then group by parent market to fetch each market only once
@@ -3694,7 +3694,7 @@ final Object finalNetworkId = networkId;
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries", "sort", "searchIn", "eventId", "slug", "status", "tags")));
             if (Helpers.isTrue(Helpers.isEqual(queries, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchEvents() missing queries")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchEvents() missing queries")) ;
             }
             Object queriesLength = Helpers.getArrayLength(queries);
             Object eventId = this.safeString(parameters, "eventId");
@@ -3737,7 +3737,7 @@ final Object finalNetworkId = networkId;
                     {
                         // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
                         Object tagSlug = Helpers.GetValue(requestedTags, i);
-                        ((java.util.List<Object>)tagQueries).add(Helpers.replaceAll((String)tagSlug, (String)"-", (String)" "));
+                        ((java.util.List<Object>)tagQueries).add(Helpers.replaceAll(((String)tagSlug), "-", " "));
                     }
                     // run both searches in parallel; some events are only discoverable from questions,
                     // while market search is still the primary source for market-level data
@@ -3978,7 +3978,7 @@ final Object finalNetworkId = networkId;
             for (var i = 0; Helpers.isLessThan(i, linesLength); i++)
             {
                 String line = (String) Helpers.GetValue(lines, i);
-                if (Helpers.isTrue(Helpers.isGreaterThan(((String)line).length(), 0)))
+                if (Helpers.isTrue(Helpers.isGreaterThan(line.length(), 0)))
                 {
                     Object parsed = Helpers.parseJson(line);
                     this.handleCentrifugoFrame(client, parsed);
@@ -4203,7 +4203,7 @@ final Object finalNetworkId = networkId;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires a outcome (the trades channel is per-market)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchMyTrades() requires a outcome (the trades channel is per-market)")) ;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
@@ -4393,7 +4393,7 @@ final Object finalNetworkId = networkId;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
             }
             Object symbolsLength = Helpers.getArrayLength(outcomes);
             Object url = this.safeString(Helpers.GetValue(this.urls, "api"), "ws");
@@ -4762,7 +4762,7 @@ final Object finalNetworkId = networkId;
         {
             if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a walletAddress or privateKey to watch private channels")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " requires a walletAddress or privateKey to watch private channels")) ;
             }
             address = this.ethGetAddressFromPrivateKey(this.privateKey);
         }

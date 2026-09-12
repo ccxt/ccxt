@@ -685,9 +685,9 @@ public class HyperliquidCore extends HyperliquidApi
         Object midStr = this.numberToString(midPx);
         Object parts = Helpers.split(midStr, ".");
         String intPart = (String) Helpers.GetValue(parts, 0);
-        Object significantDigits = Helpers.mathMax(5, ((String)intPart).length());
+        Object significantDigits = Helpers.mathMax(5, intPart.length());
         Object maxDecimals = Helpers.subtract(8, szDecimals);
-        Object pricePrecisionDecimals = Helpers.mathMax(1, Helpers.mathMin(maxDecimals, Helpers.subtract(significantDigits, ((String)intPart).length())));
+        Object pricePrecisionDecimals = Helpers.mathMax(1, Helpers.mathMin(maxDecimals, Helpers.subtract(significantDigits, intPart.length())));
         Object zeros = "";
         Object zeroCount = Helpers.subtract(pricePrecisionDecimals, 1);
         for (var zi = 0; Helpers.isLessThan(zi, zeroCount); zi++)
@@ -992,7 +992,7 @@ public class HyperliquidCore extends HyperliquidApi
                 startTime = this.sum(until, startOffset);
                 if (Helpers.isTrue(Helpers.isEqual(startTime, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing startTime")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchOHLCV() missing startTime")) ;
                 }
                 if (Helpers.isTrue(Helpers.isLessThan(startTime, 0)))
                 {
@@ -1302,7 +1302,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Object oc = this.safeDict(outcomesList, i, new java.util.HashMap<String, Object>() {{}});
                 Object ocSymbol = this.safeString2(oc, "outcome", "symbol", "");
                 String ocLabel = (String)this.safeStringUpper(oc, "label");
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(ocLabel, normalizedHint)) || Helpers.isTrue(((String)ocSymbol).endsWith(((String)Helpers.add(":", normalizedHint))))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(ocLabel, normalizedHint)) || Helpers.isTrue(((String)ocSymbol).endsWith(Helpers.add(":", normalizedHint)))))
                 {
                     return oc;
                 }
@@ -1336,11 +1336,11 @@ public class HyperliquidCore extends HyperliquidApi
             }
         }
         Object lower = ((String)outcomeInput).toLowerCase();
-        if (Helpers.isTrue(((String)lower).endsWith(((String)"-yes"))))
+        if (Helpers.isTrue(((String)lower).endsWith("-yes")))
         {
             return "YES";
         }
-        if (Helpers.isTrue(((String)lower).endsWith(((String)"-no"))))
+        if (Helpers.isTrue(((String)lower).endsWith("-no")))
         {
             return "NO";
         }
@@ -1351,15 +1351,15 @@ public class HyperliquidCore extends HyperliquidApi
     {
         if (Helpers.isTrue(Helpers.isEqual(outcomeInput, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " resolveOutcomeInput() requires an outcome symbol or id")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " resolveOutcomeInput() requires an outcome symbol or id")) ;
         }
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(this.outcomes, null)) || Helpers.isTrue(Helpers.isEqual(this.outcomes_by_id, null))))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " outcomes not loaded")) ;
+            throw new ExchangeError(Helpers.add(this.id, " outcomes not loaded")) ;
         }
         Object sideHint = this.parseOutcomeInputSideHint(outcomeInput);
         java.util.List<Object> candidates = new java.util.ArrayList<Object>(java.util.Arrays.asList(outcomeInput));
-        if (Helpers.isTrue(((String)outcomeInput).startsWith(((String)"+"))))
+        if (Helpers.isTrue(((String)outcomeInput).startsWith("+")))
         {
             ((java.util.List<Object>)candidates).add(Helpers.add("#", Helpers.slice(outcomeInput, 1, null)));
         }
@@ -1407,7 +1407,7 @@ public class HyperliquidCore extends HyperliquidApi
                 return found;
             }
         }
-        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cannot resolve outcome from input: "), outcomeInput), ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")) ;
+        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " cannot resolve outcome from input: "), outcomeInput), ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")) ;
     }
 
     /**
@@ -1463,9 +1463,9 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 if (Helpers.isTrue(isMarket))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.")) ;
                 }
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a limit price for outcome markets in between 0 and 1.")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a limit price for outcome markets in between 0 and 1.")) ;
             }
             Object px = null;
             if (Helpers.isTrue(isMarket))
@@ -1479,7 +1479,7 @@ public class HyperliquidCore extends HyperliquidApi
             }
             if (Helpers.isTrue(Helpers.isEqual(px, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() could not determine price")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() could not determine price")) ;
             }
             Object sz = this.amountToPrecision(marketSymbol, amount);
             java.util.Map<String, Object> orderType = new java.util.HashMap<String, Object>() {{
@@ -1632,7 +1632,7 @@ public class HyperliquidCore extends HyperliquidApi
             this.checkRequiredCredentials();
             if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires an outcome argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires an outcome argument")) ;
             }
             (this.initializeClient()).join();
             (this.loadOutcome(outcome)).join();
@@ -1710,12 +1710,12 @@ public class HyperliquidCore extends HyperliquidApi
                 Object error = this.safeString(status, "error");
                 if (Helpers.isTrue(!Helpers.isEqual(error, null)))
                 {
-                    throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrders() failed for "), this.safeString(requestIds, i, this.safeString(requestIds, 0))), ": "), error)) ;
+                    throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrders() failed for "), this.safeString(requestIds, i, this.safeString(requestIds, 0))), ": "), error)) ;
                 }
                 Boolean success = Helpers.isTrue((Helpers.isEqual(status, "success"))) || Helpers.isTrue((Helpers.isEqual(this.safeString(status, "status"), "success")));
                 if (!Helpers.isTrue(success))
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " cancelOrders() received an unexpected status: "), this.json(status))) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(this.id, " cancelOrders() received an unexpected status: "), this.json(status))) ;
                 }
                 Object requestId = this.safeString(requestIds, i, this.safeString(requestIds, 0));
                 final Object finalClientOrderId = clientOrderId;
@@ -1932,7 +1932,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Object expected = this.safeString(outcomeObj, "outcome");
                 if (Helpers.isTrue(!Helpers.isEqual(this.safeString(parsed, "outcome"), expected)))
                 {
-                    throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() order "), id), " is not in outcome "), expected)) ;
+                    throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() order "), id), " is not in outcome "), expected)) ;
                 }
             }
             return parsed;
@@ -2039,11 +2039,11 @@ public class HyperliquidCore extends HyperliquidApi
         {
             return null;
         }
-        if (Helpers.isTrue(((String)status).endsWith(((String)"Rejected"))))
+        if (Helpers.isTrue(((String)status).endsWith("Rejected")))
         {
             return "rejected";
         }
-        if (Helpers.isTrue(((String)status).endsWith(((String)"Canceled"))))
+        if (Helpers.isTrue(((String)status).endsWith("Canceled")))
         {
             return "canceled";
         }
@@ -2295,7 +2295,7 @@ public class HyperliquidCore extends HyperliquidApi
             java.util.Map<String, Object> groupMap = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(queries, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchEvents() missing queries")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchEvents() missing queries")) ;
             }
             java.util.List<Object> lowerQueries = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(queries)); i++)
@@ -2316,7 +2316,7 @@ public class HyperliquidCore extends HyperliquidApi
                 // Apply query filter
                 if (Helpers.isTrue(Helpers.isGreaterThan(lowerQueriesLength, 0)))
                 {
-                    Object description = ((String)this.safeString(info, "description", "")).toLowerCase();
+                    Object description = this.safeString(info, "description", "").toLowerCase();
                     Object parentSymbolOrEmpty = ((Helpers.isTrue((!Helpers.isEqual(parentSymbol, null))))) ? parentSymbol : "";
                     Object symLower = ((String)parentSymbolOrEmpty).toLowerCase();
                     // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
@@ -2351,7 +2351,7 @@ public class HyperliquidCore extends HyperliquidApi
                 }
                 if (Helpers.isTrue(Helpers.isEqual(parentSymbol, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchEvents() missing parentSymbol")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchEvents() missing parentSymbol")) ;
                 }
                 if (!Helpers.isTrue((Helpers.inOp(groupMap, parentSymbol))))
                 {
@@ -2476,7 +2476,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object decimals = 4;
         if (Helpers.isTrue(Helpers.isEqual(prec, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " amountToPrecision() missing prec")) ;
+            throw new ExchangeError(Helpers.add(this.id, " amountToPrecision() missing prec")) ;
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(prec, 0)))
         {
@@ -2492,7 +2492,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object decimals = 4;
         if (Helpers.isTrue(Helpers.isEqual(prec, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " priceToPrecision() missing prec")) ;
+            throw new ExchangeError(Helpers.add(this.id, " priceToPrecision() missing prec")) ;
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(prec, 0)))
         {
@@ -2513,8 +2513,8 @@ public class HyperliquidCore extends HyperliquidApi
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
         Object rRaw = Helpers.GetValue(signature, "r");
         Object sRaw = Helpers.GetValue(signature, "s");
-        Object r = Helpers.padStart((String)rRaw, ((Number)64).intValue(), ((String)"0").charAt(0));
-        Object s = Helpers.padStart((String)sRaw, ((Number)64).intValue(), ((String)"0").charAt(0));
+        Object r = Helpers.padStart(((String)rRaw), ((Number)64).intValue(), "0".charAt(0));
+        Object s = Helpers.padStart(((String)sRaw), ((Number)64).intValue(), "0".charAt(0));
         return new java.util.HashMap<String, Object>() {{
             put( "r", Helpers.add("0x", r) );
             put( "s", Helpers.add("0x", s) );
@@ -2712,7 +2712,7 @@ public class HyperliquidCore extends HyperliquidApi
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.walletAddress, parameters));
         }
-        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a user parameter or walletAddress to be set")) ;
+        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a user parameter or walletAddress to be set")) ;
     }
 
     public Object formatVaultAddress(Object... optionalArgs)
@@ -2723,7 +2723,7 @@ public class HyperliquidCore extends HyperliquidApi
             return null;
         }
         Object normalized = address;
-        if (Helpers.isTrue(Helpers.isTrue(((String)normalized).startsWith(((String)"0x"))) || Helpers.isTrue(((String)normalized).startsWith(((String)"0X")))))
+        if (Helpers.isTrue(Helpers.isTrue(((String)normalized).startsWith("0x")) || Helpers.isTrue(((String)normalized).startsWith("0X"))))
         {
             normalized = Helpers.slice(normalized, 2, null);
         }

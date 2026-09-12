@@ -153,7 +153,7 @@ public class TestMain extends BaseTest
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(possibleMethodNames)); j++)
                     {
                         Object methodName = Helpers.GetValue(possibleMethodNames, j);
-                        methodName = Helpers.replace((String)methodName, (String)"()", (String)"");
+                        methodName = Helpers.replace(((String)methodName), "()", "");
                         if (Helpers.isTrue(Helpers.isEqual(testFileName, methodName)))
                         {
                             ((java.util.List<Object>)this.onlySpecificTests).add(testFileName);
@@ -658,7 +658,7 @@ public class TestMain extends BaseTest
             String testPrefixString = ((Helpers.isTrue(isPublicTest))) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(failedMethods), 0)))
             {
-                Object errorsString = String.join((String)", ", (java.util.List<String>)failedMethods);
+                Object errorsString = String.join(", ", (java.util.List<String>)failedMethods);
                 dump("[TEST_FAILURE]", exchange.id, testPrefixString, Helpers.add("Failed methods : ", errorsString));
             }
             if (Helpers.isTrue(this.info))
@@ -961,7 +961,7 @@ public class TestMain extends BaseTest
                     Object primarySymbol = this.getValidSymbol(exchange, true);
                     if (Helpers.isTrue(!Helpers.isEqual(primarySymbol, null)))
                     {
-                        Object secondarySymbol = Helpers.replace((String)primarySymbol, (String)"BTC", (String)"ETH"); // this should work any exchange
+                        Object secondarySymbol = Helpers.replace(((String)primarySymbol), "BTC", "ETH"); // this should work any exchange
                         spotSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol, secondarySymbol));
                     }
                 }
@@ -975,7 +975,7 @@ public class TestMain extends BaseTest
                     // tests rather than crashing on `undefined.replace(...)`.
                     if (Helpers.isTrue(!Helpers.isEqual(primarySymbol, null)))
                     {
-                        Object secondarySymbol = Helpers.replaceAll((String)primarySymbol, (String)"BTC", (String)"ETH"); // this should work any exchange
+                        Object secondarySymbol = Helpers.replaceAll(((String)primarySymbol), "BTC", "ETH"); // this should work any exchange
                         swapSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol, secondarySymbol));
                     }
                 }
@@ -1140,9 +1140,9 @@ public class TestMain extends BaseTest
                         // separators as spaces) so the scoped contract holds even without a pin
                         Object handleParts = Helpers.split(outcomeSymbol, ":");
                         String marketPart = (String) Helpers.GetValue(handleParts, 0);
-                        Object lowerPart = ((String)marketPart).toLowerCase();
-                        Object dedashed = Helpers.replaceAll((String)lowerPart, (String)"-", (String)" ");
-                        eventQuery = Helpers.replaceAll((String)dedashed, (String)"_", (String)" ");
+                        Object lowerPart = marketPart.toLowerCase();
+                        Object dedashed = Helpers.replaceAll(((String)lowerPart), "-", " ");
+                        eventQuery = Helpers.replaceAll(((String)dedashed), "_", " ");
                     }
                     java.util.Map<String, Object> eventParams = new java.util.HashMap<String, Object>() {{}};
                     if (Helpers.isTrue(!Helpers.isEqual(eventQuery, null)))
@@ -1772,7 +1772,7 @@ public class TestMain extends BaseTest
             {
                 continue;
             }
-            Object exchangeName = Helpers.replace((String)file, (String)".json", (String)"");
+            Object exchangeName = Helpers.replace(((String)file), ".json", "");
             Object content = ioFileRead(Helpers.add(folder, file));
             Helpers.addElementToObject(result, exchangeName, content);
         }
@@ -1822,7 +1822,7 @@ public class TestMain extends BaseTest
             }
             String key = (String) Helpers.GetValue(keyValue, 0);
             Object value = Helpers.GetValue(keyValue, 1);
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue((Helpers.isTrue((((String)value).startsWith(((String)"[")))) || Helpers.isTrue((((String)value).startsWith(((String)"{"))))))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue((Helpers.isTrue((((String)value).startsWith("["))) || Helpers.isTrue((((String)value).startsWith("{")))))))
             {
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value);
@@ -1939,7 +1939,7 @@ public class TestMain extends BaseTest
             }
         }
         // if needed convert stringified jsons to objects
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(((storedOutput instanceof String))) && Helpers.isTrue(((newOutput instanceof String)))) && Helpers.isTrue(((String)storedOutput).startsWith(((String)"{")))) && Helpers.isTrue(((String)newOutput).startsWith(((String)"{")))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(((storedOutput instanceof String))) && Helpers.isTrue(((newOutput instanceof String)))) && Helpers.isTrue(((String)storedOutput).startsWith("{"))) && Helpers.isTrue(((String)newOutput).startsWith("{"))))
         {
             storedOutput = jsonParse(storedOutput);
             newOutput = jsonParse(newOutput);
@@ -2194,7 +2194,7 @@ public class TestMain extends BaseTest
             newOutput = this.urlencodedToDict(newOutput);
         } else if (Helpers.isTrue(Helpers.isEqual(type, "both")))
         {
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(((String)storedOutput).startsWith(((String)"{")), true))) || Helpers.isTrue((Helpers.isEqual(((String)storedOutput).startsWith(((String)"[")), true)))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(((String)storedOutput).startsWith("{"), true))) || Helpers.isTrue((Helpers.isEqual(((String)storedOutput).startsWith("["), true)))))
             {
                 storedOutput = jsonParse(storedOutput);
                 newOutput = jsonParse(newOutput);
@@ -3156,7 +3156,7 @@ public class TestMain extends BaseTest
             Assert(Helpers.isEqual(((String)clientOrderIdSwap).startsWith(((String)swapIdString)), true), Helpers.add(Helpers.add(Helpers.add("binance - swap clientOrderId: ", clientOrderIdSwap), " does not start with swapId"), swapIdString));
             // inverse swap
             Object clientOrderIdInverse = Helpers.GetValue(swapInverseOrderRequest, "newClientOrderId");
-            Assert(Helpers.isEqual(((String)clientOrderIdInverse).startsWith(((String)inverseSwapId)), true), Helpers.add(Helpers.add(Helpers.add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId));
+            Assert(Helpers.isEqual(((String)clientOrderIdInverse).startsWith(inverseSwapId), true), Helpers.add(Helpers.add(Helpers.add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId));
             // linear swap conditional order
             Object swapAlgoOrderRequest = new java.util.HashMap<String, Object>() {{}};
             try
@@ -4048,7 +4048,7 @@ public class TestMain extends BaseTest
                 request = jsonParse(exchange.last_request_body);
             }
             Object clientOrderId = Helpers.GetValue(request, "newClientOrderId");
-            Assert(Helpers.isEqual(((String)clientOrderId).startsWith(((String)id)), true), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for spot order does not start with id: "), id));
+            Assert(Helpers.isEqual(((String)clientOrderId).startsWith(id), true), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for spot order does not start with id: "), id));
             try
             {
                 (exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000)).join();
@@ -4057,7 +4057,7 @@ public class TestMain extends BaseTest
                 request = jsonParse(exchange.last_request_body);
             }
             clientOrderId = Helpers.GetValue(request, "newClientOrderId");
-            Assert(Helpers.isEqual(((String)clientOrderId).startsWith(((String)id)), true), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for swap order does not start with id: "), id));
+            Assert(Helpers.isEqual(((String)clientOrderId).startsWith(id), true), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for swap order does not start with id: "), id));
             return null;
         });
 

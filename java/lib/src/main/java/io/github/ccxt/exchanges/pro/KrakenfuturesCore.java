@@ -90,7 +90,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String messageHash = (String) "challenge";
             Client client = this.client(url);
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -405,7 +405,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             symbols = this.marketSymbols(symbols);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
-                messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add("::", String.join(",", (java.util.List<String>)symbols));
             }
             messageHash = Helpers.add("positions", messageHash);
             Object newPositions = (this.subscribePrivate("open_positions", messageHash, parameters)).join();
@@ -681,7 +681,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             {
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(account, "futures")) && Helpers.isTrue(!Helpers.isEqual(account, "flex_futures"))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchBalance account must be either 'futures' or 'flex_futures'")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " watchBalance account must be either 'futures' or 'flex_futures'")) ;
                 }
                 messageHash = Helpers.add(messageHash, Helpers.add(":", account));
             }
@@ -1940,7 +1940,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         }
         try
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), errMsg)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), errMsg)) ;
         } catch(Exception error)
         {
             client.reject(error);
@@ -2019,7 +2019,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             client.reject(error, messageHash);
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
         return message;

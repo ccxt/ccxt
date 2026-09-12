@@ -164,7 +164,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object currentSymbol = this.safeString(Helpers.GetValue(this.options, "watchTrades"), "symbol");
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(currentSymbol, null)) && Helpers.isTrue(!Helpers.isEqual(currentSymbol, symbol))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
             }
             Helpers.addElementToObject(Helpers.GetValue(this.options, "watchTrades"), "symbol", symbol);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -190,7 +190,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                     subscriptionKey = Helpers.slice(subscriptionKey, 0, 3);
                     if (Helpers.isTrue(Helpers.isEqual(subscriptionKey, "old")))
                     {
-                        throw new ExchangeError((String)Helpers.add(this.id, " watchTrades() only supports watching one symbol at a time.")) ;
+                        throw new ExchangeError(Helpers.add(this.id, " watchTrades() only supports watching one symbol at a time.")) ;
                     }
                 }
             }
@@ -576,7 +576,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -628,7 +628,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1232,7 +1232,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         String messageHash = (String) Helpers.add("orderbook:", symbol);
         if (Helpers.isTrue(!Helpers.isEqual(incrementalId, Helpers.add(Helpers.GetValue(storedOrderBook, "nonce"), 1))))
         {
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             client.reject(Helpers.add(this.id, " watchOrderBook() skipped a message"), messageHash);
             return;
         }
@@ -1486,7 +1486,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrdersWs requires a symbol.")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrdersWs requires a symbol.")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1533,7 +1533,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrderWs requires a price argument")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrderWs requires a price argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1585,11 +1585,11 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(amount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a amount argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a amount argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a price argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1681,7 +1681,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelOrderWs does not allow filtering by symbol")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelOrderWs does not allow filtering by symbol")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {

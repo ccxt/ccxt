@@ -785,7 +785,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
             String messageHash = (String) "authenticated";
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -820,7 +820,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             client.reject(error, messageHash);
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
     }
@@ -855,7 +855,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
                 symbols = this.marketSymbols(symbols);
-                messageHash = Helpers.add("positions::", String.join((String)",", (java.util.List<String>)(java.util.List<String>)(symbols)));
+                messageHash = Helpers.add("positions::", String.join(",", (java.util.List<String>)(java.util.List<String>)(symbols)));
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1499,7 +1499,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 table = "orderBookL10";
             } else
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)")) ;
+                throw new ExchangeError(Helpers.add(this.id, " watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1693,7 +1693,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         //     }
         //
         Object table = this.safeString(message, "table");
-        Object interval = Helpers.replace((String)((String)table), (String)"tradeBin", (String)"");
+        Object interval = Helpers.replace(((String)((String)table)), "tradeBin", "");
         Object timeframe = this.findTimeframe(interval);
         Object duration = this.parseTimeframe(timeframe);
         Object candles = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));

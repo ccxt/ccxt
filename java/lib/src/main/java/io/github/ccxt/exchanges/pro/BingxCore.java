@@ -1063,7 +1063,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             }
             if (Helpers.isTrue(Helpers.isEqual(url, null)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " watchOHLCV is not supported for "), marketType), " markets.")) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " watchOHLCV is not supported for "), marketType), " markets.")) ;
             }
             Object options = this.safeValue(this.options, marketType, new java.util.HashMap<String, Object>() {{}});
             Object timeframes = this.safeValue(options, "timeframes", new java.util.HashMap<String, Object>() {{}});
@@ -1194,7 +1194,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " watchOrders is not supported for inverse swap markets yet")) ;
+                    throw new NotSupported(Helpers.add(this.id, " watchOrders is not supported for inverse swap markets yet")) ;
                 }
                 baseUrl = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subType);
             } else
@@ -1280,7 +1280,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " watchMyTrades is not supported for inverse swap markets yet")) ;
+                    throw new NotSupported(Helpers.add(this.id, " watchMyTrades is not supported for inverse swap markets yet")) ;
                 }
                 baseUrl = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subType);
             } else
@@ -1350,7 +1350,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " watchBalance is not supported for inverse swap markets yet")) ;
+                    throw new NotSupported(Helpers.add(this.id, " watchBalance is not supported for inverse swap markets yet")) ;
                 }
                 // swap balance updates are pushed automatically over the listenKey connection,
                 // so we must not send a subscription message (an empty one is rejected with 80014)
@@ -1467,7 +1467,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
                 market = this.getMarketFromSymbols(symbols);
-                messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add("::", String.join(",", (java.util.List<String>)symbols));
             }
             Object type = null;
             Object subType = null;
@@ -1479,11 +1479,11 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchPositions is not supported for spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchPositions is not supported for spot markets")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchPositions is not supported for inverse swap markets yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchPositions is not supported for inverse swap markets yet")) ;
             }
             String subscriptionHash = "swap:private";
             messageHash = Helpers.add("swap:positions", messageHash);
@@ -1803,20 +1803,20 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the listenKey is then in the bucket
-                    client.future((String)messageHash).getFuture().join();
+                    client.future(messageHash).getFuture().join();
                     return null;
                 }
                 // reusableFuture (), not future () - the two match in
                 // js/py/php/cs/java, but go's Client.Future () yields a channel
                 // that the trailing suspension point below would panic on
-                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
                 try
                 {
                     java.util.Map<String, Object> response = (this.userAuthPrivatePostUserDataStream()).join();
                     Object listenKey = this.safeString(response, "listenKey");
                     if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
                     {
-                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                        throw new AuthenticationError(Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
                     }
                     Helpers.addElementToObject(this.options, "listenKey", listenKey);
                     Helpers.addElementToObject(this.options, "lastAuthenticatedTime", time);

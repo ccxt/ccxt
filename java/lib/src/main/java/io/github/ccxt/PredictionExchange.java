@@ -137,7 +137,7 @@ public Object describe()
             }
             extraNames = Helpers.add(Helpers.add(extraNames, ", "), scopeKey);
         }
-        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchEvents() requires at least one of query, queries, tags, eventId, slug"), extraNames), " to scope the search")) ;
+        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchEvents() requires at least one of query, queries, tags, eventId, slug"), extraNames), " to scope the search")) ;
     }
 
     public Object applyEventFetchParams(Object events, Object... optionalArgs)
@@ -273,7 +273,7 @@ public Object describe()
                 Object q = ((String)Helpers.GetValue(queries, qi)).toLowerCase();
                 if (Helpers.isTrue(Helpers.isEqual(title, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " filterEventsBySearchIn() missing title")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " filterEventsBySearchIn() missing title")) ;
                 }
                 if (Helpers.isTrue(Helpers.isTrue(checkTitle) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(title, q), 0)))))
                 {
@@ -282,7 +282,7 @@ public Object describe()
                 }
                 if (Helpers.isTrue(Helpers.isEqual(description, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " filterEventsBySearchIn() missing description")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " filterEventsBySearchIn() missing description")) ;
                 }
                 if (Helpers.isTrue(Helpers.isTrue(checkDescription) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(description, q), 0)))))
                 {
@@ -396,7 +396,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchEvents() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchEvents() is not supported yet")) ;
         });
 
     }
@@ -407,7 +407,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchEvent() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchEvent() is not supported yet")) ;
         });
 
     }
@@ -518,18 +518,18 @@ public Object describe()
         {
             return Helpers.GetValue(this.events_by_slug, eventIdOrSlug);
         }
-        throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " has no cached event "), eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")) ;
+        throw new BadSymbol(Helpers.add(Helpers.add(Helpers.add(this.id, " has no cached event "), eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")) ;
     }
 
     public Object outcome(Object outcomeSymbol)
     {
         if (Helpers.isTrue(Helpers.isEqual(outcomeSymbol, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " outcome() requires an outcomeSymbol argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " outcome() requires an outcomeSymbol argument")) ;
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.outcomes, null))) || Helpers.isTrue(this.isEmpty(this.outcomes))))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")) ;
+            throw new ExchangeError(Helpers.add(this.id, " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")) ;
         }
         if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
         {
@@ -539,7 +539,7 @@ public Object describe()
         {
             return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
         }
-        throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have outcome "), outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
+        throw new BadSymbol(Helpers.add(Helpers.add(Helpers.add(this.id, " does not have outcome "), outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
 
     public Object hasOutcome(Object outcomeIdOrSymbol)
@@ -653,7 +653,7 @@ public Object describe()
             String replacementValue = this.safeString(replacements, replacementKey);
             if (Helpers.isTrue(!Helpers.isEqual(replacementValue, null)))
             {
-                s = Helpers.replaceAll((String)s, (String)replacementKey, (String)replacementValue);
+                s = Helpers.replaceAll(((String)s), ((String)replacementKey), replacementValue);
             }
         }
         Object rawParts = Helpers.split(s, "-");
@@ -661,12 +661,12 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawParts)); i++)
         {
             String w = (String) Helpers.GetValue(rawParts, i);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThan(((String)w).length(), 0)) && !Helpers.isTrue(this.inArray(w, stopWords))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThan(w.length(), 0)) && !Helpers.isTrue(this.inArray(w, stopWords))))
             {
                 ((java.util.List<Object>)parts).add(w);
             }
         }
-        Object joined = String.join((String)"_", (java.util.List<String>)parts);
+        Object joined = String.join("_", (java.util.List<String>)parts);
         return ((String)joined).toUpperCase();
     }
 
@@ -799,7 +799,7 @@ public Object describe()
                     String existingId = this.safeString(existing, "outcomeId");
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(existingId, null))) && Helpers.isTrue((!Helpers.isEqual(ocId, null)))) && Helpers.isTrue((!Helpers.isEqual(existingId, ocId)))))
                     {
-                        Object idLen = ((String)ocId).length();
+                        Object idLen = ocId.length();
                         Object suffix = ocId;
                         if (Helpers.isTrue(Helpers.isGreaterThan(idLen, 6)))
                         {
@@ -965,7 +965,7 @@ public Object describe()
             Object reload = Helpers.getArg(optionalArgs, 0, false);
             if (Helpers.isTrue(Helpers.isEqual(outcomeSymbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " loadOutcome() requires an outcomeSymbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " loadOutcome() requires an outcomeSymbol argument")) ;
             }
             if (!Helpers.isTrue(reload))
             {
@@ -1021,7 +1021,7 @@ public Object describe()
             return null;
         }
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-        Object normalized = Helpers.replaceAll((String)((String)marketPart).toLowerCase(), (String)"-", (String)"_");
+        Object normalized = Helpers.replaceAll(((String)((String)marketPart).toLowerCase()), "-", "_");
         Object rawWords = Helpers.split(normalized, "_");
         Object words = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Boolean hasLetters = false;
@@ -1031,7 +1031,7 @@ public Object describe()
             String word = (String) Helpers.GetValue(rawWords, i);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
-            if (Helpers.isTrue(Helpers.isEqual(((String)word).length(), 0)))
+            if (Helpers.isTrue(Helpers.isEqual(word.length(), 0)))
             {
                 continue;
             }
@@ -1062,7 +1062,7 @@ public Object describe()
             // a purely numeric/symbolic handle is an id, not searchable text
             return null;
         }
-        return String.join((String)" ", (java.util.List<String>)words);
+        return String.join(" ", (java.util.List<String>)words);
     }
 
     public java.util.concurrent.CompletableFuture<Object> fetchOutcome(Object outcomeSymbol)
@@ -1099,7 +1099,7 @@ public Object describe()
                     return this.safeOutcome(outcomeSymbol);
                 }
             }
-            throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
+            throw new BadSymbol(Helpers.add(Helpers.add(Helpers.add(this.id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
         });
 
     }
@@ -1118,7 +1118,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTicker() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchTicker() is not supported yet")) ;
         });
 
     }
@@ -1138,7 +1138,7 @@ public Object describe()
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
         });
 
     }
@@ -1159,7 +1159,7 @@ public Object describe()
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrderBook() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrderBook() is not supported yet")) ;
         });
 
     }
@@ -1207,7 +1207,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchTrades() is not supported yet")) ;
         });
 
     }
@@ -1231,7 +1231,7 @@ public Object describe()
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " createOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrder() is not supported yet")) ;
         });
 
     }
@@ -1252,7 +1252,7 @@ public Object describe()
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " cancelOrder() is not supported yet")) ;
         });
 
     }
@@ -1271,7 +1271,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchTicker() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchTicker() is not supported yet")) ;
         });
 
     }
@@ -1292,7 +1292,7 @@ public Object describe()
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchOrderBook() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchOrderBook() is not supported yet")) ;
         });
 
     }
@@ -1315,7 +1315,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchTrades() is not supported yet")) ;
         });
 
     }
@@ -1339,7 +1339,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrders() is not supported yet")) ;
         });
 
     }
@@ -1363,7 +1363,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
         });
 
     }
@@ -1387,7 +1387,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
         });
 
     }
@@ -1412,7 +1412,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrderTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrderTrades() is not supported yet")) ;
         });
 
     }
@@ -1436,7 +1436,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchMyTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchMyTrades() is not supported yet")) ;
         });
 
     }
@@ -1455,7 +1455,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
         });
 
     }
@@ -1475,7 +1475,7 @@ public Object describe()
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
         });
 
     }
@@ -1494,7 +1494,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFee() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchTradingFee() is not supported yet")) ;
         });
 
     }
@@ -1513,7 +1513,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOpenInterest() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOpenInterest() is not supported yet")) ;
         });
 
     }
@@ -1532,7 +1532,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " createOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrders() is not supported yet")) ;
         });
 
     }
@@ -1553,7 +1553,7 @@ public Object describe()
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
         });
 
     }
@@ -1579,7 +1579,7 @@ public Object describe()
             {
                 return (this.createOrder(outcome, "market", "buy", cost, 1, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
         });
 
     }
@@ -1603,7 +1603,7 @@ public Object describe()
             {
                 return (this.createOrder(outcome, "market", "sell", cost, 1, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
         });
 
     }
@@ -1623,7 +1623,7 @@ public Object describe()
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchTickers() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchTickers() is not supported yet")) ;
         });
 
     }
@@ -1647,7 +1647,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchOrders() is not supported yet")) ;
         });
 
     }
@@ -1671,7 +1671,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchMyTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchMyTrades() is not supported yet")) ;
         });
 
     }
@@ -1695,7 +1695,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchPositions() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchPositions() is not supported yet")) ;
         });
 
     }
@@ -1720,7 +1720,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchSettlements() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchSettlements() is not supported yet")) ;
         });
 
     }
@@ -2060,31 +2060,31 @@ public Object describe()
     public Object parsePredictionTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        throw new NotSupported((String)Helpers.add(this.id, " parsePredictionTicker() is not supported yet")) ;
+        throw new NotSupported(Helpers.add(this.id, " parsePredictionTicker() is not supported yet")) ;
     }
 
     public Object parsePredictionOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        throw new NotSupported((String)Helpers.add(this.id, " parsePredictionOrder() is not supported yet")) ;
+        throw new NotSupported(Helpers.add(this.id, " parsePredictionOrder() is not supported yet")) ;
     }
 
     public Object parsePredictionTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        throw new NotSupported((String)Helpers.add(this.id, " parsePredictionTrade() is not supported yet")) ;
+        throw new NotSupported(Helpers.add(this.id, " parsePredictionTrade() is not supported yet")) ;
     }
 
     public Object parsePredictionPosition(Object position, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        throw new NotSupported((String)Helpers.add(this.id, " parsePredictionPosition() is not supported yet")) ;
+        throw new NotSupported(Helpers.add(this.id, " parsePredictionPosition() is not supported yet")) ;
     }
 
     public Object parsePredictionOpenInterest(Object interest, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        throw new NotSupported((String)Helpers.add(this.id, " parsePredictionOpenInterest() is not supported yet")) ;
+        throw new NotSupported(Helpers.add(this.id, " parsePredictionOpenInterest() is not supported yet")) ;
     }
 
     /**
@@ -2302,7 +2302,7 @@ public Object describe()
     {
         if (Helpers.isTrue(Helpers.isEqual(value, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " intToRlpHex() requires a value argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " intToRlpHex() requires a value argument")) ;
         }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
         if (Helpers.isTrue(Helpers.isEqual(value, 0)))
@@ -2341,7 +2341,7 @@ public Object describe()
     // eslint-disable-next-line no-unused-vars
     public Object signEvmTransaction(Object tx, Object privateKey)
     {
-        throw new NotSupported((String)Helpers.add(this.id, " signEvmTransaction() must be overridden by the exchange")) ;
+        throw new NotSupported(Helpers.add(this.id, " signEvmTransaction() must be overridden by the exchange")) ;
     }
 
     public java.util.concurrent.CompletableFuture<Object> ethRpc(Object rpcUrl, Object method, Object rpcParams)
@@ -2362,7 +2362,7 @@ public Object describe()
             Object rpcError = this.safeValue(response, "error");
             if (Helpers.isTrue(!Helpers.isEqual(rpcError, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " rpc "), method), " error: "), this.json(rpcError))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " rpc "), method), " error: "), this.json(rpcError))) ;
             }
             // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
             // safeString would coerce a receipt object to "[object Object]"
@@ -2410,7 +2410,7 @@ public Object describe()
                 }
                 (this.sleep(2000)).join();
             }
-            throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " transaction "), txHash), " not mined within timeout")) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " transaction "), txHash), " not mined within timeout")) ;
         });
 
     }
@@ -2445,7 +2445,7 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrder() is not supported yet")) ;
         });
 
     }
@@ -2485,7 +2485,7 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
             {
                 return (this.createOrder(symbol, "market", side, cost, 1, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
         });
 
     }
@@ -2526,7 +2526,7 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() is not supported yet")) ;
         });
 
     }
@@ -2546,7 +2546,7 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchCanceledOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchCanceledOrders() is not supported yet")) ;
         });
 
     }

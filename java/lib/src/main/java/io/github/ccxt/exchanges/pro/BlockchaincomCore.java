@@ -218,7 +218,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
         if (Helpers.isTrue(Helpers.isEqual(eventVar, "rejected")))
         {
             Object jsonMessage = this.json(message);
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), jsonMessage)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), jsonMessage)) ;
         } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "updated")))
         {
             Object marketId = this.safeString(message, "symbol");
@@ -240,7 +240,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             client.resolve(stored, messageHash);
         } else if (Helpers.isTrue(!Helpers.isEqual(eventVar, "subscribed")))
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " "), this.json(message))) ;
+            throw new NotSupported(Helpers.add(Helpers.add(this.id, " "), this.json(message))) ;
         }
     }
 
@@ -624,7 +624,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             return;
         } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "rejected")))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(message))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(message))) ;
         } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "snapshot")))
         {
             Object orders = this.safeList(message, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -839,7 +839,7 @@ final Object finalTradeId = tradeId;
             Helpers.addElementToObject(orderbook, "datetime", datetime);
         } else
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " watchOrderBook() does not support "), eventVar), " yet")) ;
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " watchOrderBook() does not support "), eventVar), " yet")) ;
         }
         client.resolve(orderbook, messageHash);
     }
@@ -877,7 +877,7 @@ final Object finalTradeId = tradeId;
             Helpers.callDynamically(this, handler, new Object[] {client, message});
             return;
         }
-        throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " received an unsupported message: "), this.json(message))) ;
+        throw new NotSupported(Helpers.add(Helpers.add(this.id, " received an unsupported message: "), this.json(message))) ;
     }
 
     public void handleAuthenticationMessage(Client client, Object message)
@@ -893,7 +893,7 @@ final Object finalTradeId = tradeId;
         Object eventVar = this.safeString(message, "event");
         if (Helpers.isTrue(!Helpers.isEqual(eventVar, "subscribed")))
         {
-            throw new AuthenticationError((String)Helpers.add(Helpers.add(this.id, " received an authentication error: "), this.json(message))) ;
+            throw new AuthenticationError(Helpers.add(Helpers.add(this.id, " received an authentication error: "), this.json(message))) ;
         }
         Object future = this.safeValue(client.futures, "authenticated");
         if (Helpers.isTrue(!Helpers.isEqual(future, null)))
@@ -911,7 +911,7 @@ final Object finalTradeId = tradeId;
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
             String messageHash = (String) "authenticated";
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object isAuthenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(isAuthenticated, null)))
             {

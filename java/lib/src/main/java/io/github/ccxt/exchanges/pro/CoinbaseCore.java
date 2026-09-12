@@ -101,7 +101,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
                 {
                     productIds = marketIds;
                 }
-                messageHash = Helpers.add(Helpers.add(messageHash, "::"), String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add(Helpers.add(messageHash, "::"), String.join(",", (java.util.List<String>)symbols));
             } else if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -148,7 +148,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             }
             if (Helpers.isTrue(this.safeBool(this.options, "unSubscriptionPending", false)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
+                throw new ExchangeError(Helpers.add(this.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
             }
             Helpers.addElementToObject(this.options, "unSubscriptionPending", true);
             Object market = null;
@@ -166,8 +166,8 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
                 {
                     productIds = marketIds;
                 }
-                watchMessageHash = Helpers.add(Helpers.add(watchMessageHash, "::"), String.join((String)",", (java.util.List<String>)symbols));
-                unWatchMessageHash = Helpers.add(Helpers.add(unWatchMessageHash, "::"), String.join((String)",", (java.util.List<String>)symbols));
+                watchMessageHash = Helpers.add(Helpers.add(watchMessageHash, "::"), String.join(",", (java.util.List<String>)symbols));
+                unWatchMessageHash = Helpers.add(Helpers.add(unWatchMessageHash, "::"), String.join(",", (java.util.List<String>)symbols));
             } else if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -277,7 +277,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(this.safeBool(this.options, "unSubscriptionPending", false)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
+                throw new ExchangeError(Helpers.add(this.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
             }
             Helpers.addElementToObject(this.options, "unSubscriptionPending", true);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -330,8 +330,8 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{}};
         Object timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
-        Boolean isCloudAPiKey = Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.apiKey, "organizations/"), 0))) || Helpers.isTrue((((String)this.secret).startsWith(((String)"-----BEGIN"))));
-        Object auth = Helpers.add(Helpers.add(timestamp, name), String.join((String)",", (java.util.List<String>)productIds));
+        Boolean isCloudAPiKey = Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.apiKey, "organizations/"), 0))) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
+        Object auth = Helpers.add(Helpers.add(timestamp, name), String.join(",", (java.util.List<String>)productIds));
         if (!Helpers.isTrue(isCloudAPiKey))
         {
             Helpers.addElementToObject(subscribe, "api_key", this.apiKey);
@@ -339,9 +339,9 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             Helpers.addElementToObject(subscribe, "signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
         } else
         {
-            if (Helpers.isTrue(((String)this.apiKey).startsWith(((String)"-----BEGIN"))))
+            if (Helpers.isTrue(this.apiKey.startsWith("-----BEGIN")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
             }
             Object currentToken = this.safeString(this.options, "wsToken");
             Long tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
@@ -1189,7 +1189,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
 
     public void tryResolveUsdc(Client client, Object messageHash, Object result)
     {
-        if (Helpers.isTrue(Helpers.isTrue(((String)messageHash).endsWith(((String)"/USD"))) || Helpers.isTrue(((String)messageHash).endsWith(((String)"-USD")))))
+        if (Helpers.isTrue(Helpers.isTrue(((String)messageHash).endsWith("/USD")) || Helpers.isTrue(((String)messageHash).endsWith("-USD"))))
         {
             client.resolve(result, Helpers.add(messageHash, "C")); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }

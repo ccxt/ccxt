@@ -96,7 +96,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Object access = Helpers.getArg(optionalArgs, 0, "public");
         if (Helpers.isTrue(Helpers.isEqual(channel, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " getUrl() requires a channel argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " getUrl() requires a channel argument")) ;
         }
         Object isSandbox = Helpers.GetValue(this.options, "sandboxMode");
         String sandboxSuffix = ((Helpers.isTrue((Helpers.isEqual(isSandbox, true))))) ? "?brokerId=9999" : "";
@@ -134,13 +134,13 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             java.util.List<Object> args = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " subscribeMultiple() symbols is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " subscribeMultiple() symbols is required")) ;
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " subscribeMultiple() symbols is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " subscribeMultiple() symbols is required")) ;
                 }
                 Object marketId = this.marketId(Helpers.GetValue(symbols, i));
                 final Object finalChannel = channel;
@@ -151,7 +151,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
                 ((java.util.List<Object>)args).add(this.extend(arg, parameters));
                 if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " subscribeMultiple() symbols is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " subscribeMultiple() symbols is required")) ;
                 }
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(channel, "::"), Helpers.GetValue(symbols, i)));
             }
@@ -244,7 +244,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -466,7 +466,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchFundingRates() requires an array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchFundingRates() requires an array of symbols")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -955,7 +955,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchLiquidationsForSymbols() type is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchLiquidationsForSymbols() type is required")) ;
             }
             Object uppercaseType = ((String)type).toUpperCase();
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1318,7 +1318,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1378,7 +1378,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1439,7 +1439,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Object marketId = this.safeString(arg, "instId");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object interval = Helpers.replace((String)channel, (String)"candle", (String)"");
+        Object interval = Helpers.replace(((String)channel), "candle", "");
         // use a reverse lookup in a static map instead
         Object timeframe = this.findTimeframe(interval);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -1541,7 +1541,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             {
                 if (!Helpers.isTrue(this.checkRequiredCredentials(false)))
                 {
-                    throw new AuthenticationError((String)Helpers.add(this.id, " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5")) ;
+                    throw new AuthenticationError(Helpers.add(this.id, " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5")) ;
                 }
                 (this.authenticate(new java.util.HashMap<String, Object>() {{
                     put( "access", "public" );
@@ -1729,7 +1729,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+                ((java.util.Map<String,Object>)this.orderbooks).remove(symbol);
             }
             client.reject(error, messageHash);
         }
@@ -1898,7 +1898,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object url = this.getUrl("users", access);
             String messageHash = (String) "authenticated";
             Client client = this.client(url);
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -2139,7 +2139,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() type is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchMyTrades() type is required")) ;
             }
             Object uppercaseType = ((String)type).toUpperCase();
             Object marginMode = null;
@@ -2378,7 +2378,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() type is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrders() type is required")) ;
             }
             Object uppercaseType = ((String)type).toUpperCase();
             Object marginMode = null;
@@ -2645,17 +2645,17 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Long instIdCode = this.safeInteger(market, "instIdCode");
             if (Helpers.isTrue(!Helpers.isEqual(instIdCode, null)))
             {
-                ((java.util.Map<String,Object>)args).remove((String)"instId");
+                ((java.util.Map<String,Object>)args).remove("instId");
                 Helpers.addElementToObject(args, "instIdCode", instIdCode);
             }
             Object ordType = this.safeString(args, "ordType");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(ordType, "trigger"))) || Helpers.isTrue((Helpers.isEqual(ordType, "conditional")))) || Helpers.isTrue((Helpers.isEqual(type, "oco")))) || Helpers.isTrue((Helpers.isEqual(type, "move_order_stop")))) || Helpers.isTrue((Helpers.isEqual(type, "iceberg")))) || Helpers.isTrue((Helpers.isEqual(type, "twap")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or batch-order")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or batch-order")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(op, "order"))) && Helpers.isTrue((!Helpers.isEqual(op, "batch-orders")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or privatePostTradeOrder or privatePostTradeOrderAlgo")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or privatePostTradeOrder or privatePostTradeOrderAlgo")) ;
             }
             final Object finalOp = op;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2743,7 +2743,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Long instIdCode = this.safeInteger(market, "instIdCode");
             if (Helpers.isTrue(!Helpers.isEqual(instIdCode, null)))
             {
-                ((java.util.Map<String,Object>)args).remove((String)"instId");
+                ((java.util.Map<String,Object>)args).remove("instId");
                 Helpers.addElementToObject(args, "instIdCode", instIdCode);
             }
             final Object finalOp = op;
@@ -2777,7 +2777,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelOrderWs() requires a symbol argument")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelOrderWs() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2831,11 +2831,11 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object idsLength = Helpers.getArrayLength(ids);
             if (Helpers.isTrue(Helpers.isGreaterThan(idsLength, 20)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelOrdersWs() accepts up to 20 ids at a time")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelOrdersWs() accepts up to 20 ids at a time")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelOrdersWs() requires a symbol argument")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelOrdersWs() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2886,7 +2886,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrdersWs() requires a symbol argument")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelAllOrdersWs() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2896,7 +2896,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "option")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
+                throw new BadRequest(Helpers.add(this.id, " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
             }
             Object url = this.getUrl("private", "private");
             Object messageHash = this.requestId();
@@ -3015,9 +3015,9 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             {
                 // try to parse it from the stringified json inside msg
                 Object msg = this.safeString(message, "msg");
-                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(msg, null)) && Helpers.isTrue(((String)msg).startsWith(((String)"Illegal request: {")))))
+                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(msg, null)) && Helpers.isTrue(((String)msg).startsWith("Illegal request: {"))))
                 {
-                    Object stringifiedJson = Helpers.replace((String)msg, (String)"Illegal request: ", (String)"");
+                    Object stringifiedJson = Helpers.replace(((String)msg), "Illegal request: ", "");
                     Object parsedJson = this.parseJson(stringifiedJson);
                     id = this.safeString(parsedJson, "id");
                 }
@@ -3172,7 +3172,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
 
     public void handleUnsubscriptionOHLCV(Client client, Object symbol, Object channel)
     {
-        Object tf = Helpers.replace((String)channel, (String)"candle", (String)"");
+        Object tf = Helpers.replace(((String)channel), "candle", "");
         Object timeframe = this.findTimeframe(tf);
         if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
         {
@@ -3217,13 +3217,13 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(channel, "trades")) || Helpers.isTrue(Helpers.isEqual(channel, "trades-all"))))
         {
             this.handleUnSubscriptionTrades(client, symbol, channel);
-        } else if (Helpers.isTrue(Helpers.isTrue(((String)channel).startsWith(((String)"bbo"))) || Helpers.isTrue(((String)channel).startsWith(((String)"book")))))
+        } else if (Helpers.isTrue(Helpers.isTrue(((String)channel).startsWith("bbo")) || Helpers.isTrue(((String)channel).startsWith("book"))))
         {
             this.handleUnsubscriptionOrderBook(client, symbol, channel);
         } else if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(channel, "tickers"), Helpers.opNeg(1))))
         {
             this.handleUnsubscriptionTicker(client, symbol, channel);
-        } else if (Helpers.isTrue(((String)channel).startsWith(((String)"candle"))))
+        } else if (Helpers.isTrue(((String)channel).startsWith("candle")))
         {
             this.handleUnsubscriptionOHLCV(client, symbol, channel);
         }

@@ -2195,7 +2195,7 @@ public class AsterCore extends AsterApi
             //
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchLastPrices() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchLastPrices() returned empty response")) ;
             }
             java.util.List<Object> rows = this.toArray(response);
             java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2367,7 +2367,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRate() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRate() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2634,7 +2634,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             marginMode = ((String)marginMode).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "CROSS")))
@@ -2643,7 +2643,7 @@ public class AsterCore extends AsterApi
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "ISOLATED"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "CROSSED")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " marginMode must be either isolated or cross")) ;
+                throw new BadRequest(Helpers.add(this.id, " marginMode must be either isolated or cross")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -2924,7 +2924,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3002,7 +3002,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3084,7 +3084,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3181,7 +3181,7 @@ public class AsterCore extends AsterApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(this.options, "fetchOpenOrders"), "warnIfNoSymbol"), true)))
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
                 }
             } else
             {
@@ -3334,7 +3334,7 @@ public class AsterCore extends AsterApi
             Object orderSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(orders), 5)))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createOrders() order list max 5 orders")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " createOrders() order list max 5 orders")) ;
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -3354,7 +3354,7 @@ public class AsterCore extends AsterApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "batchOrders", ordersRequests );
@@ -3401,11 +3401,11 @@ public class AsterCore extends AsterApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         /**
          * @method
@@ -3564,7 +3564,7 @@ public class AsterCore extends AsterApi
         {
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
             }
             String pricePrecision = this.safeString(Helpers.GetValue(market, "precision"), "price");
             Boolean isPricePrecisionAvailable = (!Helpers.isEqual(pricePrecision, null));
@@ -3580,7 +3580,7 @@ public class AsterCore extends AsterApi
         {
             if (Helpers.isTrue(Helpers.isEqual(stopPrice, null)))
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a stopPrice extra param for a "), type), " order")) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a stopPrice extra param for a "), type), " order")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(stopPrice, null)))
             {
@@ -3623,7 +3623,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3674,7 +3674,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3727,7 +3727,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3774,11 +3774,11 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 125)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " leverage should be between 1 and 125")) ;
+                throw new BadRequest(Helpers.add(this.id, " leverage should be between 1 and 125")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3997,7 +3997,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 4, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -4587,7 +4587,7 @@ public class AsterCore extends AsterApi
             {
                 if (!Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositionsRisk() requires an array argument for symbols")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositionsRisk() requires an array argument for symbols")) ;
                 }
             }
             (this.loadMarketsAndSignIn()).join();
@@ -4670,7 +4670,7 @@ public class AsterCore extends AsterApi
                 return (this.fetchAccountPositions(symbols, parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
             }
         });
 
@@ -4740,7 +4740,7 @@ public class AsterCore extends AsterApi
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
             if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseAccountPosition() missing leverage")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseAccountPosition() missing leverage")) ;
             }
             Object rational = this.isRoundNumber(Helpers.mod(1000, leverage));
             if (!Helpers.isTrue(rational))
@@ -4876,7 +4876,7 @@ public class AsterCore extends AsterApi
             String truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
             if (Helpers.isTrue(Helpers.isEqual(truncatedLiquidationPrice, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " method() missing truncatedLiquidationPrice")) ;
+                throw new ExchangeError(Helpers.add(this.id, " method() missing truncatedLiquidationPrice")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(truncatedLiquidationPrice, 0), "-")))
             {
@@ -4945,7 +4945,7 @@ public class AsterCore extends AsterApi
             {
                 if (!Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() requires an array argument for symbols")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositions() requires an array argument for symbols")) ;
                 }
             }
             (this.loadMarketsAndSignIn()).join();
@@ -5129,13 +5129,13 @@ public class AsterCore extends AsterApi
             }
             if (Helpers.isTrue(Helpers.isEqual(chainId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw require chainId or network parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " withdraw require chainId or network parameter")) ;
             }
             Helpers.addElementToObject(request, "chainId", chainId);
             String fee = this.safeString(parameters, "fee");
             if (Helpers.isTrue(Helpers.isEqual(fee, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw require fee parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " withdraw require fee parameter")) ;
             }
             Helpers.addElementToObject(request, "fee", fee);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("chainId", "network", "fee")));
@@ -5227,7 +5227,7 @@ public class AsterCore extends AsterApi
             }
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
             }
             Object defaultClientTranId = this.numberToString(this.milliseconds());
             String clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
@@ -5281,7 +5281,7 @@ public class AsterCore extends AsterApi
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
-        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), v);
+        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0))), Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))), v);
     }
 
     public Object sign(Object path, Object... optionalArgs)
@@ -5317,7 +5317,7 @@ public class AsterCore extends AsterApi
             String signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (Helpers.isTrue(Helpers.isEqual(signerAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " requires signerAddress in options when use v3 api")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " requires signerAddress in options when use v3 api")) ;
             }
             java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
                 put( "name", "AsterSignTransaction" );
@@ -5367,7 +5367,7 @@ public class AsterCore extends AsterApi
     put( "type", "uint256" );
 }})) );
                 }};
-                ((java.util.Map<String,Object>)finalParams).remove((String)"signer"); // signer is not needed for approveBuilder endpoint
+                ((java.util.Map<String,Object>)finalParams).remove("signer"); // signer is not needed for approveBuilder endpoint
                 paramString = this.encodeValuesWithJson(finalParams);
                 paramsToEncode = this.capitalizeKeys(finalParams);
             } else
@@ -5462,13 +5462,13 @@ public class AsterCore extends AsterApi
             {
                 if (Helpers.isTrue(!Helpers.isTrue(this.isEmptyString(this.apiKey)) || !Helpers.isTrue(this.isEmptyString(this.secret))))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
+                    throw new NotSupported(Helpers.add(this.id, "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
                 }
                 return false;
             }
             if (Helpers.isTrue(Helpers.isGreaterThan(((String)this.privateKey).length(), 66)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
+                throw new NotSupported(Helpers.add(this.id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
             }
             (this.initializeClient(parameters)).join();
             return true;
@@ -5535,7 +5535,7 @@ public class AsterCore extends AsterApi
                     Long codeRes = this.safeInteger(authResponse, "code");
                     if (Helpers.isTrue(!Helpers.isEqual(codeRes, 200)))
                     {
-                        throw new ExchangeError((String)Helpers.add("Builder authorization failed, ", this.json(authResponse))) ;
+                        throw new ExchangeError(Helpers.add("Builder authorization failed, ", this.json(authResponse))) ;
                     }
                 } catch(Exception e)
                 {

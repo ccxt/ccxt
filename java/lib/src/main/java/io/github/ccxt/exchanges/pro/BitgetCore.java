@@ -780,7 +780,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         if (Helpers.isTrue(Helpers.isEqual(interval, null)))
         {
             isUta = false;
-            interval = Helpers.replace((String)channel, (String)"candle", (String)"");
+            interval = Helpers.replace(((String)channel), "candle", "");
         } else
         {
             isUta = true;
@@ -1128,7 +1128,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                         ((java.util.List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(storedAsks, i), 2), 1));
                     }
                 }
-                Object payload = String.join((String)":", (java.util.List<String>)payloadArray);
+                Object payload = String.join(":", (java.util.List<String>)payloadArray);
                 Object calculatedChecksum = this.crc32(payload, true);
                 if (Helpers.isTrue(!Helpers.isEqual(calculatedChecksum, responseChecksum)))
                 {
@@ -1245,7 +1245,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3016,7 +3016,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object url = this.safeString(parameters, "url", "");
             Client client = this.client(url);
             String messageHash = (String) "authenticated";
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -3114,7 +3114,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 client.reject(e, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
-                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
                 }
             } else
             {
@@ -3322,7 +3322,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         }
         if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
         {
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
         }
         var error = new UnsubscribeError(Helpers.add(Helpers.add(this.id, " orderbook "), symbol));
         if (Helpers.isTrue(Helpers.inOp(client.futures, subMessageHash)))
@@ -3355,7 +3355,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         }
         if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
         {
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
         }
         var error = new UnsubscribeError(Helpers.add(Helpers.add(this.id, " trades "), symbol));
         if (Helpers.isTrue(Helpers.inOp(client.futures, subMessageHash)))
@@ -3388,7 +3388,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         }
         if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
         {
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
         }
         var error = new UnsubscribeError(Helpers.add(Helpers.add(this.id, " ticker "), symbol));
         if (Helpers.isTrue(Helpers.inOp(client.futures, subMessageHash)))
@@ -3417,7 +3417,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         if (Helpers.isTrue(Helpers.isEqual(interval, null)))
         {
             isUta = false;
-            interval = Helpers.replace((String)channel, (String)"candle", (String)"");
+            interval = Helpers.replace(((String)channel), "candle", "");
         } else
         {
             isUta = true;

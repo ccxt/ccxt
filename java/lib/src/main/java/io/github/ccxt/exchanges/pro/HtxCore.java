@@ -178,7 +178,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object topic = this.safeString(options, "name", "market.{marketId}.detail");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(topic, "market.{marketId}.ticker")) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "spot"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
+                throw new BadRequest(Helpers.add(this.id, " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
             }
             String messageHash = (String) this.implodeParams(topic, new java.util.HashMap<String, Object>() {{
                 put( "marketId", Helpers.GetValue(market, "id") );
@@ -215,7 +215,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object channel = this.safeString(options, "name", "market.{marketId}.detail");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(channel, "market.{marketId}.ticker")) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "spot"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
+                throw new BadRequest(Helpers.add(this.id, " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
             }
             Object subMessageHash = this.implodeParams(channel, new java.util.HashMap<String, Object>() {{
                 put( "marketId", Helpers.GetValue(market, "id") );
@@ -561,7 +561,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             }
             if (!Helpers.isTrue(this.inArray(limit, allowedLimits)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
+                throw new ExchangeError(Helpers.add(this.id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
             }
             String messageHash = (String) null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
@@ -701,7 +701,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                     }
                 } else
                 {
-                    throw new InvalidNonce((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " failed to synchronize WebSocket feed with the snapshot for symbol "), symbol), " in "), String.valueOf(maxAttempts)), " attempts")) ;
+                    throw new InvalidNonce(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " failed to synchronize WebSocket feed with the snapshot for symbol "), symbol), " in "), String.valueOf(maxAttempts)), " attempts")) ;
                 }
             } else
             {
@@ -886,7 +886,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
             {
-                throw new ChecksumError((String)Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
+                throw new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
             }
         }
         Boolean spotConditon = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((Helpers.isEqual(prevSeqNum, Helpers.GetValue(orderbook, "nonce"))));
@@ -1082,7 +1082,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             trades = (this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams)).join();
             if (Helpers.isTrue(Helpers.isEqual(trades, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() trades is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchMyTrades() trades is required")) ;
             }
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -1508,9 +1508,9 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             return;
         }
-        Object genericMessageHash = Helpers.replace((String)messageHash, (String)Helpers.add(".", Helpers.GetValue(market, "lowercaseId")), (String)"");
+        Object genericMessageHash = Helpers.replace(((String)messageHash), Helpers.add(".", Helpers.GetValue(market, "lowercaseId")), "");
         String lowerCaseBaseId = (String)this.safeStringLower(market, "baseId");
-        genericMessageHash = Helpers.replace((String)genericMessageHash, (String)Helpers.add(".", lowerCaseBaseId), (String)"");
+        genericMessageHash = Helpers.replace(((String)genericMessageHash), Helpers.add(".", lowerCaseBaseId), "");
         client.resolve(this.orders, genericMessageHash);
     }
 
@@ -1848,7 +1848,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isTrue(this.isEmpty(symbols)))) && Helpers.isTrue((!Helpers.isEqual(symbols, null)))))
             {
                 market = this.getMarketFromSymbols(symbols);
-                messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add("::", String.join(",", (java.util.List<String>)symbols));
             }
             Object type = null;
             Object subType = null;
@@ -2826,7 +2826,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 try
                 {
                     this.throwExactlyMatchedException(Helpers.GetValue(Helpers.GetValue(this.exceptions, "ws"), "exact"), errorCode, this.json(message));
-                    throw new ExchangeError((String)this.json(message)) ;
+                    throw new ExchangeError(this.json(message)) ;
                 } catch(Exception e)
                 {
                     Object messageHash = this.safeString(subscription, "messageHash");
@@ -3136,9 +3136,9 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 // however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
-                Object genericOrderHash = Helpers.replace((String)messageHash, (String)Helpers.add(".", Helpers.GetValue(market, "lowercaseId")), (String)"");
+                Object genericOrderHash = Helpers.replace(((String)messageHash), Helpers.add(".", Helpers.GetValue(market, "lowercaseId")), "");
                 String lowerCaseBaseId = (String)this.safeStringLower(market, "baseId");
-                genericOrderHash = Helpers.replace((String)genericOrderHash, (String)Helpers.add(".", lowerCaseBaseId), (String)"");
+                genericOrderHash = Helpers.replace(((String)genericOrderHash), Helpers.add(".", lowerCaseBaseId), "");
                 Object genericTradesHash = Helpers.add(Helpers.add(genericOrderHash, ":"), "trade");
                 client.resolve(this.myTrades, genericTradesHash);
             }
@@ -3340,7 +3340,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Boolean isFeed = (Helpers.isEqual(topic, "orderbook"));
             if (Helpers.isTrue(Helpers.isEqual(market, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " unsubscribePublic() market is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " unsubscribePublic() market is required")) ;
             }
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"), false, isFeed);
             final Object finalMarket = market;
@@ -3422,13 +3422,13 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object type = this.safeString(parameters, "type");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(url, null)) || Helpers.isTrue(Helpers.isEqual(hostname, null))) || Helpers.isTrue(Helpers.isEqual(type, null))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " authenticate requires a url, hostname and type argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " authenticate requires a url, hostname and type argument")) ;
             }
             this.checkRequiredCredentials();
             String messageHash = (String) "auth";
-            Object relativePath = Helpers.replace((String)url, (String)Helpers.add("wss://", hostname), (String)"");
+            Object relativePath = Helpers.replace(((String)url), Helpers.add("wss://", hostname), "");
             Client client = this.client(url);
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -3453,7 +3453,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 }
                 signatureParams = this.keysort(signatureParams);
                 Object auth = this.urlencode(signatureParams, true); // true required in go
-                Object payload = String.join((String)"\n", (java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>(java.util.Arrays.asList("GET", hostname, relativePath, auth))); // eslint-disable-line quotes
+                Object payload = String.join("\n", (java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>(java.util.Arrays.asList("GET", hostname, relativePath, auth))); // eslint-disable-line quotes
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 Object request = null;
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))

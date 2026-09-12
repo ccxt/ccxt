@@ -311,8 +311,8 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         Object keyParts = Helpers.split(key, ":");
         Object interval = this.safeString(keyParts, 1);
         Object marketId = key;
-        marketId = Helpers.replace((String)marketId, (String)"trade:", (String)"");
-        marketId = Helpers.replace((String)marketId, (String)Helpers.add(interval, ":"), (String)"");
+        marketId = Helpers.replace(((String)marketId), "trade:", "");
+        marketId = Helpers.replace(((String)marketId), ((String)Helpers.add(interval, ":")), "");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object timeframe = this.findTimeframe(interval);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -788,7 +788,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, 25))) && Helpers.isTrue((!Helpers.isEqual(limit, 100)))))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " watchOrderBook limit argument must be undefined, 25 or 100")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " watchOrderBook limit argument must be undefined, 25 or 100")) ;
                 }
             }
             Object options = this.safeValue(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
@@ -949,23 +949,23 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             Object ask = this.safeValue(asks, i);
             if (Helpers.isTrue(!Helpers.isEqual(bid, null)))
             {
-                ((java.util.List<Object>)stringArray).add(((String)this.numberToString(Helpers.GetValue(Helpers.GetValue(bids, i), idToCheck))));
-                ((java.util.List<Object>)stringArray).add(((String)this.numberToString(Helpers.GetValue(Helpers.GetValue(bids, i), 1))));
+                ((java.util.List<Object>)stringArray).add((this.numberToString(Helpers.GetValue(Helpers.GetValue(bids, i), idToCheck))));
+                ((java.util.List<Object>)stringArray).add((this.numberToString(Helpers.GetValue(Helpers.GetValue(bids, i), 1))));
             }
             if (Helpers.isTrue(!Helpers.isEqual(ask, null)))
             {
-                ((java.util.List<Object>)stringArray).add(((String)this.numberToString(Helpers.GetValue(Helpers.GetValue(asks, i), idToCheck))));
+                ((java.util.List<Object>)stringArray).add((this.numberToString(Helpers.GetValue(Helpers.GetValue(asks, i), idToCheck))));
                 Object aski1 = Helpers.GetValue(Helpers.GetValue(asks, i), 1);
                 ((java.util.List<Object>)stringArray).add(this.numberToString(Helpers.opNeg(aski1)));
             }
         }
-        Object payload = String.join((String)":", (java.util.List<String>)stringArray);
+        Object payload = String.join(":", (java.util.List<String>)stringArray);
         Object localChecksum = this.crc32(payload, true);
         Long responseChecksum = this.safeInteger(message, 2);
         if (Helpers.isTrue(!Helpers.isEqual(responseChecksum, localChecksum)))
         {
             ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
-            ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+            ((java.util.Map<String,Object>)this.orderbooks).remove(symbol);
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
             {
@@ -1222,7 +1222,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             Client client = this.client(url);
             String messageHash = (String) "authenticated";
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -1261,7 +1261,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             // allows further authentication attempts
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
     }

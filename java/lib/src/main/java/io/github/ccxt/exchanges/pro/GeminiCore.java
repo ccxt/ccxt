@@ -74,7 +74,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             Object marketId = Helpers.GetValue(market, "id");
             if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTrades() marketId is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTrades() marketId is required")) ;
             }
             final Object finalMarketId = marketId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -393,7 +393,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         Object timeframeId = Helpers.slice(type, 8, null);
         Object timeframeEndIndex = Helpers.getIndexOf(timeframeId, "_");
         timeframeId = Helpers.slice(timeframeId, 0, timeframeEndIndex);
-        Object marketId = ((String)this.safeString(message, "symbol", "")).toLowerCase();
+        Object marketId = this.safeString(message, "symbol", "").toLowerCase();
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) this.safeSymbol(marketId, market);
         Object changes = this.safeList(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -452,7 +452,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             Object marketId = Helpers.GetValue(market, "id");
             if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBook() marketId is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrderBook() marketId is required")) ;
             }
             final Object finalMarketId = marketId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -634,13 +634,13 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             }
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchMultiple requires at least one symbol")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchMultiple requires at least one symbol")) ;
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
             java.util.Map<String, Object> firstMarket = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(firstMarket, "spot"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(firstMarket, "linear"), true)))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchMultiple supports only spot or linear-swap symbols")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchMultiple supports only spot or linear-swap symbols")) ;
             }
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -652,7 +652,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 ((java.util.List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
             }
-            Object queryStr = String.join((String)",", (java.util.List<String>)marketIds);
+            Object queryStr = String.join(",", (java.util.List<String>)marketIds);
             Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/v1/multimarketdata?symbols="), queryStr), "&heartbeat=true&");
             if (Helpers.isTrue(Helpers.isEqual(itemHashName, "orderbook")))
             {
@@ -974,7 +974,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
 
     public void handleError(Client client, Object message)
     {
-        throw new ExchangeError((String)this.json(message)) ;
+        throw new ExchangeError(this.json(message)) ;
     }
 
     public void handleMessage(Client client, Object message)

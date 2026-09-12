@@ -3622,7 +3622,7 @@ public class BitgetCore extends BitgetApi
         }
         if (Helpers.isTrue(Helpers.isEqual(productType, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a productType param, one of \"USDT-FUTURES\", \"USDC-FUTURES\", \"COIN-FUTURES\", \"SUSDT-FUTURES\", \"SUSDC-FUTURES\", \"SCOIN-FUTURES\" or for uta only \"SPOT\"")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a productType param, one of \"USDT-FUTURES\", \"USDC-FUTURES\", \"COIN-FUTURES\", \"SUSDT-FUTURES\", \"SUSDC-FUTURES\", \"SCOIN-FUTURES\" or for uta only \"SPOT\"")) ;
         }
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("productType", "category")));
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(productType, parameters));
@@ -3766,7 +3766,7 @@ public class BitgetCore extends BitgetApi
                     ((java.util.List<Object>)promises).add(this.publicMarginGetV2MarginCurrencies(parameters));
                 } else
                 {
-                    throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not support "), type), " market")) ;
+                    throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " does not support "), type), " market")) ;
                 }
             }
             Object results = (Helpers.promiseAll(promises)).join();
@@ -3929,7 +3929,7 @@ public class BitgetCore extends BitgetApi
                     {
                         expiry = this.safeInteger(market, "deliveryTime");
                         expiryDatetime = this.iso8601(expiry);
-                        Object expiryParts = Helpers.split(((String)expiryDatetime), "-");
+                        Object expiryParts = Helpers.split((expiryDatetime), "-");
                         String yearPart = this.safeString(expiryParts, 0, "");
                         String dayPart = this.safeString(expiryParts, 2, "");
                         Object year = Helpers.slice(yearPart, 2, 4);
@@ -3947,12 +3947,12 @@ public class BitgetCore extends BitgetApi
                     Object amountDecimals = this.safeInteger(market, "volumePlace");
                     String priceStep = this.safeString(market, "priceEndStep");
                     String amountStep = this.safeString(market, "sizeMultiplier");
-                    var precise = new Precise(((String)priceStep));
+                    var precise = new Precise((priceStep));
                     precise.decimals = Helpers.mathMax(precise.decimals, priceDecimals);
                     precise.reduce();
                     Object priceString = String.valueOf(precise);
                     pricePrecision = this.parseNumber(priceString);
-                    var preciseAmount = new Precise(((String)amountStep));
+                    var preciseAmount = new Precise((amountStep));
                     preciseAmount.decimals = Helpers.mathMax(preciseAmount.decimals, amountDecimals);
                     preciseAmount.reduce();
                     Object amountString = String.valueOf(preciseAmount);
@@ -4233,7 +4233,7 @@ public class BitgetCore extends BitgetApi
                     {
                         expiry = this.safeInteger(market, "deliveryTime");
                         expiryDatetime = this.iso8601(expiry);
-                        Object expiryParts = Helpers.split(((String)expiryDatetime), "-");
+                        Object expiryParts = Helpers.split((expiryDatetime), "-");
                         String yearPart = this.safeString(expiryParts, 0, "");
                         String dayPart = this.safeString(expiryParts, 2, "");
                         Object year = Helpers.slice(yearPart, 2, 4);
@@ -4414,7 +4414,7 @@ public class BitgetCore extends BitgetApi
             Object network = this.networkIdToCode(networkId, code);
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a network argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " requires a network argument")) ;
             }
             network = ((String)network).toUpperCase();
             Object withdrawable = (Helpers.isEqual(this.safeString(chain, "withdrawable"), "true"));
@@ -4544,7 +4544,7 @@ public class BitgetCore extends BitgetApi
                 String code = this.safeString(parameters, "code");
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarketLeverageTiers() requires a code argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchMarketLeverageTiers() requires a code argument")) ;
                 }
                 parameters = this.omit(parameters, "code");
                 java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
@@ -4552,7 +4552,7 @@ public class BitgetCore extends BitgetApi
                 response = (this.privateMarginGetV2MarginCrossedTierData(this.extend(request, parameters))).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchMarketLeverageTiers() symbol does not support market "), Helpers.GetValue(market, "symbol"))) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchMarketLeverageTiers() symbol does not support market "), Helpers.GetValue(market, "symbol"))) ;
             }
             //
             // swap and future
@@ -4877,7 +4877,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a \"network\" parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " withdraw() requires a \"network\" parameter")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5746,7 +5746,7 @@ final Object finalMinNotional = minNotional;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchMarkPrice() is not supported for spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchMarkPrice() is not supported for spot markets")) ;
             } else
             {
                 Object productType = null;
@@ -6407,7 +6407,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.publicMixGetV2MixMarketContracts(parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not support "), marketType), " market")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " does not support "), marketType), " market")) ;
             }
             //
             // spot and margin
@@ -6854,7 +6854,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateSpotGetV2SpotAccountAssets(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() does not support "), marketType), " accounts")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() does not support "), marketType), " accounts")) ;
             }
             // spot
             //
@@ -7513,7 +7513,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "createMarketBuyOrderRequiresPrice", false );
@@ -7661,11 +7661,11 @@ final Object finalMinNotional = minNotional;
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object productType = null;
@@ -7832,11 +7832,11 @@ final Object finalMinNotional = minNotional;
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object marketType = null;
@@ -7890,7 +7890,7 @@ final Object finalMinNotional = minNotional;
         //
         if (Helpers.isTrue(Helpers.isGreaterThan(this.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder), 1)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
+            throw new ExchangeError(Helpers.add(this.id, " createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
         {
@@ -7947,11 +7947,11 @@ final Object finalMinNotional = minNotional;
             {
                 if (!Helpers.isTrue(isMarketOrder))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " createOrder() bitget trailing orders must be market orders")) ;
+                    throw new BadRequest(Helpers.add(this.id, " createOrder() bitget trailing orders must be market orders")) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(trailingTriggerPrice, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() bitget trailing orders must have a trailingTriggerPrice param")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() bitget trailing orders must have a trailingTriggerPrice param")) ;
                 }
                 Helpers.addElementToObject(request, "planType", "track_plan");
                 Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
@@ -7989,7 +7989,7 @@ final Object finalMinNotional = minNotional;
                     Helpers.addElementToObject(request, "executePrice", this.priceToPrecision(symbol, price));
                     if (Helpers.isTrue(Helpers.inOp(request, "price")))
                     {
-                        ((java.util.Map<String,Object>)request).remove((String)"price");
+                        ((java.util.Map<String,Object>)request).remove("price");
                     }
                 }
                 if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
@@ -8015,7 +8015,7 @@ final Object finalMinNotional = minNotional;
                     Object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
                     if (Helpers.isTrue(Helpers.isEqual(slTriggerPrice, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")) ;
                     }
                     Helpers.addElementToObject(request, "presetStopLossPrice", this.priceToPrecision(symbol, slTriggerPrice));
                     Object slLimitPrice = this.safeValue(stopLoss, "price");
@@ -8031,7 +8031,7 @@ final Object finalMinNotional = minNotional;
                     Object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
                     if (Helpers.isTrue(Helpers.isEqual(tpTriggerPrice, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")) ;
                     }
                     Helpers.addElementToObject(request, "presetStopSurplusPrice", this.priceToPrecision(symbol, tpTriggerPrice));
                     Object tpLimitPrice = this.safeValue(takeProfit, "price");
@@ -8074,7 +8074,7 @@ final Object finalMinNotional = minNotional;
         {
             if (Helpers.isTrue(Helpers.isTrue(isStopLossOrTakeProfitTrigger) || Helpers.isTrue(isStopLossOrTakeProfit)))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() does not support stop loss/take profit orders on spot markets, only swap markets")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " createOrder() does not support stop loss/take profit orders on spot markets, only swap markets")) ;
             }
             Helpers.addElementToObject(request, "side", side);
             Object quantity = null;
@@ -8095,7 +8095,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (Helpers.isTrue(Helpers.isEqual(price, null)))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options[\"createOrder\"] or params to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options[\"createOrder\"] or params to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
                         Object amountString = this.numberToString(amount);
@@ -8145,7 +8145,7 @@ final Object finalMinNotional = minNotional;
             }
         } else
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support "), marketType), " orders")) ;
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support "), marketType), " orders")) ;
         }
         return this.extend(request, parameters);
     }
@@ -8174,7 +8174,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(symbol, marketId)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
                     }
                 }
                 String type = this.safeString(rawOrder, "type");
@@ -8193,7 +8193,7 @@ final Object finalMinNotional = minNotional;
                     {
                         if (Helpers.isTrue(!Helpers.isEqual(marginMode, currentMarginMode)))
                         {
-                            throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
+                            throw new BadRequest(Helpers.add(this.id, " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
                         }
                     }
                 }
@@ -8267,7 +8267,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(symbol, marketId)))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                        throw new BadRequest(Helpers.add(this.id, " createOrders() requires all orders to have the same symbol")) ;
                     }
                 }
                 String type = this.safeString(rawOrder, "type");
@@ -8286,7 +8286,7 @@ final Object finalMinNotional = minNotional;
                     {
                         if (Helpers.isTrue(!Helpers.isEqual(marginMode, currentMarginMode)))
                         {
-                            throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
+                            throw new BadRequest(Helpers.add(this.id, " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
                         }
                     }
                 }
@@ -8438,7 +8438,7 @@ final Object finalMinNotional = minNotional;
             // }
             if (Helpers.isTrue(Helpers.isGreaterThan(this.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder), 1)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
+                throw new ExchangeError(Helpers.add(this.id, " editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "clientOrderId", "trailingTriggerPrice", "trailingPercent")));
             Object response = null;
@@ -8504,7 +8504,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(price, null)) && Helpers.isTrue(Helpers.isEqual(cost, null))))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params")) ;
                     } else
                     {
                         Object amountString = this.numberToString(amount);
@@ -8542,7 +8542,7 @@ final Object finalMinNotional = minNotional;
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
                 {
-                    throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
+                    throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
                 }
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(request, "productType", productType);
@@ -8561,7 +8561,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (!Helpers.isTrue(isMarketOrder))
                     {
-                        throw new BadRequest((String)Helpers.add(this.id, " editOrder() bitget trailing orders must be market orders")) ;
+                        throw new BadRequest(Helpers.add(this.id, " editOrder() bitget trailing orders must be market orders")) ;
                     }
                     if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
                     {
@@ -8675,7 +8675,7 @@ final Object finalMinNotional = minNotional;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -8779,7 +8779,7 @@ final Object finalMinNotional = minNotional;
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
             //
             // spot, swap, future and spot margin
@@ -8861,7 +8861,7 @@ final Object finalMinNotional = minNotional;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -8931,7 +8931,7 @@ final Object finalMinNotional = minNotional;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -9050,7 +9050,7 @@ final Object finalMinNotional = minNotional;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -9090,7 +9090,7 @@ final Object finalMinNotional = minNotional;
             {
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() does not support margin markets, you can use cancelOrders() instead")) ;
+                    throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() does not support margin markets, you can use cancelOrders() instead")) ;
                 } else
                 {
                     if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
@@ -9174,7 +9174,7 @@ final Object finalMinNotional = minNotional;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -9213,7 +9213,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateMixGetV2MixOrderDetail(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
             //
             // spot
@@ -9342,7 +9342,7 @@ final Object finalMinNotional = minNotional;
             Object dataListLength = Helpers.getArrayLength(dataList);
             if (Helpers.isTrue(Helpers.isEqual(dataListLength, 0)))
             {
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() could not find order id "), id), " in "), this.json(response))) ;
+                throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() could not find order id "), id), " in "), this.json(response))) ;
             }
             Object first = this.safeDict(dataList, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(first, market);
@@ -10020,7 +10020,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
                     }
                     Long endTime = (Long) this.safeInteger2(parameters, "endTime", "until");
                     parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
@@ -10705,7 +10705,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(uta, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -11156,7 +11156,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (Helpers.isTrue(Helpers.isEqual(marginCoin, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() requires a marginCoin parameter that matches the productType")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositions() requires a marginCoin parameter that matches the productType")) ;
                     }
                 }
                 Helpers.addElementToObject(request, "marginCoin", marginCoin);
@@ -11561,7 +11561,7 @@ final Object finalMinNotional = minNotional;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -11686,7 +11686,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
             Object productType = null;
             java.util.List<Object> productTypeparametersVariable = (java.util.List<Object>) this.handleProductTypeAndParams(market, parameters);
@@ -11978,7 +11978,7 @@ final Object finalMinNotional = minNotional;
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
             }
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "fetchFundingHistory", false)).join();
@@ -11999,7 +11999,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
             }
             Object productType = null;
             java.util.List<Object> productTypeparametersVariable = (java.util.List<Object>) this.handleProductTypeAndParams(market, parameters);
@@ -12197,12 +12197,12 @@ final Object finalMinNotional = minNotional;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isGreaterThan(amount, 0)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " reduceMargin() amount parameter must be a negative value")) ;
+                throw new BadRequest(Helpers.add(this.id, " reduceMargin() amount parameter must be a negative value")) ;
             }
             String holdSide = this.safeString(parameters, "holdSide");
             if (Helpers.isTrue(Helpers.isEqual(holdSide, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " reduceMargin() requires a holdSide parameter, either long or short")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " reduceMargin() requires a holdSide parameter, either long or short")) ;
             }
             return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
         });
@@ -12228,7 +12228,7 @@ final Object finalMinNotional = minNotional;
             String holdSide = this.safeString(parameters, "holdSide");
             if (Helpers.isTrue(Helpers.isEqual(holdSide, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " addMargin() requires a holdSide parameter, either long or short")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " addMargin() requires a holdSide parameter, either long or short")) ;
             }
             return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
         });
@@ -12338,7 +12338,7 @@ final Object finalMinNotional = minNotional;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -12404,7 +12404,7 @@ final Object finalMinNotional = minNotional;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             marginMode = ((String)marginMode).toLowerCase();
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
@@ -12413,7 +12413,7 @@ final Object finalMinNotional = minNotional;
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "crossed")))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() marginMode must be either isolated or crossed (cross)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() marginMode must be either isolated or crossed (cross)")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -12531,7 +12531,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
             Object productType = null;
             java.util.List<Object> productTypeparametersVariable = (java.util.List<Object>) this.handleProductTypeAndParams(market, parameters);
@@ -12624,7 +12624,7 @@ final Object finalMinNotional = minNotional;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTransfers() requires a code argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTransfers() requires a code argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -13229,7 +13229,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchMyLiquidations() supports spot margin markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchMyLiquidations() supports spot margin markets only")) ;
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
@@ -13255,7 +13255,7 @@ final Object finalMinNotional = minNotional;
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyLiquidations() requires a symbol argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyLiquidations() requires a symbol argument")) ;
                 }
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 response = (this.privateMarginGetV2MarginIsolatedLiquidationHistory(this.extend(request, parameters))).join();
@@ -13700,7 +13700,7 @@ final Object finalMinNotional = minNotional;
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchBorrowInterest() requires a symbol argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchBorrowInterest() requires a symbol argument")) ;
                 }
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 response = (this.privateMarginGetV2MarginIsolatedInterestHistory(this.extend(request, parameters))).join();
@@ -14157,12 +14157,12 @@ final Object finalMinNotional = minNotional;
             String price = this.safeString2(parameters, "price", "cnvtPrice");
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createConvertTrade() requires a price parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createConvertTrade() requires a price parameter")) ;
             }
             String toAmount = this.safeString2(parameters, "toAmount", "toCoinSize");
             if (Helpers.isTrue(Helpers.isEqual(toAmount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createConvertTrade() requires a toAmount parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createConvertTrade() requires a toAmount parameter")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "toAmount")));
             final Object finalToAmount = toAmount;
@@ -14623,7 +14623,7 @@ final Object finalMinNotional = minNotional;
                     // check #21169 pr
                     if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(queryInner, "%24"), Helpers.opNeg(1))))
                     {
-                        queryInner = Helpers.replace((String)queryInner, (String)"%24", (String)"$");
+                        queryInner = Helpers.replace(((String)queryInner), "%24", "$");
                     }
                     url = Helpers.add(url, queryInner);
                     // bitget signs the raw (non-percent-encoded) query string, so the

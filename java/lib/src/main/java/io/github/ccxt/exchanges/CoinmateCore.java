@@ -975,7 +975,7 @@ public class CoinmateCore extends CoinmateApi
             if (Helpers.isTrue(Helpers.isEqual(method, null)))
             {
                 Object allowedCurrencies = Helpers.objectKeys(methods);
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() only allows withdrawing the following currencies: "), String.join((String)", ", (java.util.List<String>)allowedCurrencies))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() only allows withdrawing the following currencies: "), String.join(", ", (java.util.List<String>)allowedCurrencies))) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "amount", CoinmateCore.this.currencyToPrecision(code, amount) );
@@ -1016,7 +1016,7 @@ public class CoinmateCore extends CoinmateApi
                 response = (this.privatePostSolWithdrawal(requestParams)).join();
             } else
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw() does not support the "), method), " method")) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw() does not support the "), method), " method")) ;
             }
             //
             //     {
@@ -1315,7 +1315,7 @@ public class CoinmateCore extends CoinmateApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1512,7 +1512,7 @@ public class CoinmateCore extends CoinmateApi
                 response = (this.privatePostSellLimit(requestParams)).join();
             } else
             {
-                throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " createOrder() does not support order type "), type)) ;
+                throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " createOrder() does not support order type "), type)) ;
             }
             String id = this.safeString(response, "data");
             final Object finalResponse = response;

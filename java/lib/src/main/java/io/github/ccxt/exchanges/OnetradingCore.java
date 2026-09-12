@@ -710,7 +710,7 @@ public class OnetradingCore extends OnetradingApi
                 return (this.fetchPublicTradingFees(parameters)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")) ;
             }
         });
 
@@ -1180,7 +1180,7 @@ public class OnetradingCore extends OnetradingApi
         String lowercaseUnit = this.safeString(units, unit);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(period, null))) || Helpers.isTrue((Helpers.isEqual(lowercaseUnit, null)))))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseOHLCV() missing period/unit")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseOHLCV() missing period/unit")) ;
         }
         Object timeframe = Helpers.add(period, lowercaseUnit);
         int durationInSeconds = this.parseTimeframe(timeframe);
@@ -1188,7 +1188,7 @@ public class OnetradingCore extends OnetradingApi
         Long timestamp = this.parse8601(this.safeString(ohlcv, "time"));
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseOHLCV() missing timestamp")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseOHLCV() missing timestamp")) ;
         }
         Object alignedTimestamp = Helpers.multiply(duration, this.parseToInt(Helpers.divide(timestamp, duration)));
         Object options = this.safeValue(this.options, "fetchOHLCV", new java.util.HashMap<String, Object>() {{}});
@@ -1225,7 +1225,7 @@ public class OnetradingCore extends OnetradingApi
             String periodUnit = this.safeString(this.timeframes, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(periodUnit, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing periodUnit")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchOHLCV() missing periodUnit")) ;
             }
             var periodunitVariable = Helpers.split(periodUnit, "/");
             var period = ((java.util.List<Object>) periodunitVariable).get(0);
@@ -1585,7 +1585,7 @@ public class OnetradingCore extends OnetradingApi
             Object uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalUppercaseType = uppercaseType;
             final Object finalSide = side;
@@ -1605,14 +1605,14 @@ public class OnetradingCore extends OnetradingApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "MARKET")))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " createOrder() cannot place stop market orders, only stop limit")) ;
+                    throw new BadRequest(Helpers.add(this.id, " createOrder() cannot place stop market orders, only stop limit")) ;
                 }
                 Helpers.addElementToObject(request, "trigger_price", this.priceToPrecision(symbol, triggerPrice));
                 Helpers.addElementToObject(request, "type", "STOP");
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "trigger_price", "stopPrice")));
             } else if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "STOP")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice param for "), type), " orders")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice param for "), type), " orders")) ;
             }
             if (Helpers.isTrue(priceIsRequired))
             {
@@ -1759,7 +1759,7 @@ public class OnetradingCore extends OnetradingApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
-                put( "ids", String.join((String)",", (java.util.List<String>)ids) );
+                put( "ids", String.join(",", (java.util.List<String>)ids) );
             }};
             java.util.List<Object> response = (this.privateDeleteAccountOrders(this.extend(request, parameters))).join();
             //

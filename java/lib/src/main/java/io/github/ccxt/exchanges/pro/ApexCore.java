@@ -114,7 +114,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             Object url = this.getWsPublicUrl();
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -274,7 +274,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
             symbols = this.marketSymbols(symbols);
             Object url = this.getWsPublicUrl();
@@ -795,7 +795,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
                 symbols = this.marketSymbols(symbols);
-                messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)(java.util.List<String>)(symbols)));
+                messageHash = Helpers.add("::", String.join(",", (java.util.List<String>)(java.util.List<String>)(symbols)));
             }
             Object url = this.getWsPrivateUrl();
             messageHash = Helpers.add("positions", messageHash);
@@ -972,7 +972,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         String messageHash = (String) "fetchPositionsSnapshot";
         if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
         {
-            client.future((String)messageHash);
+            client.future(messageHash);
             this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
         }
     }
@@ -1091,7 +1091,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
             String messageHash = (String) "authenticated";
             Client client = this.client(url);
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -1192,10 +1192,10 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 }
                 if (Helpers.isTrue(Helpers.isEqual(op, "auth")))
                 {
-                    throw new AuthenticationError((String)Helpers.add("Authentication failed: ", ret_msg)) ;
+                    throw new AuthenticationError(Helpers.add("Authentication failed: ", ret_msg)) ;
                 } else
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), ret_msg)) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), ret_msg)) ;
                 }
             }
             return false;
@@ -1207,7 +1207,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 client.reject(error, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
-                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
                 }
             } else
             {
@@ -1371,7 +1371,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             client.reject(error, messageHash);
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
         return message;

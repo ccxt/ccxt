@@ -1055,7 +1055,7 @@ public class BigoneCore extends BigoneApi
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
                     Object ids = this.marketIds(symbols);
-                    Helpers.addElementToObject(request, "pair_names", String.join((String)",", (java.util.List<String>)ids));
+                    Helpers.addElementToObject(request, "pair_names", String.join(",", (java.util.List<String>)ids));
                 }
                 java.util.Map<String, Object> response = (this.publicGetAssetPairsTickers(this.extend(request, parameters))).join();
                 //
@@ -1123,7 +1123,7 @@ public class BigoneCore extends BigoneApi
             Long timestamp = this.safeInteger(data, "Timestamp");
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
             return this.parseToInt(Helpers.divide(timestamp, 1000000));
         });
@@ -1451,7 +1451,7 @@ public class BigoneCore extends BigoneApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTrades () can only fetch trades for spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTrades () can only fetch trades for spot markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset_pair_name", Helpers.GetValue(market, "id") );
@@ -1529,7 +1529,7 @@ public class BigoneCore extends BigoneApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
             }
             Long until = this.safeInteger(parameters, "until");
             Boolean untilIsDefined = (!Helpers.isEqual(until, null));
@@ -1783,7 +1783,7 @@ public class BigoneCore extends BigoneApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, null, parameters)).join();
@@ -1869,7 +1869,7 @@ public class BigoneCore extends BigoneApi
                     {
                         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isEqual(cost, null)))))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
                             Object amountString = this.numberToString(amount);
@@ -2087,7 +2087,7 @@ public class BigoneCore extends BigoneApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2150,7 +2150,7 @@ public class BigoneCore extends BigoneApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2378,7 +2378,7 @@ public class BigoneCore extends BigoneApi
             Object dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isLessThan(dataLength, 1)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() returned empty address response")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchDepositAddress() returned empty address response")) ;
             }
             java.util.Map<String, Object> chainsIndexedById = this.indexBy(data, "chain");
             Object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);

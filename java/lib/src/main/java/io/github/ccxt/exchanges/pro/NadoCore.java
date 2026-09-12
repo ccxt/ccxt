@@ -166,7 +166,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -208,7 +208,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -297,7 +297,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -340,7 +340,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchOrderBookForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " unWatchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -416,7 +416,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
             }
             (this.loadMarkets()).join();
             Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -489,7 +489,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
             }
             (this.loadMarkets()).join();
             Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1072,13 +1072,13 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object requestIdString = this.safeString(parameters, "id");
             if (Helpers.isTrue(Helpers.isEqual(requestIdString, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " ws execute requires params.id")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " ws execute requires params.id")) ;
             }
             Object request = (this.createOrderRequest(symbol, type, side, amount, price, parameters)).join();
             Object placeOrder = this.safeDict(request, "place_order", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.inOp(placeOrder, "trigger")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrderWs() does not support trigger orders, use createOrder() instead")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrderWs() does not support trigger orders, use createOrder() instead")) ;
             }
             Object response = (this.watchExecuteRequest(requestIdString, request)).join();
             //
@@ -1142,7 +1142,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object requestIdString = this.safeString(parameters, "id");
             if (Helpers.isTrue(Helpers.isEqual(requestIdString, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " ws execute requires params.id")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " ws execute requires params.id")) ;
             }
             Object request = (this.editOrderRequest(id, symbol, type, side, amount, price, parameters)).join();
             Object response = (this.watchExecuteRequest(requestIdString, request)).join();
@@ -1217,14 +1217,14 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             this.checkRequiredCredentials();
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrdersWs() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrdersWs() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelOrdersWs() does not support trigger orders, use cancelOrders() instead")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelOrdersWs() does not support trigger orders, use cancelOrders() instead")) ;
             }
             parameters = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", NadoCore.this.requestId() );
@@ -1232,7 +1232,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object requestIdString = this.safeString(parameters, "id");
             if (Helpers.isTrue(Helpers.isEqual(requestIdString, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " ws execute requires params.id")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " ws execute requires params.id")) ;
             }
             Object request = (this.cancelOrdersRequest(ids, symbol, parameters)).join();
             Object response = (this.watchExecuteRequest(requestIdString, request)).join();
@@ -1290,7 +1290,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead")) ;
             }
             parameters = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", NadoCore.this.requestId() );
@@ -1298,7 +1298,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object requestIdString = this.safeString(parameters, "id");
             if (Helpers.isTrue(Helpers.isEqual(requestIdString, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " ws execute requires params.id")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " ws execute requires params.id")) ;
             }
             Object request = (this.cancelAllOrdersRequest(symbol, parameters)).join();
             Object response = (this.watchExecuteRequest(requestIdString, request)).join();
@@ -1326,7 +1326,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             // request id and its response is correlated by the echoed id
             if (Helpers.isTrue(Helpers.isEqual(requestIdString, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchExecuteRequest() requires requestIdString")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchExecuteRequest() requires requestIdString")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "gateway");
             String messageHash = (String) Helpers.add("execute:", requestIdString);
@@ -1475,7 +1475,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object endpointAddress = this.safeString(contracts, "endpoint_addr");
             if (Helpers.isTrue(Helpers.isEqual(endpointAddress, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " authenticate() requires endpoint_addr from contracts query")) ;
+                throw new ExchangeError(Helpers.add(this.id, " authenticate() requires endpoint_addr from contracts query")) ;
             }
             Object signature = this.signStreamAuthentication(tx, chainId, endpointAddress);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2171,7 +2171,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object subscriptionMsg = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(!Helpers.isEqual(subscriptionMsg, null)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             }
             ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
             var error = new InvalidNonce(Helpers.add(this.id, " watchOrderBook received invalid nonce"));
@@ -2212,7 +2212,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object subscription = this.safeValue(client.subscriptions, messageHash);
         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
         {
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
         }
         client.resolve(message, messageHash);
     }
@@ -2224,7 +2224,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
         {
             Object subscribeHash = this.safeString(subscription, "subscribeHash");
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)Helpers.add("subscription:", id));
+            ((java.util.Map<String,Object>)client.subscriptions).remove(Helpers.add("subscription:", id));
             client.resolve(message, subscribeHash);
         }
     }
@@ -2235,7 +2235,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object messageHash = this.safeString(client.subscriptions, Helpers.add("authentication:", id));
         if (Helpers.isTrue(!Helpers.isEqual(messageHash, null)))
         {
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)Helpers.add("authentication:", id));
+            ((java.util.Map<String,Object>)client.subscriptions).remove(Helpers.add("authentication:", id));
             Helpers.addElementToObject(client.subscriptions, messageHash, true);
             client.resolve(message, messageHash);
         }
@@ -2249,7 +2249,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         {
             Object messageHash = this.safeString(unsubscription, "messageHash");
             Object unsubscribeHash = this.safeString(unsubscription, "unsubscribeHash");
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)Helpers.add("unsubscription:", id));
+            ((java.util.Map<String,Object>)client.subscriptions).remove(Helpers.add("unsubscription:", id));
             if (Helpers.isTrue(!Helpers.isEqual(messageHash, null)))
             {
                 this.cleanUnsubscription(client, messageHash, unsubscribeHash);
@@ -2287,14 +2287,14 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         }
         if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(messageHash, "trade:"), 0)))
         {
-            Object symbol = Helpers.replace((String)messageHash, (String)"trade:", (String)"");
+            Object symbol = Helpers.replace(((String)messageHash), "trade:", "");
             if (Helpers.isTrue(Helpers.inOp(this.trades, symbol)))
             {
                 ((java.util.Map<String,Object>)this.trades).remove((String)symbol);
             }
         } else if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(messageHash, "orderbook:"), 0)))
         {
-            Object symbol = Helpers.replace((String)messageHash, (String)"orderbook:", (String)"");
+            Object symbol = Helpers.replace(((String)messageHash), "orderbook:", "");
             if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
             {
                 ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
@@ -2310,7 +2310,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             }
         } else if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(messageHash, "ticker:"), 0)))
         {
-            Object symbol = Helpers.replace((String)messageHash, (String)"ticker:", (String)"");
+            Object symbol = Helpers.replace(((String)messageHash), "ticker:", "");
             if (Helpers.isTrue(Helpers.inOp(this.tickers, symbol)))
             {
                 ((java.util.Map<String,Object>)this.tickers).remove((String)symbol);
@@ -2324,7 +2324,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             }
         } else if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(messageHash, "bidask:"), 0)))
         {
-            Object symbol = Helpers.replace((String)messageHash, (String)"bidask:", (String)"");
+            Object symbol = Helpers.replace(((String)messageHash), "bidask:", "");
             if (Helpers.isTrue(Helpers.inOp(this.bidsasks, symbol)))
             {
                 ((java.util.Map<String,Object>)this.bidsasks).remove((String)symbol);
@@ -2406,7 +2406,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
         {
             Object subscribeHash = this.safeString(subscription, "subscribeHash");
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)Helpers.add("subscription:", id));
+            ((java.util.Map<String,Object>)client.subscriptions).remove(Helpers.add("subscription:", id));
             client.reject(feedback, subscribeHash);
         } else
         {

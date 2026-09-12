@@ -1205,7 +1205,7 @@ public class BitmexCore extends BitmexApi
         }
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " parseMarket() requires a symbol")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " parseMarket() requires a symbol")) ;
         }
         final Object finalSymbol = symbol;
         final Object finalBase = base;
@@ -1507,7 +1507,7 @@ public class BitmexCore extends BitmexApi
             {
                 return Helpers.GetValue(response, 0);
             }
-            throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(this.id, ": The order "), id), " not found.")) ;
+            throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(this.id, ": The order "), id), " not found.")) ;
         });
 
     }
@@ -2127,7 +2127,7 @@ public class BitmexCore extends BitmexApi
             Object ticker = this.safeValue(response, 0);
             if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
             {
-                throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTicker() symbol "), symbol), " not found")) ;
+                throw new BadSymbol(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTicker() symbol "), symbol), " not found")) ;
             }
             return this.parseTicker(ticker, market);
         });
@@ -2557,7 +2557,7 @@ public class BitmexCore extends BitmexApi
         String execInst = this.safeString(order, "execInst", "");
         Object postOnly = null;
         Object reduceOnly = null;
-        if (Helpers.isTrue(Helpers.isGreaterThan(((String)execInst).length(), 0)))
+        if (Helpers.isTrue(Helpers.isGreaterThan(execInst.length(), 0)))
         {
             postOnly = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "ParticipateDoNotInitiate"), 0));
             reduceOnly = (Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "ReduceOnly"), 0))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "Close"), 0))));
@@ -2721,7 +2721,7 @@ public class BitmexCore extends BitmexApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
                 {
-                    throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support reduceOnly for "), Helpers.GetValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")) ;
+                    throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support reduceOnly for "), Helpers.GetValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")) ;
                 }
             }
             Object postOnly = this.safeBool(parameters, "postOnly");
@@ -2748,7 +2748,7 @@ public class BitmexCore extends BitmexApi
             Object execInstLength = Helpers.getArrayLength(execInstructions);
             if (Helpers.isTrue(Helpers.isGreaterThan(execInstLength, 0)))
             {
-                Helpers.addElementToObject(request, "execInst", String.join((String)",", (java.util.List<String>)execInstructions));
+                Helpers.addElementToObject(request, "execInst", String.join(",", (java.util.List<String>)execInstructions));
             }
             // support for unified trigger format
             Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
@@ -2796,7 +2796,7 @@ public class BitmexCore extends BitmexApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter for the "), orderType), " order type")) ;
+                        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter for the "), orderType), " order type")) ;
                     }
                     Helpers.addElementToObject(request, "stopPx", this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)));
                 }
@@ -2943,7 +2943,7 @@ public class BitmexCore extends BitmexApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(error, "Unable to cancel order due to existing state"), 0)))
                 {
-                    throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " cancelOrder() failed: "), error)) ;
+                    throw new OrderNotFound(Helpers.add(Helpers.add(this.id, " cancelOrder() failed: "), error)) ;
                 }
             }
             return this.parseOrder(order);
@@ -3083,7 +3083,7 @@ public class BitmexCore extends BitmexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+                throw new ExchangeError(Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
             }
             final Object finalTimeout = timeout;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3588,7 +3588,7 @@ public class BitmexCore extends BitmexApi
             Object market = null;
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.inOp(this.currencies, symbol)))
             {
@@ -3687,11 +3687,11 @@ public class BitmexCore extends BitmexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 0.01))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 100)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " leverage should be between 0.01 and 100")) ;
+                throw new BadRequest(Helpers.add(this.id, " leverage should be between 0.01 and 100")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3700,7 +3700,7 @@ public class BitmexCore extends BitmexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "future"))))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setLeverage() supports future and swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setLeverage() supports future and swap contracts only")) ;
             }
             final Object finalLeverage = leverage;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3731,12 +3731,12 @@ public class BitmexCore extends BitmexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             marginMode = ((String)marginMode).toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated")) && Helpers.isTrue(!Helpers.isEqual(marginMode, "cross"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3745,7 +3745,7 @@ public class BitmexCore extends BitmexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "type"), "swap"))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "type"), "future")))))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports swap and future contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setMarginMode() supports swap and future contracts only")) ;
             }
             Object enabled = ((Helpers.isTrue((Helpers.isEqual(marginMode, "cross"))))) ? false : true;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3783,7 +3783,7 @@ public class BitmexCore extends BitmexApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress requires params[\"network\"]")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress requires params[\"network\"]")) ;
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             parameters = this.omit(parameters, "network");
@@ -3801,7 +3801,7 @@ public class BitmexCore extends BitmexApi
                 put( "info", response );
                 put( "currency", code );
                 put( "network", finalNetworkCode );
-                put( "address", Helpers.replace((String)Helpers.replace((String)response, (String)"\"", (String)""), (String)"\"", (String)"") );
+                put( "address", Helpers.replace(((String)Helpers.replace(response, "\"", "")), "\"", "") );
                 put( "tag", null );
             }};
         });
@@ -4578,7 +4578,7 @@ public class BitmexCore extends BitmexApi
         }
         if (Helpers.isTrue(Helpers.isEqual(code, 429)))
         {
-            throw new DDoSProtection((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+            throw new DDoSProtection(Helpers.add(Helpers.add(this.id, " "), body)) ;
         }
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(code, 400)))
         {
@@ -4641,7 +4641,7 @@ public class BitmexCore extends BitmexApi
             expires = this.sum(this.seconds(), expires);
             if (Helpers.isTrue(Helpers.isEqual(expires, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " sign() missing expires")) ;
+                throw new ExchangeError(Helpers.add(this.id, " sign() missing expires")) ;
             }
             Object stringExpires = String.valueOf(expires);
             auth = Helpers.add(auth, stringExpires);

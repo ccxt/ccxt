@@ -1437,7 +1437,7 @@ public class WhitebitCore extends WhitebitApi
             Object markets = this.markets;
             if (Helpers.isTrue(Helpers.isEqual(markets, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
+                throw new ExchangeError(Helpers.add(this.id, " markets not loaded")) ;
             }
             Object marketIds = Helpers.objectKeys(markets);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
@@ -1941,7 +1941,7 @@ public class WhitebitCore extends WhitebitApi
                     }
                 }
             }
-            throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " fetchOrder() order not found: "), id)) ;
+            throw new OrderNotFound(Helpers.add(Helpers.add(this.id, " fetchOrder() order not found: "), id)) ;
         });
 
     }
@@ -2600,7 +2600,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(side, "buy"))) || Helpers.isTrue((!Helpers.isEqual(type, "market")))))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() cost is only supported for market buy orders")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() cost is only supported for market buy orders")) ;
                 }
                 Helpers.addElementToObject(request, "amount", this.costToPrecision(symbol, cost));
             } else
@@ -2628,17 +2628,17 @@ public class WhitebitCore extends WhitebitApi
             String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeInForce, null))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "GTC")))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "IOC")))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "PO")))))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support timeInForce "), timeInForce), ", only GTC, IOC and PO are allowed")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support timeInForce "), timeInForce), ", only GTC, IOC and PO are allowed")) ;
             }
             Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
             Boolean ioc = (Helpers.isEqual(timeInForce, "IOC"));
             if (Helpers.isTrue(Helpers.isTrue(isStopOrder) && Helpers.isTrue((Helpers.isTrue(postOnly) || Helpers.isTrue(ioc)))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue(ioc) && !Helpers.isTrue(isLimitOrder)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() timeInForce IOC is only supported for limit orders")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() timeInForce IOC is only supported for limit orders")) ;
             }
             java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
@@ -2653,7 +2653,7 @@ public class WhitebitCore extends WhitebitApi
             }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, null)) && Helpers.isTrue(!Helpers.isEqual(marginMode, "cross"))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() is only available for cross margin")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() is only available for cross margin")) ;
             }
             parameters = this.omit(query, new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly", "triggerPrice", "stopPrice", "timeInForce")));
             Boolean useCollateralEndpoint = Helpers.isTrue(!Helpers.isEqual(marginMode, null)) || Helpers.isTrue(Helpers.isEqual(marketType, "swap"));
@@ -2792,7 +2792,7 @@ public class WhitebitCore extends WhitebitApi
             Boolean hasModifiableParam = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amount, null))) || Helpers.isTrue((!Helpers.isEqual(price, null)))) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))) || Helpers.isTrue((!Helpers.isEqual(total, null)));
             if (!Helpers.isTrue(hasModifiableParam))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total")));
             java.util.Map<String, Object> response = (this.v4PrivatePostOrderModify(this.extend(request, parameters))).join();
@@ -2820,7 +2820,7 @@ public class WhitebitCore extends WhitebitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2908,7 +2908,7 @@ public class WhitebitCore extends WhitebitApi
                 ((java.util.List<Object>)requestType).add("futures");
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrders() does not support "), type), " type")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrders() does not support "), type), " type")) ;
             }
             Helpers.addElementToObject(request, "type", requestType);
             java.util.List<Object> response = (this.v4PrivatePostOrderCancelAll(this.extend(request, parameters))).join();
@@ -2986,13 +2986,13 @@ public class WhitebitCore extends WhitebitApi
             String symbol = this.safeString(parameters, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrdersAfter() requires a symbol argument in params")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrdersAfter() requires a symbol argument in params")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             parameters = this.omit(parameters, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+                throw new ExchangeError(Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
             }
             Boolean isBiggerThanZero = (Helpers.isGreaterThan(timeout, 0));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3650,19 +3650,19 @@ public class WhitebitCore extends WhitebitApi
                 String provider = this.safeString(parameters, "provider");
                 if (Helpers.isTrue(Helpers.isEqual(provider, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires a provider when the ticker is fiat")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() requires a provider when the ticker is fiat")) ;
                 }
                 Helpers.addElementToObject(request, "provider", provider);
                 Double amount = this.safeNumber(parameters, "amount");
                 if (Helpers.isTrue(Helpers.isEqual(amount, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires an amount when the ticker is fiat")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() requires an amount when the ticker is fiat")) ;
                 }
                 Helpers.addElementToObject(request, "amount", amount);
                 Object uniqueId = this.safeValue(parameters, "uniqueId");
                 if (Helpers.isTrue(Helpers.isEqual(uniqueId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires an uniqueId when the ticker is fiat")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() requires an uniqueId when the ticker is fiat")) ;
                 }
                 response = (this.v4PrivatePostMainAccountFiatDepositUrl(this.extend(request, parameters))).join();
             } else
@@ -3860,11 +3860,11 @@ public class WhitebitCore extends WhitebitApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " setLeverage() does not allow to set per symbol")) ;
+                throw new NotSupported(Helpers.add(this.id, " setLeverage() does not allow to set per symbol")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 20)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setLeverage() leverage should be between 1 and 20")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() leverage should be between 1 and 20")) ;
             }
             final Object finalLeverage = leverage;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3980,7 +3980,7 @@ public class WhitebitCore extends WhitebitApi
                 Object provider = this.safeValue(parameters, "provider");
                 if (Helpers.isTrue(Helpers.isEqual(provider, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a provider when the ticker is fiat")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " withdraw() requires a provider when the ticker is fiat")) ;
                 }
                 Helpers.addElementToObject(request, "provider", provider);
             }
@@ -4544,7 +4544,7 @@ public class WhitebitCore extends WhitebitApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -5225,7 +5225,7 @@ public class WhitebitCore extends WhitebitApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             Integer maxLimit = 100;
             Object paginate = false;
@@ -5355,11 +5355,11 @@ public class WhitebitCore extends WhitebitApi
     {
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(code, 418))) || Helpers.isTrue((Helpers.isEqual(code, 429)))))
         {
-            throw new DDoSProtection((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " "), reason), " "), body)) ;
+            throw new DDoSProtection(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " "), reason), " "), body)) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(code, 404)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " endpoint not found")) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " endpoint not found")) ;
         }
         if (Helpers.isTrue(!Helpers.isEqual(response, null)))
         {

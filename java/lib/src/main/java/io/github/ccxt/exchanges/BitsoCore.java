@@ -613,7 +613,7 @@ public class BitsoCore extends BitsoApi
             {
                 Object market = Helpers.GetValue(markets, i);
                 String id = this.safeString(market, "book");
-                var baseIdquoteIdVariable = Helpers.split(((String)id), "_");
+                var baseIdquoteIdVariable = Helpers.split((id), "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 Object base = ((String)baseId).toUpperCase();
@@ -1358,7 +1358,7 @@ public class BitsoCore extends BitsoApi
             // starting from since timestamp, but does not set the trade id with an extra 'marker' param
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(since, null))) && !Helpers.isTrue(markerInParams)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
             }
             // convert it to an integer unconditionally
             if (Helpers.isTrue(markerInParams))
@@ -1486,14 +1486,14 @@ public class BitsoCore extends BitsoApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (!Helpers.isTrue(Helpers.isArray(ids)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() ids argument should be an array")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() ids argument should be an array")) ;
             }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
             }
-            Object oids = String.join((String)",", (java.util.List<String>)ids);
+            Object oids = String.join(",", (java.util.List<String>)ids);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "oids", oids );
             }};
@@ -1534,7 +1534,7 @@ public class BitsoCore extends BitsoApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.")) ;
             }
             java.util.Map<String, Object> response = (this.privateDeleteOrdersAll(parameters)).join();
             //
@@ -1651,7 +1651,7 @@ public class BitsoCore extends BitsoApi
             // starting from since timestamp, but does not set the trade id with an extra 'marker' param
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(since, null))) && !Helpers.isTrue(markerInParams)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
             }
             // convert it to an integer unconditionally
             if (Helpers.isTrue(markerInParams))
@@ -1706,7 +1706,7 @@ public class BitsoCore extends BitsoApi
                     return this.parseOrder(Helpers.GetValue(payload, 0));
                 }
             }
-            throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(this.id, ": The order "), id), " not found.")) ;
+            throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(this.id, ": The order "), id), " not found.")) ;
         });
 
     }
@@ -1887,9 +1887,9 @@ public class BitsoCore extends BitsoApi
             Object payload = this.safeDict(response, "payload", new java.util.HashMap<String, Object>() {{}});
             String address = this.safeString(payload, "account_identifier");
             Object tag = null;
-            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)address), "?dt="), 0)))
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf((address), "?dt="), 0)))
             {
-                Object parts = Helpers.split(((String)address), "?dt=");
+                Object parts = Helpers.split((address), "?dt=");
                 address = this.safeString(parts, 0);
                 tag = this.safeString(parts, 1);
             }
@@ -2223,7 +2223,7 @@ public class BitsoCore extends BitsoApi
             Object method = ((Helpers.isTrue((Helpers.inOp(methods, code))))) ? Helpers.GetValue(methods, code) : null;
             if (Helpers.isTrue(Helpers.isEqual(method, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " not valid withdraw coin: "), code)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " not valid withdraw coin: "), code)) ;
             }
             final Object finalTag = tag;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2375,7 +2375,7 @@ public class BitsoCore extends BitsoApi
             Object nonce = String.valueOf(this.nonce());
             endpoint = Helpers.add("/api", endpoint);
             Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(nonce, method, endpoint));
-            Object request = String.join((String)"", (java.util.List<String>)content);
+            Object request = String.join("", (java.util.List<String>)content);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(method, "GET")) && Helpers.isTrue(!Helpers.isEqual(method, "DELETE"))))
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))

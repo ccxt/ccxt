@@ -80,7 +80,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         // see https://github.com/ccxt/ccxt/issues/26864
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))))
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support "), Helpers.GetValue(market, "type")), " markets yet")) ;
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support "), Helpers.GetValue(market, "type")), " markets yet")) ;
         }
     }
 
@@ -1144,10 +1144,10 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             {
                 // a flight is already in progress - wake when the leader settles
                 // it: the subscribeKey is then in the bucket
-                client.future((String)messageHash).getFuture().join();
+                client.future(messageHash).getFuture().join();
                 return Helpers.GetValue(Helpers.GetValue(client.subscriptions, "authenticated"), "key");
             }
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             try
             {
                 Object authenticated = this.safeValue(client.subscriptions, "authenticated");
@@ -1160,7 +1160,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                     Object result = this.safeValue(response, "result");
                     if (Helpers.isTrue(!Helpers.isEqual(result, true)))
                     {
-                        throw new ExchangeError((String)Helpers.add(this.id, " failed to get subscribe key")) ;
+                        throw new ExchangeError(Helpers.add(this.id, " failed to get subscribe key")) ;
                     }
                     Helpers.addElementToObject(client.subscriptions, "authenticated", new java.util.HashMap<String, Object>() {{
         put( "key", LbankCore.this.safeString(response, "data") );
@@ -1182,7 +1182,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                         Object result = this.safeString(response, "result");
                         if (Helpers.isTrue(!Helpers.isEqual(result, "true")))
                         {
-                            throw new ExchangeError((String)Helpers.add(this.id, " failed to refresh the SubscribeKey")) ;
+                            throw new ExchangeError(Helpers.add(this.id, " failed to refresh the SubscribeKey")) ;
                         }
                         Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(client, "subscriptions"), "authenticated"), "expires", this.sum(now, 3300000)); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                     }

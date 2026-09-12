@@ -188,12 +188,12 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             }
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers() symbols is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTickers() symbols is required")) ;
             }
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " watchTickers requires a non-empty symbols array")) ;
+                throw new BadSymbol(Helpers.add(this.id, " watchTickers requires a non-empty symbols array")) ;
             }
             Object channel = "ticker";
             String messageHash = (String) "ticker";
@@ -264,7 +264,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
+                throw new BadRequest(Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -305,7 +305,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -422,7 +422,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " watchMyTrades requires a symbol")) ;
+                throw new BadSymbol(Helpers.add(this.id, " watchMyTrades requires a symbol")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -461,7 +461,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
+                throw new BadRequest(Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
             String name = "level2";
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1185,10 +1185,10 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         {
             if (Helpers.isTrue(Helpers.isEqual(errMsg, "Authentication Failed")))
             {
-                throw new AuthenticationError((String)Helpers.add("Authentication failed: ", reason)) ;
+                throw new AuthenticationError(Helpers.add("Authentication failed: ", reason)) ;
             } else
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), reason)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), reason)) ;
             }
         } catch(Exception error)
         {

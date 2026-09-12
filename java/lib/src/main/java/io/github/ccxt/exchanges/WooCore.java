@@ -1660,7 +1660,7 @@ public class WooCore extends WooApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             return (this.createOrder(symbol, "market", "buy", cost, 1, parameters)).join();
         });
@@ -1690,7 +1690,7 @@ public class WooCore extends WooApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
             }
             return (this.createOrder(symbol, "market", "sell", cost, 1, parameters)).join();
         });
@@ -1723,11 +1723,11 @@ public class WooCore extends WooApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(trailingAmount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createTrailingAmountOrder() requires a trailingAmount argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createTrailingAmountOrder() requires a trailingAmount argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(trailingTriggerPrice, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createTrailingAmountOrder() requires a trailingTriggerPrice argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createTrailingAmountOrder() requires a trailingTriggerPrice argument")) ;
             }
             Helpers.addElementToObject(parameters, "trailingAmount", trailingAmount);
             Helpers.addElementToObject(parameters, "trailingTriggerPrice", trailingTriggerPrice);
@@ -1762,11 +1762,11 @@ public class WooCore extends WooApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(trailingPercent, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createTrailingPercentOrder() requires a trailingPercent argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createTrailingPercentOrder() requires a trailingPercent argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(trailingTriggerPrice, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createTrailingPercentOrder() requires a trailingTriggerPrice argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createTrailingPercentOrder() requires a trailingTriggerPrice argument")) ;
             }
             Helpers.addElementToObject(parameters, "trailingPercent", trailingPercent);
             Helpers.addElementToObject(parameters, "trailingTriggerPrice", trailingTriggerPrice);
@@ -1906,7 +1906,7 @@ public class WooCore extends WooApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(trailingTriggerPrice, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a trailingTriggerPrice parameter for trailing orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a trailingTriggerPrice parameter for trailing orders")) ;
                 }
                 Helpers.addElementToObject(request, "activatedPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                 Helpers.addElementToObject(request, "algoType", "TRAILING_STOP");
@@ -2133,7 +2133,7 @@ public class WooCore extends WooApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isTrigger, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3233,7 +3233,7 @@ public class WooCore extends WooApi
         if (Helpers.isTrue(Helpers.isEqual(networkEntry, null)))
         {
             Object supportedNetworks = Helpers.objectKeys(Helpers.GetValue(currency, "networks"));
-            throw new BadRequest((String)Helpers.add(Helpers.add(this.id, "  can not determine a network code, please provide unified \"network\" param, one from the following: "), this.json(supportedNetworks))) ;
+            throw new BadRequest(Helpers.add(Helpers.add(this.id, "  can not determine a network code, please provide unified \"network\" param, one from the following: "), this.json(supportedNetworks))) ;
         }
         String currentyNetworkId = this.safeString(networkEntry, "currencyNetworkId");
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(currentyNetworkId, parameters));
@@ -3849,7 +3849,7 @@ public class WooCore extends WooApi
             String network = this.safeString(parameters, "network");
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(this.id, " withdraw() requires a network parameter for "), code)) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " withdraw() requires a network parameter for "), code)) ;
             }
             parameters = this.omit(parameters, "network");
             Helpers.addElementToObject(request, "token", Helpers.GetValue(currency, "id"));
@@ -4421,7 +4421,7 @@ public class WooCore extends WooApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
@@ -4561,7 +4561,7 @@ public class WooCore extends WooApi
                 response = (this.v3PrivateGetFuturesLeverage(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() is not supported for "), Helpers.GetValue(market, "type")), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() is not supported for "), Helpers.GetValue(market, "type")), " markets")) ;
             }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
@@ -4658,7 +4658,7 @@ public class WooCore extends WooApi
                 return (this.v3PrivatePutFuturesLeverage(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() is not supported for "), this.safeString(market, "type")), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() is not supported for "), this.safeString(market, "type")), " markets")) ;
             }
         });
 

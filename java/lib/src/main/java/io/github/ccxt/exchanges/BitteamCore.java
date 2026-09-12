@@ -522,7 +522,7 @@ public class BitteamCore extends BitteamApi
     {
         String id = this.safeString(market, "name");
         Long numericId = this.safeInteger(market, "id");
-        Object parts = Helpers.split(((String)id), "_");
+        Object parts = Helpers.split((id), "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = (String) this.safeCurrencyCode(baseId);
@@ -724,7 +724,7 @@ public class BitteamCore extends BitteamApi
             statusesResponse = this.indexBy(statusesResponse, "unified_cryptoasset_id");
             Helpers.addElementToObject(this.options, "_temp_currencies_statuses", statusesResponse);
             Object result = this.parseCurrencies(currencies);
-            ((java.util.Map<String,Object>)this.options).remove((String)"_temp_currencies_statuses");
+            ((java.util.Map<String,Object>)this.options).remove("_temp_currencies_statuses");
             return result;
         });
 
@@ -1302,7 +1302,7 @@ public class BitteamCore extends BitteamApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
                 } else
                 {
                     Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
@@ -2774,13 +2774,13 @@ public class BitteamCore extends BitteamApi
                 {
                     Object parts = Helpers.split(url, "/order/");
                     String orderId = this.safeString(parts, 1);
-                    throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(this.id, " order "), orderId), " not found")) ;
+                    throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(this.id, " order "), orderId), " not found")) ;
                 }
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/cmc/orderbook/"), 0)))
                 {
                     Object parts = Helpers.split(url, "/cmc/orderbook/");
                     String symbolId = this.safeString(parts, 1);
-                    throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " symbolId "), symbolId), " not found")) ;
+                    throw new BadSymbol(Helpers.add(Helpers.add(Helpers.add(this.id, " symbolId "), symbolId), " not found")) ;
                 }
             }
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

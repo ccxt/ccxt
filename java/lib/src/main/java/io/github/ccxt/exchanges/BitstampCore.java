@@ -1431,7 +1431,7 @@ public class BitstampCore extends BitstampApi
             String description = this.safeString(market, "description");
             if (Helpers.isTrue(Helpers.isEqual(description, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseCurrencies() missing description")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseCurrencies() missing description")) ;
             }
             var baseDescriptionquoteDescriptionVariable = Helpers.split(description, " / ");
             var baseDescription = ((java.util.List<Object>) baseDescriptionquoteDescriptionVariable).get(0);
@@ -1439,7 +1439,7 @@ public class BitstampCore extends BitstampApi
             String minimumOrder = this.safeString(market, "minimum_order_value");
             if (Helpers.isTrue(Helpers.isEqual(minimumOrder, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " parseCurrencies() missing minimumOrder")) ;
+                throw new ExchangeError(Helpers.add(this.id, " parseCurrencies() missing minimumOrder")) ;
             }
             Object parts = Helpers.split(minimumOrder, " ");
             String cost = (String) Helpers.GetValue(parts, 0);
@@ -1502,7 +1502,7 @@ public class BitstampCore extends BitstampApi
             Long microtimestamp = this.safeInteger(response, "microtimestamp");
             if (Helpers.isTrue(Helpers.isEqual(microtimestamp, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchOrderBook() missing microtimestamp")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchOrderBook() missing microtimestamp")) ;
             }
             Long timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
             Object orderbook = this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
@@ -1692,7 +1692,7 @@ public class BitstampCore extends BitstampApi
         Object numCurrencyIds = Helpers.getArrayLength(currencyIds);
         if (Helpers.isTrue(Helpers.isGreaterThan(numCurrencyIds, 2)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " getMarketFromTrade() too many keys: "), this.json(currencyIds)), " in the trade: "), this.json(trade))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " getMarketFromTrade() too many keys: "), this.json(currencyIds)), " in the trade: "), this.json(trade))) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(numCurrencyIds, 2)))
         {
@@ -3253,7 +3253,7 @@ public class BitstampCore extends BitstampApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(Helpers.GetValue(keys, i), "_"), 0)))
                 {
-                    Object marketId = Helpers.replace((String)Helpers.GetValue(keys, i), (String)"_", (String)"");
+                    Object marketId = Helpers.replace(((String)Helpers.GetValue(keys, i)), "_", "");
                     market = this.safeMarket(marketId, market);
                 }
             }
@@ -3518,7 +3518,7 @@ public class BitstampCore extends BitstampApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(this.isFiat(code)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fiat fetchDepositAddress() for "), code), " is not supported!")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fiat fetchDepositAddress() for "), code), " is not supported!")) ;
             }
             Object name = this.getCurrencyName(code);
             // the per-currency implicit methods (privatePostBtcAddress etc.) all route
@@ -3646,7 +3646,7 @@ public class BitstampCore extends BitstampApi
                 response = (this.privatePostTransferToMain(this.extend(request, parameters))).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " transfer() only supports from or to main")) ;
+                throw new BadRequest(Helpers.add(this.id, " transfer() only supports from or to main")) ;
             }
             //
             //    { status: 'ok' }
@@ -3669,7 +3669,7 @@ public class BitstampCore extends BitstampApi
         String status = this.safeString(transfer, "status");
         if (Helpers.isTrue(Helpers.isEqual(currency, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseTransfer() could not resolve currency")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseTransfer() could not resolve currency")) ;
         }
         final Object finalCurrency = currency;
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -3753,7 +3753,7 @@ public class BitstampCore extends BitstampApi
                 }
             }
             Object authBody = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(body, null)) && Helpers.isTrue(!Helpers.isEqual(body, "")))))) ? body : "";
-            Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(xAuth, method), Helpers.replace((String)url, (String)"https://", (String)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
+            Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(xAuth, method), Helpers.replace(((String)url), "https://", "")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Helpers.addElementToObject(headers, "X-Auth-Signature", signature);
         }
@@ -3819,7 +3819,7 @@ public class BitstampCore extends BitstampApi
             String code = this.safeString(response, "code");
             if (Helpers.isTrue(Helpers.isEqual(code, "API0005")))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " invalid signature, use the uid for the main account if you have subaccounts")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " invalid signature, use the uid for the main account if you have subaccounts")) ;
             }
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(errors)); i++)

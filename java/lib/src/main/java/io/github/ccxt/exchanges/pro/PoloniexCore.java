@@ -184,9 +184,9 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " subscribe() symbols is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " subscribe() symbols is required")) ;
                 }
-                messageHash = Helpers.add(Helpers.add(messageHash, "::"), String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add(Helpers.add(messageHash, "::"), String.join(",", (java.util.List<String>)symbols));
                 Object ids = this.marketIds(symbols);
                 marketIds = ((Helpers.isTrue((Helpers.isEqual(ids, null))))) ? new java.util.ArrayList<Object>(java.util.Arrays.asList()) : ids;
             }
@@ -264,7 +264,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             Object uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderWs() side is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrderWs() side is required")) ;
             }
             Object uppercaseSide = ((String)side).toUpperCase();
             Object isPostOnly = this.isPostOnly(Helpers.isEqual(uppercaseType, "MARKET"), Helpers.isEqual(uppercaseType, "LIMIT_MAKER"), parameters);
@@ -294,7 +294,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                 {
                     if (Helpers.isTrue(Helpers.isEqual(price, null)))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                     } else
                     {
                         Object amountString = this.numberToString(amount);
@@ -464,7 +464,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             Object channel = this.safeString(timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(channel, null)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " watchOHLCV cannot take a timeframe of "), timeframe)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " watchOHLCV cannot take a timeframe of "), timeframe)) ;
             }
             Object ohlcv = (this.subscribe(channel, channel, false, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -1591,7 +1591,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                     client.reject(e, messageHash);
                     if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                     {
-                        ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                        ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
                     }
                 } else
                 {
@@ -1625,7 +1625,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             client.reject(error, messageHash);
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
         return message;

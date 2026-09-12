@@ -468,7 +468,7 @@ public class ZebpayCore extends ZebpayApi
                     ((java.util.List<Object>)promisesUnresolved).add(this.fetchSwapMarkets(parameters));
                 } else
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() this.options fetchMarkets \""), type), "\" is not a supported market type")) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() this.options fetchMarkets \""), type), "\" is not a supported market type")) ;
                 }
             }
             Object promises = (Helpers.promiseAll(promisesUnresolved)).join();
@@ -873,7 +873,7 @@ public class ZebpayCore extends ZebpayApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTickers() does not support "), type), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTickers() does not support "), type), " markets")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -972,7 +972,7 @@ public class ZebpayCore extends ZebpayApi
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(until, null)) || Helpers.isTrue(Helpers.isEqual(since, null))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")) ;
                 }
                 response = (this.publicSpotGetV2MarketKlines(this.extend(request, parameters))).join();
             } else
@@ -1110,7 +1110,7 @@ public class ZebpayCore extends ZebpayApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchMyTrades() does not support spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchMyTrades() does not support spot markets")) ;
             } else
             {
                 response = (this.privateSwapGetV1TradeHistory(parameters)).join();
@@ -1149,7 +1149,7 @@ public class ZebpayCore extends ZebpayApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrderTrades() does not support "), type), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrderTrades() does not support "), type), " markets")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1338,7 +1338,7 @@ public class ZebpayCore extends ZebpayApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginAsset", "takeProfitPrice", "takeProfitPrice")));
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalSide = side;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1379,7 +1379,7 @@ public class ZebpayCore extends ZebpayApi
                     {
                         if (Helpers.isTrue(Helpers.isEqual(price, null)))
                         {
-                            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument for limit orders")) ;
+                            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument for limit orders")) ;
                         }
                         Helpers.addElementToObject(request, "price", this.parseToNumeric(this.priceToPrecision(symbol, price)));
                     }
@@ -1416,7 +1416,7 @@ public class ZebpayCore extends ZebpayApi
         {
             if (Helpers.isTrue(Helpers.isEqual(quoteOrderQty, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " spot market orders require cost in params")) ;
+                throw new ExchangeError(Helpers.add(this.id, " spot market orders require cost in params")) ;
             }
             Helpers.addElementToObject(request, "quoteOrderAmount", this.costToPrecision(symbol, quoteOrderQty));
         } else
@@ -1466,7 +1466,7 @@ public class ZebpayCore extends ZebpayApi
                 String clientOrderId = this.safeString(parameters, "clientOrderId");
                 if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a clientOrderId parameter for swap orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a clientOrderId parameter for swap orders")) ;
                 }
                 Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
@@ -1508,7 +1508,7 @@ public class ZebpayCore extends ZebpayApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrders() does not support "), type), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrders() does not support "), type), " markets")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1869,7 +1869,7 @@ public class ZebpayCore extends ZebpayApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {

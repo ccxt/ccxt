@@ -660,7 +660,7 @@ public class NdaxCore extends NdaxApi
             this.checkRequiredCredentials();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(this.login, null)) || Helpers.isTrue(Helpers.isEqual(this.password, null))))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " signIn() requires exchange.login, exchange.password")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " signIn() requires exchange.login, exchange.password")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "grant_type", "client_credentials" );
@@ -686,7 +686,7 @@ public class NdaxCore extends NdaxApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(this.twofa, null)))
                 {
-                    throw new AuthenticationError((String)Helpers.add(this.id, " signIn() requires exchange.twofa credentials")) ;
+                    throw new AuthenticationError(Helpers.add(this.id, " signIn() requires exchange.twofa credentials")) ;
                 }
                 Helpers.addElementToObject(this.options, "pending2faToken", pending2faToken);
                 request = new java.util.HashMap<String, Object>() {{
@@ -1563,7 +1563,7 @@ public class NdaxCore extends NdaxApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.login, null))) || Helpers.isTrue((Helpers.isEqual(this.login, "")))))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " fetchAccounts() requires exchange.login email credential")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " fetchAccounts() requires exchange.login email credential")) ;
             }
             Long omsId = this.safeInteger(this.options, "omsId", 1);
             this.checkRequiredCredentials();
@@ -3153,11 +3153,11 @@ public class NdaxCore extends NdaxApi
             String sessionToken = this.safeString(this.options, "sessionToken");
             if (Helpers.isTrue(Helpers.isEqual(sessionToken, null)))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " call signIn() method to obtain a session token")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " call signIn() method to obtain a session token")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.twofa, null)))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " withdraw() requires exchange.twofa credentials")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " withdraw() requires exchange.twofa credentials")) ;
             }
             this.checkAddress(address);
             Long omsId = this.safeInteger(this.options, "omsId", 1);
@@ -3192,7 +3192,7 @@ public class NdaxCore extends NdaxApi
             Object firstTemplateType = this.safeValue(templateTypes, 0);
             if (Helpers.isTrue(Helpers.isEqual(firstTemplateType, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() could not find a withdraw template type for "), Helpers.GetValue(currency, "code"))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() could not find a withdraw template type for "), Helpers.GetValue(currency, "code"))) ;
             }
             String templateName = this.safeString(firstTemplateType, "TemplateName");
             final Object finalFirstTemplateType = firstTemplateType;
@@ -3215,7 +3215,7 @@ public class NdaxCore extends NdaxApi
             String template = this.safeString(withdrawTemplateResponse, "Template");
             if (Helpers.isTrue(Helpers.isEqual(template, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() could not find a withdraw template for "), Helpers.GetValue(currency, "code"))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() could not find a withdraw template for "), Helpers.GetValue(currency, "code"))) ;
             }
             Object withdrawTemplate = Helpers.parseJson(template);
             Helpers.addElementToObject(withdrawTemplate, "ExternalAddress", address);
@@ -3334,7 +3334,7 @@ public class NdaxCore extends NdaxApi
     {
         if (Helpers.isTrue(Helpers.isEqual(code, 404)))
         {
-            throw new AuthenticationError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+            throw new AuthenticationError(Helpers.add(Helpers.add(this.id, " "), body)) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {

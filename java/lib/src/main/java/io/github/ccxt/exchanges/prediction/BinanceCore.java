@@ -1027,7 +1027,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
             }
             (this.loadOutcomes(outcomes)).join();
             java.util.Map<String, Object> responsesByMarketId = new java.util.HashMap<String, Object>() {{}};
@@ -1250,11 +1250,11 @@ final Object finalMarketSymbol = marketSymbol;
         {
             return null;
         }
-        if (Helpers.isTrue(((String)status).endsWith(((String)"Rejected"))))
+        if (Helpers.isTrue(((String)status).endsWith("Rejected")))
         {
             return "rejected";
         }
-        if (Helpers.isTrue(((String)status).endsWith(((String)"Canceled"))))
+        if (Helpers.isTrue(((String)status).endsWith("Canceled")))
         {
             return "canceled";
         }
@@ -1934,7 +1934,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             if (Helpers.isTrue(Helpers.isEqual(cachedWallet, null)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(this.id, "fetchWallet could'n find wallet "), walletAddress)) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, "fetchWallet could'n find wallet "), walletAddress)) ;
             }
             Helpers.addElementToObject(this.options, "wallet", cachedWallet);
             return cachedWallet;
@@ -2052,7 +2052,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcomeObj = this.outcome(outcome);
             // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
             // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
-            Object marketSymbol = ((String)this.safeString(outcomeObj, "market"));
+            Object marketSymbol = (this.safeString(outcomeObj, "market"));
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketSymbol);
             Object typeUpper = ((String)type).toUpperCase();
             Object sideUpper = ((String)side).toUpperCase();
@@ -2074,7 +2074,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 if (Helpers.isTrue(Helpers.isEqual(price, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, "createOrder requires price for limit order")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, "createOrder requires price for limit order")) ;
                 }
                 Helpers.addElementToObject(commonRequest, "priceLimit", this.priceToPrecision(marketSymbol, price));
                 defaultTif = "GTC";
@@ -2095,7 +2095,7 @@ final Object finalMarketSymbol = marketSymbol;
                     {
                         if (Helpers.isTrue(Helpers.isEqual(price, null)))
                         {
-                            throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder requires price for "), side), " order")) ;
+                            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder requires price for "), side), " order")) ;
                         }
                     }
                     String feeRate = Precise.stringDiv(feeRateBps, "10000");
@@ -2108,7 +2108,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object accountType = this.safeString(parameters, "accountType");
             if (Helpers.isTrue(Helpers.isEqual(accountType, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder requires accountType (SPOT, FUNDING)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder requires accountType (SPOT, FUNDING)")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "accountType", "cost")));
             final Object finalSideUpper = sideUpper;
@@ -2268,7 +2268,7 @@ final Object finalMarketSymbol = marketSymbol;
                     }
                     failedDetails = Helpers.add(Helpers.add(Helpers.add(failedDetails, failedOrderId), ": "), failedReason);
                 }
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " cancelOrders() failed for "), failedDetails)) ;
+                throw new OrderNotFound(Helpers.add(Helpers.add(this.id, " cancelOrders() failed for "), failedDetails)) ;
             }
             java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object canceledOrdersLength = Helpers.getArrayLength(canceledOrders);
@@ -2348,8 +2348,8 @@ final Object finalMarketSymbol = marketSymbol;
             Helpers.addElementToObject(extendedParams, "recvWindow", defaultRecvWindow);
         }
         Object querystring = this.urlencodeNested(extendedParams);
-        querystring = Helpers.replaceAll((String)querystring, (String)"%5B", (String)"[");
-        querystring = Helpers.replaceAll((String)querystring, (String)"%5D", (String)"]");
+        querystring = Helpers.replaceAll(((String)querystring), "%5B", "[");
+        querystring = Helpers.replaceAll(((String)querystring), "%5D", "]");
         Object signature = this.hmac(this.encode(querystring), this.encode(this.secret), sha256());
         querystring = Helpers.add(Helpers.add(querystring, "&signature="), signature);
         headers = new java.util.HashMap<String, Object>() {{

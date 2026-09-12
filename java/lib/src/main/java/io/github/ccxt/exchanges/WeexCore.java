@@ -1253,7 +1253,7 @@ public class WeexCore extends WeexApi
         Object fees = this.safeDict(this.fees, ((Helpers.isTrue(isSpot))) ? "spot" : "contract", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " method() missing id")) ;
+            throw new ExchangeError(Helpers.add(this.id, " method() missing id")) ;
         }
         final Object finalId = id;
         final Object finalSymbol = symbol;
@@ -1603,7 +1603,7 @@ public class WeexCore extends WeexApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")) ;
             }
             java.util.List<Object> response = (this.publicGetApiV3MarketTickerPrice(parameters)).join();
             //
@@ -1664,7 +1664,7 @@ public class WeexCore extends WeexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchMarkPrice() supports contract markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchMarkPrice() supports contract markets only")) ;
             }
             Object priceType = null;
             java.util.List<Object> priceTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMarkPrice", "priceType", "MARK");
@@ -1965,7 +1965,7 @@ public class WeexCore extends WeexApi
                     {
                         if (Helpers.isTrue(Helpers.isEqual(until, null)))
                         {
-                            throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a since or until argument")) ;
+                            throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV() requires a since or until argument")) ;
                         }
                         startTime = Helpers.subtract(until, timeDelta);
                     } else
@@ -2355,7 +2355,7 @@ public class WeexCore extends WeexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2437,7 +2437,7 @@ public class WeexCore extends WeexApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchBalance() only supports the swap account in sandbox mode, use params[\"type\"] = \"swap\"")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchBalance() only supports the swap account in sandbox mode, use params[\"type\"] = \"swap\"")) ;
                 }
                 //
                 //     {
@@ -2657,7 +2657,7 @@ public class WeexCore extends WeexApi
                 Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " createOrder() only supports swap markets in sandbox mode")) ;
+                    throw new NotSupported(Helpers.add(this.id, " createOrder() only supports swap markets in sandbox mode")) ;
                 }
                 return (this.createSpotOrder(symbol, type, side, amount, price, parameters)).join();
             }
@@ -2704,7 +2704,7 @@ public class WeexCore extends WeexApi
             //
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
         });
@@ -2717,16 +2717,16 @@ public class WeexCore extends WeexApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createSpotOrderRequest() requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createSpotOrderRequest() requires a side argument")) ;
         }
         final Object finalSide = side;
         final Object finalType = type;
@@ -2803,7 +2803,7 @@ public class WeexCore extends WeexApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode")) ;
+                    throw new NotSupported(Helpers.add(this.id, " createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode")) ;
                 }
                 response = (this.contractPrivatePostCapiV3AlgoOrder(request)).join();
             } else if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
@@ -2815,7 +2815,7 @@ public class WeexCore extends WeexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " createOrder() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " createOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
         });
@@ -2828,16 +2828,16 @@ public class WeexCore extends WeexApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createContractOrderRequest() requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createContractOrderRequest() requires a side argument")) ;
         }
         final Object finalSide = side;
         final Object finalType = type;
@@ -2862,7 +2862,7 @@ public class WeexCore extends WeexApi
         Boolean isTakeProfit = (!Helpers.isEqual(takeProfitPrice, null));
         if (Helpers.isTrue(Helpers.isTrue(isTrigger) && Helpers.isTrue((Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit)))))
         {
-            throw new BadRequest((String)Helpers.add(this.id, " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
+            throw new BadRequest(Helpers.add(this.id, " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
         }
         Object reduceOnly = this.safeBool(query, "reduceOnly");
         if (Helpers.isTrue(Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit)))
@@ -2889,11 +2889,11 @@ public class WeexCore extends WeexApi
         // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
         if (Helpers.isTrue(Helpers.isTrue(hasTakeProfit) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(takeProfit, "price"), null)))))
         {
-            throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price")) ;
         }
         if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(stopLoss, "price"), null)))))
         {
-            throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price")) ;
         }
         String timeInForce = this.safeString(parameters, "timeInForce");
         Object clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2908,11 +2908,11 @@ public class WeexCore extends WeexApi
             // entry conditional order, triggers a regular order when the trigger price is reached
             if (Helpers.isTrue(Helpers.isEqual(callerMethodName, "createOrders")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrders() does not support trigger orders")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrders() does not support trigger orders")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrder() cannot use the timeInForce parameter with trigger orders")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrder() cannot use the timeInForce parameter with trigger orders")) ;
             }
             Helpers.addElementToObject(request, "clientAlgoId", clientOrderId);
             Helpers.addElementToObject(parameters, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -2948,19 +2948,19 @@ public class WeexCore extends WeexApi
         {
             if (Helpers.isTrue(Helpers.isEqual(callerMethodName, "createOrders")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrders() does not support stop loss and take profit orders")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrders() does not support stop loss and take profit orders")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrder() cannot use timeInForce parameter with stopLoss and takeProfit orders")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrder() cannot use timeInForce parameter with stopLoss and takeProfit orders")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrder() cannot use both stopLossPrice/takeProfitPrice parameters and stopLoss/takeProfit objects in params at the same time")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrder() cannot use both stopLossPrice/takeProfitPrice parameters and stopLoss/takeProfit objects in params at the same time")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue(isStopLoss) && Helpers.isTrue(isTakeProfit)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time")) ;
             }
             Helpers.addElementToObject(request, "clientAlgoId", clientOrderId);
             String orderType = null;
@@ -3074,7 +3074,7 @@ public class WeexCore extends WeexApi
             Object trigger = this.safeBool(parameters, "trigger", false);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) && Helpers.isTrue(Helpers.isEqual(id, null))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires an id argument for trigger orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires an id argument for trigger orders")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -3084,7 +3084,7 @@ public class WeexCore extends WeexApi
                 Helpers.addElementToObject(request, "origClientOrderId", clientOrderId);
             } else if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires an id argument or clientOrderId parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires an id argument or clientOrderId parameter")) ;
             } else
             {
                 Helpers.addElementToObject(request, "orderId", id);
@@ -3114,7 +3114,7 @@ public class WeexCore extends WeexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             Object order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "status", "canceled");
@@ -3165,7 +3165,7 @@ public class WeexCore extends WeexApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument for spot markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument for spot markets")) ;
                 }
                 response = (this.privateDeleteApiV3OpenOrders(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
@@ -3240,7 +3240,7 @@ public class WeexCore extends WeexApi
                 }
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires an ids argument or clientOrderIds parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires an ids argument or clientOrderIds parameter")) ;
             }
             Object response = null;
             if (Helpers.isTrue(isSpot))
@@ -3296,7 +3296,7 @@ public class WeexCore extends WeexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(id, null))) && !Helpers.isTrue(isSpot)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires an id argument for non-spot markets")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires an id argument for non-spot markets")) ;
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             parameters = this.omit(parameters, "clientOrderId");
@@ -3305,7 +3305,7 @@ public class WeexCore extends WeexApi
                 Helpers.addElementToObject(request, "origClientOrderId", clientOrderId);
             } else if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires an id argument or clientOrderId parameter for spot markets")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires an id argument or clientOrderId parameter for spot markets")) ;
             } else
             {
                 Helpers.addElementToObject(request, "orderId", id);
@@ -3338,7 +3338,7 @@ public class WeexCore extends WeexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
         });
@@ -3392,7 +3392,7 @@ public class WeexCore extends WeexApi
             {
                 if (Helpers.isTrue(isSpot))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrders() pagination is not supported for spot markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOpenOrders() pagination is not supported for spot markets")) ;
                 }
                 return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters, maxLimit)).join();
             }
@@ -3553,7 +3553,7 @@ public class WeexCore extends WeexApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchClosedOrders() requires a symbol argument for spot markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchClosedOrders() requires a symbol argument for spot markets")) ;
                 }
                 orders = (this.fetchOrders(symbol, since, null, parameters)).join();
             } else
@@ -3607,7 +3607,7 @@ public class WeexCore extends WeexApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchCanceledOrders() requires a symbol argument for spot markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchCanceledOrders() requires a symbol argument for spot markets")) ;
                 }
                 orders = (this.fetchOrders(symbol, since, null, parameters)).join();
             } else
@@ -3643,7 +3643,7 @@ public class WeexCore extends WeexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3652,7 +3652,7 @@ public class WeexCore extends WeexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() supports spot markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrders() supports spot markets only")) ;
             }
             Integer maxLimit = 1000;
             Object paginate = false;
@@ -3742,7 +3742,7 @@ public class WeexCore extends WeexApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")) ;
             }
             Object paginate = false;
             java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
@@ -4109,7 +4109,7 @@ public class WeexCore extends WeexApi
             Boolean isSpot = (Helpers.isEqual(marketType, "spot"));
             if (Helpers.isTrue(Helpers.isTrue(isSpot) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument for spot markets")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument for spot markets")) ;
             }
             Object paginate = false;
             java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", false);
@@ -4244,7 +4244,7 @@ public class WeexCore extends WeexApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(currency, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchLedger() could not resolve currency")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchLedger() could not resolve currency")) ;
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
@@ -4355,7 +4355,7 @@ public class WeexCore extends WeexApi
         String direction = "in";
         if (Helpers.isTrue(Helpers.isEqual(amountRaw, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseLedgerEntry() missing amountRaw")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseLedgerEntry() missing amountRaw")) ;
         }
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountRaw, "-"), 0)))
         {
@@ -4721,7 +4721,7 @@ public class WeexCore extends WeexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFee() is not supported for spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTradingFee() is not supported for spot markets")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4870,7 +4870,7 @@ public class WeexCore extends WeexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4895,7 +4895,7 @@ public class WeexCore extends WeexApi
         String result = this.safeString(marginTypes, marginMode);
         if (Helpers.isTrue(Helpers.isEqual(result, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " marginMode must be either cross or isolated")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " marginMode must be either cross or isolated")) ;
         }
         return result;
     }
@@ -5011,7 +5011,7 @@ public class WeexCore extends WeexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5104,7 +5104,7 @@ public class WeexCore extends WeexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setPositionMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setPositionMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5117,7 +5117,7 @@ public class WeexCore extends WeexApi
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setPositionMode() also sets marginMode, so a marginMode parameter is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setPositionMode() also sets marginMode, so a marginMode parameter is required")) ;
             }
             String separatedType = ((Helpers.isTrue(hedged))) ? "SEPARATED" : "COMBINED";
             final Object finalMarginMode = marginMode;
@@ -5144,7 +5144,7 @@ public class WeexCore extends WeexApi
             String isolatedPositionId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("positionId", "id", "isolatedPositionId")));
             if (Helpers.isTrue(Helpers.isEqual(isolatedPositionId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " modifyMarginHelper() requires a positionId parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " modifyMarginHelper() requires a positionId parameter")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("positionId", "id")));
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -5275,7 +5275,7 @@ public class WeexCore extends WeexApi
         {
             return marketId;  // a live market id, not a demo one
         }
-        if (Helpers.isTrue(((String)marketId).endsWith(((String)"SUSDT"))))
+        if (Helpers.isTrue(((String)marketId).endsWith("SUSDT")))
         {
             Object baseLength = Helpers.subtract(((String)marketId).length(), 5);
             return Helpers.add(Helpers.slice(marketId, 0, baseLength), "USDT");
@@ -5311,7 +5311,7 @@ public class WeexCore extends WeexApi
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sandboxMode, true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.getIndexOf(path, "capi/v3/sim/"), 0)))))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }
             this.checkRequiredCredentials();
             Object timestamp = this.numberToString(this.nonce());
@@ -5367,7 +5367,7 @@ public class WeexCore extends WeexApi
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), body)) ;
         }
         return null;
     }

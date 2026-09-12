@@ -698,7 +698,7 @@ public class UpbitCore extends UpbitApi
         String id = this.safeString(market, "market");
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing id")) ;
         }
         var quoteIdbaseIdVariable = Helpers.split(id, "-");
         var quoteId = ((java.util.List<Object>) quoteIdbaseIdVariable).get(0);
@@ -849,12 +849,12 @@ public class UpbitCore extends UpbitApi
                 Object allIds = this.ids;
                 if (Helpers.isTrue(!Helpers.isEqual(allIds, null)))
                 {
-                    ids = String.join((String)",", (java.util.List<String>)allIds);
+                    ids = String.join(",", (java.util.List<String>)allIds);
                 }
             } else
             {
                 Object marketIds = this.marketIds(symbols);
-                ids = String.join((String)",", (java.util.List<String>)marketIds);
+                ids = String.join(",", (java.util.List<String>)marketIds);
             }
             final Object finalIds = ids;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1541,7 +1541,7 @@ public class UpbitCore extends UpbitApi
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(price, null)) || Helpers.isTrue(Helpers.isEqual(amount, null))))
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
             }
             Object amountString = this.numberToString(amount);
             Object priceString = this.numberToString(price);
@@ -1551,13 +1551,13 @@ public class UpbitCore extends UpbitApi
         {
             if (Helpers.isTrue(Helpers.isEqual(amount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.")) ;
             }
             quoteAmount = this.costToPrecision(symbol, amount);
         }
         if (Helpers.isTrue(Helpers.isEqual(quoteAmount, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " calcOrderPrice() could not determine quote amount")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " calcOrderPrice() could not determine quote amount")) ;
         }
         return quoteAmount;
     }
@@ -1607,7 +1607,7 @@ public class UpbitCore extends UpbitApi
             Object test = this.safeBool(parameters, "test", false);
             if (Helpers.isTrue(Helpers.isTrue(postOnly) && Helpers.isTrue((!Helpers.isEqual(selfTradePrevention, null)))))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
             }
             String orderSide = null;
             if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
@@ -1618,7 +1618,7 @@ public class UpbitCore extends UpbitApi
                 orderSide = "ask";
             } else
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() supports only buy or sell in the side argument.")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " createOrder() supports only buy or sell in the side argument.")) ;
             }
             final Object finalOrderSide = orderSide;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1629,7 +1629,7 @@ public class UpbitCore extends UpbitApi
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(price, null)) || Helpers.isTrue(Helpers.isEqual(amount, null))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " the limit type order in createOrder() is required price and amount.")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " the limit type order in createOrder() is required price and amount.")) ;
                 }
                 Helpers.addElementToObject(request, "ord_type", "limit");
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
@@ -1645,14 +1645,14 @@ public class UpbitCore extends UpbitApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(amount, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " the market sell type order in createOrder() is required amount.")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " the market sell type order in createOrder() is required amount.")) ;
                     }
                     Helpers.addElementToObject(request, "ord_type", "market");
                     Helpers.addElementToObject(request, "volume", this.amountToPrecision(symbol, amount));
                 }
             } else
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() supports only limit or market types in the type argument.")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " createOrder() supports only limit or market types in the type argument.")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(customType, "best")))
             {
@@ -1666,7 +1666,7 @@ public class UpbitCore extends UpbitApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(amount, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " the best sell type order in createOrder() is required amount.")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " the best sell type order in createOrder() is required amount.")) ;
                     }
                     Helpers.addElementToObject(request, "volume", this.amountToPrecision(symbol, amount));
                 }
@@ -1679,7 +1679,7 @@ public class UpbitCore extends UpbitApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(request, "ord_type"), "limit")))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " postOnly orders are only supported for limit orders")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " postOnly orders are only supported for limit orders")) ;
                 }
                 Helpers.addElementToObject(request, "time_in_force", "post_only");
             }
@@ -1692,7 +1692,7 @@ public class UpbitCore extends UpbitApi
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(request, "ord_type"), "best")) && Helpers.isTrue(Helpers.isEqual(timeInForce, null))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a timeInForce parameter for best type orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a timeInForce parameter for best type orders")) ;
             }
             Object response = null;
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test")));
@@ -1824,7 +1824,7 @@ public class UpbitCore extends UpbitApi
             String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
             if (Helpers.isTrue(Helpers.isTrue(postOnly) && Helpers.isTrue((!Helpers.isEqual(selfTradePrevention, null)))))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
+                throw new ExchangeError(Helpers.add(this.id, " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
             }
             parameters = this.omit(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
@@ -1835,13 +1835,13 @@ public class UpbitCore extends UpbitApi
                 Helpers.addElementToObject(request, "prev_order_identifier", prevClientOrderId);
             } else
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() is required id or clientOrderId.")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() is required id or clientOrderId.")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(price, null)) || Helpers.isTrue(Helpers.isEqual(amount, null))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() is required price and amount to create limit type order.")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() is required price and amount to create limit type order.")) ;
                 }
                 Helpers.addElementToObject(request, "new_ord_type", "limit");
                 Helpers.addElementToObject(request, "new_price", this.priceToPrecision(symbol, price));
@@ -1857,14 +1857,14 @@ public class UpbitCore extends UpbitApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(amount, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() is required amount to create market sell type order.")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() is required amount to create market sell type order.")) ;
                     }
                     Helpers.addElementToObject(request, "new_ord_type", "market");
                     Helpers.addElementToObject(request, "new_volume", this.amountToPrecision(symbol, amount));
                 }
             } else
             {
-                throw new InvalidOrder((String)Helpers.add(this.id, " editOrder() supports only limit or market types in the type argument.")) ;
+                throw new InvalidOrder(Helpers.add(this.id, " editOrder() supports only limit or market types in the type argument.")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(customType, "best")))
             {
@@ -1878,7 +1878,7 @@ public class UpbitCore extends UpbitApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(amount, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() is required amount to create best sell order.")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() is required amount to create best sell order.")) ;
                     }
                     Helpers.addElementToObject(request, "new_volume", this.amountToPrecision(symbol, amount));
                 }
@@ -1895,7 +1895,7 @@ public class UpbitCore extends UpbitApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(request, "new_ord_type"), "limit")))
                 {
-                    throw new InvalidOrder((String)Helpers.add(this.id, " postOnly orders are only supported for limit orders")) ;
+                    throw new InvalidOrder(Helpers.add(this.id, " postOnly orders are only supported for limit orders")) ;
                 }
                 Helpers.addElementToObject(request, "new_time_in_force", "post_only");
             }
@@ -1908,7 +1908,7 @@ public class UpbitCore extends UpbitApi
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(request, "new_ord_type"), "best")) && Helpers.isTrue(Helpers.isEqual(timeInForce, null))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a timeInForce parameter for best type orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a timeInForce parameter for best type orders")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type")));
             // console.log ('check the each request params: ', request);
@@ -2834,7 +2834,7 @@ public class UpbitCore extends UpbitApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress requires params[\"network\"]")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress requires params[\"network\"]")) ;
             }
             final Object finalNetworkCode = networkCode;
             java.util.Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend(new java.util.HashMap<String, Object>() {{
@@ -2898,7 +2898,7 @@ public class UpbitCore extends UpbitApi
             String message = this.safeString(response, "message");
             if (Helpers.isTrue(!Helpers.isEqual(message, null)))
             {
-                throw new AddressPending((String)Helpers.add(Helpers.add(Helpers.add(this.id, " is generating "), code), " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
+                throw new AddressPending(Helpers.add(Helpers.add(Helpers.add(this.id, " is generating "), code), " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
             }
             return this.parseDepositAddress(response);
         });
@@ -2944,7 +2944,7 @@ public class UpbitCore extends UpbitApi
                 String network = (String)this.safeStringUpper2(parameters, "network", "net_type");
                 if (Helpers.isTrue(Helpers.isEqual(network, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a network argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " withdraw() requires a network argument")) ;
                 }
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
                 Helpers.addElementToObject(request, "net_type", network);

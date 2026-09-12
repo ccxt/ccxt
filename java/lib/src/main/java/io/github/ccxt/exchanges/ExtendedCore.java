@@ -703,7 +703,7 @@ public class ExtendedCore extends ExtendedApi
         Object baseId = this.safeString(market, "assetName", "");
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(baseId, "SPOT"), 0)))
         {
-            baseId = Helpers.replace((String)baseId, (String)"SPOT", (String)"");
+            baseId = Helpers.replace(((String)baseId), "SPOT", "");
         }
         String quoteId = this.safeString(market, "collateralAssetName");
         String base = (String) this.safeCurrencyCode(baseId);
@@ -879,7 +879,7 @@ public class ExtendedCore extends ExtendedApi
         Object currencyId = this.safeString(currency, "symbol");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(currencyId, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(currencyId, "SPOT"), 0)))))
         {
-            currencyId = Helpers.replace((String)currencyId, (String)"SPOT", (String)"");
+            currencyId = Helpers.replace(((String)currencyId), "SPOT", "");
         }
         String code = (String) this.safeCurrencyCode(currencyId);
         if (Helpers.isTrue(Helpers.isEqual(currencyId, "USD")))
@@ -1627,7 +1627,7 @@ public class ExtendedCore extends ExtendedApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             Object paginate = false;
@@ -1750,7 +1750,7 @@ public class ExtendedCore extends ExtendedApi
             String interval = this.safeString(this.timeframes, timeframe);
             if (!Helpers.isTrue(this.inArray(interval, new java.util.ArrayList<Object>(java.util.Arrays.asList("PT1H", "P1D")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterestHistory() supports 1h and 1d timeframes only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterestHistory() supports 1h and 1d timeframes only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -2277,11 +2277,11 @@ public class ExtendedCore extends ExtendedApi
             String chainId = (String)this.safeStringUpper2(parameters, "chainId", "network", "STRK");
             if (Helpers.isTrue(!Helpers.isEqual(chainId, "STRK")))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " withdraw() only supports Starknet withdrawals with chainId STRK")) ;
+                throw new BadRequest(Helpers.add(this.id, " withdraw() only supports Starknet withdrawals with chainId STRK")) ;
             }
             if (Helpers.isTrue(Helpers.isLessThanOrEqual(((String)address).length(), 42)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow")) ;
+                throw new BadRequest(Helpers.add(this.id, " withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow")) ;
             }
             Object account = (this.fetchExtendedAccount()).join();
             Object amountString = this.currencyToPrecision(code, amount);
@@ -2428,13 +2428,13 @@ public class ExtendedCore extends ExtendedApi
                 fromAccount = currentAccountId;
             } else if (Helpers.isTrue(!Helpers.isEqual(fromAccount, currentAccountId)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " transfer() can only transfer from the authenticated account")) ;
+                throw new BadRequest(Helpers.add(this.id, " transfer() can only transfer from the authenticated account")) ;
             }
             String toVault = this.safeString2(parameters, "toVault", "receiverPositionId");
             String toL2Key = this.safeString2(parameters, "toL2Key", "receiverPublicKey");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(toAccount, null))) || Helpers.isTrue((Helpers.isEqual(toVault, null)))) || Helpers.isTrue((Helpers.isEqual(toL2Key, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
             }
             Object amountString = this.currencyToPrecision(code, amount);
             Object settlement = this.createTransferSettlementData(((String)amountString), currency, account, toVault, toL2Key, parameters);
@@ -2801,7 +2801,7 @@ public class ExtendedCore extends ExtendedApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3132,7 +3132,7 @@ public class ExtendedCore extends ExtendedApi
         Object baseRoundUp = isBuy;
         Object quoteRoundUp = isBuy;
         Object baseAmount = this.getExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp);
-        Object collateralAmount = this.getExtendedStarkAmount(((String)quoteAmount), collateralResolution, quoteRoundUp);
+        Object collateralAmount = this.getExtendedStarkAmount((quoteAmount), collateralResolution, quoteRoundUp);
         if (Helpers.isTrue(isBuy))
         {
             collateralAmount = ((String)Precise.stringNeg(collateralAmount));
@@ -3178,7 +3178,7 @@ public class ExtendedCore extends ExtendedApi
         String starkKey = this.safeString(account, "l2Key");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(positionId, null))) || Helpers.isTrue((Helpers.isEqual(collateralId, null)))) || Helpers.isTrue((Helpers.isEqual(resolution, null)))) || Helpers.isTrue((Helpers.isEqual(starkKey, null)))))
         {
-            throw new BadRequest((String)Helpers.add(this.id, " withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
+            throw new BadRequest(Helpers.add(this.id, " withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
         Object amount = this.getExtendedStarkAmount(amountString, resolution);
         final Object finalPositionId = positionId;
@@ -3215,7 +3215,7 @@ public class ExtendedCore extends ExtendedApi
         Long resolution = this.safeInteger(parameters, "resolution", this.safeValue2(currencyInfo, "starkexResolution", "l1Resolution"));
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fromVault, null))) || Helpers.isTrue((Helpers.isEqual(fromL2Key, null)))) || Helpers.isTrue((Helpers.isEqual(collateralId, null)))) || Helpers.isTrue((Helpers.isEqual(resolution, null)))))
         {
-            throw new BadRequest((String)Helpers.add(this.id, " transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
+            throw new BadRequest(Helpers.add(this.id, " transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
         Object transferAmount = this.getExtendedStarkAmount(amountString, resolution);
         final Object finalCollateralId = collateralId;
@@ -3251,11 +3251,11 @@ public class ExtendedCore extends ExtendedApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -3263,15 +3263,15 @@ public class ExtendedCore extends ExtendedApi
             Object uppercaseSide = ((String)((String)side)).toUpperCase();
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue(!Helpers.isEqual(uppercaseType, "LIMIT"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrder() supports limit orders for spot markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrder() supports limit orders for spot markets only")) ;
             }
             if (!Helpers.isTrue(this.inArray(uppercaseType, new java.util.ArrayList<Object>(java.util.Arrays.asList("LIMIT", "MARKET", "CONDITIONAL", "TPSL")))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrder() supports limit, market, conditional and tpsl orders only")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrder() supports limit, market, conditional and tpsl orders only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument")) ;
             }
             Object amountString = this.amountToPrecision(symbol, amount);
             Object priceString = this.priceToPrecision(symbol, price);
@@ -3319,7 +3319,7 @@ public class ExtendedCore extends ExtendedApi
             Long collateralResolution = this.safeInteger(l2Config, "collateralResolution");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(syntheticId, null))) || Helpers.isTrue((Helpers.isEqual(collateralId, null)))) || Helpers.isTrue((Helpers.isEqual(syntheticResolution, null)))) || Helpers.isTrue((Helpers.isEqual(collateralResolution, null)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " createOrder() requires l2Config in market info")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrder() requires l2Config in market info")) ;
             }
             final Object finalTotalFee = totalFee;
             final Object finalSyntheticId = syntheticId;
@@ -3398,7 +3398,7 @@ public class ExtendedCore extends ExtendedApi
                     String stopLossTriggerPriceType = this.safeString(stopLoss, "triggerPriceType");
                     String stopLossExecutionPrice = this.safeString(stopLoss, "price");
                     String stopLossType = this.safeString(stopLoss, "type");
-                    Object stopLossSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), ((String)stopLossExecutionPrice), settlementParams);
+                    Object stopLossSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), (stopLossExecutionPrice), settlementParams);
                     java.util.Map<String, Object> requestStopLoss = new java.util.HashMap<String, Object>() {{
                         put( "triggerPrice", ExtendedCore.this.priceToPrecision(symbol, stopLossTrigger) );
                         put( "price", ExtendedCore.this.priceToPrecision(symbol, stopLossExecutionPrice) );
@@ -3427,7 +3427,7 @@ public class ExtendedCore extends ExtendedApi
                     String takeProfitTriggerPriceType = this.safeString(takeProfit, "triggerPriceType");
                     String takeProfitExecutionPrice = this.safeString(takeProfit, "price");
                     String takeProfitType = this.safeString(takeProfit, "type");
-                    Object takeProfitSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), ((String)takeProfitExecutionPrice), settlementParams);
+                    Object takeProfitSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), (takeProfitExecutionPrice), settlementParams);
                     java.util.Map<String, Object> requestTakeProfit = new java.util.HashMap<String, Object>() {{
                         put( "triggerPrice", ExtendedCore.this.priceToPrecision(symbol, takeProfitTrigger) );
                         put( "price", ExtendedCore.this.priceToPrecision(symbol, takeProfitExecutionPrice) );
@@ -3457,7 +3457,7 @@ public class ExtendedCore extends ExtendedApi
                     String triggerDirection = (String)this.safeStringUpper(parameters, "triggerDirection");
                     if (Helpers.isTrue(Helpers.isEqual(triggerDirection, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires triggerDirection for trigger order")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires triggerDirection for trigger order")) ;
                     }
                     final Object finalTriggerPriceStr = triggerPriceStr;
                     java.util.Map<String, Object> trigger = new java.util.HashMap<String, Object>() {{
@@ -3584,7 +3584,7 @@ public class ExtendedCore extends ExtendedApi
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an id argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an id argument")) ;
             }
             Long expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis");
             Object postOnly = this.safeBool(parameters, "postOnly");
@@ -3624,11 +3624,11 @@ public class ExtendedCore extends ExtendedApi
             }
             if (Helpers.isTrue(Helpers.isEqual(amount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an amount argument or an existing order with qty")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount argument or an existing order with qty")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price argument or an existing order with price")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires a price argument or an existing order with price")) ;
             }
             final Object finalPostOnly = postOnly;
             final Object finalReduceOnly = reduceOnly;
@@ -3703,7 +3703,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(id, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires an id argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires an id argument")) ;
                 }
                 final Object finalId = id;
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3781,7 +3781,7 @@ public class ExtendedCore extends ExtendedApi
             }
             if (Helpers.isTrue(!Helpers.isTrue(hasOrderIds) && !Helpers.isTrue(hasClientOrderIds)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires an ids argument or clientOrderIds parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires an ids argument or clientOrderIds parameter")) ;
             }
             (this.v1PrivatePostUserOrderMassCancel(this.extend(request, parameters))).join();
             //
@@ -3905,7 +3905,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(id, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires an id argument")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires an id argument")) ;
                 }
                 final Object finalId = id;
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -4264,7 +4264,7 @@ public class ExtendedCore extends ExtendedApi
             decimalString = value;
         } else
         {
-            decimalString = ((String)this.numberToString(value));
+            decimalString = (this.numberToString(value));
         }
         java.util.List<Object> hexChars = new java.util.ArrayList<Object>(java.util.Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"));
         Object result = "";
@@ -4291,7 +4291,7 @@ public class ExtendedCore extends ExtendedApi
             }
             return Helpers.add("0x", this.getExtendedDecimalToBase16(signature));
         }
-        Object signatureString = ((String)this.numberToString(signature));
+        Object signatureString = (this.numberToString(signature));
         if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(signatureString, "0x"), 0)))
         {
             return signatureString;
@@ -4387,7 +4387,7 @@ public class ExtendedCore extends ExtendedApi
             // this.checkRequiredCredentials ();
             if (Helpers.isTrue(Helpers.isEqual(this.apiKey, null)))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " sign() requires an apiKey for private endpoints")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " sign() requires an apiKey for private endpoints")) ;
             }
             headers = new java.util.HashMap<String, Object>() {{
                 put( "X-Api-Key", ExtendedCore.this.apiKey );

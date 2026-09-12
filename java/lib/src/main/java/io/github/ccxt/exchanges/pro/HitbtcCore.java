@@ -106,7 +106,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             String messageHash = (String) "authenticated";
             Client client = this.client(url);
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -1442,7 +1442,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 return (this.tradeRequest("futures_cancel_orders", parameters)).join();
             } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(marketType, "margin"))) || Helpers.isTrue((!Helpers.isEqual(marginMode, null)))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrdersWs is not supported for margin orders")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelAllOrdersWs is not supported for margin orders")) ;
             } else
             {
                 return (this.tradeRequest("spot_cancel_orders", parameters)).join();
@@ -1672,7 +1672,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             client.reject(error, messageHash);
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
         return message;
@@ -1711,7 +1711,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                     client.reject(e, messageHash);
                     if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                     {
-                        ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                        ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
                     }
                 } else
                 {

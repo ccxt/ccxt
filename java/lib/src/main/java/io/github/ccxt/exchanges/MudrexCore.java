@@ -248,7 +248,7 @@ public class MudrexCore extends MudrexApi
         String base = this.safeString(apiUrls, api);
         if (Helpers.isTrue(Helpers.isEqual(base, null)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " unknown API namespace: "), api)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " unknown API namespace: "), api)) ;
         }
         Object url = Helpers.add(Helpers.add(base, "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
@@ -335,7 +335,7 @@ public class MudrexCore extends MudrexApi
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errCode, Helpers.add(Helpers.add(this.id, " "), text));
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), text, Helpers.add(Helpers.add(this.id, " "), text));
             Object msg = Helpers.add(Helpers.add(this.id, " "), text);
-            Object low = ((String)text).toLowerCase();
+            Object low = text.toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(code, 401)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "auth"), 0))))
             {
                 throw new AuthenticationError((String)msg) ;
@@ -421,7 +421,7 @@ public class MudrexCore extends MudrexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(startTime, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing startTime")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchOHLCV() missing startTime")) ;
             }
             Object endTime = Helpers.add(startTime, Helpers.multiply(duration, requestLimit));
             Long until = this.safeInteger(parameters, "until");
@@ -676,7 +676,7 @@ public class MudrexCore extends MudrexApi
     {
         String ms = this.safeString(asset, "symbol");
         Object base = ms;
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(ms, null)) && Helpers.isTrue(((String)ms).endsWith(((String)"USDT")))))
+        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(ms, null)) && Helpers.isTrue(ms.endsWith("USDT"))))
         {
             base = Helpers.slice(ms, 0, Helpers.opNeg(4));
         }
@@ -792,7 +792,7 @@ public class MudrexCore extends MudrexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
-                throw new NullResponse((String)Helpers.add(this.id, " fetchBalance() returned empty response")) ;
+                throw new NullResponse(Helpers.add(this.id, " fetchBalance() returned empty response")) ;
             }
             Helpers.addElementToObject(response, "currency", currency);
             return this.parseBalance(response);
@@ -881,7 +881,7 @@ public class MudrexCore extends MudrexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -946,7 +946,7 @@ public class MudrexCore extends MudrexApi
                 String positionId = this.safeString2(parameters, "positionId", "position_id");
                 if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
                 }
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossPrice", "takeProfitPrice", "positionId", "position_id")));
                 final Object finalPositionId = positionId;
@@ -970,7 +970,7 @@ public class MudrexCore extends MudrexApi
             Long lev = this.safeInteger(parameters, "leverage", 1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "market"))) && Helpers.isTrue((Helpers.isEqual(price, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;
             }
             final Object finalPrice = price;
             final Object finalSide = side;
@@ -1577,7 +1577,7 @@ public class MudrexCore extends MudrexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
             {
-                throw new OrderNotFound((String)Helpers.add(this.id, " closePosition() could not resolve position_id")) ;
+                throw new OrderNotFound(Helpers.add(this.id, " closePosition() could not resolve position_id")) ;
             }
             final Object finalPositionId = positionId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1641,7 +1641,7 @@ public class MudrexCore extends MudrexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
             {
-                throw new OrderNotFound((String)Helpers.add(this.id, " addMargin() could not resolve position_id")) ;
+                throw new OrderNotFound(Helpers.add(this.id, " addMargin() could not resolve position_id")) ;
             }
             final Object finalPositionId = positionId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{

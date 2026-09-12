@@ -876,7 +876,7 @@ public class PolymarketCore extends PolymarketApi
             {
                 // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
                 // so human-readable labels ("Fed Rates") must be slugified first
-                Helpers.addElementToObject(baseRequest, "tag_slug", this.tagToSlug(((String)this.safeString(requestedTags, 0))));
+                Helpers.addElementToObject(baseRequest, "tag_slug", this.tagToSlug((this.safeString(requestedTags, 0))));
             }
             if (Helpers.isTrue(Helpers.isEqual(status, "active")))
             {
@@ -1260,7 +1260,7 @@ final Object finalClobTokenId = clobTokenId;
                         Object mkt = Helpers.GetValue(ccxtMarkets, i);
                         if (Helpers.isTrue(Helpers.isEqual(mkt, null)))
                         {
-                            throw new ExchangeError((String)Helpers.add(this.id, " fetchOutcome() could not resolve mkt")) ;
+                            throw new ExchangeError(Helpers.add(this.id, " fetchOutcome() could not resolve mkt")) ;
                         }
                         Helpers.addElementToObject(this.markets, Helpers.GetValue(mkt, "market"), mkt);
                     }
@@ -1341,7 +1341,7 @@ final Object finalClobTokenId = clobTokenId;
                         Object mkt = Helpers.GetValue(ccxtMarkets, i);
                         if (Helpers.isTrue(Helpers.isEqual(mkt, null)))
                         {
-                            throw new ExchangeError((String)Helpers.add(this.id, " fetchOutcomes() could not resolve mkt")) ;
+                            throw new ExchangeError(Helpers.add(this.id, " fetchOutcomes() could not resolve mkt")) ;
                         }
                         Helpers.addElementToObject(this.markets, Helpers.GetValue(mkt, "market"), mkt);
                     }
@@ -1454,7 +1454,7 @@ final Object finalClobTokenId = clobTokenId;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
             }
             // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
             (this.loadOutcomes(outcomes)).join();
@@ -1721,7 +1721,7 @@ final Object finalClobTokenId = clobTokenId;
             if (!Helpers.isTrue((Helpers.inOp(this.timeframes, timeframe))))
             {
                 Object supportedKeys = Helpers.objectKeys(this.timeframes);
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe), ", supported timeframes are "), String.join((String)", ", (java.util.List<String>)supportedKeys))) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe), ", supported timeframes are "), String.join(", ", (java.util.List<String>)supportedKeys))) ;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
@@ -1920,7 +1920,7 @@ final Object finalClobTokenId = clobTokenId;
             Object conditionId = this.safeString(outcomeInfo, "conditionId");
             if (Helpers.isTrue(Helpers.isEqual(conditionId, null)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchOpenInterest() requires outcome.info.conditionId for "), outcome)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchOpenInterest() requires outcome.info.conditionId for "), outcome)) ;
             }
             final Object finalConditionId = conditionId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1956,7 +1956,7 @@ final Object finalClobTokenId = clobTokenId;
         Helpers.addElementToObject(openInterest, "outcome", this.safeOutcomeSymbol(null, market));
         Helpers.addElementToObject(openInterest, "outcomeId", this.safeString(market, "outcomeId"));
         Helpers.addElementToObject(openInterest, "market", this.safeString(market, "market"));
-        ((java.util.Map<String,Object>)openInterest).remove((String)"symbol");
+        ((java.util.Map<String,Object>)openInterest).remove("symbol");
         return openInterest;
     }
 
@@ -2025,7 +2025,7 @@ final Object finalClobTokenId = clobTokenId;
             Object conditionId = this.safeString(outcomeInfo, "conditionId");
             if (Helpers.isTrue(Helpers.isEqual(conditionId, null)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchTrades() requires outcome.info.conditionId for an outcome "), tokenId)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchTrades() requires outcome.info.conditionId for an outcome "), tokenId)) ;
             }
             // the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
             // to the requested token client-side below. applying the user's `limit` to this request and
@@ -2284,7 +2284,7 @@ final Object finalClobTokenId = clobTokenId;
             // labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " walletAddress is required to fetchPositions")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " walletAddress is required to fetchPositions")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "user", PolymarketCore.this.walletAddress );
@@ -2301,7 +2301,7 @@ final Object finalClobTokenId = clobTokenId;
             java.util.Map<String, Object> wantedIds = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchPositions() missing outcomes")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchPositions() missing outcomes")) ;
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
             {
@@ -2716,13 +2716,13 @@ final Object finalClobTokenId = clobTokenId;
         {
             if (!Helpers.isTrue(isMarket))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price for limit orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price for limit orders")) ;
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
             price = this.safeNumber(outcomeObj, "price");
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() could not determine a price from the outcome, pass an explicit price")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() could not determine a price from the outcome, pass an explicit price")) ;
             }
         }
         // tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
@@ -2768,13 +2768,13 @@ final Object finalClobTokenId = clobTokenId;
                     feeRate = this.safeInteger(this.options, "feeRate", 0);
                 }
                 Object feeHex = this.intToBase16(feeRate);
-                feeHex = Helpers.padStart((String)feeHex, ((Number)24).intValue(), ((String)"0").charAt(0));
+                feeHex = Helpers.padStart(((String)feeHex), ((Number)24).intValue(), "0".charAt(0));
                 Object addressHex = builderHex;
-                addressHex = Helpers.padStart((String)addressHex, ((Number)40).intValue(), ((String)"0").charAt(0));
+                addressHex = Helpers.padStart(((String)addressHex), ((Number)40).intValue(), "0".charAt(0));
                 builderHex = Helpers.add(feeHex, addressHex);
             } else
             {
-                builderHex = Helpers.padStart((String)builderHex, ((Number)64).intValue(), ((String)"0").charAt(0));
+                builderHex = Helpers.padStart(((String)builderHex), ((Number)64).intValue(), "0".charAt(0));
             }
             builderBytes32 = Helpers.add("0x", builderHex);
         }
@@ -3049,10 +3049,10 @@ final Object finalClobTokenId = clobTokenId;
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
-        Object ctLenHex = this.intToBase16(((String)orderTypeString).length());
+        Object ctLenHex = this.intToBase16(orderTypeString.length());
         // assign before padStart so the PHP transpiler's str_pad regex (which only matches a
         // simple identifier) picks it up instead of leaking a padStart() function call
-        Object lenHex = Helpers.padStart((String)ctLenHex, ((Number)4).intValue(), ((String)"0").charAt(0));
+        Object lenHex = Helpers.padStart(((String)ctLenHex), ((Number)4).intValue(), "0".charAt(0));
         Object orderTypeStringHex = this.binaryToBase16(this.encode(orderTypeString));
         Object wrappedSignature = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("0x", innerSig), this.remove0xPrefix(appDomainSep)), this.remove0xPrefix(contentsHash)), orderTypeStringHex), lenHex);
         // lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
@@ -3215,7 +3215,7 @@ final Object finalClobTokenId = clobTokenId;
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries", "eventId", "slug")));
             if (Helpers.isTrue(Helpers.isEqual(queries, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchEvents() missing queries")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchEvents() missing queries")) ;
             }
             Object queriesLength = Helpers.getArrayLength(queries);
             Object rawEvents = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -3286,7 +3286,7 @@ final Object finalClobTokenId = clobTokenId;
                     Object m = Helpers.GetValue(ccxtMarkets, mi);
                     if (Helpers.isTrue(Helpers.isEqual(m, null)))
                     {
-                        throw new ExchangeError((String)Helpers.add(this.id, " fetchEvents() missing m")) ;
+                        throw new ExchangeError(Helpers.add(this.id, " fetchEvents() missing m")) ;
                     }
                     Helpers.addElementToObject(this.markets, Helpers.GetValue(m, "market"), m);
                 }
@@ -3595,7 +3595,7 @@ final Object finalClobTokenId = clobTokenId;
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " requires a privateKey")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " requires a privateKey")) ;
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 Object address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
@@ -3631,13 +3631,13 @@ final Object finalClobTokenId = clobTokenId;
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 // in a chain, leaving the inner call as an (invalid) method call
                 Object normalizedSecret = ((String)secret);
-                normalizedSecret = Helpers.replaceAll((String)normalizedSecret, (String)"-", (String)"+");
-                normalizedSecret = Helpers.replaceAll((String)normalizedSecret, (String)"_", (String)"/");
+                normalizedSecret = Helpers.replaceAll(((String)normalizedSecret), "-", "+");
+                normalizedSecret = Helpers.replaceAll(((String)normalizedSecret), "_", "/");
                 Object secretBytes = this.base64ToBinary(normalizedSecret);
                 Object signature = this.hmac(this.encode(auth), secretBytes, sha256(), "base64");
                 // url-safe base64, preserving '=' padding (matches the reference client)
-                signature = Helpers.replaceAll((String)signature, (String)"+", (String)"-");
-                signature = Helpers.replaceAll((String)signature, (String)"/", (String)"_");
+                signature = Helpers.replaceAll(((String)signature), "+", "-");
+                signature = Helpers.replaceAll(((String)signature), "/", "_");
                 final Object finalSignature = signature;
                 final Object finalTimestamp = timestamp;
                 headers = this.extend(headers, new java.util.HashMap<String, Object>() {{
@@ -3696,8 +3696,8 @@ final Object finalClobTokenId = clobTokenId;
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
         Object rRaw = Helpers.GetValue(signature, "r");
         Object sRaw = Helpers.GetValue(signature, "s");
-        Object r = Helpers.padStart((String)rRaw, ((Number)64).intValue(), ((String)"0").charAt(0));
-        Object s = Helpers.padStart((String)sRaw, ((Number)64).intValue(), ((String)"0").charAt(0));
+        Object r = Helpers.padStart(((String)rRaw), ((Number)64).intValue(), "0".charAt(0));
+        Object s = Helpers.padStart(((String)sRaw), ((Number)64).intValue(), "0".charAt(0));
         return new java.util.HashMap<String, Object>() {{
             put( "r", Helpers.add("0x", r) );
             put( "s", Helpers.add("0x", s) );
@@ -3810,7 +3810,7 @@ final Object finalClobTokenId = clobTokenId;
             }
             if (Helpers.isTrue(Helpers.isEqual(creds, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " createOrDeriveApiKey() returned no credentials")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createOrDeriveApiKey() returned no credentials")) ;
             }
             return creds;
         });
@@ -3866,7 +3866,7 @@ final Object finalClobTokenId = clobTokenId;
             {
                 return null;
             }
-            throw new AuthenticationError((String)Helpers.add(this.id, " requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them")) ;
+            throw new AuthenticationError(Helpers.add(this.id, " requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them")) ;
         });
 
     }
@@ -4133,7 +4133,7 @@ final Object finalOutcome = outcome;
             }};
             if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " watchTicker() missing outcome")) ;
+                throw new ExchangeError(Helpers.add(this.id, " watchTicker() missing outcome")) ;
             }
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, outcome))))
             {

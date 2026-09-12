@@ -602,7 +602,7 @@ public class ApexCore extends ApexApi
             Object chains = this.safeList(multiChain, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Helpers.addElementToObject(this.options, "_temp_currencies_chains", chains);
             Object result = this.parseCurrencies(rows);
-            ((java.util.Map<String,Object>)this.options).remove((String)"_temp_currencies_chains");
+            ((java.util.Map<String,Object>)this.options).remove("_temp_currencies_chains");
             return result;
         });
 
@@ -1278,7 +1278,7 @@ public class ApexCore extends ApexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1547,7 +1547,7 @@ public class ApexCore extends ApexApi
         String seeds = this.safeString(this.options, "seeds");
         if (Helpers.isTrue(Helpers.isEqual(seeds, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX")) ;
         }
         return seeds;
     }
@@ -1603,7 +1603,7 @@ public class ApexCore extends ApexApi
             Object orderType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             Object orderSide = ((String)side).toUpperCase();
             Object orderSize = this.amountToPrecision(symbol, amount);
@@ -1632,7 +1632,7 @@ public class ApexCore extends ApexApi
             Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
             if (Helpers.isTrue(Helpers.isTrue(isMarket) && Helpers.isTrue((Helpers.isEqual(price, null)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;
             }
             String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
             Object postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -2300,7 +2300,7 @@ public class ApexCore extends ApexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {

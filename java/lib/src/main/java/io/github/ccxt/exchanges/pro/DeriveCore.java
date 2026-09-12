@@ -278,7 +278,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         Object data = this.safeDict(rawData, "instrument_ticker", new java.util.HashMap<String, Object>() {{}});
         Object topic = this.safeString(parameters, "channel");
         Object ticker = null;
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(topic, null)) && Helpers.isTrue(((String)topic).startsWith(((String)"ticker_slim")))))
+        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(topic, null)) && Helpers.isTrue(((String)topic).startsWith("ticker_slim"))))
         {
             // the slim payload uses short keys and does not carry the instrument name,
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
@@ -562,7 +562,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
             String messageHash = (String) "authenticated";
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -870,7 +870,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
                 client.reject(error, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
-                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
                 }
             } else
             {
@@ -962,7 +962,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             // allows further authentication attempts
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)"authenticated");
+                ((java.util.Map<String,Object>)client.subscriptions).remove("authenticated");
             }
         }
     }

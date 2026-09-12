@@ -483,7 +483,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         try
         {
             Object msg = this.safeString(message, "message");
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), msg)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), msg)) ;
         } catch(Exception e)
         {
             client.reject(e);

@@ -453,7 +453,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             this.handleDeltas(orderbook, changes);
         } else
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " watchOrderBook() did not recognize message type "), type)) ;
+            throw new NotSupported(Helpers.add(Helpers.add(this.id, " watchOrderBook() did not recognize message type "), type)) ;
         }
         Helpers.addElementToObject(orderbook, "nonce", timestamp);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -479,7 +479,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Helpers.callDynamically(asks, "storeArray", new Object[]{bidAsk});
         } else
         {
-            throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " watchOrderBook () received unknown change type "), this.json(delta))) ;
+            throw new NotSupported(Helpers.add(Helpers.add(this.id, " watchOrderBook () received unknown change type "), this.json(delta))) ;
         }
     }
 
@@ -1193,7 +1193,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object timeframeId = this.safeValue(timeframes, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(timeframeId, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " this interval is not supported, please provide one of the supported timeframes")) ;
+                throw new NotSupported(Helpers.add(this.id, " this interval is not supported, please provide one of the supported timeframes")) ;
             }
             String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv.", symbol), "."), timeframe);
             String subscriptionHash = "CANDLESTICKS";
@@ -1331,7 +1331,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         }
         if (Helpers.isTrue(Helpers.isEqual(timeframes, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " findTimeframe() timeframes is required")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " findTimeframe() timeframes is required")) ;
         }
         Object keys = Helpers.objectKeys(timeframes);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -1376,7 +1376,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
 
     public Object handleErrorMessage(Client client, Object message)
     {
-        throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(message))) ;
+        throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(message))) ;
     }
 
     public void handleMessage(Client client, Object message)

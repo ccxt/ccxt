@@ -846,20 +846,20 @@ public class GeminiCore extends GeminiApi
                 //         '<td>0.01 USD', // quote currency price increment
                 //         '</tr>'
                 //     ]
-                Object marketId = Helpers.replace((String)Helpers.GetValue(cells, 0), (String)"<td>", (String)"");
-                marketId = Helpers.replace((String)marketId, (String)"*", (String)"");
+                Object marketId = Helpers.replace(((String)Helpers.GetValue(cells, 0)), "<td>", "");
+                marketId = Helpers.replace(((String)marketId), "*", "");
                 // const base = this.safeCurrencyCode (baseId);
-                Object minAmountString = Helpers.replace((String)Helpers.GetValue(cells, 1), (String)"<td>", (String)"");
+                Object minAmountString = Helpers.replace(((String)Helpers.GetValue(cells, 1)), "<td>", "");
                 Object minAmountParts = Helpers.split(minAmountString, " ");
                 Double minAmount = this.safeNumber(minAmountParts, 0);
-                Object amountPrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 2), (String)"<td>", (String)"");
+                Object amountPrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 2)), "<td>", "");
                 Object amountPrecisionParts = Helpers.split(amountPrecisionString, " ");
                 Object idLength = Helpers.subtract(Helpers.getArrayLength(marketId), 0);
                 Object startingIndex = Helpers.subtract(idLength, 3);
-                Object pricePrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 3), (String)"<td>", (String)"");
+                Object pricePrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 3)), "<td>", "");
                 Object pricePrecisionParts = Helpers.split(pricePrecisionString, " ");
                 Object quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
-                Object baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace((String)marketId, (String)quoteId, (String)""));
+                Object baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace(((String)marketId), ((String)quoteId), ""));
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
     final Object finalMarketId = marketId;
@@ -1115,7 +1115,7 @@ public class GeminiCore extends GeminiApi
             }
             Object marketIdUpper = ((String)((String)marketId)).toUpperCase();
             Boolean isPerp = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketIdUpper, "PERP"), 0));
-            Object marketIdWithoutPerp = Helpers.replace((String)marketIdUpper, (String)"PERP", (String)"");
+            Object marketIdWithoutPerp = Helpers.replace(((String)marketIdUpper), "PERP", "");
             Object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new java.util.HashMap<String, Object>() {{}});
             Object lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
             if (Helpers.isTrue(Helpers.inOp(conflictingMarkets, lowerCaseId)))
@@ -1432,7 +1432,7 @@ public class GeminiCore extends GeminiApi
         Object quote = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isEqual(market, null)))))
         {
-            Object idLength = Helpers.subtract(((String)marketId).length(), 0);
+            Object idLength = Helpers.subtract(marketId.length(), 0);
             if (Helpers.isTrue(Helpers.isEqual(idLength, 7)))
             {
                 baseId = Helpers.slice(marketId, 0, 4);
@@ -2081,7 +2081,7 @@ public class GeminiCore extends GeminiApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createOrder() allows limit orders only")) ;
             }
             Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_order_id")));
@@ -2107,7 +2107,7 @@ public class GeminiCore extends GeminiApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stop_price", "stopPrice", "type")));
             if (Helpers.isTrue(Helpers.isEqual(type, "stopLimit")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter or a stop_price parameter for "), type), " orders")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a triggerPrice parameter or a stop_price parameter for "), type), " orders")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
@@ -2249,7 +2249,7 @@ public class GeminiCore extends GeminiApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2333,7 +2333,7 @@ public class GeminiCore extends GeminiApi
             String result = this.safeString(response, "result");
             if (Helpers.isTrue(Helpers.isEqual(result, "error")))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() failed: "), this.json(response))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() failed: "), this.json(response))) ;
             }
             return this.parseTransaction(response, currency);
         });
@@ -2540,7 +2540,7 @@ public class GeminiCore extends GeminiApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
             }
             Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2575,7 +2575,7 @@ public class GeminiCore extends GeminiApi
             String apiKey = this.apiKey;
             if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(apiKey, "account"), 0)))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
             }
             Object nonce = String.valueOf(this.nonce());
             Object finalUrl = url;

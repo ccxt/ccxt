@@ -604,7 +604,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once")) ;
             }
             Object topic = "ticker";
             Object subHash = "tickers";
@@ -721,7 +721,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once")) ;
             }
             Object subHash = "bbos";
             Object topic = "bidsasks";
@@ -819,7 +819,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeframe, "1m"))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "5m")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "15m")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "30m")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1h")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1d")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1w")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1M")))))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
+                throw new ExchangeError(Helpers.add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -1112,7 +1112,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         {
             if (Helpers.isTrue(error))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " requires `uid` credential (woox calls it `application_id`)")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " requires `uid` credential (woox calls it `application_id`)")) ;
             } else
             {
                 return false;
@@ -1132,7 +1132,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             Client client = this.client(url);
             String messageHash = (String) "authenticated";
             String eventVar = "auth";
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -1589,13 +1589,13 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPositions() symbols is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " watchPositions() symbols is required")) ;
                 }
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPositions() symbols is required")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " watchPositions() symbols is required")) ;
                     }
                     Object symbol = Helpers.GetValue(symbols, i);
                     ((java.util.List<Object>)messageHashes).add(Helpers.add("positions::", symbol));
@@ -1637,7 +1637,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             String messageHash = (String) "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
@@ -1903,7 +1903,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 client.reject(error, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
-                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
                 }
             } else
             {
@@ -2086,7 +2086,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             // allows further authentication attempts
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)"authenticated");
+                ((java.util.Map<String,Object>)client.subscriptions).remove("authenticated");
             }
         }
     }

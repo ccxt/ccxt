@@ -174,7 +174,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(interval, "1s")) && Helpers.isTrue(!Helpers.isEqual(interval, "1m"))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchOHLCV() supports 1s and 1m timeframes only")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchOHLCV() supports 1s and 1m timeframes only")) ;
             }
             String prefix = "kline";
             if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))

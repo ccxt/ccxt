@@ -256,7 +256,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(timeframe, "1s")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " watchOHLCV does not support"), timeframe), " candle.")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " watchOHLCV does not support"), timeframe), " candle.")) ;
             }
             Object timeFrameOHLCV = Helpers.add("candle.", timeframe);
             return (this.watchPublicMultiple(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), timeFrameOHLCV)).join();

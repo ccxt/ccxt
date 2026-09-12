@@ -845,7 +845,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
                 symbols = this.marketSymbols(symbols);
-                messageHash = Helpers.add(messageHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
+                messageHash = Helpers.add(messageHash, Helpers.add("::", String.join(",", (java.util.List<String>)symbols)));
             }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "topic", "derivativesPositionsV2" );

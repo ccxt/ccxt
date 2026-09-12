@@ -843,7 +843,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
             }
             (this.loadOutcomes(outcomes)).join();
             Object outcomesLength = Helpers.getArrayLength(outcomes);
@@ -953,7 +953,7 @@ final Object finalTokenId = tokenId;
             if (!Helpers.isTrue((Helpers.inOp(this.timeframes, timeframe))))
             {
                 Object supportedKeys = Helpers.objectKeys(this.timeframes);
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe), ", supported timeframes are "), String.join((String)", ", (java.util.List<String>)supportedKeys))) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe), ", supported timeframes are "), String.join(", ", (java.util.List<String>)supportedKeys))) ;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = ((String)Helpers.GetValue(outcomeObj, "outcomeId"));
@@ -1027,7 +1027,7 @@ final Object finalTokenId = tokenId;
             Object quoteTokenAddress = quoteTokenAddress3;
             if (Helpers.isTrue(Helpers.isEqual(quoteTokenAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " loadQuoteToken() requires a quoteTokenAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " loadQuoteToken() requires a quoteTokenAddress")) ;
             }
             Object cacheKey = ((String)quoteTokenAddress).toLowerCase();
             Object cached = this.safeDict(this.options, "quoteTokens", new java.util.HashMap<String, Object>() {{}});
@@ -1054,7 +1054,7 @@ final Object finalTokenId = tokenId;
             Object quoteToken = this.safeDict(quoteTokens, cacheKey);
             if (Helpers.isTrue(Helpers.isEqual(quoteToken, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " loadQuoteToken() could not find quote token "), quoteTokenAddress)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " loadQuoteToken() could not find quote token "), quoteTokenAddress)) ;
             }
             return quoteToken;
         });
@@ -1161,10 +1161,10 @@ final Object finalTokenId = tokenId;
         Object priceInt = this.safeString(priceParts, 0, "0");
         Object priceFrac = this.safeString(priceParts, 1, "");
         String priceDenom = "1000000";
-        String priceNum = Precise.stringAdd(Precise.stringMul(priceInt, priceDenom), Helpers.padEnd((String)priceFrac, ((Number)6).intValue(), ((String)"0").charAt(0)));
+        String priceNum = Precise.stringAdd(Precise.stringMul(priceInt, priceDenom), Helpers.padEnd(((String)priceFrac), ((Number)6).intValue(), "0".charAt(0)));
         if (Helpers.isTrue(Helpers.isEqual(priceNum, "0")))
         {
-            throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " createOrder() invalid price "), priceStr)) ;
+            throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " createOrder() invalid price "), priceStr)) ;
         }
         Object makerRaw = amountStr;
         if (Helpers.isTrue(Helpers.isEqual(side, "BUY")))
@@ -1224,11 +1224,11 @@ final Object finalTokenId = tokenId;
             {
                 if (!Helpers.isTrue(isMarket))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price for limit orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price for limit orders")) ;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(sideStr, "SELL")))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price for market sell orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price for market sell orders")) ;
                 }
             }
             Object marketOrderPrice = "0";
@@ -1577,7 +1577,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a walletAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a walletAddress")) ;
             }
             (this.loadApiKey()).join();
             Object outcomeObj = null;
@@ -1627,7 +1627,7 @@ final Object finalTokenId = tokenId;
             Object marketId = marketId3;
             if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " loadTradeMarket() requires a marketId")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " loadTradeMarket() requires a marketId")) ;
             }
             String cacheKey = "tradeMarketsById";
             Object cached = this.safeDict(this.options, cacheKey, new java.util.HashMap<String, Object>() {{}});
@@ -1646,7 +1646,7 @@ final Object finalTokenId = tokenId;
             Object market = this.parseOpinionMarket(data);
             if (Helpers.isTrue(Helpers.isEqual(market, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " loadTradeMarket() could not parse market "), idStr)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " loadTradeMarket() could not parse market "), idStr)) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1777,7 +1777,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() requires a walletAddress")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositions() requires a walletAddress")) ;
             }
             (this.loadApiKey()).join();
             Object outcomesLength = 0;
@@ -1864,8 +1864,8 @@ final Object finalTokenId = tokenId;
         // assign before padStart so the PHP str_pad regex matches
         Object rRaw = Helpers.GetValue(signature, "r");
         Object sRaw = Helpers.GetValue(signature, "s");
-        Object r = Helpers.padStart((String)rRaw, ((Number)64).intValue(), ((String)"0").charAt(0));
-        Object s = Helpers.padStart((String)sRaw, ((Number)64).intValue(), ((String)"0").charAt(0));
+        Object r = Helpers.padStart(((String)rRaw), ((Number)64).intValue(), "0".charAt(0));
+        Object s = Helpers.padStart(((String)sRaw), ((Number)64).intValue(), "0".charAt(0));
         return new java.util.HashMap<String, Object>() {{
             put( "r", Helpers.add("0x", r) );
             put( "s", Helpers.add("0x", s) );
@@ -2004,7 +2004,7 @@ final Object finalTokenId = tokenId;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.walletAddress, null))) || Helpers.isTrue((Helpers.isEqual(this.privateKey, null)))))
             {
-                throw new AuthenticationError((String)Helpers.add(this.id, " private endpoints require an apiKey, or a walletAddress and privateKey to self-issue one")) ;
+                throw new AuthenticationError(Helpers.add(this.id, " private endpoints require an apiKey, or a walletAddress and privateKey to self-issue one")) ;
             }
             Object creds = null;
             try
@@ -2050,7 +2050,7 @@ final Object finalTokenId = tokenId;
         Object apiKey = ((Helpers.isTrue((hasDirectApiKey)))) ? this.apiKey : this.safeString(this.options, "apiKey");
         if (Helpers.isTrue(Helpers.isEqual(apiKey, null)))
         {
-            throw new AuthenticationError((String)Helpers.add(this.id, " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
+            throw new AuthenticationError(Helpers.add(this.id, " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
         }
         Object wsUrl = this.safeString(Helpers.GetValue(this.urls, "api"), "ws", "");
         return Helpers.add(Helpers.add(wsUrl, "?apikey="), apiKey);
@@ -2422,7 +2422,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires an outcome (the order update channel is per-market)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrders() requires an outcome (the order update channel is per-market)")) ;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
@@ -2556,7 +2556,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires an outcome (the trade record channel is per-market)")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchMyTrades() requires an outcome (the trade record channel is per-market)")) ;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
@@ -2684,7 +2684,7 @@ final Object finalTokenId = tokenId;
                 // wallet-signature scheme: no apiKey involved, the signature itself is the credential
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.walletAddress, null))) || Helpers.isTrue((Helpers.isEqual(this.privateKey, null)))))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " requires a walletAddress and privateKey")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " requires a walletAddress and privateKey")) ;
                 }
                 java.util.Map<String, Object> actionByMethod = new java.util.HashMap<String, Object>() {{
                     put( "POST", "create" );
@@ -2704,7 +2704,7 @@ final Object finalTokenId = tokenId;
                 Object apiKey = ((Helpers.isTrue((hasDirectApiKey)))) ? this.apiKey : this.safeString(this.options, "apiKey");
                 if (Helpers.isTrue(Helpers.isEqual(apiKey, null)))
                 {
-                    throw new AuthenticationError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
+                    throw new AuthenticationError(Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
                 }
                 Helpers.addElementToObject(headers, "apikey", apiKey);
             }

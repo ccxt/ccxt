@@ -201,7 +201,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -267,7 +267,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -377,7 +377,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -444,7 +444,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -588,7 +588,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchBidsAsks() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchBidsAsks() requires a non-empty array of symbols")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -649,7 +649,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchBidsAsks() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " unWatchBidsAsks() requires a non-empty array of symbols")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -802,7 +802,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -863,7 +863,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1171,7 +1171,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1231,7 +1231,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1391,7 +1391,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
             }
             Object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
             Object marketSymbols = this.marketSymbols(symbols, null, false, true, true);
@@ -1461,7 +1461,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
             }
             Object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
             Object marketSymbols = this.marketSymbols(symbols, null, false, true, true);
@@ -1587,13 +1587,13 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the listenKey is then in the bucket
-                    client.future((String)messageHash).getFuture().join();
+                    client.future(messageHash).getFuture().join();
                     return null;
                 }
                 // reusableFuture (), not future () - the two match in
                 // js/py/php/cs/java, but go's Client.Future () yields a channel
                 // that the trailing suspension point below would panic on
-                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
                 try
                 {
                     java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
@@ -1607,7 +1607,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                     Object listenKey = this.safeString(response, "listenKey");
                     if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
                     {
-                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                        throw new AuthenticationError(Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
                     }
                     Helpers.addElementToObject(Helpers.GetValue(this.options, "listenKey"), type, listenKey);
                     Helpers.addElementToObject(Helpers.GetValue(this.options, "lastAuthenticatedTime"), type, time);
@@ -1935,7 +1935,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             String messageHash = (String) "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else

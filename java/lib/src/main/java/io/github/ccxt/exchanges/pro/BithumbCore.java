@@ -166,7 +166,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Object symbolsLength = ((Helpers.isTrue((Helpers.isEqual(symbols, null))))) ? 0 : Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isTrue(isGenerationTwo) && Helpers.isTrue((Helpers.isEqual(symbolsLength, 0)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers() requires symbols for the generation 2 API")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTickers() requires symbols for the generation 2 API")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -387,8 +387,8 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Helpers.addElementToObject(ticker, "market", this.safeString(ticker, "market", code));
             return this.parseTicker(ticker, market);
         }
-        Object date = ((String)this.safeString(ticker, "date", ""));
-        Object time = ((String)this.safeString(ticker, "time", ""));
+        Object date = (this.safeString(ticker, "date", ""));
+        Object time = (this.safeString(ticker, "time", ""));
         Object kstDatetime = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.slice(date, 0, 4), "-"), Helpers.slice(date, 4, 6)), "-"), Helpers.slice(date, 6, 8)), "T"), Helpers.slice(time, 0, 2)), ":"), Helpers.slice(time, 2, 4)), ":"), Helpers.slice(time, 4, 6));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         Object timestamp = this.parse8601(kstDatetime);
@@ -535,7 +535,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 return;
             }
             String legacySymbol = (String) this.safeSymbol(legacyMarketId, null, "_");
-            Object timestampStr = ((String)this.safeString(content, "datetime"));
+            Object timestampStr = (this.safeString(content, "datetime"));
             if (Helpers.isTrue(Helpers.isEqual(timestampStr, null)))
             {
                 return;
@@ -590,7 +590,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 Helpers.callDynamically(asks, "store", new Object[]{askPrice, askSize});
             }
         }
-        Object gen2TimestampStr = ((String)this.safeString2(message, "timestamp", "datetime"));
+        Object gen2TimestampStr = (this.safeString2(message, "timestamp", "datetime"));
         Object timestamp = null;
         if (Helpers.isTrue(!Helpers.isEqual(gen2TimestampStr, null)))
         {
@@ -880,7 +880,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             if (Helpers.isTrue(!Helpers.isEqual(errorCode, "0000")))
             {
                 Object msg = this.safeString(message, "resmsg");
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), msg)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), msg)) ;
             }
             return true;
         } catch(Exception e)
@@ -915,7 +915,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " watchBalance() is only supported for the generation 2 API")) ;
+                throw new BadRequest(Helpers.add(this.id, " watchBalance() is only supported for the generation 2 API")) ;
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateGen2");
@@ -1067,7 +1067,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " watchOrders() is only supported for the generation 2 API")) ;
+                throw new BadRequest(Helpers.add(this.id, " watchOrders() is only supported for the generation 2 API")) ;
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateGen2");

@@ -363,7 +363,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((!Helpers.isEqual(limit, 150)))))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " watchOrderBook accepts limit = 150 only")) ;
+                throw new ExchangeError(Helpers.add(this.id, " watchOrderBook accepts limit = 150 only")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {

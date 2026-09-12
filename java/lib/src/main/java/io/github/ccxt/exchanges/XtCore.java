@@ -3162,7 +3162,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+                throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             return (this.createOrder(symbol, "market", "buy", cost, 1, parameters)).join();
         });
@@ -3216,7 +3216,7 @@ public class XtCore extends XtApi
                 Boolean isTrailing = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(parameters, "trailingPercent"))) || Helpers.isTrue((Helpers.inOp(parameters, "trailingAmount")))) || Helpers.isTrue((Helpers.inOp(parameters, "trailingTriggerPrice")));
                 if (Helpers.isTrue(isTrailing))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
                 }
                 return (this.createSpotOrder(symbol, type, side, amount, price, parameters)).join();
             } else
@@ -3267,7 +3267,7 @@ public class XtCore extends XtApi
                     {
                         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(price, null)) && Helpers.isTrue((Helpers.isEqual(cost, null)))))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")) ;
                         } else
                         {
                             Object amountString = this.numberToString(amount);
@@ -3379,11 +3379,11 @@ public class XtCore extends XtApi
             Boolean isTrailing = Helpers.isTrue((!Helpers.isEqual(trailingPercent, null))) || Helpers.isTrue((!Helpers.isEqual(trailingAmount, null)));
             if (Helpers.isTrue(Helpers.isTrue(isTrailing) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(trailingTriggerPrice, null))) && !Helpers.isTrue(isTrailing)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount")) ;
             }
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
@@ -3531,7 +3531,7 @@ public class XtCore extends XtApi
                 Boolean isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
                 if (!Helpers.isTrue(isContract))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOrder() trailing orders are only supported on swap and future markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOrder() trailing orders are only supported on swap and future markets")) ;
                 }
             }
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
@@ -3770,7 +3770,7 @@ public class XtCore extends XtApi
                 Boolean isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
                 if (!Helpers.isTrue(isContract))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() trailing orders are only supported on swap and future markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOrders() trailing orders are only supported on swap and future markets")) ;
                 }
             }
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
@@ -3971,7 +3971,7 @@ public class XtCore extends XtApi
                 Boolean isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
                 if (!Helpers.isTrue(isContract))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " fetchOrdersByStatus() trailing orders are only supported on swap and future markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " fetchOrdersByStatus() trailing orders are only supported on swap and future markets")) ;
                 }
                 // the track endpoints do not accept a state filter, and a server-side
                 // size would truncate the mixed-state page before the local status
@@ -4443,7 +4443,7 @@ public class XtCore extends XtApi
                 Boolean isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
                 if (!Helpers.isTrue(isContract))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() trailing orders are only supported on swap and future markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " cancelOrder() trailing orders are only supported on swap and future markets")) ;
                 }
             }
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
@@ -4578,7 +4578,7 @@ public class XtCore extends XtApi
                 Boolean isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
                 if (!Helpers.isTrue(isContract))
                 {
-                    throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() trailing orders are only supported on swap and future markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() trailing orders are only supported on swap and future markets")) ;
                 }
             }
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
@@ -4686,7 +4686,7 @@ public class XtCore extends XtApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(subType, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " cancelOrders() does not support swap and future orders, only spot orders are accepted")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelOrders() does not support swap and future orders, only spot orders are accepted")) ;
             }
             java.util.Map<String, Object> response = (this.privateSpotDeleteBatchOrder(this.extend(request, parameters))).join();
             //
@@ -4984,7 +4984,7 @@ public class XtCore extends XtApi
                 response = (this.privateLinearGetFutureUserV1BalanceBills(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchLedger() does not support spot transactions, only swap and future wallet transactions are supported")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchLedger() does not support spot transactions, only swap and future wallet transactions are supported")) ;
             }
             //
             //     {
@@ -5463,13 +5463,13 @@ public class XtCore extends XtApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             String positionSide = this.safeString(parameters, "positionSide");
             this.checkRequiredArgument("setLeverage", positionSide, "positionSide", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT")));
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 125)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setLeverage() leverage should be between 1 and 125")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() leverage should be between 1 and 125")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5478,7 +5478,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " setLeverage() supports contract markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " setLeverage() supports contract markets only")) ;
             }
             final Object finalLeverage = leverage;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -5852,7 +5852,7 @@ final Object finalMarket = market;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5869,7 +5869,7 @@ final Object finalMarket = market;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -5978,7 +5978,7 @@ final Object finalMarket = market;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -6075,7 +6075,7 @@ final Object finalMarket = market;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -6155,7 +6155,7 @@ final Object finalMarket = market;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFee() supports contract markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTradingFee() supports contract markets only")) ;
             }
             Object subType = null;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
@@ -6288,7 +6288,7 @@ final Object finalMarket = market;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -6517,7 +6517,7 @@ final Object finalMarket = market;
                     return this.parsePosition(merged, marketInner);
                 }
             }
-            throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
+            throw new NullResponse(Helpers.add(Helpers.add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
         });
 
     }
@@ -6904,7 +6904,7 @@ final Object finalMarket = market;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -6913,12 +6913,12 @@ final Object finalMarket = market;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " setMarginMode() supports contract markets only")) ;
+                throw new NotSupported(Helpers.add(this.id, " setMarginMode() supports contract markets only")) ;
             }
             marginMode = ((String)marginMode).toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated")) && Helpers.isTrue(!Helpers.isEqual(marginMode, "cross"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
             {
@@ -6992,7 +6992,7 @@ final Object finalMarket = market;
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(amount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an amount argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -7172,14 +7172,14 @@ final Object finalMarket = market;
                 String id = "CCXT";
                 if (Helpers.isTrue(Helpers.isEqual(body, null)))
                 {
-                    throw new NullResponse((String)Helpers.add(this.id, " sign() returned empty body")) ;
+                    throw new NullResponse(Helpers.add(this.id, " sign() returned empty body")) ;
                 }
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(payload, "future"), Helpers.opNeg(1))))
                 {
                     Helpers.addElementToObject(body, "clientMedia", id);
                     if (Helpers.isTrue(Helpers.isEqual(body, null)))
                     {
-                        throw new NullResponse((String)Helpers.add(this.id, " sign() returned empty body")) ;
+                        throw new NullResponse(Helpers.add(this.id, " sign() returned empty body")) ;
                     }
                 } else
                 {

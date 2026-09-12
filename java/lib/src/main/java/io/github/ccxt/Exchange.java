@@ -117,7 +117,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object side = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " closePosition() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " closePosition() is not supported yet")) ;
         });
 
     }
@@ -128,7 +128,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " closeAllPositions() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " closeAllPositions() is not supported yet")) ;
         });
 
     }
@@ -139,7 +139,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " editOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " editOrders() is not supported yet")) ;
         });
 
     }
@@ -153,7 +153,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchCanceledAndClosedOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchCanceledAndClosedOrders() is not supported yet")) ;
         });
 
     }
@@ -182,7 +182,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return positions;
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchPositionHistory () is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchPositionHistory () is not supported yet")) ;
             }
         });
 
@@ -197,7 +197,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPositionsHistory () is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchPositionsHistory () is not supported yet")) ;
         });
 
     }
@@ -209,7 +209,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPositionsRisk() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchPositionsRisk() is not supported yet")) ;
         });
 
     }
@@ -220,7 +220,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
         });
 
     }
@@ -231,7 +231,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
         });
 
     }
@@ -243,7 +243,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchPosition() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchPosition() is not supported yet")) ;
         });
 
     }
@@ -256,7 +256,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchMyTradesForSymbols() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchMyTradesForSymbols() is not supported yet")) ;
         });
 
     }
@@ -269,7 +269,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchTradesForSymbols() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchTradesForSymbols() is not supported yet")) ;
         });
 
     }
@@ -281,7 +281,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchBidsAsks() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchBidsAsks() is not supported yet")) ;
         });
 
     }
@@ -301,14 +301,14 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 Object ticker = this.safeDict(tickers, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
                 {
-                    throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchMarkPrices() could not find a ticker for "), symbol)) ;
+                    throw new NullResponse(Helpers.add(Helpers.add(this.id, " fetchMarkPrices() could not find a ticker for "), symbol)) ;
                 } else
                 {
                     return ticker;
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchMarkPrices() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchMarkPrices() is not supported yet")) ;
             }
         });
 
@@ -321,7 +321,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchMarkPrices() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchMarkPrices() is not supported yet")) ;
         });
 
     }
@@ -333,7 +333,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchBidsAsks() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchBidsAsks() is not supported yet")) ;
         });
 
     }
@@ -344,7 +344,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchMarkPrice () is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchMarkPrice () is not supported yet")) ;
         });
 
     }
@@ -356,7 +356,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchMarkPrices () is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchMarkPrices () is not supported yet")) ;
         });
 
     }
@@ -368,7 +368,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new BadRequest((String)Helpers.add(this.id, " fetchL3OrderBook() is not supported yet")) ;
+            throw new BadRequest(Helpers.add(this.id, " fetchL3OrderBook() is not supported yet")) ;
         });
 
     }
@@ -380,7 +380,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchOrderBookForSymbols() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchOrderBookForSymbols() is not supported yet")) ;
         });
 
     }
@@ -393,7 +393,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchOrdersForSymbols() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchOrdersForSymbols() is not supported yet")) ;
         });
 
     }
@@ -405,7 +405,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrdersWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " cancelAllOrdersWs() is not supported yet")) ;
         });
 
     }
@@ -417,7 +417,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " cancelOrderWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " cancelOrderWs() is not supported yet")) ;
         });
 
     }
@@ -429,7 +429,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " cancelOrdersWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " cancelOrdersWs() is not supported yet")) ;
         });
 
     }
@@ -498,7 +498,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrderWs(symbol, "market", side, cost, 1, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createMarketOrderWithCostWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCostWs() is not supported yet")) ;
         });
 
     }
@@ -562,7 +562,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
         });
 
     }
@@ -574,7 +574,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " createOrderWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrderWs() is not supported yet")) ;
         });
 
     }
@@ -585,7 +585,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " createOrdersWs () is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrdersWs () is not supported yet")) ;
         });
 
     }
@@ -599,7 +599,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createPostOnlyOrderWs"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createPostOnlyOrderWs"), false))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createPostOnlyOrderWs() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " createPostOnlyOrderWs() is not supported yet")) ;
             }
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "postOnly", true );
@@ -618,7 +618,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createReduceOnlyOrderWs"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createReduceOnlyOrderWs"), false))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createReduceOnlyOrderWs() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " createReduceOnlyOrderWs() is not supported yet")) ;
             }
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "reduceOnly", true );
@@ -636,7 +636,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopLimitOrderWs"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopLimitOrderWs"), false))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createStopLimitOrderWs() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " createStopLimitOrderWs() is not supported yet")) ;
             }
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
@@ -669,7 +669,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(stopLossPrice, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createStopLossOrderWs() requires a stopLossPrice argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createStopLossOrderWs() requires a stopLossPrice argument")) ;
             }
             final Object finalStopLossPrice = stopLossPrice;
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
@@ -679,7 +679,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createStopLossOrderWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createStopLossOrderWs() is not supported yet")) ;
         });
 
     }
@@ -692,7 +692,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopMarketOrderWs"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopMarketOrderWs"), false))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createStopMarketOrderWs() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " createStopMarketOrderWs() is not supported yet")) ;
             }
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
@@ -712,11 +712,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopOrderWs"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopOrderWs"), false))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createStopOrderWs() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " createStopOrderWs() is not supported yet")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createStopOrderWs() requires a stopPrice argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createStopOrderWs() requires a stopPrice argument")) ;
             }
             final Object finalTriggerPrice = triggerPrice;
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
@@ -750,7 +750,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(takeProfitPrice, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
             }
             final Object finalTakeProfitPrice = takeProfitPrice;
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
@@ -760,7 +760,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createTakeProfitOrderWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createTakeProfitOrderWs() is not supported yet")) ;
         });
 
     }
@@ -790,7 +790,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(trailingAmount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createTrailingAmountOrderWs() requires a trailingAmount argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createTrailingAmountOrderWs() requires a trailingAmount argument")) ;
             }
             Helpers.addElementToObject(parameters, "trailingAmount", trailingAmount);
             if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
@@ -801,7 +801,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createTrailingAmountOrderWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createTrailingAmountOrderWs() is not supported yet")) ;
         });
 
     }
@@ -831,7 +831,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(trailingPercent, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createTrailingPercentOrderWs() requires a trailingPercent argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createTrailingPercentOrderWs() requires a trailingPercent argument")) ;
             }
             Helpers.addElementToObject(parameters, "trailingPercent", trailingPercent);
             if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
@@ -842,7 +842,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createTrailingPercentOrderWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createTrailingPercentOrderWs() is not supported yet")) ;
         });
 
     }
@@ -870,7 +870,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createTriggerOrderWs() requires a triggerPrice argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createTriggerOrderWs() requires a triggerPrice argument")) ;
             }
             final Object finalTriggerPrice = triggerPrice;
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
@@ -880,7 +880,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrderWs(symbol, type, side, amount, price, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createTriggerOrderWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createTriggerOrderWs() is not supported yet")) ;
         });
 
     }
@@ -913,7 +913,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 Object orders = (this.fetchOrdersWs(symbol, since, limit, parameters)).join();
                 return this.filterBy(orders, "status", "closed");
             }
-            throw new NotSupported((String)Helpers.add(this.id, " fetchClosedOrdersWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchClosedOrdersWs() is not supported yet")) ;
         });
 
     }
@@ -927,7 +927,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchMyTradesWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchMyTradesWs() is not supported yet")) ;
         });
 
     }
@@ -946,7 +946,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 Object orders = (this.fetchOrdersWs(symbol, since, limit, parameters)).join();
                 return this.filterBy(orders, "status", "open");
             }
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrdersWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOpenOrdersWs() is not supported yet")) ;
         });
 
     }
@@ -958,7 +958,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrderBookWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrderBookWs() is not supported yet")) ;
         });
 
     }
@@ -970,7 +970,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrderWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrderWs() is not supported yet")) ;
         });
 
     }
@@ -984,7 +984,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrdersWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrdersWs() is not supported yet")) ;
         });
 
     }
@@ -995,7 +995,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPositionWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchPositionWs() is not supported yet")) ;
         });
 
     }
@@ -1007,7 +1007,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
         });
 
     }
@@ -1027,14 +1027,14 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 Object ticker = this.safeDict(tickers, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
                 {
-                    throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchTickerWs() could not find a ticker for "), symbol)) ;
+                    throw new NullResponse(Helpers.add(Helpers.add(this.id, " fetchTickerWs() could not find a ticker for "), symbol)) ;
                 } else
                 {
                     return ticker;
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTickerWs() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTickerWs() is not supported yet")) ;
             }
         });
 
@@ -1047,7 +1047,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTickersWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchTickersWs() is not supported yet")) ;
         });
 
     }
@@ -1060,7 +1060,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTradesWs() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchTradesWs() is not supported yet")) ;
         });
 
     }
@@ -1074,7 +1074,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchTrades() is not supported yet")) ;
         });
 
     }
@@ -1087,7 +1087,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchTrades() is not supported yet")) ;
         });
 
     }
@@ -1099,7 +1099,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrderBook() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrderBook() is not supported yet")) ;
         });
 
     }
@@ -1138,7 +1138,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchOrderBook() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchOrderBook() is not supported yet")) ;
         });
 
     }
@@ -1155,7 +1155,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 return this.safeDict(openInterests, symbol);
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOpenInterest() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOpenInterest() is not supported yet")) ;
             }
         });
 
@@ -1249,7 +1249,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
         });
 
     }
@@ -1263,7 +1263,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchPositions() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchPositions() is not supported yet")) ;
         });
 
     }
@@ -1289,7 +1289,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
         });
 
     }
@@ -1309,14 +1309,14 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 Object ticker = this.safeDict(tickers, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
                 {
-                    throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchTickers() could not find a ticker for "), symbol)) ;
+                    throw new NullResponse(Helpers.add(Helpers.add(this.id, " fetchTickers() could not find a ticker for "), symbol)) ;
                 } else
                 {
                     return ticker;
                 }
             } else
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTicker() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTicker() is not supported yet")) ;
             }
         });
 
@@ -1328,7 +1328,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchTicker() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchTicker() is not supported yet")) ;
         });
 
     }
@@ -1340,7 +1340,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
         });
 
     }
@@ -1352,7 +1352,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchTickers() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchTickers() is not supported yet")) ;
         });
 
     }
@@ -1364,7 +1364,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrder() is not supported yet")) ;
         });
 
     }
@@ -1414,7 +1414,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchOrder(((String)this.safeString(order, "id")), this.safeString(order, "symbol"), parameters)).join();
+            return (this.fetchOrder((this.safeString(order, "id")), this.safeString(order, "symbol"), parameters)).join();
         });
 
     }
@@ -1426,7 +1426,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " createOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrder() is not supported yet")) ;
         });
 
     }
@@ -1456,7 +1456,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(trailingAmount, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createTrailingAmountOrder() requires a trailingAmount argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createTrailingAmountOrder() requires a trailingAmount argument")) ;
             }
             Helpers.addElementToObject(parameters, "trailingAmount", trailingAmount);
             if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
@@ -1467,7 +1467,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createTrailingAmountOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createTrailingAmountOrder() is not supported yet")) ;
         });
 
     }
@@ -1497,7 +1497,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(trailingPercent, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createTrailingPercentOrder() requires a trailingPercent argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createTrailingPercentOrder() requires a trailingPercent argument")) ;
             }
             Helpers.addElementToObject(parameters, "trailingPercent", trailingPercent);
             if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
@@ -1508,7 +1508,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createTrailingPercentOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createTrailingPercentOrder() is not supported yet")) ;
         });
 
     }
@@ -1533,7 +1533,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrder(symbol, "market", side, cost, 1, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
         });
 
     }
@@ -1557,7 +1557,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrder(symbol, "market", "buy", cost, 1, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
         });
 
     }
@@ -1581,7 +1581,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrder(symbol, "market", "sell", cost, 1, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
         });
 
     }
@@ -1609,7 +1609,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createTriggerOrder() requires a triggerPrice argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createTriggerOrder() requires a triggerPrice argument")) ;
             }
             final Object finalTriggerPrice = triggerPrice;
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
@@ -1619,7 +1619,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createTriggerOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createTriggerOrder() is not supported yet")) ;
         });
 
     }
@@ -1647,7 +1647,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(stopLossPrice, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createStopLossOrder() requires a stopLossPrice argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createStopLossOrder() requires a stopLossPrice argument")) ;
             }
             final Object finalStopLossPrice = stopLossPrice;
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
@@ -1657,7 +1657,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createStopLossOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createStopLossOrder() is not supported yet")) ;
         });
 
     }
@@ -1685,7 +1685,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(takeProfitPrice, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
             }
             final Object finalTakeProfitPrice = takeProfitPrice;
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
@@ -1695,7 +1695,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createTakeProfitOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createTakeProfitOrder() is not supported yet")) ;
         });
 
     }
@@ -1736,7 +1736,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             {
                 return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
         });
 
     }
@@ -1747,7 +1747,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " createOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrders() is not supported yet")) ;
         });
 
     }
@@ -1759,7 +1759,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " cancelOrder() is not supported yet")) ;
         });
 
     }
@@ -1795,7 +1795,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
         });
 
     }
@@ -1831,7 +1831,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() is not supported yet")) ;
         });
 
     }
@@ -1842,7 +1842,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return this.cancelOrder(((String)this.safeString(order, "id")), this.safeString(order, "symbol"), parameters);
+            return this.cancelOrder((this.safeString(order, "id")), this.safeString(order, "symbol"), parameters);
         });
 
     }
@@ -1858,9 +1858,9 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOpenOrders"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOpenOrders"), false)))) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchClosedOrders"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchClosedOrders"), false))))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")) ;
             }
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrders() is not supported yet")) ;
         });
 
     }
@@ -1874,7 +1874,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrderTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrderTrades() is not supported yet")) ;
         });
 
     }
@@ -1888,7 +1888,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchOrders() is not supported yet")) ;
         });
 
     }
@@ -1907,7 +1907,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 Object orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
                 return this.filterBy(orders, "status", "open");
             }
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
         });
 
     }
@@ -1926,7 +1926,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 Object orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
                 return this.filterBy(orders, "status", "closed");
             }
-            throw new NotSupported((String)Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
         });
 
     }
@@ -1940,7 +1940,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchCanceledOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchCanceledOrders() is not supported yet")) ;
         });
 
     }
@@ -1954,7 +1954,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchMyTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchMyTrades() is not supported yet")) ;
         });
 
     }
@@ -1968,7 +1968,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchMyTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchMyTrades() is not supported yet")) ;
         });
 
     }
@@ -2049,7 +2049,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createPostOnlyOrder"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createPostOnlyOrder"), false))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createPostOnlyOrder() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " createPostOnlyOrder() is not supported yet")) ;
             }
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "postOnly", true );
@@ -2068,7 +2068,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createReduceOnlyOrder"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createReduceOnlyOrder"), false))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createReduceOnlyOrder() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " createReduceOnlyOrder() is not supported yet")) ;
             }
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "reduceOnly", true );
@@ -2088,11 +2088,11 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopOrder"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopOrder"), false))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createStopOrder() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " createStopOrder() is not supported yet")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " create_stop_order() requires a stopPrice argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " create_stop_order() requires a stopPrice argument")) ;
             }
             final Object finalTriggerPrice = triggerPrice;
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
@@ -2111,7 +2111,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopLimitOrder"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopLimitOrder"), false))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createStopLimitOrder() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " createStopLimitOrder() is not supported yet")) ;
             }
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
@@ -2129,7 +2129,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopMarketOrder"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopMarketOrder"), false))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " createStopMarketOrder() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " createStopMarketOrder() is not supported yet")) ;
             }
             java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
@@ -2147,7 +2147,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchTradingFees"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchTradingFees"), false))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFee() is not supported yet")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchTradingFee() is not supported yet")) ;
             }
             Object fees = (this.fetchTradingFees(parameters)).join();
             return this.safeDict(fees, symbol);

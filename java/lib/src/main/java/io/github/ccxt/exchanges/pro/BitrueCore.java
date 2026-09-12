@@ -452,7 +452,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         if (Helpers.isTrue(isFutures))
         {
             String wsBaseQuote = (String)this.safeStringLower(parts, 2);
-            market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
+            market = this.findSwapMarketByWsBaseQuote((wsBaseQuote));
         } else
         {
             String marketId = (String)this.safeStringUpper(parts, 1);
@@ -500,7 +500,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             }
             String baseId = (String)this.safeStringLower(candidate, "baseId", "");
             String quoteId = (String)this.safeStringLower(candidate, "quoteId", "");
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.add(((String)baseId), quoteId), wsBaseQuote)))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.add((baseId), quoteId), wsBaseQuote)))
             {
                 return candidate;
             }
@@ -564,7 +564,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchTrades is only supported for swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchTrades is only supported for swap markets")) ;
             }
             String baseIdLower = (String)this.safeStringLower(market, "baseId");
             String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
@@ -615,7 +615,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         Object channel = this.safeString(message, "channel");
         Object parts = Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
-        Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
+        Object market = this.findSwapMarketByWsBaseQuote((wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
             return;
@@ -699,13 +699,13 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchOHLCV is only supported for swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchOHLCV is only supported for swap markets")) ;
             }
             Object futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new java.util.HashMap<String, Object>() {{}});
             Object interval = this.safeString(futuresTimeframes, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(interval, null)))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " watchOHLCV does not support timeframe "), timeframe)) ;
+                throw new NotSupported(Helpers.add(Helpers.add(this.id, " watchOHLCV does not support timeframe "), timeframe)) ;
             }
             String baseIdLower = (String)this.safeStringLower(market, "baseId");
             String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
@@ -754,7 +754,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         Object channel = this.safeString(message, "channel");
         Object parts = Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
-        Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
+        Object market = this.findSwapMarketByWsBaseQuote((wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
             return;
@@ -822,7 +822,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchTicker is only supported for swap markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchTicker is only supported for swap markets")) ;
             }
             String baseIdLower = (String)this.safeStringLower(market, "baseId");
             String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
@@ -864,7 +864,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         Object channel = this.safeString(message, "channel");
         Object parts = Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
-        Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
+        Object market = this.findSwapMarketByWsBaseQuote((wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
             return;
@@ -1024,12 +1024,12 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                 {
                     // a flight is already in progress - wake when the leader
                     // settles it: the listenKey url is then in the options
-                    client.future((String)messageHash).getFuture().join();
+                    client.future(messageHash).getFuture().join();
                     return Helpers.GetValue(this.options, "listenKeyUrl");
                 }
                 // register before the first await, so a concurrent caller entering
                 // authenticate () while this one is inside the fetch sees the flight
-                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
                 try
                 {
                     java.util.Map<String, Object> response = (this.openV1PrivatePostPoseidonApiV1ListenKey(parameters)).join();
@@ -1046,7 +1046,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                     Object key = this.safeString(data, "listenKey");
                     if (Helpers.isTrue(Helpers.isEqual(key, null)))
                     {
-                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                        throw new AuthenticationError(Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
                     }
                     Helpers.addElementToObject(this.options, "listenKey", key);
                     Helpers.addElementToObject(this.options, "listenKeyUrl", Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/stream?listenKey="), key));

@@ -880,7 +880,7 @@ public class PhemexCore extends PhemexApi
             return value;
         }
         Object parts = Helpers.split(((String)value), ",");
-        value = String.join((String)"", (java.util.List<String>)parts);
+        value = String.join("", (java.util.List<String>)parts);
         parts = Helpers.split(((String)value), " ");
         return this.safeNumber(parts, 0);
     }
@@ -942,7 +942,7 @@ public class PhemexCore extends PhemexApi
         String quoteId = this.safeString(market, "quoteCurrency");
         String settleId = this.safeString(market, "settleCurrency");
         Object base = this.safeCurrencyCode(baseId);
-        base = Helpers.replace((String)((String)base), (String)" ", (String)""); // replace space for junction codes, eg. `1000 SHIB`
+        base = Helpers.replace(((String)((String)base)), " ", ""); // replace space for junction codes, eg. `1000 SHIB`
         String quote = (String) this.safeCurrencyCode(quoteId);
         String settle = (String) this.safeCurrencyCode(settleId);
         Boolean inverse = false;
@@ -963,7 +963,7 @@ public class PhemexCore extends PhemexApi
         String makerFeeRateEr = this.safeString(market, "makerFeeRateEr");
         String takerFeeRateEr = this.safeString(market, "takerFeeRateEr");
         String status = this.safeString(market, "status");
-        Object contractSizeString = ((String)this.safeString(market, "contractSize", " "));
+        Object contractSizeString = (this.safeString(market, "contractSize", " "));
         Object contractSize = null;
         if (Helpers.isTrue(Helpers.isEqual(settle, "USDT")))
         {
@@ -1432,7 +1432,7 @@ public class PhemexCore extends PhemexApi
         String id = this.safeString(rawCurrency, "currency");
         String code = (String) this.safeCurrencyCode(id);
         String valueScaleString = this.safeString(rawCurrency, "valueScale");
-        Object valueScale = Helpers.parseInt(((String)valueScaleString));
+        Object valueScale = Helpers.parseInt((valueScaleString));
         String minValueEv = this.safeString(rawCurrency, "minValueEv");
         String maxValueEv = this.safeString(rawCurrency, "maxValueEv");
         Object minAmount = null;
@@ -1482,7 +1482,7 @@ public class PhemexCore extends PhemexApi
         Object market = Helpers.getArg(optionalArgs, 2, null);
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " customParseBidAsk() requires a market argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " customParseBidAsk() requires a market argument")) ;
         }
         Object amount = this.safeString(bidask, amountKey);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
@@ -2585,7 +2585,7 @@ public class PhemexCore extends PhemexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, "spot"))) && Helpers.isTrue((!Helpers.isEqual(type, "swap")))))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not support "), type), " markets, only spot and swap")) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " does not support "), type), " markets, only spot and swap")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
@@ -2617,7 +2617,7 @@ public class PhemexCore extends PhemexApi
                     String currency = this.safeString(parameters, "currency");
                     if (Helpers.isTrue(Helpers.isEqual(currency, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() requires a code parameter or a currency or settle parameter for "), type), " type")) ;
+                        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() requires a code parameter or a currency or settle parameter for "), type), " type")) ;
                     }
                     response = (this.privateGetSpotWallets(this.extend(request, parameters))).join();
                 }
@@ -2867,7 +2867,7 @@ public class PhemexCore extends PhemexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "orderID");
         String clientOrderId = this.safeString(order, "clOrdID");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(((String)clientOrderId).length(), 1)))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(clientOrderId.length(), 1)))))
         {
             clientOrderId = null;
         }
@@ -3040,7 +3040,7 @@ public class PhemexCore extends PhemexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(order, "orderID", "orderId");
         String clientOrderId = this.safeString2(order, "clOrdID", "clOrdId");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(((String)clientOrderId).length(), 1)))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(clientOrderId.length(), 1)))))
         {
             clientOrderId = null;
         }
@@ -3255,7 +3255,7 @@ public class PhemexCore extends PhemexApi
                             cost = this.parseNumber(quoteAmount);
                         } else if (Helpers.isTrue(Helpers.isEqual(cost, null)))
                         {
-                            throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() "), qtyType), " requires a price argument or a cost parameter")) ;
+                            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() "), qtyType), " requires a price argument or a cost parameter")) ;
                         }
                     }
                     cost = ((Helpers.isTrue((Helpers.isEqual(cost, null))))) ? amount : cost;
@@ -3307,7 +3307,7 @@ public class PhemexCore extends PhemexApi
                     parameters = ((java.util.List<Object>) triggerDirectionparametersVariable).get(1);
                     if (Helpers.isTrue(Helpers.isEqual(triggerDirection, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")) ;
                     }
                     // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(triggerDirection, "ascending")) || Helpers.isTrue(Helpers.isEqual(triggerDirection, "up"))))
@@ -3337,7 +3337,7 @@ public class PhemexCore extends PhemexApi
                         Object stopLossTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
                         if (Helpers.isTrue(Helpers.isEqual(stopLossTriggerPrice, null)))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order")) ;
                         }
                         if (Helpers.isTrue(isStableSettled))
                         {
@@ -3362,7 +3362,7 @@ public class PhemexCore extends PhemexApi
                         Object takeProfitTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
                         if (Helpers.isTrue(Helpers.isEqual(takeProfitTriggerPrice, null)))
                         {
-                            throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order")) ;
+                            throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order")) ;
                         }
                         if (Helpers.isTrue(isStableSettled))
                         {
@@ -3633,7 +3633,7 @@ public class PhemexCore extends PhemexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3692,7 +3692,7 @@ public class PhemexCore extends PhemexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3746,7 +3746,7 @@ public class PhemexCore extends PhemexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3785,10 +3785,10 @@ public class PhemexCore extends PhemexApi
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
                     {
-                        throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() "), symbol), " order with clientOrderId "), clientOrderId), " not found")) ;
+                        throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() "), symbol), " order with clientOrderId "), clientOrderId), " not found")) ;
                     } else
                     {
-                        throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() "), symbol), " order with id "), id), " not found")) ;
+                        throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() "), symbol), " order with id "), id), " not found")) ;
                     }
                 }
                 order = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
@@ -3824,7 +3824,7 @@ public class PhemexCore extends PhemexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -3889,7 +3889,7 @@ public class PhemexCore extends PhemexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -4258,7 +4258,7 @@ public class PhemexCore extends PhemexApi
             network = this.safeString(networks, network, network);
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires a network parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() requires a network parameter")) ;
             } else
             {
                 Helpers.addElementToObject(request, "chainName", network);
@@ -4999,7 +4999,7 @@ public class PhemexCore extends PhemexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5013,7 +5013,7 @@ public class PhemexCore extends PhemexApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(limit, 200)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchFundingHistory() limit argument cannot exceed 200")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchFundingHistory() limit argument cannot exceed 200")) ;
                 }
                 Helpers.addElementToObject(request, "limit", limit);
             }
@@ -5113,7 +5113,7 @@ public class PhemexCore extends PhemexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -5319,7 +5319,7 @@ public class PhemexCore extends PhemexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5328,12 +5328,12 @@ public class PhemexCore extends PhemexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
             }
             marginMode = ((String)marginMode).toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated")) && Helpers.isTrue(!Helpers.isEqual(marginMode, "cross"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+                throw new BadRequest(Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -5344,7 +5344,7 @@ public class PhemexCore extends PhemexApi
                 String currentLeverage = this.safeString(parameters, "leverage");
                 if (Helpers.isTrue(Helpers.isEqual(currentLeverage, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a \"leverage\" parameter for USDT markets")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a \"leverage\" parameter for USDT markets")) ;
                 }
                 Helpers.addElementToObject(request, "leverageRr", ((Helpers.isTrue(isCross))) ? Precise.stringNeg(Precise.stringAbs(currentLeverage)) : Precise.stringAbs(currentLeverage));
                 return (this.privatePutGPositionsLeverage(this.extend(request, parameters))).join();
@@ -5356,7 +5356,7 @@ public class PhemexCore extends PhemexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a leverage parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a leverage parameter")) ;
             }
             Helpers.addElementToObject(request, "leverage", leverage);
             return (this.privatePutPositionsLeverage(this.extend(request, parameters))).join();
@@ -5389,7 +5389,7 @@ public class PhemexCore extends PhemexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setPositionMode() supports USDT settled markets only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setPositionMode() supports USDT settled markets only")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -5431,7 +5431,7 @@ public class PhemexCore extends PhemexApi
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(first);
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "settle"), "USD")))
                 {
-                    throw new BadSymbol((String)Helpers.add(this.id, " fetchLeverageTiers() supports USD settled markets only")) ;
+                    throw new BadSymbol(Helpers.add(this.id, " fetchLeverageTiers() supports USD settled markets only")) ;
                 }
             }
             java.util.Map<String, Object> response = (this.publicGetCfgV2Products(parameters)).join();
@@ -5651,11 +5651,11 @@ final Object finalI = i;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, Helpers.opNeg(100)))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 100)))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " setLeverage() leverage should be between -100 and 100")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() leverage should be between -100 and 100")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5828,7 +5828,7 @@ final Object finalI = i;
             }
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTransfers() requires a code argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTransfers() requires a code argument")) ;
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -5967,7 +5967,7 @@ final Object finalI = i;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5977,7 +5977,7 @@ final Object finalI = i;
             Boolean isUsdtSettled = Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"));
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
             Object paginate = false;
             java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
@@ -6102,7 +6102,7 @@ final Object finalI = i;
                     networkId = Helpers.GetValue(currency, "id");
                 } else
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw () requires an extra argument params[\"network\"]")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " withdraw () requires an extra argument params[\"network\"]")) ;
                 }
             }
             final Object finalNetworkId = networkId;
@@ -6172,7 +6172,7 @@ final Object finalI = i;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest is only supported for contract markets.")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterest is only supported for contract markets.")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );

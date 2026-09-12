@@ -289,8 +289,8 @@ public class BtcboxCore extends BtcboxApi
                 Object symbolParts = Helpers.split(marketId, "_");
                 String baseCurr = this.safeString(symbolParts, 0, "");
                 String quote = this.safeString(symbolParts, 1, "");
-                Object quoteId = ((String)quote).toLowerCase();
-                Object id = ((String)baseCurr).toLowerCase();
+                Object quoteId = quote.toLowerCase();
+                Object id = baseCurr.toLowerCase();
                 Object res = this.safeDict(response1, marketId, new java.util.HashMap<String, Object>() {{}});
                 Object symbol = Helpers.add(Helpers.add(baseCurr, "/"), quote);
                 Object fee = ((Helpers.isTrue((Helpers.isEqual(id, "BTC"))))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
@@ -1075,7 +1075,7 @@ public class BtcboxCore extends BtcboxApi
                 response = this.strip(response);
                 if (!Helpers.isTrue(this.isJsonEncodedObject(response)))
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), response)) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), response)) ;
                 }
                 response = Helpers.parseJson(response);
             }

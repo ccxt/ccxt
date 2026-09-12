@@ -856,7 +856,7 @@ public class BtcturkCore extends BtcturkApi
                 limit = Helpers.mathMin(limit, 11000); // max 11000 candles diapason can be covered
                 if (Helpers.isTrue(Helpers.isEqual(timeframe, "1y")))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
                 }
                 int seconds = this.parseTimeframe(timeframe);
                 Object limitSeconds = Helpers.multiply(seconds, (Helpers.subtract(limit, 1)));
@@ -1286,7 +1286,7 @@ public class BtcturkCore extends BtcturkApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         if (Helpers.isTrue(Helpers.isEqual(this.id, "btctrader")))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " is an abstract base API for BTCExchange, BTCTurk")) ;
+            throw new ExchangeError(Helpers.add(this.id, " is an abstract base API for BTCExchange, BTCTurk")) ;
         }
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), path);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
@@ -1332,7 +1332,7 @@ public class BtcturkCore extends BtcturkApi
         this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, Helpers.add(Helpers.add(this.id, " "), output));
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(errorCode, "0"))) && Helpers.isTrue((!Helpers.isEqual(errorCode, "SUCCESS")))))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), output)) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), output)) ;
         }
         return null;
     }

@@ -406,7 +406,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrderWs() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrderWs() requires a symbol argument")) ;
             }
             Object orderRequest = this.cancelOrderRequest(id, symbol, parameters);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "trade");
@@ -414,7 +414,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object requestId = String.valueOf(this.requestId());
             if (Helpers.isTrue(Helpers.inOp(orderRequest, "orderFilter")))
             {
-                ((java.util.Map<String,Object>)orderRequest).remove((String)"orderFilter");
+                ((java.util.Map<String,Object>)orderRequest).remove("orderFilter");
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "op", "order.cancel" );
@@ -459,7 +459,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object topic = this.safeString(options, "name", "tickers");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue(!Helpers.isEqual(topic, "tickers"))))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " watchTicker() only supports name tickers for contract markets")) ;
+                throw new BadRequest(Helpers.add(this.id, " watchTicker() only supports name tickers for contract markets")) ;
             }
             topic = Helpers.add(topic, Helpers.add(".", Helpers.GetValue(market, "id")));
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList(topic));
@@ -1075,7 +1075,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
             symbols = this.marketSymbols(symbols);
             Object url = (this.getUrlByMarketType(Helpers.GetValue(symbols, 0), false, "watchOrderBook", parameters)).join();
@@ -1098,7 +1098,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 Object selectedLimits = this.safeList2(limits, Helpers.GetValue(market, "type"), "default", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 if (!Helpers.isTrue(this.inArray(limit, selectedLimits)))
                 {
-                    throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " watchOrderBookForSymbols(): for "), Helpers.GetValue(market, "type")), " markets limit can be one of: "), this.json(selectedLimits))) ;
+                    throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " watchOrderBookForSymbols(): for "), Helpers.GetValue(market, "type")), " markets limit can be one of: "), this.json(selectedLimits))) ;
                 }
             }
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1333,7 +1333,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             parameters = this.cleanParams(parameters);
             Object url = (this.getUrlByMarketType(Helpers.GetValue(symbols, 0), false, "watchTrades", parameters)).join();
@@ -1645,7 +1645,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades")) ;
             }
             Object url = (this.getUrlByMarketType(symbol, true, method, parameters)).join();
             (this.authenticate(url)).join();
@@ -1857,7 +1857,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
                 symbols = this.marketSymbols(symbols);
-                messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add("::", String.join(",", (java.util.List<String>)symbols));
             }
             Object firstSymbol = this.safeString(symbols, 0);
             Object url = (this.getUrlByMarketType(firstSymbol, true, method, parameters)).join();
@@ -1897,7 +1897,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             String messageHash = (String) "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
@@ -2055,7 +2055,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             String subHash = "positions";
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
             }
             Object url = (this.getUrlByMarketType(null, true, method, parameters)).join();
             (this.authenticate(url)).join();
@@ -2292,7 +2292,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             String subHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " unWatchOrders() does not support a symbol parameter, you must unwatch all orders")) ;
+                throw new NotSupported(Helpers.add(this.id, " unWatchOrders() does not support a symbol parameter, you must unwatch all orders")) ;
             }
             Object url = (this.getUrlByMarketType(symbol, true, method, parameters)).join();
             (this.authenticate(url)).join();
@@ -2867,7 +2867,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             this.checkRequiredCredentials();
             String messageHash = (String) "authenticated";
             Client client = this.client(url);
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -2952,10 +2952,10 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 Object op = this.safeString(request, "op");
                 if (Helpers.isTrue(Helpers.isEqual(op, "auth")))
                 {
-                    throw new AuthenticationError((String)Helpers.add("Authentication failed: ", ret_msg)) ;
+                    throw new AuthenticationError(Helpers.add("Authentication failed: ", ret_msg)) ;
                 } else
                 {
-                    throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), ret_msg)) ;
+                    throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), ret_msg)) ;
                 }
             }
             return false;
@@ -3149,7 +3149,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             client.reject(error, messageHash);
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
         return message;
@@ -3197,7 +3197,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             {
                 continue;
             }
-            if (Helpers.isTrue(((String)messageHash).startsWith(((String)"unsubscribe"))))
+            if (Helpers.isTrue(((String)messageHash).startsWith("unsubscribe")))
             {
                 Object subscription = Helpers.GetValue(client.subscriptions, messageHash);
                 Object subId = this.safeString(subscription, "id");

@@ -140,7 +140,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Long previousNonce = this.safeInteger(orderbook, "nonce");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(previousNonce, null))) && Helpers.isTrue((!Helpers.isEqual(nonce, Helpers.add(previousNonce, 1))))))
         {
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
             ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
             var error = new InvalidNonce(Helpers.add(this.id, " watchOrderBook received invalid nonce"));
             client.reject(error, messageHash);
@@ -479,7 +479,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             String messageHash = (String) "positions";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                messageHash = Helpers.add(messageHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
+                messageHash = Helpers.add(messageHash, Helpers.add("::", String.join(",", (java.util.List<String>)symbols)));
             }
             final Object finalSymbols = symbols;
             Object positions = (this.watchPrivate(messageHash, new java.util.HashMap<String, Object>() {{

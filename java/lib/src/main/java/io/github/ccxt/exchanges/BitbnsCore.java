@@ -843,7 +843,7 @@ public class BitbnsCore extends BitbnsApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate")));
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             final Object finalSide = side;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -914,7 +914,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -958,7 +958,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -972,7 +972,7 @@ public class BitbnsCore extends BitbnsApi
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOrder cannot fetch stop orders")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOrder cannot fetch stop orders")) ;
             }
             java.util.Map<String, Object> response = (this.v1PostOrderStatusSymbol(this.extend(request, parameters))).join();
             //
@@ -1031,7 +1031,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1191,7 +1191,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1274,7 +1274,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1319,7 +1319,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDeposits() requires a currency code argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDeposits() requires a currency code argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1381,7 +1381,7 @@ public class BitbnsCore extends BitbnsApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchWithdrawals() requires a currency code argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchWithdrawals() requires a currency code argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1568,7 +1568,7 @@ public class BitbnsCore extends BitbnsApi
         Object urls = this.urls;
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(urls, "api"), api))))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
         }
         if (Helpers.isTrue(!Helpers.isEqual(api, "www")))
         {

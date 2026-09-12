@@ -348,7 +348,7 @@ public class ZaifCore extends ZaifApi
         String name = this.safeString(market, "name");
         if (Helpers.isTrue(Helpers.isEqual(name, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing name")) ;
+            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing name")) ;
         }
         var baseIdquoteIdVariable = Helpers.split(name, "/");
         var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
@@ -702,7 +702,7 @@ public class ZaifCore extends ZaifApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createOrder() allows limit orders only")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalSide = side;
@@ -928,7 +928,7 @@ public class ZaifCore extends ZaifApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(Helpers.isEqual(code, "JPY")))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw() does not allow "), code), " withdrawals")) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw() does not allow "), code), " withdrawals")) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );

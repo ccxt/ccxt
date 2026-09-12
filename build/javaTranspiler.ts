@@ -366,6 +366,69 @@ function enclosingFunction (node: any): any {
     return undefined;
 }
 
+// SS-04: replace every comment character with a space, preserving LENGTH and newlines,
+// so text offsets computed on the result are valid for the original string. Used by the
+// ws post-pass when it has to prove a local's declared type from the printed text.
+function maskJavaComments (content: string): string {
+    const blanks = (m: string) => m.replace(/[^\n]/g, ' ');
+    return content
+        .replace(/\/\*[\s\S]*?\*\//g, blanks)
+        .replace(/\/\/[^\n]*/g, blanks);
+}
+
+// SS-04: hand-written BaseExchange fields whose Java declaration is `public String`
+// (mirror of THIS_MEMBER_TYPES['…'] === 'String' in build/java-local-types.js)
+const JS_STRING_MEMBER_FIELDS = new Set([
+    'id', 'version', 'name', 'secret', 'apiKey', 'password', 'uid', 'login', 'url', 'hostname',
+]);
+
+// the first argument of the `Helpers.add(` call that starts at `addStart`, as text +
+// offset. Quote- and paren-aware; undefined when the call cannot be parsed (the callers
+// then keep the conservative behaviour).
+function jsAddFirstOperand (content: string, addStart: number): { text: string; start: number } | undefined {
+    const open = content.indexOf('(', addStart);
+    if (open === -1 || open - addStart > 'Helpers.add'.length + 2) {
+        return undefined;
+    }
+    const start = open + 1;
+    let depth = 0;
+    let inString = '';
+    let end = -1;
+    for (let i = start; i < content.length; i++) {
+        const ch = content[i];
+        if (inString !== '') {
+            if (ch === '\\') {
+                i++;
+                continue;
+            }
+            if (ch === inString) {
+                inString = '';
+            }
+            continue;
+        }
+        if (ch === '"' || ch === "'") {
+            inString = ch;
+        } else if (ch === '(') {
+            depth++;
+        } else if (ch === ')') {
+            if (depth === 0) {
+                end = i;
+                break;
+            }
+            depth--;
+        } else if (ch === ',' && depth === 0) {
+            end = i;
+            break;
+        } else if (ch === '\n') {
+            return undefined;
+        }
+    }
+    if (end === -1) {
+        return undefined;
+    }
+    return { text: content.slice(start, end), start };
+}
+
 // every Identifier node in `scope`, by source name. Not cached: the Java printer
 // renames identifiers inside object literals in place (`x` → `finalX`) while a
 // function body is being printed, so the walk must read the live AST each time.
@@ -2477,6 +2540,69 @@ class NewTranspiler {
         return lines.join('\n');
     }
 
+    // true when the text proves the identifier `name` at offset `pos` is Java-`String`:
+    // the NEAREST PRECEDING declaration of `name` inside the same method must be
+    // `String ...` AND its value must survive the "String type fixes" revert below
+    // (`String x = this.<m>(...)` / `Helpers.<...>(...)` are rewritten back to Object,
+    // so they prove nothing). Used by the ws post-passes: the `(String)` hash cast they
+    // add around `client.future(name)` / `client.reusableFuture(name)` is redundant when
+    // the hash local is already declared String (WsClient.future/reusableFuture take
+    // `String`). A field/param not declared in the file proves nothing -> keep the cast.
+    provablyStringLocal (content: string, name: string, pos: number): boolean {
+        const masked = maskJavaComments(content);
+        const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const before = masked.slice(0, pos);
+        // the enclosing method: the last member-modifier line before `pos`; a use that has
+        // no declaration inside its own method binds to a field/param -> keep the cast
+        const breaks = [...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm)];
+        const windowStart = breaks.length > 0 ? breaks[breaks.length - 1].index : 0;
+        const window = masked.slice(windowStart, pos);
+        const decl = new RegExp(`\\b(String|Object|Integer|Long|Double|Boolean|var|char)\\s+${escaped}\\s*(?=[=;,)])`, 'g');
+        let last = null;
+        let m;
+        while ((m = decl.exec(window)) !== null) {
+            last = m;
+        }
+        if (last === null || last[1] !== 'String') {
+            return false;
+        }
+        const rest = window.slice(last.index + last[0].length);
+        const value = /^\s*=\s*([^\n;]*)/.exec(rest);
+        if (value !== null && /^(?:this\.[A-Za-z_]\w*\s*\(|Helpers\.)/.test(value[1].trim())) {
+            return false;
+        }
+        return true;
+    }
+
+    // SS-04: true when the `Helpers.add(...)` call starting at `addStart` has a FIRST operand
+    // that is statically String in Java — javac then picks the String-returning
+    // `add(String, *)` overload (Helpers.java), so an outer `(String)` checkcast is redundant.
+    // Text-level proof for the shapes the ws post-passes meet: a string literal, an audited
+    // `this.<member>` String field, a local whose same-method nearest declaration proves
+    // String, or a nested `Helpers.add(...)` chain that itself starts with one.
+    addChainStartsWithString (content: string, addStart: number): boolean {
+        const first = jsAddFirstOperand(content, addStart);
+        if (first === undefined) {
+            return false;
+        }
+        const text = first.text.trim();
+        if (text.startsWith('"') || text.startsWith("'")) {
+            return true;
+        }
+        const member = /^this\.([A-Za-z_]\w*)$/.exec(text);
+        if (member !== null) {
+            return JS_STRING_MEMBER_FIELDS.has(member[1]);
+        }
+        if (text.startsWith('Helpers.add(')) {
+            const nested = content.indexOf('Helpers.add(', first.start);
+            return nested !== -1 && this.addChainStartsWithString(content, nested);
+        }
+        if (/^[A-Za-z_]\w*$/.test(text)) {
+            return this.provablyStringLocal(content, text, first.start);
+        }
+        return false;
+    }
+
     postProcessWsJava(content: string, name: string, isCore = true, skipEffectivelyFinal = false): string {
         const cap = this.capitalize(name) + (isCore ? 'Core' : ''); // WS classes are now named *Core
 
@@ -2506,8 +2632,11 @@ class NewTranspiler {
 
         // ── Pattern 1+2: client.future() / client.reusableFuture() return Future ──
         // Object future = client.future(x) → io.github.ccxt.ws.Future future = client.future((String)x)
+        // SS-04: the (String) hash cast is redundant when the local is already declared String
+        // in this file (WsClient.future/reusableFuture take String)
         content = content.replace(/Object\s+future\s*=\s*client\.(future|reusableFuture)\((\w+)\)/gm,
-            'io.github.ccxt.ws.Future future = client.$1((String)$2)');
+            (_match: string, method: string, hash: string, offset: number) =>
+                `io.github.ccxt.ws.Future future = client.${method}(${this.provablyStringLocal (content, hash, offset) ? hash : `(String)${hash}`})`);
         // Object future = Helpers.GetValue(client.futures, x) → cast to Future
         content = content.replace(/Object\s+future\s*=\s*Helpers\.GetValue\(client\.futures,\s*(\w+)\)/gm,
             'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, $1)');
@@ -2515,8 +2644,11 @@ class NewTranspiler {
         // ── Pattern 3: (String) cast on the hash argument of client.future() / reusableFuture() ──
         // client.future(hash) where the hash local is Object-typed. any
         // identifier is accepted, not just `messageHash`, so a renamed hash
-        // local cannot silently fall out of the cast
-        content = content.replace(/client\.(future|reusableFuture)\((\w+)\)/gm, 'client.$1((String)$2)');
+        // local cannot silently fall out of the cast — unless the same method's nearest
+        // preceding declaration proves the identifier String (SS-04)
+        content = content.replace(/client\.(future|reusableFuture)\((\w+)\)/gm,
+            (_match: string, method: string, hash: string, offset: number) =>
+                `client.${method}(${this.provablyStringLocal (content, hash, offset) ? hash : `(String)${hash}`})`);
         // idempotence guard: never cast an already-cast argument
         content = content.replace(/client\.(future|reusableFuture)\(\(String\)\(String\)/gm, 'client.$1((String)');
 
@@ -2540,8 +2672,17 @@ class NewTranspiler {
         content = content.replace(/\(\(io\.github\.ccxt\.ws\.Future\)(\(io\.github\.ccxt\.ws\.Future\))/gm, '($1');
 
         // ── Pattern 10: (String) cast on Helpers.add() for exception constructors and client.future() ──
-        content = content.replace(/(throw new \w+\()Helpers\.add\(/gm, '$1(String)Helpers.add(');
-        content = content.replace(/(client\.(?:future|reusableFuture)\()Helpers\.add\(/gm, '$1(String)Helpers.add(');
+        // SS-04: only when the add-chain's FIRST operand is not already String — javac picks a
+        // String-returning `add(String, *)` overload exactly when it is, and the printer already
+        // emits the cast on every shape it cannot prove
+        content = content.replace(/(throw new \w+\()Helpers\.add\(/gm,
+            (match: string, prefix: string, offset: number) =>
+                this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length)
+                    ? match : `${prefix}(String)Helpers.add(`);
+        content = content.replace(/(client\.(?:future|reusableFuture)\()Helpers\.add\(/gm,
+            (match: string, prefix: string, offset: number) =>
+                this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length)
+                    ? match : `${prefix}(String)Helpers.add(`);
 
         // ── Typed-wrapper overload collision: fetchBalance / fetchPositions ──
         // The typed-wrapper exchange classes (e.g. exchanges/Hashkey.java) define

@@ -472,7 +472,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeframe, "1m"))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "5m")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "15m")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "30m")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1h")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1d")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1w")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1M")))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -717,7 +717,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             // allows further authentication attempts
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)"authenticated");
+                ((java.util.Map<String,Object>)client.subscriptions).remove("authenticated");
             }
         }
     }
@@ -733,7 +733,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             Client client = this.client(url);
             String messageHash = (String) "authenticated";
             String eventVar = "auth";
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -1200,13 +1200,13 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPositions() symbols is required")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " watchPositions() symbols is required")) ;
                 }
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
                     {
-                        throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPositions() symbols is required")) ;
+                        throw new ArgumentsRequired(Helpers.add(this.id, " watchPositions() symbols is required")) ;
                     }
                     Object symbol = Helpers.GetValue(symbols, i);
                     ((java.util.List<Object>)messageHashes).add(Helpers.add("positions::", symbol));
@@ -1248,7 +1248,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             String messageHash = (String) "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
@@ -1543,7 +1543,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                 client.reject(error, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
-                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
                 }
             } else
             {

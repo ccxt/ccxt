@@ -1161,7 +1161,7 @@ public class BackpackCore extends BackpackApi
             Long microseconds = this.safeInteger(response, "timestamp");
             if (Helpers.isTrue(Helpers.isEqual(microseconds, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchOrderBook() missing microseconds")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchOrderBook() missing microseconds")) ;
             }
             Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
@@ -1282,7 +1282,7 @@ public class BackpackCore extends BackpackApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchFundingRate() symbol does not support market "), symbol)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchFundingRate() symbol does not support market "), symbol)) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1354,7 +1354,7 @@ public class BackpackCore extends BackpackApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchOpenInterest() symbol does not support market "), symbol)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchOpenInterest() symbol does not support market "), symbol)) ;
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1412,7 +1412,7 @@ public class BackpackCore extends BackpackApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1677,7 +1677,7 @@ public class BackpackCore extends BackpackApi
             String status = this.safeString(response, "status");
             if (Helpers.isTrue(Helpers.isEqual(status, null)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchStatus() missing status")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchStatus() missing status")) ;
             }
             final Object finalStatus = status;
             return new java.util.HashMap<String, Object>() {{
@@ -1916,7 +1916,7 @@ public class BackpackCore extends BackpackApi
             Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " withdraw() requires a network parameter")) ;
+                throw new BadRequest(Helpers.add(this.id, " withdraw() requires a network parameter")) ;
             }
             Helpers.addElementToObject(request, "blockchain", networkId);
             java.util.Map<String, Object> response = (this.privatePostWapiV1CapitalWithdrawals(this.extend(request, query))).join();
@@ -2089,7 +2089,7 @@ public class BackpackCore extends BackpackApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             final Object finalNetworkCode = networkCode;
@@ -2217,11 +2217,11 @@ public class BackpackCore extends BackpackApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         final Object finalSide = side;
@@ -2390,7 +2390,7 @@ public class BackpackCore extends BackpackApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2426,7 +2426,7 @@ public class BackpackCore extends BackpackApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2461,7 +2461,7 @@ public class BackpackCore extends BackpackApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{

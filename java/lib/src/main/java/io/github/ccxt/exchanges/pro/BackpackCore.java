@@ -134,18 +134,18 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object subMessageHash = Helpers.replace((String)messageHash, (String)"unsubscribe:", (String)"");
+            Object subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "ticker"), 0)))
             {
-                Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:ticker:", (String)"");
+                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:ticker:", "");
                 if (Helpers.isTrue(Helpers.inOp(this.tickers, symbol)))
                 {
                     ((java.util.Map<String,Object>)this.tickers).remove((String)symbol);
                 }
             } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "bidask"), 0)))
             {
-                Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:bidask:", (String)"");
+                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:bidask:", "");
                 if (Helpers.isTrue(Helpers.inOp(this.bidsasks, symbol)))
                 {
                     ((java.util.Map<String,Object>)this.bidsasks).remove((String)symbol);
@@ -164,14 +164,14 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 }
             } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "orderbook"), 0)))
             {
-                Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:orderbook:", (String)"");
+                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:orderbook:", "");
                 if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
                 {
                     ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
                 }
             } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "trades"), 0)))
             {
-                Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:trades:", (String)"");
+                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:trades:", "");
                 if (Helpers.isTrue(Helpers.inOp(this.trades, symbol)))
                 {
                     ((java.util.Map<String,Object>)this.trades).remove((String)symbol);
@@ -192,7 +192,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                     }
                 } else
                 {
-                    Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:orders:", (String)"");
+                    Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:orders:", "");
                     Object cache = this.orders;
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cache, null))) && Helpers.isTrue((Helpers.inOp(cache, symbol)))))
                     {
@@ -212,7 +212,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                     }
                 } else
                 {
-                    Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:positions:", (String)"");
+                    Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:positions:", "");
                     if (Helpers.isTrue(Helpers.inOp(this.positions, symbol)))
                     {
                         ((java.util.Map<String,Object>)this.positions).remove((String)symbol);
@@ -623,7 +623,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -673,7 +673,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -834,7 +834,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -881,7 +881,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1733,7 +1733,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 Object msg = this.safeString(error, "message");
-                throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), msg)) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), msg)) ;
             }
             return true;
         } catch(Exception e)

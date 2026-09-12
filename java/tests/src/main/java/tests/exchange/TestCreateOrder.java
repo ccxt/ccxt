@@ -181,7 +181,7 @@ public class TestCreateOrder extends BaseTest {
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
         } catch(Exception e)
         {
-            throw new RuntimeException((String)Helpers.add("failed for Scenario 2: ", String.valueOf(e))) ;
+            throw new RuntimeException(Helpers.add("failed for Scenario 2: ", String.valueOf(e))) ;
         }
         return true;
         });
