@@ -24,8 +24,8 @@ public class TestOHLCV extends BaseTest {
         {
             TestSharedMethods.AssertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 0);
         }
-        Object high = exchange.safeString(entry, 2);
-        Object low = exchange.safeString(entry, 3);
+        String high = exchange.safeString(entry, 2);
+        String low = exchange.safeString(entry, 3);
         if (Helpers.isTrue(Helpers.inOp(skippedProperties, "compareOHLCV")))
         {
             return;

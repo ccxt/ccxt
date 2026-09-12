@@ -1199,6 +1199,11 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         }
         return undefined;
     }
+    // test tier: `exchange.safeString* (...)` on a base-typed receiver — section 9
+    const receiverAccessor = receiverSafeStringLocalInfo (printer, initializer);
+    if (receiverAccessor !== undefined) {
+        return receiverAccessor;
+    }
     // WS/pro families (see the section above)
     if (isProFile === true) {
         if (isThisCall (initializer)) {
@@ -1419,6 +1424,11 @@ function isStaticallyStringExpression (printer, node, selfName) {
             return node.operatorToken.kind === ts.SyntaxKind.PlusToken
                 && isStaticallyStringExpression (printer, node.left, selfName);
         case ts.SyntaxKind.CallExpression: {
+            // test tier: `x = exchange.safeString* (...)` writes — declared String in
+            // BaseExchange, so the reassignment needs no cast (section 9)
+            if (isBaseReceiverSafeStringCall (printer, node)) {
+                return true;
+            }
             if (isThisCall (node)
                 && (node.expression.name.escapedText === 'safeString'
                     || node.expression.name.escapedText === 'safeString2'
@@ -1445,6 +1455,173 @@ function isPlainSafeStringBaseCall (printer, node) {
     }
     const file = resolvedSignatureFile (printer, node);
     return file !== undefined && /(^|[\\/])base[\\/]functions[\\/]type\.ts$/.test (file);
+}
+
+// ===== 9. test tier: `<recv>.<safeString*>(...)` on a base-typed object =====
+//
+// The test tier calls the hand-written base accessors on the `exchange` OBJECT, never on
+// `this` — the harness/assert helpers receive the exchange as their first parameter, and
+// the per-method tests receive it as `exchange: Exchange` (ts/src/test/Exchange/**) or
+// `exchange: any` (tests.ts).  The `this.`-keyed tables above never see that shape, so
+// those locals stayed `Object`:
+//
+//     Object value = exchange.safeString (entry, key);   // before
+//     String value = exchange.safeString (entry, key);   // after  (declared String, no cast)
+//
+// PROOF.  `safeString / safeString2 / safeStringN` are declared `public String` exactly
+// once in the whole Java tree — the hand-written head of BaseExchange.java (a tree-wide
+// census finds no other member declaration of those names; Exchange/PredictionExchange
+// and every generated venue class inherit it and none overrides it).  So a receiver whose
+// Java static type carries a compiling `.safeString()` call returns String-or-null, and a
+// local declared from it can be `String` with no checkcast.  The receiver is admitted on
+// either of two independent proofs:
+//   (a) TS resolution: the call resolves to the hand-written accessor in
+//       ts/src/base/functions/type.ts — the same declaration-file gate the inline
+//       `this.safeString` hook and isPlainSafeStringBaseCall use;
+//   (b) unresolved (`any` / type-blind) receivers in the test tier: the receiver is an
+//       Identifier literally named `exchange` that resolves to a PARAMETER (untyped /
+//       declared `any`) or to a `const exchange = this.initOfflineExchange (...)`
+//       VariableDeclaration, and the file is either under ts/src/test/** (the harness and
+//       per-method tests) or the ByContent dummy file (transpileMainTest, whose only
+//       source is ts/src/test/tests.ts — grep census of the ONE `transpileJava (content)`
+//       call site).  The test-tier transpile rewrites `Object exchange` params/locals to
+//       `BaseExchange exchange` (REST) / `Exchange exchange` (WS) BY NAME, which is why
+//       the name is part of the proof: a receiver the rewrite does not cover would print
+//       as `Object` and could not compile today (`<Object>.safeString(...)` does not
+//       exist), so the tree-compiles invariant holds on top.
+//
+// The family is deliberately limited to safeString/safeString2/safeStringN (declared
+// String): the Upper/Lower case family is declared `Object` in BaseExchange, needs a
+// checkcast, and has zero local declarations in the test tier (census), so it is NOT
+// admitted here.  Two use-scan exceptions are opted into per local via the info flags
+// below (`x as string` -> `((String)x)`, an identity checkcast; `typeof x === 'string'`
+// -> `x instanceof String`, the same expression the Object declaration printed), so no
+// other family's census moves.  The checkcasts themselves are dropped at print time by
+// patchJavaReceiverAccessorTypes (both the call form `exchange.safeString (...) as
+// string` and the narrowed-local form `(apiKey as string).toString ()`) — the accepted
+// values are already String, so the `(String)` wrapper is redundant.
+const RECEIVER_SAFE_STRING_ACCESSORS = new Set ([ 'safeString', 'safeString2', 'safeStringN' ]);
+const TEST_TIER_SOURCE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:test|pro[\\/]test)[\\/]/;
+const BASE_ACCESSOR_DECLARATION_FILE = /(^|[\\/])base[\\/]functions[\\/]type\.ts$/;
+// the ByContent transpile (`transpileJava (content)`) runs the source through a virtual
+// `<ast-transpiler>/__dummy-file.ts`; build/javaTranspiler.ts has exactly ONE such call
+// site — transpileMainTest for ts/src/test/tests.ts (grep census)
+const BY_CONTENT_DUMMY_FILE = /[\\/]__dummy-file\.ts$/;
+
+// `<recv>.<safeString*>(...)` whose Java receiver is a base-typed object: returns the
+// printed receiver identifier, or undefined when the call is not admitted.
+function baseReceiverSafeStringAccessor (printer, node) {
+    if (!ts.isCallExpression (node) || !ts.isPropertyAccessExpression (node.expression)) {
+        return undefined;
+    }
+    const callee = node.expression;
+    const receiver = callee.expression;
+    if (receiver === undefined || receiver.kind === ts.SyntaxKind.ThisKeyword || receiver.kind === ts.SyntaxKind.SuperKeyword) {
+        return undefined;
+    }
+    if (!ts.isIdentifier (receiver) || !RECEIVER_SAFE_STRING_ACCESSORS.has (String (callee.name.escapedText))) {
+        return undefined;
+    }
+    const receiverText = printer.printNode (receiver);
+    if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test (receiverText)) {
+        return undefined; // a renamed or re-parenthesized receiver — leave it alone
+    }
+    // (a) the call resolves to the hand-written accessor in ts/src/base/functions/type.ts
+    const resolved = resolvedSignatureFile (printer, node);
+    if (resolved !== undefined && BASE_ACCESSOR_DECLARATION_FILE.test (resolved)) {
+        return receiverText;
+    }
+    // (b) unresolved (`any` / type-blind) receivers. The test tier passes the exchange
+    // OBJECT to its helpers, and the test-tier transpile rewrites `Object exchange`
+    // parameters/locals to `BaseExchange exchange` (REST) / `Exchange exchange` (WS) BY
+    // NAME — so only a receiver literally named `exchange` is known to print as a
+    // base-typed value (every accepted site at this base uses that name; census). The
+    // type-blind ByContent mode (transpileMainTest) is included for the same reason: its
+    // post-pass runs the identical `Object exchange` rewrites.
+    if (receiverText !== 'exchange') {
+        return undefined;
+    }
+    const file = (typeof node.getSourceFile === 'function' ? node.getSourceFile ()?.fileName : '') ?? '';
+    if (!TEST_TIER_SOURCE_FILE.test (file) && !BY_CONTENT_DUMMY_FILE.test (file)) {
+        return undefined;
+    }
+    let symbol;
+    try {
+        symbol = printer.getChecker ().getSymbolAtLocation (receiver);
+    } catch (e) {
+        return undefined;
+    }
+    const target = symbol?.valueDeclaration;
+    if (target?.kind === ts.SyntaxKind.Parameter) {
+        if (target.type !== undefined && target.type.kind !== ts.SyntaxKind.AnyKeyword) {
+            return undefined; // a typed receiver resolves through (a); Object-printed types never compile
+        }
+        const scope = enclosingFunction (node);
+        if (scope === undefined || !(scope.parameters ?? []).some ((p) => p === target || p.name === target.name)) {
+            return undefined;
+        }
+        return receiverText;
+    }
+    if (target?.kind === ts.SyntaxKind.VariableDeclaration) {
+        // `const exchange = this.initOfflineExchange (...)` / `initExchange (...)` locals
+        return receiverText;
+    }
+    return undefined;
+}
+
+function isBaseReceiverSafeStringCall (printer, node) {
+    return baseReceiverSafeStringAccessor (printer, node) !== undefined;
+}
+
+// declaration info for a receiver accessor call: String, cast-free, matched by the
+// printed prefix so the wrapper can only rewrite the line the classifier saw
+function receiverSafeStringLocalInfo (printer, node) {
+    const receiverText = baseReceiverSafeStringAccessor (printer, node);
+    if (receiverText === undefined) {
+        return undefined;
+    }
+    const name = String (node.expression.name.escapedText);
+    if (process.env['CCXT_JAVA_RECEIVER_LOCAL_DEBUG'] === '1') {
+        console.error ('[receiver-local]', receiverText + '.' + name, '->', 'String', 'at', node.getSourceFile?.().fileName + ':' + (node.getStart ? node.getStart () : '?'));
+    }
+    return {
+        type: 'String',
+        valuePrefixes: [ receiverText + '.' + name + '(' ],
+        stringAsCast: true,
+        typeofString: true,
+    };
+}
+
+// `x as string` prints `((String)x)` — an identity checkcast when the operand is a call
+// BaseExchange declares `public String` (`exchange.safeString (...) as string`) or a
+// local this module already narrowed to String (`(apiKey as string).toString ()`).
+// Both are redundant; print the operand alone (the printer's own AsExpression fallback
+// shape) so the safeString family has no `(String)` checkcast left in the test tier.
+function patchJavaReceiverAccessorTypes (printer, narrowed) {
+    if (printer._javaReceiverAccessorTypesPatched) {
+        return;
+    }
+    const upstreamAs = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        if (node?.type?.kind === ts.SyntaxKind.StringKeyword && node.expression !== undefined) {
+            if (isBaseReceiverSafeStringCall (printer, node.expression)) {
+                return printer.printNode (node.expression, identation);
+            }
+            if (narrowed !== undefined && ts.isIdentifier (node.expression)) {
+                let declaration;
+                try {
+                    declaration = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration;
+                } catch (e) {
+                    declaration = undefined;
+                }
+                if (declaration !== undefined && narrowed.get (declaration) === 'String') {
+                    return printer.printNode (node.expression, identation);
+                }
+            }
+        }
+        return upstreamAs (node, identation);
+    };
+    printer._javaReceiverAccessorTypesPatched = true;
 }
 
 // true when the TYPE the checker gives `node` could hold a Java-`Double` box at runtime
@@ -1498,6 +1675,17 @@ function isPossiblyNumericDeep (printer, node) {
         return isPossiblyNumericDeep (printer, current.left) || isPossiblyNumericDeep (printer, current.right);
     }
     return isPossiblyNumericExpression (printer, current);
+}
+
+// `typeof x === 'string'` / `typeof x !== 'string'` — the only typeof comparison a
+// String-typed local survives (it prints `x instanceof String`, see isSafeToNarrow)
+function typeofComparesToStringLiteral (typeofNode) {
+    const binary = typeofNode.parent;
+    if (binary === undefined || !ts.isBinaryExpression (binary)) {
+        return false;
+    }
+    const other = binary.left === typeofNode ? binary.right : binary.left;
+    return other !== undefined && other.kind === ts.SyntaxKind.StringLiteral && other.text === 'string';
 }
 
 // true when the printed Java for `node` is a String GUARANTEED non-null at runtime
@@ -1777,7 +1965,14 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             return false;
         }
         if (ts.isTypeOfExpression (parent)) {
-            return false; // prints `x instanceof <primitive box>`: inconvertible for the wrong type
+            // `typeof x === 'string'` prints `x instanceof String` — the exact expression
+            // the Object declaration printed, and legal on a String box; only the
+            // opted-in families (test-tier receiver locals, info.typeofString) clear it.
+            // Every other typeof target prints an instanceof of an unrelated box
+            // (inconvertible for a String local) — keep Object.
+            if (!(info?.typeofString === true && typeofComparesToStringLiteral (parent))) {
+                return false;
+            }
         }
         if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
@@ -1786,8 +1981,12 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         if (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent)) {
             // a TS cast on the local prints a Java cast of the asserted type; for the
             // narrowed type the spelled cast can be inconvertible (String -> Double is a
-            // compile error) — keep Object (the C# campaign's reject family, reused here)
-            return false;
+            // compile error) — keep Object (the C# campaign's reject family, reused here).
+            // `x as string` is the identity checkcast `((String)x)` on a String local and
+            // is admitted for the opted-in families only.
+            if (!(info?.stringAsCast === true && parent.type?.kind === ts.SyntaxKind.StringKeyword)) {
+                return false;
+            }
         }
         if (ts.isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
@@ -3107,6 +3306,9 @@ export function installJavaLocalTypes (transpiler) {
     // gone). Installed here so both the main-thread Transpiler and the piscina worker
     // (which both call installJavaLocalTypes) get it.
     patchJavaCollectionLocalTypes (transpiler);
+    // (6) test-tier receiver accessors (section 9): the `<recv>.safeString*` locals and
+    // the redundant `x as string` checkcasts on their call sites / narrowed locals
+    patchJavaReceiverAccessorTypes (printer, narrowed);
     printer._javaLocalTypesPatched = true;
     patchJavaDataflowTypes (transpiler);
 }
