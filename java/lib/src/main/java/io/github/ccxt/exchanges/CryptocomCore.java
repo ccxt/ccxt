@@ -2795,7 +2795,7 @@ public class CryptocomCore extends CryptocomApi
             Object depositAddresses = depositAddressesRaw;
             if (Helpers.isTrue(Helpers.inOp(depositAddresses, ((String)network))))
             {
-                return Helpers.GetValue(depositAddresses, ((String)network));
+                return Helpers.GetValue(depositAddresses, network);
             }
             Object keys = Helpers.objectKeys(depositAddresses);
             return Helpers.GetValue(depositAddresses, Helpers.GetValue(keys, 0));
@@ -4490,7 +4490,7 @@ public class CryptocomCore extends CryptocomApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         String type = this.safeString(api, 0);
         String access = this.safeString(api, 1);
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), ((String)type)), "/"), path);
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type), "/"), path);
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {

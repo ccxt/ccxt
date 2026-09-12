@@ -10835,7 +10835,7 @@ public Object describe()
             Object item = Helpers.GetValue(info, i);
             Object borrowRate = this.parseIsolatedBorrowRate(item);
             String symbol = this.safeString(borrowRate, "symbol");
-            Helpers.addElementToObject(result, ((String)symbol), borrowRate);
+            Helpers.addElementToObject(result, symbol, borrowRate);
         }
         return result;
     }
@@ -11458,7 +11458,7 @@ public Object describe()
             String code = this.safeString(currency, "code");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))
             {
-                Helpers.addElementToObject(depositWithdrawFees, ((String)code), this.parseDepositWithdrawFee(dictionary, currency));
+                Helpers.addElementToObject(depositWithdrawFees, code, this.parseDepositWithdrawFee(dictionary, currency));
             }
         }
         return depositWithdrawFees;

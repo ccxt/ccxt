@@ -426,7 +426,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Object symbol = this.safeString(subscription, "symbol");
         Object messageHash = this.safeString(subscription, "messageHash");
         Long timestamp = this.safeInteger(message, "ts");
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, ((String)symbol));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object data = this.safeValue(message, "data");
         Object snapshot = this.parseOrderBook(data, symbol);
         Helpers.addElementToObject(snapshot, "nonce", this.safeInteger(data, "seqNum"));
@@ -439,7 +439,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         {
             this.handleOrderBookMessage(client, Helpers.GetValue(messages, i), orderbook);
         }
-        Helpers.addElementToObject(this.orderbooks, ((String)symbol), orderbook);
+        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 

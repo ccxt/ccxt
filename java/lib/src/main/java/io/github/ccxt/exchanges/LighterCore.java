@@ -781,9 +781,9 @@ public class LighterCore extends LighterApi
             put( "api_key_index", LighterCore.this.parseToInt(finalApiKeyIndex) );
             put( "account_index", LighterCore.this.parseToInt(finalAccountIndex) );
         }};
-        Object token = this.lighterCreateAuthToken(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), ((String)accountIndex)), ((String)apiKeyIndex)), "signer"), request);
-        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), ((String)accountIndex)), ((String)apiKeyIndex)), "deadline", deadline);
-        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), ((String)accountIndex)), ((String)apiKeyIndex)), "token", token);
+        Object token = this.lighterCreateAuthToken(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex), "signer"), request);
+        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex), "deadline", deadline);
+        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex), "token", token);
         return token;
     }
 

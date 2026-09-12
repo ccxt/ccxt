@@ -1142,7 +1142,7 @@ public class BitfinexCore extends BitfinexApi
                 // for GOlang transpiler, do with "safe" method
                 Object networksList = this.safeList(indexedNetworks, networkName, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 ((java.util.List<Object>)networksList).add(networkId);
-                Helpers.addElementToObject(indexedNetworks, ((String)networkName), networksList);
+                Helpers.addElementToObject(indexedNetworks, networkName, networksList);
             }
             Object ids = this.safeList(response, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);

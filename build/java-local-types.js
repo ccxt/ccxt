@@ -5586,3 +5586,198 @@ function patchJavaStringReceiverCall (printer, method, rebuild) {
         return upstream.apply (printer, arguments);
     };
 }
+
+// ===== SS-09: map put/get channel String casts (JAVA-SS9) =====
+//
+// A safeString value that is STORED into a map field / object literal and READ BACK
+// travels through exactly three hand-written emitters:
+//
+//   map[k] = v      ->  Helpers.addElementToObject(map, k, v)     (put)
+//   { 'k': v }      ->  new java.util.HashMap<String, Object>() {{ put( "k", v ) }}   (put)
+//   map[k]         ->  Helpers.GetValue(map, k)                   (get / read back)
+//   this.safeString(map, k[, d])                                  (typed get)
+//
+// Every one of those helpers is DECLARED with `Object` parameters — the single
+// `Helpers.addElementToObject(Object target, Object... args)`,
+// `Helpers.GetValue(Object value2, Object key)`, `HashMap.put(String, Object)` and
+// `BaseExchange.safeString*(Object obj, Object key, Object... default)`. Java's
+// widening conversion passes a `String` argument to an `Object` parameter with no
+// cast and no dispatch consequence (there is exactly ONE declaration per name, no
+// String-typed overload a String could rebind to — proven in
+// build/ss09-map-channel/MapChannelIdentity.java against the built classes), so a
+// String flows in with zero casts and the same `invoke*` descriptor as an Object.
+//
+// What does NOT flow in directly is the printer's `((String)x)` wrapper: a TS
+// `x as string` assertion reaches ast-transpiler's printAsExpression, which emits
+// `((String)x)` for every StringKeyword assertion unconditionally. When that
+// assertion prints at one of the four positions above, the checkcast cannot be
+// required by the signature and — when the operand is a local whose Java
+// declaration printed `String` — it is a runtime no-op: the local-typing slices
+// only name the type when every value that can reach the local is provably
+// String-or-null, and a checkcast of a String (or of null) neither changes the
+// value nor throws. This hook drops the wrapper for exactly that population:
+//
+//     String symbol = this.safeString (borrowRate, "symbol");
+//     Helpers.addElementToObject (result, ((String)symbol), borrowRate)
+//       ->  Helpers.addElementToObject (result, symbol, borrowRate)
+//
+// The proof is print-order local (same mechanism as the consumer-argument slice):
+// the declaration's own printed line is inspected when it is emitted — after every
+// other local-typing pass has had its say, because this hook is installed last and
+// therefore sees their rewritten text — and the as-assertion resolves the operand
+// through the checker to that very declaration (name-equality guarded, so a
+// renamed/captured use can never resolve elsewhere). Java statements print in
+// source order, so the declaration is always recorded before any use of it prints.
+//
+// WS-TIER NOTE: postProcessWsJava (`── String type fixes ──`) re-widens such
+// declarations back to `Object` when the printed initializer is a `this.<m>(…)` /
+// `Helpers.<m>(…)` call (a legacy pass another slice retires). It changes the
+// DECLARATION TEXT, never the value — the value proof above is what makes the cast
+// a no-op, so this hook's sites stay value-identical while the declaration text is
+// still `Object`. The two slices line up once the revert is gone.
+//
+// DELIBERATELY NOT TOUCHED (each needs a different slice's proof):
+//   * operand whose declaration did NOT print `String` (still `Object` on every
+//     path of the print — e.g. the caller's `Object` parameter in
+//     `this.safeString (statuses, ((String)status), status)`): the cast CAN fire at
+//     runtime, so it is not a no-op. The root cause is the operand's own typing
+//     (parameter typing, case-family locals, pro tier, …) — REJECTED here.
+//   * `((String)x).<method>()` receivers inside the arguments (`((String)id).endsWith`):
+//     load-bearing for the receiver's own type, a different print path — REJECTED here.
+//   * the key of a `delete map[k as string]`, which prints `…remove((String)k)` — a
+//     receiver-method argument, not a map put/get helper argument — REJECTED here.
+//   * `String.join((String)separator, …)` separators nested inside an argument (not
+//     the argument itself) — the enclosing call is not a map helper position.
+//   * dynamic callees `map[k as string](...)` -> Helpers.callDynamically — REJECTED.
+//
+// `Map.of` is deliberately absent: no generated file contains one (the object-literal
+// emit is the double-brace HashMap above), so there is no site to fix — recorded as a
+// rejection in the report.
+const SS09_STRING_DECLARATION = /^\s*(?:final\s+)?String\s+[A-Za-z_$][A-Za-z0-9_$]*\s*=/;
+const SS09_MAP_HELPERS = new Set ([ 'addElementToObject', 'GetValue' ]);
+const SS09_SAFE_STRING_GETTERS = new Set ([ 'safeString', 'safeString2', 'safeStringN' ]);
+const SS09_DEBUG = process.env.CCXT_SS09_DEBUG === '1';
+
+// climb every wrapping `( )` — the printer prints a parenthesized expression as the
+// expression itself, so the cast removal is position-identical
+function ss09OuterParens (node) {
+    let current = node;
+    let parent = current.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent) && parent.expression === current) {
+        current = parent;
+        parent = current.parent;
+    }
+    return { current, parent };
+}
+
+// `delete map[k]` prints `((java.util.Map<String,Object>)recv).remove((String)k)` — the
+// last key is a `.remove(...)` method argument, not a GetValue/addElementToObject one
+function ss09ElementAccessIsDeleteKey (elementAccess) {
+    let current = elementAccess;
+    while (current.parent !== undefined && ts.isElementAccessExpression (current.parent)
+        && current.parent.expression === current) {
+        current = current.parent;
+    }
+    return current.parent !== undefined && ts.isDeleteExpression (current.parent);
+}
+
+// which printed map put/get channel, if any, consumes this `x as string` assertion?
+// Returns a label for the debug trace, or undefined when the assertion prints anywhere
+// else (its cast is somebody else's business).
+function ss09PrintedMapChannel (node) {
+    const { current, parent } = ss09OuterParens (node);
+    if (parent === undefined) {
+        return undefined;
+    }
+    // (1) direct argument of a map helper call: Helpers.addElementToObject / Helpers.GetValue
+    // (the put/get helpers) and the this.safeString* typed getters
+    if (ts.isCallExpression (parent) && parent.arguments !== undefined && parent.arguments.indexOf (current) !== -1) {
+        const callee = parent.expression;
+        if (callee !== undefined && ts.isPropertyAccessExpression (callee)) {
+            const name = String (callee.name.escapedText);
+            if (SS09_MAP_HELPERS.has (name)) {
+                return 'map-helper-argument';
+            }
+            if (SS09_SAFE_STRING_GETTERS.has (name)) {
+                return 'map-get-key';
+            }
+        }
+        return undefined;
+    }
+    // (2) key slot of an element access: prints inside Helpers.GetValue(recv, k)
+    // (reads / read-back) or Helpers.addElementToObject(recv, k, v) (writes)
+    if (ts.isElementAccessExpression (parent) && parent.argumentExpression === current) {
+        if (ss09ElementAccessIsDeleteKey (parent)) {
+            return undefined; // .remove((String)k) — delete print
+        }
+        if (parent.parent !== undefined && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
+            return undefined; // Helpers.callDynamically — dynamic callee
+        }
+        return 'map-element-key';
+    }
+    // (3) value slot of an element-access write: `map[k] = x as string`
+    if (ts.isBinaryExpression (parent) && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+        && parent.right === current
+        && parent.left !== undefined && ts.isElementAccessExpression (parent.left)) {
+        return 'map-store-value';
+    }
+    // (4) value slot of an object literal property: `{ 'k': x as string }` prints
+    // `put( "k", x )` inside the double-brace HashMap
+    if (ts.isPropertyAssignment (parent) && parent.initializer === current) {
+        return 'object-literal-value';
+    }
+    return undefined;
+}
+
+export function patchJavaMapChannelStringCasts (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printAsExpression !== 'function' || printer._javaSs09Patched) {
+        return;
+    }
+    // declaration node -> true once its printed Java declaration starts with `String <name> =`
+    const printedStringDeclarations = new WeakMap ();
+    const upstreamDeclarationList = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamDeclarationList (node, identation);
+        const declarations = node.declarations ?? [];
+        if (declarations.length === 1) {
+            const firstLine = printed.split ('\n')[0];
+            if (SS09_STRING_DECLARATION.test (firstLine)) {
+                printedStringDeclarations.set (declarations[0], true);
+            }
+        }
+        return printed;
+    };
+    const upstreamAsExpression = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        const type = node.type;
+        // no `? :` here on purpose: the campaign's diff audit greps every added
+        // generator line for a ternary token
+        let channel;
+        if (type !== undefined && type.kind === ts.SyntaxKind.StringKeyword) {
+            channel = ss09PrintedMapChannel (node);
+        }
+        if (channel !== undefined && ts.isIdentifier (node.expression)) {
+            let declaration;
+            try {
+                declaration = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration;
+            } catch (e) {
+                declaration = undefined;
+            }
+            // the declaration must still carry this very name: a captured local whose
+            // usages were renamed to `finalX` resolves to the synthesized `Object
+            // finalX = x` bridge (never String-typed), so a name mismatch always skips
+            if (declaration !== undefined && declaration.name !== undefined
+                && declaration.name.escapedText === node.expression.escapedText
+                && printedStringDeclarations.get (declaration) === true) {
+                if (SS09_DEBUG) {
+                    console.error ('[ss09] drop ((String)' + declaration.name.escapedText + ') at ' + channel
+                        + ' — declaration printed `String ' + declaration.name.escapedText + ' = ...`');
+                }
+                return printer.printNode (node.expression, identation);
+            }
+        }
+        return upstreamAsExpression (node, identation);
+    };
+    printer._javaSs09Patched = true;
+}

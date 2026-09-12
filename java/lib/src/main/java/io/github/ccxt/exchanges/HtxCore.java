@@ -9602,7 +9602,7 @@ public class HtxCore extends HtxApi
                 }
             }
             Object finalHostname = hostname; // java req
-            url = Helpers.add(this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), ((String)type)), new java.util.HashMap<String, Object>() {{
+            url = Helpers.add(this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type), new java.util.HashMap<String, Object>() {{
     put( "hostname", finalHostname );
 }}), url);
         }

@@ -1088,8 +1088,8 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
                 Helpers.addElementToObject(oldBalance, code, balance);
             }
             Helpers.addElementToObject(oldBalance, "info", message);
-            Helpers.addElementToObject(this.balance, ((String)balanceType), this.safeBalance(oldBalance));
-            Helpers.addElementToObject(updatedTypes, ((String)balanceType), true);
+            Helpers.addElementToObject(this.balance, balanceType, this.safeBalance(oldBalance));
+            Helpers.addElementToObject(updatedTypes, balanceType, true);
         }
         Object updatesKeys = Helpers.objectKeys(updatedTypes);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(updatesKeys)); i++)
@@ -1185,7 +1185,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         //  }
         //
         Object channelId = this.safeString(message, "chanId");
-        Helpers.addElementToObject(client.subscriptions, ((String)channelId), message);
+        Helpers.addElementToObject(client.subscriptions, channelId, message);
         // store the opposite direction too for unWatch
         java.util.Map<String, Object> mappings = new java.util.HashMap<String, Object>() {{
             put( "book", "orderbook" );

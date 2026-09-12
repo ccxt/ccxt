@@ -1097,7 +1097,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         {
             ((java.util.Map<String,Object>)this.orderbooks).remove((String)((String)symbol));
         }
-        Helpers.addElementToObject(this.orderbooks, ((String)symbol), this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
+        Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
     }
 
     public void handleOrderBookSubscriptions(Client client, Object message, Object marketIds)
