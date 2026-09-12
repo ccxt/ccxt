@@ -4491,7 +4491,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
          *
          * @param {string[]} $ids order $ids
-         * @param {string} $symbol unified $market $symbol, default is null
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [$params->clientOrderIds] client order $ids
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
@@ -4503,6 +4503,9 @@ class bingx extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        if ($market['inverse'] === true) {
+            throw new NotSupported($this->id . ' cancelOrders() is not supported for inverse swap markets');
+        }
         $request = array(
             'symbol' => $market['id'],
         );
