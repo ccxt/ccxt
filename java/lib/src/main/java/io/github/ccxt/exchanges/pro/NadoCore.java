@@ -1633,10 +1633,12 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         {
             return null;
         }
-        Object length = ((String)value).length();
-        if (Helpers.isTrue(Helpers.isGreaterThan(length, 13)))
+        // keep the string-size reads inline: assigning the size to a standalone
+        // local is the regex transpiler's ARRAY hint and would emit php count()
+        // on a string, breaking every ws parser with a TypeError
+        if (Helpers.isTrue(Helpers.isGreaterThan(((String)value).length(), 13)))
         {
-            return this.parseToInt(Helpers.slice(value, 0, Helpers.subtract(length, 6)));
+            return this.parseToInt(Helpers.slice(value, 0, Helpers.subtract(((String)value).length(), 6)));
         }
         return this.safeInteger(message, key);
     }

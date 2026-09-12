@@ -3199,14 +3199,18 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const currency = this.currency(code);
         const operationType = 'transfer_funds';
         const sigPayload = {
             'to_account': toAccount,
-            'amount': amount,
+            'amount': this.numberToString(amount),
         };
         const request = this.postActionRequest(operationType, sigPayload, params);
         params = this.omit(params, ['expiryWindow']);
-        const response = this.privatePostAccountSubaccountTransfer(this.extend(request, params));
+        const response = await this.privatePostAccountSubaccountTransfer(this.extend(request, params));
         //
         // {
         //   "success": true,
@@ -3219,7 +3223,11 @@ class pacifica extends pacifica$1["default"] {
         // }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseTransfer(data);
+        return this.extend(this.parseTransfer(data, currency), {
+            'amount': amount,
+            'fromAccount': this.safeString(request, 'account'),
+            'toAccount': toAccount,
+        });
     }
     parseTransfer(transfer, currency = undefined) {
         //
@@ -3233,16 +3241,21 @@ class pacifica extends pacifica$1["default"] {
         //   "code": null
         // }
         //
+        const success = this.safeBool(transfer, 'success');
+        let status = undefined;
+        if (success !== undefined) {
+            status = (success === true) ? 'ok' : 'failed';
+        }
         return {
             'info': transfer,
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': undefined,
+            'currency': this.safeCurrencyCode(undefined, currency),
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
-            'status': 'ok',
+            'status': status,
         };
     }
     /**

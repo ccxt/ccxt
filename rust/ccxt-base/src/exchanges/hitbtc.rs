@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct HitbtcCore {
@@ -1815,10 +1819,10 @@ impl HitbtcCore {
 }));
         let mut type_var: Value = self.safe_string_lower(params.clone(), Value::Str("type".to_string()), &[Value::Str("spot".to_string())]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("type".to_string())]), &[]);
-        let mut accountsByType: Value = self.safe_value_k(self.options.clone(), "accountsByType", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut account: Value = ternary(is_true(&(is_equal(&type_var, &Value::Null))), Value::Null, self.safe_string(accountsByType.clone(), type_var.clone(), &[type_var.clone()]));
         let mut response: Value = Value::Null;
         if is_equal(&account, &Value::Str("wallet".to_string())) {
@@ -3679,10 +3683,10 @@ impl HitbtcCore {
         if !is_equal(&code, &Value::Str("USDT".to_string())) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" convertCurrencyNetwork() only supports USDT currently".to_string()))));
         }
-        let mut networks: Value = self.safe_value_k(self.options.clone(), "networks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         fromNetwork = to_upper(&fromNetwork);
         toNetwork = to_upper(&toNetwork);
         fromNetwork = self.safe_string(networks.clone(), fromNetwork.clone(), &[]); // handle ETH>ERC20 alias
@@ -4133,7 +4137,7 @@ impl HitbtcCore {
         let mut marginMode: Value = self.safe_string_k(position.clone(), "type", &[]);
         let mut leverage: Value = self.safe_number_k(position.clone(), "leverage", &[]);
         let mut datetime: Value = self.safe_string_k(position.clone(), "updated_at", &[]);
-        let mut positions: Value = self.safe_value_k(position.clone(), "positions", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(position.clone(), "positions", &[Value::List(vec![])]);
         let mut liquidationPrice: Value = Value::Null;
         let mut entryPrice: Value = Value::Null;
         let mut contracts: Value = Value::Null;
@@ -4148,7 +4152,7 @@ impl HitbtcCore {
             contracts = self.safe_number_k(entry.clone(), "quantity", &[]);
         }
         }
-        let mut currencies: Value = self.safe_value_k(position.clone(), "currencies", &[Value::List(vec![])]);
+        let mut currencies: Value = self.safe_list_k(position.clone(), "currencies", &[Value::List(vec![])]);
         let mut collateral: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
@@ -4741,7 +4745,7 @@ impl HitbtcCore {
         //         ]
         //    }
         //
-        let mut networks: Value = self.safe_value_k(fee.clone(), "networks", &[Value::List(vec![])]);
+        let mut networks: Value = self.safe_list_k(fee.clone(), "networks", &[Value::List(vec![])]);
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut j: Value = Value::Int(0);

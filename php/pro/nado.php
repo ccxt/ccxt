@@ -1366,9 +1366,11 @@ class nado extends \ccxt\async\nado {
         if ($value === null) {
             return null;
         }
-        $length = count($value);
-        if ($length > 13) {
-            return $this->parse_to_int(mb_substr($value, 0, $length - 6 - 0));
+        // keep the string-size reads inline => assigning the size to a standalone
+        // local is the regex transpiler's ARRAY hint and would emit php count()
+        // on a string, breaking every ws parser with a TypeError
+        if (strlen($value) > 13) {
+            return $this->parse_to_int(mb_substr($value, 0, strlen($value) - 6 - 0));
         }
         return $this->safe_integer($message, $key);
     }

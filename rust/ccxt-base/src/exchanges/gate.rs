@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct GateCore {
@@ -9596,10 +9600,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     body = self.json(query.clone());
                 }
             }  else {
-                let mut urlQueryParams: Value = self.safe_value_k(query.clone(), "query", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]);
+                let mut urlQueryParams: Value = self.safe_dict_k(query.clone(), "query", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
                 if is_greater_than(&get_array_length(&object_keys(&urlQueryParams)), &Value::Int(0)) {
                     queryString = self.urlencode(urlQueryParams.clone(), &[]);
                     url = add(&url, &add(&Value::Str("?".to_string()), &queryString));

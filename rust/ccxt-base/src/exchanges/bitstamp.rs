@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct BitstampCore {
@@ -4433,7 +4437,7 @@ impl BitstampCore {
             if is_string(&reasonInner) {
                 append_to_array(&mut errors, reasonInner.clone());
             }  else {
-                let mut all: Value = self.safe_value_k(reasonInner.clone(), "__all__", &[Value::List(vec![])]);
+                let mut all: Value = self.safe_list_k(reasonInner.clone(), "__all__", &[Value::List(vec![])]);
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_419: bool = true;

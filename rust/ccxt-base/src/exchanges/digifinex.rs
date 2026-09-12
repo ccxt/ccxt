@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct DigifinexCore {
@@ -1484,7 +1488,7 @@ impl DigifinexCore {
         //         "code":0
         //     }
         //
-        let mut markets: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1888,7 +1892,7 @@ impl DigifinexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut tickers: Value = self.safe_value2(response.clone(), Value::Str("ticker".to_string()), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list2(response.clone(), Value::Str("ticker".to_string()), Value::Str("data".to_string()), &[Value::List(vec![])]);
         let mut date: Value = self.safe_integer_k(response.clone(), "date", &[]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2947,7 +2951,7 @@ impl DigifinexCore {
         //     }
         //
         if is_true(&(is_equal(&marketType, &Value::Str("spot".to_string())))) || is_true(&(is_equal(&marketType, &Value::Str("margin".to_string())))) {
-            let mut canceledOrders: Value = self.safe_value_k(response.clone(), "success", &[Value::List(vec![])]);
+            let mut canceledOrders: Value = self.safe_list_k(response.clone(), "success", &[Value::List(vec![])]);
             let mut numCanceledOrders: Value = get_array_length(&canceledOrders);
             if !is_equal(&numCanceledOrders, &Value::Int(1)) {
                 panic!("{}", crate::exchange_errors::order_not_found(add(&add(&add(&self.id, &Value::Str(" cancelOrder() ".to_string())), &id), &Value::Str(" not found".to_string()))));
@@ -4452,7 +4456,7 @@ impl DigifinexCore {
         //         "equity": 45.133305540922
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "list", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "list", &[Value::List(vec![])]);
         let mut result: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
@@ -4756,7 +4760,7 @@ impl DigifinexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut result: Value = self.safe_value_k(data.clone(), "funding_rates", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(data.clone(), "funding_rates", &[Value::List(vec![])]);
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -4970,7 +4974,7 @@ impl DigifinexCore {
         //     }
         //
         let mut positionRequest: Value = ternary(is_true(&(is_equal(&marketType, &Value::Str("swap".to_string())))), Value::Str("data".to_string()), Value::Str("positions".to_string()));
-        let mut positions: Value = self.safe_value(response.clone(), positionRequest.clone(), &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list(response.clone(), positionRequest.clone(), &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -5079,7 +5083,7 @@ impl DigifinexCore {
         //     }
         //
         let mut dataRequest: Value = ternary(is_true(&(is_equal(&marketType, &Value::Str("swap".to_string())))), Value::Str("data".to_string()), Value::Str("positions".to_string()));
-        let mut data: Value = self.safe_value(response.clone(), dataRequest.clone(), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list(response.clone(), dataRequest.clone(), &[Value::List(vec![])]);
         let mut position: Value = self.parse_position(get_value(&data, &Value::Int(0)), &[market.clone()]);
         if is_equal(&marketType, &Value::Str("swap".to_string())) {
             return position;

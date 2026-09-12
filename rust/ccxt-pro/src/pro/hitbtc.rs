@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -792,7 +796,7 @@ impl HitbtcCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1079,7 +1083,7 @@ impl HitbtcCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_value2(message.clone(), Value::Str("snapshot".to_string()), Value::Str("update".to_string()), &[Value::Map({
+        let mut data: Value = self.safe_dict2(message.clone(), Value::Str("snapshot".to_string()), Value::Str("update".to_string()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1252,7 +1256,7 @@ impl HitbtcCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_value2(message.clone(), Value::Str("snapshot".to_string()), Value::Str("update".to_string()), &[Value::Map({
+        let mut data: Value = self.safe_dict2(message.clone(), Value::Str("snapshot".to_string()), Value::Str("update".to_string()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1946,7 +1950,7 @@ impl HitbtcCore {
             }
             if is_true(&Value::Bool(is_array(&result))) {
                 // to do improve this, not very reliable right now
-                let mut first: Value = self.safe_value(result.clone(), Value::Int(0), &[Value::Map({
+                let mut first: Value = self.safe_dict(result.clone(), Value::Int(0), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -2019,7 +2023,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return Value::Bool(true);
             }
         }
-        return Value::Null;
+        return Value::Bool(false);
 
     Value::Null
 }

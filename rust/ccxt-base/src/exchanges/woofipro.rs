@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct WoofiproCore {
@@ -2942,7 +2946,7 @@ impl WoofiproCore {
         let mut childOrders: Value = self.safe_value_k(order.clone(), "childOrders", &[]);
         if !is_equal(&childOrders, &Value::Null) {
             let mut first: Value = self.safe_value(childOrders.clone(), Value::Int(0), &[]);
-            let mut innerChildOrders: Value = self.safe_value_k(first.clone(), "childOrders", &[Value::List(vec![])]);
+            let mut innerChildOrders: Value = self.safe_list_k(first.clone(), "childOrders", &[Value::List(vec![])]);
             let mut innerChildOrdersLength: Value = get_array_length(&innerChildOrders);
             if is_greater_than(&innerChildOrdersLength, &Value::Int(0)) {
                 let mut takeProfitOrder: Value = self.safe_value(innerChildOrders.clone(), Value::Int(0), &[]);

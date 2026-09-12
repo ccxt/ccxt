@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct LbankCore {
@@ -1050,7 +1054,7 @@ impl LbankCore {
         //         "ts": 1691560288484
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1175,7 +1179,7 @@ impl LbankCore {
         //         "success": true
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1927,10 +1931,10 @@ impl LbankCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut free: Value = self.safe_value_k(data.clone(), "free", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut free: Value = self.safe_dict_k(data.clone(), "free", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut currencies: Value = object_keys(&free);
             {
                                 let mut i: Value = Value::Int(0);
@@ -2276,7 +2280,7 @@ impl LbankCore {
         });
         let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.spot_private_post_supplement_customer_trade_fee(&[__ws_arg_11]).await;
-        let mut fees: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut fees: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2742,7 +2746,7 @@ impl LbankCore {
         //          "ts":1647455270776
         //      }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut numOrders: Value = get_array_length(&result);
         if is_equal(&numOrders, &Value::Int(1)) {
             return self.parse_order(get_value(&result, &Value::Int(0)), &[]);
@@ -3652,7 +3656,7 @@ impl LbankCore {
         //        "code": 0
         //    }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut withdrawFees: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3665,7 +3669,7 @@ impl LbankCore {
             let mut entry: Value = get_value(&result, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut networkList: Value = self.safe_value_k(entry.clone(), "networkList", &[Value::List(vec![])]);
+            let mut networkList: Value = self.safe_list_k(entry.clone(), "networkList", &[Value::List(vec![])]);
             if !is_equal(&code, &Value::Null) {
                 add_element_to_object(&mut withdrawFees, &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3748,7 +3752,7 @@ impl LbankCore {
         //        "ts": "1663364435973"
         //    }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut withdrawFees: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4038,7 +4042,7 @@ impl LbankCore {
         //
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
-        let mut networkList: Value = self.safe_value_k(fee.clone(), "networkList", &[Value::List(vec![])]);
+        let mut networkList: Value = self.safe_list_k(fee.clone(), "networkList", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_916: bool = true;

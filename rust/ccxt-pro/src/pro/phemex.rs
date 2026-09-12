@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -563,7 +567,7 @@ impl PhemexCore {
             let mut ticker: Value = self.safe_value_k(message.clone(), "spot_market24h", &[]);
             append_to_array(&mut tickers, self.parse_ticker(ticker.clone(), &[]));
         }  else if is_true(&Value::Bool(in_op(&message, &Value::Str("data".to_string())))) {
-            let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_581: bool = true;
@@ -1580,7 +1584,7 @@ impl PhemexCore {
             if is_equal(&ordersLength, &Value::Int(0)) {
                 return;
             }
-            trades = self.safe_value_k(message.clone(), "fills", &[Value::List(vec![])]);
+            trades = self.safe_list_k(message.clone(), "fills", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_590: bool = true;

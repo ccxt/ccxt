@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -1449,7 +1453,7 @@ impl CoinbaseCore {
         //      }
         //
         let mut events: Value = self.safe_list_k(message.clone(), "events", &[Value::List(vec![])]);
-        let mut firstEvent: Value = self.safe_value(events.clone(), Value::Int(0), &[Value::Map({
+        let mut firstEvent: Value = self.safe_dict(events.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

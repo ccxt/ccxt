@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct LunoCore {
@@ -919,7 +923,7 @@ impl LunoCore {
         //     }
         //
         let mut result: Value = Value::List(vec![]);
-        let mut markets: Value = self.safe_value_k(response.clone(), "markets", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response.clone(), "markets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_927: bool = true;
@@ -1044,7 +1048,7 @@ impl LunoCore {
     m
 }));
         let mut response: Value = self.private_get_balance(&[params.clone()]).await;
-        let mut wallets: Value = self.safe_value_k(response.clone(), "balance", &[Value::List(vec![])]);
+        let mut wallets: Value = self.safe_list_k(response.clone(), "balance", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1071,7 +1075,7 @@ impl LunoCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut wallets: Value = self.safe_value_k(response.clone(), "balance", &[Value::List(vec![])]);
+        let mut wallets: Value = self.safe_list_k(response.clone(), "balance", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
