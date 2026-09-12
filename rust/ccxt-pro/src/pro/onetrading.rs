@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -514,7 +518,7 @@ impl OnetradingCore {
         //         "time": "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        let mut tickers: Value = self.safe_value_k(message.clone(), "ticker_updates", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(message.clone(), "ticker_updates", &[Value::List(vec![])]);
         let mut datetime: Value = self.safe_string_k(message.clone(), "time", &[]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1077,7 +1081,7 @@ impl OnetradingCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }
-        let mut rawOrders: Value = self.safe_value_k(message.clone(), "orders", &[Value::List(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]);
         let mut rawOrdersLength: Value = get_array_length(&rawOrders);
         if is_equal(&rawOrdersLength, &Value::Int(0)) {
             return;
@@ -1091,7 +1095,7 @@ impl OnetradingCore {
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[Value::Str("".to_string())]);
             orders.append(order.clone());
             client.resolve(&[self.orders.clone(), add(&Value::Str("orders:".to_string()), &symbol)]);
-            let mut rawTrades: Value = self.safe_value_k(get_value(&rawOrders, &i), "trades", &[Value::List(vec![])]);
+            let mut rawTrades: Value = self.safe_list_k(get_value(&rawOrders, &i), "trades", &[Value::List(vec![])]);
             {
                                 let mut ii: Value = Value::Int(0);
                 let mut __for_first_556: bool = true;
@@ -1349,7 +1353,7 @@ impl OnetradingCore {
             let mut orderId: Value = self.safe_string_k(update.clone(), "order_id", &[]);
             let mut datetime: Value = self.safe_string2(update.clone(), Value::Str("time".to_string()), Value::Str("timestamp".to_string()), &[]);
             let mut previousOrderArray: Value = self.filter_by_array(self.orders.clone(), Value::Str("id".to_string()), &[orderId.clone(), Value::Bool(false)]);
-            let mut previousOrder: Value = self.safe_value(previousOrderArray.clone(), Value::Int(0), &[Value::Map({
+            let mut previousOrder: Value = self.safe_dict(previousOrderArray.clone(), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -326,7 +330,7 @@ impl LunoCore {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut rawTrades: Value = self.safe_value_k(message.clone(), "trade_updates", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(message.clone(), "trade_updates", &[Value::List(vec![])]);
         let mut length: Value = get_array_length(&rawTrades);
         if is_equal(&length, &Value::Int(0)) {
             return;

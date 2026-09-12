@@ -4079,27 +4079,27 @@ class BaseExchange extends \ccxt\BaseExchange {
         list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', $retries);
         $retryDelay = 0;
         list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', $retryDelay);
-        $fetchData = null;
         $fetchDataCacheEnabled = $this->fetchHistoryCacheSize > 0;
         for ($i = 0; $i < $retries + 1; $i++) {
+            $fetchData = null;
             if ($fetchDataCacheEnabled) {
                 $fetchData = array( 'request' => null, 'response' => array( 'body' => null ), 'error' => null );
             }
             try {
                 $this->set_last_rest_request_timestamp();
                 $request = $this->sign($path, $api, $method, $params, $headers, $body);
-                if ($fetchDataCacheEnabled && ($fetchData !== null)) {
+                if ($fetchData !== null) {
                     $fetchData['request'] = $request;
                 }
                 $this->set_last_request($request);
                 $response = $this->do_fetch($request['url'], $request['method'], $request['headers'], $request['body']);
-                if ($fetchDataCacheEnabled && ($fetchData !== null)) {
+                if ($fetchData !== null) {
                     $fetchData['response']['body'] = $response;
                     $this->add_fetch_cache($fetchData);
                 }
                 return $response;
             } catch (Exception $e) {
-                if ($fetchDataCacheEnabled && ($fetchData !== null)) {
+                if ($fetchData !== null) {
                     $fetchData['error'] = $e;
                     $this->add_fetch_cache($fetchData);
                 }

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct CoinmateCore {
@@ -799,7 +803,7 @@ impl CoinmateCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -884,10 +888,10 @@ impl CoinmateCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut balances: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -1061,10 +1065,10 @@ impl CoinmateCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut keys: Value = object_keys(&data);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1303,10 +1307,10 @@ impl CoinmateCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut methods: Value = self.safe_value_k(withdrawOptions.clone(), "methods", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut methods: Value = self.safe_dict_k(withdrawOptions.clone(), "methods", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut method: Value = self.safe_string(methods.clone(), code.clone(), &[]);
         if is_equal(&method, &Value::Null) {
             let mut allowedCurrencies: Value = object_keys(&methods);

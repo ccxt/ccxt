@@ -4467,10 +4467,10 @@ public partial class BaseExchange
         IList<object> retryDelayparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
         retryDelay = ((IList<object>)retryDelayparametersVariable)[0];
         parameters = ((IList<object>)retryDelayparametersVariable)[1];
-        Dictionary<string, object> fetchData = null;
         bool fetchDataCacheEnabled = isGreaterThan(this.fetchHistoryCacheSize, 0);
         for (int i = 0; isLessThan(i, add(retries, 1)); postFixIncrement(ref i))
         {
+            Dictionary<string, object> fetchData = null;
             if (isTrue(fetchDataCacheEnabled))
             {
                 fetchData = new Dictionary<string, object>() {
@@ -4485,13 +4485,13 @@ public partial class BaseExchange
             {
                 this.setLastRestRequestTimestamp();
                 object request = this.sign(path, api, method, parameters, headers, body);
-                if (isTrue(isTrue(fetchDataCacheEnabled) && isTrue((!isEqual(fetchData, null)))))
+                if (isTrue(!isEqual(fetchData, null)))
                 {
                     ((IDictionary<string,object>)fetchData)["request"] = request;
                 }
                 this.setLastRequest(request);
                 object response = await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
-                if (isTrue(isTrue(fetchDataCacheEnabled) && isTrue((!isEqual(fetchData, null)))))
+                if (isTrue(!isEqual(fetchData, null)))
                 {
                     ((IDictionary<string,object>)getValue(fetchData, "response"))["body"] = response;
                     this.addFetchCache(fetchData);
@@ -4499,7 +4499,7 @@ public partial class BaseExchange
                 return response;
             } catch(Exception e)
             {
-                if (isTrue(isTrue(fetchDataCacheEnabled) && isTrue((!isEqual(fetchData, null)))))
+                if (isTrue(!isEqual(fetchData, null)))
                 {
                     ((IDictionary<string,object>)fetchData)["error"] = e;
                     this.addFetchCache(fetchData);

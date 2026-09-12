@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct UpbitCore {
@@ -2508,7 +2512,7 @@ impl UpbitCore {
         let mut feeCost: Value = self.safe_string_k(order.clone(), "paid_fee", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "market", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut trades: Value = self.safe_value_k(order.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(order.clone(), "trades", &[Value::List(vec![])]);
         trades = self.parse_trades(trades.clone(), &[market.clone(), Value::Null, Value::Null, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("order".to_string(), id.clone());

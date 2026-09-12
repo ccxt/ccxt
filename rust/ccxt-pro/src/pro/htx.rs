@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -1750,7 +1754,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             // contract branch
             parsedOrder = self.parse_ws_order(message.clone(), &[market.clone()]);
-            let mut rawTrades: Value = self.safe_value_k(message.clone(), "trade", &[Value::List(vec![])]);
+            let mut rawTrades: Value = self.safe_list_k(message.clone(), "trade", &[Value::List(vec![])]);
             let mut tradesLength: Value = get_array_length(&rawTrades);
             if is_greater_than(&tradesLength, &Value::Int(0)) {
                 let mut tradesObject: Value = Value::Map({
@@ -2268,7 +2272,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         }
-        let mut rawPositions: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawPositions: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         if is_true(&self.is_empty(rawPositions.clone())) {
             let mut prefixes: Value = Value::List(vec![Value::Str("cross:positions".to_string()), Value::Str("isolated:positions".to_string())]);
             {
@@ -2575,7 +2579,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "ch", &[]);
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "changeTime", &[self.safe_integer(message.clone(), Value::Str("ts".to_string()), &[])]);
         add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };
@@ -3314,7 +3318,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 // this trades object is artificially created
                 // in handleOrder
-                let mut rawTrades: Value = self.safe_value_k(message.clone(), "trades", &[Value::List(vec![])]);
+                let mut rawTrades: Value = self.safe_list_k(message.clone(), "trades", &[Value::List(vec![])]);
                 let mut marketId: Value = self.safe_value_k(message.clone(), "symbol", &[]);
                 let mut market: Value = self.market(marketId.clone());
                 {

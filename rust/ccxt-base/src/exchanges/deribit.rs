@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct DeribitCore {
@@ -1742,7 +1746,7 @@ impl DeribitCore {
             //         "testnet": false
             //     }
             //
-            let mut currenciesResult: Value = self.safe_value_k(currenciesResponse.clone(), "result", &[Value::List(vec![])]);
+            let mut currenciesResult: Value = self.safe_list_k(currenciesResponse.clone(), "result", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_623: bool = true;
@@ -1836,7 +1840,7 @@ impl DeribitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_625: bool = true;
             while { if !__for_first_625 { i = add(&i, &Value::Int(1)); } __for_first_625 = false; is_less_than(&i, &get_array_length(&instrumentsResponses)) } {
-            let mut instrumentsResult: Value = self.safe_value_k(get_value(&instrumentsResponses, &i), "result", &[Value::List(vec![])]);
+            let mut instrumentsResult: Value = self.safe_list_k(get_value(&instrumentsResponses, &i), "result", &[Value::List(vec![])]);
             {
                                 let mut k: Value = Value::Int(0);
                 let mut __for_first_624: bool = true;
@@ -2824,7 +2828,7 @@ impl DeribitCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut fees: Value = self.safe_value_k(result.clone(), "fees", &[Value::List(vec![])]);
+        let mut fees: Value = self.safe_list_k(result.clone(), "fees", &[Value::List(vec![])]);
         let mut perpetualFee: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4257,7 +4261,7 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut volatilityResult: Value = self.safe_value_k(volatility.clone(), "result", &[Value::List(vec![])]);
+        let mut volatilityResult: Value = self.safe_list_k(volatility.clone(), "result", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -4717,7 +4721,7 @@ impl DeribitCore {
         //    }
         //
         let mut rates: Value = Value::List(vec![]);
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_632: bool = true;

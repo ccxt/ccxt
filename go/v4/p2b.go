@@ -1646,7 +1646,8 @@ func (this *P2b) HandleErrors(code any, reason any, url any, method any, headers
 		var errorCode any = this.SafeString(response, "errorCode")
 		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
-		if IsTrue(IsLessThan(code, 400)) {
+		var codeAsString string = ToString(code)
+		if IsTrue(IsTrue((IsLessThan(code, 400))) || !IsTrue((InOp(this.HttpExceptions, codeAsString)))) {
 			panic(ExchangeError(feedback))
 		}
 	}

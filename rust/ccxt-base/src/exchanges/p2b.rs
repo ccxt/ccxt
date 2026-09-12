@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct P2bCore {
@@ -1803,7 +1807,8 @@ impl P2bCore {
             let mut errorCode: Value = self.safe_string_k(response.clone(), "errorCode", &[]);
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorCode.clone(), feedback.clone());
-            if is_less_than(&code, &Value::Int(400)) {
+            let mut codeAsString: Value = to_string_val(&code);
+            if is_true(&(is_less_than(&code, &Value::Int(400)))) || !is_true(&(Value::Bool(in_op(&self.httpExceptions, &codeAsString)))) {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }
