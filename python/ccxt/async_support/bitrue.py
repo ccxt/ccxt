@@ -1088,7 +1088,7 @@ class bitrue(Exchange, ImplicitAPI):
             'info': response,
         }
         timestamp = self.safe_integer(response, 'updateTime')
-        balances = self.safe_value_2(response, 'balances', 'account', [])
+        balances = self.safe_list_2(response, 'balances', 'account', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string_2(balance, 'asset', 'marginCoin')
@@ -1436,7 +1436,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch transfers for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1994,7 +1994,7 @@ class bitrue(Exchange, ImplicitAPI):
  EXCHANGE SPECIFIC PARAMETERS
         :param decimal [params.icebergQty]:
         :param long [params.recvWindow]:
-        :param float [params.cost]: *swap market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *swap market buy only* the quote quantity that can be used as an alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:

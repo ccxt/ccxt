@@ -24,22 +24,22 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesTotal, "total");
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesFree, "free");
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, "used");
-        object allCodes = exchange.arrayConcat(codesTotal, codesFree);
+        List<object> allCodes = exchange.arrayConcat(codesTotal, codesFree);
         allCodes = exchange.arrayConcat(allCodes, codesUsed);
         int codesLength = getArrayLength(codesTotal);
         int freeLength = getArrayLength(codesFree);
         int usedLength = getArrayLength(codesUsed);
         assert(isTrue((isEqual(codesLength, freeLength))) || isTrue((isEqual(codesLength, usedLength))), add("free and total and used codes have different lengths", logText));
-        for (object i = 0; isLessThan(i, getArrayLength(allCodes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(allCodes)); postFixIncrement(ref i))
         {
             object code = getValue(allCodes, i);
             // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);
             assert(inOp(getValue(entry, "total"), code), add(add(add("code ", code), " not in total"), logText));
             assert(inOp(getValue(entry, "free"), code), add(add(add("code ", code), " not in free"), logText));
             assert(inOp(getValue(entry, "used"), code), add(add(add("code ", code), " not in used"), logText));
-            object total = exchange.safeString(getValue(entry, "total"), code);
-            object free = exchange.safeString(getValue(entry, "free"), code);
-            object used = exchange.safeString(getValue(entry, "used"), code);
+            string? total = exchange.safeString(getValue(entry, "total"), code);
+            string? free = exchange.safeString(getValue(entry, "free"), code);
+            string? used = exchange.safeString(getValue(entry, "used"), code);
             assert(!isEqual(total, null), add("total is undefined", logText));
             assert(!isEqual(free, null), add("free is undefined", logText));
             assert(!isEqual(used, null), add("used is undefined", logText));

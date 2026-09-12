@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -141,7 +141,7 @@ class gemini(Exchange, ImplicitAPI):
                     'get': {
                         # fetchMarkets passes self through fetchWebEndpoint with
                         # returnAsJson=false and a startRegex, i.e. it splits the
-                        # body: self endpoint answers with the docs page
+                        # body as text: self endpoint answers with the docs page
                         # markup, not with JSON
                         'rest-api': {'cost': 1},
                     },
@@ -167,11 +167,30 @@ class gemini(Exchange, ImplicitAPI):
                         'v2/derivatives/candles/{symbol}/{time_frame}': {'cost': 5},
                         'v2/fxrate/{symbol}/{timestamp}': {'cost': 5},
                         'v1/riskstats/{symbol}': {'cost': 5},
+                        'v1/prediction-markets/events': {'cost': 5},
+                        'v1/prediction-markets/events/{eventTicker}': {'cost': 5},
+                        'v1/prediction-markets/events/{eventTicker}/strike': {'cost': 5},
+                        'v1/prediction-markets/events/newly-listed': {'cost': 5},
+                        'v1/prediction-markets/events/recently-settled': {'cost': 5},
+                        'v1/prediction-markets/events/upcoming': {'cost': 5},
+                        'v1/prediction-markets/categories': {'cost': 5},
+                        'v1/prediction-markets/volume/{date}': {'cost': 5},
+                        'v1/prediction-markets/volume/{date}/hourly': {'cost': 5},
+                        'v1/prediction-markets/terms': {'cost': 5},
+                        'v1/prediction-markets/maker-rebate/rates': {'cost': 5},
+                        'v1/prediction-markets/liquidity-rewards/config': {'cost': 5},
+                        'v1/prediction-markets/liquidity-rewards/events': {'cost': 5},
                     },
                 },
                 'private': {
                     'get': {
                         'v1/perpetuals/fundingpaymentreport/records.xlsx': {'cost': 1},
+                        'v1/prediction-markets/terms/status': {'cost': 1},
+                        'v1/prediction-markets/maker-rebate/summary/total': {'cost': 1},
+                        'v1/prediction-markets/liquidity-rewards/summary/daily': {'cost': 1},
+                        'v1/prediction-markets/liquidity-rewards/summary/total': {'cost': 1},
+                        'v2/network/{token}': {'cost': 1},
+                        'v2/networks/{network}/assets': {'cost': 1},
                     },
                     'post': {
                         'v1/staking/unstake': {'cost': 1},
@@ -234,6 +253,20 @@ class gemini(Exchange, ImplicitAPI):
                         'v1/perpetuals/fundingPayment': {'cost': 1},
                         'v1/perpetuals/fundingpaymentreport/records.json': {'cost': 1},
                         'v1/positions': {'cost': 1},
+                        'v1/prediction-markets/order': {'cost': 1},
+                        'v1/prediction-markets/order/batch': {'cost': 1},
+                        'v1/prediction-markets/order/cancel': {'cost': 1},
+                        'v1/prediction-markets/order/batch/cancel': {'cost': 1},
+                        'v1/prediction-markets/orders/active': {'cost': 1},
+                        'v1/prediction-markets/orders/history': {'cost': 1},
+                        'v1/prediction-markets/positions': {'cost': 1},
+                        'v1/prediction-markets/positions/settled': {'cost': 1},
+                        'v1/prediction-markets/metrics/volume': {'cost': 1},
+                        'v1/prediction-markets/terms/accept': {'cost': 1},
+                        'v1/prediction-markets/maker-rebate/payouts': {'cost': 1},
+                        'v2/transfers': {'cost': 1},
+                        'v2/withdraw/{network}/{ticker}': {'cost': 1},
+                        'v2/withdraw/{network}/{ticker}/feeEstimate': {'cost': 1},
                     },
                 },
             },
@@ -435,7 +468,7 @@ class gemini(Exchange, ImplicitAPI):
         #    {
         #        "tradingPairs": [['BTCUSD', 2, 8, '0.00001', 10, True],  ...],
         #        "currencies": [
-        #            ["ORCA", "Orca", 204, 6, 0, 6, 8, False, null, "solana"],  #, precisions seem to be the 5th index
+        #            ["ORCA", "Orca", 204, 6, 0, 6, 8, False, null, "solana"],  # as confirmed, precisions seem to be the 5th index
         #            ["ATOM", "Cosmos", 44, 6, 0, 6, 8, False, null, "cosmos"],
         #            ["ETH", "Ether", 2, 6, 0, 18, 8, False, null, "ethereum"],
         #            ["GBP", "Pound Sterling", 22, 2, 2, 2, 2, True, "£", null],
@@ -623,7 +656,7 @@ class gemini(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_market_active(self, status: object):
+    def parse_market_active(self, status: object) -> Bool:
         statuses = {
             'open': True,
             'closed': False,
@@ -632,7 +665,7 @@ class gemini(Exchange, ImplicitAPI):
             'limit_only': True,
         }
         if status is None:
-            return True  # below
+            return True  # as defaulted below
         return self.safe_bool(statuses, status, True)
 
     def fetch_usdt_markets(self, params={}) -> list[Market]:
@@ -640,7 +673,7 @@ class gemini(Exchange, ImplicitAPI):
         # to load market ids which we don't need here
         if 'test' in self.urls:
             return []  # sandbox does not have usdt markets
-        fetchUsdtMarkets = self.safe_value(self.options, 'fetchUsdtMarkets', [])
+        fetchUsdtMarkets = self.safe_list(self.options, 'fetchUsdtMarkets', [])
         result = []
         for i in range(0, len(fetchUsdtMarkets)):
             marketId = fetchUsdtMarkets[i]
@@ -1878,7 +1911,7 @@ class gemini(Exchange, ImplicitAPI):
         response = self.privatePostV1AddressesNetwork(self.extend(request, params))
         results = self.parse_deposit_addresses(response, [code], False, {'network': networkCode, 'currency': code})
         # one address structure per network, like every other venue(the endpoint is scoped to a
-        # single network, so the last address the venue lists for it wins — same)
+        # single network, so the last address the venue lists for it wins — same as before)
         return self.index_by(results, 'network')
 
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
@@ -1974,7 +2007,7 @@ class gemini(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()

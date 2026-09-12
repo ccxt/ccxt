@@ -8,126 +8,131 @@
 package ccxt
 
 // HistoryGetApiTwHistoryPairNameResolution returns a channel that yields a JSON object.
-func (this *BitteamCore) HistoryGetApiTwHistoryPairNameResolution(args ...any) <-chan any {
+func (this *Bitteam) HistoryGetApiTwHistoryPairNameResolution(args ...any) <-chan any {
 	return this.callEndpointAsync("historyGetApiTwHistoryPairNameResolution", args...)
 }
 
 // PublicGetTradeApiAsset returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiAsset(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiAsset", args...)
 }
 
 // PublicGetTradeApiCurrencies returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiCurrencies(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiCurrencies", args...)
 }
 
 // PublicGetTradeApiOrderbooksSymbol returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiOrderbooksSymbol(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiOrderbooksSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiOrderbooksSymbol", args...)
 }
 
 // PublicGetTradeApiOrders returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiOrders(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiOrders", args...)
 }
 
 // PublicGetTradeApiPairName returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiPairName(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiPairName(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiPairName", args...)
 }
 
 // PublicGetTradeApiPairs returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiPairs(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiPairs(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiPairs", args...)
 }
 
 // PublicGetTradeApiPairsPrecisions returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiPairsPrecisions(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiPairsPrecisions(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiPairsPrecisions", args...)
 }
 
 // PublicGetTradeApiRates returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiRates(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiRates(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiRates", args...)
 }
 
+// PublicGetTradeApiStats returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiStats(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTradeApiStats", args...)
+}
+
 // PublicGetTradeApiTradeId returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiTradeId(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiTradeId(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiTradeId", args...)
 }
 
 // PublicGetTradeApiTrades returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiTrades(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiTrades", args...)
 }
 
 // PublicGetTradeApiCcxtPairs returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiCcxtPairs(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiCcxtPairs(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiCcxtPairs", args...)
 }
 
 // PublicGetTradeApiCmcAssets returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiCmcAssets(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiCmcAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiCmcAssets", args...)
 }
 
 // PublicGetTradeApiCmcOrderbookPair returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiCmcOrderbookPair(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiCmcOrderbookPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiCmcOrderbookPair", args...)
 }
 
 // PublicGetTradeApiCmcSummary returns a channel that yields a JSON array.
-func (this *BitteamCore) PublicGetTradeApiCmcSummary(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiCmcSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiCmcSummary", args...)
 }
 
 // PublicGetTradeApiCmcTicker returns a channel that yields a JSON object.
-func (this *BitteamCore) PublicGetTradeApiCmcTicker(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiCmcTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiCmcTicker", args...)
 }
 
 // PublicGetTradeApiCmcTradesPair returns a channel that yields a JSON array.
-func (this *BitteamCore) PublicGetTradeApiCmcTradesPair(args ...any) <-chan any {
+func (this *Bitteam) PublicGetTradeApiCmcTradesPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiCmcTradesPair", args...)
 }
 
 // PrivateGetTradeApiCcxtBalance returns a channel that yields a JSON object.
-func (this *BitteamCore) PrivateGetTradeApiCcxtBalance(args ...any) <-chan any {
+func (this *Bitteam) PrivateGetTradeApiCcxtBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeApiCcxtBalance", args...)
 }
 
 // PrivateGetTradeApiCcxtOrderId returns a channel that yields a JSON object.
-func (this *BitteamCore) PrivateGetTradeApiCcxtOrderId(args ...any) <-chan any {
+func (this *Bitteam) PrivateGetTradeApiCcxtOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeApiCcxtOrderId", args...)
 }
 
 // PrivateGetTradeApiCcxtOrdersOfUser returns a channel that yields a JSON object.
-func (this *BitteamCore) PrivateGetTradeApiCcxtOrdersOfUser(args ...any) <-chan any {
+func (this *Bitteam) PrivateGetTradeApiCcxtOrdersOfUser(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeApiCcxtOrdersOfUser", args...)
 }
 
 // PrivateGetTradeApiCcxtTradesOfUser returns a channel that yields a JSON object.
-func (this *BitteamCore) PrivateGetTradeApiCcxtTradesOfUser(args ...any) <-chan any {
+func (this *Bitteam) PrivateGetTradeApiCcxtTradesOfUser(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeApiCcxtTradesOfUser", args...)
 }
 
 // PrivateGetTradeApiTransactionsOfUser returns a channel that yields a JSON object.
-func (this *BitteamCore) PrivateGetTradeApiTransactionsOfUser(args ...any) <-chan any {
+func (this *Bitteam) PrivateGetTradeApiTransactionsOfUser(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeApiTransactionsOfUser", args...)
 }
 
 // PrivatePostTradeApiCcxtCancelAllOrder returns a channel that yields a JSON object.
-func (this *BitteamCore) PrivatePostTradeApiCcxtCancelAllOrder(args ...any) <-chan any {
+func (this *Bitteam) PrivatePostTradeApiCcxtCancelAllOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeApiCcxtCancelAllOrder", args...)
 }
 
 // PrivatePostTradeApiCcxtCancelorder returns a channel that yields a JSON object.
-func (this *BitteamCore) PrivatePostTradeApiCcxtCancelorder(args ...any) <-chan any {
+func (this *Bitteam) PrivatePostTradeApiCcxtCancelorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeApiCcxtCancelorder", args...)
 }
 
 // PrivatePostTradeApiCcxtOrdercreate returns a channel that yields a JSON object.
-func (this *BitteamCore) PrivatePostTradeApiCcxtOrdercreate(args ...any) <-chan any {
+func (this *Bitteam) PrivatePostTradeApiCcxtOrdercreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeApiCcxtOrdercreate", args...)
 }

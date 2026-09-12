@@ -1113,7 +1113,7 @@ class bitrue extends Exchange {
             'info' => $response,
         );
         $timestamp = $this->safe_integer($response, 'updateTime');
-        $balances = $this->safe_value_2($response, 'balances', 'account', array());
+        $balances = $this->safe_list_2($response, 'balances', 'account', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string_2($balance, 'asset', 'marginCoin');
@@ -1498,7 +1498,7 @@ class bitrue extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch transfers for
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2114,7 +2114,7 @@ class bitrue extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {decimal} [$params->icebergQty]
          * @param {long} [$params->recvWindow]
-         * @param {float} [$params->cost] *swap $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *swap $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {

@@ -109,6 +109,9 @@ class zaif extends Exchange {
                         'last_price/{pair}' => array( 'cost' => 1 ),
                         'ticker/{pair}' => array( 'cost' => 1 ),
                         'trades/{pair}' => array( 'cost' => 1 ),
+                        'vasp_info/{vasp_master_id}' => array( 'cost' => 1 ),
+                        'country_info/{code}' => array( 'cost' => 1 ),
+                        'corp_type_id_info/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
@@ -327,7 +330,7 @@ class zaif extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        $funds = $this->safe_value($balances, 'funds', array());
+        $funds = $this->safe_dict($balances, 'funds', array());
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];

@@ -29,6 +29,7 @@ interface Exchange {
     publicGetMarginConfig (params?: {}): Promise<Dict>;
     publicGetAnnouncements (params?: {}): Promise<Dict>;
     publicGetMarginCollateralRatio (params?: {}): Promise<Dict>;
+    publicGetMarginAvailableInventory (params?: {}): Promise<Dict>;
     publicGetConvertSymbol (params?: {}): Promise<Dict>;
     publicGetConvertCurrencies (params?: {}): Promise<Dict>;
     publicPostBulletPublic (params?: {}): Promise<Dict>;
@@ -103,6 +104,7 @@ interface Exchange {
     privateGetMarginBorrow (params?: {}): Promise<Dict>;
     privateGetMarginRepay (params?: {}): Promise<Dict>;
     privateGetMarginInterest (params?: {}): Promise<Dict>;
+    privateGetMarginBorrowRate (params?: {}): Promise<Dict>;
     privateGetProjectList (params?: {}): Promise<Dict>;
     privateGetProjectMarketInterestRate (params?: {}): Promise<Dict>;
     privateGetRedeemOrders (params?: {}): Promise<Dict>;
@@ -119,6 +121,11 @@ interface Exchange {
     privateGetConvertLimitOrderDetail (params?: {}): Promise<Dict>;
     privateGetConvertLimitOrders (params?: {}): Promise<Dict>;
     privateGetAffiliateInviterStatistics (params?: {}): Promise<Dict>;
+    privateGetAffiliateQueryInvitees (params?: {}): Promise<Dict>;
+    privateGetAffiliateQueryMyCommission (params?: {}): Promise<Dict>;
+    privateGetAffiliateQueryTransactionByUid (params?: {}): Promise<Dict>;
+    privateGetAffiliateQueryTransactionByTime (params?: {}): Promise<Dict>;
+    privateGetAffiliateQueryKumining (params?: {}): Promise<Dict>;
     privatePostSubUserCreated (params?: {}): Promise<Dict>;
     privatePostSubApiKey (params?: {}): Promise<Dict>;
     privatePostSubApiKeyUpdate (params?: {}): Promise<Dict>;
@@ -283,6 +290,7 @@ interface Exchange {
     brokerGetBrokerNdAccount (params?: {}): Promise<Dict>;
     brokerGetBrokerNdAccountApikey (params?: {}): Promise<Dict>;
     brokerGetBrokerNdRebaseDownload (params?: {}): Promise<Dict>;
+    brokerGetBrokerNdMarkUp (params?: {}): Promise<Dict>;
     brokerGetAssetNdbrokerDepositList (params?: {}): Promise<Dict>;
     brokerGetBrokerNdTransferDetail (params?: {}): Promise<Dict>;
     brokerGetBrokerNdDepositDetail (params?: {}): Promise<Dict>;
@@ -291,6 +299,7 @@ interface Exchange {
     brokerPostBrokerNdAccount (params?: {}): Promise<Dict>;
     brokerPostBrokerNdAccountApikey (params?: {}): Promise<Dict>;
     brokerPostBrokerNdAccountUpdateApikey (params?: {}): Promise<Dict>;
+    brokerPostBrokerNdMarkUp (params?: {}): Promise<Dict>;
     brokerDeleteBrokerNdAccountApikey (params?: {}): Promise<Dict>;
     earnGetOtcLoanDiscountRateConfigs (params?: {}): Promise<Dict>;
     earnGetOtcLoanLoan (params?: {}): Promise<Dict>;

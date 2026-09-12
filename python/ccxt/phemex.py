@@ -200,6 +200,7 @@ class phemex(Exchange, ImplicitAPI):
                     'get': {
                         'public/products': {'cost': 5},
                         'public/products-plus': {'cost': 5},
+                        'public/index-sources': {'cost': 5},  # ?symbol=<symbol>&pageNum=<pageNum>&pageSize=<pageSize>
                         'md/v2/orderbook': {'cost': 5},  # ?symbol=<symbol>&id=<id>
                         'md/v2/trade': {'cost': 5},  # ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr': {'cost': 5},  # ?symbol=<symbol>&id=<id>
@@ -268,6 +269,16 @@ class phemex(Exchange, ImplicitAPI):
                         'assets/futures/sub-accounts/transfer': {'cost': 5},  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote': {'cost': 5},  # ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                         # deposit/withdraw
+                        # copy trade
+                        'phemex-lb/public/api/trader/performance-info': {'cost': 5},  # ?strategyIds=<strategyIds>&pageNum=<pageNum>&pageSize=<pageSize>
+                        # uta
+                        'uta-api/risk/risk-mode': {'cost': 5},
+                        'uta-api/risk/risk-units': {'cost': 5},  # ?currency=<currency>&riskType=<riskType>
+                        'uta-biz/assets': {'cost': 5},  # ?currency=<currency>
+                        'uta-funds/contract/borrow': {'cost': 5},  # ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-funds/contract/payback': {'cost': 5},  # ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-funds/contract/borrow/interests': {'cost': 5},  # ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-exchanger/assets/convert': {'cost': 5},  # ?fromCurrency=<currency>&toCurrency=<currency>&start=<start>&end=<end>&offset=<offset>&limit=<limit>
                     },
                     'post': {
                         # spot
@@ -291,6 +302,9 @@ class phemex(Exchange, ImplicitAPI):
                         # withdraw
                         'phemex-withdraw/wallets/api/createWithdraw': {'cost': 5},  # ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
                         'phemex-withdraw/wallets/api/cancelWithdraw': {'cost': 5},  # ?id=<id>
+                        # uta
+                        'uta-account/switch-mode': {'cost': 5},  # ?riskMode=<riskMode>
+                        'uta-funds/contract/payback': {'cost': 5},  # body: currency, amountRv
                     },
                     'put': {
                         # spot
@@ -581,7 +595,7 @@ class phemex(Exchange, ImplicitAPI):
                     '11125': InvalidOrder,  # TE_BO_CANNOT_CANCEL_BOTP_OR_BOSL_ORDER Details: cannot cancel bracket sl/tp order
                     '11126': InvalidOrder,  # TE_BO_DONOT_SUPPORT_API Details: doesn't support bracket order via API
                     '11128': InvalidOrder,  # TE_BO_INVALID_EXECINST Details: ExecInst value is invalid
-                    '11129': InvalidOrder,  # TE_BO_MUST_BE_SAME_SIDE_AS_POS Details: bracket order should have the same side's side
+                    '11129': InvalidOrder,  # TE_BO_MUST_BE_SAME_SIDE_AS_POS Details: bracket order should have the same side as position's side
                     '11130': InvalidOrder,  # TE_BO_WRONG_SL_TRIGGER_TYPE Details: bracket stop loss order trigger type is invalid
                     '11131': InvalidOrder,  # TE_BO_WRONG_TP_TRIGGER_TYPE Details: bracket take profit order trigger type is invalid
                     '11132': InvalidOrder,  # TE_BO_ABORT_BOSL_DUE_BOTP_CREATE_FAILED Details: cancel bracket stop loss order due failed to create take profit order.
@@ -1362,7 +1376,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: *USDT settled/ linear swaps only* end time in ms
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1979,7 +1993,7 @@ class phemex(Exchange, ImplicitAPI):
         #
         timestamp = None
         result = {'info': response}
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -3753,7 +3767,7 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        positions = self.safe_value(data, 'positions', [])
+        positions = self.safe_list(data, 'positions', [])
         result = []
         for i in range(0, len(positions)):
             position = positions[i]
@@ -4040,7 +4054,7 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        rows = self.safe_value(data, 'rows', [])
+        rows = self.safe_list(data, 'rows', [])
         result = []
         for i in range(0, len(rows)):
             entry = rows[i]
@@ -5346,7 +5360,7 @@ class phemex(Exchange, ImplicitAPI):
             #     }
             #
         data = self.safe_value(response, 'data', {})
-        ranks = self.safe_value(data, 'positions', [])
+        ranks = self.safe_list(data, 'positions', [])
         result = []
         for i in range(0, len(ranks)):
             rank = ranks[i]

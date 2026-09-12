@@ -87,6 +87,11 @@ impl ParadexCore {
         self.call_method(Value::Str("public_get_referrals_config".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetStakingBalanceHistoryGlobal` implicit endpoint.
+    pub async fn public_get_staking_balance_history_global(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_staking_balance_history_global".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetStakingConfig` implicit endpoint.
     pub async fn public_get_staking_config(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_staking_config".to_string()), optional_args).await
@@ -130,6 +135,11 @@ impl ParadexCore {
     /// Auto-generated wrapper for the `publicGetVaults` implicit endpoint.
     pub async fn public_get_vaults(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_vaults".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetVaultsAnalytics` implicit endpoint.
+    pub async fn public_get_vaults_analytics(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_vaults_analytics".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetVaultsBalance` implicit endpoint.
@@ -337,6 +347,31 @@ impl ParadexCore {
         self.call_method(Value::Str("private_get_referrals_summary".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetRfqs` implicit endpoint.
+    pub async fn private_get_rfqs(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_rfqs".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetRfqsDrafts` implicit endpoint.
+    pub async fn private_get_rfqs_drafts(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_rfqs_drafts".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetRfqsMarkets` implicit endpoint.
+    pub async fn private_get_rfqs_markets(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_rfqs_markets".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetRfqsRfqIdBbo` implicit endpoint.
+    pub async fn private_get_rfqs_rfq_id_bbo(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_rfqs_rfq_id_bbo".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetStakingBalanceHistory` implicit endpoint.
+    pub async fn private_get_staking_balance_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_staking_balance_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetStakingHistory` implicit endpoint.
     pub async fn private_get_staking_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_staking_history".to_string()), optional_args).await
@@ -427,6 +462,16 @@ impl ParadexCore {
         self.call_method(Value::Str("private_post_account_settings_trading_value_display".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostAccountParadigmEnable` implicit endpoint.
+    pub async fn private_post_account_paradigm_enable(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_account_paradigm_enable".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAccountTerminalToken` implicit endpoint.
+    pub async fn private_post_account_terminal_token(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_account_terminal_token".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostAccountKeysSubkeysActivate` implicit endpoint.
     pub async fn private_post_account_keys_subkeys_activate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_keys_subkeys_activate".to_string()), optional_args).await
@@ -487,6 +532,21 @@ impl ParadexCore {
         self.call_method(Value::Str("private_post_orders_batch".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostRfqs` implicit endpoint.
+    pub async fn private_post_rfqs(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_rfqs".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostRfqsDrafts` implicit endpoint.
+    pub async fn private_post_rfqs_drafts(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_rfqs_drafts".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostRfqsRfqIdExecute` implicit endpoint.
+    pub async fn private_post_rfqs_rfq_id_execute(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_rfqs_rfq_id_execute".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostV2Auth` implicit endpoint.
     pub async fn private_post_v2_auth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v2_auth".to_string()), optional_args).await
@@ -515,6 +575,16 @@ impl ParadexCore {
     /// Auto-generated wrapper for the `privatePutAccountKeysSubkeysPublicKey` implicit endpoint.
     pub async fn private_put_account_keys_subkeys_public_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_put_account_keys_subkeys_public_key".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutAccountKeysSubkeysPublicKeyAllowedCidrs` implicit endpoint.
+    pub async fn private_put_account_keys_subkeys_public_key_allowed_cidrs(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_account_keys_subkeys_public_key_allowed_cidrs".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutAccountTokensLookupIdAllowedCidrs` implicit endpoint.
+    pub async fn private_put_account_tokens_lookup_id_allowed_cidrs(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_account_tokens_lookup_id_allowed_cidrs".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePutOrdersOrderId` implicit endpoint.
@@ -565,6 +635,16 @@ impl ParadexCore {
     /// Auto-generated wrapper for the `privateDeleteOrdersOrderId` implicit endpoint.
     pub async fn private_delete_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_delete_orders_order_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateDeleteRfqsDraftsDraftId` implicit endpoint.
+    pub async fn private_delete_rfqs_drafts_draft_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_rfqs_drafts_draft_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateDeleteRfqsRfqId` implicit endpoint.
+    pub async fn private_delete_rfqs_rfq_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_rfqs_rfq_id".to_string()), optional_args).await
     }
 
 }

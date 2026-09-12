@@ -347,6 +347,31 @@ impl BybitCore {
         self.call_method(Value::Str("public_get_v5_earn_product".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetV5SpotXLaunchpoolProjectList` implicit endpoint.
+    pub async fn public_get_v5_spot_x_launchpool_project_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_spot_x_launchpool_project_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV5SpotXPuzzleProjectList` implicit endpoint.
+    pub async fn public_get_v5_spot_x_puzzle_project_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_spot_x_puzzle_project_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV5SpotXTokenSplashProjectList` implicit endpoint.
+    pub async fn public_get_v5_spot_x_token_splash_project_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_spot_x_token_splash_project_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV5EventInstrumentsInfo` implicit endpoint.
+    pub async fn public_get_v5_event_instruments_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_event_instruments_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV5EventOrderbook` implicit endpoint.
+    pub async fn public_get_v5_event_orderbook(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_event_orderbook".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV5MarketInstrumentsInfo` implicit endpoint.
     pub async fn private_get_v5_market_instruments_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_market_instruments_info".to_string()), optional_args).await
@@ -1017,6 +1042,11 @@ impl BybitCore {
         self.call_method(Value::Str("private_get_v5_user_invitation_referrals".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV5UserInvitationCode` implicit endpoint.
+    pub async fn private_get_v5_user_invitation_code(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_user_invitation_code".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV5AffiliateAffUserList` implicit endpoint.
     pub async fn private_get_v5_affiliate_aff_user_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_affiliate_aff_user_list".to_string()), optional_args).await
@@ -1035,6 +1065,11 @@ impl BybitCore {
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeFlexibleAvailableInventory` implicit endpoint.
     pub async fn private_get_v5_spot_margin_trade_flexible_available_inventory(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_flexible_available_inventory".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeFixedAvailableInventory` implicit endpoint.
+    pub async fn private_get_v5_spot_margin_trade_fixed_available_inventory(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_spot_margin_trade_fixed_available_inventory".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeInterestRateHistory` implicit endpoint.
@@ -1207,6 +1242,16 @@ impl BybitCore {
         self.call_method(Value::Str("private_get_v5_crypto_loan_fixed_repayment_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV5CryptoLoanFixedAvailableInventory` implicit endpoint.
+    pub async fn private_get_v5_crypto_loan_fixed_available_inventory(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_crypto_loan_fixed_available_inventory".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5CryptoLoanFlexibleAvailableInventory` implicit endpoint.
+    pub async fn private_get_v5_crypto_loan_flexible_available_inventory(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_crypto_loan_flexible_available_inventory".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV5InsLoanProductInfos` implicit endpoint.
     pub async fn private_get_v5_ins_loan_product_infos(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_ins_loan_product_infos".to_string()), optional_args).await
@@ -1305,6 +1350,61 @@ impl BybitCore {
     /// Auto-generated wrapper for the `privateGetV5EarnHourlyYield` implicit endpoint.
     pub async fn private_get_v5_earn_hourly_yield(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_earn_hourly_yield".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5EventOrderRealtime` implicit endpoint.
+    pub async fn private_get_v5_event_order_realtime(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_event_order_realtime".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5EventOrderList` implicit endpoint.
+    pub async fn private_get_v5_event_order_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_event_order_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5EventPositions` implicit endpoint.
+    pub async fn private_get_v5_event_positions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_event_positions".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5EventTrades` implicit endpoint.
+    pub async fn private_get_v5_event_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_event_trades".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5EventSettlements` implicit endpoint.
+    pub async fn private_get_v5_event_settlements(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_event_settlements".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5SpotXLaunchpoolUserCurrentStaking` implicit endpoint.
+    pub async fn private_get_v5_spot_x_launchpool_user_current_staking(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_spot_x_launchpool_user_current_staking".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5SpotXTokenSplashUserActivityParams` implicit endpoint.
+    pub async fn private_get_v5_spot_x_token_splash_user_activity_params(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_spot_x_token_splash_user_activity_params".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5RfqRfqDetailList` implicit endpoint.
+    pub async fn private_get_v5_rfq_rfq_detail_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_rfq_rfq_detail_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5AlphaPredictionEngineStatus` implicit endpoint.
+    pub async fn private_get_v5_alpha_prediction_engine_status(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_alpha_prediction_engine_status".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5AlphaPredictionPayTokenList` implicit endpoint.
+    pub async fn private_get_v5_alpha_prediction_pay_token_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_alpha_prediction_pay_token_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5AlphaPredictionSportsTimelineStages` implicit endpoint.
+    pub async fn private_get_v5_alpha_prediction_sports_timeline_stages(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_alpha_prediction_sports_timeline_stages".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSpotV3PrivateOrder` implicit endpoint.
@@ -2030,6 +2130,96 @@ impl BybitCore {
     /// Auto-generated wrapper for the `privatePostV5EarnPlaceOrder` implicit endpoint.
     pub async fn private_post_v5_earn_place_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_earn_place_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5EventQuotes` implicit endpoint.
+    pub async fn private_post_v5_event_quotes(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_event_quotes".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5EventCancel` implicit endpoint.
+    pub async fn private_post_v5_event_cancel(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_event_cancel".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5SpotXLaunchpoolUserActivityLog` implicit endpoint.
+    pub async fn private_post_v5_spot_x_launchpool_user_activity_log(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_spot_x_launchpool_user_activity_log".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5SpotXLaunchpoolUserHistory` implicit endpoint.
+    pub async fn private_post_v5_spot_x_launchpool_user_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_spot_x_launchpool_user_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionEventDetail` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_event_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_event_detail".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionOrderEstimate` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_order_estimate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_order_estimate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionBuy` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_buy(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_buy".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionSell` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_sell(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_sell".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionOrderList` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_order_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_order_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionOrderBook` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_order_book(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_order_book".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionTokenPrice` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_token_price(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_token_price".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionPriceHistory` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_price_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_price_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionPositionList` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_position_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_position_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionPositionHistory` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_position_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_position_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionPortfolioSummary` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_portfolio_summary(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_portfolio_summary".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionSideMarketList` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_side_market_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_side_market_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionSportsMatchList` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_sports_match_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_sports_match_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AlphaPredictionSportsGroupStageDetail` implicit endpoint.
+    pub async fn private_post_v5_alpha_prediction_sports_group_stage_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_alpha_prediction_sports_group_stage_detail".to_string()), optional_args).await
     }
 
 }

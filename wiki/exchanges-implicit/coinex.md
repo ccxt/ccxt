@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official coinex API documentation:** [docs.coinex.com](https://docs.coinex.com/api/v2)
 
-> 251 implicit endpoints across 2 access groups.
+> 254 implicit endpoints across 2 access groups.
 
 ## v1
 
@@ -212,6 +212,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v2PublicGetFuturesBasisHistory` | GET | `futures/basis-history` | 1 |
 | `v2PublicGetAssetsDepositWithdrawConfig` | GET | `assets/deposit-withdraw-config` | 1 |
 | `v2PublicGetAssetsAllDepositWithdrawConfig` | GET | `assets/all-deposit-withdraw-config` | 1 |
+| `v2PublicGetAssetsInfo` | GET | `assets/info` | 1 |
 | `v2PrivateGetAccountSubs` | GET | `account/subs` | 1 |
 | `v2PrivateGetAccountSubsApiDetail` | GET | `account/subs/api-detail` | 40 |
 | `v2PrivateGetAccountSubsInfo` | GET | `account/subs/info` | 1 |
@@ -317,4 +318,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v2PrivatePostFuturesAdjustPositionLeverage` | POST | `futures/adjust-position-leverage` | 20 |
 | `v2PrivatePostFuturesSetPositionStopLoss` | POST | `futures/set-position-stop-loss` | 20 |
 | `v2PrivatePostFuturesSetPositionTakeProfit` | POST | `futures/set-position-take-profit` | 20 |
+| `v2PrivatePostFuturesModifyPositionStopLoss` | POST | `futures/modify-position-stop-loss` | 20 |
+| `v2PrivatePostFuturesModifyPositionTakeProfit` | POST | `futures/modify-position-take-profit` | 20 |
 

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -1328,14 +1332,8 @@ impl LbankCore {
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
-        // lbank drives liveness from its side: the server sends this
-        // application-level ping and closes the socket if it is not answered
-        // within a minute, but it does not reliably answer the RFC 6455 ping
-        // frames the base client sends from onPingInterval. an inbound ping is
-        // proof the connection is alive, so record it as the last pong -
-        // otherwise lastPong never advances past the first onPingInterval and
-        // the keepAlive * maxPingPongMisses check tears down a healthy,
-        // streaming socket every 60 seconds
+        // lbank closes the socket if this app-level ping is unanswered within a minute, but does not
+        // reliably answer RFC 6455 ping frames; treat the inbound ping as a pong so keepAlive doesn't tear down a healthy socket
         crate::set_value(&mut client, &Value::Str("lastPong".to_string()), self.milliseconds());
         let mut pingId: Value = self.safe_string_k(message.clone(), "ping", &[]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -1385,18 +1383,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        // single-flight leader election, see
-        // https://github.com/ccxt/ccxt/issues/29393: both branches below read
-        // the cache, then fetch, then write it back, so concurrent
-        // watchOrders/watchBalance calls on a cold instance each POST
-        // subscribe/get_key, and concurrent callers past the expiry each POST
-        // subscribe/refresh_key - every loser burns rate limit on a
-        // subscribeKey that is immediately overwritten. the flight is parked
-        // on this exchange's own ws client - the same one that carries
-        // subscriptions['authenticated'] - under a key that is not one of its
-        // messageHashes, registered in client.futures before the first fetch
-        // and settled through client.resolve / client.reject so that every
-        // write to the futures map goes through the client itself
+        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        // concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
+        // subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately
+        // overwritten. the flight lives in client.futures of this exchange's own ws client under
+        // a key that is not a messageHash, and settles via client.resolve / client.reject only
         self.check_required_credentials(&[]);
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut client: Value = self.client(&[url.clone()]);

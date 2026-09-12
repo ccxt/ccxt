@@ -701,7 +701,7 @@ class woo extends \ccxt\async\woo {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -739,7 +739,7 @@ class woo extends \ccxt\async\woo {
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -967,7 +967,7 @@ class woo extends \ccxt\async\woo {
         ), $market);
     }
 
-    public function check_required_uid($error = true) {
+    public function check_required_uid($error = true): bool {
         if (($this->uid === null) || ($this->uid === '')) {
             if ($error) {
                 throw new AuthenticationError($this->id . ' requires `uid` credential (woox calls it `application_id`)');
@@ -1487,7 +1487,7 @@ class woo extends \ccxt\async\woo {
         //    }
         //
         $data = $this->safe_value($message, 'data', array());
-        $rawPositions = $this->safe_value($data, 'positions', array());
+        $rawPositions = $this->safe_dict($data, 'positions', array());
         $postitionsIds = is_array($rawPositions) ? array_keys($rawPositions) : array();
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide();

@@ -320,6 +320,7 @@ class coinex extends Exchange {
                             'futures/basis-history' => array( 'cost' => 1 ),
                             'assets/deposit-withdraw-config' => array( 'cost' => 1 ),
                             'assets/all-deposit-withdraw-config' => array( 'cost' => 1 ),
+                            'assets/info' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
@@ -431,6 +432,8 @@ class coinex extends Exchange {
                             'futures/adjust-position-leverage' => array( 'cost' => 20 ),
                             'futures/set-position-stop-loss' => array( 'cost' => 20 ),
                             'futures/set-position-take-profit' => array( 'cost' => 20 ),
+                            'futures/modify-position-stop-loss' => array( 'cost' => 20 ),
+                            'futures/modify-position-take-profit' => array( 'cost' => 20 ),
                         ),
                     ),
                 ),
@@ -1648,7 +1651,7 @@ class coinex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();

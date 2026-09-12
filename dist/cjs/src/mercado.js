@@ -134,6 +134,7 @@ class mercado extends mercado$1["default"] {
                     'private': 'https://www.mercadobitcoin.net/tapi',
                     'v4Public': 'https://www.mercadobitcoin.com.br/v4',
                     'v4PublicNet': 'https://api.mercadobitcoin.net/api/v4',
+                    'v4Private': 'https://api.mercadobitcoin.net/api/v4',
                 },
                 'www': 'https://www.mercadobitcoin.com.br',
                 'doc': [
@@ -177,6 +178,16 @@ class mercado extends mercado$1["default"] {
                 'v4PublicNet': {
                     'get': {
                         'candles': { 'cost': 1 },
+                    },
+                },
+                'v4Private': {
+                    'post': {
+                        'accounts': { 'cost': 1 },
+                        'accounts/{accountId}/{symbol}/transfers/internal': { 'cost': 1 },
+                        'oauth2/token': { 'cost': 1 },
+                    },
+                    'patch': {
+                        'accounts/{accountId}/wallet/{symbol}/deposits/{depositId}': { 'cost': 1 },
                     },
                 },
             },
@@ -523,7 +534,7 @@ class mercado extends mercado$1["default"] {
     }
     parseBalance(response) {
         const data = this.safeValue(response, 'response_data', {});
-        const balances = this.safeValue(data, 'balance', {});
+        const balances = this.safeDict(data, 'balance', {});
         const result = { 'info': response };
         const currencyIds = Object.keys(balances);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -1001,7 +1012,7 @@ class mercado extends mercado$1["default"] {
     ordersToTrades(orders) {
         const result = [];
         for (let i = 0; i < orders.length; i++) {
-            const trades = this.safeValue(orders[i], 'trades', []);
+            const trades = this.safeList(orders[i], 'trades', []);
             for (let y = 0; y < trades.length; y++) {
                 result.push(trades[y]);
             }

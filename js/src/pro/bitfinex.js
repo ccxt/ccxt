@@ -894,7 +894,7 @@ export default class bitfinex extends bitfinexRest {
             const code = this.safeCurrencyCode(currencyId);
             const balance = this.parseWsBalance(rawBalance);
             const balanceType = this.safeString(rawBalance, 0);
-            const oldBalance = this.safeValue(this.balance, balanceType, {});
+            const oldBalance = this.safeDict(this.balance, balanceType, {});
             if (code !== undefined) {
                 oldBalance[code] = balance;
             }
@@ -1116,7 +1116,7 @@ export default class bitfinex extends bitfinexRest {
         //        ]
         //    ]
         //
-        const data = this.safeValue(message, 2, []);
+        const data = this.safeList(message, 2, []);
         const messageType = this.safeString(message, 1);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);

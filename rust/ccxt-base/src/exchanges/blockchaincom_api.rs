@@ -47,6 +47,11 @@ impl BlockchaincomCore {
         self.call_method(Value::Str("private_get_fees".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetInternalOrders` implicit endpoint.
+    pub async fn private_get_internal_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_internal_orders".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetOrders` implicit endpoint.
     pub async fn private_get_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_orders".to_string()), optional_args).await

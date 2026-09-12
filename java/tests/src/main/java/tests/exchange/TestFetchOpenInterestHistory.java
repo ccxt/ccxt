@@ -16,7 +16,7 @@ public class TestFetchOpenInterestHistory extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchOpenInterestHistory";
+        String method = "fetchOpenInterestHistory";
         Object openInterestHistory = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOpenInterestHistory", new Object[]{symbol})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, openInterestHistory, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(openInterestHistory)); i++)

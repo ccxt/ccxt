@@ -14,7 +14,7 @@ import io.github.ccxt.base.Precise;
 public class TestBalance extends BaseTest {
     public static void testBalance(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "free", new java.util.HashMap<String, Object>() {{}} );
             put( "used", new java.util.HashMap<String, Object>() {{}} );
             put( "total", new java.util.HashMap<String, Object>() {{}} );
@@ -42,16 +42,16 @@ public class TestBalance extends BaseTest {
             Assert(Helpers.inOp(Helpers.GetValue(entry, "total"), code), Helpers.add(Helpers.add(Helpers.add("code ", code), " not in total"), logText));
             Assert(Helpers.inOp(Helpers.GetValue(entry, "free"), code), Helpers.add(Helpers.add(Helpers.add("code ", code), " not in free"), logText));
             Assert(Helpers.inOp(Helpers.GetValue(entry, "used"), code), Helpers.add(Helpers.add(Helpers.add("code ", code), " not in used"), logText));
-            Object total = exchange.safeString(Helpers.GetValue(entry, "total"), code);
-            Object free = exchange.safeString(Helpers.GetValue(entry, "free"), code);
-            Object used = exchange.safeString(Helpers.GetValue(entry, "used"), code);
+            String total = exchange.safeString(Helpers.GetValue(entry, "total"), code);
+            String free = exchange.safeString(Helpers.GetValue(entry, "free"), code);
+            String used = exchange.safeString(Helpers.GetValue(entry, "used"), code);
             Assert(!Helpers.isEqual(total, null), Helpers.add("total is undefined", logText));
             Assert(!Helpers.isEqual(free, null), Helpers.add("free is undefined", logText));
             Assert(!Helpers.isEqual(used, null), Helpers.add("used is undefined", logText));
             Assert(Precise.stringGe(total, "0"), Helpers.add("total is not positive", logText));
             Assert(Precise.stringGe(free, "0"), Helpers.add("free is not positive", logText));
             Assert(Precise.stringGe(used, "0"), Helpers.add("used is not positive", logText));
-            Object sumFreeUsed = Precise.stringAdd(free, used);
+            String sumFreeUsed = Precise.stringAdd(free, used);
             Assert(Precise.stringEq(total, sumFreeUsed), Helpers.add("free and used do not sum to total", logText));
         }
     }

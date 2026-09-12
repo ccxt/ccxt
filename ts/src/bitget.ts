@@ -314,6 +314,38 @@ export default class bitget extends Exchange {
                             'v3/market/position-tier': { 'cost': 1 } as Endpoint<Dict>,
                             'v3/market/oi-limit': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/market/index-components': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/market/risk-reserve-all': { 'cost': 6.6667 } as Endpoint<Dict>, // 3 times/1s (IP) => 20/3 = 6.6667
+                            'v3/market/risk-reserve-hour': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/score-weights': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/market/fee-group': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/market/cash-dividend-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/market/split-records': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/market/liquidations': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/market/rpi-orderbook': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/market/rpi-symbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/market/spot-whale-flow': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/spot-fund-flow': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/spot-net-flow': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/margin-long-short': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/margin-loan-growth': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/margin-isolated-borrow': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/futures-active-buy-sell': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/futures-long-short': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/futures-position-long-short': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/futures-account-long-short': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/stock-info': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/states': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/calendar': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/company-overview': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/valuation-indicators': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/earnings-forecast': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/suspension-resumption-info': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/dividends': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/share-capital-change': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/inner-trades': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/executive-shareholdings': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/sharehold-detail': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/custom-collateral-coins': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -574,6 +606,7 @@ export default class bitget extends Exchange {
                             'v2/user/batch-create-subaccount-and-apikey': { 'cost': 20 } as Endpoint<Dict>,
                             'v2/user/create-virtual-subaccount-apikey': { 'cost': 4 } as Endpoint<Dict>,
                             'v2/user/modify-virtual-subaccount-apikey': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/user/create-agent-subaccount': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                     'p2p': {
@@ -605,6 +638,13 @@ export default class bitget extends Exchange {
                             'v2/broker/account/subaccount-spot-assets': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/broker/account/subaccount-future-assets': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/broker/manage/subaccount-apikey-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/sub-customer-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/agent-commission': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/customer-commissions': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/customer-kyc-result': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/order-commission': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/broker/rebate-info': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/broker/total-commission': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'broker/v1/account/sub-create': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
@@ -623,6 +663,10 @@ export default class bitget extends Exchange {
                             'v2/broker/account/set-subaccount-autotransfer': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/broker/manage/create-subaccount-apikey': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/broker/manage/modify-subaccount-apikey': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/customer-asset': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/customer-deposit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/customer-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/customer-trade-volume': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'margin': {
@@ -812,6 +856,12 @@ export default class bitget extends Exchange {
                             'v2/earn/loan/debts': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/earn/loan/reduces': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/earn/account/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/elite/product': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/elite/assets': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/elite/records': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/elite/subscribe-info': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/elite/subscribe-result': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/elite/redeem-info': { 'cost': 4 } as Endpoint<Dict>,
                         },
                         'post': {
                             'v2/earn/savings/subscribe': { 'cost': 2 } as Endpoint<Dict>,
@@ -820,6 +870,8 @@ export default class bitget extends Exchange {
                             'v2/earn/loan/borrow': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/earn/loan/repay': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/earn/loan/revise-pledge': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/elite/subscribe': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/elite/redeem': { 'cost': 4 } as Endpoint<Dict>,
                         },
                     },
                     'common': {
@@ -881,6 +933,76 @@ export default class bitget extends Exchange {
                             'v3/trade/fills': { 'cost': 1 } as Endpoint<Dict>,
                             'v3/user/sub-list': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/user/sub-api-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/info': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/all-fee-rate': { 'cost': 6.6667 } as Endpoint<Dict>, // 3 times/1s (UID) => 20/3 = 6.6667
+                            'v3/account/delta-info': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/withdraw-address': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/max-withdrawal': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/move-position-history': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/collateral-type': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/pre-set-leverage': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/eligible-symbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/eligible-margin-tier': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/eligible-loan-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/eligible-discount-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/funding-financial-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/reality-orderbook': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/reality-fills': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/copy/futures/trading-pairs': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/copy/futures/position-summary': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/copy/futures/max-transferable': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/copy/futures/transfer-record': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/copy/futures/current-follower': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/copy/futures/history-follower': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/copy/futures/profit-summary': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/copy/futures/profit-details': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/convert/small-assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/convert/small-assets-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/earn/elite-product': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/earn/elite-assets': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/earn/elite-subscribe-info': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/earn/elite-records': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/earn/elite-subscribe-result': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/earn/elite-redeem-info': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/trade/loan-data': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/strategy-sub-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/grid/bot-detail': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/grid/list-details': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/neutral-bot-detail': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/grid/neutral-list-details': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/user/rate-limit-quota': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/option-quote': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/option-chain-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/option-expiry-date': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/option-volume': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/depth': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/static': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/quote': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/trade': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/intraday': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/history-candlestick': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/candlestick': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/today-orders': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/history-orders': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/order-detail': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/today-executions': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/history-executions': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/asset/account': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/asset/cash-flow': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/asset/stock-position': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/asset/transfer-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/ad-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/ad-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/ad-limit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/my-ads': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/pending-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/all-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/order-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/user-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/currencies': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/pay-method': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/balance': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/exchange-rate': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
                             'v3/account/set-leverage': { 'cost': 2 } as Endpoint<Dict>,
@@ -923,6 +1045,38 @@ export default class bitget extends Exchange {
                             'v3/user/create-sub-api': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/user/update-sub-api': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/user/delete-sub-api': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/move-positions': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/cancel-withdrawal': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/set-margin': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/set-collateral-type': { 'cost': 10 } as Endpoint<Dict>,
+                            'v3/copy/futures/transfer': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/convert/small-assets-trade': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/earn/elite-subscribe': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/earn/elite-redeem': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/trade/place-reality-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/cancel-reality-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/grid/validate': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/create-bot': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/modify-bot': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/modify-grid-interval': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/add-investment': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/close-bot': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/validate-neutral': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/create-neutral-bot': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/modify-neutral-bot': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/modify-neutral-grid-interval': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/user/set-rate-limit-quota': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/user/sub-account/agent-create': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/place-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/cancel-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/modify-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/asset/transfer': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/p2p/ad-create': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/ad-update': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/ad-operate': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/fee-simulate': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/order-pay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/order-release': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -4365,7 +4519,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -9808,7 +9962,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         data['ts'] = this.safeInteger (response, 'requestTime');
         return this.parseTransfer (data, currency);
     }
@@ -9889,7 +10043,7 @@ export default class bitget extends Exchange {
         //         "transfer": "true""
         //     }
         //
-        const chains = this.safeValue (fee, 'chains', []);
+        const chains = this.safeList (fee, 'chains', []);
         const chainsLength = chains.length;
         const result: Dict = {
             'info': fee,
@@ -10400,7 +10554,7 @@ export default class bitget extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'requestTime');
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         first['timestamp'] = timestamp;
         return this.parseIsolatedBorrowRate (first, market);
     }
@@ -10525,7 +10679,7 @@ export default class bitget extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data', []);
-            result = this.safeValue (data, 0, {});
+            result = this.safeDict (data, 0, {});
         }
         const timestamp = this.safeInteger (response, 'requestTime');
         result['timestamp'] = timestamp;

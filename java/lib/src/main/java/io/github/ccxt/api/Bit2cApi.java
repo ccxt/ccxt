@@ -42,6 +42,17 @@ public class Bit2cApi extends Exchange
     }
 
     /**
+     * Calls the publicGetExchangesPairOrderbookTop endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetExchangesPairOrderbookTop (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetExchangesPairOrderbookTop", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetExchangesPairTrades endpoint.
      *
      * @param optionalArgs the request parameters
@@ -83,6 +94,17 @@ public class Bit2cApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFundsAddCoinFundsRequest (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFundsAddCoinFundsRequest", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostFundsWithdrawCoin endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFundsWithdrawCoin (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostFundsWithdrawCoin", optionalArgs);
     }
 
     /**
@@ -270,6 +292,17 @@ public class Bit2cApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOrderOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrderOrderHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetOrderHistoryByOrderId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOrderHistoryByOrderId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetOrderHistoryByOrderId", optionalArgs);
     }
 
 }

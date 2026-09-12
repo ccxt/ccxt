@@ -212,6 +212,31 @@ impl UpbitCore {
         self.call_method(Value::Str("private_get_api_keys".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetPockets` implicit endpoint.
+    pub async fn private_get_pockets(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_pockets".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetPocketsApiKeys` implicit endpoint.
+    pub async fn private_get_pockets_api_keys(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_pockets_api_keys".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetPocketsAssets` implicit endpoint.
+    pub async fn private_get_pockets_assets(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_pockets_assets".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetPocketsUniversalTransfers` implicit endpoint.
+    pub async fn private_get_pockets_universal_transfers(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_pockets_universal_transfers".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetPocketsTransfers` implicit endpoint.
+    pub async fn private_get_pockets_transfers(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_pockets_transfers".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostOrders` implicit endpoint.
     pub async fn private_post_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_orders".to_string()), optional_args).await
@@ -255,6 +280,16 @@ impl UpbitCore {
     /// Auto-generated wrapper for the `privatePostTravelRuleDepositTxid` implicit endpoint.
     pub async fn private_post_travel_rule_deposit_txid(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_travel_rule_deposit_txid".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostPocketsUniversalTransfers` implicit endpoint.
+    pub async fn private_post_pockets_universal_transfers(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_pockets_universal_transfers".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostPocketsTransfers` implicit endpoint.
+    pub async fn private_post_pockets_transfers(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_pockets_transfers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrder` implicit endpoint.

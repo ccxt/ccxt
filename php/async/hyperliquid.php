@@ -629,7 +629,13 @@ class hyperliquid extends Exchange {
             }
         } else {
             $fetchDexesLength = count($fetchDexes);
-            for ($i = 1; $i < $maxLimit; $i++) {
+            // index 0 is the null main $dex, so the loop runs 1..maxLimit to load
+            // exactly $maxLimit dexes. do NOT rewrite this as `$i <= $maxLimit` => the
+            // python transpiler collapses every for-loop bound to an exclusive
+            // range(), so `<=` silently emits range(1, $maxLimit) and loads one $dex
+            // too few (build/transpile.ts treats <, <=, > and >= identically)
+            $maxIteration = $this->sum($maxLimit, 1);
+            for ($i = 1; $i < $maxIteration; $i++) {
                 if ($i >= $fetchDexesLength) {
                     break;
                 }
@@ -1345,7 +1351,7 @@ class hyperliquid extends Exchange {
         } else {
             $response = Async\await($this->fetch_markets($params));
         }
-        // same $response "fetchMarkets"
+        // same $response as under "fetchMarkets"
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
@@ -1544,7 +1550,7 @@ class hyperliquid extends Exchange {
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1962,7 +1968,7 @@ class hyperliquid extends Exchange {
 
     private function do_initialize_client() {
         try {
-            Async\await(Promise\all(array( $this->handle_builder_fee_approval(), $this->set_ref(), $this->is_unified_enabled('fetchBalance', null, false, array()) ))); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods
+            Async\await(Promise\all(array( $this->handle_builder_fee_approval(), $this->set_ref(), $this->is_unified_enabled('fetchBalance', null, false, array()) ))); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         } catch (Exception $e) {
             return false;
         }
@@ -2219,7 +2225,7 @@ class hyperliquid extends Exchange {
 
     private function do_create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array()) {
         /**
-         * create a trade order that is executed TWAP order over a specified $duration->
+         * create a trade order that is executed as a TWAP order over a specified $duration->
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
@@ -3659,7 +3665,7 @@ class hyperliquid extends Exchange {
         $isTrigger = ($this->safe_bool($entry, 'isTrigger') === true);
         $triggerPx = $isTrigger ? $this->safe_number($entry, 'triggerPx') : null;
         // standalone stop / take-profit orders carry their trigger in $triggerPx - surface it
-        // through the unified $stopLossPrice / $takeProfitPrice fields, see #24318
+        // through the unified $stopLossPrice / $takeProfitPrice fields as well, see #24318
         $orderTypeRaw = $this->safe_string_lower($entry, 'orderType', '');
         $stopLossPrice = null;
         $takeProfitPrice = null;

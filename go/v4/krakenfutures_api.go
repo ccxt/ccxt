@@ -8,261 +8,276 @@
 package ccxt
 
 // PublicGetFeeschedules returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PublicGetFeeschedules(args ...any) <-chan any {
+func (this *Krakenfutures) PublicGetFeeschedules(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFeeschedules", args...)
 }
 
 // PublicGetInstruments returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PublicGetInstruments(args ...any) <-chan any {
+func (this *Krakenfutures) PublicGetInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInstruments", args...)
 }
 
 // PublicGetInstrumentsStatus returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PublicGetInstrumentsStatus(args ...any) <-chan any {
+func (this *Krakenfutures) PublicGetInstrumentsStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInstrumentsStatus", args...)
 }
 
 // PublicGetInstrumentsSymbolStatus returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PublicGetInstrumentsSymbolStatus(args ...any) <-chan any {
+func (this *Krakenfutures) PublicGetInstrumentsSymbolStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInstrumentsSymbolStatus", args...)
 }
 
 // PublicGetOrderbook returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PublicGetOrderbook(args ...any) <-chan any {
+func (this *Krakenfutures) PublicGetOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
 // PublicGetTickers returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PublicGetTickers(args ...any) <-chan any {
+func (this *Krakenfutures) PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
 // PublicGetTickersSymbol returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PublicGetTickersSymbol(args ...any) <-chan any {
+func (this *Krakenfutures) PublicGetTickersSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickersSymbol", args...)
 }
 
 // PublicGetHistory returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PublicGetHistory(args ...any) <-chan any {
+func (this *Krakenfutures) PublicGetHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetHistory", args...)
 }
 
 // PublicGetHistoricalfundingrates returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PublicGetHistoricalfundingrates(args ...any) <-chan any {
+func (this *Krakenfutures) PublicGetHistoricalfundingrates(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetHistoricalfundingrates", args...)
 }
 
 // PrivateGetFeeschedulesVolumes returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetFeeschedulesVolumes(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetFeeschedulesVolumes(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFeeschedulesVolumes", args...)
 }
 
 // PrivateGetOpenpositions returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetOpenpositions(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetOpenpositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenpositions", args...)
 }
 
 // PrivateGetNotifications returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetNotifications(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetNotifications(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetNotifications", args...)
 }
 
 // PrivateGetAccounts returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetAccounts(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
 // PrivateGetOpenorders returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetOpenorders(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetOpenorders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenorders", args...)
 }
 
 // PrivateGetRecentorders returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetRecentorders(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetRecentorders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetRecentorders", args...)
 }
 
 // PrivateGetFills returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetFills(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFills", args...)
 }
 
 // PrivateGetTransfers returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetTransfers(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
 // PrivateGetLeveragepreferences returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetLeveragepreferences(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetLeveragepreferences(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLeveragepreferences", args...)
 }
 
 // PrivateGetPnlpreferences returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetPnlpreferences(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetPnlpreferences(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPnlpreferences", args...)
 }
 
 // PrivateGetAssignmentprogramCurrent returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetAssignmentprogramCurrent(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetAssignmentprogramCurrent(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssignmentprogramCurrent", args...)
 }
 
 // PrivateGetAssignmentprogramHistory returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetAssignmentprogramHistory(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetAssignmentprogramHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssignmentprogramHistory", args...)
 }
 
 // PrivateGetOrdersStatus returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetOrdersStatus(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetOrdersStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersStatus", args...)
 }
 
 // PrivateGetUnwindqueue returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetUnwindqueue(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetUnwindqueue(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUnwindqueue", args...)
 }
 
 // PrivateGetSelfTradeStrategy returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetSelfTradeStrategy(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetSelfTradeStrategy(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSelfTradeStrategy", args...)
 }
 
 // PrivateGetSubaccounts returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetSubaccounts(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetSubaccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSubaccounts", args...)
 }
 
 // PrivateGetSubaccountUidTradingEnabled returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivateGetSubaccountUidTradingEnabled(args ...any) <-chan any {
+func (this *Krakenfutures) PrivateGetSubaccountUidTradingEnabled(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSubaccountUidTradingEnabled", args...)
 }
 
+// PrivateGetRfqAssignmentMaxLeverage returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateGetRfqAssignmentMaxLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRfqAssignmentMaxLeverage", args...)
+}
+
 // PrivatePostSendorder returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePostSendorder(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePostSendorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSendorder", args...)
 }
 
 // PrivatePostEditorder returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePostEditorder(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePostEditorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEditorder", args...)
 }
 
 // PrivatePostCancelorder returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePostCancelorder(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePostCancelorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelorder", args...)
 }
 
 // PrivatePostTransfer returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePostTransfer(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePostTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTransfer", args...)
 }
 
 // PrivatePostTransferSubaccount returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePostTransferSubaccount(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePostTransferSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTransferSubaccount", args...)
 }
 
 // PrivatePostBatchorder returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePostBatchorder(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePostBatchorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBatchorder", args...)
 }
 
 // PrivatePostCancelallorders returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePostCancelallorders(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePostCancelallorders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelallorders", args...)
 }
 
 // PrivatePostCancelallordersafter returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePostCancelallordersafter(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePostCancelallordersafter(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelallordersafter", args...)
 }
 
 // PrivatePostWithdrawal returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePostWithdrawal(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePostWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawal", args...)
 }
 
 // PrivatePostAssignmentprogramAdd returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePostAssignmentprogramAdd(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePostAssignmentprogramAdd(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssignmentprogramAdd", args...)
 }
 
 // PrivatePostAssignmentprogramDelete returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePostAssignmentprogramDelete(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePostAssignmentprogramDelete(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssignmentprogramDelete", args...)
 }
 
 // PrivatePutLeveragepreferences returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePutLeveragepreferences(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePutLeveragepreferences(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutLeveragepreferences", args...)
 }
 
 // PrivatePutPnlpreferences returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePutPnlpreferences(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePutPnlpreferences(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutPnlpreferences", args...)
 }
 
 // PrivatePutSelfTradeStrategy returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePutSelfTradeStrategy(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePutSelfTradeStrategy(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutSelfTradeStrategy", args...)
 }
 
 // PrivatePutSubaccountUidTradingEnabled returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) PrivatePutSubaccountUidTradingEnabled(args ...any) <-chan any {
+func (this *Krakenfutures) PrivatePutSubaccountUidTradingEnabled(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutSubaccountUidTradingEnabled", args...)
 }
 
+// PrivatePutRfqAssignmentMaxLeverage returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivatePutRfqAssignmentMaxLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutRfqAssignmentMaxLeverage", args...)
+}
+
+// PrivateDeleteRfqAssignmentMaxLeverage returns a channel that yields a JSON object.
+func (this *Krakenfutures) PrivateDeleteRfqAssignmentMaxLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteRfqAssignmentMaxLeverage", args...)
+}
+
 // ChartsGetPriceTypeSymbolInterval returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) ChartsGetPriceTypeSymbolInterval(args ...any) <-chan any {
+func (this *Krakenfutures) ChartsGetPriceTypeSymbolInterval(args ...any) <-chan any {
 	return this.callEndpointAsync("chartsGetPriceTypeSymbolInterval", args...)
 }
 
 // ChartsGetAnalyticsLiquidityPool returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) ChartsGetAnalyticsLiquidityPool(args ...any) <-chan any {
+func (this *Krakenfutures) ChartsGetAnalyticsLiquidityPool(args ...any) <-chan any {
 	return this.callEndpointAsync("chartsGetAnalyticsLiquidityPool", args...)
 }
 
 // HistoryGetOrders returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) HistoryGetOrders(args ...any) <-chan any {
+func (this *Krakenfutures) HistoryGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("historyGetOrders", args...)
 }
 
 // HistoryGetExecutions returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) HistoryGetExecutions(args ...any) <-chan any {
+func (this *Krakenfutures) HistoryGetExecutions(args ...any) <-chan any {
 	return this.callEndpointAsync("historyGetExecutions", args...)
 }
 
 // HistoryGetTriggers returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) HistoryGetTriggers(args ...any) <-chan any {
+func (this *Krakenfutures) HistoryGetTriggers(args ...any) <-chan any {
 	return this.callEndpointAsync("historyGetTriggers", args...)
 }
 
 // HistoryGetAccountlogcsv returns a channel that yields a JSON scalar.
-func (this *KrakenfuturesCore) HistoryGetAccountlogcsv(args ...any) <-chan any {
+func (this *Krakenfutures) HistoryGetAccountlogcsv(args ...any) <-chan any {
 	return this.callEndpointAsync("historyGetAccountlogcsv", args...)
 }
 
 // HistoryGetAccountLog returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) HistoryGetAccountLog(args ...any) <-chan any {
+func (this *Krakenfutures) HistoryGetAccountLog(args ...any) <-chan any {
 	return this.callEndpointAsync("historyGetAccountLog", args...)
 }
 
 // HistoryGetMarketSymbolOrders returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) HistoryGetMarketSymbolOrders(args ...any) <-chan any {
+func (this *Krakenfutures) HistoryGetMarketSymbolOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("historyGetMarketSymbolOrders", args...)
 }
 
 // HistoryGetMarketSymbolExecutions returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) HistoryGetMarketSymbolExecutions(args ...any) <-chan any {
+func (this *Krakenfutures) HistoryGetMarketSymbolExecutions(args ...any) <-chan any {
 	return this.callEndpointAsync("historyGetMarketSymbolExecutions", args...)
 }
 
 // HistoryGetMarketSymbolPrice returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) HistoryGetMarketSymbolPrice(args ...any) <-chan any {
+func (this *Krakenfutures) HistoryGetMarketSymbolPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("historyGetMarketSymbolPrice", args...)
 }
 
 // HistoryGetPositions returns a channel that yields a JSON object.
-func (this *KrakenfuturesCore) HistoryGetPositions(args ...any) <-chan any {
+func (this *Krakenfutures) HistoryGetPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("historyGetPositions", args...)
 }

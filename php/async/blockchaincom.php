@@ -111,6 +111,7 @@ class blockchaincom extends Exchange {
                 'private' => array(
                     'get' => array(
                         'fees' => array( 'cost' => 1 ), // fetchFees
+                        'internal/orders' => array( 'cost' => 1 ), // getOrdersInternal
                         'orders' => array( 'cost' => 1 ), // fetchOpenOrders, fetchClosedOrders
                         'orders/{orderId}' => array( 'cost' => 1 ), // fetchOrder(id)
                         'trades' => array( 'cost' => 1 ),

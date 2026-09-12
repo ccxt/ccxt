@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official coinbaseinternational API documentation:** [docs.cloud.coinbase.com](https://docs.cloud.coinbase.com/intx/docs)
 
-> 35 implicit endpoints across 1 access group.
+> 58 implicit endpoints across 1 access group.
 
 ## v1
 
@@ -69,8 +69,16 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PublicGetInstrumentsInstrumentQuote` | GET | `instruments/{instrument}/quote` | 1 |
 | `v1PublicGetInstrumentsInstrumentFunding` | GET | `instruments/{instrument}/funding` | 1 |
 | `v1PublicGetInstrumentsInstrumentCandles` | GET | `instruments/{instrument}/candles` | 1 |
+| `v1PublicGetInstrumentsVolumesDaily` | GET | `instruments/volumes/daily` | 1 |
+| `v1PublicGetPositionOffsets` | GET | `position-offsets` | 1 |
+| `v1PublicGetFeeRateTiers` | GET | `fee-rate-tiers` | 1 |
+| `v1PrivateGetAddressBook` | GET | `address-book` | 1 |
 | `v1PrivateGetOrders` | GET | `orders` | 1 |
 | `v1PrivateGetOrdersId` | GET | `orders/{id}` | 1 |
+| `v1PrivateGetIndexIndexComposition` | GET | `index/{index}/composition` | 1 |
+| `v1PrivateGetIndexIndexCompositionHistory` | GET | `index/{index}/composition-history` | 1 |
+| `v1PrivateGetIndexIndexPrice` | GET | `index/{index}/price` | 1 |
+| `v1PrivateGetIndexIndexCandles` | GET | `index/{index}/candles` | 1 |
 | `v1PrivateGetPortfolios` | GET | `portfolios` | 1 |
 | `v1PrivateGetPortfoliosPortfolio` | GET | `portfolios/{portfolio}` | 1 |
 | `v1PrivateGetPortfoliosPortfolioDetail` | GET | `portfolios/{portfolio}/detail` | 1 |
@@ -79,14 +87,28 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivateGetPortfoliosPortfolioBalancesAsset` | GET | `portfolios/{portfolio}/balances/{asset}` | 1 |
 | `v1PrivateGetPortfoliosPortfolioPositions` | GET | `portfolios/{portfolio}/positions` | 1 |
 | `v1PrivateGetPortfoliosPortfolioPositionsInstrument` | GET | `portfolios/{portfolio}/positions/{instrument}` | 1 |
+| `v1PrivateGetPortfoliosPortfolioPositionLimits` | GET | `portfolios/{portfolio}/position-limits` | 1 |
+| `v1PrivateGetPortfoliosPortfolioPositionLimitsPositions` | GET | `portfolios/{portfolio}/position-limits/positions` | 1 |
+| `v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument` | GET | `portfolios/{portfolio}/position-limits/positions/{instrument}` | 1 |
 | `v1PrivateGetPortfoliosFills` | GET | `portfolios/fills` | 1 |
 | `v1PrivateGetPortfoliosPortfolioFills` | GET | `portfolios/{portfolio}/fills` | 1 |
+| `v1PrivateGetPortfoliosFeeRates` | GET | `portfolios/fee-rates` | 1 |
+| `v1PrivateGetPortfoliosPortfolioLoans` | GET | `portfolios/{portfolio}/loans` | 1 |
+| `v1PrivateGetPortfoliosPortfolioLoansAsset` | GET | `portfolios/{portfolio}/loans/{asset}` | 1 |
+| `v1PrivateGetPortfoliosPortfolioLoansAssetAvailability` | GET | `portfolios/{portfolio}/loans/{asset}/availability` | 1 |
+| `v1PrivateGetPortfoliosPortfolioMarginCallStatus` | GET | `portfolios/{portfolio}/margin-call-status` | 1 |
 | `v1PrivateGetTransfers` | GET | `transfers` | 1 |
 | `v1PrivateGetTransfersTransferUuid` | GET | `transfers/{transfer_uuid}` | 1 |
+| `v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit` | GET | `transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit` | 1 |
 | `v1PrivatePostOrders` | POST | `orders` | 1 |
 | `v1PrivatePostPortfolios` | POST | `portfolios` | 1 |
 | `v1PrivatePostPortfoliosMargin` | POST | `portfolios/margin` | 1 |
+| `v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled` | POST | `portfolios/{portfolio}/cross-collateral-enabled` | 1 |
+| `v1PrivatePostPortfoliosPortfolioAutoMarginEnabled` | POST | `portfolios/{portfolio}/auto-margin-enabled` | 1 |
+| `v1PrivatePostPortfoliosPortfolioLoansAsset` | POST | `portfolios/{portfolio}/loans/{asset}` | 1 |
+| `v1PrivatePostPortfoliosPortfolioLoansAssetPreview` | POST | `portfolios/{portfolio}/loans/{asset}/preview` | 1 |
 | `v1PrivatePostPortfoliosTransfer` | POST | `portfolios/transfer` | 1 |
+| `v1PrivatePostPortfoliosTransferPosition` | POST | `portfolios/transfer-position` | 1 |
 | `v1PrivatePostTransfersWithdraw` | POST | `transfers/withdraw` | 1 |
 | `v1PrivatePostTransfersAddress` | POST | `transfers/address` | 1 |
 | `v1PrivatePostTransfersCreateCounterpartyId` | POST | `transfers/create-counterparty-id` | 1 |
@@ -96,4 +118,5 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivatePutPortfoliosPortfolio` | PUT | `portfolios/{portfolio}` | 1 |
 | `v1PrivateDeleteOrders` | DELETE | `orders` | 1 |
 | `v1PrivateDeleteOrdersId` | DELETE | `orders/{id}` | 1 |
+| `v1PrivatePatchPortfoliosPortfolio` | PATCH | `portfolios/{portfolio}` | 1 |
 

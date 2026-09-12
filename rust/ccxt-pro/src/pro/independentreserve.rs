@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -463,7 +467,13 @@ impl IndependentreserveCore {
         if is_equal(&event, &Value::Str("OrderBookSnapshot".to_string())) {
             let mut snapshot: Value = self.parse_order_book(orderBook.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("Bids".to_string()), Value::Str("Offers".to_string()), Value::Str("Price".to_string()), Value::Str("Volume".to_string())]);
             orderbook.reset(snapshot.clone());
-            add_element_to_object(&mut subscription, &Value::Str("receivedSnapshot".to_string()), Value::Bool(true));
+            // write through the parent index: php copies arrays by value, so
+            // mutating the local bind would not persist the flag
+            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash, self.extend(subscription.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("receivedSnapshot".to_string(), Value::Bool(true));
+    m
+})]));
         }  else {
             let mut asks: Value = self.safe_list_k(orderBook.clone(), "Offers", &[Value::List(vec![])]);
             let mut bids: Value = self.safe_list_k(orderBook.clone(), "Bids", &[Value::List(vec![])]);
@@ -497,7 +507,7 @@ impl IndependentreserveCore {
                 }
             }
             }
-            let mut calculatedChecksum: Value = self.crc32(&[payload.clone(), Value::Bool(true)]);
+            let mut calculatedChecksum: Value = self.crc32(&[payload.clone(), Value::Bool(false)]);
             let mut responseChecksum: Value = self.safe_integer_k(orderBook.clone(), "Crc32", &[]);
             if !is_equal(&calculatedChecksum, &responseChecksum) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(add(&add(&self.id, &Value::Str(" ".to_string())), &self.orderbook_checksum_message(symbol.clone()))));
@@ -513,7 +523,10 @@ impl IndependentreserveCore {
 }
 
     pub fn value_to_checksum(&self, mut value: Value) -> Value {
-        let mut result: Value = to_fixed(&value, &Value::Int(8));
+        // toFixed returns a zero-padded *string* in js but a *number* in
+        // go/c#/java, dropping trailing zeros. decimalToPrecision with
+        // Value::Int(crate::runtime::PAD_WITH_ZERO) is string-typed everywhere and emits the same digits.
+        let mut result: Value = self.decimal_to_precision(value.clone(), Value::Int(crate::runtime::ROUND), Value::Int(8), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::PAD_WITH_ZERO)]);
         result = replace_str(&result, &Value::Str(".".to_string()), &Value::Str("".to_string()));
         // remove leading zeros
         result = self.parse_number(result.clone(), &[]);

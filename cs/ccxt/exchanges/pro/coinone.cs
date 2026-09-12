@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class coinone { public coinone(object args = null) : base(args) { } }
 public partial class coinone : ccxt.coinone
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -65,8 +65,8 @@ public partial class coinone : ccxt.coinone
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object messageHash = add("orderbook:", getValue(market, "symbol"));
+        Dictionary<string, object> market = this.market(symbol);
+        string messageHash = add("orderbook:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
@@ -111,10 +111,10 @@ public partial class coinone : ccxt.coinone
         string? baseId = this.safeStringUpper(data, "target_currency");
         string? quoteId = this.safeStringUpper(data, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
-        object symbol = this.symbol(add(add(bs, "/"), quote));
+        string? quote = this.safeCurrencyCode(quoteId);
+        string? symbol = this.symbol(add(add(bs, "/"), quote));
         Int64? timestamp = this.safeInteger(data, "timestamp");
-        object orderbook = this.safeValue(this.orderbooks, symbol);
+        object orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if (isTrue(isEqual(orderbook, null)))
         {
             orderbook = this.orderBook();
@@ -129,14 +129,14 @@ public partial class coinone : ccxt.coinone
         this.handleDeltas(getValue(orderbook, "bids"), bids);
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        object messageHash = add("orderbook:", symbol);
+        string messageHash = add("orderbook:", symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseOrderBookBidAsk(delta, "price", "qty");
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta, "price", "qty");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -156,8 +156,8 @@ public partial class coinone : ccxt.coinone
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object messageHash = add("ticker:", getValue(market, "symbol"));
+        Dictionary<string, object> market = this.market(symbol);
+        string messageHash = add("ticker:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
@@ -206,7 +206,7 @@ public partial class coinone : ccxt.coinone
         object ticker = this.parseWsTicker(data);
         object symbol = getValue(ticker, "symbol");
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
-        object messageHash = add("ticker:", symbol);
+        string messageHash = add("ticker:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
     }
 
@@ -242,8 +242,8 @@ public partial class coinone : ccxt.coinone
         string? baseId = this.safeString(ticker, "target_currency");
         string? quoteId = this.safeString(ticker, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
-        object symbol = this.symbol(add(add(bs, "/"), quote));
+        string? quote = this.safeCurrencyCode(quoteId);
+        string? symbol = this.symbol(add(add(bs, "/"), quote));
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -287,8 +287,8 @@ public partial class coinone : ccxt.coinone
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object messageHash = add("trade:", getValue(market, "symbol"));
+        Dictionary<string, object> market = this.market(symbol);
+        string messageHash = add("trade:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
@@ -335,7 +335,7 @@ public partial class coinone : ccxt.coinone
             ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
         }
         callDynamically(stored, "append", new object[] {trade});
-        object messageHash = add("trade:", symbol);
+        string messageHash = add("trade:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
@@ -355,7 +355,7 @@ public partial class coinone : ccxt.coinone
         string? baseId = this.safeStringUpper(trade, "target_currency");
         string? quoteId = this.safeStringUpper(trade, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
+        string? quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(symbol, market);
@@ -384,7 +384,7 @@ public partial class coinone : ccxt.coinone
         }, market);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -396,9 +396,9 @@ public partial class coinone : ccxt.coinone
         string? type = this.safeString(message, "response_type", "");
         if (isTrue(isEqual(type, "ERROR")))
         {
-            return true;
+            return ((bool?)((object)(true)));
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -415,7 +415,7 @@ public partial class coinone : ccxt.coinone
         }
         if (isTrue(isEqual(type, "DATA")))
         {
-            object topic = ((string)this.safeString(message, "channel", ""));
+            string topic = ((string)this.safeString(message, "channel", ""));
             Dictionary<string, object> methods = new Dictionary<string, object>() {
                 { "ORDERBOOK", this.handleOrderBook },
                 { "TICKER", this.handleTicker },
@@ -428,9 +428,9 @@ public partial class coinone : ccxt.coinone
                 return;
             }
             List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
-                object key = getValue(keys, i);
+                string? key = ((string)getValue(keys, i));
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, getValue(keys, i)), 0)))
                 {
                     object method = getValue(methods, key);

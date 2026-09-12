@@ -247,6 +247,7 @@ class bitfinex extends Exchange {
                         'auth/w/order/cancel/multi' => array( 'cost' => 2.7 ),
                         'auth/r/orders/{symbol}/hist' => array( 'cost' => 2.7 ),
                         'auth/r/orders/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/orders/otc/{symbol}/hist' => array( 'cost' => 2.7 ),
                         'auth/r/order/{symbol}:{id}/trades' => array( 'cost' => 2.7 ),
                         'auth/r/trades/{symbol}/hist' => array( 'cost' => 2.7 ),
                         'auth/r/trades/hist' => array( 'cost' => 2.7 ),
@@ -262,6 +263,7 @@ class bitfinex extends Exchange {
                         'auth/r/positions/hist' => array( 'cost' => 2.7 ),
                         'auth/r/positions/audit' => array( 'cost' => 2.7 ),
                         'auth/r/positions/snap' => array( 'cost' => 2.7 ),
+                        'auth/w/position/update/funding/type' => array( 'cost' => 2.7 ),
                         'auth/w/deriv/collateral/set' => array( 'cost' => 2.7 ),
                         'auth/w/deriv/collateral/limits' => array( 'cost' => 2.7 ),
                         'auth/r/funding/offers' => array( 'cost' => 2.7 ),
@@ -293,10 +295,13 @@ class bitfinex extends Exchange {
                         'auth/r/audit/hist' => array( 'cost' => 2.7 ),
                         'auth/w/transfer' => array( 'cost' => 2.7 ), // ratelimit not in docs...
                         'auth/w/deposit/address' => array( 'cost' => 24 ), // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/r/deposit/address/all' => array( 'cost' => 24 ), // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
                         'auth/w/deposit/invoice' => array( 'cost' => 24 ), // ratelimit not in docs
+                        'auth/r/ext/invoice/payments' => array( 'cost' => 2.7 ),
                         'auth/w/withdraw' => array( 'cost' => 24 ), // ratelimit not in docs
                         'auth/r/movements/{currency}/hist' => array( 'cost' => 2.7 ),
                         'auth/r/movements/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/movements/info' => array( 'cost' => 2.7 ),
                         'auth/r/alerts' => array( 'cost' => 5.34 ), // 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.749 => 5.34
                         'auth/w/alert/set' => array( 'cost' => 2.7 ),
                         'auth/w/alert/price:{symbol}:{price}/del' => array( 'cost' => 2.7 ),
@@ -308,6 +313,9 @@ class bitfinex extends Exchange {
                         'auth/r/pulse/hist' => array( 'cost' => 2.7 ),
                         'auth/w/pulse/add' => array( 'cost' => 16 ), // 15 requests a minute = 0.25 requests per second => ( 1000ms / rateLimit ) / 0.25 => 16
                         'auth/w/pulse/del' => array( 'cost' => 2.7 ),
+                        'auth/w/ext/wallets/deposits/request' => array( 'cost' => 2.7 ),
+                        'auth/w/ext/wallets/withdrawals/request' => array( 'cost' => 2.7 ),
+                        'auth/r/ext/wallets/transfers/free/count' => array( 'cost' => 2.7 ),
                     ),
                 ),
             ),
@@ -380,7 +388,7 @@ class bitfinex extends Exchange {
                 ),
                 // convert 'market' to 'EXCHANGE MARKET'
                 // convert 'limit' 'EXCHANGE LIMIT'
-                // everything else remains
+                // everything else remains as is
                 'orderTypes' => array(
                     'market' => 'EXCHANGE MARKET',
                     'limit' => 'EXCHANGE LIMIT',
@@ -563,7 +571,7 @@ class bitfinex extends Exchange {
         ));
     }
 
-    public function is_fiat(mixed $code) {
+    public function is_fiat(mixed $code): bool {
         return (is_array($this->options['fiat']) && array_key_exists($code ?? '', $this->options['fiat']));
     }
 
@@ -1005,7 +1013,7 @@ class bitfinex extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $accountsByType = $this->safe_value($this->options, 'v2AccountsByType', array());
+        $accountsByType = $this->safe_dict($this->options, 'v2AccountsByType', array());
         $requestedType = $this->safe_string($params, 'type', 'exchange');
         $accountType = $this->safe_string($accountsByType, $requestedType, $requestedType);
         if ($accountType === null) {
@@ -1064,7 +1072,7 @@ class bitfinex extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $accountsByType = $this->safe_value($this->options, 'v2AccountsByType', array());
+        $accountsByType = $this->safe_dict($this->options, 'v2AccountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount);
         if ($fromId === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
@@ -1112,7 +1120,7 @@ class bitfinex extends Exchange {
         $error = $this->safe_string($response, 0);
         if ($error === 'error') {
             $message = $this->safe_string($response, 2, '');
-            // same $message v1
+            // same $message as in v1
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
             throw new ExchangeError($this->id . ' ' . $message);
         }
@@ -1292,8 +1300,13 @@ class bitfinex extends Exchange {
         //     )
         //
         $length = count($ticker);
-        $firstValue = $this->safe_number($ticker, 0);
-        $isFetchTicker = $firstValue !== null; // if it's Nan, then it's string ($symbol)
+        // the list shapes (fetchTickers) carry the $market id in slot 0, the singular
+        // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
+        // in PHP a non numeric string casts to 0.0 instead of null, so 'fUSD' would
+        // look like a number and the whole array would be read off by one.
+        $firstValue = $this->safe_string($ticker, 0);
+        $hasMarketId = ($firstValue !== null) && (str_starts_with($firstValue, 't') || str_starts_with($firstValue, 'f'));
+        $isFetchTicker = !$hasMarketId;
         $symbol = null;
         $minusIndex = 0;
         if ($isFetchTicker) {
@@ -1318,7 +1331,9 @@ class bitfinex extends Exchange {
             $bid = $this->safe_string($ticker, 2 - $minusIndex);
             $ask = $this->safe_string($ticker, 5 - $minusIndex);
             $change = $this->safe_string($ticker, 8 - $minusIndex);
-            $percentage = $this->safe_string($ticker, 9 - $minusIndex);
+            // DAILY_CHANGE_RELATIVE, per the array above => the same field the trading
+            // branch reads at index 6 and scales
+            $percentage = Precise::string_mul($this->safe_string($ticker, 9 - $minusIndex), '100');
             $volume = $this->safe_string($ticker, 11 - $minusIndex);
             $high = $this->safe_string($ticker, 12 - $minusIndex);
             $low = $this->safe_string($ticker, 13 - $minusIndex);
@@ -1610,7 +1625,7 @@ class bitfinex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch, default 100 max 10000
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          */
@@ -1672,7 +1687,7 @@ class bitfinex extends Exchange {
 
     public function parse_order_status(?string $status) {
         if ($status === null) {
-            return $status;
+            return null;
         }
         $parts = explode(' ', $status);
         $state = $this->safe_string($parts, 0);
@@ -1827,7 +1842,7 @@ class bitfinex extends Exchange {
             $orderType = 'TRAILING STOP';
             $request['price_trailing'] = $trailingAmount;
         } elseif ($triggerPrice !== null) {
-            // $request['price'] is taken for stop orders
+            // $request['price'] is taken as $triggerPrice for stop orders
             $request['price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($type === 'limit') {
                 $orderType = 'STOP LIMIT';
@@ -2833,7 +2848,7 @@ class bitfinex extends Exchange {
         //     )
         //
         $result = array();
-        $fiat = $this->safe_value($this->options, 'fiat', array());
+        $fiat = $this->safe_dict($this->options, 'fiat', array());
         $feeData = $this->safe_value($response, 4, array());
         $makerData = $this->safe_value($feeData, 0, array());
         $takerData = $this->safe_value($feeData, 1, array());
@@ -3017,7 +3032,7 @@ class bitfinex extends Exchange {
         if ($statusMessage === 'error') {
             $feedback = $this->id . ' ' . $response;
             $message = $this->safe_string($response, 2, '');
-            // same $message v1
+            // same $message as in v1
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
@@ -3735,10 +3750,10 @@ class bitfinex extends Exchange {
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {string} $timeframe the time period of each row of data, not used by bitfinex
-         * @param {int} [$since] the time in ms of the earliest record to retrieve unix timestamp
+         * @param {int} [$since] the time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int} [$limit] the number of records in the $response
          * @param {array} [$params] exchange specific parameters
-         * @param {int} [$params->until] the time in ms of the latest record to retrieve unix timestamp
+         * @param {int} [$params->until] the time in ms of the latest record to retrieve as a unix timestamp
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return An array of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
          */
@@ -4152,7 +4167,7 @@ class bitfinex extends Exchange {
         if ($trailingAmount !== null) {
             $request['price_trailing'] = $trailingAmount;
         } elseif ($triggerPrice !== null) {
-            // $request['price'] is taken for stop orders
+            // $request['price'] is taken as $triggerPrice for stop orders
             $request['price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($type === 'limit') {
                 $request['price_aux_limit'] = $this->price_to_precision($symbol, $price);

@@ -145,6 +145,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                         'self-trade-strategy': { 'cost': 1 },
                         'subaccounts': { 'cost': 1 },
                         'subaccount/{uid}/trading-enabled': { 'cost': 1 },
+                        'rfq-assignment/max-leverage': { 'cost': 1 },
                     },
                     'post': {
                         'sendorder': { 'cost': 1 },
@@ -164,6 +165,10 @@ class krakenfutures extends krakenfutures$1["default"] {
                         'pnlpreferences': { 'cost': 1 },
                         'self-trade-strategy': { 'cost': 1 },
                         'subaccount/{uid}/trading-enabled': { 'cost': 1 },
+                        'rfq-assignment/max-leverage': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'rfq-assignment/max-leverage': { 'cost': 1 },
                     },
                 },
                 'charts': {
@@ -438,7 +443,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        const instruments = this.safeValue(response, 'instruments', []);
+        const instruments = this.safeList(response, 'instruments', []);
         const result = [];
         for (let i = 0; i < instruments.length; i++) {
             const market = instruments[i];
@@ -1550,7 +1555,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             await this.loadMarkets();
         }
         const orders = [];
-        const clientOrderIds = this.safeValue(params, 'clientOrderIds', []);
+        const clientOrderIds = this.safeList(params, 'clientOrderIds', []);
         const clientOrderIdsLength = clientOrderIds.length;
         if (clientOrderIdsLength > 0) {
             for (let i = 0; i < clientOrderIds.length; i++) {
@@ -2291,7 +2296,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'trades': undefined,
             });
         }
-        const orderEvents = this.safeValue(order, 'orderEvents', []);
+        const orderEvents = this.safeList(order, 'orderEvents', []);
         const errorStatus = this.safeString(order, 'status');
         const orderEventsLength = orderEvents.length;
         if (('orderEvents' in order) && (errorStatus !== undefined) && (orderEventsLength === 0)) {
@@ -2858,7 +2863,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const accountType = this.safeString2(response, 'accountType', 'type');
         const isFlex = (accountType === 'multiCollateralMarginAccount');
         const isCash = (accountType === 'cashAccount');
-        const balances = this.safeValue2(response, 'balances', 'currencies', {});
+        const balances = this.safeDict2(response, 'balances', 'currencies', {});
         const result = {};
         const currencyIds = Object.keys(balances);
         for (let i = 0; i < currencyIds.length; i++) {

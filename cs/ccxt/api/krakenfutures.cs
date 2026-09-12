@@ -193,6 +193,13 @@ public partial class krakenfutures : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetSubaccountUidTradingEnabled",parameters);
     }
 
+    /// <summary>Calls the privateGetRfqAssignmentMaxLeverage endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqAssignmentMaxLeverage (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqAssignmentMaxLeverage",parameters);
+    }
+
     /// <summary>Calls the privatePostSendorder endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostSendorder (object parameters = null)
@@ -296,6 +303,20 @@ public partial class krakenfutures : Exchange
     public async Task<Dictionary<string, object>> privatePutSubaccountUidTradingEnabled (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePutSubaccountUidTradingEnabled",parameters);
+    }
+
+    /// <summary>Calls the privatePutRfqAssignmentMaxLeverage endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutRfqAssignmentMaxLeverage (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutRfqAssignmentMaxLeverage",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteRfqAssignmentMaxLeverage endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteRfqAssignmentMaxLeverage (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteRfqAssignmentMaxLeverage",parameters);
     }
 
     /// <summary>Calls the chartsGetPriceTypeSymbolInterval endpoint.</summary>

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -824,7 +828,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             stored = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut dataLength: Value = get_array_length(&data);
         if is_equal(&dataLength, &Value::Int(0)) {
             return;
@@ -1055,7 +1059,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = self.safe_string_k(message.clone(), "subscription", &[]);
         let mut marketId: Value = self.safe_string_k(message.clone(), "instrument_name", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_291: bool = true;
@@ -1406,7 +1410,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         let mut symbolSpecificMessageHash: Value = self.safe_string_k(message.clone(), "subscription", &[]);
-        let mut orders: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut ordersLength: Value = get_array_length(&orders);
         if is_greater_than(&ordersLength, &Value::Int(0)) {
             if is_equal(&self.orders, &Value::Null) {
@@ -1563,7 +1567,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawPositions: Value = self.safe_value_k(firstData.clone(), "positions", &[Value::List(vec![])]);
+        let mut rawPositions: Value = self.safe_list_k(firstData.clone(), "positions", &[Value::List(vec![])]);
         if is_equal(&self.positions, &Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
@@ -1665,8 +1669,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "subscription", &[]);
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
-        let mut positionBalances: Value = self.safe_value(get_value(&data, &Value::Int(0)), Value::Str("position_balances".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut positionBalances: Value = self.safe_list(get_value(&data, &Value::Int(0)), Value::Str("position_balances".to_string()), &[Value::List(vec![])]);
         add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
         {
                         let mut i: Value = Value::Int(0);

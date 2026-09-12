@@ -210,6 +210,7 @@ class mexc(Exchange, ImplicitAPI):
                         'get': {
                             'kyc/status': {'cost': 1},
                             'uid': {'cost': 1},
+                            'apiKeyInfo': {'cost': 1},
                             'order': {'cost': 2},
                             'openOrders': {'cost': 3},
                             'allOrders': {'cost': 10},
@@ -272,6 +273,7 @@ class mexc(Exchange, ImplicitAPI):
                             'sub-account/margin': {'cost': 1},
                             'batchOrders': {'cost': 10},
                             'strategy/group': {'cost': 20},
+                            'strategy/group/uid': {'cost': 20},
                             'capital/withdraw/apply': {'cost': 1},
                             'capital/withdraw': {'cost': 1},
                             'capital/transfer': {'cost': 50},
@@ -742,18 +744,8 @@ class mexc(Exchange, ImplicitAPI):
                     'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
                     'BNB Smart Chain(BEP20)': 'BSC',
                     'Ethereum(ERC20)': 'ERC20',
-                    # TODO: uncomment below after deciding unified name
-                    # 'PEPE COIN BSC':
-                    # 'SMART BLOCKCHAIN':
-                    # 'f(x)Core':
-                    # 'Syscoin Rollux':
-                    # 'Syscoin UTXO':
-                    # 'zkSync Era':
-                    # 'zkSync Lite':
-                    # 'Darwinia Smart Chain':
-                    # 'Arbitrum One(ARB-Bridged)':
-                    # 'Optimism(OP-Bridged)':
-                    # 'Polygon(MATIC-Bridged)':
+                    # TODO: unified names undecided for PEPE COIN BSC, SMART BLOCKCHAIN, f(x)Core, Syscoin Rollux, Syscoin UTXO,
+                    # zkSync Era, zkSync Lite, Darwinia Smart Chain, Arbitrum One(ARB-Bridged), Optimism(OP-Bridged), Polygon(MATIC-Bridged)
                 },
                 'recvWindow': 5 * 1000,  # 5 sec, default
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1,  # 90 days
@@ -1196,7 +1188,7 @@ class mexc(Exchange, ImplicitAPI):
         id = self.safe_string(rawCurrency, 'coin')
         code = self.safe_currency_code(id)
         networks = {}
-        chains = self.safe_value(rawCurrency, 'networkList', [])
+        chains = self.safe_list(rawCurrency, 'networkList', [])
         for j in range(0, len(chains)):
             chain = chains[j]
             networkId = self.safe_string_2(chain, 'netWork', 'network')
@@ -1309,7 +1301,7 @@ class mexc(Exchange, ImplicitAPI):
         # Notes:
         # - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision(to view currency's actual individual precision, refer to fetchCurrencies() method).
         #
-        data = self.safe_value(response, 'symbols', [])
+        data = self.safe_list(response, 'symbols', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -1410,7 +1402,7 @@ class mexc(Exchange, ImplicitAPI):
         #                 "contractSize":0.0001,
         #                 "minLeverage":1,
         #                 "maxLeverage":125,
-        #                 "priceScale":2,  # seems useless atm,'s just how UI shows the price, i.e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
+        #                 "priceScale":2,  # seems useless atm, as it's just how UI shows the price, i.e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
         #                 "volScale":0,  # probably: contract amount precision
         #                 "amountScale":4,  # probably: quote currency precision
         #                 "priceUnit":0.5,  # price tick size
@@ -1438,7 +1430,7 @@ class mexc(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -1829,7 +1821,7 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -2482,16 +2474,7 @@ class mexc(Exchange, ImplicitAPI):
             'vol': float(volString),
             # 'leverage': int,  # required for isolated margin
             # 'side': side,  # 1 open long, 2 close short, 3 open short, 4 close long
-            #
-            # supported order types
-            #
-            #     1 limit
-            #     2 post only maker(PO)
-            #     3 transact or cancel instantly(IOC)
-            #     4 transact completely or cancel completely(FOK)
-            #     5 market orders
-            #     6 convert market price to current price
-            #
+            # order types: 1 limit, 2 post only(PO), 3 IOC, 4 FOK, 5 market, 6 convert market price to current price
             'type': type,
             'openType': openType,  # 1 isolated, 2 cross
             # 'positionId': 1394650,  # long, hasattr(self, filling) parameter when closing a position is recommended
@@ -3465,7 +3448,7 @@ class mexc(Exchange, ImplicitAPI):
         #         "price": "2.9",  # not present in stop-market, but in stop-limit order
         #         "executeCycle": "87600",
         #         "trend": "1",
-        #          # below keys are same regular order structure
+        #          # below keys are same as in regular order structure
         #         "symbol": "STEPN_USDT",
         #         "leverage": "20",
         #         "side": "1",
@@ -3555,7 +3538,7 @@ class mexc(Exchange, ImplicitAPI):
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
-            # on spot, during submission below types are used only accepted order
+            # on spot, during submission below types are used only accepted as limit order
             'IMMEDIATE_OR_CANCEL': 'limit',
             'FILL_OR_KILL': 'limit',
         }
@@ -3668,7 +3651,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         response = await self.fetch_account_helper(marketType, query)
-        data = self.safe_value(response, 'balances', [])
+        data = self.safe_list(response, 'balances', [])
         result = []
         for i in range(0, len(data)):
             account = data[i]
@@ -3785,11 +3768,11 @@ class mexc(Exchange, ImplicitAPI):
         #
         wallet: List
         if marketType == 'margin':
-            wallet = self.safe_value(response, 'assets', [])
+            wallet = self.safe_list(response, 'assets', [])
         elif marketType == 'swap':
-            wallet = self.safe_value(response, 'data', [])
+            wallet = self.safe_list(response, 'data', [])
         else:
-            wallet = self.safe_value(response, 'balances', [])
+            wallet = self.safe_list(response, 'balances', [])
         result = {'info': response}
         if marketType == 'margin':
             for i in range(0, len(wallet)):
@@ -4271,7 +4254,7 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        resultList = self.safe_value(data, 'resultList', [])
+        resultList = self.safe_list(data, 'resultList', [])
         result = []
         for i in range(0, len(resultList)):
             entry = resultList[i]
@@ -4434,7 +4417,7 @@ class mexc(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data')
-        result = self.safe_value(data, 'resultList', [])
+        result = self.safe_list(data, 'resultList', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]
@@ -5651,7 +5634,7 @@ class mexc(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        networkList = self.safe_value(transaction, 'networkList', [])
+        networkList = self.safe_list(transaction, 'networkList', [])
         result = {}
         for j in range(0, len(networkList)):
             networkEntry = networkList[j]
@@ -5732,7 +5715,7 @@ class mexc(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        networkList = self.safe_value(fee, 'networkList', [])
+        networkList = self.safe_list(fee, 'networkList', [])
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(networkList)):
             networkEntry = networkList[j]

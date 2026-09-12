@@ -306,6 +306,17 @@ public class KrakenfuturesApi extends Exchange
     }
 
     /**
+     * Calls the privateGetRfqAssignmentMaxLeverage endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetRfqAssignmentMaxLeverage (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetRfqAssignmentMaxLeverage", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostSendorder endpoint.
      *
      * @param optionalArgs the request parameters
@@ -468,6 +479,28 @@ public class KrakenfuturesApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutSubaccountUidTradingEnabled (Object... optionalArgs)
     {
         return this.callAsync ("privatePutSubaccountUidTradingEnabled", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutRfqAssignmentMaxLeverage endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutRfqAssignmentMaxLeverage (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutRfqAssignmentMaxLeverage", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteRfqAssignmentMaxLeverage endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteRfqAssignmentMaxLeverage (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteRfqAssignmentMaxLeverage", optionalArgs);
     }
 
     /**

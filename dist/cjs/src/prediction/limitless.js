@@ -12,6 +12,7 @@ require('../base/functions/platform.js');
 require('../base/functions/encode.js');
 var crypto = require('../base/functions/crypto.js');
 require('../base/functions/time.js');
+require('../base/functions/throttle.js');
 require('../base/functions/io.js');
 
 // ----------------------------------------------------------------------------
@@ -408,7 +409,7 @@ class limitless extends limitless$1["default"] {
         const groupId = this.safeStringN(raw, ['groupSlug', 'groupId'], slug);
         // CTF condition id — needed to redeem a resolved winning position
         const conditionId = this.safeString(raw, 'conditionId');
-        const tokens = this.safeValue(raw, 'tokens', {});
+        const tokens = this.safeDict(raw, 'tokens', {});
         // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
         const isExpired = this.safeBool(raw, 'expired', false);
@@ -1211,7 +1212,7 @@ class limitless extends limitless$1["default"] {
             'slug': slug,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 100);
         }
         const response = await this.limitlessPublicGetMarketsSlugEvents(this.extend(request, params));
         //
@@ -3087,16 +3088,16 @@ class limitless extends limitless$1["default"] {
      * @name limitless#sign
      * @description builds the request URL and attaches the lmts authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} [section] the api group and access level
+     * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
      * @param {object} [headers] request headers
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path, section = 'limitless', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = typeof section === 'string' ? section : section[0];
-        const access = typeof section === 'string' ? 'public' : section[1];
+    sign(path, api = 'limitless', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiGroup = typeof api === 'string' ? api : api[0];
+        const access = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['limitless']);
         let url = '/' + this.implodeParams(path, params);
@@ -3125,10 +3126,13 @@ class limitless extends limitless$1["default"] {
             const payload = timestamp + newline + method + newline + url + newline + bodyString;
             const signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha2_js.sha256, 'base64');
             headers = this.extend(headers, {
-                'lmts-api-key': this.apiKey,
                 'lmts-timestamp': timestamp,
                 'lmts-signature': signature,
             });
+            const headerKey = 'lmts-api' + '-key'; // concatenating because of the php version
+            const headersKey = {};
+            headersKey[headerKey] = this.apiKey;
+            headers = this.extend(headers, headersKey);
         }
         url = baseUrl + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

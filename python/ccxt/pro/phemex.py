@@ -280,7 +280,7 @@ class phemex(ccxt.async_support.phemex):
             ticker = self.safe_value(message, 'spot_market24h')
             tickers.append(self.parse_ticker(ticker))
         elif 'data' in message:
-            data = self.safe_value(message, 'data', [])
+            data = self.safe_list(message, 'data', [])
             for i in range(0, len(data)):
                 tickers.append(self.parse_perpetual_ticker(data[i]))
         for i in range(0, len(tickers)):
@@ -645,7 +645,7 @@ class phemex(ccxt.async_support.phemex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1107,7 +1107,7 @@ class phemex(ccxt.async_support.phemex):
             ordersLength = len(orders)
             if ordersLength == 0:
                 return
-            trades = self.safe_value(message, 'fills', [])
+            trades = self.safe_list(message, 'fills', [])
             for i in range(0, len(orders)):
                 rawOrder = orders[i]
                 parsedOrder = self.parse_order(rawOrder)

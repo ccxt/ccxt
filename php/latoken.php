@@ -155,7 +155,9 @@ class latoken extends Exchange {
                     'get' => array(
                         'auth/account' => array( 'cost' => 1 ),
                         'auth/account/currency/{currency}/{type}' => array( 'cost' => 1 ),
+                        'auth/account/filtered' => array( 'cost' => 1 ),
                         'auth/order' => array( 'cost' => 1 ),
+                        'auth/order/active' => array( 'cost' => 1 ),
                         'auth/order/getOrder/{id}' => array( 'cost' => 1 ),
                         'auth/order/pair/{currency}/{quote}' => array( 'cost' => 1 ),
                         'auth/order/pair/{currency}/{quote}/active' => array( 'cost' => 1 ),
@@ -176,7 +178,9 @@ class latoken extends Exchange {
                         'auth/order/cancel' => array( 'cost' => 1 ),
                         'auth/order/cancelAll' => array( 'cost' => 1 ),
                         'auth/order/cancelAll/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'auth/order/cancelBulk' => array( 'cost' => 1 ),
                         'auth/order/place' => array( 'cost' => 1 ),
+                        'auth/order/placeBulk' => array( 'cost' => 1 ),
                         'auth/spot/deposit' => array( 'cost' => 1 ),
                         'auth/spot/withdraw' => array( 'cost' => 1 ),
                         'auth/stopOrder/cancel' => array( 'cost' => 1 ),
@@ -597,7 +601,7 @@ class latoken extends Exchange {
         $types = $this->safe_value($this->options, 'types', array());
         $accountType = $this->safe_string($types, $type, $type);
         $balancesByType = $this->group_by($response, 'type');
-        $balances = $this->safe_value($balancesByType, $accountType, array());
+        $balances = $this->safe_list($balancesByType, $accountType, array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');

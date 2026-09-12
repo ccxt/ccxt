@@ -172,12 +172,18 @@ class bitstamp extends bitstamp$1["default"] {
                         'travel_rule/vasps/': { 'cost': 1 },
                         'funding_rate/{market_symbol}/': { 'cost': 1 },
                         'funding_rate_history/{pair}/': { 'cost': 1 },
+                        'derivatives/market_hours/': { 'cost': 1 },
+                        'derivatives/market_hours/{market_symbol}/': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         'travel_rule/contacts/': { 'cost': 1 },
                         'contacts/{contact_uuid}/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/': { 'cost': 1 },
+                        'travel_rule/address_verification/': { 'cost': 1 },
+                        'crypto-transactions/deposits/': { 'cost': 1 },
                         'earn/subscriptions/': { 'cost': 1 },
                         'earn/transactions/': { 'cost': 1 },
                         'trade_history/': { 'cost': 1 },
@@ -193,6 +199,7 @@ class bitstamp extends bitstamp$1["default"] {
                         'user_transactions/': { 'cost': 1 },
                         'user_transactions/{pair}/': { 'cost': 1 },
                         'crypto-transactions/': { 'cost': 1 },
+                        'crypto-transactions/deposits/{deposit_id}/reject/': { 'cost': 1 },
                         'open_order': { 'cost': 1 },
                         'open_orders/all/': { 'cost': 1 },
                         'open_orders/{pair}/': { 'cost': 1 },
@@ -224,6 +231,8 @@ class bitstamp extends bitstamp$1["default"] {
                         'websockets_token/': { 'cost': 1 },
                         'revoke_all_api_keys/': { 'cost': 1 },
                         'get_max_order_amount/': { 'cost': 1 },
+                        'order_data/': { 'cost': 1 },
+                        'account_order_data/': { 'cost': 1 },
                         // individual coins
                         'btc_withdrawal/': { 'cost': 1 },
                         'btc_address/': { 'cost': 1 },
@@ -388,6 +397,8 @@ class bitstamp extends bitstamp$1["default"] {
                         'ldo_withdrawal/': { 'cost': 1 },
                         'ldo_address/': { 'cost': 1 },
                         'travel_rule/contacts/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/revoke/': { 'cost': 1 },
                         'earn/subscribe/': { 'cost': 1 },
                         'earn/subscriptions/setting/': { 'cost': 1 },
                         'earn/unsubscribe': { 'cost': 1 },
@@ -2773,7 +2784,7 @@ class bitstamp extends bitstamp$1["default"] {
                 errors$1.push(reasonInner);
             }
             else {
-                const all = this.safeValue(reasonInner, '__all__', []);
+                const all = this.safeList(reasonInner, '__all__', []);
                 for (let i = 0; i < all.length; i++) {
                     errors$1.push(all[i]);
                 }

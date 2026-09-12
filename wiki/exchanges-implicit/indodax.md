@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official indodax API documentation:** [github.com](https://github.com/btcid/indodax-official-api-docs)
 
-> 22 implicit endpoints across 2 access groups.
+> 24 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -86,7 +86,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostOpenOrders` | POST | `openOrders` | 4 |
 | `privatePostOrderHistory` | POST | `orderHistory` | 4 |
 | `privatePostGetOrder` | POST | `getOrder` | 4 |
+| `privatePostGetOrderByClientOrderId` | POST | `getOrderByClientOrderId` | 4 |
 | `privatePostCancelOrder` | POST | `cancelOrder` | 4 |
+| `privatePostCancelByClientOrderId` | POST | `cancelByClientOrderId` | 4 |
 | `privatePostWithdrawFee` | POST | `withdrawFee` | 4 |
 | `privatePostWithdrawCoin` | POST | `withdrawCoin` | 4 |
 | `privatePostListDownline` | POST | `listDownline` | 4 |

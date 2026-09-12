@@ -438,7 +438,7 @@ class bitmex(ccxt.async_support.bitmex):
         #        ]
         #    }
         #
-        rawLiquidations = self.safe_value(message, 'data', [])
+        rawLiquidations = self.safe_list(message, 'data', [])
         newLiquidations = []
         if self.liquidations is None:
             limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
@@ -896,7 +896,7 @@ class bitmex(ccxt.async_support.bitmex):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
-        rawPositions = self.safe_value(message, 'data', [])
+        rawPositions = self.safe_list(message, 'data', [])
         newPositions = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
@@ -1114,7 +1114,7 @@ class bitmex(ccxt.async_support.bitmex):
         #         ]
         #     }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         messageHash = 'order'
         # initial subscription response with multiple orders
         dataLength = len(data)
@@ -1355,7 +1355,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1445,7 +1445,7 @@ class bitmex(ccxt.async_support.bitmex):
         interval = table.replace('tradeBin', '')
         timeframe = self.find_timeframe(interval)
         duration = self.parse_timeframe(timeframe)
-        candles = self.safe_value(message, 'data', [])
+        candles = self.safe_list(message, 'data', [])
         results = {}
         for i in range(0, len(candles)):
             candle = candles[i]
@@ -1535,7 +1535,7 @@ class bitmex(ccxt.async_support.bitmex):
         table = self.safe_string(message, 'table')
         if table is None:
             return  # protecting from weird updates
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         # if it's an initial snapshot
         if action == 'partial':
             filter = self.safe_dict(message, 'filter', {})
@@ -1599,7 +1599,7 @@ class bitmex(ccxt.async_support.bitmex):
     def handle_system_status(self, client: Client, message: object):
         #
         # todo answer the question whether handleSystemStatus should be renamed
-        # and unified for any usage pattern that
+        # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
         #     {
@@ -1642,7 +1642,7 @@ class bitmex(ccxt.async_support.bitmex):
         error = self.safe_string(message, 'error')
         if error is not None:
             request = self.safe_value(message, 'request', {})
-            args = self.safe_value(request, 'args', [])
+            args = self.safe_list(request, 'args', [])
             numArgs = len(args)
             if numArgs > 0:
                 messageHash = args[0]

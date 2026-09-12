@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { installCsharpLocalTypes } from './csharp-local-types.js';
+import { installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpLocalTypes, installCsharpNumericReturns, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
 // "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API
 import ts from 'typescript6';
@@ -56,6 +56,74 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // concrete types for generated locals (see build/csharp-local-types.js); installed here
     // so the pooled workers and the main-thread transpiler emit identical declarations
     installCsharpLocalTypes (transpiler);
+    // concrete return types for the numeric base helpers whose C# signature was `object`
+    // (see the numeric-returns section of build/csharp-local-types.js) — the locals map
+    // registers the same types
+    installCsharpNumericReturns (transpiler);
+    // concrete return types for the async base cores whose C# signature was `Task<object>`
+    // while every declaration's runtime value already is the markets/currencies dictionary
+    // (see the async-core-returns section of build/csharp-local-types.js) — the awaited-locals
+    // map registers the same names with the same type, so awaited locals follow the signature
+    installCsharpAsyncCoreReturns (transpiler);
+    // `async <name> (...): Promise<boolean>` methods print `Task<bool>` / `Task<bool?>`
+    // instead of `Task<object>`: the annotation names the exact value the method returns
+    // (its body only ever returns booleans), and printFunctionType's bool branch + the
+    // return-statement unboxing below are the same machinery the sync `: boolean` path
+    // already uses (csharpBooleanReturnType). An override without its own annotation
+    // inherits the type from the method it overrides, so C# invariance holds (CS0508).
+    const asyncBooleanValueType = (node: any): string | undefined => {
+        if (node?.kind !== ts.SyntaxKind.MethodDeclaration || !csharp.isAsyncFunction (node)) {
+            return undefined;
+        }
+        if (!node.type) {
+            const override = typeof csharp.getMethodOverride === 'function' ? csharp.getMethodOverride (node) : undefined;
+            return (override === undefined || override === node) ? undefined : asyncBooleanValueType (override);
+        }
+        const typeNode = node.type.typeArguments?.[0];
+        if (typeNode === undefined) {
+            return undefined; // `Promise` with no type argument
+        }
+        const type = csharp.getChecker ().getTypeFromTypeNode (typeNode);
+        const members = type.isUnion () ? type.types : [ type ];
+        let nullable = false;
+        let sawBoolean = false;
+        let sawOther = false;
+        for (const member of members) {
+            if (member.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) {
+                nullable = true;
+            } else if (member.flags & ts.TypeFlags.BooleanLike) {
+                sawBoolean = true;
+            } else {
+                sawOther = true;
+            }
+        }
+        if (!sawBoolean || sawOther) {
+            return undefined;
+        }
+        return nullable ? csharp.BOOLEAN_KEYWORD + '?' : csharp.BOOLEAN_KEYWORD;
+    };
+    const originalBooleanReturnType = csharp.csharpBooleanReturnType.bind (csharp);
+    csharp.csharpBooleanReturnType = (node: any) => (asyncBooleanValueType (node) ?? originalBooleanReturnType (node));
+    // the package's printFunctionType returns the plain bool for a bool-typed method and
+    // `Task<object>` for an async one, so the async spelling needs the Task<> wrapper here;
+    // printReturnStatement already reads the same (patched) boolean type and unboxes.
+    const originalPrintFunctionType = csharp.printFunctionType.bind (csharp);
+    csharp.printFunctionType = (node: any) => {
+        const result = originalPrintFunctionType (node);
+        if (csharp.isAsyncFunction (node) && (result === 'bool' || result === 'bool?')) {
+            return 'Task<' + result + '>';
+        }
+        return result;
+    };
+    // concrete return types for generated non-async string-returning methods (see
+    // the string-returns section of build/csharp-local-types.js); installed after the
+    // local-types hook so both see the
+    // same table
+    installCsharpStringReturns (transpiler);
+    // concrete return types for generated non-async dict/list-returning methods (see
+    // the dict/list-returns section of build/csharp-local-types.js) — their returns carry
+    // the same boundary cast and the locals map registers the same types
+    installCsharpCollectionReturns (transpiler);
 }
 
 // piscina reuses worker threads across tasks — cache the Transpiler per thread

@@ -95,6 +95,13 @@ public partial class revolutx : Exchange
         return await this.callAsync<object> ("privateGet10TradesPrivateSymbol",parameters);
     }
 
+    /// <summary>Calls the privateGet10Transactions endpoint.</summary>
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> privateGet10Transactions (object parameters = null)
+    {
+        return await this.callAsync<object> ("privateGet10Transactions",parameters);
+    }
+
     /// <summary>Calls the privatePost10Orders endpoint.</summary>
     /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
     public async Task<object> privatePost10Orders (object parameters = null)

@@ -145,6 +145,7 @@ class testMainClass {
             'timeout': 30000,
         };
         const exchange = initExchange (exchangeId, exchangeArgs, this.wsTests);
+        setExchangeProp (exchange, 'fetchHistoryCacheSize', 5);
         if (exchange.alias) {
             dump (this.addPadding ("[INFO] skipping alias", 25));
             exitScript (0);
@@ -416,7 +417,7 @@ class testMainClass {
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);
                 const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                const lastUrlMsg = this.wsTests ? '' : ' (Last url: ' + exchange.last_request_url + ' )';
+                const lastUrlMsg = this.wsTests ? '' : ' (Last url: ' + this.getLastRequestUrl (exchange) + ' )';
                 if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
@@ -491,6 +492,19 @@ class testMainClass {
             }
         }
         return true;
+    }
+
+    getLastRequestUrl (exchange: any): string {
+        const fetchCache = exchange.getFetchCache ();
+        let url: string = '';
+        if (fetchCache.length > 0) {
+            const lastEntry: Dict = fetchCache[fetchCache.length - 1];
+            const lastRequest = lastEntry['request'];
+            if (lastRequest !== undefined) {
+                url = exchange.safeString (lastRequest, 'url', '');
+            }
+        }
+        return url;
     }
 
     async runPublicTests (exchange: any, symbols: any) {
@@ -1935,6 +1949,21 @@ class testMainClass {
         try {
             const callOutput = exchange.safeValue (data, 'output');
             this.assertStaticRequestOutput (exchange, type, skipKeys, data['url'], requestUrl as string, callOutput, output);
+            // optional per-test header pinning. only the keys the fixture lists are compared, so a
+            // fixture can pin one auth header without freezing the whole header set. this is the
+            // only cross-language assertion on header *names*, which the php transpiler can
+            // silently corrupt when a header literal contains a local/parameter name of sign ()
+            const storedHeaders = exchange.safeDict (data, 'headers');
+            if (storedHeaders !== undefined) {
+                const sentHeaders = (exchange.last_request_headers !== undefined) ? exchange.last_request_headers : {};
+                const storedHeaderKeys = Object.keys (storedHeaders);
+                for (let i = 0; i < storedHeaderKeys.length; i++) {
+                    const headerKey = storedHeaderKeys[i];
+                    const storedHeaderValue = storedHeaders[headerKey];
+                    const sentHeaderValue = exchange.safeString (sentHeaders, headerKey);
+                    this.assertStaticError (sentHeaderValue === storedHeaderValue, 'header mismatch for ' + headerKey, storedHeaderValue, sentHeaderValue);
+                }
+            }
         }
         catch (e) {
             this.requestTestsFailed = true;

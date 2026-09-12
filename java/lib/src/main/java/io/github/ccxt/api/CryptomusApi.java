@@ -42,6 +42,17 @@ public class CryptomusApi extends Exchange
     }
 
     /**
+     * Calls the publicGetV2UserApiExchangeMarketsPrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV2UserApiExchangeMarketsPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV2UserApiExchangeMarketsPrice", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetV1ExchangeMarketAssets endpoint.
      *
      * @param optionalArgs the request parameters
@@ -163,6 +174,94 @@ public class CryptomusApi extends Exchange
     }
 
     /**
+     * Calls the privateGetV2UserApiBalance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiBalance (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiBalance", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiConvertDirectionList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiConvertDirectionList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiConvertDirectionList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiConvertOrderList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiConvertOrderList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiConvertOrderList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiAmlCheckBalance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiAmlCheckBalance (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiAmlCheckBalance", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiAmlCheckCurrencies endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiAmlCheckCurrencies (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiAmlCheckCurrencies", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiAmlCheckPackages endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiAmlCheckPackages (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiAmlCheckPackages", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiAmlCheckRequest endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiAmlCheckRequest (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiAmlCheckRequest", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiAmlCheckRequestId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiAmlCheckRequestId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiAmlCheckRequestId", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostV2UserApiExchangeOrders endpoint.
      *
      * @param optionalArgs the request parameters
@@ -185,6 +284,61 @@ public class CryptomusApi extends Exchange
     }
 
     /**
+     * Calls the privatePostV2UserApiConvert endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2UserApiConvert (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2UserApiConvert", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2UserApiConvertCalculate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2UserApiConvertCalculate (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2UserApiConvertCalculate", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2UserApiConvertLimit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2UserApiConvertLimit (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2UserApiConvertLimit", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2UserApiAmlCheckRequest endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2UserApiAmlCheckRequest (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2UserApiAmlCheckRequest", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2UserApiAmlCheckRequestIdReportSend endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2UserApiAmlCheckRequestIdReportSend (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2UserApiAmlCheckRequestIdReportSend", optionalArgs);
+    }
+
+    /**
      * Calls the privateDeleteV2UserApiExchangeOrdersOrderId endpoint.
      *
      * @param optionalArgs the request parameters
@@ -193,6 +347,17 @@ public class CryptomusApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteV2UserApiExchangeOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteV2UserApiExchangeOrdersOrderId", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteV2UserApiConvertOrderUuid endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteV2UserApiConvertOrderUuid (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteV2UserApiConvertOrderUuid", optionalArgs);
     }
 
 }

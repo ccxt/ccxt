@@ -202,6 +202,7 @@ export default class okx extends Exchange {
                         'market/ticker': { 'cost': 1 },
                         'market/books': { 'cost': 1 / 2 },
                         'market/books-full': { 'cost': 2 },
+                        'market/books-rpi': { 'cost': 1 / 2 },
                         'market/candles': { 'cost': 1 / 2 },
                         'market/history-candles': { 'cost': 1 },
                         'market/trades': { 'cost': 1 / 5 },
@@ -254,6 +255,8 @@ export default class okx extends Exchange {
                         'public/event-contract/markets': { 'cost': 1 },
                         'public/event-contract/series': { 'cost': 1 },
                         'public/vip-interest-rate-loan-quota': { 'cost': 10 }, // not documented
+                        'public/mm-instrument-types': { 'cost': 4 },
+                        'public/delta-hedge-currencies': { 'cost': 1 },
                         // rubik
                         'rubik/stat/trading-data/support-coin': { 'cost': 4 },
                         'rubik/stat/contracts/open-interest-history': { 'cost': 2 },
@@ -464,6 +467,21 @@ export default class okx extends Exchange {
                         'finance/flexible-loan/loan-info': { 'cost': 4 },
                         'finance/flexible-loan/loan-history': { 'cost': 4 },
                         'finance/flexible-loan/interest-accrued': { 'cost': 4 },
+                        'finance/flexible-loan/emode-info': { 'cost': 4 },
+                        // okusd
+                        'finance/okusd/limits': { 'cost': 10 },
+                        'finance/okusd/account': { 'cost': 10 },
+                        'finance/okusd/subscribe/history': { 'cost': 4 },
+                        'finance/okusd/redeem/history': { 'cost': 4 },
+                        'finance/okusd/rewards/history': { 'cost': 4 },
+                        'finance/okusd/rate/history': { 'cost': 4 },
+                        // stable rewards
+                        'finance/stable-rewards/product-info': { 'cost': 4 },
+                        'finance/stable-rewards/balance': { 'cost': 4 },
+                        'finance/stable-rewards/apy-history': { 'cost': 5 / 3 },
+                        // glp
+                        'users/glp/todayperformance': { 'cost': 4 },
+                        'users/glp/historicalperformance': { 'cost': 4 },
                         // copytrading
                         'copytrading/current-subpositions': { 'cost': 1 },
                         'copytrading/subpositions-history': { 'cost': 1 },
@@ -499,6 +517,11 @@ export default class okx extends Exchange {
                         'finance/sfp/dcd/order-history': { 'cost': 2 },
                         // affiliate
                         'affiliate/invitee/detail': { 'cost': 1 },
+                        'affiliate/performance/summary': { 'cost': 10 / 3 },
+                        'affiliate/invitee/list': { 'cost': 10 / 3 },
+                        'affiliate/link/list': { 'cost': 10 / 3 },
+                        'affiliate/co-inviter/list': { 'cost': 10 / 3 },
+                        'affiliate/sub-affiliate/list': { 'cost': 10 / 3 },
                         'users/partner/if-rebate': { 'cost': 1 }, // not documented
                         'support/announcements': { 'cost': 4 },
                     },
@@ -653,6 +676,11 @@ export default class okx extends Exchange {
                         'finance/staking-defi/sol/cancel-redeem': { 'cost': 5 },
                         'finance/flexible-loan/max-loan': { 'cost': 4 },
                         'finance/flexible-loan/adjust-collateral': { 'cost': 4 },
+                        'finance/flexible-loan/borrow': { 'cost': 10 },
+                        'finance/flexible-loan/repay': { 'cost': 10 },
+                        // okusd
+                        'finance/okusd/subscribe': { 'cost': 20 },
+                        'finance/okusd/redeem': { 'cost': 20 },
                         // copytrading
                         'copytrading/algo-order': { 'cost': 1 },
                         'copytrading/close-subposition': { 'cost': 1 },
@@ -950,6 +978,7 @@ export default class okx extends Exchange {
                     '54008': InvalidOrder, // This operation is disabled by the 'mass cancel order' endpoint. Please enable it using this endpoint.
                     '54009': InvalidOrder, // The range of {param0} should be [{param1}, {param2}].
                     '54011': InvalidOrder, // 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
+                    '54051': InvalidOrder, // RPI order rejected. The order value is below the minimum required
                     '54072': ExchangeError, // This contract is currently view-only and not tradable.
                     '54073': BadRequest, // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
                     '54074': ExchangeError, // Your settings failed as you have positions, bot or open orders for USD contracts.
@@ -2127,10 +2156,12 @@ export default class okx extends Exchange {
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-rpi-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+     * @param {bool} [params.rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -2141,17 +2172,27 @@ export default class okx extends Exchange {
         const request = {
             'instId': market['id'],
         };
+        let rpi = false;
+        [rpi, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'rpi');
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         if (method === 'publicGetMarketBooksFull' && limit === undefined) {
             limit = 5000;
         }
         limit = (limit === undefined) ? 100 : limit;
+        if (rpi && (limit > 400)) {
+            // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
+            // including the 5000 that publicGetMarketBooksFull defaults to
+            limit = 400;
+        }
         if (limit !== undefined) {
             request['sz'] = limit; // max 400
         }
         let response = undefined;
-        if ((method === 'publicGetMarketBooksFull') || (limit > 400)) {
+        if (rpi) {
+            response = await this.publicGetMarketBooksRpi(this.extend(request, params));
+        }
+        else if ((method === 'publicGetMarketBooksFull') || (limit > 400)) {
             response = await this.publicGetMarketBooksFull(this.extend(request, params));
         }
         else {
@@ -2177,6 +2218,10 @@ export default class okx extends Exchange {
         //             }
         //         ]
         //     }
+        //
+        // the rpi book has the same envelope, but each level is
+        // [ price, totalQty, nonRpiQty, count ] - totalQty already includes the
+        // rpi liquidity, so index 0 and 1 stay the price and the amount
         //
         const data = this.safeList(response, 'data', []);
         const first = this.safeDict(data, 0, {});
@@ -3479,7 +3524,7 @@ export default class okx extends Exchange {
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type 'market' or 'limit', or 'rpi' for a retail price improvement maker order
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -3499,6 +3544,8 @@ export default class okx extends Exchange {
      * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
+     * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
+     * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -4065,8 +4112,10 @@ export default class okx extends Exchange {
         const statuses = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
+            'mmp_canceled': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
+            'partially_effective': 'open',
             'filled': 'closed',
             'effective': 'closed',
         };
@@ -4288,6 +4337,11 @@ export default class okx extends Exchange {
             timeInForce = 'IOC';
             type = 'limit';
         }
+        else if (type === 'rpi') {
+            // retail price improvement orders are maker-only limit orders
+            postOnly = true;
+            type = 'limit';
+        }
         const marketId = this.safeString(order, 'instId');
         market = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, market, '-');
@@ -4329,7 +4383,7 @@ export default class okx extends Exchange {
         const takeProfitPrice = this.safeNumber2(order, 'tpTriggerPx', 'tpOrdPx');
         const reduceOnlyRaw = this.safeString(order, 'reduceOnly');
         let reduceOnly = false;
-        if (reduceOnly !== undefined) {
+        if (reduceOnlyRaw !== undefined) {
             reduceOnly = (reduceOnlyRaw === 'true');
         }
         return this.safeOrder({

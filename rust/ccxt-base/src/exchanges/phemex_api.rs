@@ -127,6 +127,11 @@ impl PhemexCore {
         self.call_method(Value::Str("v2_get_public_products_plus".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v2GetPublicIndexSources` implicit endpoint.
+    pub async fn v2_get_public_index_sources(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v2_get_public_index_sources".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v2GetMdV2Orderbook` implicit endpoint.
     pub async fn v2_get_md_v2_orderbook(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v2_get_md_v2_orderbook".to_string()), optional_args).await
@@ -417,6 +422,46 @@ impl PhemexCore {
         self.call_method(Value::Str("private_get_assets_quote".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetPhemexLbPublicApiTraderPerformanceInfo` implicit endpoint.
+    pub async fn private_get_phemex_lb_public_api_trader_performance_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_phemex_lb_public_api_trader_performance_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUtaApiRiskRiskMode` implicit endpoint.
+    pub async fn private_get_uta_api_risk_risk_mode(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_uta_api_risk_risk_mode".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUtaApiRiskRiskUnits` implicit endpoint.
+    pub async fn private_get_uta_api_risk_risk_units(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_uta_api_risk_risk_units".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUtaBizAssets` implicit endpoint.
+    pub async fn private_get_uta_biz_assets(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_uta_biz_assets".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUtaFundsContractBorrow` implicit endpoint.
+    pub async fn private_get_uta_funds_contract_borrow(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_uta_funds_contract_borrow".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUtaFundsContractPayback` implicit endpoint.
+    pub async fn private_get_uta_funds_contract_payback(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_uta_funds_contract_payback".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUtaFundsContractBorrowInterests` implicit endpoint.
+    pub async fn private_get_uta_funds_contract_borrow_interests(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_uta_funds_contract_borrow_interests".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUtaExchangerAssetsConvert` implicit endpoint.
+    pub async fn private_get_uta_exchanger_assets_convert(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_uta_exchanger_assets_convert".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostSpotOrders` implicit endpoint.
     pub async fn private_post_spot_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_spot_orders".to_string()), optional_args).await
@@ -500,6 +545,16 @@ impl PhemexCore {
     /// Auto-generated wrapper for the `privatePostPhemexWithdrawWalletsApiCancelWithdraw` implicit endpoint.
     pub async fn private_post_phemex_withdraw_wallets_api_cancel_withdraw(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_phemex_withdraw_wallets_api_cancel_withdraw".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostUtaAccountSwitchMode` implicit endpoint.
+    pub async fn private_post_uta_account_switch_mode(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_uta_account_switch_mode".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostUtaFundsContractPayback` implicit endpoint.
+    pub async fn private_post_uta_funds_contract_payback(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_uta_funds_contract_payback".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePutSpotOrdersCreate` implicit endpoint.

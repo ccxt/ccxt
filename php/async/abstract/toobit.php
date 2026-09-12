@@ -362,6 +362,60 @@ abstract class toobit extends \ccxt\async\Exchange {
         return $this->request('api/v1/agent/export-url', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_api_v2_account_balance_flow($params = array()) {
+        return $this->request('api/v2/account/balance-flow', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_api_v2_futures_order($params = array()) {
+        return $this->request('api/v2/futures/order', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_api_v2_futures_open_orders($params = array()) {
+        return $this->request('api/v2/futures/open-orders', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_api_v2_futures_history_orders($params = array()) {
+        return $this->request('api/v2/futures/history-orders', 'private', 'GET', $params, null, null, array("cost" => 8.35));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_api_v2_futures_user_trades($params = array()) {
+        return $this->request('api/v2/futures/user-trades', 'private', 'GET', $params, null, null, array("cost" => 8.35));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_api_v2_futures_algo_order($params = array()) {
+        return $this->request('api/v2/futures/algo-order', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_api_v2_futures_open_algo_orders($params = array()) {
+        return $this->request('api/v2/futures/open-algo-orders', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_api_v2_futures_history_algo_orders($params = array()) {
+        return $this->request('api/v2/futures/history-algo-orders', 'private', 'GET', $params, null, null, array("cost" => 8.35));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_api_v2_futures_voucher_list($params = array()) {
+        return $this->request('api/v2/futures/voucher/list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_api_v1_spot_ordertest($params = array()) {
@@ -882,6 +936,60 @@ abstract class toobit extends \ccxt\async\Exchange {
      */
     public function privateGetApiV1AgentExportUrl($params = array()) {
         return $this->request('api/v1/agent/export-url', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetApiV2AccountBalanceFlow($params = array()) {
+        return $this->request('api/v2/account/balance-flow', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetApiV2FuturesOrder($params = array()) {
+        return $this->request('api/v2/futures/order', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetApiV2FuturesOpenOrders($params = array()) {
+        return $this->request('api/v2/futures/open-orders', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetApiV2FuturesHistoryOrders($params = array()) {
+        return $this->request('api/v2/futures/history-orders', 'private', 'GET', $params, null, null, array("cost" => 8.35));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetApiV2FuturesUserTrades($params = array()) {
+        return $this->request('api/v2/futures/user-trades', 'private', 'GET', $params, null, null, array("cost" => 8.35));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetApiV2FuturesAlgoOrder($params = array()) {
+        return $this->request('api/v2/futures/algo-order', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetApiV2FuturesOpenAlgoOrders($params = array()) {
+        return $this->request('api/v2/futures/open-algo-orders', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetApiV2FuturesHistoryAlgoOrders($params = array()) {
+        return $this->request('api/v2/futures/history-algo-orders', 'private', 'GET', $params, null, null, array("cost" => 8.35));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetApiV2FuturesVoucherList($params = array()) {
+        return $this->request('api/v2/futures/voucher/list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

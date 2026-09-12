@@ -117,6 +117,7 @@ class zebpay(Exchange, ImplicitAPI):
                             'v2/system/time': {'cost': 10},
                             'v2/system/status': {'cost': 10},
                             'v2/market/orderbook': {'cost': 10},
+                            'v2/market/orderbook/ticker': {'cost': 10},
                             'v2/market/trades': {'cost': 10},
                             'v2/market/ticker': {'cost': 10},
                             'v2/market/allTickers': {'cost': 10},
@@ -132,9 +133,12 @@ class zebpay(Exchange, ImplicitAPI):
                             'v1/system/status': {'cost': 10},
                             'v1/exchange/tradefee': {'cost': 10},
                             'v1/exchange/tradefees': {'cost': 10},
+                            'v1/exchange/exchangeInfo': {'cost': 10},
+                            'v1/exchange/pairs': {'cost': 10},
                             'v1/market/orderBook': {'cost': 10},
                             'v1/market/ticker24Hr': {'cost': 10},
                             'v1/market/markets': {'cost': 10},
+                            'v1/market/marketInfo': {'cost': 10},
                             'v1/market/aggTrade': {'cost': 10},
                         },
                         'post': {
@@ -151,6 +155,7 @@ class zebpay(Exchange, ImplicitAPI):
                             'v2/ex/orders': {'cost': 10},
                             'v2/account/balance': {'cost': 10},
                             'v2/ex/tradefee': {'cost': 10},
+                            'v2/ex/myfee/{symbol}': {'cost': 10},
                             'v2/ex/order': {'cost': 10},
                             'v2/ex/order/fills': {'cost': 10},
                         },
@@ -165,10 +170,12 @@ class zebpay(Exchange, ImplicitAPI):
                             'v1/wallet/balance': {'cost': 10},
                             'v1/trade/order': {'cost': 10},
                             'v1/trade/order/open-orders': {'cost': 10},
+                            'v1/trade/order/history': {'cost': 10},
                             'v1/trade/userLeverages': {'cost': 10},
                             'v1/trade/userLeverage': {'cost': 10},
                             'v1/trade/positions': {'cost': 10},
                             'v1/trade/history': {'cost': 10},
+                            'v1/trade/transaction/history': {'cost': 10},
                         },
                         'post': {
                             'v1/trade/order': {'cost': 10},
@@ -179,6 +186,10 @@ class zebpay(Exchange, ImplicitAPI):
                             'v1/trade/update/userLeverage': {'cost': 10},
                         },
                         'delete': {
+                            'v1/trade/order': {'cost': 10},
+                            'v1/trade/order/all': {'cost': 10},
+                        },
+                        'patch': {
                             'v1/trade/order': {'cost': 10},
                         },
                     },
@@ -685,7 +696,7 @@ class zebpay(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.endtime]: the latest time in ms to fetch orders for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()

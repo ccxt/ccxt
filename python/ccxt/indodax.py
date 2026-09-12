@@ -144,7 +144,7 @@ class indodax(Exchange, ImplicitAPI):
                 'transfer': False,
                 'withdraw': True,
             },
-            'version': '2.0',  # 9 April 2018
+            'version': '2.0',  # as of 9 April 2018
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api': {
@@ -178,7 +178,9 @@ class indodax(Exchange, ImplicitAPI):
                         'openOrders': {'cost': 4},
                         'orderHistory': {'cost': 4},
                         'getOrder': {'cost': 4},
+                        'getOrderByClientOrderId': {'cost': 4},
                         'cancelOrder': {'cost': 4},
+                        'cancelByClientOrderId': {'cost': 4},
                         'withdrawFee': {'cost': 4},
                         'withdrawCoin': {'cost': 4},
                         'listDownline': {'cost': 4},
@@ -439,7 +441,7 @@ class indodax(Exchange, ImplicitAPI):
 
     def parse_balance(self, response: object) -> Balances:
         balances = self.safe_value(response, 'return', {})
-        free = self.safe_value(balances, 'balance', {})
+        free = self.safe_dict(balances, 'balance', {})
         used = self.safe_value(balances, 'balance_hold', {})
         timestamp = self.safe_timestamp(balances, 'server_time')
         result = {
@@ -706,7 +708,7 @@ class indodax(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1190,8 +1192,8 @@ class indodax(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'return', {})
-        withdraw = self.safe_value(data, 'withdraw', {})
-        deposit = self.safe_value(data, 'deposit', {})
+        withdraw = self.safe_dict(data, 'withdraw', {})
+        deposit = self.safe_dict(data, 'deposit', {})
         transactions = []
         currency = None
         if code is None:

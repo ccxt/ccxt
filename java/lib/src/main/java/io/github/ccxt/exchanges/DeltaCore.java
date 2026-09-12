@@ -286,6 +286,9 @@ public class DeltaCore extends DeltaApi
                         put( "users/margin_mode", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "users/trading_preferences", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
                         put( "orders", new java.util.HashMap<String, Object>() {{
@@ -431,12 +434,12 @@ public class DeltaCore extends DeltaApi
     public Object createExpiredOptionMarket(Object symbol)
     {
         // support expired option contracts
-        Object quote = "USDT";
+        String quote = "USDT";
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
-        Object base = null;
+        String base = null;
         Object expiry = null;
-        Object optionType = null;
+        String optionType = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
             base = this.safeString(symbolBase, 0);
@@ -452,11 +455,11 @@ public class DeltaCore extends DeltaApi
         {
             expiry = Helpers.add(Helpers.add(Helpers.slice(expiry, 4, null), Helpers.slice(expiry, 2, 4)), Helpers.slice(expiry, 0, 2));
         }
-        Object settle = quote;
+        String settle = quote;
         String strike = this.safeString(optionParts, 2);
         Object datetime = this.convertExpireDate(expiry);
-        Object timestamp = this.parse8601(datetime);
-        Object optionTypeUnified = ((Helpers.isTrue((Helpers.isEqual(optionType, "C"))))) ? "call" : "put";
+        Long timestamp = this.parse8601(datetime);
+        String optionTypeUnified = ((Helpers.isTrue((Helpers.isEqual(optionType, "C"))))) ? "call" : "put";
         final Object finalOptionType = optionType;
         final Object finalBase = base;
         final Object finalExpiry = expiry;
@@ -512,7 +515,7 @@ public class DeltaCore extends DeltaApi
         Object market = Helpers.getArg(optionalArgs, 1, null);
         Object delimiter = Helpers.getArg(optionalArgs, 2, null);
         Object marketType = Helpers.getArg(optionalArgs, 3, null);
-        Object isOption = Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((((String)marketId).endsWith(((String)"-C")))) || Helpers.isTrue((((String)marketId).endsWith(((String)"-P"))))) || Helpers.isTrue((((String)marketId).startsWith(((String)"C-"))))) || Helpers.isTrue((((String)marketId).startsWith(((String)"P-"))))));
+        Boolean isOption = Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((((String)marketId).endsWith("-C"))) || Helpers.isTrue((((String)marketId).endsWith("-P")))) || Helpers.isTrue((((String)marketId).startsWith("C-")))) || Helpers.isTrue((((String)marketId).startsWith("P-")))));
         if (Helpers.isTrue(Helpers.isTrue(isOption) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(this.markets_by_id, null))) || !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
@@ -534,7 +537,7 @@ public class DeltaCore extends DeltaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetSettings(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetSettings(parameters)).join();
             // full response sample under `fetchStatus`
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.safeIntegerProduct(result, "server_time", 0.001);
@@ -555,7 +558,7 @@ public class DeltaCore extends DeltaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetSettings(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetSettings(parameters)).join();
             //
             //     {
             //         "result": {
@@ -611,8 +614,8 @@ public class DeltaCore extends DeltaApi
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             String underMaintenance = this.safeString(result, "under_maintenance");
-            Object status = ((Helpers.isTrue((Helpers.isEqual(underMaintenance, "true"))))) ? "maintenance" : "ok";
-            Object updated = this.safeIntegerProduct(result, "server_time", 0.001, this.milliseconds());
+            String status = ((Helpers.isTrue((Helpers.isEqual(underMaintenance, "true"))))) ? "maintenance" : "ok";
+            Long updated = this.safeIntegerProduct(result, "server_time", 0.001, this.milliseconds());
             return new java.util.HashMap<String, Object>() {{
                 put( "status", status );
                 put( "updated", updated );
@@ -638,7 +641,7 @@ public class DeltaCore extends DeltaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetAssets(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetAssets(parameters)).join();
             //
             //    {
             //        "result": [
@@ -696,10 +699,10 @@ public class DeltaCore extends DeltaApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
-        Object numericId = this.safeInteger(rawCurrency, "id");
-        Object code = this.safeCurrencyCode(id);
+        Long numericId = this.safeInteger(rawCurrency, "id");
+        String code = this.safeCurrencyCode(id);
         Object chains = this.safeList(rawCurrency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -781,7 +784,7 @@ public class DeltaCore extends DeltaApi
 
     public Object indexByStringifiedNumericId(Object input)
     {
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isEqual(input, null)))
         {
             return null;
@@ -815,7 +818,7 @@ public class DeltaCore extends DeltaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetProducts(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetProducts(parameters)).join();
             //
             //     {
             //         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
@@ -995,7 +998,7 @@ public class DeltaCore extends DeltaApi
             //     }
             //
             Object markets = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -1013,20 +1016,20 @@ public class DeltaCore extends DeltaApi
                 String quoteId = this.safeString(quotingAsset, "symbol");
                 String settleId = this.safeString(settlingAsset, "symbol");
                 String id = this.safeString(market, "symbol");
-                Object numericId = this.safeInteger(market, "id");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
-                Object settle = this.safeCurrencyCode(settleId);
-                Object callOptions = (Helpers.isEqual(type, "call_options"));
-                Object putOptions = (Helpers.isEqual(type, "put_options"));
-                Object moveOptions = (Helpers.isEqual(type, "move_options"));
-                Object spot = (Helpers.isEqual(type, "spot"));
-                Object swap = (Helpers.isEqual(type, "perpetual_futures"));
-                Object future = (Helpers.isEqual(type, "futures"));
-                Object option = (Helpers.isTrue(Helpers.isTrue(callOptions) || Helpers.isTrue(putOptions)) || Helpers.isTrue(moveOptions));
+                Long numericId = this.safeInteger(market, "id");
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String settle = this.safeCurrencyCode(settleId);
+                Boolean callOptions = (Helpers.isEqual(type, "call_options"));
+                Boolean putOptions = (Helpers.isEqual(type, "put_options"));
+                Boolean moveOptions = (Helpers.isEqual(type, "move_options"));
+                Boolean spot = (Helpers.isEqual(type, "spot"));
+                Boolean swap = (Helpers.isEqual(type, "perpetual_futures"));
+                Boolean future = (Helpers.isEqual(type, "futures"));
+                Boolean option = (Helpers.isTrue(Helpers.isTrue(callOptions) || Helpers.isTrue(putOptions)) || Helpers.isTrue(moveOptions));
                 String strike = this.safeString(market, "strike_price");
                 String expiryDatetime = this.safeString(market, "settlement_time");
-                Object expiry = this.parse8601(expiryDatetime);
+                Long expiry = this.parse8601(expiryDatetime);
                 Object contractSize = this.safeNumber(market, "contract_value");
                 Object amountPrecision = null;
                 if (Helpers.isTrue(spot))
@@ -1038,7 +1041,7 @@ public class DeltaCore extends DeltaApi
                     amountPrecision = this.parseNumber("1");
                 }
                 Object linear = (Helpers.isEqual(settle, quote));
-                Object optionType = null;
+                String optionType = null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(swap) || Helpers.isTrue(future)) || Helpers.isTrue(option)))
                 {
@@ -1049,7 +1052,7 @@ public class DeltaCore extends DeltaApi
                         if (Helpers.isTrue(option))
                         {
                             type = "option";
-                            Object letter = "C";
+                            String letter = "C";
                             optionType = "call";
                             if (Helpers.isTrue(putOptions))
                             {
@@ -1256,7 +1259,7 @@ public class DeltaCore extends DeltaApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.001);
+        Long timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.001);
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -1264,9 +1267,9 @@ public class DeltaCore extends DeltaApi
         Object quotes = this.safeDict(ticker, "quotes", new java.util.HashMap<String, Object>() {{}});
         // turnover_symbol names the currency turnover is denominated in, and on
         // spot markets that is the base currency rather than the quote
-        String turnoverSymbol = (String)this.safeStringUpper(ticker, "turnover_symbol");
-        String quoteId = (String)this.safeStringUpper(market, "quoteId");
-        Object baseDenominated = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(turnoverSymbol, null))) && Helpers.isTrue((!Helpers.isEqual(quoteId, null)))) && Helpers.isTrue((!Helpers.isEqual(turnoverSymbol, quoteId)));
+        String turnoverSymbol = this.safeStringUpper(ticker, "turnover_symbol");
+        String quoteId = this.safeStringUpper(market, "quoteId");
+        Boolean baseDenominated = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(turnoverSymbol, null))) && Helpers.isTrue((!Helpers.isEqual(quoteId, null)))) && Helpers.isTrue((!Helpers.isEqual(turnoverSymbol, quoteId)));
         Object quoteVolume = ((Helpers.isTrue(baseDenominated))) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1303,18 +1306,18 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             //
             // spot
             //
@@ -1463,7 +1466,7 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             //
             // spot
             //
@@ -1595,7 +1598,7 @@ public class DeltaCore extends DeltaApi
             //     }
             //
             Object tickers = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 Object rawTicker = Helpers.GetValue(tickers, i);
@@ -1634,15 +1637,15 @@ public class DeltaCore extends DeltaApi
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "depth", limit);
             }
-            Object response = (this.publicGetL2orderbookSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetL2orderbookSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":{
@@ -1719,13 +1722,13 @@ public class DeltaCore extends DeltaApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(trade, "id");
         String orderId = this.safeString(trade, "order_id");
-        Object timestamp = this.parse8601(this.safeString(trade, "created_at"));
+        Long timestamp = this.parse8601(this.safeString(trade, "created_at"));
         timestamp = this.safeIntegerProduct(trade, "timestamp", 0.001, timestamp);
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "size");
         Object product = this.safeDict(trade, "product", new java.util.HashMap<String, Object>() {{}});
         String marketId = this.safeString(product, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String sellerRole = this.safeString(trade, "seller_role");
         String side = this.safeString(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
@@ -1740,10 +1743,10 @@ public class DeltaCore extends DeltaApi
         }
         String takerOrMaker = this.safeString(trade, "role");
         Object metaData = this.safeDict(trade, "meta_data", new java.util.HashMap<String, Object>() {{}});
-        Object type = this.safeString(metaData, "order_type");
+        String type = this.safeString(metaData, "order_type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
-            type = Helpers.replace((String)type, (String)"_order", (String)"");
+            type = Helpers.replace(type, (String)"_order", (String)"");
         }
         String feeCostString = this.safeString(trade, "commission");
         Object fee = null;
@@ -1751,7 +1754,7 @@ public class DeltaCore extends DeltaApi
         {
             Object settlingAsset = this.safeDict(product, "settling_asset", new java.util.HashMap<String, Object>() {{}});
             String feeCurrencyId = this.safeString(settlingAsset, "symbol");
-            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -1790,7 +1793,7 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1799,11 +1802,11 @@ public class DeltaCore extends DeltaApi
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTradesSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTradesSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":[
@@ -1864,14 +1867,14 @@ public class DeltaCore extends DeltaApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "resolution", DeltaCore.this.safeString(DeltaCore.this.timeframes, timeframe, timeframe) );
             }};
-            Object duration = this.parseTimeframe(timeframe);
+            int duration = this.parseTimeframe(timeframe);
             limit = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(limit, null)) && Helpers.isTrue(!Helpers.isEqual(limit, null))) && Helpers.isTrue(!Helpers.isEqual(limit, 0)))))) ? limit : 2000; // max 2000
             Object until = this.safeIntegerProduct(parameters, "until", 0.001);
-            Object untilIsDefined = (!Helpers.isEqual(until, null));
+            Boolean untilIsDefined = (!Helpers.isEqual(until, null));
             if (Helpers.isTrue(untilIsDefined))
             {
                 until = this.parseToInt(until);
@@ -1882,12 +1885,12 @@ public class DeltaCore extends DeltaApi
                 Helpers.addElementToObject(request, "end", end);
                 if (Helpers.isTrue(Helpers.isEqual(end, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing end")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " fetchOHLCV() missing end")) ;
                 }
                 Helpers.addElementToObject(request, "start", Helpers.subtract(end, Helpers.multiply(limit, duration)));
             } else
             {
-                Object start = this.parseToInt(Helpers.divide(since, 1000));
+                Long start = this.parseToInt(Helpers.divide(since, 1000));
                 Helpers.addElementToObject(request, "start", start);
                 Helpers.addElementToObject(request, "end", ((Helpers.isTrue(untilIsDefined))) ? until : this.sum(start, Helpers.multiply(limit, duration)));
             }
@@ -1903,7 +1906,7 @@ public class DeltaCore extends DeltaApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "until")));
-            Object response = (this.publicGetHistoryCandles(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetHistoryCandles(this.extend(request, parameters))).join();
             //
             //     {
             //         "success":true,
@@ -1923,7 +1926,7 @@ public class DeltaCore extends DeltaApi
     public Object parseBalance(Object response)
     {
         Object balances = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId", new java.util.HashMap<String, Object>() {{}});
@@ -1956,7 +1959,7 @@ public class DeltaCore extends DeltaApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object response = (this.privateGetWalletBalances(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetWalletBalances(parameters)).join();
             //
             //     {
             //         "result":[
@@ -1999,11 +2002,11 @@ public class DeltaCore extends DeltaApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "product_id", Helpers.GetValue(market, "numericId") );
             }};
-            Object response = (this.privateGetPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetPositions(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":{
@@ -2037,7 +2040,7 @@ public class DeltaCore extends DeltaApi
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object response = (this.privateGetPositionsMargined(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetPositionsMargined(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -2098,9 +2101,9 @@ public class DeltaCore extends DeltaApi
         String marketId = this.safeString(position, "product_symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeIntegerProduct(position, "timestamp", 0.001);
+        Long timestamp = this.safeIntegerProduct(position, "timestamp", 0.001);
         String sizeString = this.safeString(position, "size");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(sizeString, null)))
         {
             if (Helpers.isTrue(Precise.stringGt(sizeString, "0")))
@@ -2143,9 +2146,9 @@ public class DeltaCore extends DeltaApi
         }});
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "open", "open" );
             put( "pending", "open" );
             put( "closed", "closed" );
@@ -2232,12 +2235,12 @@ public class DeltaCore extends DeltaApi
         Object marketsByNumericId = this.safeDict(this.options, "marketsByNumericId", new java.util.HashMap<String, Object>() {{}});
         market = this.safeValue(marketsByNumericId, marketId, market);
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? marketId : Helpers.GetValue(market, "symbol");
-        Object status = this.parseOrderStatus(this.safeString(order, "state"));
+        String status = this.parseOrderStatus(this.safeString(order, "state"));
         String side = this.safeString(order, "side");
-        Object type = this.safeString(order, "order_type");
+        String type = this.safeString(order, "order_type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
-            type = Helpers.replace((String)type, (String)"_order", (String)"");
+            type = Helpers.replace(type, (String)"_order", (String)"");
         }
         String price = this.safeString(order, "limit_price");
         String amount = this.safeString(order, "size");
@@ -2309,8 +2312,8 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object orderType = Helpers.add(type, "_order");
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "product_id", Helpers.GetValue(market, "numericId") );
                 put( "size", DeltaCore.this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount) );
                 put( "side", side );
@@ -2332,7 +2335,7 @@ public class DeltaCore extends DeltaApi
                 Helpers.addElementToObject(request, "reduce_only", reduceOnly);
                 parameters = this.omit(parameters, "reduceOnly");
             }
-            Object response = (this.privatePostOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":{
@@ -2389,7 +2392,7 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2398,8 +2401,8 @@ public class DeltaCore extends DeltaApi
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", Helpers.parseInt(id) );
                 put( "product_id", Helpers.GetValue(market, "numericId") );
             }};
@@ -2416,7 +2419,7 @@ public class DeltaCore extends DeltaApi
             {
                 Helpers.addElementToObject(request, "limit_price", this.priceToPrecision(symbol, price));
             }
-            Object response = (this.privatePutOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePutOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -2459,15 +2462,15 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", Helpers.parseInt(id) );
                 put( "product_id", Helpers.GetValue(market, "numericId") );
             }};
-            Object response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":{
@@ -2528,11 +2531,11 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "product_id", Helpers.GetValue(market, "numericId") );
             }};
             Object response = this.privateDeleteOrdersAll(this.extend(request, parameters));
@@ -2576,7 +2579,7 @@ public class DeltaCore extends DeltaApi
             }
             String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_oid", "clientOid")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_oid", "clientOid")));
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
@@ -2677,7 +2680,7 @@ public class DeltaCore extends DeltaApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2750,7 +2753,7 @@ public class DeltaCore extends DeltaApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2765,7 +2768,7 @@ public class DeltaCore extends DeltaApi
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            Object response = (this.privateGetFills(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
             //
             //     {
             //         "meta":{
@@ -2838,7 +2841,7 @@ public class DeltaCore extends DeltaApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2849,7 +2852,7 @@ public class DeltaCore extends DeltaApi
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            Object response = (this.privateGetWalletTransactions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWalletTransactions(this.extend(request, parameters))).join();
             //
             //     {
             //         "meta":{"after":null,"before":null,"limit":10,"total_count":1},
@@ -2879,7 +2882,7 @@ public class DeltaCore extends DeltaApi
 
     public Object parseLedgerEntryType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "pnl", "pnl" );
             put( "deposit", "transaction" );
             put( "withdrawal", "transaction" );
@@ -2910,7 +2913,7 @@ public class DeltaCore extends DeltaApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(item, "uuid");
-        Object direction = null;
+        String direction = null;
         Object account = null;
         Object metaData = this.safeDict(item, "meta_data", new java.util.HashMap<String, Object>() {{}});
         String referenceId = this.safeString(metaData, "transaction_id");
@@ -2929,10 +2932,10 @@ public class DeltaCore extends DeltaApi
         currency = this.safeValue(currenciesByNumericId, currencyId, currency);
         Object code = ((Helpers.isTrue((Helpers.isEqual(currency, null))))) ? null : Helpers.GetValue(currency, "code");
         String amount = this.safeString(item, "amount");
-        Object timestamp = this.parse8601(this.safeString(item, "created_at"));
+        Long timestamp = this.parse8601(this.safeString(item, "created_at"));
         String after = this.safeString(item, "balance");
-        Object before = Precise.stringMax("0", Precise.stringSub(after, amount));
-        Object status = "ok";
+        String before = Precise.stringMax("0", Precise.stringSub(after, amount));
+        String status = "ok";
         final Object finalDirection = direction;
         final Object finalType = type;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
@@ -2963,24 +2966,24 @@ public class DeltaCore extends DeltaApi
      * @param {string} [params.network] unified network code
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset_symbol", Helpers.GetValue(currency, "id") );
             }};
-            String networkCode = (String)this.safeStringUpper(parameters, "network");
+            String networkCode = this.safeStringUpper(parameters, "network");
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode, code));
                 parameters = this.omit(parameters, "network");
             }
-            Object response = (this.privateGetDepositsAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDepositsAddress(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -3024,7 +3027,7 @@ public class DeltaCore extends DeltaApi
         String address = this.safeString(depositAddress, "address");
         String marketId = this.safeString(depositAddress, "asset_symbol");
         String networkId = this.safeString(depositAddress, "network");
-        Object code = this.safeCurrencyCode(marketId, currency);
+        String code = this.safeCurrencyCode(marketId, currency);
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
@@ -3044,22 +3047,22 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": {
@@ -3129,10 +3132,10 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contract_types", "perpetual_futures" );
             }};
-            Object response = (this.publicGetTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": [
@@ -3231,10 +3234,10 @@ public class DeltaCore extends DeltaApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerProduct(contract, "timestamp", 0.001);
+        Long timestamp = this.safeIntegerProduct(contract, "timestamp", 0.001);
         String marketId = this.safeString(contract, "symbol");
         String fundingRateString = this.safeString(contract, "funding_rate");
-        Object fundingRate = Precise.stringDiv(fundingRateString, "100");
+        String fundingRate = Precise.stringDiv(fundingRateString, "100");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", DeltaCore.this.safeSymbol(marketId, market) );
@@ -3267,7 +3270,7 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3288,7 +3291,7 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3299,7 +3302,7 @@ public class DeltaCore extends DeltaApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount2, Object type2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object type2, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         final Object type3 = type2;
@@ -3308,18 +3311,18 @@ public class DeltaCore extends DeltaApi
             Object type = type3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             amount = String.valueOf(amount);
             if (Helpers.isTrue(Helpers.isEqual(type, "reduce")))
             {
                 amount = Precise.stringMul(amount, "-1");
             }
             final Object finalAmount = amount;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "product_id", Helpers.GetValue(market, "numericId") );
                 put( "delta_margin", finalAmount );
             }};
-            Object response = (this.privatePostPositionsChangeMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostPositionsChangeMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": {
@@ -3398,22 +3401,22 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": {
@@ -3524,7 +3527,7 @@ public class DeltaCore extends DeltaApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerProduct(interest, "timestamp", 0.001);
+        Long timestamp = this.safeIntegerProduct(interest, "timestamp", 0.001);
         String marketId = this.safeString(interest, "symbol");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", DeltaCore.this.safeSymbol(marketId, market) );
@@ -3547,18 +3550,18 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "product_id", Helpers.GetValue(market, "numericId") );
             }};
-            Object response = (this.privateGetProductsProductIdOrdersLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetProductsProductIdOrdersLeverage(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": {
@@ -3582,7 +3585,7 @@ public class DeltaCore extends DeltaApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "index_symbol");
-        Object leverageValue = this.safeInteger(leverage, "leverage");
+        Long leverageValue = this.safeInteger(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", DeltaCore.this.safeSymbol(marketId, market) );
@@ -3611,11 +3614,11 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "product_id", Helpers.GetValue(market, "numericId") );
                 put( "leverage", leverage );
             }};
@@ -3661,14 +3664,14 @@ public class DeltaCore extends DeltaApi
             {
                 market = this.market(symbol);
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "states", "expired" );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            Object response = (this.publicGetProducts(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetProducts(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": [
@@ -3729,7 +3732,7 @@ public class DeltaCore extends DeltaApi
             //
             Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(result, market);
-            Object sorted = this.sortBy(settlements, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
         });
 
@@ -3803,7 +3806,7 @@ public class DeltaCore extends DeltaApi
 
     public Object parseSettlements(Object settlements, Object market)
     {
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
         {
             ((java.util.List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
@@ -3820,18 +3823,18 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": {
@@ -3942,9 +3945,9 @@ public class DeltaCore extends DeltaApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerProduct(greeks, "timestamp", 0.001);
+        Long timestamp = this.safeIntegerProduct(greeks, "timestamp", 0.001);
         String marketId = this.safeString(greeks, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Object stats = this.safeDict(greeks, "greeks", new java.util.HashMap<String, Object>() {{}});
         Object quotes = this.safeDict(greeks, "quotes", new java.util.HashMap<String, Object>() {{}});
         return new java.util.HashMap<String, Object>() {{
@@ -3986,11 +3989,11 @@ public class DeltaCore extends DeltaApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "close_all_portfolio", true );
                 put( "close_all_isolated", true );
             }};
-            Object response = (this.privatePostPositionsCloseAll(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostPositionsCloseAll(this.extend(request, parameters))).join();
             //
             // {"result":{},"success":true}
             //
@@ -4009,7 +4012,7 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4021,7 +4024,7 @@ public class DeltaCore extends DeltaApi
             {
                 market = this.market(symbol);
             }
-            Object response = (this.privateGetProfile(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetProfile(parameters)).join();
             //
             //     {
             //         "result": {
@@ -4128,7 +4131,7 @@ public class DeltaCore extends DeltaApi
             this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new java.util.ArrayList<Object>(java.util.Arrays.asList("isolated", "portfolio")));
             String subaccountUserId = this.safeString(parameters, "subaccount_user_id");
             this.checkRequiredArgument("setMarginMode", subaccountUserId, "params[\"subaccount_user_id\"]");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "margin_mode", marginMode );
             }};
             return (this.privatePutUsersMarginMode(this.extend(request, parameters))).join();
@@ -4145,18 +4148,18 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOption(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOption(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": {
@@ -4271,7 +4274,7 @@ public class DeltaCore extends DeltaApi
         String marketId = this.safeString(chain, "symbol");
         market = this.safeMarket(marketId, market);
         Object quotes = this.safeDict(chain, "quotes", new java.util.HashMap<String, Object>() {{}});
-        Object timestamp = this.safeIntegerProduct(chain, "timestamp", 0.001);
+        Long timestamp = this.safeIntegerProduct(chain, "timestamp", 0.001);
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", chain );
@@ -4312,7 +4315,7 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object response = (this.privateGetPositionsMargined(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetPositionsMargined(parameters)).join();
             //
             //     {
             //         "result":
@@ -4700,7 +4703,7 @@ public class DeltaCore extends DeltaApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
-                    Object queryString = Helpers.add("?", this.urlencode(query));
+                    String queryString = Helpers.add("?", this.urlencode(query));
                     auth = Helpers.add(auth, queryString);
                     url = Helpers.add(url, queryString);
                 }

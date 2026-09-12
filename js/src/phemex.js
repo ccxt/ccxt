@@ -188,6 +188,7 @@ export default class phemex extends Exchange {
                     'get': {
                         'public/products': { 'cost': 5 },
                         'public/products-plus': { 'cost': 5 },
+                        'public/index-sources': { 'cost': 5 }, // ?symbol=<symbol>&pageNum=<pageNum>&pageSize=<pageSize>
                         'md/v2/orderbook': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
                         'md/v2/trade': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
@@ -256,6 +257,16 @@ export default class phemex extends Exchange {
                         'assets/futures/sub-accounts/transfer': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote': { 'cost': 5 }, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                         // deposit/withdraw
+                        // copy trade
+                        'phemex-lb/public/api/trader/performance-info': { 'cost': 5 }, // ?strategyIds=<strategyIds>&pageNum=<pageNum>&pageSize=<pageSize>
+                        // uta
+                        'uta-api/risk/risk-mode': { 'cost': 5 },
+                        'uta-api/risk/risk-units': { 'cost': 5 }, // ?currency=<currency>&riskType=<riskType>
+                        'uta-biz/assets': { 'cost': 5 }, // ?currency=<currency>
+                        'uta-funds/contract/borrow': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-funds/contract/payback': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-funds/contract/borrow/interests': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-exchanger/assets/convert': { 'cost': 5 }, // ?fromCurrency=<currency>&toCurrency=<currency>&start=<start>&end=<end>&offset=<offset>&limit=<limit>
                     },
                     'post': {
                         // spot
@@ -279,6 +290,9 @@ export default class phemex extends Exchange {
                         // withdraw
                         'phemex-withdraw/wallets/api/createWithdraw': { 'cost': 5 }, // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
                         'phemex-withdraw/wallets/api/cancelWithdraw': { 'cost': 5 }, // ?id=<id>
+                        // uta
+                        'uta-account/switch-mode': { 'cost': 5 }, // ?riskMode=<riskMode>
+                        'uta-funds/contract/payback': { 'cost': 5 }, // body: currency, amountRv
                     },
                     'put': {
                         // spot
@@ -2045,7 +2059,7 @@ export default class phemex extends Exchange {
         //
         let timestamp = undefined;
         const result = { 'info': response };
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString(balance, 'currency');
@@ -4008,7 +4022,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const positions = this.safeValue(data, 'positions', []);
+        const positions = this.safeList(data, 'positions', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
@@ -4311,7 +4325,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const rows = this.safeValue(data, 'rows', []);
+        const rows = this.safeList(data, 'rows', []);
         const result = [];
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
@@ -5712,7 +5726,7 @@ export default class phemex extends Exchange {
             //
         }
         const data = this.safeValue(response, 'data', {});
-        const ranks = this.safeValue(data, 'positions', []);
+        const ranks = this.safeList(data, 'positions', []);
         const result = [];
         for (let i = 0; i < ranks.length; i++) {
             const rank = ranks[i];

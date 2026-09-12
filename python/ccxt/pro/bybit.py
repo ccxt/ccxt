@@ -665,7 +665,7 @@ class bybit(ccxt.async_support.bybit):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
@@ -682,7 +682,7 @@ class bybit(ccxt.async_support.bybit):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A list of candles ordered, open, high, low, close, volume
+        :returns dict: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -715,7 +715,7 @@ class bybit(ccxt.async_support.bybit):
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A list of candles ordered, open, high, low, close, volume
+        :returns dict: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -750,7 +750,7 @@ class bybit(ccxt.async_support.bybit):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         params['callerMethodName'] = 'watchOHLCV'
         return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
@@ -1384,14 +1384,14 @@ class bybit(ccxt.async_support.bybit):
         executionFast = topic == 'execution.fast'
         data = self.safe_value(message, 'data', [])
         if not isinstance(data, list):
-            data = self.safe_value(data, 'result', [])
+            data = self.safe_list(data, 'result', [])
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
         symbols = {}
         # the option was renamed from filterExecTypes to execType to mirror
-        # the exchange's own field name, the old key is still read
+        # the exchange's own field name, the old key is still read as a
         # fallback for backward compatibility
         # see https://github.com/ccxt/ccxt/issues/17244
         # and https://github.com/ccxt/ccxt/issues/28181
@@ -1400,7 +1400,7 @@ class bybit(ccxt.async_support.bybit):
             execTypeOption = self.handle_option('watchMyTrades', 'filterExecTypes')
         execTypes = None
         if isinstance(execTypeOption, str):
-            # a single execution type is accepted plain string
+            # a single execution type is accepted as a plain string as well
             execTypes = [execTypeOption]
         else:
             execTypes = execTypeOption
@@ -1480,7 +1480,7 @@ class bybit(ccxt.async_support.bybit):
             self.positions = ArrayCacheBySymbolBySide()
 
     async def load_positions_snapshot(self, client: Client, messageHash: object):
-        # one ws channel gives positions for all types, for snapshot must load all positions
+        # as only one ws channel gives positions for all types, for snapshot must load all positions
         fetchFunctions = [
             self.fetch_positions(None, {'type': 'swap', 'subType': 'linear'}),
             self.fetch_positions(None, {'type': 'swap', 'subType': 'inverse'}),
@@ -1543,7 +1543,7 @@ class bybit(ccxt.async_support.bybit):
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         newPositions = []
-        rawPositions = self.safe_value(message, 'data', [])
+        rawPositions = self.safe_list(message, 'data', [])
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_position(rawPosition)
@@ -1890,7 +1890,7 @@ class bybit(ccxt.async_support.bybit):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
-        rawOrders = self.safe_value(message, 'data', [])
+        rawOrders = self.safe_list(message, 'data', [])
         first = self.safe_value(rawOrders, 0, {})
         category = self.safe_string(first, 'category')
         isSpot = category == 'spot'
@@ -2118,7 +2118,7 @@ class bybit(ccxt.async_support.bybit):
         account = None
         if topic == 'outboundAccountInfo':
             account = 'spot'
-            data = self.safe_value(message, 'data', [])
+            data = self.safe_list(message, 'data', [])
             for i in range(0, len(data)):
                 B = self.safe_value(data[i], 'B', [])
                 rawBalances = self.array_concat(rawBalances, B)

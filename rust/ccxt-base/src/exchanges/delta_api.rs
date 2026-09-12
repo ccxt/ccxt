@@ -257,6 +257,11 @@ impl DeltaCore {
         self.call_method(Value::Str("private_put_users_margin_mode".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePutUsersTradingPreferences` implicit endpoint.
+    pub async fn private_put_users_trading_preferences(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_users_trading_preferences".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateDeleteOrders` implicit endpoint.
     pub async fn private_delete_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_delete_orders".to_string()), optional_args).await

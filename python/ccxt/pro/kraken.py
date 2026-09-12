@@ -751,7 +751,7 @@ class kraken(ccxt.async_support.kraken):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         name = 'ohlc'
@@ -879,7 +879,7 @@ class kraken(ccxt.async_support.kraken):
         data = self.safe_list(message, 'data', [])
         first = self.safe_dict(data, 0, {})
         symbol = self.safe_string(first, 'symbol')
-        a = self.safe_value(first, 'asks', [])
+        a = self.safe_list(first, 'asks', [])
         b = self.safe_value(first, 'bids', [])
         c = self.safe_integer(first, 'checksum')
         messageHash = self.get_message_hash('orderbook', None, symbol)
@@ -905,7 +905,7 @@ class kraken(ccxt.async_support.kraken):
             for i in range(0, len(keys)):
                 key = keys[i]
                 bookside = orderbook[key]
-                deltas = self.safe_value(first, key, [])
+                deltas = self.safe_list(first, key, [])
                 deltasLength = len(deltas)
                 if deltasLength > 0:
                     self.custom_handle_deltas(bookside, deltas)
@@ -969,7 +969,7 @@ class kraken(ccxt.async_support.kraken):
     def handle_system_status(self, client: Client, message: object):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
-        # and unified for any usage pattern that
+        # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
         #     {
@@ -1267,7 +1267,7 @@ class kraken(ccxt.async_support.kraken):
                 length = len(stored)
                 if length == limit and (previousOrder is None):
                     first = stored[0]
-                    symbolsByOrderId = self.safe_value(self.options, 'symbolsByOrderId', {})
+                    symbolsByOrderId = self.safe_dict(self.options, 'symbolsByOrderId', {})
                     if first['id'] in symbolsByOrderId:
                         del symbolsByOrderId[first['id']]
                 stored.append(newOrder)

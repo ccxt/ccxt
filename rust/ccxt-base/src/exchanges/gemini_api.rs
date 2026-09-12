@@ -117,9 +117,104 @@ impl GeminiCore {
         self.call_method(Value::Str("public_get_v1_riskstats_symbol".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsEvents` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_events(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_events".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsEventsEventTicker` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_events_event_ticker(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_events_event_ticker".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsEventsEventTickerStrike` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_events_event_ticker_strike(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_events_event_ticker_strike".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsEventsNewlyListed` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_events_newly_listed(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_events_newly_listed".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsEventsRecentlySettled` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_events_recently_settled(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_events_recently_settled".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsEventsUpcoming` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_events_upcoming(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_events_upcoming".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsCategories` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_categories(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_categories".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsVolumeDate` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_volume_date(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_volume_date".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsVolumeDateHourly` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_volume_date_hourly(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_volume_date_hourly".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsTerms` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_terms(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_terms".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsMakerRebateRates` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_maker_rebate_rates(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_maker_rebate_rates".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsLiquidityRewardsConfig` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_liquidity_rewards_config(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_liquidity_rewards_config".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1PredictionMarketsLiquidityRewardsEvents` implicit endpoint.
+    pub async fn public_get_v1_prediction_markets_liquidity_rewards_events(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_prediction_markets_liquidity_rewards_events".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV1PerpetualsFundingpaymentreportRecordsXlsx` implicit endpoint.
     pub async fn private_get_v1_perpetuals_fundingpaymentreport_records_xlsx(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v1_perpetuals_fundingpaymentreport_records_xlsx".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV1PredictionMarketsTermsStatus` implicit endpoint.
+    pub async fn private_get_v1_prediction_markets_terms_status(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v1_prediction_markets_terms_status".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV1PredictionMarketsMakerRebateSummaryTotal` implicit endpoint.
+    pub async fn private_get_v1_prediction_markets_maker_rebate_summary_total(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v1_prediction_markets_maker_rebate_summary_total".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily` implicit endpoint.
+    pub async fn private_get_v1_prediction_markets_liquidity_rewards_summary_daily(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v1_prediction_markets_liquidity_rewards_summary_daily".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal` implicit endpoint.
+    pub async fn private_get_v1_prediction_markets_liquidity_rewards_summary_total(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v1_prediction_markets_liquidity_rewards_summary_total".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2NetworkToken` implicit endpoint.
+    pub async fn private_get_v2_network_token(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_network_token".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2NetworksNetworkAssets` implicit endpoint.
+    pub async fn private_get_v2_networks_network_assets(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_networks_network_assets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1StakingUnstake` implicit endpoint.
@@ -420,6 +515,76 @@ impl GeminiCore {
     /// Auto-generated wrapper for the `privatePostV1Positions` implicit endpoint.
     pub async fn private_post_v1_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v1_positions".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV1PredictionMarketsOrder` implicit endpoint.
+    pub async fn private_post_v1_prediction_markets_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v1_prediction_markets_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV1PredictionMarketsOrderBatch` implicit endpoint.
+    pub async fn private_post_v1_prediction_markets_order_batch(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v1_prediction_markets_order_batch".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV1PredictionMarketsOrderCancel` implicit endpoint.
+    pub async fn private_post_v1_prediction_markets_order_cancel(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v1_prediction_markets_order_cancel".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV1PredictionMarketsOrderBatchCancel` implicit endpoint.
+    pub async fn private_post_v1_prediction_markets_order_batch_cancel(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v1_prediction_markets_order_batch_cancel".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV1PredictionMarketsOrdersActive` implicit endpoint.
+    pub async fn private_post_v1_prediction_markets_orders_active(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v1_prediction_markets_orders_active".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV1PredictionMarketsOrdersHistory` implicit endpoint.
+    pub async fn private_post_v1_prediction_markets_orders_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v1_prediction_markets_orders_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV1PredictionMarketsPositions` implicit endpoint.
+    pub async fn private_post_v1_prediction_markets_positions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v1_prediction_markets_positions".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV1PredictionMarketsPositionsSettled` implicit endpoint.
+    pub async fn private_post_v1_prediction_markets_positions_settled(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v1_prediction_markets_positions_settled".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV1PredictionMarketsMetricsVolume` implicit endpoint.
+    pub async fn private_post_v1_prediction_markets_metrics_volume(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v1_prediction_markets_metrics_volume".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV1PredictionMarketsTermsAccept` implicit endpoint.
+    pub async fn private_post_v1_prediction_markets_terms_accept(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v1_prediction_markets_terms_accept".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV1PredictionMarketsMakerRebatePayouts` implicit endpoint.
+    pub async fn private_post_v1_prediction_markets_maker_rebate_payouts(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v1_prediction_markets_maker_rebate_payouts".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2Transfers` implicit endpoint.
+    pub async fn private_post_v2_transfers(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_transfers".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2WithdrawNetworkTicker` implicit endpoint.
+    pub async fn private_post_v2_withdraw_network_ticker(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_withdraw_network_ticker".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2WithdrawNetworkTickerFeeEstimate` implicit endpoint.
+    pub async fn private_post_v2_withdraw_network_ticker_fee_estimate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_withdraw_network_ticker_fee_estimate".to_string()), optional_args).await
     }
 
 }

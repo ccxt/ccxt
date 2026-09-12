@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -1323,7 +1327,7 @@ impl BitfinexCore {
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut balance: Value = self.parse_ws_balance(rawBalance.clone());
             let mut balanceType: Value = self.safe_string(rawBalance.clone(), Value::Int(0), &[]);
-            let mut oldBalance: Value = self.safe_value(self.balance.clone(), balanceType.clone(), &[Value::Map({
+            let mut oldBalance: Value = self.safe_dict(self.balance.clone(), balanceType.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1585,7 +1589,7 @@ impl BitfinexCore {
         //        ]
         //    ]
         //
-        let mut data: Value = self.safe_value(message.clone(), Value::Int(2), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list(message.clone(), Value::Int(2), &[Value::List(vec![])]);
         let mut messageType: Value = self.safe_string(message.clone(), Value::Int(1), &[]);
         if is_equal(&self.orders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);

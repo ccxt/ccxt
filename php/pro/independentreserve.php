@@ -12,6 +12,10 @@ use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 
+use const ccxt\ROUND;
+use const ccxt\DECIMAL_PLACES;
+use const ccxt\PAD_WITH_ZERO;
+
 class independentreserve extends \ccxt\async\independentreserve {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -213,7 +217,11 @@ class independentreserve extends \ccxt\async\independentreserve {
         if ($event === 'OrderBookSnapshot') {
             $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'Bids', 'Offers', 'Price', 'Volume');
             $orderbook->reset($snapshot);
-            $subscription['receivedSnapshot'] = true;
+            // write through the parent index => php copies arrays by value, so
+            // mutating the local bind would not persist the flag
+            $client->subscriptions[$messageHash] = $this->extend($subscription, array(
+                'receivedSnapshot' => true,
+            ));
         } else {
             $asks = $this->safe_list($orderBook, 'Offers', array());
             $bids = $this->safe_list($orderBook, 'Bids', array());
@@ -239,7 +247,7 @@ class independentreserve extends \ccxt\async\independentreserve {
                     $payload = $payload . $this->value_to_checksum($storedAsks[$i][0]) . $this->value_to_checksum($storedAsks[$i][1]);
                 }
             }
-            $calculatedChecksum = $this->crc32($payload, true);
+            $calculatedChecksum = $this->crc32($payload, false);
             $responseChecksum = $this->safe_integer($orderBook, 'Crc32');
             if ($calculatedChecksum !== $responseChecksum) {
                 $error = new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
@@ -255,7 +263,10 @@ class independentreserve extends \ccxt\async\independentreserve {
     }
 
     public function value_to_checksum(mixed $value) {
-        $result = sprintf('%.8f', $value);
+        // toFixed returns a zero-padded *string* in js but a *number* in
+        // go/c#/java, dropping trailing zeros. decimalToPrecision with
+        // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
+        $result = $this->decimal_to_precision($value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
         $result = str_replace('.', '', $result);
         // remove leading zeros
         $result = $this->parse_number($result);

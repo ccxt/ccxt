@@ -180,6 +180,7 @@ class blofin extends Exchange {
                 'public' => array(
                     'get' => array(
                         'market/instruments' => array( 'cost' => 1 ),
+                        'market/instruments-history' => array( 'cost' => 1 ),
                         'market/tickers' => array( 'cost' => 1 ),
                         'market/books' => array( 'cost' => 1 ),
                         'market/trades' => array( 'cost' => 1 ),
@@ -190,6 +191,12 @@ class blofin extends Exchange {
                         'market/index-candles' => array( 'cost' => 1 ),
                         'market/mark-price-candles' => array( 'cost' => 1 ),
                         'market/position-tiers' => array( 'cost' => 1 ),
+                        // spot
+                        'spot/market/instruments' => array( 'cost' => 1 ),
+                        'spot/market/tickers' => array( 'cost' => 1 ),
+                        'spot/market/books' => array( 'cost' => 1 ),
+                        'spot/market/trades' => array( 'cost' => 1 ),
+                        'spot/market/candles' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
@@ -199,12 +206,14 @@ class blofin extends Exchange {
                         'asset/bills' => array( 'cost' => 1 ),
                         'asset/withdrawal-history' => array( 'cost' => 1 ),
                         'asset/deposit-history' => array( 'cost' => 1 ),
+                        'asset/deposit-address' => array( 'cost' => 1 ),
                         'account/config' => array( 'cost' => 1 ),
                         'asset/currencies' => array( 'cost' => 1 ),
                         // trading
                         'account/balance' => array( 'cost' => 1 ),
                         'account/positions' => array( 'cost' => 1 ),
                         'account/positions-history' => array( 'cost' => 1 ),
+                        'account/funding-fees' => array( 'cost' => 1 ),
                         'account/margin-mode' => array( 'cost' => 1 ),
                         'account/position-mode' => array( 'cost' => 1 ),
                         'account/leverage-info' => array( 'cost' => 1 ),
@@ -244,11 +253,19 @@ class blofin extends Exchange {
                         'user/query-apikey' => array( 'cost' => 1 ),
                         // tax
                         'spot/trade/fills-history' => array( 'cost' => 1 ),
+                        // spot
+                        'spot/trade/orders-pending' => array( 'cost' => 1.67 ),
+                        'spot/trade/order-detail' => array( 'cost' => 1.67 ),
+                        'spot/trade/orders-algo-pending' => array( 'cost' => 1.67 ),
+                        'spot/trade/orders-history' => array( 'cost' => 1.67 ),
+                        'spot/trade/orders-algo-history' => array( 'cost' => 1.67 ),
+                        'spot/trade/order/price-range' => array( 'cost' => 1.67 ),
                     ),
                     'post' => array(
                         // account
                         'asset/transfer' => array( 'cost' => 1 ),
                         'asset/demo-apply-money' => array( 'cost' => 1 ),
+                        'asset/withdrawal-apply' => array( 'cost' => 1 ),
                         // trading
                         'account/set-margin-mode' => array( 'cost' => 1.67 ),
                         'account/set-position-mode' => array( 'cost' => 1.67 ),
@@ -261,7 +278,18 @@ class blofin extends Exchange {
                         'trade/cancel-batch-orders' => array( 'cost' => 1.67 ),
                         'trade/cancel-tpsl' => array( 'cost' => 1.67 ),
                         'trade/cancel-algo' => array( 'cost' => 1.67 ),
+                        'trade/amend-order' => array( 'cost' => 1.67 ),
+                        'trade/amend-batch-orders' => array( 'cost' => 1.67 ),
+                        'trade/amend-tpsl' => array( 'cost' => 1.67 ),
+                        'trade/amend-algo' => array( 'cost' => 1.67 ),
                         'trade/close-position' => array( 'cost' => 1.67 ),
+                        // spot
+                        'spot/trade/order' => array( 'cost' => 1.67 ),
+                        'spot/trade/batch-orders' => array( 'cost' => 1.67 ),
+                        'spot/trade/order-algo' => array( 'cost' => 1.67 ),
+                        'spot/trade/cancel-order' => array( 'cost' => 1.67 ),
+                        'spot/trade/cancel-batch-orders' => array( 'cost' => 1.67 ),
+                        'spot/trade/cancel-algo' => array( 'cost' => 1.67 ),
                         // copy trading
                         'copytrading/account/set-position-mode' => array( 'cost' => 1.67 ),
                         'copytrading/account/set-leverage' => array( 'cost' => 1.67 ),
@@ -418,7 +446,7 @@ class blofin extends Exchange {
                     '102055' => '\\ccxt\\InvalidOrder',  // stop loss trigger price should be lower than the best ask price
                     '102064' => '\\ccxt\\BadRequest',  // Buy price is not within the price limit (Minimum => 310.40; Maximum:1,629.40)
                     '102065' => '\\ccxt\\BadRequest',  // Sell price is not within the price limit
-                    '102068' => '\\ccxt\\BadRequest',  // Cancel failed order has been filled, triggered, canceled or does not exist
+                    '102068' => '\\ccxt\\BadRequest',  // Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013' => '\\ccxt\\ExchangeError',  // Internal error; unable to process your request. Please try again.
                     'Order failed. Insufficient USDT margin in account' => '\\ccxt\\InsufficientFunds',  // Insufficient USDT margin in account
                 ),
@@ -983,7 +1011,7 @@ class blofin extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1253,7 +1281,7 @@ class blofin extends Exchange {
         return array(
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
-            // blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
+            // blofin returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'maker', 'makerU'))),
             'taker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'taker', 'takerU'))),
             'percentage' => null,
@@ -2556,7 +2584,7 @@ class blofin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverages', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross $marginMode
+            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default $marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' fetchLeverages() requires a $marginMode parameter that must be either cross or isolated');
@@ -2616,7 +2644,7 @@ class blofin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross $marginMode
+            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default $marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
@@ -2708,7 +2736,7 @@ class blofin extends Exchange {
          * @see https://blofin.com/docs#close-positions
          *
          * @param {string} $symbol Unified CCXT $market $symbol
-         * @param {string} [$side] 'buy' or 'sell', leave in net mode
+         * @param {string} [$side] 'buy' or 'sell', leave as null in net mode
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross;

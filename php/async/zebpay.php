@@ -110,6 +110,7 @@ class zebpay extends Exchange {
                             'v2/system/time' => array( 'cost' => 10 ),
                             'v2/system/status' => array( 'cost' => 10 ),
                             'v2/market/orderbook' => array( 'cost' => 10 ),
+                            'v2/market/orderbook/ticker' => array( 'cost' => 10 ),
                             'v2/market/trades' => array( 'cost' => 10 ),
                             'v2/market/ticker' => array( 'cost' => 10 ),
                             'v2/market/allTickers' => array( 'cost' => 10 ),
@@ -125,9 +126,12 @@ class zebpay extends Exchange {
                             'v1/system/status' => array( 'cost' => 10 ),
                             'v1/exchange/tradefee' => array( 'cost' => 10 ),
                             'v1/exchange/tradefees' => array( 'cost' => 10 ),
+                            'v1/exchange/exchangeInfo' => array( 'cost' => 10 ),
+                            'v1/exchange/pairs' => array( 'cost' => 10 ),
                             'v1/market/orderBook' => array( 'cost' => 10 ),
                             'v1/market/ticker24Hr' => array( 'cost' => 10 ),
                             'v1/market/markets' => array( 'cost' => 10 ),
+                            'v1/market/marketInfo' => array( 'cost' => 10 ),
                             'v1/market/aggTrade' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
@@ -144,6 +148,7 @@ class zebpay extends Exchange {
                             'v2/ex/orders' => array( 'cost' => 10 ),
                             'v2/account/balance' => array( 'cost' => 10 ),
                             'v2/ex/tradefee' => array( 'cost' => 10 ),
+                            'v2/ex/myfee/{symbol}' => array( 'cost' => 10 ),
                             'v2/ex/order' => array( 'cost' => 10 ),
                             'v2/ex/order/fills' => array( 'cost' => 10 ),
                         ),
@@ -158,10 +163,12 @@ class zebpay extends Exchange {
                             'v1/wallet/balance' => array( 'cost' => 10 ),
                             'v1/trade/order' => array( 'cost' => 10 ),
                             'v1/trade/order/open-orders' => array( 'cost' => 10 ),
+                            'v1/trade/order/history' => array( 'cost' => 10 ),
                             'v1/trade/userLeverages' => array( 'cost' => 10 ),
                             'v1/trade/userLeverage' => array( 'cost' => 10 ),
                             'v1/trade/positions' => array( 'cost' => 10 ),
                             'v1/trade/history' => array( 'cost' => 10 ),
+                            'v1/trade/transaction/history' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
                             'v1/trade/order' => array( 'cost' => 10 ),
@@ -172,6 +179,10 @@ class zebpay extends Exchange {
                             'v1/trade/update/userLeverage' => array( 'cost' => 10 ),
                         ),
                         'delete' => array(
+                            'v1/trade/order' => array( 'cost' => 10 ),
+                            'v1/trade/order/all' => array( 'cost' => 10 ),
+                        ),
+                        'patch' => array(
                             'v1/trade/order' => array( 'cost' => 10 ),
                         ),
                     ),
@@ -750,7 +761,7 @@ class zebpay extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->endtime] the latest time in ms to fetch orders for
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

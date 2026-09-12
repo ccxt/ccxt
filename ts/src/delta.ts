@@ -188,6 +188,7 @@ export default class delta extends Exchange {
                         'users/update_mmp': { 'cost': 1 } as Endpoint<Dict>,
                         'users/reset_mmp': { 'cost': 1 } as Endpoint<Dict>,
                         'users/margin_mode': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/trading_preferences': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
                         'orders': { 'cost': 1 } as Endpoint<Dict>,

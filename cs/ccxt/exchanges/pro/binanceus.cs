@@ -7,11 +7,11 @@ namespace ccxt.pro;
 public partial class binanceus { public binanceus(object args = null) : base(args) { } }
 public partial class binanceus : binance
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         // eslint-disable-next-line new-cap
         var restInstance = new ccxt.binanceus();
-        object restDescribe = restInstance.describe();
+        Dictionary<string, object> restDescribe = restInstance.describe();
         object parentWsDescribe = base.describeData();
         Dictionary<string, object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new Dictionary<string, object>() {

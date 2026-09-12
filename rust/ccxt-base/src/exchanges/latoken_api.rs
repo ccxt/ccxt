@@ -102,9 +102,19 @@ impl LatokenCore {
         self.call_method(Value::Str("private_get_auth_account_currency_currency_type".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetAuthAccountFiltered` implicit endpoint.
+    pub async fn private_get_auth_account_filtered(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_auth_account_filtered".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetAuthOrder` implicit endpoint.
     pub async fn private_get_auth_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_auth_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAuthOrderActive` implicit endpoint.
+    pub async fn private_get_auth_order_active(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_auth_order_active".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAuthOrderGetOrderId` implicit endpoint.
@@ -197,9 +207,19 @@ impl LatokenCore {
         self.call_method(Value::Str("private_post_auth_order_cancel_all_currency_quote".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostAuthOrderCancelBulk` implicit endpoint.
+    pub async fn private_post_auth_order_cancel_bulk(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_auth_order_cancel_bulk".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostAuthOrderPlace` implicit endpoint.
     pub async fn private_post_auth_order_place(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_auth_order_place".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAuthOrderPlaceBulk` implicit endpoint.
+    pub async fn private_post_auth_order_place_bulk(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_auth_order_place_bulk".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAuthSpotDeposit` implicit endpoint.

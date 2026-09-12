@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bitflyer : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bitflyer" },
@@ -109,6 +109,9 @@ public partial class bitflyer : Exchange
                             { "cost", 1 },
                         } },
                         { "getfundingrate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getfundingratehistory", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -288,8 +291,8 @@ public partial class bitflyer : Exchange
 
     public virtual object parseExpiryDate(object expiry)
     {
-        object day = slice(expiry, 0, 2);
-        object monthName = slice(expiry, 2, 5);
+        string? day = slice(expiry, 0, 2);
+        string? monthName = slice(expiry, 2, 5);
         object year = slice(expiry, 5, 9);
         Dictionary<string, object> months = new Dictionary<string, object>() {
             { "JAN", "01" },
@@ -305,16 +308,16 @@ public partial class bitflyer : Exchange
             { "NOV", "11" },
             { "DEC", "12" },
         };
-        object month = this.safeString(months, monthName);
+        string? month = this.safeString(months, monthName);
         return this.parse8601(add(add(add(add(add(year, "-"), month), "-"), day), "T00:00:00Z"));
     }
 
-    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         // Bitflyer has a different type of conflict in markets, because
         // some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
         // Since they're the same we just need to return one
-        return base.safeMarket(marketId, market, delimiter, "spot");
+        return ((Dictionary<string, object>)((object)(base.safeMarket(marketId, market, delimiter, "spot"))));
     }
 
     /**
@@ -328,7 +331,7 @@ public partial class bitflyer : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object jp_markets = await this.publicGetGetmarkets(parameters);
+        List<object> jp_markets = await this.publicGetGetmarkets(parameters);
         //
         //     [
         //         // spot
@@ -345,24 +348,24 @@ public partial class bitflyer : Exchange
         //         },
         //     ];
         //
-        object us_markets = await this.publicGetGetmarketsUsa(parameters);
+        List<object> us_markets = await this.publicGetGetmarketsUsa(parameters);
         //
         //     [
         //         { "product_code": "BTC_USD", "market_type": "Spot" },
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        object eu_markets = await this.publicGetGetmarketsEu(parameters);
+        List<object> eu_markets = await this.publicGetGetmarketsEu(parameters);
         //
         //     [
         //         { "product_code": "BTC_EUR", "market_type": "Spot" },
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        object markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
+        List<object> markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
         markets = this.arrayConcat(markets, this.toArray(eu_markets));
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "product_code");
@@ -372,9 +375,9 @@ public partial class bitflyer : Exchange
             bool future = (isEqual(marketType, "Futures"));
             bool spot = !isTrue(swap) && !isTrue(future);
             string type = "spot";
-            object settle = null;
-            object baseId = null;
-            object quoteId = null;
+            string? settle = null;
+            string? baseId = null;
+            string? quoteId = null;
             object expiry = null;
             if (isTrue(spot))
             {
@@ -396,7 +399,7 @@ public partial class bitflyer : Exchange
                     baseId = slice(((string)id), 0, 3);
                     quoteId = slice(((string)id), 3, 6);
                     // last 9 chars are expiry date
-                    object expiryDate = slice(((string)id), -9, null);
+                    string? expiryDate = slice(((string)id), -9, null);
                     expiry = this.parseExpiryDate(expiryDate);
                 } else
                 {
@@ -411,7 +414,7 @@ public partial class bitflyer : Exchange
                 type = "future";
             }
             object bs = this.safeCurrencyCode(baseId);
-            object quote = this.safeCurrencyCode(quoteId);
+            string? quote = this.safeCurrencyCode(quoteId);
             object symbol = add(add(bs, "/"), quote);
             object taker = getValue(getValue(this.fees, "trading"), "taker");
             object maker = getValue(getValue(this.fees, "trading"), "maker");
@@ -487,12 +490,12 @@ public partial class bitflyer : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency_code");
-            object code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            string? code = this.safeCurrencyCode(currencyId);
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             if (isTrue(!isEqual(code, null)))
@@ -518,7 +521,7 @@ public partial class bitflyer : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.privateGetGetbalance(parameters);
+        Dictionary<string, object> response = await this.privateGetGetbalance(parameters);
         //
         //     [
         //         {
@@ -558,17 +561,17 @@ public partial class bitflyer : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
         };
-        object orderbook = await this.publicGetGetboard(this.extend(request, parameters));
+        Dictionary<string, object> orderbook = await this.publicGetGetboard(this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "bids", "asks", "price", "size"));
     }
 
     public override object parseTicker(object ticker, object market = null)
     {
-        object symbol = this.safeSymbol(null, market);
+        string? symbol = this.safeSymbol(null, market);
         Int64? timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         string? last = this.safeString(ticker, "ltp");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -611,11 +614,11 @@ public partial class bitflyer : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
         };
-        object response = await this.publicGetGetticker(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetGetticker(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
@@ -708,7 +711,7 @@ public partial class bitflyer : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
         };
@@ -716,7 +719,7 @@ public partial class bitflyer : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object response = await this.publicGetGetexecutions(this.extend(request, parameters));
+        List<object> response = await this.publicGetGetexecutions(this.extend(request, parameters));
         //
         //    [
         //     {
@@ -749,17 +752,17 @@ public partial class bitflyer : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
         };
-        object response = await this.privateGetGettradingcommission(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGetGettradingcommission(this.extend(request, parameters));
         //
         //   {
         //       commission_rate: '0.0020'
         //   }
         //
-        object fee = this.safeNumber(response, "commission_rate");
+        double? fee = this.safeNumber(response, "commission_rate");
         return ccxt.BaseExchange.ToTradingFeeInterface(new Dictionary<string, object>() {             { "info", response },             { "symbol", getValue(market, "symbol") },             { "maker", fee },             { "taker", fee },             { "percentage", null },             { "tierBased", null },         });
     }
 
@@ -790,7 +793,7 @@ public partial class bitflyer : Exchange
             { "price", price },
             { "size", amount },
         };
-        object result = await this.privatePostSendchildorder(this.extend(request, parameters));
+        Dictionary<string, object> result = await this.privatePostSendchildorder(this.extend(request, parameters));
         // { "status": - 200, "error_message": "Insufficient funds", "data": null }
         string? id = this.safeString(result, "child_order_acceptance_id");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "info", result },         }));
@@ -821,14 +824,14 @@ public partial class bitflyer : Exchange
             { "product_code", this.marketId(symbol) },
             { "child_order_acceptance_id", id },
         };
-        object response = await this.privatePostCancelchildorder(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostCancelchildorder(this.extend(request, parameters));
         //
         //    200 OK.
         //
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
     }
 
-    public virtual object parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "ACTIVE", "open" },
@@ -847,13 +850,13 @@ public partial class bitflyer : Exchange
         string? amount = this.safeString(order, "size");
         string? filled = this.safeString(order, "executed_size");
         string? remaining = this.safeString(order, "outstanding_size");
-        object status = this.parseOrderStatus(this.safeString(order, "child_order_state"));
+        string? status = this.parseOrderStatus(this.safeString(order, "child_order_state"));
         string? type = this.safeStringLower(order, "child_order_type");
         string? side = this.safeStringLower(order, "side");
         string? marketId = this.safeString(order, "product_code");
-        object symbol = this.safeSymbol(marketId, market);
-        object fee = null;
-        object feeCost = this.safeNumber(order, "total_commission");
+        string? symbol = this.safeSymbol(marketId, market);
+        Dictionary<string, object> fee = null;
+        double? feeCost = this.safeNumber(order, "total_commission");
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -912,13 +915,13 @@ public partial class bitflyer : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
             { "count", limitVar },
         };
-        object response = await this.privateGetGetchildorders(this.extend(request, parameters));
-        object orders = this.parseOrders(response, market, since, limitVar);
+        List<object> response = await this.privateGetGetchildorders(this.extend(request, parameters));
+        IList<object> orders = this.parseOrders(response, market, since, limitVar);
         if (isTrue(!isEqual(symbol, null)))
         {
             orders = this.filterBy(orders, "symbol", symbol);
@@ -1018,7 +1021,7 @@ public partial class bitflyer : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
         };
@@ -1026,7 +1029,7 @@ public partial class bitflyer : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object response = await this.privateGetGetexecutions(this.extend(request, parameters));
+        List<object> response = await this.privateGetGetexecutions(this.extend(request, parameters));
         //
         //    [
         //     {
@@ -1067,7 +1070,7 @@ public partial class bitflyer : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", this.marketIds(symbols) },
         };
-        object response = await this.privateGetGetpositions(this.extend(request, parameters));
+        List<object> response = await this.privateGetGetpositions(this.extend(request, parameters));
         //
         //     [
         //         {
@@ -1113,12 +1116,12 @@ public partial class bitflyer : Exchange
         {
             throw new ExchangeError ((string)add(add(add(this.id, " allows withdrawing JPY, USD, EUR only, "), code), " is not supported")) ;
         }
-        object currency = this.currency(code);
+        Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency_code", getValue(currency, "id") },
             { "amount", amount },
         };
-        object response = await this.privatePostWithdraw(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostWithdraw(this.extend(request, parameters));
         //
         //     {
         //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
@@ -1145,17 +1148,17 @@ public partial class bitflyer : Exchange
         {
             await this.loadMarkets();
         }
-        object currency = null;
+        IDictionary<string, object> currency = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
-            currency = this.currency(code);
+            currency = this.currency(((string)code));
         }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["count"] = limit; // default 100
         }
-        object response = await this.privateGetGetcoinins(this.extend(request, parameters));
+        List<object> response = await this.privateGetGetcoinins(this.extend(request, parameters));
         //
         //     [
         //         {
@@ -1191,17 +1194,17 @@ public partial class bitflyer : Exchange
         {
             await this.loadMarkets();
         }
-        object currency = null;
+        IDictionary<string, object> currency = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
-            currency = this.currency(code);
+            currency = this.currency(((string)code));
         }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["count"] = limit; // default 100
         }
-        object response = await this.privateGetGetcoinouts(this.extend(request, parameters));
+        List<object> response = await this.privateGetGetcoinouts(this.extend(request, parameters));
         //
         //     [
         //         {
@@ -1221,7 +1224,7 @@ public partial class bitflyer : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
     }
 
-    public virtual object parseDepositStatus(object status)
+    public virtual string? parseDepositStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "PENDING", "pending" },
@@ -1230,7 +1233,7 @@ public partial class bitflyer : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseWithdrawalStatus(object status)
+    public virtual string? parseWithdrawalStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "PENDING", "pending" },
@@ -1279,14 +1282,14 @@ public partial class bitflyer : Exchange
         string? id = this.safeString2(transaction, "id", "message_id");
         string? address = this.safeString(transaction, "address");
         string? currencyId = this.safeString(transaction, "currency_code");
-        object code = this.safeCurrencyCode(currencyId, currency);
+        string? code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = this.parse8601(this.safeString(transaction, "event_date"));
-        object amount = this.safeNumber(transaction, "amount");
+        double? amount = this.safeNumber(transaction, "amount");
         string? txId = this.safeString(transaction, "tx_hash");
         string? rawStatus = this.safeString(transaction, "status");
         string? type = null;
-        object status = null;
-        object fee = null;
+        string? status = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(inOp(transaction, "fee")))
         {
             type = "withdrawal";
@@ -1342,11 +1345,11 @@ public partial class bitflyer : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
         };
-        object response = await this.publicGetGetfundingrate(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetGetfundingrate(this.extend(request, parameters));
         //
         //    {
         //        "current_funding_rate": -0.003750000000
@@ -1443,7 +1446,7 @@ public partial class bitflyer : Exchange
         {
             return null;  // fallback to the default error handler
         }
-        object feedback = add(add(this.id, " "), body);
+        string feedback = add(add(this.id, " "), body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         string? errorMessage = this.safeString(response, "error_message");
         Int64? statusCode = this.safeInteger(response, "status");

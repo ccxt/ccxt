@@ -183,6 +183,7 @@ class kucoin extends kucoin$1["default"] {
                         'margin/config': { 'cost': 25 },
                         'announcements': { 'cost': 20 },
                         'margin/collateralRatio': { 'cost': 10 },
+                        'margin/available-inventory': { 'cost': 10 },
                         // convert
                         'convert/symbol': { 'cost': 5 },
                         'convert/currencies': { 'cost': 5 },
@@ -269,6 +270,7 @@ class kucoin extends kucoin$1["default"] {
                         'margin/borrow': { 'cost': 15 },
                         'margin/repay': { 'cost': 15 },
                         'margin/interest': { 'cost': 20 },
+                        'margin/borrowRate': { 'cost': 20 },
                         'project/list': { 'cost': 10 },
                         'project/marketInterestRate': { 'cost': 5 },
                         'redeem/orders': { 'cost': 10 },
@@ -288,6 +290,11 @@ class kucoin extends kucoin$1["default"] {
                         'convert/limit/orders': { 'cost': 5 },
                         // affiliate
                         'affiliate/inviter/statistics': { 'cost': 30 },
+                        'affiliate/queryInvitees': { 'cost': 30 },
+                        'affiliate/queryMyCommission': { 'cost': 30 },
+                        'affiliate/queryTransactionByUid': { 'cost': 30 },
+                        'affiliate/queryTransactionByTime': { 'cost': 30 },
+                        'affiliate/queryKumining': { 'cost': 30 },
                     },
                     'post': {
                         // account
@@ -497,6 +504,7 @@ class kucoin extends kucoin$1["default"] {
                         'broker/nd/account': { 'cost': 4 },
                         'broker/nd/account/apikey': { 'cost': 4 },
                         'broker/nd/rebase/download': { 'cost': 4 },
+                        'broker/nd/mark-up': { 'cost': 4 },
                         'asset/ndbroker/deposit/list': { 'cost': 2 },
                         'broker/nd/transfer/detail': { 'cost': 2 },
                         'broker/nd/deposit/detail': { 'cost': 2 },
@@ -507,6 +515,7 @@ class kucoin extends kucoin$1["default"] {
                         'broker/nd/account': { 'cost': 6 },
                         'broker/nd/account/apikey': { 'cost': 6 },
                         'broker/nd/account/update-apikey': { 'cost': 6 },
+                        'broker/nd/mark-up': { 'cost': 6 },
                     },
                     'delete': {
                         'broker/nd/account/apikey': { 'cost': 6 },
@@ -953,6 +962,7 @@ class kucoin extends kucoin$1["default"] {
                             'symbols': 'v2',
                             'mark-price/all-symbols': 'v3',
                             'announcements': 'v3',
+                            'margin/available-inventory': 'v3',
                         },
                     },
                     'private': {
@@ -994,6 +1004,7 @@ class kucoin extends kucoin$1["default"] {
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
                             'margin/interest': 'v3',
+                            'margin/borrowRate': 'v3',
                             'project/list': 'v3',
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
@@ -1001,6 +1012,11 @@ class kucoin extends kucoin$1["default"] {
                             'migrate/user/account/status': 'v3',
                             'margin/symbols': 'v3',
                             'affiliate/inviter/statistics': 'v2',
+                            'affiliate/queryInvitees': 'v2',
+                            'affiliate/queryMyCommission': 'v2',
+                            'affiliate/queryTransactionByUid': 'v2',
+                            'affiliate/queryTransactionByTime': 'v2',
+                            'affiliate/queryKumining': 'v2',
                             'asset/ndbroker/deposit/list': 'v1',
                         },
                         'POST': {

@@ -172,7 +172,9 @@ export default class indodax extends Exchange {
                         'openOrders': { 'cost': 4 } as Endpoint<Dict>,
                         'orderHistory': { 'cost': 4 } as Endpoint<Dict>,
                         'getOrder': { 'cost': 4 } as Endpoint<Dict>,
+                        'getOrderByClientOrderId': { 'cost': 4 } as Endpoint<Dict>,
                         'cancelOrder': { 'cost': 4 } as Endpoint<Dict>,
+                        'cancelByClientOrderId': { 'cost': 4 } as Endpoint<Dict>,
                         'withdrawFee': { 'cost': 4 } as Endpoint<Dict>,
                         'withdrawCoin': { 'cost': 4 } as Endpoint<Dict>,
                         'listDownline': { 'cost': 4 } as Endpoint<Dict>,
@@ -438,7 +440,7 @@ export default class indodax extends Exchange {
 
     override parseBalance (response: any): Balances {
         const balances = this.safeValue (response, 'return', {});
-        const free = this.safeValue (balances, 'balance', {});
+        const free = this.safeDict (balances, 'balance', {});
         const used = this.safeValue (balances, 'balance_hold', {});
         const timestamp = this.safeTimestamp (balances, 'server_time');
         const result: Dict = {
@@ -1249,8 +1251,8 @@ export default class indodax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'return', {});
-        const withdraw = this.safeValue (data, 'withdraw', {});
-        const deposit = this.safeValue (data, 'deposit', {});
+        const withdraw = this.safeDict (data, 'withdraw', {});
+        const deposit = this.safeDict (data, 'deposit', {});
         let transactions: List = [];
         let currency: Currency = undefined;
         if (code === undefined) {

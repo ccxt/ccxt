@@ -153,16 +153,19 @@ class deribit extends Exchange {
                         // Account management
                         'get_announcements' => array( 'cost' => 1 ),
                         // Market data
+                        'get_apr_history' => array( 'cost' => 1 ),
                         'get_book_summary_by_currency' => array( 'cost' => 1 ),
                         'get_book_summary_by_instrument' => array( 'cost' => 1 ),
                         'get_contract_size' => array( 'cost' => 1 ),
                         'get_currencies' => array( 'cost' => 1 ),
                         'get_delivery_prices' => array( 'cost' => 1 ),
+                        'get_expirations' => array( 'cost' => 1 ),
                         'get_funding_chart_data' => array( 'cost' => 1 ),
                         'get_funding_rate_history' => array( 'cost' => 1 ),
                         'get_funding_rate_value' => array( 'cost' => 1 ),
                         'get_historical_volatility' => array( 'cost' => 1 ),
                         'get_index' => array( 'cost' => 1 ),
+                        'get_index_chart_data' => array( 'cost' => 1 ),
                         'get_index_price' => array( 'cost' => 1 ),
                         'get_index_price_names' => array( 'cost' => 1 ),
                         'get_instrument' => array( 'cost' => 1 ),
@@ -175,6 +178,7 @@ class deribit extends Exchange {
                         'get_last_trades_by_instrument_and_time' => array( 'cost' => 1 ),
                         'get_mark_price_history' => array( 'cost' => 1 ),
                         'get_order_book' => array( 'cost' => 1 ),
+                        'get_supported_index_names' => array( 'cost' => 1 ),
                         'get_trade_volumes' => array( 'cost' => 1 ),
                         'get_tradingview_chart_data' => array( 'cost' => 1 ),
                         'get_volatility_index_data' => array( 'cost' => 1 ),
@@ -207,6 +211,7 @@ class deribit extends Exchange {
                         'get_account_summary' => array( 'cost' => 1 ),
                         'get_account_summaries' => array( 'cost' => 1 ),
                         'get_affiliate_program_info' => array( 'cost' => 1 ),
+                        'get_currencies' => array( 'cost' => 1 ),
                         'get_email_language' => array( 'cost' => 1 ),
                         'get_new_announcements' => array( 'cost' => 1 ),
                         'get_portfolio_margins' => array( 'cost' => 1 ),
@@ -221,16 +226,23 @@ class deribit extends Exchange {
                         'reset_api_key' => array( 'cost' => 1 ),
                         'set_announcement_as_read' => array( 'cost' => 1 ),
                         'set_api_key_as_default' => array( 'cost' => 1 ),
+                        'set_disabled_trading_products' => array( 'cost' => 1 ),
                         'set_email_for_subaccount' => array( 'cost' => 1 ),
                         'set_email_language' => array( 'cost' => 1 ),
                         'set_password_for_subaccount' => array( 'cost' => 1 ),
+                        'simulate_portfolio' => array( 'cost' => 1 ),
                         'toggle_notifications_from_subaccount' => array( 'cost' => 1 ),
                         'toggle_subaccount_login' => array( 'cost' => 1 ),
                         // Block Trade
+                        'approve_block_trade' => array( 'cost' => 1 ),
                         'execute_block_trade' => array( 'cost' => 4 ),
                         'get_block_trade' => array( 'cost' => 1 ),
+                        'get_block_trade_requests' => array( 'cost' => 1 ),
+                        'get_block_trades' => array( 'cost' => 1 ),
                         'get_last_block_trades_by_currency' => array( 'cost' => 1 ),
                         'invalidate_block_trade_signature' => array( 'cost' => 1 ),
+                        'reject_block_trade' => array( 'cost' => 1 ),
+                        'simulate_block_trade' => array( 'cost' => 4 ),
                         'verify_block_trade' => array( 'cost' => 4 ),
                         // Trading
                         'buy' => array( 'cost' => 4 ),
@@ -242,15 +254,20 @@ class deribit extends Exchange {
                         'cancel_all_by_currency' => array( 'cost' => 4 ),
                         'cancel_all_by_instrument' => array( 'cost' => 4 ),
                         'cancel_by_label' => array( 'cost' => 4 ),
+                        'cancel_quotes' => array( 'cost' => 4 ),
                         'close_position' => array( 'cost' => 4 ),
                         'get_margins' => array( 'cost' => 1 ),
                         'get_mmp_config' => array( 'cost' => 1 ),
+                        'get_mmp_status' => array( 'cost' => 1 ),
+                        'get_open_orders' => array( 'cost' => 1 ),
                         'get_open_orders_by_currency' => array( 'cost' => 1 ),
                         'get_open_orders_by_instrument' => array( 'cost' => 1 ),
+                        'get_open_orders_by_label' => array( 'cost' => 1 ),
                         'get_order_history_by_currency' => array( 'cost' => 1 ),
                         'get_order_history_by_instrument' => array( 'cost' => 1 ),
                         'get_order_margin_by_ids' => array( 'cost' => 1 ),
                         'get_order_state' => array( 'cost' => 1 ),
+                        'get_order_state_by_label' => array( 'cost' => 1 ),
                         'get_stop_order_history' => array( 'cost' => 1 ), // deprecated
                         'get_trigger_order_history' => array( 'cost' => 1 ),
                         'get_user_trades_by_currency' => array( 'cost' => 1 ),
@@ -258,20 +275,28 @@ class deribit extends Exchange {
                         'get_user_trades_by_instrument' => array( 'cost' => 1 ),
                         'get_user_trades_by_instrument_and_time' => array( 'cost' => 1 ),
                         'get_user_trades_by_order' => array( 'cost' => 1 ),
+                        'mass_quote' => array( 'cost' => 4 ),
+                        'move_positions' => array( 'cost' => 4 ),
                         'reset_mmp' => array( 'cost' => 1 ),
                         'set_mmp_config' => array( 'cost' => 1 ),
                         'get_settlement_history_by_instrument' => array( 'cost' => 1 ),
                         'get_settlement_history_by_currency' => array( 'cost' => 1 ),
                         // Wallet
+                        'add_to_address_book' => array( 'cost' => 1 ),
                         'cancel_transfer_by_id' => array( 'cost' => 1 ),
                         'cancel_withdrawal' => array( 'cost' => 1 ),
                         'create_deposit_address' => array( 'cost' => 1 ),
+                        'get_address_book' => array( 'cost' => 1 ),
                         'get_current_deposit_address' => array( 'cost' => 1 ),
                         'get_deposits' => array( 'cost' => 1 ),
+                        'get_reward_eligibility' => array( 'cost' => 1 ),
                         'get_transfers' => array( 'cost' => 1 ),
                         'get_withdrawals' => array( 'cost' => 1 ),
+                        'remove_from_address_book' => array( 'cost' => 1 ),
+                        'set_clearance_originator' => array( 'cost' => 1 ),
                         'submit_transfer_to_subaccount' => array( 'cost' => 1 ),
                         'submit_transfer_to_user' => array( 'cost' => 1 ),
+                        'update_in_address_book' => array( 'cost' => 1 ),
                         'withdraw' => array( 'cost' => 1 ),
                     ),
                 ),
@@ -387,16 +412,16 @@ class deribit extends Exchange {
                 '10019' => '\\ccxt\\PermissionDenied', // 'locked_by_admin' Trading is temporary locked by admin.
                 '10020' => '\\ccxt\\ExchangeError', // 'invalid_or_unsupported_instrument' Instrument name is not valid.
                 '10021' => '\\ccxt\\InvalidOrder', // 'invalid_amount' Amount is not valid.
-                '10022' => '\\ccxt\\InvalidOrder', // 'invalid_quantity' quantity was not recognized valid number (for API v1).
-                '10023' => '\\ccxt\\InvalidOrder', // 'invalid_price' price was not recognized valid number.
-                '10024' => '\\ccxt\\InvalidOrder', // 'invalid_max_show' max_show parameter was not recognized valid number.
-                '10025' => '\\ccxt\\InvalidOrder', // 'invalid_order_id' Order id is missing or its format was not recognized.
+                '10022' => '\\ccxt\\InvalidOrder', // 'invalid_quantity' quantity was not recognized as a valid number (for API v1).
+                '10023' => '\\ccxt\\InvalidOrder', // 'invalid_price' price was not recognized as a valid number.
+                '10024' => '\\ccxt\\InvalidOrder', // 'invalid_max_show' max_show parameter was not recognized as a valid number.
+                '10025' => '\\ccxt\\InvalidOrder', // 'invalid_order_id' Order id is missing or its format was not recognized as valid.
                 '10026' => '\\ccxt\\InvalidOrder', // 'price_precision_exceeded' Extra precision of the price is not supported.
-                '10027' => '\\ccxt\\InvalidOrder', // 'non_integer_contract_amount' Futures contract amount was not recognized.
+                '10027' => '\\ccxt\\InvalidOrder', // 'non_integer_contract_amount' Futures contract amount was not recognized as integer.
                 '10028' => '\\ccxt\\DDoSProtection', // 'too_many_requests' Allowed request rate has been exceeded.
                 '10029' => '\\ccxt\\OrderNotFound', // 'not_owner_of_order' Attempt to operate with not own order.
                 '10030' => '\\ccxt\\ExchangeError', // 'must_be_websocket_request' REST request where Websocket is expected.
-                '10031' => '\\ccxt\\ExchangeError', // 'invalid_args_for_instrument' Some of arguments are not recognized.
+                '10031' => '\\ccxt\\ExchangeError', // 'invalid_args_for_instrument' Some of arguments are not recognized as valid.
                 '10032' => '\\ccxt\\InvalidOrder', // 'whole_cost_too_low' Total cost is too low.
                 '10033' => '\\ccxt\\NotSupported', // 'not_implemented' Method is not implemented yet.
                 '10034' => '\\ccxt\\InvalidOrder', // 'stop_price_too_high' Stop price is too high.
@@ -412,10 +437,10 @@ class deribit extends Exchange {
                 '10048' => '\\ccxt\\ExchangeError', // 'not_on_this_server' The requested operation is not available on this server.
                 '11008' => '\\ccxt\\InvalidOrder', // 'already_filled' This request is not allowed in regards to the filled order.
                 '11029' => '\\ccxt\\BadRequest', // 'invalid_arguments' Some invalid input has been detected.
-                '11030' => '\\ccxt\\ExchangeError', // 'other_reject <Reason>' Some rejects which are not considered often, more info may be specified in <Reason>.
-                '11031' => '\\ccxt\\ExchangeError', // 'other_error <Error>' Some errors which are not considered often, more info may be specified in <Error>.
+                '11030' => '\\ccxt\\ExchangeError', // 'other_reject <Reason>' Some rejects which are not considered as very often, more info may be specified in <Reason>.
+                '11031' => '\\ccxt\\ExchangeError', // 'other_error <Error>' Some errors which are not considered as very often, more info may be specified in <Error>.
                 '11035' => '\\ccxt\\DDoSProtection', // 'no_more_stops <Limit>' Allowed amount of stop orders has been exceeded.
-                '11036' => '\\ccxt\\InvalidOrder', // 'invalid_stoppx_for_index_or_last' Invalid StopPx (too high or too low) current index or market.
+                '11036' => '\\ccxt\\InvalidOrder', // 'invalid_stoppx_for_index_or_last' Invalid StopPx (too high or too low) as to current index or market.
                 '11037' => '\\ccxt\\BadRequest', // 'outdated_instrument_for_IV_order' Instrument already not available for trading.
                 '11038' => '\\ccxt\\InvalidOrder', // 'no_adv_for_futures' Advanced orders are not available for futures.
                 '11039' => '\\ccxt\\InvalidOrder', // 'no_adv_postonly' Advanced post-only orders are not supported yet.
@@ -430,7 +455,7 @@ class deribit extends Exchange {
                 '11049' => '\\ccxt\\BadRequest', // 'bad_arguments' Several bad arguments have been passed.
                 '11050' => '\\ccxt\\BadRequest', // 'bad_request' Request has not been parsed properly.
                 '11051' => '\\ccxt\\OnMaintenance', // 'system_maintenance' System is under maintenance.
-                '11052' => '\\ccxt\\ExchangeError', // 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without this error, please check list of subscribed channels returned, channels can be not subscribed due to wrong input or lack of permissions.
+                '11052' => '\\ccxt\\ExchangeError', // 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without this error, please check list of subscribed channels returned, as some channels can be not subscribed due to wrong input or lack of permissions.
                 '11053' => '\\ccxt\\ExchangeError', // 'transfer_not_found' Specified transfer is not found.
                 '11090' => '\\ccxt\\InvalidAddress', // 'invalid_addr' Invalid address.
                 '11091' => '\\ccxt\\InvalidAddress', // 'invalid_transfer_address' Invalid addres for the transfer.
@@ -441,7 +466,7 @@ class deribit extends Exchange {
                 '11096' => '\\ccxt\\ExchangeError', // 'address_belongs_to_user' Withdrawal instead of transfer.
                 '12000' => '\\ccxt\\AuthenticationError', // 'bad_tfa' Wrong TFA code
                 '12001' => '\\ccxt\\DDoSProtection', // 'too_many_subaccounts' Limit of subbacounts is reached.
-                '12002' => '\\ccxt\\ExchangeError', // 'wrong_subaccount_name' The input is not allowed of subaccount.
+                '12002' => '\\ccxt\\ExchangeError', // 'wrong_subaccount_name' The input is not allowed as name of subaccount.
                 '12998' => '\\ccxt\\AuthenticationError', // 'tfa_over_limit' The number of failed TFA attempts is limited.
                 '12003' => '\\ccxt\\AuthenticationError', // 'login_over_limit' The number of failed login attempts is limited.
                 '12004' => '\\ccxt\\AuthenticationError', // 'registration_over_limit' The number of registration requests is limited.
@@ -835,7 +860,7 @@ class deribit extends Exchange {
             //         "testnet" => false
             //     }
             //
-            $currenciesResult = $this->safe_value($currenciesResponse, 'result', array());
+            $currenciesResult = $this->safe_list($currenciesResponse, 'result', array());
             for ($i = 0; $i < count($currenciesResult); $i++) {
                 $currencyId = $this->safe_string($currenciesResult[$i], 'currency');
                 $request = array(
@@ -919,7 +944,7 @@ class deribit extends Exchange {
             }
         }
         for ($i = 0; $i < count($instrumentsResponses); $i++) {
-            $instrumentsResult = $this->safe_value($instrumentsResponses[$i], 'result', array());
+            $instrumentsResult = $this->safe_list($instrumentsResponses[$i], 'result', array());
             for ($k = 0; $k < count($instrumentsResult); $k++) {
                 $market = $instrumentsResult[$k];
                 $kind = $this->safe_string($market, 'kind');
@@ -1461,7 +1486,7 @@ class deribit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] whether to $paginate the results, set to false by default
          * @param {int} [$params->until] the latest time in ms to fetch ohlcv for
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1751,7 +1776,7 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $fees = $this->safe_value($result, 'fees', array());
+        $fees = $this->safe_list($result, 'fees', array());
         $perpetualFee = array();
         $futureFee = array();
         $optionFee = array();
@@ -2957,7 +2982,7 @@ class deribit extends Exchange {
         //         "testnet" => false
         //     }
         //
-        $volatilityResult = $this->safe_value($volatility, 'result', array());
+        $volatilityResult = $this->safe_list($volatility, 'result', array());
         $result = array();
         for ($i = 0; $i < count($volatilityResult); $i++) {
             $timestamp = $this->safe_integer($volatilityResult[$i], 0);
@@ -3341,7 +3366,7 @@ class deribit extends Exchange {
         //    }
         //
         $rates = array();
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_list($response, 'result', array());
         for ($i = 0; $i < count($result); $i++) {
             $fr = $result[$i];
             $rate = $this->parse_funding_rate($fr, $market);

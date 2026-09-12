@@ -248,6 +248,13 @@ class weex extends Exchange {
                         'api/v3/agency/verifyReferrals' => array( 'cost' => 20 ), // not unified
                         'api/v3/agency/getAssert' => array( 'cost' => 20 ), // not unified
                         'api/v3/agency/getDealData' => array( 'cost' => 20 ), // not unified
+                        'api/v3/apiReferral/checkUserEligibility' => array( 'cost' => 5 ), // not unified - broker access
+                        'api/v3/apiReferral/rebate/recentRecord' => array( 'cost' => 5 ), // not unified - broker access
+                        'api/v3/apiReferral/rebateRatio' => array( 'cost' => 5 ), // not unified - broker access
+                        'api/v3/content/articles/detail' => array( 'cost' => 1 ), // not unified - partner content
+                        'api/v3/content/articles/list' => array( 'cost' => 1 ), // not unified - partner content
+                        'api/v3/content/articles/listByCoin' => array( 'cost' => 1 ), // not unified - partner content
+                        'api/v3/content/banners/latest' => array( 'cost' => 1 ), // not unified - partner content
                     ),
                     'post' => array(
                         'api/v3/account/bills' => array( 'cost' => 5 ), // done
@@ -255,6 +262,7 @@ class weex extends Exchange {
                         'api/v3/order' => array( 'cost' => 5 ), // done
                         'api/v3/order/batch' => array( 'cost' => 50 ), // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
                         'api/v3/rebate/affiliate/internalWithdrawal' => array( 'cost' => 100 ), // not unified
+                        'api/v3/tax/income' => array( 'cost' => 5 ), // not unified - tax reporting
                     ),
                     'delete' => array(
                         'api/v3/order' => array( 'cost' => 1 ), // done
@@ -299,6 +307,15 @@ class weex extends Exchange {
                         'capi/v3/sim/balance' => array( 'cost' => 10 ), // done - demo trading variant of capi/v3/account/balance
                         'capi/v3/sim/position/allPosition' => array( 'cost' => 15 ), // done - demo trading variant of capi/v3/account/position/allPosition
                         'capi/v3/sim/order/history' => array( 'cost' => 10 ), // done - demo trading variant of capi/v3/order/history
+                        'capi/v3/copy/follower/historyOrders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/follower/myTraders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/follower/openOrders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/follower/settings' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/trader/historyOrders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/trader/openOrders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/trader/pairs' => array( 'cost' => 1 ), // not unified - copy trading
+                        'capi/v3/trailing/openOrders' => array( 'cost' => 2 ), // not unified - trailing orders
+                        'capi/v3/trailing/historyOrders' => array( 'cost' => 10 ), // not unified - trailing orders
                     ),
                     'post' => array(
                         'capi/v3/account/income' => array( 'cost' => 5 ), // done
@@ -313,6 +330,9 @@ class weex extends Exchange {
                         'capi/v3/placeTpSlOrder' => array( 'cost' => 5 ), // not unified
                         'capi/v3/modifyTpSlOrder' => array( 'cost' => 5 ), // not unified
                         'capi/v3/sim/order' => array( 'cost' => 5 ), // done - demo trading variant of capi/v3/order
+                        'capi/v3/copy/follower/closePos' => array( 'cost' => 50 ), // not unified - copy trading
+                        'capi/v3/copy/follower/settings' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/follower/stopCopy' => array( 'cost' => 10 ), // not unified - copy trading
                     ),
                     'delete' => array(
                         'capi/v3/order' => array( 'cost' => 3 ), // done
@@ -1424,7 +1444,7 @@ class weex extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the mark price for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned indexPrice of the $ticker
+         * @param {string} [$params->priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the $ticker
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         if ($this->markets === null) {
@@ -1569,7 +1589,7 @@ class weex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch (default 100, max 300)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in $params
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1598,7 +1618,7 @@ class weex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1634,7 +1654,7 @@ class weex extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] whether to automatically $paginate requests $until the required number of candles is returned
          * @param {boolean} [$params->historical] whether to fetch $historical klines (default is false). If false, will fetch last price klines
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2366,16 +2386,16 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client order id
          * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-         * @param {float} [$params->takeProfit.triggerPrice] The $price at which the take profit order will be triggered, takeProfit.stopPrice is supported alias
+         * @param {float} [$params->takeProfit.triggerPrice] The $price at which the take profit order will be triggered, takeProfit.stopPrice is supported as an alias
          * @param {string} [$params->takeProfit.triggerPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
          * @param {float} [$params->takeProfit.price] not supported, the attached take profit always executes at $market $price
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-         * @param {float} [$params->stopLoss.triggerPrice] The $price at which the stop loss order will be triggered, stopLoss.stopPrice is supported alias
+         * @param {float} [$params->stopLoss.triggerPrice] The $price at which the stop loss order will be triggered, stopLoss.stopPrice is supported as an alias
          * @param {string} [$params->stopLoss.triggerPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
          * @param {float} [$params->stopLoss.price] not supported, the attached stop loss always executes at $market $price
-         * @param {float} [$params->stopLossPrice] $price to trigger a standalone stop-loss order on an open position, the $price argument is used execution $price for limit orders
+         * @param {float} [$params->stopLossPrice] $price to trigger a standalone stop-loss order on an open position, the $price argument is used as its execution $price for limit orders
          * @param {string} [$params->stopLossPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
-         * @param {float} [$params->takeProfitPrice] $price to trigger a standalone take-profit order on an open position, the $price argument is used execution $price for limit orders
+         * @param {float} [$params->takeProfitPrice] $price to trigger a standalone take-profit order on an open position, the $price argument is used as its execution $price for limit orders
          * @param {string} [$params->takeProfitPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
          * @param {float} [$params->triggerPrice] the $price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
          * @param {bool} [$params->reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
@@ -3313,7 +3333,7 @@ class weex extends Exchange {
         $rawType = $this->safe_string_upper_2($order, 'type', 'orderType');
         $isReduceOnly = $this->safe_bool($order, 'reduceOnly');
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
-        // a missing reduceOnly counts-only to keep the legacy mapping for responses that omit the field
+        // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
         $isEntryTrigger = !$this->safe_bool($order, 'reduceOnly', true);
         $takeProfitPrice = null;
         $stopLossPrice = null;

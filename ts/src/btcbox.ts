@@ -138,6 +138,7 @@ export default class btcbox extends Exchange {
                 'private': {
                     'post': {
                         'balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'order_history': { 'cost': 1 } as Endpoint<List>,
                         'trade_add': { 'cost': 1 } as Endpoint<Dict>,
                         'trade_cancel': { 'cost': 1 } as Endpoint<Dict>,
                         'trade_list': { 'cost': 1 } as Endpoint<List>,

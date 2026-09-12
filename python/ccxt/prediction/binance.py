@@ -316,7 +316,7 @@ class binance(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.query]: a free-text search resolved against the semantic market search endpoint
         :param str[] [params.queries]: multiple free-text searches(alternative to query)
-        :param str[] [params.tags]: treated free-text searches(binance has no tag taxonomy)
+        :param str[] [params.tags]: treated as additional free-text searches(binance has no tag taxonomy)
         :param str [params.eventId]: a marketTopicId, fetched directly via the detail endpoint
         :param str [params.l1Category]: scope the listing server-side by a level-1 category id
         :param str [params.l2Category]: scope the listing server-side by a level-2 category id
@@ -718,7 +718,7 @@ class binance(PredictionExchange, ImplicitAPI):
     def parse_prediction_ticker(self, raw: dict, market: Market = None) -> PredictionTicker:
         """
  @ignore
-        parses a last-trade-price response into a unified ticker object; the venue quotes the market's primary(YES) token, so a NO outcome mirrors - price
+        parses a last-trade-price response into a unified ticker object; the venue quotes the market's primary(YES) token, so a NO outcome mirrors as 1 - price
         :param dict raw: the raw last-trade-price object
         :param dict [market]: the outcome object the ticker belongs to
         :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
@@ -729,7 +729,7 @@ class binance(PredictionExchange, ImplicitAPI):
         marketAny = market
         outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
         # the venue quotes the market's primary token(outcome index 0, e.g. YES or UP),
-        # any other outcome of a binary market mirrors - price
+        # any other outcome of a binary market mirrors as 1 - price
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
         outcomeIndex = self.safe_string(outcomeInfo, 'index')
         isMirrored = False

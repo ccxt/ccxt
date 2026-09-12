@@ -12,6 +12,41 @@ use super::grvt::GrvtCore;
 use crate::exchange::ExchangeRuntime;
 
 impl GrvtCore {
+    /// Auto-generated wrapper for the `privateEdgeGetApiV1DepositAddresses` implicit endpoint.
+    pub async fn private_edge_get_api_v1_deposit_addresses(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_edge_get_api_v1_deposit_addresses".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEdgeGetApiV1BridgeWithdrawalInfo` implicit endpoint.
+    pub async fn private_edge_get_api_v1_bridge_withdrawal_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_edge_get_api_v1_bridge_withdrawal_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEdgeGetApiV1BridgeWithdrawalStatus` implicit endpoint.
+    pub async fn private_edge_get_api_v1_bridge_withdrawal_status(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_edge_get_api_v1_bridge_withdrawal_status".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEdgeGetApiV1ReferralEpochs` implicit endpoint.
+    pub async fn private_edge_get_api_v1_referral_epochs(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_edge_get_api_v1_referral_epochs".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEdgeGetApiV1ReferralPoints` implicit endpoint.
+    pub async fn private_edge_get_api_v1_referral_points(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_edge_get_api_v1_referral_points".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEdgeGetApiV1ReferralData` implicit endpoint.
+    pub async fn private_edge_get_api_v1_referral_data(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_edge_get_api_v1_referral_data".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEdgeGetApiV1ReferralIndirectData` implicit endpoint.
+    pub async fn private_edge_get_api_v1_referral_indirect_data(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_edge_get_api_v1_referral_indirect_data".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateEdgePostAuthApiKeyLogin` implicit endpoint.
     pub async fn private_edge_post_auth_api_key_login(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_edge_post_auth_api_key_login".to_string()), optional_args).await
@@ -20,6 +55,26 @@ impl GrvtCore {
     /// Auto-generated wrapper for the `privateEdgePostAuthWalletLogin` implicit endpoint.
     pub async fn private_edge_post_auth_wallet_login(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_edge_post_auth_wallet_login".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEdgePostAuthBuilderAuthorize` implicit endpoint.
+    pub async fn private_edge_post_auth_builder_authorize(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_edge_post_auth_builder_authorize".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEdgePostApiV1DepositGenerateAddress` implicit endpoint.
+    pub async fn private_edge_post_api_v1_deposit_generate_address(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_edge_post_api_v1_deposit_generate_address".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEdgePostApiV1BridgeWithdrawalQuote` implicit endpoint.
+    pub async fn private_edge_post_api_v1_bridge_withdrawal_quote(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_edge_post_api_v1_bridge_withdrawal_quote".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateEdgePostApiV1BridgeWithdraw` implicit endpoint.
+    pub async fn private_edge_post_api_v1_bridge_withdraw(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_edge_post_api_v1_bridge_withdraw".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicMarketPostFullV1Instrument` implicit endpoint.
@@ -80,6 +135,16 @@ impl GrvtCore {
     /// Auto-generated wrapper for the `publicMarketPostFullV1Funding` implicit endpoint.
     pub async fn public_market_post_full_v1_funding(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_market_post_full_v1_funding".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicMarketPostFullV1SupportedAssets` implicit endpoint.
+    pub async fn public_market_post_full_v1_supported_assets(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_market_post_full_v1_supported_assets".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicMarketPostFullV1GetAllCollateralAssetInfo` implicit endpoint.
+    pub async fn public_market_post_full_v1_get_all_collateral_asset_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_market_post_full_v1_get_all_collateral_asset_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1CreateOrder` implicit endpoint.
@@ -260,6 +325,56 @@ impl GrvtCore {
     /// Auto-generated wrapper for the `privateTradingPostFullV1BuilderFillHistory` implicit endpoint.
     pub async fn private_trading_post_full_v1_builder_fill_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_trading_post_full_v1_builder_fill_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateTradingPostFullV1CreateRfq` implicit endpoint.
+    pub async fn private_trading_post_full_v1_create_rfq(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_trading_post_full_v1_create_rfq".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateTradingPostFullV1CancelRfq` implicit endpoint.
+    pub async fn private_trading_post_full_v1_cancel_rfq(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_trading_post_full_v1_cancel_rfq".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateTradingPostFullV1EcnFromBroker` implicit endpoint.
+    pub async fn private_trading_post_full_v1_ecn_from_broker(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_trading_post_full_v1_ecn_from_broker".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateTradingPostFullV2BulkOrders` implicit endpoint.
+    pub async fn private_trading_post_full_v2_bulk_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_trading_post_full_v2_bulk_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateTradingPostFullV1PositionHistory` implicit endpoint.
+    pub async fn private_trading_post_full_v1_position_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_trading_post_full_v1_position_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateTradingPostFullV1InterestPaymentHistory` implicit endpoint.
+    pub async fn private_trading_post_full_v1_interest_payment_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_trading_post_full_v1_interest_payment_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateTradingPostFullV1GetCollateralPreference` implicit endpoint.
+    pub async fn private_trading_post_full_v1_get_collateral_preference(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_trading_post_full_v1_get_collateral_preference".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateTradingPostFullV1SpotAccountSummary` implicit endpoint.
+    pub async fn private_trading_post_full_v1_spot_account_summary(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_trading_post_full_v1_spot_account_summary".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateTradingPostFullV1SetIndicativePrices` implicit endpoint.
+    pub async fn private_trading_post_full_v1_set_indicative_prices(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_trading_post_full_v1_set_indicative_prices".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateTradingPostFullV1WithdrawalFee` implicit endpoint.
+    pub async fn private_trading_post_full_v1_withdrawal_fee(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_trading_post_full_v1_withdrawal_fee".to_string()), optional_args).await
     }
 
 }

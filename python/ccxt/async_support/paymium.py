@@ -84,6 +84,7 @@ class paymium(Exchange, ImplicitAPI):
                         'user/orders': {'cost': 1},
                         'user/orders/{uuid}': {'cost': 1},
                         'user/price_alerts': {'cost': 1},
+                        'user/withdrawals': {'cost': 1},
                         'merchant/get_payment/{uuid}': {'cost': 1},
                     },
                     'post': {

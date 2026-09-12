@@ -11,6 +11,7 @@ use crate::Value;
 use crate::ExchangeError;
 use crate::exchange::Exchange;
 use crate::exchange::ExchangeRuntime;
+use crate::exchange::CallDynamicChecked;
 use crate::exchange_generated::ExchangeBase;
 use crate::prediction_exchange::PredictionRuntime;
 use crate::prediction_exchange::PredictionExchange;

@@ -165,7 +165,7 @@ class ndax extends \ccxt\async\ndax {
     }
 
     public function handle_trades(Client $client, mixed $message) {
-        $payload = $this->safe_value($message, 'o', array());
+        $payload = $this->safe_list($message, 'o', array());
         //
         // initial snapshot
         //
@@ -228,7 +228,7 @@ class ndax extends \ccxt\async\ndax {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         if ($this->markets === null) {
@@ -269,7 +269,7 @@ class ndax extends \ccxt\async\ndax {
         //         "o" => [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        $payload = $this->safe_value($message, 'o', array());
+        $payload = $this->safe_list($message, 'o', array());
         //
         //     array(
         //         array(
@@ -435,7 +435,7 @@ class ndax extends \ccxt\async\ndax {
         //         "o" => [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        $payload = $this->safe_value($message, 'o', array());
+        $payload = $this->safe_list($message, 'o', array());
         //
         //     array(
         //         0,   // 0 MDUpdateId

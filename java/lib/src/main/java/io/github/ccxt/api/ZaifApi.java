@@ -108,6 +108,39 @@ public class ZaifApi extends Exchange
     }
 
     /**
+     * Calls the publicGetVaspInfoVaspMasterId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetVaspInfoVaspMasterId (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetVaspInfoVaspMasterId", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetCountryInfoCode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCountryInfoCode (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetCountryInfoCode", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetCorpTypeIdInfoId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCorpTypeIdInfoId (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetCorpTypeIdInfoId", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostActiveOrders endpoint.
      *
      * @param optionalArgs the request parameters

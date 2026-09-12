@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchTradesForSymbols(Exchange exchange, object skippedProperties, object symbols)
     {
         string method = "watchTradesForSymbols";
-        object now = exchange.milliseconds();
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
         int maxIdleTime = 5000;
         bool idle = false;
@@ -20,7 +20,7 @@ public partial class testMainClass : BaseTest
         {
             object response = null;
             bool success = true;
-            object startTime = exchange.milliseconds();
+            Int64 startTime = exchange.milliseconds();
             try
             {
                 response = detypeForComparison(await exchange.WatchTradesForSymbols(symbols));
@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
             {
                 assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
                 object symbol = null;
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     object trade = getValue(response, i);
                     symbol = getValue(trade, "symbol");

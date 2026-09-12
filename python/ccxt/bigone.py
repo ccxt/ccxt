@@ -1316,7 +1316,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the earliest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1533,7 +1533,7 @@ class bigone(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.operator]: *stop order only* GTE or LTE(default)
@@ -1919,7 +1919,7 @@ class bigone(Exchange, ImplicitAPI):
         networkCode, paramsOmitted = self.handle_network_code_and_params(params)
         response = self.privateGetAssetsAssetSymbolAddress(self.extend(request, paramsOmitted))
         #
-        # the actual response format is not the same documented one
+        # the actual response format is not the same as the documented one
         # the data key contains an array in the actual response
         #
         #     {

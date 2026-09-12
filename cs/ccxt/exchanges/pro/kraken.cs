@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class kraken { public kraken(object args = null) : base(args) { } }
 public partial class kraken : ccxt.kraken
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -112,7 +112,7 @@ public partial class kraken : ccxt.kraken
         });
     }
 
-    public virtual object orderRequestWs(object method, object symbol, object type, object request, object amount, object price = null, object parameters = null)
+    public virtual List<object> orderRequestWs(object method, object symbol, object type, object request, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool isLimitOrder = ((string)type).EndsWith(((string)"limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
@@ -126,7 +126,7 @@ public partial class kraken : ccxt.kraken
         }
         bool isMarket = (isEqual(type, "market"));
         object postOnly = null;
-        var postOnlyparametersVariable = this.handlePostOnly(isMarket, false, parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
         postOnly = ((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isTrue(isEqual(postOnly, true)))
@@ -143,8 +143,8 @@ public partial class kraken : ccxt.kraken
         {
             ((IDictionary<string,object>)getValue(request, "params"))["order_qty"] = this.parseToNumeric(this.costToPrecision(symbol, cost));
         }
-        object stopLoss = this.safeDict(parameters, "stopLoss", new Dictionary<string, object>() {});
-        object takeProfit = this.safeDict(parameters, "takeProfit", new Dictionary<string, object>() {});
+        IDictionary<string, object> stopLoss = this.safeDict(parameters, "stopLoss", new Dictionary<string, object>() {});
+        IDictionary<string, object> takeProfit = this.safeDict(parameters, "takeProfit", new Dictionary<string, object>() {});
         string? presetStopLoss = this.safeString(stopLoss, "triggerPrice");
         string? presetTakeProfit = this.safeString(takeProfit, "triggerPrice");
         string? presetStopLossLimit = this.safeString(stopLoss, "price");
@@ -171,7 +171,7 @@ public partial class kraken : ccxt.kraken
         string priceType = ((bool) isTrue((isTrue(isTrailingPercentOrder) || isTrue(isTrailingLimitPercentOrder)))) ? "pct" : "quote";
         if (isTrue(isEqual(method, "createOrderWs")))
         {
-            object reduceOnly = this.safeBool(parameters, "reduceOnly");
+            bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
             if (isTrue(isEqual(reduceOnly, true)))
             {
                 ((IDictionary<string,object>)getValue(request, "params"))["reduce_only"] = true;
@@ -320,10 +320,10 @@ public partial class kraken : ccxt.kraken
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object token = await this.authenticate();
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
-        object messageHash = ((string)this.numberToString(requestId));
+        string messageHash = ((string)this.numberToString(requestId));
         object request = new Dictionary<string, object>() {
             { "method", "add_order" },
             { "params", new Dictionary<string, object>() {
@@ -369,7 +369,7 @@ public partial class kraken : ccxt.kraken
         //         "time_out": "2025-05-14T13:54:10.855046Z"
         //     }
         //
-        object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
         object order = this.parseOrder(result);
         string? messageHash = this.safeString2(message, "reqid", "req_id");
         callDynamically(client as WebSocketClient, "resolve", new object[] {order, messageHash});
@@ -396,7 +396,7 @@ public partial class kraken : ccxt.kraken
         object token = await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
-        object messageHash = ((string)this.numberToString(requestId));
+        string messageHash = ((string)this.numberToString(requestId));
         object request = new Dictionary<string, object>() {
             { "method", "amend_order" },
             { "params", new Dictionary<string, object>() {
@@ -433,7 +433,7 @@ public partial class kraken : ccxt.kraken
         object token = await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
-        object messageHash = ((string)this.numberToString(requestId));
+        string messageHash = ((string)this.numberToString(requestId));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "cancel_order" },
             { "params", new Dictionary<string, object>() {
@@ -466,7 +466,7 @@ public partial class kraken : ccxt.kraken
         object token = await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
-        object messageHash = ((string)this.numberToString(requestId));
+        string messageHash = ((string)this.numberToString(requestId));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "cancel_order" },
             { "params", new Dictionary<string, object>() {
@@ -516,7 +516,7 @@ public partial class kraken : ccxt.kraken
         object token = await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
-        object messageHash = ((string)this.numberToString(requestId));
+        string messageHash = ((string)this.numberToString(requestId));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "cancel_all" },
             { "params", new Dictionary<string, object>() {
@@ -569,10 +569,10 @@ public partial class kraken : ccxt.kraken
         //         ]
         //     }
         //
-        object data = this.safeList(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         object ticker = getValue(data, 0);
-        object symbol = ((string)this.safeString(ticker, "symbol"));
-        object messageHash = this.getMessageHash("ticker", null, symbol);
+        string symbol = ((string)this.safeString(ticker, "symbol"));
+        string? messageHash = ((string)this.getMessageHash("ticker", null, symbol));
         string? vwap = this.safeString(ticker, "vwap");
         string? quoteVolume = null;
         string? baseVolume = this.safeString(ticker, "volume");
@@ -581,7 +581,7 @@ public partial class kraken : ccxt.kraken
             quoteVolume = Precise.stringMul(baseVolume, vwap);
         }
         string? last = this.safeString(ticker, "last");
-        object result = this.safeTicker(new Dictionary<string, object>() {
+        Dictionary<string, object> result = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
@@ -626,10 +626,10 @@ public partial class kraken : ccxt.kraken
         //         ]
         //     }
         //
-        object data = this.safeList(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         object trade = getValue(data, 0);
-        object symbol = ((string)this.safeString(trade, "symbol"));
-        object messageHash = this.getMessageHash("trade", null, symbol);
+        string symbol = ((string)this.safeString(trade, "symbol"));
+        string? messageHash = ((string)this.getMessageHash("trade", null, symbol));
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -637,9 +637,9 @@ public partial class kraken : ccxt.kraken
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object market = this.market(symbol);
-        object parsed = this.parseTrades(data, market);
-        for (object i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
+        Dictionary<string, object> market = this.market(symbol);
+        IList<object> parsed = this.parseTrades(data, market);
+        for (int i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
         {
             callDynamically(stored, "append", new object[] {getValue(parsed, i)});
         }
@@ -670,17 +670,17 @@ public partial class kraken : ccxt.kraken
         //         ]
         //     }
         //
-        object data = this.safeList(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         object first = getValue(data, 0);
         string? marketId = this.safeString(first, "symbol");
-        object symbol = this.safeSymbol(marketId);
+        string? symbol = this.safeSymbol(marketId);
         if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
         }
         Int64? interval = this.safeInteger(first, "interval");
-        object timeframe = ((string)this.findTimeframe(interval));
-        object messageHash = this.getMessageHash("ohlcv", null, symbol);
+        string timeframe = ((string)this.findTimeframe(interval));
+        string? messageHash = ((string)this.getMessageHash("ohlcv", null, symbol));
         object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         if (isTrue(isEqual(stored, null)))
@@ -690,7 +690,7 @@ public partial class kraken : ccxt.kraken
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
         }
         int ohlcvsLength = getArrayLength(data);
-        for (object i = 0; isLessThan(i, ohlcvsLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, ohlcvsLength); postFixIncrement(ref i))
         {
             object candle = getValue(data, i);
             string? datetime = this.safeString(candle, "interval_begin");
@@ -814,7 +814,7 @@ public partial class kraken : ccxt.kraken
         object trades = await this.watchMultiHelper("trade", "trade", symbols, null, parameters);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeList(trades, 0);
+            List<object> first = this.safeList(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -888,11 +888,11 @@ public partial class kraken : ccxt.kraken
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         string name = "ohlc";
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "publicV2");
         object requestId = this.requestId();
-        object messageHash = this.getMessageHash("ohlcv", null, symbolVar);
+        string? messageHash = ((string)this.getMessageHash("ohlcv", null, symbolVar));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -911,7 +911,7 @@ public partial class kraken : ccxt.kraken
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, "timestamp", true));
     }
 
-    public async override Task<object> loadMarkets(object reload = null, object parameters = null)
+    public async override Task<IDictionary<string, object>> loadMarkets(object reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -923,23 +923,23 @@ public partial class kraken : ccxt.kraken
             object symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
             if (isTrue(!isEqual(symbols, null)))
             {
-                for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
                 {
                     object symbol = getValue(symbols, i);
-                    object market = this.market(symbol);
+                    Dictionary<string, object> market = this.market(symbol);
                     object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
-                    object wsName = ((string)this.safeString(info, "wsname"));
+                    string wsName = ((string)this.safeString(info, "wsname"));
                     ((IDictionary<string,object>)marketsByWsName)[(string)wsName] = market;
                 }
             }
             ((IDictionary<string,object>)this.options)["marketsByWsName"] = marketsByWsName;
         }
-        return markets;
+        return ((IDictionary<string, object>)((object)(markets)));
     }
 
     public override object ping(WebSocketClient client)
     {
-        object url = client.url;
+        string url = client.url;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(isGreaterThanOrEqual(getIndexOf(url, "v2"), 0)))
         {
@@ -1035,17 +1035,17 @@ public partial class kraken : ccxt.kraken
         //     }
         //
         string? type = this.safeString(message, "type");
-        object data = this.safeList(message, "data", new List<object>() {});
-        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        object symbol = ((string)this.safeString(first, "symbol"));
-        object a = this.safeValue(first, "asks", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
+        IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        string symbol = ((string)this.safeString(first, "symbol"));
+        List<object> a = this.safeList(first, "asks", new List<object>() {});
         object b = this.safeValue(first, "bids", new List<object>() {});
         Int64? c = this.safeInteger(first, "checksum");
-        object messageHash = this.getMessageHash("orderbook", null, symbol);
-        object orderbook = null;
+        string? messageHash = ((string)this.getMessageHash("orderbook", null, symbol));
+        ccxt.pro.IOrderBook? orderbook = null;
         if (isTrue(isEqual(type, "update")))
         {
-            orderbook = getValue(this.orderbooks, symbol);
+            orderbook = this.getOrderBook(this.orderbooks, symbol);
             object storedAsks = getValue(orderbook, "asks");
             object storedBids = getValue(orderbook, "bids");
             if (isTrue(!isEqual(a, null)))
@@ -1065,13 +1065,13 @@ public partial class kraken : ccxt.kraken
             // snapshot
             int depth = getArrayLength(a);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, depth);
-            orderbook = getValue(this.orderbooks, symbol);
+            orderbook = this.getOrderBook(this.orderbooks, symbol);
             List<object> keys = new List<object>() {"asks", "bids"};
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
-                object key = getValue(keys, i);
+                string? key = ((string)getValue(keys, i));
                 object bookside = getValue(orderbook, key);
-                object deltas = this.safeValue(first, key, new List<object>() {});
+                List<object> deltas = this.safeList(first, key, new List<object>() {});
                 int deltasLength = getArrayLength(deltas);
                 if (isTrue(isGreaterThan(deltasLength, 0)))
                 {
@@ -1092,13 +1092,13 @@ public partial class kraken : ccxt.kraken
                 object checkBids = getValue(orderbook, "bids");
                 // const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
                 // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
-                for (object i = 0; isLessThan(i, 10); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, 10); postFixIncrement(ref i))
                 {
                     object currentAsk = this.safeValue(checkAsks, i, new Dictionary<string, object>() {});
                     object formattedAsk = add(this.formatNumber(getValue(currentAsk, 0)), this.formatNumber(getValue(currentAsk, 1)));
                     ((IList<object>)payloadArray).Add(formattedAsk);
                 }
-                for (object i = 0; isLessThan(i, 10); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, 10); postFixIncrement(ref i))
                 {
                     object currentBid = this.safeValue(checkBids, i, new Dictionary<string, object>() {});
                     object formattedBid = add(this.formatNumber(getValue(currentBid, 0)), this.formatNumber(getValue(currentBid, 1)));
@@ -1106,7 +1106,7 @@ public partial class kraken : ccxt.kraken
                 }
             }
             string payload = String.Join("", ((IList<object>)payloadArray).ToArray());
-            object localChecksum = this.crc32(payload, false);
+            Int64 localChecksum = this.crc32(payload, false);
             if (isTrue(!isEqual(localChecksum, c)))
             {
                 var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
@@ -1122,11 +1122,11 @@ public partial class kraken : ccxt.kraken
     public virtual void customHandleDeltas(object bookside, object deltas)
     {
         // const sortOrder = (key === 'bids') ? true : false;
-        for (object j = 0; isLessThan(j, getArrayLength(deltas)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(deltas)); postFixIncrement(ref j))
         {
             object delta = getValue(deltas, j);
-            object price = this.safeNumber(delta, "price");
-            object amount = this.safeNumber(delta, "qty");
+            double? price = this.safeNumber(delta, "price");
+            double? amount = this.safeNumber(delta, "qty");
             (bookside as IOrderBookSide).store(price, amount);
         }
     }
@@ -1135,7 +1135,7 @@ public partial class kraken : ccxt.kraken
     {
         List<object> parts = ((string)data).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object integer = this.safeString(parts, 0);
-        object decimals = this.safeString(parts, 1, "");
+        string? decimals = this.safeString(parts, 1, "");
         object joinedResult = add(integer, decimals);
         object i = 0;
         while (isEqual(getValue(joinedResult, i), "0"))
@@ -1188,8 +1188,8 @@ public partial class kraken : ccxt.kraken
         string authenticated = "authenticated";
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, authenticated);
         Int64 now = this.seconds();
-        object start = this.safeInteger(subscription, "start");
-        object expires = this.safeInteger(subscription, "expires");
+        Int64? start = this.safeInteger(subscription, "start");
+        Int64? expires = this.safeInteger(subscription, "expires");
         if (isTrue(isTrue((isEqual(subscription, null))) || isTrue((isTrue((!isEqual(subscription, null))) && isTrue(isLessThanOrEqual((add(start, expires)), now))))))
         {
             // single-flight leader election, see
@@ -1215,7 +1215,7 @@ public partial class kraken : ccxt.kraken
             try
             {
                 // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-                object response = await this.privatePostGetWebSocketsToken(parameters);
+                Dictionary<string, object> response = await this.privatePostGetWebSocketsToken(parameters);
                 //
                 //     {
                 //         "error":[],
@@ -1335,7 +1335,7 @@ public partial class kraken : ccxt.kraken
         //         "sequence": 10
         //     }
         //
-        object allTrades = this.safeList(message, "data", new List<object>() {});
+        List<object> allTrades = this.safeList(message, "data", new List<object>() {});
         int allTradesLength = getArrayLength(allTrades);
         if (isTrue(isGreaterThan(allTradesLength, 0)))
         {
@@ -1346,18 +1346,18 @@ public partial class kraken : ccxt.kraken
             }
             object stored = this.myTrades;
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(allTrades)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(allTrades)); postFixIncrement(ref i))
             {
-                object trade = this.safeDict(allTrades, i, new Dictionary<string, object>() {});
+                IDictionary<string, object> trade = this.safeDict(allTrades, i, new Dictionary<string, object>() {});
                 object parsed = this.parseWsTrade(trade);
                 callDynamically(stored, "append", new object[] {parsed});
-                object symbol = ((string)getValue(parsed, "symbol"));
+                string symbol = ((string)getValue(parsed, "symbol"));
                 ((IDictionary<string,object>)symbols)[(string)symbol] = true;
             }
             string name = "myTrades";
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, name});
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object messageHash = add(add(name, ":"), getValue(keys, i));
                 callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, messageHash});
@@ -1396,11 +1396,11 @@ public partial class kraken : ccxt.kraken
         {
             symbol = getValue(market, "symbol");
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(inOp(trade, "fees")))
         {
-            object fees = this.safeList(trade, "fees", new List<object>() {});
-            object firstFee = this.safeDict(fees, 0, new Dictionary<string, object>() {});
+            List<object> fees = this.safeList(trade, "fees", new List<object>() {});
+            IDictionary<string, object> firstFee = this.safeDict(fees, 0, new Dictionary<string, object>() {});
             fee = new Dictionary<string, object>() {
                 { "cost", this.safeNumber(firstFee, "qty") },
                 { "currency", this.safeString(firstFee, "asset") },
@@ -1472,7 +1472,7 @@ public partial class kraken : ccxt.kraken
         //         "sequence": 8
         //     }
         //
-        object allOrders = this.safeList(message, "data", new List<object>() {});
+        List<object> allOrders = this.safeList(message, "data", new List<object>() {});
         int allOrdersLength = getArrayLength(allOrders);
         if (isTrue(isGreaterThan(allOrdersLength, 0)))
         {
@@ -1483,9 +1483,9 @@ public partial class kraken : ccxt.kraken
             }
             object stored = this.orders;
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(allOrders)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(allOrders)); postFixIncrement(ref i))
             {
-                object order = this.safeDict(allOrders, i, new Dictionary<string, object>() {});
+                IDictionary<string, object> order = this.safeDict(allOrders, i, new Dictionary<string, object>() {});
                 string? id = this.safeString(order, "order_id");
                 object parsed = this.parseWsOrder(order);
                 string? symbol = this.safeString(order, "symbol");
@@ -1501,7 +1501,7 @@ public partial class kraken : ccxt.kraken
                 if (isTrue(isTrue(isEqual(length, limit)) && isTrue((isEqual(previousOrder, null)))))
                 {
                     object first = getValue(stored, 0);
-                    object symbolsByOrderId = this.safeValue(this.options, "symbolsByOrderId", new Dictionary<string, object>() {});
+                    IDictionary<string, object> symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new Dictionary<string, object>() {});
                     if (isTrue(inOp(symbolsByOrderId, getValue(first, "id"))))
                     {
                         ((IDictionary<string,object>)symbolsByOrderId).Remove((string)getValue(first, "id"));
@@ -1516,7 +1516,7 @@ public partial class kraken : ccxt.kraken
             string name = "orders";
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, name});
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object messageHash = add(add(name, ":"), getValue(keys, i));
                 callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
@@ -1608,7 +1608,7 @@ public partial class kraken : ccxt.kraken
             return null;
         }
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             string? eventTrigger = this.safeString(parameters, "event_trigger");
             if (isTrue(!isEqual(eventTrigger, null)))
@@ -1683,15 +1683,15 @@ public partial class kraken : ccxt.kraken
         //         "sequence": 1
         //     }
         //
-        object data = this.safeList(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", message },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             string? currencyId = this.safeString(getValue(data, i), "asset");
-            object code = ((string)this.safeCurrencyCode(currencyId));
-            object account = this.account();
+            string code = ((string)this.safeCurrencyCode(currencyId));
+            Dictionary<string, object> account = this.account();
             string? eq = this.safeString(getValue(data, i), "balance");
             ((IDictionary<string,object>)account)["total"] = eq;
             ((IDictionary<string,object>)result)[(string)code] = account;
@@ -1757,7 +1757,7 @@ public partial class kraken : ccxt.kraken
         }
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1796,9 +1796,9 @@ public partial class kraken : ccxt.kraken
             {
                 ((WebSocketClient)client).reject(exception, requestId);
             }
-            return false;
+            return ((bool?)((object)(false)));
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -1808,8 +1808,8 @@ public partial class kraken : ccxt.kraken
         {
             if (isTrue(isEqual(channel, "executions")))
             {
-                object data = this.safeList(message, "data", new List<object>() {});
-                object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+                List<object> data = this.safeList(message, "data", new List<object>() {});
+                IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
                 string? execType = this.safeString(first, "exec_type");
                 channel = ((bool) isTrue((isEqual(execType, "trade")))) ? "myTrades" : "orders";
             }

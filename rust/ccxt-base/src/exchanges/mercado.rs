@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct MercadoCore {
@@ -243,6 +247,7 @@ impl MercadoCore {
         m.insert("private".to_string(), Value::Str("https://www.mercadobitcoin.net/tapi".to_string()));
         m.insert("v4Public".to_string(), Value::Str("https://www.mercadobitcoin.com.br/v4".to_string()));
         m.insert("v4PublicNet".to_string(), Value::Str("https://api.mercadobitcoin.net/api/v4".to_string()));
+        m.insert("v4Private".to_string(), Value::Str("https://api.mercadobitcoin.net/api/v4".to_string()));
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.mercadobitcoin.com.br".to_string()));
@@ -380,6 +385,38 @@ impl MercadoCore {
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+    m
+}));
+        m.insert("v4Private".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("accounts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("accounts/{accountId}/{symbol}/transfers/internal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("oauth2/token".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("patch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("accounts/{accountId}/wallet/{symbol}/deposits/{depositId}".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -553,8 +590,8 @@ impl MercadoCore {
         let mut coins: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_930: bool = true;
-            while { if !__for_first_930 { i = add(&i, &Value::Int(1)); } __for_first_930 = false; is_less_than(&i, &get_array_length(&coins)) } {
+            let mut __for_first_931: bool = true;
+            while { if !__for_first_931 { i = add(&i, &Value::Int(1)); } __for_first_931 = false; is_less_than(&i, &get_array_length(&coins)) } {
             let mut coin: Value = get_value(&coins, &i);
             let mut coin: Value = get_value(&coins, &i);
             let mut baseId: Value = coin.clone();
@@ -835,10 +872,10 @@ impl MercadoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut balances: Value = self.safe_value_k(data.clone(), "balance", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut balances: Value = self.safe_dict_k(data.clone(), "balance", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -847,8 +884,8 @@ impl MercadoCore {
         let mut currencyIds: Value = object_keys(&balances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_931: bool = true;
-            while { if !__for_first_931 { i = add(&i, &Value::Int(1)); } __for_first_931 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_932: bool = true;
+            while { if !__for_first_932 { i = add(&i, &Value::Int(1)); } __for_first_932 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1468,13 +1505,13 @@ impl MercadoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_933: bool = true;
-            while { if !__for_first_933 { i = add(&i, &Value::Int(1)); } __for_first_933 = false; is_less_than(&i, &get_array_length(&orders)) } {
-            let mut trades: Value = self.safe_value_k(get_value(&orders, &i), "trades", &[Value::List(vec![])]);
+            let mut __for_first_934: bool = true;
+            while { if !__for_first_934 { i = add(&i, &Value::Int(1)); } __for_first_934 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut trades: Value = self.safe_list_k(get_value(&orders, &i), "trades", &[Value::List(vec![])]);
             {
                                 let mut y: Value = Value::Int(0);
-                let mut __for_first_932: bool = true;
-                while { if !__for_first_932 { y = add(&y, &Value::Int(1)); } __for_first_932 = false; is_less_than(&y, &get_array_length(&trades)) } {
+                let mut __for_first_933: bool = true;
+                while { if !__for_first_933 { y = add(&y, &Value::Int(1)); } __for_first_933 = false; is_less_than(&y, &get_array_length(&trades)) } {
                 append_to_array(&mut result, get_value(&trades, &y));
             }
             }

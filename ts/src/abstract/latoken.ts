@@ -27,7 +27,9 @@ interface Exchange {
     publicGetTransactionBindings (params?: {}): Promise<List>;
     privateGetAuthAccount (params?: {}): Promise<List>;
     privateGetAuthAccountCurrencyCurrencyType (params?: {}): Promise<List>;
+    privateGetAuthAccountFiltered (params?: {}): Promise<List>;
     privateGetAuthOrder (params?: {}): Promise<List>;
+    privateGetAuthOrderActive (params?: {}): Promise<List>;
     privateGetAuthOrderGetOrderId (params?: {}): Promise<Dict>;
     privateGetAuthOrderPairCurrencyQuote (params?: {}): Promise<List>;
     privateGetAuthOrderPairCurrencyQuoteActive (params?: {}): Promise<List>;
@@ -46,7 +48,9 @@ interface Exchange {
     privatePostAuthOrderCancel (params?: {}): Promise<Dict>;
     privatePostAuthOrderCancelAll (params?: {}): Promise<Dict>;
     privatePostAuthOrderCancelAllCurrencyQuote (params?: {}): Promise<Dict>;
+    privatePostAuthOrderCancelBulk (params?: {}): Promise<Dict>;
     privatePostAuthOrderPlace (params?: {}): Promise<Dict>;
+    privatePostAuthOrderPlaceBulk (params?: {}): Promise<Dict>;
     privatePostAuthSpotDeposit (params?: {}): Promise<Dict>;
     privatePostAuthSpotWithdraw (params?: {}): Promise<Dict>;
     privatePostAuthStopOrderCancel (params?: {}): Promise<Dict>;

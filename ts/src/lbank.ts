@@ -177,6 +177,7 @@ export default class lbank extends Exchange {
                             'supplement/deposit_history': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/withdraws': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/get_deposit_address': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/add_deposit_address': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/asset_detail': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/customer_trade_fee': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/api_Restrictions': { 'cost': 2.5 } as Endpoint<Dict>,
@@ -192,6 +193,12 @@ export default class lbank extends Exchange {
                             'supplement/orders_info_history': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/user_info_account': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/transaction_history': { 'cost': 2.5 } as Endpoint<Dict>,
+                            // new spot/wallet, spot/trade endpoints
+                            'spot/wallet/withdraw': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'spot/wallet/deposit_history': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'spot/wallet/withdraws': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'spot/trade/orders_info': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'spot/trade/orders_info_history': { 'cost': 2.5 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -556,7 +563,7 @@ export default class lbank extends Exchange {
         //         "ts": 1691560288484
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -653,7 +660,7 @@ export default class lbank extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -1338,7 +1345,7 @@ export default class lbank extends Exchange {
         const toBtc = this.safeValue (data, 'toBtc');
         if (toBtc !== undefined) {
             const used = this.safeValue (data, 'freeze', {});
-            const free = this.safeValue (data, 'free', {});
+            const free = this.safeDict (data, 'free', {});
             const currencies = Object.keys (free);
             for (let i = 0; i < currencies.length; i++) {
                 const currencyId = currencies[i];
@@ -1610,7 +1617,7 @@ export default class lbank extends Exchange {
         }
         const request: Dict = {};
         const response = await this.spotPrivatePostSupplementCustomerTradeFee (this.extend (request, params));
-        const fees = this.safeValue (response, 'data', []);
+        const fees = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
@@ -2002,7 +2009,7 @@ export default class lbank extends Exchange {
         //          "ts":1647455270776
         //      }
         //
-        const result = this.safeValue (response, 'data', []);
+        const result = this.safeList (response, 'data', []);
         const numOrders = result.length;
         if (numOrders === 1) {
             return this.parseOrder (result[0]);
@@ -2756,13 +2763,13 @@ export default class lbank extends Exchange {
         //        "code": 0
         //    }
         //
-        const result = this.safeValue (response, 'data', []);
+        const result = this.safeList (response, 'data', []);
         const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
-            const networkList = this.safeValue (entry, 'networkList', []);
+            const networkList = this.safeList (entry, 'networkList', []);
             if (code !== undefined) {
                 withdrawFees[code] = {};
             }
@@ -2821,7 +2828,7 @@ export default class lbank extends Exchange {
         //        "ts": "1663364435973"
         //    }
         //
-        const result = this.safeValue (response, 'data', []);
+        const result = this.safeList (response, 'data', []);
         const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const item = result[i];
@@ -3045,7 +3052,7 @@ export default class lbank extends Exchange {
         //
         const result = this.depositWithdrawFee (fee);
         const code = this.safeString (currency, 'code');
-        const networkList = this.safeValue (fee, 'networkList', []);
+        const networkList = this.safeList (fee, 'networkList', []);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);

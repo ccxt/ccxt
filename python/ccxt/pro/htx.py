@@ -345,7 +345,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -371,7 +371,7 @@ class htx(ccxt.async_support.htx):
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1171,7 +1171,7 @@ class htx(ccxt.async_support.htx):
         else:
             # contract branch
             parsedOrder = self.parse_ws_order(message, market)
-            rawTrades = self.safe_value(message, 'trade', [])
+            rawTrades = self.safe_list(message, 'trade', [])
             tradesLength = len(rawTrades)
             if tradesLength > 0:
                 tradesObject = {
@@ -1628,7 +1628,7 @@ class htx(ccxt.async_support.htx):
         clientPositions = self.safe_value(self.positions, url)
         if clientPositions is None:
             self.positions[url] = {}
-        rawPositions = self.safe_value(message, 'data', [])
+        rawPositions = self.safe_list(message, 'data', [])
         if self.is_empty(rawPositions):
             prefixes = ['cross:positions', 'isolated:positions']
             for i in range(0, len(prefixes)):
@@ -1885,7 +1885,7 @@ class htx(ccxt.async_support.htx):
         #     }
         #
         channel = self.safe_string(message, 'ch')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         timestamp = self.safe_integer(data, 'changeTime', self.safe_integer(message, 'ts'))
         self.balance['timestamp'] = timestamp
         self.balance['datetime'] = self.iso8601(timestamp)
@@ -2051,7 +2051,7 @@ class htx(ccxt.async_support.htx):
     def handle_system_status(self, client: Client, message: object):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
-        # and unified for any usage pattern that
+        # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
         #     {
@@ -2500,7 +2500,7 @@ class htx(ccxt.async_support.htx):
             else:
                 # self trades object is artificially created
                 # in handleOrder
-                rawTrades = self.safe_value(message, 'trades', [])
+                rawTrades = self.safe_list(message, 'trades', [])
                 marketId = self.safe_value(message, 'symbol')
                 market = self.market(marketId)
                 for i in range(0, len(rawTrades)):

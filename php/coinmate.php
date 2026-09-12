@@ -197,6 +197,8 @@ class coinmate extends Exchange {
                         'solDepositAddresses' => array( 'cost' => 1 ),
                         'unconfirmedSolDeposits' => array( 'cost' => 1 ),
                         'bankWireWithdrawal' => array( 'cost' => 1 ),
+                        'lightningDeposit' => array( 'cost' => 1 ),
+                        'lightningWithdraw' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -377,7 +379,7 @@ class coinmate extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -441,7 +443,7 @@ class coinmate extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $balances = $this->safe_value($response, 'data', array());
+        $balances = $this->safe_dict($response, 'data', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
@@ -571,7 +573,7 @@ class coinmate extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $keys = is_array($data) ? array_keys($data) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -765,7 +767,7 @@ class coinmate extends Exchange {
         }
         $currency = $this->currency($code);
         $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
-        $methods = $this->safe_value($withdrawOptions, 'methods', array());
+        $methods = $this->safe_dict($withdrawOptions, 'methods', array());
         $method = $this->safe_string($methods, $code);
         if ($method === null) {
             $allowedCurrencies = is_array($methods) ? array_keys($methods) : array();

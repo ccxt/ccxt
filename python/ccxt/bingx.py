@@ -242,6 +242,14 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/depth': {'cost': 1},
                                 'market/kline': {'cost': 1},
                                 'ticker/price': {'cost': 1},
+                                'quote/bookTicker': {'cost': 1},
+                                'quote/depth': {'cost': 1},
+                                'quote/historicalKlines': {'cost': 1},
+                                'quote/historicalTrades': {'cost': 1},
+                                'quote/klines': {'cost': 1},
+                                'quote/price': {'cost': 1},
+                                'quote/ticker': {'cost': 1},
+                                'quote/trades': {'cost': 1},
                             },
                         },
                     },
@@ -329,6 +337,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/allOrders': {'cost': 2},
                                 'trade/allFillOrders': {'cost': 2},
                                 'trade/fillHistory': {'cost': 2},
+                                'trade/positionHistory': {'cost': 2},
                                 'user/income/export': {'cost': 2},
                                 'user/commissionRate': {'cost': 2},
                                 'quote/bookTicker': {'cost': 1},
@@ -400,6 +409,13 @@ class bingx(Exchange, ImplicitAPI):
                             'delete': {
                                 'trade/allOpenOrders': {'cost': 2},  # post method in doc
                                 'trade/cancelOrder': {'cost': 2},
+                            },
+                        },
+                    },
+                    'v2': {
+                        'private': {
+                            'post': {
+                                'trade/order': {'cost': 2},
                             },
                         },
                     },
@@ -562,6 +578,21 @@ class bingx(Exchange, ImplicitAPI):
                                 'asset/partnerData': {'cost': 5},
                                 'commissionDataList/referralCode': {'cost': 5},
                                 'account/superiorCheck': {'cost': 5},
+                            },
+                        },
+                    },
+                },
+                'wealth': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'product/dual-currency/pre-order': {'cost': 2},
+                                'product/dual-currency/position': {'cost': 2},
+                                'product/dual-currency/order-records': {'cost': 2},
+                            },
+                            'post': {
+                                'product/dual-currency/invest-asset-list': {'cost': 2},
+                                'product/dual-currency/order': {'cost': 2},
                             },
                         },
                     },
@@ -1041,8 +1072,8 @@ class bingx(Exchange, ImplicitAPI):
         currency = self.safe_string(market, 'currency')
         checkIsInverse = False
         checkIsLinear = True
-        minTickSize = self.safe_number(market, 'minTickSize')
-        if minTickSize is not None:
+        inverseContractSize = self.safe_number(market, 'minTickSize')
+        if inverseContractSize is not None:
             # inverse swap market
             currency = baseId
             checkIsInverse = True
@@ -1061,7 +1092,9 @@ class bingx(Exchange, ImplicitAPI):
         if settle is not None:
             symbol += ':' + settle
         fees = self.safe_dict(self.fees, type, {})
-        contractSize = self.parse_number('1') if (swap) else None
+        contractSize = None
+        if swap:
+            contractSize = inverseContractSize if (checkIsInverse) else self.parse_number('1')
         isActive = False
         if (self.safe_string(market, 'apiStateOpen') == 'true') and (self.safe_string(market, 'apiStateClose') == 'true'):
             isActive = True  # swap active
@@ -1118,7 +1151,7 @@ class bingx(Exchange, ImplicitAPI):
                     'max': None,
                 },
                 'price': {
-                    'min': minTickSize,
+                    'min': None,
                     'max': None,
                 },
                 'cost': {
@@ -1169,7 +1202,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1511,16 +1544,9 @@ class bingx(Exchange, ImplicitAPI):
             takeOrMaker = 'maker' if isMaker else 'taker'
         amount = self.safe_string_n(trade, ['qty', 'amount', 'q'])
         if (market is not None) and (market['swap'] is True) and ('volume' in trade):
-            if market['linear'] is True:
-                # private linear swap trades report 'amount' notional(quote) value, not the base amount
-                # 'volume' is the exchange's own base-currency fill quantity(bingx linear contractSize is always 1),
-                # use it directly instead of 'notional / price', which picks up rounding noise from the notional field
-                amount = self.safe_string(trade, 'volume')
-            else:
-                # private trade returns num of contracts instead of base currency(as the order-related methods do)
-                contractSize = self.safe_string(market['info'], 'tradeMinQuantity')
-                volume = self.safe_string(trade, 'volume')
-                amount = Precise.string_mul(volume, contractSize)
+            # Linear volume is the base quantity(contractSize 1); inverse volume is the contract count.
+            # safeTrade applies contractSize when calculating inverse cost.
+            amount = self.safe_string(trade, 'volume')
         return self.safe_trade({
             'id': self.safe_string_2(trade, 'id', 't'),
             'info': trade,
@@ -1834,15 +1860,24 @@ class bingx(Exchange, ImplicitAPI):
 
         https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
 
-        :param str symbol: unified symbol of the market to fetch the funding history for
+        :param str symbol: unified symbol of the market to fetch the funding history for, inverse(Coin-M) markets are not supported
         :param int [since]: timestamp in ms of the earliest funding to fetch
         :param int [limit]: the maximum amount of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: 'linear' or 'inverse'(default is 'linear'), 'inverse' is not supported
         :param int [params.until]: timestamp in ms of the latest funding to fetch
         :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         if self.markets is None:
             self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchFundingHistory', market, params)
+        isInverse = (market['inverse'] is True) if (market is not None) else (subType == 'inverse')
+        if isInverse:
+            raise NotSupported(self.id + ' fetchFundingHistory() is not supported for inverse swap markets')
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
         if paginate:
@@ -1850,9 +1885,7 @@ class bingx(Exchange, ImplicitAPI):
         request = {
             'incomeType': 'FUNDING_FEE',
         }
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
+        if market is not None:
             request['symbol'] = market['id']
         if since is not None:
             request['startTime'] = since
@@ -3189,7 +3222,7 @@ class bingx(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: triggerPrice at which the attached take profit / stop loss order will be triggered
         :param float [params.stopLossPrice]: stop loss trigger price
         :param float [params.takeProfitPrice]: take profit trigger price
-        :param float [params.cost]: the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: the quote quantity that can be used as an alternative for the amount
         :param float [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
         :param float [params.trailingPercent]: *swap only* the percent to trail away from the current market price
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
@@ -3300,10 +3333,10 @@ class bingx(Exchange, ImplicitAPI):
                 result = self.safe_dict(data, 'order', data)
         else:
             result = data
-        # when the response arrives already-parsed dict, the attached SL/TP members are still stringified json
+        # when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
         stopLossDict = self.safe_dict(result, 'stopLoss')
         stopLoss = self.safe_string(result, 'stopLoss')
-        # for py fix, the SL is already parsed(instead of stringified,'s provided)
+        # for py fix, the SL is already parsed(instead of stringified, as it's provided)
         # so we need trick to check if it's non-parsed string yet
         if (stopLossDict is None) and (stopLoss is not None) and (stopLoss.find('{') == 0):
             result['stopLoss'] = self.parse_json(stopLoss)
@@ -4142,7 +4175,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
 
         :param str[] ids: order ids
-        :param str symbol: unified market symbol, default is None
+        :param str symbol: unified market symbol, inverse(Coin-M) markets are not supported
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str[] [params.clientOrderIds]: client order ids
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -4152,6 +4185,8 @@ class bingx(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
+        if market['inverse'] is True:
+            raise NotSupported(self.id + ' cancelOrders() is not supported for inverse swap markets')
         request = {
             'symbol': market['id'],
         }
@@ -5058,12 +5093,12 @@ class bingx(Exchange, ImplicitAPI):
             request['fromAccount'] = fromId
         if toAccount is not None:
             request['toAccount'] = toId
-        params = self.omit(params, ['fromAccount', 'toAccount'])
         maxLimit = 100
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchTransfers', None, since, limit, params, maxLimit)
+            return self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params, maxLimit)
+        params = self.omit(params, ['fromAccount', 'toAccount'])
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -6303,7 +6338,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  # swap
 
         :param str id: order id
-        :param str symbol: unified symbol of the market to create an order in
+        :param str symbol: unified symbol of the market to create an order in, inverse(Coin-M) markets are not supported
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
@@ -6330,6 +6365,8 @@ class bingx(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
+        if market['inverse'] is True:
+            raise NotSupported(self.id + ' editOrder() is not supported for inverse swap markets')
         request = self.create_order_request(symbol, type, side, amount, price, params)
         request['cancelOrderId'] = id
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE'

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct MexcCore {
@@ -489,6 +493,11 @@ impl MexcCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("apiKeyInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
@@ -789,6 +798,11 @@ impl MexcCore {
     m
 }));
         m.insert("strategy/group".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("strategy/group/uid".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(20));
     m
@@ -2306,11 +2320,11 @@ impl MexcCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut chains: Value = self.safe_value_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
+        let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_934: bool = true;
-            while { if !__for_first_934 { j = add(&j, &Value::Int(1)); } __for_first_934 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_935: bool = true;
+            while { if !__for_first_935 { j = add(&j, &Value::Int(1)); } __for_first_935 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string2(chain.clone(), Value::Str("netWork".to_string()), Value::Str("network".to_string()), &[]);
@@ -2455,12 +2469,12 @@ impl MexcCore {
         // Notes:
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "symbols", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "symbols", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_935: bool = true;
-            while { if !__for_first_935 { i = add(&i, &Value::Int(1)); } __for_first_935 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_936: bool = true;
+            while { if !__for_first_936 { i = add(&i, &Value::Int(1)); } __for_first_936 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -2612,12 +2626,12 @@ impl MexcCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_936: bool = true;
-            while { if !__for_first_936 { i = add(&i, &Value::Int(1)); } __for_first_936 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_937: bool = true;
+            while { if !__for_first_937 { i = add(&i, &Value::Int(1)); } __for_first_937 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -3922,8 +3936,8 @@ impl MexcCore {
         let mut symbol: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_937: bool = true;
-            while { if !__for_first_937 { i = add(&i, &Value::Int(1)); } __for_first_937 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_938: bool = true;
+            while { if !__for_first_938 { i = add(&i, &Value::Int(1)); } __for_first_938 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -5019,12 +5033,12 @@ impl MexcCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.fetch_account_helper(marketType.clone(), query.clone()).await;
-        let mut data: Value = self.safe_value_k(response.clone(), "balances", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_938: bool = true;
-            while { if !__for_first_938 { i = add(&i, &Value::Int(1)); } __for_first_938 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_939: bool = true;
+            while { if !__for_first_939 { i = add(&i, &Value::Int(1)); } __for_first_939 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut account: Value = get_value(&data, &i);
             let mut account: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string2(account.clone(), Value::Str("asset".to_string()), Value::Str("currency".to_string()), &[]);
@@ -5164,11 +5178,11 @@ impl MexcCore {
         //
         let mut wallet: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("margin".to_string())) {
-            wallet = self.safe_value_k(response.clone(), "assets", &[Value::List(vec![])]);
+            wallet = self.safe_list_k(response.clone(), "assets", &[Value::List(vec![])]);
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
-            wallet = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+            wallet = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }  else {
-            wallet = self.safe_value_k(response.clone(), "balances", &[Value::List(vec![])]);
+            wallet = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5178,8 +5192,8 @@ impl MexcCore {
         if is_equal(&marketType, &Value::Str("margin".to_string())) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_939: bool = true;
-                while { if !__for_first_939 { i = add(&i, &Value::Int(1)); } __for_first_939 = false; is_less_than(&i, &get_array_length(&wallet)) } {
+                let mut __for_first_940: bool = true;
+                while { if !__for_first_940 { i = add(&i, &Value::Int(1)); } __for_first_940 = false; is_less_than(&i, &get_array_length(&wallet)) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut base: Value = self.safe_value_k(entry.clone(), "baseAsset", &[Value::Map({
@@ -5204,8 +5218,8 @@ impl MexcCore {
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_940: bool = true;
-                while { if !__for_first_940 { i = add(&i, &Value::Int(1)); } __for_first_940 = false; is_less_than(&i, &get_array_length(&wallet)) } {
+                let mut __for_first_941: bool = true;
+                while { if !__for_first_941 { i = add(&i, &Value::Int(1)); } __for_first_941 = false; is_less_than(&i, &get_array_length(&wallet)) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -5222,8 +5236,8 @@ impl MexcCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_941: bool = true;
-                while { if !__for_first_941 { i = add(&i, &Value::Int(1)); } __for_first_941 = false; is_less_than(&i, &get_array_length(&wallet)) } {
+                let mut __for_first_942: bool = true;
+                while { if !__for_first_942 { i = add(&i, &Value::Int(1)); } __for_first_942 = false; is_less_than(&i, &get_array_length(&wallet)) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
@@ -5673,12 +5687,12 @@ impl MexcCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut resultList: Value = self.safe_value_k(data.clone(), "resultList", &[Value::List(vec![])]);
+        let mut resultList: Value = self.safe_list_k(data.clone(), "resultList", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_942: bool = true;
-            while { if !__for_first_942 { i = add(&i, &Value::Int(1)); } __for_first_942 = false; is_less_than(&i, &get_array_length(&resultList)) } {
+            let mut __for_first_943: bool = true;
+            while { if !__for_first_943 { i = add(&i, &Value::Int(1)); } __for_first_943 = false; is_less_than(&i, &get_array_length(&resultList)) } {
             let mut entry: Value = get_value(&resultList, &i);
             let mut entry: Value = get_value(&resultList, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "settleTime", &[]);
@@ -5886,12 +5900,12 @@ impl MexcCore {
         //    }
         //
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
-        let mut result: Value = self.safe_value_k(data.clone(), "resultList", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(data.clone(), "resultList", &[Value::List(vec![])]);
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_943: bool = true;
-            while { if !__for_first_943 { i = add(&i, &Value::Int(1)); } __for_first_943 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_944: bool = true;
+            while { if !__for_first_944 { i = add(&i, &Value::Int(1)); } __for_first_944 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -7266,8 +7280,8 @@ impl MexcCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_944: bool = true;
-            while { if !__for_first_944 { i = add(&i, &Value::Int(1)); } __for_first_944 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_945: bool = true;
+            while { if !__for_first_945 { i = add(&i, &Value::Int(1)); } __for_first_945 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
@@ -7320,15 +7334,15 @@ impl MexcCore {
         //        ]
         //    }
         //
-        let mut networkList: Value = self.safe_value_k(transaction.clone(), "networkList", &[Value::List(vec![])]);
+        let mut networkList: Value = self.safe_list_k(transaction.clone(), "networkList", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_945: bool = true;
-            while { if !__for_first_945 { j = add(&j, &Value::Int(1)); } __for_first_945 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+            let mut __for_first_946: bool = true;
+            while { if !__for_first_946 { j = add(&j, &Value::Int(1)); } __for_first_946 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
@@ -7394,12 +7408,12 @@ impl MexcCore {
         //        ]
         //    }
         //
-        let mut networkList: Value = self.safe_value_k(fee.clone(), "networkList", &[Value::List(vec![])]);
+        let mut networkList: Value = self.safe_list_k(fee.clone(), "networkList", &[Value::List(vec![])]);
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_946: bool = true;
-            while { if !__for_first_946 { j = add(&j, &Value::Int(1)); } __for_first_946 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+            let mut __for_first_947: bool = true;
+            while { if !__for_first_947 { j = add(&j, &Value::Int(1)); } __for_first_947 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
@@ -7497,8 +7511,8 @@ impl MexcCore {
         let mut shortLeverage: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_947: bool = true;
-            while { if !__for_first_947 { i = add(&i, &Value::Int(1)); } __for_first_947 = false; is_less_than(&i, &get_array_length(&leverage)) } {
+            let mut __for_first_948: bool = true;
+            while { if !__for_first_948 { i = add(&i, &Value::Int(1)); } __for_first_948 = false; is_less_than(&i, &get_array_length(&leverage)) } {
             let mut entry: Value = get_value(&leverage, &i);
             let mut entry: Value = get_value(&leverage, &i);
             let mut openType: Value = self.safe_integer_k(entry.clone(), "openType", &[]);

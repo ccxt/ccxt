@@ -155,12 +155,14 @@ class hollaex extends hollaex$1["default"] {
                         'user/deposits': { 'cost': 1 },
                         'user/withdrawals': { 'cost': 1 },
                         'user/withdrawal/fee': { 'cost': 1 },
+                        'subaccounts': { 'cost': 1 },
                         'user/trades': { 'cost': 1 },
                         'orders': { 'cost': 1 },
                         'order': { 'cost': 1 },
                     },
                     'post': {
                         'user/withdrawal': { 'cost': 1 },
+                        'subaccount/transfer': { 'cost': 1 },
                         'order': { 'cost': 1 },
                     },
                     'delete': {
@@ -353,7 +355,7 @@ class hollaex extends hollaex$1["default"] {
         //         "status": true
         //     }
         //
-        const pairs = this.safeValue(response, 'pairs', {});
+        const pairs = this.safeDict(response, 'pairs', {});
         const keys = Object.keys(pairs);
         const result = [];
         for (let i = 0; i < keys.length; i++) {

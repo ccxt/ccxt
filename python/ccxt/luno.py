@@ -237,7 +237,7 @@ class luno(Exchange, ImplicitAPI):
             },
             'fees': {
                 'trading': {
-                    # Luno prices by PAIR CATEGORY 30-day volume tier:
+                    # Luno prices by PAIR CATEGORY as well as by 30-day volume tier:
                     # crypto/fiat, stablecoin/fiat and crypto/crypto each have their own
                     # ladder, and the maker side is a charge in one category and a rebate
                     # in another at the same tier. A single scalar cannot represent that,
@@ -357,7 +357,7 @@ class luno(Exchange, ImplicitAPI):
                     'ErrOrderCanceled': InvalidOrder,  # Your post-only order was cancelled before trading
                     'ErrOrderNotFound': OrderNotFound,  # Cannot find that order
                     'ErrPostOnlyMode': InvalidOrder,  # Market is in post-only mode
-                    'ErrPostOnlyNotAllowed': InvalidOrder,  # IOC and FOK time-in-force types are not supported-only orders
+                    'ErrPostOnlyNotAllowed': InvalidOrder,  # IOC and FOK time-in-force types are not supported as post-only orders
                     'ErrPriceDenominationNotAllowed': InvalidOrder,  # Price contains too many decimal places
                     'ErrPriceTooHigh': InvalidOrder,  # Price is above the maximum
                     'ErrPriceTooLow': InvalidOrder,  # Price is below the minimum
@@ -579,7 +579,7 @@ class luno(Exchange, ImplicitAPI):
         #     }
         #
         result = []
-        markets = self.safe_value(response, 'markets', [])
+        markets = self.safe_list(response, 'markets', [])
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'market_id')
@@ -675,7 +675,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         response = self.privateGetBalance(params)
-        wallets = self.safe_value(response, 'balance', [])
+        wallets = self.safe_list(response, 'balance', [])
         result = []
         for i in range(0, len(wallets)):
             account = wallets[i]
@@ -691,7 +691,7 @@ class luno(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response: object) -> Balances:
-        wallets = self.safe_value(response, 'balance', [])
+        wallets = self.safe_list(response, 'balance', [])
         result = {
             'info': response,
             'timestamp': None,
@@ -1142,7 +1142,7 @@ class luno(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1302,7 +1302,7 @@ class luno(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         if type == 'market':
             request['type'] = side.upper()
-            # todo add createMarketBuyOrderRequires price logic is implemented in the other exchanges
+            # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if side == 'buy':
                 request['counter_volume'] = self.amount_to_precision(market['symbol'], amount)
             else:

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -1737,17 +1741,10 @@ impl ToobitCore {
         if is_greater_than(&subtract(&time, &lastAuthenticatedTime), &delay) {
             self.check_required_credentials(&[]);
             // single-flight leader election on a never-dialed client, see
-            // https://github.com/ccxt/ccxt/issues/29393. the election used to
-            // run on this.client (this.getUserStreamUrl ()), but that url
-            // embeds the listenKey it is about to mint, so the client the
-            // flight registers on is not the client the next caller looks at:
-            // the cold call elected on .../ws/undefined and every later call
-            // landed on .../ws/<key> with an empty subscriptions map, found
-            // the key still fresh, skipped the fetch and hung on a future
-            // nobody resolves. client.futures is the registry: client.future ()
-            // is the atomic check-and-insert and client.resolve () /
-            // client.reject () settle and remove the entry under the same lock
-            // in every port
+            // https://github.com/ccxt/ccxt/issues/29393: the user-stream url embeds the listenKey being minted,
+            // so the flight must not live on that client or later callers would look at a different one.
+            // client.futures is the registry: client.future () is the atomic check-and-insert and
+            // client.resolve () / client.reject () settle and remove the entry under the same lock in every port
             let mut messageHash: Value = Value::Str("authenticate".to_string());
             let mut client: Value = self.client(&[Value::Str("authenticationFlights".to_string())]);
             if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {

@@ -20,8 +20,8 @@ public partial class testMainClass : BaseTest
         {
             testSharedMethods.assertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 0);
         }
-        object high = exchange.safeString(entry, 2);
-        object low = exchange.safeString(entry, 3);
+        string? high = exchange.safeString(entry, 2);
+        string? low = exchange.safeString(entry, 3);
         if (isTrue(inOp(skippedProperties, "compareOHLCV")))
         {
             return;

@@ -16,7 +16,7 @@ public class TestFetchDeposits extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchDeposits";
+        String method = "fetchDeposits";
         Object transactions = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchDeposits", new Object[]{code})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, transactions, code);
         Object now = exchange.milliseconds();

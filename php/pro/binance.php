@@ -229,7 +229,7 @@ class binance extends \ccxt\async\binance {
         return $newValue;
     }
 
-    public function is_spot_url(Client $client) {
+    public function is_spot_url(Client $client): bool {
         return (mb_strpos($client->url, '/stream') > -1) || (mb_strpos($client->url, 'demo-stream') > -1);
     }
 
@@ -264,7 +264,7 @@ class binance extends \ccxt\async\binance {
 
     public function get_ws_url(mixed $type, mixed $category) {
         if (($type === 'option') || ($type === 'optionMarket') || ($type === 'optionPrivate')) {
-            // eOptions urls are stored public/market/private paths, no $category rewrite needed,
+            // eOptions urls are stored as full public/market/private paths, no $category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
             return $this->urls['api']['ws'][$type];
         }
@@ -736,42 +736,10 @@ class binance extends \ccxt\async\binance {
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         //
-        // todo add support for <levels>-snapshots (depth)
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <$symbol>@depth<levels>@100ms or <$symbol>@depth<levels> (1000ms)
-        // valid <levels> are 5, 10, or 20
-        //
-        // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        //
-        // notice the differences between trading futures and spot trading
-        // the algorithms use different urls in step 1
-        // delta caching and merging also differs in steps 4, 5, 6
-        //
-        // spot/margin
-        // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
-        //
-        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        // 2. Buffer the events you receive from the stream.
-        // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
-        // 4. Drop any event where u is <= lastUpdateId in the snapshot.
-        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-        // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-        // 7. The data in each event is the absolute quantity for a price level.
-        // 8. If the quantity is 0, remove the price level.
-        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-        //
-        // futures
-        // https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-        //
-        // 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
-        // 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
-        // 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?$symbol=BTCUSDT&$limit=1000 .
-        // 4. Drop any event where u is < lastUpdateId in the snapshot.
-        // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-        // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
-        // 7. The data in each event is the absolute quantity for a price level.
-        // 8. If the quantity is 0, remove the price level.
-        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-        //
+        // todo add support for <levels>-snapshots (depth) => <$symbol>@depth<levels>[@100ms], levels 5/10/20
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
+        // sync recipe differs between spot and futures (stream/snapshot urls, delta caching/merging, U/u/pu continuity check):
+        // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly and https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
         return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
 
@@ -1708,7 +1676,7 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stock] set to true to use stocks $market streams
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1747,7 +1715,7 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stock] set to true to use stocks $market streams
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that $timezone instead of UTC, example '+08:00'
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1854,7 +1822,7 @@ class binance extends \ccxt\async\binance {
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that $timezone instead of UTC, example '+08:00'
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1937,7 +1905,7 @@ class binance extends \ccxt\async\binance {
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2082,7 +2050,7 @@ class binance extends \ccxt\async\binance {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} $params->timeZone default=0 (UTC)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2232,7 +2200,7 @@ class binance extends \ccxt\async\binance {
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $channelName = null;
-        // for now watchmarkPrice uses the same messageHash
+        // for now watchmarkPrice uses the same messageHash as watchTicker
         // so it's impossible to watch both at the same time
         // refactor this to use different messageHashes
         list($channelName, $params) = $this->handle_option_and_params($params, 'watchMarkPrices', 'name', 'markPrice');
@@ -2864,7 +2832,7 @@ class binance extends \ccxt\async\binance {
             $ticker = $rawTickers[$i];
             $event = $this->safe_string($ticker, 'e');
             if ($isBidAsk) {
-                $event = 'bookTicker'; // in `handleMessage`, bookTicker doesn't have identifier, so manually set here
+                $event = 'bookTicker'; // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
             }
             $channelName = $this->safe_string($this->options['tickerChannelsMap'], $event, $event);
             if ($channelName === null) {
@@ -4566,7 +4534,7 @@ class binance extends \ccxt\async\binance {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('watchOrders', $params);
         $urlType = $type;
         if (($type === 'margin') || (($type === 'spot') && ($marginMode !== null))) {
-            $urlType = 'spot'; // spot-margin shares the same stream spot
+            $urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchOrders', 'papi', 'portfolioMargin', false);
@@ -5174,7 +5142,7 @@ class binance extends \ccxt\async\binance {
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the $subType-> requests a defaultSubType already rewrote
-        // arrive here or delivery and pass untouched, which lands on
+        // arrive here as future or delivery and pass untouched, which lands on
         // the same stream the old raw-$type ordering produced in every case
         if ($type === 'spot' || $type === 'margin') {
             $type = ($subType === 'inverse') ? 'delivery' : 'future';
@@ -5634,7 +5602,7 @@ class binance extends \ccxt\async\binance {
         Async\await($this->authenticate($this->extend(array( 'type' => $type, 'subType' => $subType ), $params)));
         $urlType = $type; // we don't change $type because the listening key is different
         if ($type === 'margin') {
-            $urlType = 'spot'; // spot-margin shares the same stream spot
+            $urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
@@ -5885,7 +5853,7 @@ class binance extends \ccxt\async\binance {
             $this->handle_errors($codeValue, $msg, $client->url, '', array(), $this->json($error), $error, array(), array());
         } catch (Exception $e) {
             $rejected = true;
-            // private endpoint uses $id
+            // private endpoint uses $id as messageHash
             $client->reject($e, $id);
             // public endpoint stores messageHash in subscriptions
             $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();

@@ -179,6 +179,7 @@ class tokocrypto extends Exchange {
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'exchangeInfo' => array( 'cost' => 10 ),
+                        'executionRules' => array( 'cost' => 2, 'noSymbol' => 40 ),
                     ),
                     'put' => array(
                         'userDataStream' => array( 'cost' => 1 ),
@@ -218,6 +219,7 @@ class tokocrypto extends Exchange {
                         'open/v1/orders/oco' => array( 'cost' => 1 ),
                         'open/v1/withdraws' => array( 'cost' => 1 ),
                         'open/v1/user-data-stream' => array( 'cost' => 1 ),
+                        'open/v1/user-listen-token' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -771,7 +773,7 @@ class tokocrypto extends Exchange {
             $this->load_time_difference();
         }
         $data = $this->safe_value($response, 'data', array());
-        $list = $this->safe_value($data, 'list', array());
+        $list = $this->safe_list($data, 'list', array());
         $result = array();
         for ($i = 0; $i < count($list); $i++) {
             $market = $list[$i];
@@ -788,7 +790,7 @@ class tokocrypto extends Exchange {
             $filtersByType = $this->index_by($filters, 'filterType');
             $status = $this->safe_string($market, 'spotTradingEnable');
             $active = ($status === '1');
-            $permissions = $this->safe_value($market, 'permissions', array());
+            $permissions = $this->safe_list($market, 'permissions', array());
             for ($j = 0; $j < count($permissions); $j++) {
                 if ($permissions[$j] === 'TRD_GRP_003') {
                     $active = false;
@@ -849,7 +851,7 @@ class tokocrypto extends Exchange {
                 'info' => $market,
             );
             if (is_array($filtersByType) && array_key_exists('PRICE_FILTER' ?? '', $filtersByType)) {
-                $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
+                $filter = $this->safe_dict($filtersByType, 'PRICE_FILTER', array());
                 $entry['precision']['price'] = $this->safe_number($filter, 'tickSize');
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated $filter types in November 2018
@@ -1451,7 +1453,7 @@ class tokocrypto extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1591,7 +1593,7 @@ class tokocrypto extends Exchange {
             'datetime' => $this->iso8601($timestamp),
         );
         $data = $this->safe_value($response, 'data', array());
-        $balances = $this->safe_value($data, 'accountAssets', array());
+        $balances = $this->safe_list($data, 'accountAssets', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'asset');
@@ -1802,7 +1804,7 @@ class tokocrypto extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
-         * @param {float} [$params->cost] for spot $market buy orders, the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] for spot $market buy orders, the quote quantity that can be used as an alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {

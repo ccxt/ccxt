@@ -177,6 +177,7 @@ export default class blofin extends Exchange {
                 'public': {
                     'get': {
                         'market/instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/instruments-history': { 'cost': 1 } as Endpoint<Dict>,
                         'market/tickers': { 'cost': 1 } as Endpoint<Dict>,
                         'market/books': { 'cost': 1 } as Endpoint<Dict>,
                         'market/trades': { 'cost': 1 } as Endpoint<Dict>,
@@ -187,6 +188,12 @@ export default class blofin extends Exchange {
                         'market/index-candles': { 'cost': 1 } as Endpoint<Dict>,
                         'market/mark-price-candles': { 'cost': 1 } as Endpoint<Dict>,
                         'market/position-tiers': { 'cost': 1 } as Endpoint<Dict>,
+                        // spot
+                        'spot/market/instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'spot/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'spot/market/books': { 'cost': 1 } as Endpoint<Dict>,
+                        'spot/market/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'spot/market/candles': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
@@ -196,12 +203,14 @@ export default class blofin extends Exchange {
                         'asset/bills': { 'cost': 1 } as Endpoint<Dict>,
                         'asset/withdrawal-history': { 'cost': 1 } as Endpoint<Dict>,
                         'asset/deposit-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset/deposit-address': { 'cost': 1 } as Endpoint<Dict>,
                         'account/config': { 'cost': 1 } as Endpoint<Dict>,
                         'asset/currencies': { 'cost': 1 } as Endpoint<Dict>,
                         // trading
                         'account/balance': { 'cost': 1 } as Endpoint<Dict>,
                         'account/positions': { 'cost': 1 } as Endpoint<Dict>,
                         'account/positions-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/funding-fees': { 'cost': 1 } as Endpoint<Dict>,
                         'account/margin-mode': { 'cost': 1 } as Endpoint<Dict>,
                         'account/position-mode': { 'cost': 1 } as Endpoint<Dict>,
                         'account/leverage-info': { 'cost': 1 } as Endpoint<Dict>,
@@ -241,11 +250,19 @@ export default class blofin extends Exchange {
                         'user/query-apikey': { 'cost': 1 } as Endpoint<Dict>,
                         // tax
                         'spot/trade/fills-history': { 'cost': 1 } as Endpoint<Dict>,
+                        // spot
+                        'spot/trade/orders-pending': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'spot/trade/order-detail': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'spot/trade/orders-algo-pending': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'spot/trade/orders-history': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'spot/trade/orders-algo-history': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'spot/trade/order/price-range': { 'cost': 1.67 } as Endpoint<Dict>,
                     },
                     'post': {
                         // account
                         'asset/transfer': { 'cost': 1 } as Endpoint<Dict>,
                         'asset/demo-apply-money': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset/withdrawal-apply': { 'cost': 1 } as Endpoint<Dict>,
                         // trading
                         'account/set-margin-mode': { 'cost': 1.67 } as Endpoint<Dict>,
                         'account/set-position-mode': { 'cost': 1.67 } as Endpoint<Dict>,
@@ -258,7 +275,18 @@ export default class blofin extends Exchange {
                         'trade/cancel-batch-orders': { 'cost': 1.67 } as Endpoint<Dict>,
                         'trade/cancel-tpsl': { 'cost': 1.67 } as Endpoint<Dict>,
                         'trade/cancel-algo': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'trade/amend-order': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'trade/amend-batch-orders': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'trade/amend-tpsl': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'trade/amend-algo': { 'cost': 1.67 } as Endpoint<Dict>,
                         'trade/close-position': { 'cost': 1.67 } as Endpoint<Dict>,
+                        // spot
+                        'spot/trade/order': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'spot/trade/batch-orders': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'spot/trade/order-algo': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'spot/trade/cancel-order': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'spot/trade/cancel-batch-orders': { 'cost': 1.67 } as Endpoint<Dict>,
+                        'spot/trade/cancel-algo': { 'cost': 1.67 } as Endpoint<Dict>,
                         // copy trading
                         'copytrading/account/set-position-mode': { 'cost': 1.67 } as Endpoint<Dict>,
                         'copytrading/account/set-leverage': { 'cost': 1.67 } as Endpoint<Dict>,

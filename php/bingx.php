@@ -224,6 +224,14 @@ class bingx extends Exchange {
                                 'market/depth' => array( 'cost' => 1 ),
                                 'market/kline' => array( 'cost' => 1 ),
                                 'ticker/price' => array( 'cost' => 1 ),
+                                'quote/bookTicker' => array( 'cost' => 1 ),
+                                'quote/depth' => array( 'cost' => 1 ),
+                                'quote/historicalKlines' => array( 'cost' => 1 ),
+                                'quote/historicalTrades' => array( 'cost' => 1 ),
+                                'quote/klines' => array( 'cost' => 1 ),
+                                'quote/price' => array( 'cost' => 1 ),
+                                'quote/ticker' => array( 'cost' => 1 ),
+                                'quote/trades' => array( 'cost' => 1 ),
                             ),
                         ),
                     ),
@@ -311,6 +319,7 @@ class bingx extends Exchange {
                                 'trade/allOrders' => array( 'cost' => 2 ),
                                 'trade/allFillOrders' => array( 'cost' => 2 ),
                                 'trade/fillHistory' => array( 'cost' => 2 ),
+                                'trade/positionHistory' => array( 'cost' => 2 ),
                                 'user/income/export' => array( 'cost' => 2 ),
                                 'user/commissionRate' => array( 'cost' => 2 ),
                                 'quote/bookTicker' => array( 'cost' => 1 ),
@@ -382,6 +391,13 @@ class bingx extends Exchange {
                             'delete' => array(
                                 'trade/allOpenOrders' => array( 'cost' => 2 ), // post method in doc
                                 'trade/cancelOrder' => array( 'cost' => 2 ),
+                            ),
+                        ),
+                    ),
+                    'v2' => array(
+                        'private' => array(
+                            'post' => array(
+                                'trade/order' => array( 'cost' => 2 ),
                             ),
                         ),
                     ),
@@ -544,6 +560,21 @@ class bingx extends Exchange {
                                 'asset/partnerData' => array( 'cost' => 5 ),
                                 'commissionDataList/referralCode' => array( 'cost' => 5 ),
                                 'account/superiorCheck' => array( 'cost' => 5 ),
+                            ),
+                        ),
+                    ),
+                ),
+                'wealth' => array(
+                    'v1' => array(
+                        'private' => array(
+                            'get' => array(
+                                'product/dual-currency/pre-order' => array( 'cost' => 2 ),
+                                'product/dual-currency/position' => array( 'cost' => 2 ),
+                                'product/dual-currency/order-records' => array( 'cost' => 2 ),
+                            ),
+                            'post' => array(
+                                'product/dual-currency/invest-asset-list' => array( 'cost' => 2 ),
+                                'product/dual-currency/order' => array( 'cost' => 2 ),
                             ),
                         ),
                     ),
@@ -1034,8 +1065,8 @@ class bingx extends Exchange {
         $currency = $this->safe_string($market, 'currency');
         $checkIsInverse = false;
         $checkIsLinear = true;
-        $minTickSize = $this->safe_number($market, 'minTickSize');
-        if ($minTickSize !== null) {
+        $inverseContractSize = $this->safe_number($market, 'minTickSize');
+        if ($inverseContractSize !== null) {
             // inverse $swap $market
             $currency = $baseId;
             $checkIsInverse = true;
@@ -1058,7 +1089,10 @@ class bingx extends Exchange {
             $symbol .= ':' . $settle;
         }
         $fees = $this->safe_dict($this->fees, $type, array());
-        $contractSize = ($swap) ? $this->parse_number('1') : null;
+        $contractSize = null;
+        if ($swap) {
+            $contractSize = ($checkIsInverse) ? $inverseContractSize : $this->parse_number('1');
+        }
         $isActive = false;
         if (($this->safe_string($market, 'apiStateOpen') === 'true') && ($this->safe_string($market, 'apiStateClose') === 'true')) {
             $isActive = true; // $swap active
@@ -1118,7 +1152,7 @@ class bingx extends Exchange {
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => $minTickSize,
+                    'min' => null,
                     'max' => null,
                 ),
                 'cost' => array(
@@ -1172,7 +1206,7 @@ class bingx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1537,17 +1571,9 @@ class bingx extends Exchange {
         }
         $amount = $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
         if (($market !== null) && ($market['swap'] === true) && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
-            if ($market['linear'] === true) {
-                // private linear swap trades report 'amount' notional (quote) value, not the base $amount;
-                // 'volume' is the exchange's own base-currency fill quantity (bingx linear $contractSize is always 1),
-                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
-                $amount = $this->safe_string($trade, 'volume');
-            } else {
-                // private $trade returns num of contracts instead of base currency (as the order-related methods do)
-                $contractSize = $this->safe_string($market['info'], 'tradeMinQuantity');
-                $volume = $this->safe_string($trade, 'volume');
-                $amount = Precise::string_mul($volume, $contractSize);
-            }
+            // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
+            // safeTrade applies contractSize when calculating inverse $cost->
+            $amount = $this->safe_string($trade, 'volume');
         }
         return $this->safe_trade(array(
             'id' => $this->safe_string_2($trade, 'id', 't'),
@@ -1881,15 +1907,26 @@ class bingx extends Exchange {
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch the funding history for
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding history for, inverse (Coin-M) markets are not supported
          * @param {int} [$since] timestamp in ms of the earliest funding to fetch
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
          * @param {int} [$params->until] timestamp in ms of the latest funding to fetch
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingHistory', $market, $params);
+        $isInverse = ($market !== null) ? ($market['inverse'] === true) : ($subType === 'inverse');
+        if ($isInverse) {
+            throw new NotSupported($this->id . ' fetchFundingHistory() is not supported for inverse swap markets');
         }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
@@ -1899,9 +1936,7 @@ class bingx extends Exchange {
         $request = array(
             'incomeType' => 'FUNDING_FEE',
         );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
+        if ($market !== null) {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
@@ -3328,7 +3363,7 @@ class bingx extends Exchange {
          * @param {float} [$params->triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [$params->stopLossPrice] stop loss trigger $price
          * @param {float} [$params->takeProfitPrice] take profit trigger $price
-         * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] the quote quantity that can be used as an alternative for the $amount
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
          * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
@@ -3444,10 +3479,10 @@ class bingx extends Exchange {
         } else {
             $result = $data;
         }
-        // when the $response arrives already-parsed dict, the attached SL/TP members are still stringified json
+        // when the $response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
         $stopLossDict = $this->safe_dict($result, 'stopLoss');
         $stopLoss = $this->safe_string($result, 'stopLoss');
-        // for py fix, the SL is already parsed (instead of stringified,'s provided)
+        // for py fix, the SL is already parsed (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
         if (($stopLossDict === null) && ($stopLoss !== null) && (mb_strpos($stopLoss, '{') === 0)) {
             $result['stopLoss'] = $this->parse_json($stopLoss);
@@ -4324,7 +4359,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
          *
          * @param {string[]} $ids order $ids
-         * @param {string} $symbol unified $market $symbol, default is null
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [$params->clientOrderIds] client order $ids
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
@@ -4336,6 +4371,9 @@ class bingx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        if ($market['inverse'] === true) {
+            throw new NotSupported($this->id . ' cancelOrders() is not supported for inverse swap markets');
+        }
         $request = array(
             'symbol' => $market['id'],
         );
@@ -5285,13 +5323,13 @@ class bingx extends Exchange {
         if ($toAccount !== null) {
             $request['toAccount'] = $toId;
         }
-        $params = $this->omit($params, array( 'fromAccount', 'toAccount' ));
         $maxLimit = 100;
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchTransfers', null, $since, $limit, $params, $maxLimit);
+            return $this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params, $maxLimit);
         }
+        $params = $this->omit($params, array( 'fromAccount', 'toAccount' ));
         if ($since !== null) {
             $request['startTime'] = $since;
         }
@@ -6625,7 +6663,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  // swap
          *
          * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $symbol unified $symbol of the $market to create an order in, inverse (Coin-M) markets are not supported
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of the currency you want to trade in units of the base currency
@@ -6653,6 +6691,9 @@ class bingx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        if ($market['inverse'] === true) {
+            throw new NotSupported($this->id . ' editOrder() is not supported for inverse swap markets');
+        }
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request['cancelOrderId'] = $id;
         $request['cancelReplaceMode'] = 'STOP_ON_FAILURE';

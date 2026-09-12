@@ -669,6 +669,105 @@ public class ToobitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetApiV2AccountBalanceFlow endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV2AccountBalanceFlow (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV2AccountBalanceFlow", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV2FuturesOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV2FuturesOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV2FuturesOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV2FuturesOpenOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV2FuturesOpenOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV2FuturesOpenOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV2FuturesHistoryOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV2FuturesHistoryOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV2FuturesHistoryOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV2FuturesUserTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV2FuturesUserTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV2FuturesUserTrades", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV2FuturesAlgoOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV2FuturesAlgoOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV2FuturesAlgoOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV2FuturesOpenAlgoOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV2FuturesOpenAlgoOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV2FuturesOpenAlgoOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV2FuturesHistoryAlgoOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV2FuturesHistoryAlgoOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV2FuturesHistoryAlgoOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV2FuturesVoucherList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV2FuturesVoucherList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV2FuturesVoucherList", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostApiV1SpotOrderTest endpoint.
      *
      * @param optionalArgs the request parameters

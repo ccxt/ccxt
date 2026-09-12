@@ -12,11 +12,11 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object start = exchange.milliseconds();
+            Int64 start = exchange.milliseconds();
             object sleepAmount = 100; // milliseconds
             await exchange.sleep(sleepAmount);
-            object end = exchange.milliseconds();
-            object elapsed = subtract(end, start);
+            Int64 end = exchange.milliseconds();
+            Int64 elapsed = subtract(end, start);
             // Allow a small margin of error due to execution time and timer jitter
             // (some runtimes, e.g. .NET Task.Delay, may return a few ms early)
             object marginOfError = 20;

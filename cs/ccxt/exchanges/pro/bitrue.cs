@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bitrue { public bitrue(object args = null) : base(args) { } }
 public partial class bitrue : ccxt.bitrue
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -169,12 +169,12 @@ public partial class bitrue : ccxt.bitrue
         //     }]
         //
         ((IDictionary<string,object>)this.balance)["info"] = balances;
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "a");
-            object code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            string? code = this.safeCurrencyCode(currencyId);
+            Dictionary<string, object> account = this.account();
             string? free = this.safeString(balance, "F");
             string? used = this.safeString(balance, "L");
             Int64? balanceUpdateTime = this.safeInteger(balance, "T", 0);
@@ -222,7 +222,7 @@ public partial class bitrue : ccxt.bitrue
         }
         if (isTrue(!isEqual(symbolVar, null)))
         {
-            object market = this.market(symbolVar);
+            Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
         }
         object url = await this.authenticate();
@@ -348,23 +348,23 @@ public partial class bitrue : ccxt.bitrue
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object messageHash = add("orderbook:", symbolVar);
+        string messageHash = add("orderbook:", symbolVar);
         object url = null;
-        object channel = null;
-        object cbId = null;
+        string? channel = null;
+        string? cbId = null;
         if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
-            object baseIdLower = this.safeStringLower(market, "baseId");
-            object quoteIdLower = this.safeStringLower(market, "quoteId");
-            object wsId = add(add("e_", baseIdLower), quoteIdLower);
+            string? baseIdLower = this.safeStringLower(market, "baseId");
+            string? quoteIdLower = this.safeStringLower(market, "quoteId");
+            string wsId = add(add("e_", baseIdLower), quoteIdLower);
             channel = add(add("market_", wsId), "_depth_step0");
             cbId = wsId;
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
         } else
         {
-            object marketIdLowercase = this.safeStringLower(market, "id");
+            string? marketIdLowercase = this.safeStringLower(market, "id");
             channel = add(add("market_", marketIdLowercase), "_simple_depth_step0");
             cbId = marketIdLowercase;
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
@@ -434,8 +434,8 @@ public partial class bitrue : ccxt.bitrue
         object parseable = tick;
         if (isTrue(isFutures))
         {
-            object rawAsks = this.safeList(tick, "asks", new List<object>() {});
-            object rawBuys = this.safeList(tick, "buys", new List<object>() {});
+            List<object> rawAsks = this.safeList(tick, "asks", new List<object>() {});
+            List<object> rawBuys = this.safeList(tick, "buys", new List<object>() {});
             parseable = new Dictionary<string, object>() {
                 { "asks", this.parseContractBidsAsks(rawAsks, symbol) },
                 { "buys", this.parseContractBidsAsks(rawBuys, symbol) },
@@ -445,10 +445,10 @@ public partial class bitrue : ccxt.bitrue
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
-        object orderbook = getValue(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         object snapshot = this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
         (orderbook as IOrderBook).reset(snapshot);
-        object messageHash = add("orderbook:", symbol);
+        string messageHash = add("orderbook:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -460,7 +460,7 @@ public partial class bitrue : ccxt.bitrue
             return null;
         }
         List<object> symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object candidate = getValue(markets, getValue(symbols, i));
             if (isTrue(!isEqual(getValue(candidate, "swap"), true)))
@@ -468,7 +468,7 @@ public partial class bitrue : ccxt.bitrue
                 continue;
             }
             string? baseId = this.safeStringLower(candidate, "baseId", "");
-            object quoteId = this.safeStringLower(candidate, "quoteId", "");
+            string? quoteId = this.safeStringLower(candidate, "quoteId", "");
             if (isTrue(isEqual(add(((string)baseId), quoteId), wsBaseQuote)))
             {
                 return candidate;
@@ -477,18 +477,18 @@ public partial class bitrue : ccxt.bitrue
         return null;
     }
 
-    public virtual object parseContractBidsAsks(object bidsAsks, object symbol)
+    public virtual List<object> parseContractBidsAsks(object bidsAsks, object symbol)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(bidsAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidsAsks)); postFixIncrement(ref i))
         {
             object level = getValue(bidsAsks, i);
-            object price = this.safeNumber(level, 0);
-            object rawAmount = this.safeNumber(level, 1);
+            double? price = this.safeNumber(level, 0);
+            double? rawAmount = this.safeNumber(level, 1);
             object amount = this.convertFromRawQuantity(symbol, rawAmount);
             ((IList<object>)result).Add(new List<object>() {price, amount});
         }
-        return result;
+        return ((List<object>)((object)(result)));
     }
 
     public virtual object convertFromRawQuantity(object symbol, object rawQuantity)
@@ -497,12 +497,12 @@ public partial class bitrue : ccxt.bitrue
         {
             return null;
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         if (isTrue(!isEqual(getValue(market, "contract"), true)))
         {
             return rawQuantity;
         }
-        object contractSize = this.safeNumber(market, "contractSize", 1);
+        double? contractSize = this.safeNumber(market, "contractSize", 1);
         return multiply(rawQuantity, contractSize);
     }
 
@@ -526,17 +526,17 @@ public partial class bitrue : ccxt.bitrue
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         if (isTrue(!isEqual(getValue(market, "swap"), true)))
         {
             throw new NotSupported ((string)add(this.id, " watchTrades is only supported for swap markets")) ;
         }
-        object baseIdLower = this.safeStringLower(market, "baseId");
-        object quoteIdLower = this.safeStringLower(market, "quoteId");
-        object wsId = add(add("e_", baseIdLower), quoteIdLower);
-        object channel = add(add("market_", wsId), "_trade_ticker");
-        object messageHash = add("trades:", symbolVar);
+        string? baseIdLower = this.safeStringLower(market, "baseId");
+        string? quoteIdLower = this.safeStringLower(market, "quoteId");
+        string wsId = add(add("e_", baseIdLower), quoteIdLower);
+        string channel = add(add("market_", wsId), "_trade_ticker");
+        string messageHash = add("trades:", symbolVar);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "event", "sub" },
@@ -586,10 +586,10 @@ public partial class bitrue : ccxt.bitrue
         }
         object symbol = getValue(market, "symbol");
         object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
-        object data = this.safeList(tick, "data", new List<object>() {});
+        List<object> data = this.safeList(tick, "data", new List<object>() {});
         bool appended = false;
         object stored = this.safeValue(this.trades, symbol);
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             if (isTrue(isEqual(stored, null)))
             {
@@ -603,7 +603,7 @@ public partial class bitrue : ccxt.bitrue
         }
         if (isTrue(appended))
         {
-            object messageHash = add("trades:", symbol);
+            string messageHash = add("trades:", symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
         }
     }
@@ -614,7 +614,7 @@ public partial class bitrue : ccxt.bitrue
         Int64? timestamp = this.safeInteger(trade, "ts");
         string? sideLower = this.safeStringLower(trade, "side");
         string? priceString = this.safeString(trade, "price");
-        object rawVol = this.safeNumber(trade, "vol");
+        double? rawVol = this.safeNumber(trade, "vol");
         object baseAmount = this.convertFromRawQuantity(symbol, rawVol);
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -656,23 +656,23 @@ public partial class bitrue : ccxt.bitrue
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         if (isTrue(!isEqual(getValue(market, "swap"), true)))
         {
             throw new NotSupported ((string)add(this.id, " watchOHLCV is only supported for swap markets")) ;
         }
-        object futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new Dictionary<string, object>() {});
-        object interval = this.safeString(futuresTimeframes, timeframeVar);
+        IDictionary<string, object> futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new Dictionary<string, object>() {});
+        string? interval = this.safeString(futuresTimeframes, timeframeVar);
         if (isTrue(isEqual(interval, null)))
         {
             throw new NotSupported ((string)add(add(this.id, " watchOHLCV does not support timeframe "), timeframeVar)) ;
         }
-        object baseIdLower = this.safeStringLower(market, "baseId");
-        object quoteIdLower = this.safeStringLower(market, "quoteId");
-        object wsId = add(add("e_", baseIdLower), quoteIdLower);
-        object channel = add(add(add("market_", wsId), "_kline_"), interval);
-        object messageHash = add(add(add("ohlcv:", symbolVar), ":"), timeframeVar);
+        string? baseIdLower = this.safeStringLower(market, "baseId");
+        string? quoteIdLower = this.safeStringLower(market, "quoteId");
+        string wsId = add(add("e_", baseIdLower), quoteIdLower);
+        string channel = add(add(add("market_", wsId), "_kline_"), interval);
+        string messageHash = add(add(add("ohlcv:", symbolVar), ":"), timeframeVar);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "event", "sub" },
@@ -720,7 +720,7 @@ public partial class bitrue : ccxt.bitrue
         }
         object symbol = getValue(market, "symbol");
         string? wsInterval = this.safeString(parts, 4);
-        object futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new Dictionary<string, object>() {});
+        IDictionary<string, object> futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new Dictionary<string, object>() {});
         object timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
         object tick = this.safeValue(message, "tick");
         if (isTrue(isEqual(tick, null)))
@@ -739,7 +739,7 @@ public partial class bitrue : ccxt.bitrue
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
         callDynamically(stored, "append", new object[] {parsed});
-        object messageHash = add(add(add("ohlcv:", symbol), ":"), timeframe);
+        string messageHash = add(add(add("ohlcv:", symbol), ":"), timeframe);
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
@@ -748,11 +748,11 @@ public partial class bitrue : ccxt.bitrue
         object symbol = getValue(market, "symbol");
         Int64? idSeconds = this.safeInteger(tick, "id");
         object timestamp = ((bool) isTrue((isEqual(idSeconds, null)))) ? null : multiply(idSeconds, 1000);
-        object open = this.safeNumber(tick, "open");
-        object high = this.safeNumber(tick, "high");
-        object low = this.safeNumber(tick, "low");
-        object close = this.safeNumber(tick, "close");
-        object rawVol = this.safeNumber(tick, "vol");
+        double? open = this.safeNumber(tick, "open");
+        double? high = this.safeNumber(tick, "high");
+        double? low = this.safeNumber(tick, "low");
+        double? close = this.safeNumber(tick, "close");
+        double? rawVol = this.safeNumber(tick, "vol");
         object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         return new List<object>() {timestamp, open, high, low, close, baseVolume};
     }
@@ -774,17 +774,17 @@ public partial class bitrue : ccxt.bitrue
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         if (isTrue(!isEqual(getValue(market, "swap"), true)))
         {
             throw new NotSupported ((string)add(this.id, " watchTicker is only supported for swap markets")) ;
         }
-        object baseIdLower = this.safeStringLower(market, "baseId");
-        object quoteIdLower = this.safeStringLower(market, "quoteId");
-        object wsId = add(add("e_", baseIdLower), quoteIdLower);
-        object channel = add(add("market_", wsId), "_ticker");
-        object messageHash = add("ticker:", symbolVar);
+        string? baseIdLower = this.safeStringLower(market, "baseId");
+        string? quoteIdLower = this.safeStringLower(market, "quoteId");
+        string wsId = add(add("e_", baseIdLower), quoteIdLower);
+        string channel = add(add("market_", wsId), "_ticker");
+        string messageHash = add("ticker:", symbolVar);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "event", "sub" },
@@ -832,19 +832,19 @@ public partial class bitrue : ccxt.bitrue
         Int64? timestamp = this.safeInteger(message, "ts");
         object parsed = this.parseWsTicker(tick, market, timestamp);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
-        object messageHash = add("ticker:", symbol);
+        string messageHash = add("ticker:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, messageHash});
     }
 
     public virtual object parseWsTicker(object tick, object market, object timestamp = null)
     {
         object symbol = getValue(market, "symbol");
-        object rawVol = this.safeNumber(tick, "vol");
-        object rawAmount = this.safeNumber(tick, "amount");
+        double? rawVol = this.safeNumber(tick, "vol");
+        double? rawAmount = this.safeNumber(tick, "amount");
         object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         object quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
-        object close = this.safeNumber(tick, "close");
-        object rose = this.safeNumber(tick, "rose");
+        double? close = this.safeNumber(tick, "close");
+        double? rose = this.safeNumber(tick, "rose");
         object percentage = ((bool) isTrue((isEqual(rose, null)))) ? null : multiply(rose, 100);
         return this.safeTicker(new Dictionary<string, object>() {
             { "info", tick },
@@ -870,7 +870,7 @@ public partial class bitrue : ccxt.bitrue
         }, market);
     }
 
-    public virtual object parseWsOrderType(object typeId)
+    public virtual string? parseWsOrderType(object typeId)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "1", "limit" },
@@ -880,7 +880,7 @@ public partial class bitrue : ccxt.bitrue
         return this.safeString(types, typeId, typeId);
     }
 
-    public virtual object parseWsOrderStatus(object status)
+    public virtual string? parseWsOrderStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "0", "open" },
@@ -976,7 +976,7 @@ public partial class bitrue : ccxt.bitrue
             var future = client.reusableFuture(messageHash);
             try
             {
-                object response = await this.openV1PrivatePostPoseidonApiV1ListenKey(parameters);
+                Dictionary<string, object> response = await this.openV1PrivatePostPoseidonApiV1ListenKey(parameters);
                 //
                 //     {
                 //         "msg": "succ",
@@ -987,7 +987,7 @@ public partial class bitrue : ccxt.bitrue
                 //     }
                 //
                 object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-                object key = this.safeString(data, "listenKey");
+                string? key = this.safeString(data, "listenKey");
                 if (isTrue(isEqual(key, null)))
                 {
                     throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty listenKey")) ;

@@ -565,6 +565,13 @@ class weex extends \ccxt\async\weex {
         //
         $timestamp = $this->safe_integer($trade, 'T');
         $symbol = ($market === null) ? null : $market['symbol'];
+        $isBuyerMaker = $this->safe_bool($trade, 'm'); // m is the $isBuyerMaker flag of the REST trades, true means the taker sold
+        $side = null;
+        $takerOrMaker = null;
+        if ($isBuyerMaker !== null) {
+            $side = $isBuyerMaker ? 'sell' : 'buy';
+            $takerOrMaker = 'taker'; // a public $trade is reported from the aggressor's $side, same as parseTrade
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 't'),
@@ -573,8 +580,8 @@ class weex extends \ccxt\async\weex {
             'symbol' => $symbol,
             'order' => null,
             'type' => null,
-            'side' => null,
-            'takerOrMaker' => null,
+            'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $this->safe_string($trade, 'p'),
             'amount' => $this->safe_string($trade, 'q'),
             'cost' => $this->safe_string($trade, 'v'),
@@ -598,7 +605,7 @@ class weex extends \ccxt\async\weex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $extendedParams = $this->extend($params, array(
             'callerMethodName' => 'watchOHLCV',
@@ -622,7 +629,7 @@ class weex extends \ccxt\async\weex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A list of candles ordered, open, high, low, close, volume
+         * @return {array} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -676,7 +683,7 @@ class weex extends \ccxt\async\weex {
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $params['callerMethodName'] = 'unWatchOHLCV';
         return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
@@ -695,7 +702,7 @@ class weex extends \ccxt\async\weex {
          *
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2049,7 +2056,7 @@ class weex extends \ccxt\async\weex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, mixed $message): bool {
         //
         //     {
         //         "result" => false,

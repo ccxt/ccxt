@@ -181,6 +181,7 @@ class phemex extends Exchange {
                     'get' => array(
                         'public/products' => array( 'cost' => 5 ),
                         'public/products-plus' => array( 'cost' => 5 ),
+                        'public/index-sources' => array( 'cost' => 5 ), // ?symbol=<symbol>&pageNum=<pageNum>&pageSize=<pageSize>
                         'md/v2/orderbook' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
                         'md/v2/trade' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
@@ -249,6 +250,16 @@ class phemex extends Exchange {
                         'assets/futures/sub-accounts/transfer' => array( 'cost' => 5 ), // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote' => array( 'cost' => 5 ), // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                         // deposit/withdraw
+                        // copy trade
+                        'phemex-lb/public/api/trader/performance-info' => array( 'cost' => 5 ), // ?strategyIds=<strategyIds>&pageNum=<pageNum>&pageSize=<pageSize>
+                        // uta
+                        'uta-api/risk/risk-mode' => array( 'cost' => 5 ),
+                        'uta-api/risk/risk-units' => array( 'cost' => 5 ), // ?currency=<currency>&riskType=<riskType>
+                        'uta-biz/assets' => array( 'cost' => 5 ), // ?currency=<currency>
+                        'uta-funds/contract/borrow' => array( 'cost' => 5 ), // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-funds/contract/payback' => array( 'cost' => 5 ), // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-funds/contract/borrow/interests' => array( 'cost' => 5 ), // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-exchanger/assets/convert' => array( 'cost' => 5 ), // ?fromCurrency=<currency>&toCurrency=<currency>&start=<start>&end=<end>&offset=<offset>&limit=<limit>
                     ),
                     'post' => array(
                         // spot
@@ -272,6 +283,9 @@ class phemex extends Exchange {
                         // withdraw
                         'phemex-withdraw/wallets/api/createWithdraw' => array( 'cost' => 5 ), // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
                         'phemex-withdraw/wallets/api/cancelWithdraw' => array( 'cost' => 5 ), // ?id=<id>
+                        // uta
+                        'uta-account/switch-mode' => array( 'cost' => 5 ), // ?riskMode=<riskMode>
+                        'uta-funds/contract/payback' => array( 'cost' => 5 ), // body => currency, amountRv
                     ),
                     'put' => array(
                         // spot
@@ -562,7 +576,7 @@ class phemex extends Exchange {
                     '11125' => '\\ccxt\\InvalidOrder', // TE_BO_CANNOT_CANCEL_BOTP_OR_BOSL_ORDER Details => cannot cancel bracket sl/tp order
                     '11126' => '\\ccxt\\InvalidOrder', // TE_BO_DONOT_SUPPORT_API Details => doesn't support bracket order via API
                     '11128' => '\\ccxt\\InvalidOrder', // TE_BO_INVALID_EXECINST Details => ExecInst value is invalid
-                    '11129' => '\\ccxt\\InvalidOrder', // TE_BO_MUST_BE_SAME_SIDE_AS_POS Details => bracket order should have the same side's side
+                    '11129' => '\\ccxt\\InvalidOrder', // TE_BO_MUST_BE_SAME_SIDE_AS_POS Details => bracket order should have the same side as position's side
                     '11130' => '\\ccxt\\InvalidOrder', // TE_BO_WRONG_SL_TRIGGER_TYPE Details => bracket stop loss order trigger type is invalid
                     '11131' => '\\ccxt\\InvalidOrder', // TE_BO_WRONG_TP_TRIGGER_TYPE Details => bracket take profit order trigger type is invalid
                     '11132' => '\\ccxt\\InvalidOrder', // TE_BO_ABORT_BOSL_DUE_BOTP_CREATE_FAILED Details => cancel bracket stop loss order due failed to create take profit order.
@@ -1381,7 +1395,7 @@ class phemex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles $to fetch
          * @param {array} [$params] extra parameters specific $to the exchange API endpoint
          * @param {int} [$params->until] *USDT settled/ linear swaps only* end time in ms
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2029,7 +2043,7 @@ class phemex extends Exchange {
         //
         $timestamp = null;
         $result = array( 'info' => $response );
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency');
@@ -3940,7 +3954,7 @@ class phemex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $positions = $this->safe_value($data, 'positions', array());
+        $positions = $this->safe_list($data, 'positions', array());
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
             $position = $positions[$i];
@@ -4241,7 +4255,7 @@ class phemex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $rows = $this->safe_value($data, 'rows', array());
+        $rows = $this->safe_list($data, 'rows', array());
         $result = array();
         for ($i = 0; $i < count($rows); $i++) {
             $entry = $rows[$i];
@@ -5645,7 +5659,7 @@ class phemex extends Exchange {
             //
         }
         $data = $this->safe_value($response, 'data', array());
-        $ranks = $this->safe_value($data, 'positions', array());
+        $ranks = $this->safe_list($data, 'positions', array());
         $result = array();
         for ($i = 0; $i < count($ranks); $i++) {
             $rank = $ranks[$i];

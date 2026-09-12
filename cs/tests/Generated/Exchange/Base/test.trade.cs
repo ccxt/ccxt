@@ -51,7 +51,7 @@ public partial class testMainClass : BaseTest
             // todo: remove undefined check and probably non-empty array check later
             if (isTrue(!isEqual(getValue(entry, "fees"), null)))
             {
-                for (object i = 0; isLessThan(i, getArrayLength(getValue(entry, "fees"))); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(getValue(entry, "fees"))); postFixIncrement(ref i))
                 {
                     testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, getValue(entry, "fees"), i);
                 }

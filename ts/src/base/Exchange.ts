@@ -945,20 +945,11 @@ export class BaseExchange {
                 }
                 // node: prefer the undici module for tunable pooling and proxy support
                 try {
-                    // undici is the engine behind node's built-in fetch - importing it directly gives us
-                    // tunable connection pooling (keep-alive), ProxyAgent support, and the low-level
-                    // undici.request api used in undiciRequest (~2x faster than undici.fetch, profiled
-                    // in bench-request.mjs: no WHATWG Response/Headers/web-streams machinery)
-                    //
-                    // note: keep the undici dependency at >= 7.29.1 - the GHSA-35p6-xmwp-9g52 mitigation
-                    // ("idle socket validation", 7.28.0+) originally deferred every write on an idle
-                    // kept-alive socket behind a setTimeout(0) tick, ~1.3ms per sequential request, which
-                    // is why this codebase once pinned 7.27.x - resolved upstream by running the
-                    // validation off a ref'd setImmediate instead (issue
-                    // https://github.com/nodejs/undici/issues/5493, fixed via
-                    // https://github.com/nodejs/undici/pull/5499 and
-                    // https://github.com/nodejs/undici/pull/5707, in the 7.x line since 7.29.1) -
-                    // profiled: sequential keep-alive p50 1.74ms on 7.29.0 vs 0.43ms on 7.29.1
+                    // undici (the engine behind node's fetch) gives tunable keep-alive pooling, ProxyAgent,
+                    // and the low-level undici.request api used in undiciRequest (~2x faster than undici.fetch)
+                    // keep undici >= 7.29.1: 7.28.0-7.29.0 deferred every write on an idle kept-alive socket
+                    // behind setTimeout(0) (~1.3ms/request, p50 1.74ms vs 0.43ms), fixed upstream in
+                    // https://github.com/nodejs/undici/issues/5493 (PRs 5499 and 5707)
                     const undiciModule = await import (/* webpackIgnore: true */ 'undici');
                     this.undiciModule = undiciModule;
                     this.fetchImplementation = undiciModule.fetch;
@@ -1515,15 +1506,9 @@ export class BaseExchange {
     onJsonResponse (responseBody: any) {
         // quotes json numbers in-place so JSON.parse preserves their exact source digits as strings
         // (doubles would silently lose precision on big order ids and >15-significant-digit prices)
-        //
-        // perf notes (benchmarked on node 22, real 0.3-1.9MB binance payloads, cpu-profiled):
-        // the quoting pass costs ~43% of parseJson (regex replace 12% + full-body copy + the
-        // string-heavy JSON.parse); JS reimplementations (indexOf scan, exec loop, split/join,
-        // rope or array builders) all lose to the single C++ replace end-to-end - keep the regex
-        //
-        // no quoteJsonNumbers guard needed here: parseJson returns early when
-        // quoteJsonNumbers is false, so this is only reached after an integer
-        // beyond Number.MAX_SAFE_INTEGER was detected in the parsed payload
+        // perf: this pass is ~43% of parseJson on 0.3-1.9MB payloads; JS scan/split/rope
+        // reimplementations all lose to the single C++ regex replace - keep the regex.
+        // no quoteJsonNumbers guard: parseJson only reaches this after finding an unsafe integer
         return responseBody.replace (QUOTE_JSON_NUMBERS_REGEX, '":"$1"');
     }
 
@@ -1757,12 +1742,13 @@ export class BaseExchange {
             } else if ((httpProxyAgent !== undefined) && (httpProxyAgent !== null)) {
                 finalAgent = httpProxyAgent;
             }
-            //
+            const wsThrottler = new Throttler (this.tokenBucket);
             const options = this.deepExtend (this.streaming, {
                 'log': (this.log !== undefined) ? this.log.bind (this) : this.log,
                 'ping': ((this as any).ping !== undefined) ? (this as any).ping.bind (this) : (this as any).ping,
+                'throttle': wsThrottler.throttle.bind (wsThrottler),
                 'verbose': this.verbose,
-                'throttler': new Throttler (this.tokenBucket),
+                'throttler': wsThrottler,
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
@@ -1816,21 +1802,9 @@ export class BaseExchange {
 
     watchMultiple (url: Str, messageHashes: string[], message: any = undefined, subscribeHashes: Strings = undefined, subscription: any = undefined) {
         //
-        // Without comments the code of this method is short and easy:
-        //
-        //     const client = this.client (url)
-        //     const backoffDelay = 0
-        //     const future = client.future (messageHash)
-        //     const connected = client.connect (backoffDelay)
-        //     connected.then (() => {
-        //         if (message && !client.subscriptions[subscribeHash]) {
-        //             client.subscriptions[subscribeHash] = true
-        //             client.send (message)
-        //         }
-        //     }).catch ((error) => {})
-        //     return future
-        //
-        // The following is a longer version of this method with comments
+        // essentially: Future.race over client.future (hash) for each messageHash, then
+        // client.connect ().then (send subscribe message once per subscribeHash);
+        // the version below adds the bookkeeping around that
         //
         if (url === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMultiple() requires a url argument');
@@ -1838,15 +1812,8 @@ export class BaseExchange {
         const clientExisted = (url in this.clients);
         const client = this.client (url) as WsClient;
         //
-        //  watchOrderBook ---- future ----+---------------+----→ user
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                              connect ......→ resolve
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                             subscribe -----→ receive
+        // flow: the future is handed to the caller first, then connect → subscribe;
+        // the future settles when the matching message is received and resolved
         //
         const future = Future.race (messageHashes.map ((messageHash) => client.future (messageHash)));
         // read and write subscription, this is done before connecting the client
@@ -1917,21 +1884,8 @@ export class BaseExchange {
 
     watch (url: Str, messageHash: Str, message: any = undefined, subscribeHash: any = undefined, subscription: any = undefined) {
         //
-        // Without comments the code of this method is short and easy:
-        //
-        //     const client = this.client (url)
-        //     const backoffDelay = 0
-        //     const future = client.future (messageHash)
-        //     const connected = client.connect (backoffDelay)
-        //     connected.then (() => {
-        //         if (message && !client.subscriptions[subscribeHash]) {
-        //             client.subscriptions[subscribeHash] = true
-        //             client.send (message)
-        //         }
-        //     }).catch ((error) => {})
-        //     return future
-        //
-        // The following is a longer version of this method with comments
+        // essentially: client.future (messageHash), then client.connect ().then (send subscribe
+        // message once per subscribeHash); the version below adds the bookkeeping around that
         //
         if (url === undefined) {
             throw new ArgumentsRequired (this.id + ' watch() requires a url argument');
@@ -1942,15 +1896,8 @@ export class BaseExchange {
         const clientExisted = (url in this.clients);
         const client = this.client (url) as WsClient;
         //
-        //  watchOrderBook ---- future ----+---------------+----→ user
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                              connect ......→ resolve
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                             subscribe -----→ receive
+        // flow: the future is handed to the caller first, then connect → subscribe;
+        // the future settles when the matching message is received and resolved
         //
         if ((subscribeHash === undefined) && (messageHash !== undefined) && (messageHash in client.futures)) {
             return client.futures[messageHash];
@@ -2535,7 +2482,9 @@ export class BaseExchange {
         const res = globalThis.SignCreateGroupedOrders (
             request['grouping_type'],
             ordersArr,
-            orders.length,
+            this.safeInteger (request, 'integrator_account_index', 0),
+            this.safeInteger (request, 'integrator_taker_fee', 0),
+            this.safeInteger (request, 'integrator_maker_fee', 0),
             1, // skip nonce
             request['nonce'],
             request['api_key_index'],
@@ -4054,14 +4003,14 @@ export class BaseExchange {
         return parseInt (stringVersion);
     }
 
-    isRoundNumber (value: number) {
+    isRoundNumber (value: number): boolean {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         const res = this.parseToNumeric ((value % 1));
         return res === 0;
     }
 
-    isEmptyString (value: any) {
+    isEmptyString (value: any): boolean {
         return !this.valueIsDefined (value) || value === '';
     }
 
@@ -5451,7 +5400,8 @@ export class BaseExchange {
             }
             // close (using average)
             if (close === undefined && average !== undefined) {
-                close = Precise.stringMul (average, '2');
+                // average is the midpoint of open and close, so twice it is their sum
+                close = Precise.stringSub (Precise.stringMul (average, '2'), open);
             }
             // average
             if (average === undefined && close !== undefined) {
@@ -6469,27 +6419,27 @@ export class BaseExchange {
         [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', retries);
         let retryDelay = 0;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', retryDelay);
-        let fetchData: NullableDict = undefined;
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
+            let fetchData: NullableDict = undefined;
             if (fetchDataCacheEnabled) {
                 fetchData = { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined };
             }
             try {
                 this.setLastRestRequestTimestamp ();
                 const request = this.sign (path, api, method, params, headers, body);
-                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
+                if (fetchData !== undefined) {
                     fetchData['request'] = request;
                 }
                 this.setLastRequest (request);
                 const response = await this.fetch (request['url'], request['method'], request['headers'], request['body']);
-                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
+                if (fetchData !== undefined) {
                     fetchData['response']['body'] = response;
                     this.addFetchCache (fetchData);
                 }
                 return response;
             } catch (e) {
-                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
+                if (fetchData !== undefined) {
                     fetchData['error'] = e;
                     this.addFetchCache (fetchData);
                 }
@@ -6715,7 +6665,7 @@ export class BaseExchange {
         return this.market (symbol);
     }
 
-    checkRequiredCredentials (error = true) {
+    checkRequiredCredentials (error = true): boolean {
         /**
          * @ignore
          * @method
@@ -7469,15 +7419,15 @@ export class BaseExchange {
         return value;
     }
 
-    isTickPrecision () {
+    isTickPrecision (): boolean {
         return this.precisionMode === TICK_SIZE;
     }
 
-    isDecimalPrecision () {
+    isDecimalPrecision (): boolean {
         return this.precisionMode === DECIMAL_PLACES;
     }
 
-    isSignificantPrecision () {
+    isSignificantPrecision (): boolean {
         return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
@@ -7845,7 +7795,7 @@ export class BaseExchange {
         return this.handleTriggerAndParams (params);
     }
 
-    isPostOnly (isMarketOrder: boolean, exchangeSpecificParam: any, params = {}) {
+    isPostOnly (isMarketOrder: boolean, exchangeSpecificParam: any, params = {}): boolean {
         /**
          * @ignore
          * @method
@@ -8900,7 +8850,9 @@ export class BaseExchange {
         const year = date.slice (0, 2);
         const month = date.slice (2, 4);
         const day = date.slice (4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        // the milliseconds are spelled out because every caller writes the result into
+        // expiryDatetime, which types.ts documents in the ISO 8601 form with them
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00.000Z';
         return reconstructedDate;
     }
 
@@ -9229,7 +9181,7 @@ export class BaseExchange {
         return '';
     }
 
-    async isUTAEnabled (params = {}) {
+    async isUTAEnabled (params = {}): Promise<boolean> {
         return false; // stub
     }
 }

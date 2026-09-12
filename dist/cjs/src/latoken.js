@@ -161,7 +161,9 @@ class latoken extends latoken$1["default"] {
                     'get': {
                         'auth/account': { 'cost': 1 },
                         'auth/account/currency/{currency}/{type}': { 'cost': 1 },
+                        'auth/account/filtered': { 'cost': 1 },
                         'auth/order': { 'cost': 1 },
+                        'auth/order/active': { 'cost': 1 },
                         'auth/order/getOrder/{id}': { 'cost': 1 },
                         'auth/order/pair/{currency}/{quote}': { 'cost': 1 },
                         'auth/order/pair/{currency}/{quote}/active': { 'cost': 1 },
@@ -182,7 +184,9 @@ class latoken extends latoken$1["default"] {
                         'auth/order/cancel': { 'cost': 1 },
                         'auth/order/cancelAll': { 'cost': 1 },
                         'auth/order/cancelAll/{currency}/{quote}': { 'cost': 1 },
+                        'auth/order/cancelBulk': { 'cost': 1 },
                         'auth/order/place': { 'cost': 1 },
+                        'auth/order/placeBulk': { 'cost': 1 },
                         'auth/spot/deposit': { 'cost': 1 },
                         'auth/spot/withdraw': { 'cost': 1 },
                         'auth/stopOrder/cancel': { 'cost': 1 },
@@ -599,7 +603,7 @@ class latoken extends latoken$1["default"] {
         const types = this.safeValue(this.options, 'types', {});
         const accountType = this.safeString(types, type, type);
         const balancesByType = this.groupBy(response, 'type');
-        const balances = this.safeValue(balancesByType, accountType, []);
+        const balances = this.safeList(balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString(balance, 'currency');

@@ -1274,6 +1274,28 @@ public class WooApi extends Exchange
     }
 
     /**
+     * Calls the v3PrivatePostFuturesDefaultMarginModeReset endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostFuturesDefaultMarginModeReset (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PrivatePostFuturesDefaultMarginModeReset", optionalArgs);
+    }
+
+    /**
+     * Calls the v3PrivatePostIsolatedMarginMargin endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostIsolatedMarginMargin (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PrivatePostIsolatedMarginMargin", optionalArgs);
+    }
+
+    /**
      * Calls the v3PrivatePostAlgoOrder endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1337,6 +1359,28 @@ public class WooApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutFuturesPositionMode (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePutFuturesPositionMode", optionalArgs);
+    }
+
+    /**
+     * Calls the v3PrivatePutFuturesDefaultMarginMode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutFuturesDefaultMarginMode (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PrivatePutFuturesDefaultMarginMode", optionalArgs);
+    }
+
+    /**
+     * Calls the v3PrivatePutFuturesDefaultMarginModeSymbol endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutFuturesDefaultMarginModeSymbol (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PrivatePutFuturesDefaultMarginModeSymbol", optionalArgs);
     }
 
     /**
@@ -1480,6 +1524,17 @@ public class WooApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateDeleteOrdersPending (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateDeleteOrdersPending", optionalArgs);
+    }
+
+    /**
+     * Calls the v3PrivateDeleteAssetWalletWithdrawWithdrawId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateDeleteAssetWalletWithdrawWithdrawId (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PrivateDeleteAssetWalletWithdrawWithdrawId", optionalArgs);
     }
 
 }

@@ -768,7 +768,7 @@ class p2b extends Exchange {
          * @param {int} [$limit] 1-500, default=50
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->offset] default=0, with this value the last candles are returned
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1388,10 +1388,12 @@ class p2b extends Exchange {
             $errorCode = $this->safe_string($response, 'errorCode');
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-            if ($code < 400) {
+            $codeAsString = (string) $code;
+            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+                // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new ExchangeError($feedback);
             }
-            // unmapped codes on error statuses fall through to the default http-status handler
+            // unmapped codes on the remaining error statuses fall through to the default http-status handler
         }
         return null;
     }

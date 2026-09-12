@@ -150,7 +150,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $result = $this->filter_events_by_status($result, $this->safe_string($params, 'status'));
         $result = $this->filter_events_by_tags($result, $this->safe_list($params, 'tags'));
-        // own-line length read so the regex transpiler treats `$queries` array (count())
+        // own-line length read so the regex transpiler treats `$queries` as an array (count())
         // and not a string (strlen()); guard null since the default is null
         $queriesLength = 0;
         if ($queries !== null) {
@@ -363,7 +363,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function events_list(): array {
-        // the cached events list; empty on a cold instance ($this->events is keyed by both
+        // the cached events as a list; empty on a cold instance ($this->events is keyed by both
         // id and handle, so de-duplicate by $identity before returning)
         if ($this->events === null) {
             return array();
@@ -688,7 +688,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // register a single event's $markets into $this->markets and rebuild the outcome cache so the
         // handles fetchEvent() returns resolve immediately in outcome-addressed methods (fetchTicker,
         // createOrder, ...). without this, on a cold instance or a loadAllOutcomes:false venue
-        // such, the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
+        // such as kalshi, the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
         // '\\ccxt\\BadSymbol's because the outcome was never cached
         if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
@@ -730,7 +730,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
             $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
             if (($missingLength > 0) && ($loadAll === true) && !$wasWarm && !$reload) {
-                // same trade-off => on venues where the whole universe is one cheap
+                // same trade-off as loadOutcome => on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 Async\await($this->load_outcomes());
                 $stillMissing = array();
@@ -884,7 +884,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             try {
                 Async\await($this->fetch_events(array( 'query' => $searchQuery, 'limit' => $searchLimit )));
             } catch (Exception $e) {
-                // a query with zero matches surfaces on some venues — treat it
+                // a query with zero matches surfaces on some venues — treat it as a
                 // plain miss (the guidance-rich throw $below); $real transport errors propagate
                 if (!($e instanceof BadSymbol)) {
                     throw $e;
@@ -940,7 +940,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum number of candles to fetch
          * @param {array} [$params] extra exchange-specific parameters
-         * @return {int[][]} a list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
          */
         return Async\await(parent::fetch_ohlcv($outcome, $timeframe, $since, $limit, $params));
     }
@@ -1684,7 +1684,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if ($value === null) {
             throw new ArgumentsRequired($this->id . ' intToRlpHex() requires a $value argument');
         }
-        // an integer minimal big-endian byte $hex; 0 is the empty byte string
+        // an integer as its minimal big-endian byte $hex; 0 is the empty byte string
         if ($value === 0) {
             return '';
         }
@@ -1694,7 +1694,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function hex_to_rlp_bytes(?string $hexValue) {
-        // a hex value (e.g. an RPC result) big-endian byte hex; leading zero bytes
+        // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
         // are stripped and 0 becomes the empty byte string (RLP integer encoding)
         if ($hexValue === null) {
             return '';

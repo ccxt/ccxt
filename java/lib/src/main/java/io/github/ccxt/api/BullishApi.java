@@ -64,6 +64,28 @@ public class BullishApi extends Exchange
     }
 
     /**
+     * Calls the publicGetV1VolGrids endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1VolGrids (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1VolGrids", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1AssetsSymbolVolGrid endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1AssetsSymbolVolGrid (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1AssetsSymbolVolGrid", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetV1Markets endpoint.
      *
      * @param optionalArgs the request parameters
@@ -83,6 +105,17 @@ public class BullishApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1MarketsSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1MarketsSymbol", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1HistoryMarkets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1HistoryMarkets (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1HistoryMarkets", optionalArgs);
     }
 
     /**
@@ -141,6 +174,28 @@ public class BullishApi extends Exchange
     }
 
     /**
+     * Calls the publicGetV1MarketsSymbolAuctions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1MarketsSymbolAuctions (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1MarketsSymbolAuctions", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1MarketsSymbolAuctionsNoii endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1MarketsSymbolAuctionsNoii (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1MarketsSymbolAuctionsNoii", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetV1HistoryMarketsSymbolTrades endpoint.
      *
      * @param optionalArgs the request parameters
@@ -160,6 +215,28 @@ public class BullishApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1HistoryMarketsSymbolFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1HistoryMarketsSymbolFundingRate", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1HistoryMarketsSymbolAuctions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1HistoryMarketsSymbolAuctions (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1HistoryMarketsSymbolAuctions", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1HistoryOptionTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1HistoryOptionTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1HistoryOptionTrades", optionalArgs);
     }
 
     /**
@@ -248,6 +325,17 @@ public class BullishApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2OrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2OrdersOrderId", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2OrdersClientOrderIdClientOrderId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2OrdersClientOrderIdClientOrderId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2OrdersClientOrderIdClientOrderId", optionalArgs);
     }
 
     /**
@@ -548,6 +636,39 @@ public class BullishApi extends Exchange
     }
 
     /**
+     * Calls the privateGetV2OtcTradesDelegatedAccounts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetV2OtcTradesDelegatedAccounts (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2OtcTradesDelegatedAccounts", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2IdbDelegatedAccounts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetV2IdbDelegatedAccounts (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2IdbDelegatedAccounts", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2IdbOtcTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetV2IdbOtcTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2IdbOtcTrades", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostV2Orders endpoint.
      *
      * @param optionalArgs the request parameters
@@ -614,6 +735,17 @@ public class BullishApi extends Exchange
     }
 
     /**
+     * Calls the privatePostV1BulkSimulatePortfolioMargin endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV1BulkSimulatePortfolioMargin (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV1BulkSimulatePortfolioMargin", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostV1WalletsSelfHostedInitiate endpoint.
      *
      * @param optionalArgs the request parameters
@@ -655,6 +787,28 @@ public class BullishApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2OtcCommand (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2OtcCommand", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2IdbOtcTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2IdbOtcTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2IdbOtcTrades", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2IdbOtcCommand endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2IdbOtcCommand (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2IdbOtcCommand", optionalArgs);
     }
 
 }

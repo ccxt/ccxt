@@ -134,6 +134,30 @@ abstract class mercado extends \ccxt\async\Exchange {
         return $this->request('candles', 'v4PublicNet', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v4private_post_accounts($params = array()) {
+        return $this->request('accounts', 'v4Private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v4private_post_accounts_accountid_symbol_transfers_internal($params = array()) {
+        return $this->request('accounts/{accountId}/{symbol}/transfers/internal', 'v4Private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v4private_post_oauth2_token($params = array()) {
+        return $this->request('oauth2/token', 'v4Private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v4private_patch_accounts_accountid_wallet_symbol_deposits_depositid($params = array()) {
+        return $this->request('accounts/{accountId}/wallet/{symbol}/deposits/{depositId}', 'v4Private', 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function publicGetCoins($params = array()) {
@@ -258,5 +282,29 @@ abstract class mercado extends \ccxt\async\Exchange {
      */
     public function v4PublicNetGetCandles($params = array()) {
         return $this->request('candles', 'v4PublicNet', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v4PrivatePostAccounts($params = array()) {
+        return $this->request('accounts', 'v4Private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v4PrivatePostAccountsAccountIdSymbolTransfersInternal($params = array()) {
+        return $this->request('accounts/{accountId}/{symbol}/transfers/internal', 'v4Private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v4PrivatePostOauth2Token($params = array()) {
+        return $this->request('oauth2/token', 'v4Private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId($params = array()) {
+        return $this->request('accounts/{accountId}/wallet/{symbol}/deposits/{depositId}', 'v4Private', 'PATCH', $params, null, null, array("cost" => 1));
     }
 }

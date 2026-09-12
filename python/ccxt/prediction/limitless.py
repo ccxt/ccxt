@@ -388,7 +388,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], slug)
         # CTF condition id — needed to redeem a resolved winning position
         conditionId = self.safe_string(raw, 'conditionId')
-        tokens = self.safe_value(raw, 'tokens', {})
+        tokens = self.safe_dict(raw, 'tokens', {})
         # the listing exposes `expired` + `status`(FUNDED/RESOLVED/…), not an `active` flag; a
         # market is tradeable only while it is FUNDED and not yet expired
         isExpired = self.safe_bool(raw, 'expired', False)
@@ -525,7 +525,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         response = await self.limitlessPublicGetMarketsAddressOrSlug(self.extend(request, params))
         # a group response carries its tradeable children in `markets`(each a full market row
         # with tokens) — expandGroupRows unwraps them; a single market has no nested markets
-        # and wraps own one-market event, which parseEvent's loop then parses
+        # and wraps as its own one-market event, which parseEvent's loop then parses
         rows = self.expand_group_rows([response])
         wrapped = self.extend(response, {'markets': rows})
         event = self.parse_event(wrapped)
@@ -798,7 +798,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(rawMarkets)):
             rawMarket = rawMarkets[i]
             # an already-parsed ccxt market row carries the unified 'market' handle + outcomes
-            # with 'symbol' kept legacy fallback — don't run it through parseMarket again
+            # with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
             marketSymbol = self.safe_string_2(rawMarket, 'market', 'symbol')
             marketOutcomes = self.safe_list(rawMarket, 'outcomes')
             if marketSymbol is not None and marketOutcomes is not None:
@@ -1153,7 +1153,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'slug': slug,
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 100)
         response = await self.limitlessPublicGetMarketsSlugEvents(self.extend(request, params))
         #
         #     {
@@ -1275,7 +1275,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum number of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -1430,7 +1430,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         }
         #     ]
         #
-        # pass None: parsePredictionOrder sets outcome to the market outcome while the outcome
+        # pass None as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         # lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         # endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
         return self.parse_prediction_orders(self.to_array(response), None, since, limit)
@@ -1962,7 +1962,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'side': sideValue,
             'signatureType': signatureType,
         }
-        # the contract expects expiration uint256; non-zero values are rejected by the API(GTC orders use 0)
+        # the contract expects expiration as a uint256; non-zero values are rejected by the API(GTC orders use 0)
         expirationInt = self.safe_integer(params, 'expiration')
         if expirationInt is not None:
             params = self.omit(params, 'expiration')
@@ -2453,8 +2453,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         if rawSide.find('limit') >= 0:
             type = 'limit'
             takerOrMaker = 'maker'
-        if rawSide is None:
-            raise ExchangeError(self.id + ' method() missing rawSide')
+            if rawSide is None:
+                raise ExchangeError(self.id + ' method() missing rawSide')
         elif rawSide.find('market') >= 0:
             type = 'market'
             takerOrMaker = 'taker'
@@ -2864,20 +2864,20 @@ class limitless(PredictionExchange, ImplicitAPI):
                     allRaw.append(raw)
         return allRaw
 
-    def sign(self, path: object, section: object = 'limitless', method='GET', params={}, headers: object = None, body: object = None):
+    def sign(self, path: object, api: object = 'limitless', method='GET', params={}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request URL and attaches the lmts authentication headers for private endpoints
         :param str path: the endpoint path
-        :param string|str[] [section]: the api group and access level
+        :param string|str[] [api]: the api group and access level
         :param str [method]: HTTP method
         :param dict [params]: request parameters
         :param dict [headers]: request headers
         :param dict [body]: request body
         :returns dict: a dictionary with url, method, body and headers
         """
-        apiGroup = section if isinstance(section, str) else section[0]
-        access = 'public' if isinstance(section, str) else section[1]
+        apiGroup = api if isinstance(api, str) else api[0]
+        access = 'public' if isinstance(api, str) else api[1]
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['limitless'])
         url = '/' + self.implode_params(path, params)
@@ -2903,10 +2903,13 @@ class limitless(PredictionExchange, ImplicitAPI):
             payload = timestamp + newline + method + newline + url + newline + bodyString
             signature = self.hmac(self.encode(payload), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
             headers = self.extend(headers, {
-                'lmts-api-key': self.apiKey,
                 'lmts-timestamp': timestamp,
                 'lmts-signature': signature,
             })
+            headerKey = 'lmts-api' + '-key'  # concatenating because of the php version
+            headersKey = {}
+            headersKey[headerKey] = self.apiKey
+            headers = self.extend(headers, headersKey)
         url = baseUrl + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

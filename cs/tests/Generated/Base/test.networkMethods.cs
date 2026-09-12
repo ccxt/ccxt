@@ -120,17 +120,17 @@ public partial class BaseTest
             object defaultNetworkCodeReplacements = getValue(exchange.options, "defaultNetworkCodeReplacements");
             List<object> allNetworkCodes = new List<object>() {"ETH", "ERC20", "TRON", "TRX", "TRC20", "SOL", "BSC", "BEP20", "ARBITRUM", "AVAXC", "POL", "BASE", "SUI", "OPTIMISM", "OP", "NEAR", "CRO", "CRONOS", "BTC", "APT", "SCR", "KAVA", "TON", "Cardano", "ADA", "HECO", "HT", "MNT", "ALGO", "RUNE", "OSMO", "CELO", "HBAR", "FTM", "zkSync", "EraZK", "KLAY", "ACA", "STX", "XTZ", "NEO", "METIS"};
             List<object> allCurrencyCodes = new List<object>() {"Bitcoin", "BTC", "Ethereum", "ETH", "Tether", "USDT", "BNB", "BNB", "XRP", "XRP", "USDC", "USDC", "Solana", "SOL", "TRON", "TRX", "Dogecoin", "DOGE", "Hyperliquid", "HYPE", "Bitcoin Cash", "BCH", "Cardano", "ADA", "LEO", "Chainlink", "LINK", "Ethena", "USDe", "USDe", "Monero", "XMR", "Stellar", "XLM", "Dai", "DAI", "Litecoin", "LTC", "PayPal", "USD", "PYUSD", "Hedera", "HBAR", "Avalanche", "AVAX", "Zcash", "ZEC", "Bittensor", "TAO", "Sui", "SUI", "Shiba Inu", "SHIB", "Cronos", "CRO", "Toncoin", "TON", "WLFI", "Tether", "Gold", "XAUt", "", "PAX", "Gold", "PAXG", "Mantle", "MNT", "Uniswap", "UNI", "Polkadot", "DOT", "USDG", "OKB", "OKB", "Aster", "ASTER", "Aave", "AAVE", "NEAR", "NEAR", "Ripple", "USD", "RLUSD", "Polygon", "POL"};
-            for (object i = 0; isLessThan(i, getArrayLength(allNetworkCodes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(allNetworkCodes)); postFixIncrement(ref i))
             {
-                object randomNetworkCode = getValue(allNetworkCodes, i);
-                for (object j = 0; isLessThan(j, getArrayLength(allCurrencyCodes)); postFixIncrement(ref j))
+                string? randomNetworkCode = ((string)getValue(allNetworkCodes, i));
+                for (int j = 0; isLessThan(j, getArrayLength(allCurrencyCodes)); postFixIncrement(ref j))
                 {
-                    object randomCurrencyCode = getValue(allCurrencyCodes, j);
+                    string? randomCurrencyCode = ((string)getValue(allCurrencyCodes, j));
                     object result = exchange.networkIdToCode(randomNetworkCode, randomCurrencyCode);
                     List<object> keys = new List<object>(((IDictionary<string,object>)defaultNetworkCodeReplacements).Keys);
-                    for (object k = 0; isLessThan(k, getArrayLength(keys)); postFixIncrement(ref k))
+                    for (int k = 0; isLessThan(k, getArrayLength(keys)); postFixIncrement(ref k))
                     {
-                        object chainBaseCoin = getValue(keys, k);
+                        string? chainBaseCoin = ((string)getValue(keys, k));
                         object chainMapping = getValue(defaultNetworkCodeReplacements, chainBaseCoin);
                         object primaryNetworkCode = getValue(chainMapping, "primary");
                         object secondaryNetworkCode = getValue(chainMapping, "secondary");

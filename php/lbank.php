@@ -169,6 +169,7 @@ class lbank extends Exchange {
                             'supplement/deposit_history' => array( 'cost' => 2.5 ),
                             'supplement/withdraws' => array( 'cost' => 2.5 ),
                             'supplement/get_deposit_address' => array( 'cost' => 2.5 ),
+                            'supplement/add_deposit_address' => array( 'cost' => 2.5 ),
                             'supplement/asset_detail' => array( 'cost' => 2.5 ),
                             'supplement/customer_trade_fee' => array( 'cost' => 2.5 ),
                             'supplement/api_Restrictions' => array( 'cost' => 2.5 ),
@@ -184,6 +185,12 @@ class lbank extends Exchange {
                             'supplement/orders_info_history' => array( 'cost' => 2.5 ),
                             'supplement/user_info_account' => array( 'cost' => 2.5 ),
                             'supplement/transaction_history' => array( 'cost' => 2.5 ),
+                            // new spot/wallet, spot/trade endpoints
+                            'spot/wallet/withdraw' => array( 'cost' => 2.5 ),
+                            'spot/wallet/deposit_history' => array( 'cost' => 2.5 ),
+                            'spot/wallet/withdraws' => array( 'cost' => 2.5 ),
+                            'spot/trade/orders_info' => array( 'cost' => 2.5 ),
+                            'spot/trade/orders_info_history' => array( 'cost' => 2.5 ),
                         ),
                     ),
                 ),
@@ -459,7 +466,7 @@ class lbank extends Exchange {
             $networkEntry = $networksRaw[$j];
             $networkId = $this->safe_string($networkEntry, 'chain');
             if ($networkId === null) {
-                $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type if $networkId is not present
+                $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type as fallback if $networkId is not present
             }
             $networkCode = $this->network_id_to_code($networkId, $code);
             if ($networkCode !== null) {
@@ -545,7 +552,7 @@ class lbank extends Exchange {
         //         "ts" => 1691560288484
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -642,7 +649,7 @@ class lbank extends Exchange {
         //         "success" => true
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -1185,7 +1192,7 @@ class lbank extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         // endpoint doesnt work
         if ($this->markets === null) {
@@ -1324,7 +1331,7 @@ class lbank extends Exchange {
         $toBtc = $this->safe_value($data, 'toBtc');
         if ($toBtc !== null) {
             $used = $this->safe_value($data, 'freeze', array());
-            $free = $this->safe_value($data, 'free', array());
+            $free = $this->safe_dict($data, 'free', array());
             $currencies = is_array($free) ? array_keys($free) : array();
             for ($i = 0; $i < count($currencies); $i++) {
                 $currencyId = $currencies[$i];
@@ -1595,7 +1602,7 @@ class lbank extends Exchange {
         }
         $request = array();
         $response = $this->spotPrivatePostSupplementCustomerTradeFee($this->extend($request, $params));
-        $fees = $this->safe_value($response, 'data', array());
+        $fees = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
@@ -1696,7 +1703,7 @@ class lbank extends Exchange {
                 } else {
                     $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
-                // $market buys require filling the $price param instead of the $amount param, for $market buys the $price is treated $cost by lbank
+                // $market buys require filling the $price param instead of the $amount param, for $market buys the $price is treated as the $cost by lbank
                 $request['price'] = $quoteAmount;
             }
         }
@@ -1986,7 +1993,7 @@ class lbank extends Exchange {
         //          "ts":1647455270776
         //      }
         //
-        $result = $this->safe_value($response, 'data', array());
+        $result = $this->safe_list($response, 'data', array());
         $numOrders = count($result);
         if ($numOrders === 1) {
             return $this->parse_order($result[0]);
@@ -2736,13 +2743,13 @@ class lbank extends Exchange {
         //        "code" => 0
         //    }
         //
-        $result = $this->safe_value($response, 'data', array());
+        $result = $this->safe_list($response, 'data', array());
         $withdrawFees = array();
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];
             $currencyId = $this->safe_string($entry, 'coin');
             $code = $this->safe_currency_code($currencyId);
-            $networkList = $this->safe_value($entry, 'networkList', array());
+            $networkList = $this->safe_list($entry, 'networkList', array());
             if ($code !== null) {
                 $withdrawFees[$code] = array();
             }
@@ -2801,7 +2808,7 @@ class lbank extends Exchange {
         //        "ts" => "1663364435973"
         //    }
         //
-        $result = $this->safe_value($response, 'data', array());
+        $result = $this->safe_list($response, 'data', array());
         $withdrawFees = array();
         for ($i = 0; $i < count($result); $i++) {
             $item = $result[$i];
@@ -3024,7 +3031,7 @@ class lbank extends Exchange {
         //
         $result = $this->deposit_withdraw_fee($fee);
         $code = $this->safe_string($currency, 'code');
-        $networkList = $this->safe_value($fee, 'networkList', array());
+        $networkList = $this->safe_list($fee, 'networkList', array());
         for ($j = 0; $j < count($networkList); $j++) {
             $networkEntry = $networkList[$j];
             $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);

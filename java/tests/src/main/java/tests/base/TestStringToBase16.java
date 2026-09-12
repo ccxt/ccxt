@@ -15,10 +15,10 @@ public class TestStringToBase16 extends BaseTest
                 put( "id", "sampleexchange" );
             }});
             Object result1 = exchange.stringToBase16("hello");
-            Object expected1 = "0x68656c6c6f";
+            String expected1 = "0x68656c6c6f";
             Assert(Helpers.isEqual(result1, expected1), Helpers.add(Helpers.add(Helpers.add("stringToBase16 failed for \"hello\", expected: ", expected1), ", got: "), result1));
             Object result2 = exchange.stringToBase16("world 1!@#$%^&*()");
-            Object expected2 = "0x776f726c64203121402324255e262a2829";
+            String expected2 = "0x776f726c64203121402324255e262a2829";
             Assert(Helpers.isEqual(result2, expected2), Helpers.add(Helpers.add(Helpers.add("stringToBase16 failed for \"world 1!@#$%^&*()\", expected: ", expected2), ", got: "), result2));
         }
 }

@@ -674,7 +674,7 @@ class digifinex(Exchange, ImplicitAPI):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             #
-            # The status is documented in the exchange API docs:
+            # The status is documented in the exchange API docs as follows:
             # TRADING, HALT(delisted), BREAK(trading paused)
             # https://docs.digifinex.vip/en-ww/v3/#/public/spot/symbols
             # However, all spot markets actually have status == 'HALT'
@@ -768,7 +768,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "code":0
         #     }
         #
-        markets = self.safe_value(response, 'data', [])
+        markets = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -1083,7 +1083,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         result = {}
-        tickers = self.safe_value_2(response, 'ticker', 'data', [])
+        tickers = self.safe_list_2(response, 'ticker', 'data', [])
         date = self.safe_integer(response, 'date')
         for i in range(0, len(tickers)):
             rawTicker = self.extend({
@@ -1536,7 +1536,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1629,7 +1629,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: True or False
         :param bool [params.reduceOnly]: True or False
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1933,7 +1933,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         if (marketType == 'spot') or (marketType == 'margin'):
-            canceledOrders = self.safe_value(response, 'success', [])
+            canceledOrders = self.safe_list(response, 'success', [])
             numCanceledOrders = len(canceledOrders)
             if numCanceledOrders != 1:
                 raise OrderNotFound(self.id + ' cancelOrder() ' + id + ' not found')
@@ -3108,7 +3108,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "equity": 45.133305540922
         #     }
         #
-        data = self.safe_value(response, 'list', [])
+        data = self.safe_list(response, 'list', [])
         result = None
         for i in range(0, len(data)):
             entry = data[i]
@@ -3324,7 +3324,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        result = self.safe_value(data, 'funding_rates', [])
+        result = self.safe_list(data, 'funding_rates', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]
@@ -3487,7 +3487,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         positionRequest = 'data' if (marketType == 'swap') else 'positions'
-        positions = self.safe_value(response, positionRequest, [])
+        positions = self.safe_list(response, positionRequest, [])
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i], market))
@@ -3574,7 +3574,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         dataRequest = 'data' if (marketType == 'swap') else 'positions'
-        data = self.safe_value(response, dataRequest, [])
+        data = self.safe_list(response, dataRequest, [])
         position = self.parse_position(data[0], market)
         if marketType == 'swap':
             return position

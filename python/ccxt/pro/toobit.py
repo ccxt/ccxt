@@ -264,7 +264,7 @@ class toobit(ccxt.async_support.toobit):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
@@ -281,7 +281,7 @@ class toobit(ccxt.async_support.toobit):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A list of candles ordered, open, high, low, close, volume
+        :returns dict: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1092,17 +1092,10 @@ class toobit(ccxt.async_support.toobit):
         if time - lastAuthenticatedTime > delay:
             self.check_required_credentials()
             # single-flight leader election on a never-dialed client, see
-            # https://github.com/ccxt/ccxt/issues/29393. the election used to
-            # run on self.client(self.get_user_stream_url()), but that url
-            # embeds the listenKey it is about to mint, so the client the
-            # flight registers on is not the client the next caller looks at:
-            # the cold call elected on .../ws/None and every later call
-            # landed on .../ws/<key> with an empty subscriptions map, found
-            # the key still fresh, skipped the fetch and hung on a future
-            # nobody resolves. client.futures is the registry: client.future()
-            # is the atomic check-and-insert and client.resolve() /
-            # client.reject() settle and remove the entry under the same lock
-            # in every port
+            # https://github.com/ccxt/ccxt/issues/29393: the user-stream url embeds the listenKey being minted,
+            # so the flight must not live on that client or later callers would look at a different one.
+            # client.futures is the registry: client.future() is the atomic check-and-insert and
+            # client.resolve() / client.reject() settle and remove the entry under the same lock in every port
             messageHash = 'authenticate'
             client = self.client('authenticationFlights')
             if messageHash in client.futures:

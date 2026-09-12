@@ -179,6 +179,7 @@ class modetrade extends Exchange {
                             'tv/config' => array( 'cost' => 1 ),
                             'tv/history' => array( 'cost' => 1 ),
                             'tv/symbol_info' => array( 'cost' => 1 ),
+                            'tv/kline_history' => array( 'cost' => 20 ),
                             'public/funding_rate_history' => array( 'cost' => 1 ),
                             'public/funding_rate/{symbol}' => array( 'cost' => 0.33 ),
                             'public/funding_rates' => array( 'cost' => 1 ),
@@ -191,6 +192,7 @@ class modetrade extends Exchange {
                         ),
                         'post' => array(
                             'register_account' => array( 'cost' => 1 ),
+                            'public/query' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
@@ -213,6 +215,7 @@ class modetrade extends Exchange {
                             'withdraw_nonce' => array( 'cost' => 1 ),
                             'settle_nonce' => array( 'cost' => 1 ),
                             'pnl_settlement/history' => array( 'cost' => 1 ),
+                            'internal_transfer_history' => array( 'cost' => 1 ),
                             'volume/user/daily' => array( 'cost' => 60 ),
                             'volume/user/stats' => array( 'cost' => 60 ),
                             'client/statistics' => array( 'cost' => 60 ),
@@ -226,8 +229,20 @@ class modetrade extends Exchange {
                             'volume/broker/daily' => array( 'cost' => 60 ),
                             'broker/fee_rate/default' => array( 'cost' => 10 ),
                             'broker/user_info' => array( 'cost' => 10 ),
+                            'broker/daily_fee_revenue' => array( 'cost' => 1 ),
                             'orderbook/{symbol}' => array( 'cost' => 1 ),
                             'kline' => array( 'cost' => 1 ),
+                            'client/leverages' => array( 'cost' => 1 ),
+                            'client/margin_modes' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/info' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin/referee_list' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin/summary' => array( 'cost' => 1 ),
+                            'referral/multi_level/max_rebate_rate' => array( 'cost' => 10 ),
+                            'referral/multi_level/rebate_info' => array( 'cost' => 10 ),
+                            'referral/multi_level/referee_list' => array( 'cost' => 1 ),
+                            'referral/multi_level/statistics' => array( 'cost' => 1 ),
+                            'referral/multi_level/volume_prerequisite' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'orderly_key' => array( 'cost' => 1 ),
@@ -240,9 +255,13 @@ class modetrade extends Exchange {
                             'claim_insurance_fund' => array( 'cost' => 1 ),
                             'withdraw_request' => array( 'cost' => 1 ),
                             'settle_pnl' => array( 'cost' => 1 ),
+                            'internal_transfer' => array( 'cost' => 1 ),
                             'notification/inbox/mark_read' => array( 'cost' => 60 ),
                             'notification/inbox/mark_read_all' => array( 'cost' => 60 ),
                             'client/leverage' => array( 'cost' => 120 ),
+                            'client/leverages' => array( 'cost' => 120 ),
+                            'client/margin_mode' => array( 'cost' => 1 ),
+                            'position_margin' => array( 'cost' => 1 ),
                             'client/maintenance_config' => array( 'cost' => 60 ),
                             'delegate_signer' => array( 'cost' => 10 ),
                             'delegate_orderly_key' => array( 'cost' => 10 ),
@@ -255,6 +274,15 @@ class modetrade extends Exchange {
                             'referral/update' => array( 'cost' => 10 ),
                             'referral/bind' => array( 'cost' => 10 ),
                             'referral/edit_split' => array( 'cost' => 10 ),
+                            'referral/edit_referee_description' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/update' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/create/affiliate' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin/reset/affiliate' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/update/affiliate' => array( 'cost' => 10 ),
+                            'referral/multi_level/claim_code' => array( 'cost' => 10 ),
+                            'referral/multi_level/rebate_rate/set_default' => array( 'cost' => 10 ),
+                            'referral/multi_level/rebate_rate/update' => array( 'cost' => 10 ),
                         ),
                         'put' => array(
                             'order' => array( 'cost' => 1 ),
@@ -310,12 +338,12 @@ class modetrade extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => false,
-                        'trailing' => true,
-                        'leverage' => true, // todo implement
+                        'trailing' => false,
+                        'leverage' => false,
                         'marketBuyByCost' => false,
                         'marketBuyRequiresPrice' => false,
                         'selfTradePrevention' => false,
-                        'iceberg' => true, // todo implement
+                        'iceberg' => false,
                     ),
                     'createOrders' => array(
                         'max' => 10,
@@ -340,7 +368,15 @@ class modetrade extends Exchange {
                         'trailing' => false,
                         'symbolRequired' => false,
                     ),
-                    'fetchOrders' => null,
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => 100000,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
@@ -355,9 +391,7 @@ class modetrade extends Exchange {
                         'limit' => 1000,
                     ),
                 ),
-                'spot' => array(
-                    'extends' => 'default',
-                ),
+                'spot' => null,
                 'forDerivatives' => array(
                     'extends' => 'default',
                     'createOrder' => array(
@@ -1280,7 +1314,7 @@ class modetrade extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe ?? '', ms))))
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1393,7 +1427,7 @@ class modetrade extends Exchange {
         $childOrders = $this->safe_value($order, 'childOrders');
         if ($childOrders !== null) {
             $first = $this->safe_value($childOrders, 0);
-            $innerChildOrders = $this->safe_value($first, 'childOrders', array());
+            $innerChildOrders = $this->safe_list($first, 'childOrders', array());
             $innerChildOrdersLength = count($innerChildOrders);
             if ($innerChildOrdersLength > 0) {
                 $takeProfitOrder = $this->safe_value($innerChildOrders, 0);
@@ -1465,7 +1499,7 @@ class modetrade extends Exchange {
             }
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function parse_order_type(?string $type) {
@@ -1606,8 +1640,11 @@ class modetrade extends Exchange {
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-         * @param {float} [$params->algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {string} [$params->algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+         * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
+         * @param {bool} [$params->postOnly] true or false whether the $order is post-only
+         * @param {string} [$params->timeInForce] 'IOC', 'FOK' or 'PO'
+         * @param {array[]} [$params->childOrders] *algo $order only* a list of child orders passed through to the exchange
          * @param {string} [$params->clientOrderId] a unique id for the $order
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
@@ -2062,7 +2099,7 @@ class modetrade extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500, or max 100 when $params->trigger(or the legacy $params->stop) is true
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {boolean} [$params->is_triggered] whether the order has been triggered (false by default)
@@ -2092,7 +2129,7 @@ class modetrade extends Exchange {
             $request['start_t'] = $since;
         }
         if ($limit !== null) {
-            $request['size'] = $limit;
+            $request['size'] = min($limit, $maxLimit);
         } else {
             $request['size'] = $maxLimit;
         }
@@ -2154,7 +2191,7 @@ class modetrade extends Exchange {
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500, or max 100 when $params->trigger(or the legacy $params->stop) is true
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {boolean} [$params->is_triggered] whether the order has been triggered (false by default)
@@ -2179,7 +2216,7 @@ class modetrade extends Exchange {
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500, or max 100 when $params->trigger(or the legacy $params->stop) is true
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {boolean} [$params->is_triggered] whether the order has been triggered (false by default)

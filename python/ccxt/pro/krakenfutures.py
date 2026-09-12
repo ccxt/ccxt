@@ -408,12 +408,24 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param int [since]: not used by krakenfutures watchOrders
         :param int [limit]: not used by krakenfutures watchOrders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.verbose]: whether to subscribe to the open_orders_verbose feed
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             await self.load_markets()
+        verbose = False
+        verbose, params = self.handle_option_and_params(params, 'watchOrders', 'verbose', False)
         name = 'open_orders'
         messageHash = 'orders'
+        if verbose:
+            name = 'open_orders_verbose'
+            messageHash = 'orders:verbose'
+        feed = self.safe_string(params, 'feed')
+        if feed is not None:
+            name = feed
+            messageHash = 'orders'
+            if feed == 'open_orders_verbose':
+                messageHash = 'orders:verbose'
         if symbol is not None:
             market = self.market(symbol)
             messageHash += ':' + market['symbol']
@@ -708,7 +720,10 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         order = self.safe_value(message, 'order')
         if order is not None:
             marketId = self.safe_string(order, 'instrument')
+            feed = self.safe_string(message, 'feed')
             messageHash = 'orders'
+            if feed == 'open_orders_verbose':
+                messageHash = 'orders:verbose'
             symbol = self.safe_symbol(marketId)
             orderId = self.safe_string(order, 'order_id')
             previousOrders = self.safe_value(orders.hashmap, symbol, {})
@@ -767,6 +782,10 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 status = 'canceled'
                 if reason == 'full_fill':
                     status = 'closed'
+                feed = self.safe_string(message, 'feed')
+                messageHash = 'orders'
+                if feed == 'open_orders_verbose':
+                    messageHash = 'orders:verbose'
                 # get order without symbol
                 for i in range(0, len(orders)):
                     currentOrder = orders[i]
@@ -778,8 +797,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                             'status': status,
                             'info': info,
                         })
-                        client.resolve(orders, 'orders')
-                        client.resolve(orders, 'orders:' + currentOrder['symbol'])
+                        client.resolve(orders, messageHash)
+                        client.resolve(orders, messageHash + ':' + currentOrder['symbol'])
                         break
         return message
 
@@ -831,9 +850,13 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #            ...
         #        ]
         #    }
-        orders = self.safe_value(message, 'orders', [])
+        orders = self.safe_list(message, 'orders', [])
         limit = self.safe_integer(self.options, 'ordersLimit')
         self.orders = ArrayCacheBySymbolById(limit)
+        feed = self.safe_string(message, 'feed')
+        messageHash = 'orders'
+        if feed == 'open_orders_verbose_snapshot':
+            messageHash = 'orders:verbose'
         symbols = {}
         cachedOrders = self.orders
         for i in range(0, len(orders)):
@@ -845,12 +868,12 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             cachedOrders.append(parsed)
         length = len(self.orders)
         if length > 0:
-            client.resolve(self.orders, 'orders')
+            client.resolve(self.orders, messageHash)
             keys = list(symbols.keys())
             for i in range(0, len(keys)):
                 symbol = keys[i]
-                messageHash = 'orders:' + symbol
-                client.resolve(self.orders, messageHash)
+                symbolMessageHash = messageHash + ':' + symbol
+                client.resolve(self.orders, symbolMessageHash)
 
     def parse_ws_order(self, order: object, market: Market = None):
         #
@@ -1362,7 +1385,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             self.balance['margin'] = self.safe_balance(self.balance['margin'])
             client.resolve(self.balance['margin'], messageHash + 'futures')
         if flexFutures is not None:
-            flexFutureCurrencies = self.safe_value(flexFutures, 'currencies', {})
+            flexFutureCurrencies = self.safe_dict(flexFutures, 'currencies', {})
             flexFuturesKeys = list(flexFutureCurrencies.keys())  # multi-collateral margin account
             flexFuturesResult = {
                 'info': message,
@@ -1410,7 +1433,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #        ]
         #    }
         #
-        trades = self.safe_value(message, 'fills', [])
+        trades = self.safe_list(message, 'fills', [])
         stored = self.myTrades
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -1498,7 +1521,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscriptionArgs)
 
-    def subscription_exists_for_hash(self, url: str, hash: str):
+    def subscription_exists_for_hash(self, url: str, hash: str) -> bool:
         client = self.client(url)
         return(hash in client.subscriptions)
 

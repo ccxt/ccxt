@@ -209,6 +209,8 @@ class coinone extends Exchange {
                         'transaction/krw/history' => array( 'cost' => 1 ),
                         'transaction/coin/history' => array( 'cost' => 1 ),
                         'transaction/coin/withdrawal/limit' => array( 'cost' => 1 ),
+                        'event/order-reward/programs' => array( 'cost' => 1 ),
+                        'event/order-reward/history' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -1079,7 +1081,7 @@ class coinone extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        // The returned amount might not be same ordered amount. If an order is partially filled, the returned amount means the remaining amount.
+        // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if ($symbol === null) {
             throw new ExchangeError($this->id . ' fetchOpenOrders() allows fetching closed orders with a specific symbol');
