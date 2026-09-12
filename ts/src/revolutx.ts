@@ -813,10 +813,10 @@ export default class revolutx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result: Trade[] = [];
+        const result: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const trade = this.safeDict (data, i, {});
-            result.push (this.parseTrade (trade, market));
+            result.push (trade);
         }
         return this.parseTradesDirectional (result, market, since, limit);
     }
