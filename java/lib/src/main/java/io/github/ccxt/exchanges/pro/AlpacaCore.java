@@ -142,8 +142,8 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "S");
-        Object datetime = this.safeString(ticker, "t");
+        String marketId = this.safeString(ticker, "S");
+        String datetime = this.safeString(ticker, "t");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", AlpacaCore.this.safeSymbol(marketId, market) );
             put( "timestamp", AlpacaCore.this.parse8601(datetime) );
@@ -228,8 +228,8 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //        "vw": 17421.9529234915
         //    }
         //
-        Object marketId = this.safeString(message, "S");
-        Object symbol = this.safeSymbol(marketId);
+        String marketId = this.safeString(message, "S");
+        String symbol = (String) this.safeSymbol(marketId);
         Object stored = this.safeValue(this.ohlcvs, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -302,9 +302,9 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //        "r": true,
         //    }
         //
-        Object marketId = this.safeString(message, "S");
-        Object symbol = this.safeSymbol(marketId);
-        Object datetime = this.safeString(message, "t");
+        String marketId = this.safeString(message, "S");
+        String symbol = (String) this.safeSymbol(marketId);
+        String datetime = this.safeString(message, "t");
         Long timestamp = this.parse8601(datetime);
         Object isSnapshot = this.safeBool(message, "r", false);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -399,8 +399,8 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //         "tks": "B"
         //     ]
         //
-        Object marketId = this.safeString(message, "S");
-        Object symbol = this.safeSymbol(marketId);
+        String marketId = this.safeString(message, "S");
+        String symbol = (String) this.safeSymbol(marketId);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -628,7 +628,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //      }
         //
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object eventVar = this.safeString(data, "event");
+        String eventVar = this.safeString(data, "event");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(eventVar, "fill")) && Helpers.isTrue(!Helpers.isEqual(eventVar, "partial_fill"))))
         {
             return;
@@ -692,9 +692,9 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(trade, "symbol");
-        Object datetime = this.safeString(trade, "filled_at");
-        Object type = this.safeString(trade, "type");
+        String marketId = this.safeString(trade, "symbol");
+        String datetime = this.safeString(trade, "filled_at");
+        String type = this.safeString(trade, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
             return null;
@@ -767,7 +767,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //        "msg": "invalid syntax"
         //    }
         //
-        Object code = this.safeString(message, "code");
+        String code = this.safeString(message, "code");
         Object msg = this.safeValue(message, "msg", new java.util.HashMap<String, Object>() {{}});
         throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " code: "), code), " message: "), msg)) ;
     }
@@ -788,8 +788,8 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
         {
             Object data = Helpers.GetValue(message, i);
-            Object T = this.safeString(data, "T");
-            Object msg = this.safeString(data, "msg");
+            String T = this.safeString(data, "T");
+            String msg = this.safeString(data, "msg");
             if (Helpers.isTrue(Helpers.isEqual(T, "subscription")))
             {
                 this.handleSubscription(client, data);
@@ -822,7 +822,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
 
     public void handleTradingMessage(Client client, Object message)
     {
-        Object stream = this.safeString(message, "stream");
+        String stream = this.safeString(message, "stream");
         java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "authorization", "handleAuthenticate");
             put( "listening", "handleSubscription");
@@ -872,9 +872,9 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //        }
         //    }
         //
-        Object T = this.safeString(message, "T");
+        String T = this.safeString(message, "T");
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object status = this.safeString(data, "status");
+        String status = this.safeString(data, "status");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(T, "success")) || Helpers.isTrue(Helpers.isEqual(status, "authorized"))))
         {
             Object promise = Helpers.GetValue(client.futures, "authenticated");

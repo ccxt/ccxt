@@ -189,7 +189,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(symbols))); i++)
             {
                 Object marketId = this.marketId(Helpers.GetValue((java.util.List<String>)(symbols), i));
-                Object symbol = this.symbol(marketId);
+                String symbol = this.symbol(marketId);
                 ((java.util.List<Object>)productIds).add(marketId);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(name, "::"), symbol));
             }
@@ -262,11 +262,11 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets()).join();
             }
             Object fundingRate = (this.subscribeMultiple("RISK", symbols, parameters)).join();
-            Object symbol = this.safeString(fundingRate, "symbol");
+            String symbol = this.safeString(fundingRate, "symbol");
             if (Helpers.isTrue(this.newUpdates))
             {
                 java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, symbol, fundingRate);
+                Helpers.addElementToObject(result, ((String)symbol), fundingRate);
                 return result;
             }
             return this.filterByArray(this.fundingRates, "symbol", symbols);
@@ -384,7 +384,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         //        "type":"SNAPSHOT"
         //    }
         Object ticker = this.parseWsInstrument(message);
-        Object channel = this.safeString(message, "channel");
+        String channel = this.safeString(message, "channel");
         client.resolve(ticker, channel);
         client.resolve(ticker, Helpers.add(Helpers.add(channel, "::"), Helpers.GetValue(ticker, "symbol")));
     }
@@ -445,8 +445,8 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         //   }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "product_id");
-        Object datetime = this.safeString(ticker, "time");
+        String marketId = this.safeString(ticker, "product_id");
+        String datetime = this.safeString(ticker, "time");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
             put( "symbol", CoinbaseinternationalCore.this.safeSymbol(marketId, market, "-") );
@@ -498,7 +498,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         //    }
         //
         Object ticker = this.parseWsTicker(message);
-        Object channel = this.safeString(message, "channel");
+        String channel = this.safeString(message, "channel");
         client.resolve(ticker, channel);
         client.resolve(ticker, Helpers.add(Helpers.add(channel, "::"), Helpers.GetValue(ticker, "symbol")));
     }
@@ -519,8 +519,8 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object datetime = this.safeString(ticker, "time");
-        Object marketId = this.safeString(ticker, "product_id");
+        String datetime = this.safeString(ticker, "time");
+        String marketId = this.safeString(ticker, "product_id");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
             put( "symbol", CoinbaseinternationalCore.this.safeSymbol(marketId, market) );
@@ -604,8 +604,8 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         //     ]
         //  }
         //
-        Object messageHash = this.safeString(message, "channel");
-        Object marketId = this.safeString(message, "product_id");
+        String messageHash = this.safeString(message, "channel");
+        String marketId = this.safeString(message, "product_id");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timeframe = this.findTimeframe(messageHash);
@@ -677,7 +677,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeDict(trades, 0);
-                Object tradeSymbol = this.safeString(first, "symbol");
+                String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -702,7 +702,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         //
         Object trade = this.parseWsTrade(message);
         Object symbol = Helpers.GetValue(trade, "symbol");
-        Object channel = this.safeString(message, "channel");
+        String channel = this.safeString(message, "channel");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, ((String)symbol)))))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -732,8 +732,8 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         //       "type": "UPDATE"
         //    }
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString2(trade, "symbol", "product_id");
-        Object datetime = this.safeString(trade, "time");
+        String marketId = this.safeString2(trade, "symbol", "product_id");
+        String datetime = this.safeString(trade, "time");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", CoinbaseinternationalCore.this.safeString(trade, "match_id") );
@@ -832,11 +832,11 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         //       "type": "UPDATE"
         //    }
         //
-        Object type = this.safeString(message, "type");
-        Object marketId = this.safeString(message, "product_id");
-        Object symbol = this.safeSymbol(marketId);
-        Object datetime = this.safeString(message, "time");
-        Object channel = this.safeString(message, "channel");
+        String type = this.safeString(message, "type");
+        String marketId = this.safeString(message, "product_id");
+        String symbol = (String) this.safeSymbol(marketId);
+        String datetime = this.safeString(message, "time");
+        String channel = this.safeString(message, "channel");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Long limit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
@@ -862,7 +862,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
 
     public void handleDelta(Object orderbook, Object delta)
     {
-        String rawSide = this.safeStringLower(delta, 0);
+        String rawSide = (String)this.safeStringLower(delta, 0);
         String side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "bids" : "asks";
         Double price = this.safeFloat(delta, 1);
         Double amount = this.safeFloat(delta, 2);
@@ -931,7 +931,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         //       "type": "UPDATE"
         //    }
         //
-        Object channel = this.safeString(message, "channel");
+        String channel = this.safeString(message, "channel");
         Object fundingRate = this.parseFundingRate(message);
         Helpers.addElementToObject(this.fundingRates, Helpers.GetValue(fundingRate, "symbol"), fundingRate);
         client.resolve(fundingRate, Helpers.add(Helpers.add(channel, "::"), Helpers.GetValue(fundingRate, "symbol")));
@@ -947,13 +947,13 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         //        type: 'REJECT'
         //    }
         //
-        Object type = this.safeString(message, "type");
+        String type = this.safeString(message, "type");
         if (Helpers.isTrue(!Helpers.isEqual(type, "REJECT")))
         {
             return false;
         }
-        Object reason = this.safeString(message, "reason");
-        Object errMsg = this.safeString(message, "message");
+        String reason = this.safeString(message, "reason");
+        String errMsg = this.safeString(message, "message");
         try
         {
             Object feedback = Helpers.add(Helpers.add(Helpers.add(this.id, " "), errMsg), reason);
@@ -973,7 +973,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         {
             return;
         }
-        Object channel = this.safeString(message, "channel", "");
+        String channel = this.safeString(message, "channel", "");
         java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "SUBSCRIPTIONS", "handleSubscriptionStatus");
             put( "INSTRUMENTS", "handleInstrument");
@@ -983,10 +983,10 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             put( "FUNDING", "handleFundingRate");
             put( "RISK", "handleTicker");
         }};
-        Object type = this.safeString(message, "type");
+        String type = this.safeString(message, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "error")))
         {
-            Object errorMessage = this.safeString(message, "message");
+            String errorMessage = this.safeString(message, "message");
             throw new ExchangeError((String)((String)errorMessage)) ;
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(channel, "CANDLES"), Helpers.opNeg(1))))

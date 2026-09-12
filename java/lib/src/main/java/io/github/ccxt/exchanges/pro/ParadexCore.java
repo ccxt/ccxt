@@ -184,7 +184,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object parsedTrade = this.parseTrade(data);
         Object symbol = Helpers.GetValue(parsedTrade, "symbol");
-        Object messageHash = this.safeString(parameters, "channel");
+        String messageHash = this.safeString(parameters, "channel");
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -266,7 +266,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //
         Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(data, "market");
+        String marketId = this.safeString(data, "market");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Long timestamp = this.safeInteger(data, "last_updated_at");
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -282,9 +282,9 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<Object>)(inserts))); i++)
         {
             Object insert = this.safeDict(inserts, i);
-            Object side = this.safeString(insert, "side");
-            Object price = this.safeString(insert, "price");
-            Object size = this.safeString(insert, "size");
+            String side = this.safeString(insert, "side");
+            String price = this.safeString(insert, "price");
+            String size = this.safeString(insert, "size");
             if (Helpers.isTrue(Helpers.isEqual(side, "BUY")))
             {
                 ((java.util.List<Object>)Helpers.GetValue(orderbookData, "bids")).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, size)));
@@ -297,7 +297,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
         Helpers.addElementToObject(snapshot, "nonce", this.safeInteger(data, "seq_no"));
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
-        Object messageHash = this.safeString(parameters, "channel");
+        String messageHash = this.safeString(parameters, "channel");
         client.resolve(orderbook, messageHash);
     }
 
@@ -480,7 +480,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object parsed = this.parseOrder(data);
-        Object symbol = this.safeString(parsed, "symbol");
+        String symbol = this.safeString(parsed, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -524,10 +524,10 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //
         Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(data, "symbol");
+        String marketId = this.safeString(data, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object channel = this.safeString(parameters, "channel");
+        String channel = this.safeString(parameters, "channel");
         Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
         Object ticker = this.parseTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -659,7 +659,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object fundingRate = this.parseFundingRateWs(data);
         Object symbol = Helpers.GetValue(fundingRate, "symbol");
         Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
-        Object channel = this.safeString(parameters, "channel");
+        String channel = this.safeString(parameters, "channel");
         Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
         client.resolve(fundingRate, messageHash);
     }
@@ -678,10 +678,10 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(contract, "market");
-        Object symbol = this.safeSymbol(marketId, market);
+        String marketId = this.safeString(contract, "market");
+        String symbol = (String) this.safeSymbol(marketId, market);
         Long timestamp = this.safeInteger(contract, "created_at");
-        Object fundingPeriod = this.safeString(contract, "funding_period_hours");
+        String fundingPeriod = this.safeString(contract, "funding_period_hours");
         final Object finalFundingPeriod = fundingPeriod;
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
@@ -727,7 +727,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             return true;
         } else
         {
-            Object errorCode = this.safeString(error, "code");
+            String errorCode = this.safeString(error, "code");
             if (Helpers.isTrue(!Helpers.isEqual(errorCode, null)))
             {
                 Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(error));
@@ -785,9 +785,9 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object data = this.safeDict(message, "params");
         if (Helpers.isTrue(!Helpers.isEqual(data, null)))
         {
-            Object channel = this.safeString(data, "channel");
+            String channel = this.safeString(data, "channel");
             Object parts = Helpers.split(((String)channel), ".");
-            Object name = this.safeString(parts, 0);
+            String name = this.safeString(parts, 0);
             java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "trades", "handleTrade");
                 put( "order_book", "handleOrderBook");

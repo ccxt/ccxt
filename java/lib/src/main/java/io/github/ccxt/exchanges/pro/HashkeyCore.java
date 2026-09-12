@@ -123,7 +123,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object interval = this.safeString(this.timeframes, timeframe, timeframe);
+            String interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object topic = Helpers.add("kline_", interval);
             String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv:", symbol), ":"), timeframe);
             Object ohlcv = (this.wathPublic(market, topic, messageHash, parameters)).join();
@@ -164,15 +164,15 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         //         "shared": false
         //     }
         //
-        Object marketId = this.safeString(message, "symbol");
+        String marketId = this.safeString(message, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
         }
         Object parameters = this.safeDict(message, "params");
-        Object klineType = this.safeString(parameters, "klineType");
+        String klineType = this.safeString(parameters, "klineType");
         Object timeframe = this.findTimeframe(klineType);
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
@@ -340,7 +340,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         //         "shared": false
         //     }
         //
-        Object marketId = this.safeString(message, "symbol");
+        String marketId = this.safeString(message, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
@@ -426,8 +426,8 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         //         "shared": false
         //     }
         //
-        Object marketId = this.safeString(message, "symbol");
-        Object symbol = this.safeSymbol(marketId);
+        String marketId = this.safeString(message, "symbol");
+        String symbol = (String) this.safeSymbol(marketId);
         String messageHash = (String) Helpers.add("orderbook:", symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -539,7 +539,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
     public Object parseWsOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(order, "s");
+        String marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(order, "O");
         Object side = this.safeStringLower(order, "S");
@@ -701,7 +701,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(trade, "s");
+        String marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(trade, "t");
         Object isBuyerMaker = this.safeBool(trade, "m");
@@ -829,7 +829,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
     public Object parseWsPosition(Object position, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(position, "s");
+        String marketId = this.safeString(position, "s");
         market = this.safeMarket(marketId);
         Long timestamp = this.safeInteger(position, "E");
         final Object finalMarket = market;
@@ -971,7 +971,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         //         ]
         //     }
         //
-        Object eventVar = this.safeString(message, "e");
+        String eventVar = this.safeString(message, "e");
         Object data = this.safeList(message, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object balanceUpdate = this.safeDict(data, 0);
         Boolean isSpot = Helpers.isEqual(eventVar, "outboundAccountInfo");
@@ -981,8 +981,8 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             Helpers.addElementToObject(this.balance, type, new java.util.HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "info", message);
-        Object currencyId = this.safeString(balanceUpdate, "a");
-        Object code = this.safeCurrencyCode(currencyId);
+        String currencyId = this.safeString(balanceUpdate, "a");
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(balanceUpdate, "f"));
         Helpers.addElementToObject(account, "used", this.safeString(balanceUpdate, "l"));
@@ -1001,7 +1001,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object listenKey = this.safeString(this.options, "listenKey");
+            String listenKey = this.safeString(this.options, "listenKey");
             if (Helpers.isTrue(!Helpers.isEqual(listenKey, null)))
             {
                 return listenKey;
@@ -1098,7 +1098,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         {
             message = this.safeDict(message, 0, new java.util.HashMap<String, Object>() {{}});
         }
-        Object topic = this.safeString2(message, "topic", "e");
+        String topic = this.safeString2(message, "topic", "e");
         if (Helpers.isTrue(Helpers.isEqual(topic, "kline")))
         {
             this.handleOHLCV(client, message);
