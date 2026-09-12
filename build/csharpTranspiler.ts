@@ -4098,3 +4098,7 @@ async function runMain () {
 if (isMainEntry(metaUrl)) {
     await runMain();
 }
+
+export {
+    NewTranspiler,
+}
