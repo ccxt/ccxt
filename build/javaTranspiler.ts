@@ -18,7 +18,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
 ansi.nice
@@ -863,6 +863,12 @@ class NewTranspiler {
         // method returns those locals rely on, and the conditional-arm restorations —
         // same module, additive section (also applied per worker thread in java-worker.ts)
         installJavaNumericLocalTypes(this.transpiler);
+        // SS-12: drop the redundant (String) wrapper on the receiver slot of the
+        // string-method prints (x.toUpperCase()/x.length()/Helpers.replace((String)x,..))
+        // when the receiver local's emitted Java declaration is `String` — installed
+        // LAST so its declaration observer sees the final text of the whole chain
+        // (also applied per worker thread in java-worker.ts)
+        patchJavaStringReceiverCasts(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a

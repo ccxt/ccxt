@@ -3232,7 +3232,7 @@ public class BitrueCore extends BitrueApi
             String networkId = this.safeString(parts, 1);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
             {
-                network = ((String)networkId).toUpperCase();
+                network = networkId.toUpperCase();
             }
         }
         String code = (String) this.safeCurrencyCode(currencyId, currency);

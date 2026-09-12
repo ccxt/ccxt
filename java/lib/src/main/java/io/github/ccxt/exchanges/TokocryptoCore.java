@@ -2624,7 +2624,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             String address = this.safeString(data, "address");
             String tag = this.safeString(data, "addressTag", "");
-            if (Helpers.isTrue(Helpers.isEqual(((String)tag).length(), 0)))
+            if (Helpers.isTrue(Helpers.isEqual(tag.length(), 0)))
             {
                 tag = null;
             }
@@ -2867,7 +2867,7 @@ public class TokocryptoCore extends TokocryptoApi
         String tag = this.safeString(transaction, "addressTag"); // set but unused
         if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(((String)tag).length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(tag.length(), 1)))
             {
                 tag = null;
             }

@@ -1011,19 +1011,19 @@ public class HibachiCore extends HibachiApi
         String feeRateInternal = Precise.stringDiv(Precise.stringMul(feeRateStr, feeRateFactor), one, 0);
         // Encoding
         String nonce16 = this.intToBase16(nonce);
-        Object noncePadded = Helpers.padStart((String)nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        Object noncePadded = Helpers.padStart(nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedNonce = this.base16ToBinary(noncePadded);
         String numericId = this.intToBase16(this.safeInteger(market, "numericId"));
-        Object numericIdPadded = Helpers.padStart((String)numericId, ((Number)8).intValue(), ((String)"0").charAt(0));
+        Object numericIdPadded = Helpers.padStart(numericId, ((Number)8).intValue(), ((String)"0").charAt(0));
         Object encodedMarketId = this.base16ToBinary(numericIdPadded);
         String quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
-        Object quantityPadded = Helpers.padStart((String)quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        Object quantityPadded = Helpers.padStart(quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedQuantity = this.base16ToBinary(quantityPadded);
         String sideInternal16 = this.intToBase16(sideInternal);
-        Object sidePadded = Helpers.padStart((String)sideInternal16, ((Number)8).intValue(), ((String)"0").charAt(0));
+        Object sidePadded = Helpers.padStart(sideInternal16, ((Number)8).intValue(), ((String)"0").charAt(0));
         Object encodedSide = this.base16ToBinary(sidePadded);
         String feeRateInternal16 = this.intToBase16(this.parseToInt(feeRateInternal));
-        Object feeRatePadded = Helpers.padStart((String)feeRateInternal16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        Object feeRatePadded = Helpers.padStart(feeRateInternal16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedFeeRate = this.base16ToBinary(feeRatePadded);
         Object encodedPrice = this.binaryConcat();
         if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
@@ -1031,7 +1031,7 @@ public class HibachiCore extends HibachiApi
             Object priceStr = this.priceToPrecision(this.safeString(market, "symbol"), price);
             String priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             String price16 = this.intToBase16(this.parseToInt(priceInternal));
-            Object pricePadded = Helpers.padStart((String)price16, ((Number)16).intValue(), ((String)"0").charAt(0));
+            Object pricePadded = Helpers.padStart(price16, ((Number)16).intValue(), ((String)"0").charAt(0));
             // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
@@ -1343,7 +1343,7 @@ public class HibachiCore extends HibachiApi
     {
         Object bigid = this.convertToBigInt(id);
         String idbase16 = this.intToBase16(bigid);
-        Object idPadded = Helpers.padStart((String)idbase16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        Object idPadded = Helpers.padStart(idbase16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object message = this.base16ToBinary(idPadded);
         Object signature = this.signMessage(message, this.privateKey);
         return new java.util.HashMap<String, Object>() {{
@@ -1455,7 +1455,7 @@ public class HibachiCore extends HibachiApi
             }
             Object nonce = this.nonce();
             String nonce16 = this.intToBase16(nonce);
-            Object noncePadded = Helpers.padStart((String)nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
+            Object noncePadded = Helpers.padStart(nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
             Object message = this.base16ToBinary(noncePadded);
             Object signature = this.signMessage(message, this.privateKey);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1495,13 +1495,13 @@ public class HibachiCore extends HibachiApi
         String maxFeesInternal = Precise.stringDiv(Precise.stringMul(maxFeesStr, USDTFactor), one, 0);
         // Encoding
         String usdtAsset16 = this.intToBase16(USDTAssetId);
-        Object usdtAssetPadded = Helpers.padStart((String)usdtAsset16, ((Number)8).intValue(), ((String)"0").charAt(0));
+        Object usdtAssetPadded = Helpers.padStart(usdtAsset16, ((Number)8).intValue(), ((String)"0").charAt(0));
         Object encodedAssetId = this.base16ToBinary(usdtAssetPadded);
         String quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
-        Object quantityPadded = Helpers.padStart((String)quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        Object quantityPadded = Helpers.padStart(quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedQuantity = this.base16ToBinary(quantityPadded);
         String maxFees16 = this.intToBase16(this.parseToInt(maxFeesInternal));
-        Object maxFeesPadded = Helpers.padStart((String)maxFees16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        Object maxFeesPadded = Helpers.padStart(maxFees16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedMaxFees = this.base16ToBinary(maxFeesPadded);
         Object encodedAddress = this.base16ToBinary(address);
         Object message = this.binaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);
@@ -1607,7 +1607,7 @@ public class HibachiCore extends HibachiApi
             Object r = Helpers.GetValue(signature, "r");
             Object s = Helpers.GetValue(signature, "s");
             String v = this.intToBase16(Helpers.GetValue(signature, "v"));
-            return Helpers.add(Helpers.add(Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0)), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart((String)v, ((Number)2).intValue(), ((String)"0").charAt(0)));
+            return Helpers.add(Helpers.add(Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0)), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart(v, ((Number)2).intValue(), ((String)"0").charAt(0)));
         }
     }
 

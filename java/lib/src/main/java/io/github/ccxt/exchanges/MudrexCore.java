@@ -335,7 +335,7 @@ public class MudrexCore extends MudrexApi
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errCode, Helpers.add(Helpers.add(this.id, " "), text));
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), text, Helpers.add(Helpers.add(this.id, " "), text));
             Object msg = Helpers.add(Helpers.add(this.id, " "), text);
-            Object low = ((String)text).toLowerCase();
+            Object low = text.toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(code, 401)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "auth"), 0))))
             {
                 throw new AuthenticationError((String)msg) ;
@@ -676,7 +676,7 @@ public class MudrexCore extends MudrexApi
     {
         String ms = this.safeString(asset, "symbol");
         Object base = ms;
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(ms, null)) && Helpers.isTrue(((String)ms).endsWith(((String)"USDT")))))
+        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(ms, null)) && Helpers.isTrue(ms.endsWith(((String)"USDT")))))
         {
             base = Helpers.slice(ms, 0, Helpers.opNeg(4));
         }

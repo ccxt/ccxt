@@ -1432,7 +1432,7 @@ public class GeminiCore extends GeminiApi
         Object quote = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isEqual(market, null)))))
         {
-            Object idLength = Helpers.subtract(((String)marketId).length(), 0);
+            Object idLength = Helpers.subtract(marketId.length(), 0);
             if (Helpers.isTrue(Helpers.isEqual(idLength, 7)))
             {
                 baseId = Helpers.slice(marketId, 0, 4);

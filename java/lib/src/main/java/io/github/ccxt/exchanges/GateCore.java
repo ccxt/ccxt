@@ -2222,7 +2222,7 @@ public class GateCore extends GateApi
                 String id = this.safeString(spotMarket, "id");
                 Object marginMarket = this.safeValue(marginMarkets, id);
                 java.util.Map<String, Object> market = this.deepExtend(marginMarket, spotMarket);
-                var baseIdquoteIdVariable = Helpers.split(((String)id), "_");
+                var baseIdquoteIdVariable = Helpers.split(id, "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 String base = (String) this.safeCurrencyCode(baseId);
@@ -2464,7 +2464,7 @@ public class GateCore extends GateApi
         //    }
         //
         String id = this.safeString(market, "name");
-        Object parts = Helpers.split(((String)id), "_");
+        Object parts = Helpers.split(id, "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String date = this.safeString(parts, 2);
@@ -4217,7 +4217,7 @@ public class GateCore extends GateApi
             {
                 this.checkRequiredArgument("fetchTickers", symbols, "symbols");
                 String marketId = this.safeString(market, "id");
-                Object optionParts = Helpers.split(((String)marketId), "-");
+                Object optionParts = Helpers.split(marketId, "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 response = (this.publicOptionsGetTickers(this.extend(request, requestParams))).join();
             } else
@@ -6122,7 +6122,7 @@ final Object finalPointFee = pointFee;
                 //     prefixed with t-
                 //     no longer than 28 bytes without t- prefix
                 //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
-                if (Helpers.isTrue(Helpers.isGreaterThan(((String)clientOrderId).length(), 28)))
+                if (Helpers.isTrue(Helpers.isGreaterThan(clientOrderId.length(), 28)))
                 {
                     throw new BadRequest((String)Helpers.add(this.id, " createOrder () clientOrderId or text param must be up to 28 characters")) ;
                 }
@@ -6709,11 +6709,11 @@ final Object finalPointFee = pointFee;
             timestampStr = this.safeString2(order, "create_time", "ctime");
             if (Helpers.isTrue(!Helpers.isEqual(timestampStr, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(((String)timestampStr).length(), 10)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(timestampStr, "."), 0))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(timestampStr.length(), 10)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(timestampStr, "."), 0))))
                 {
                     // ts in seconds, multiply to ms
                     timestampStr = Precise.stringMul(timestampStr, "1000");
-                } else if (Helpers.isTrue(Helpers.isEqual(((String)timestampStr).length(), 16)))
+                } else if (Helpers.isTrue(Helpers.isEqual(timestampStr.length(), 16)))
                 {
                     // ts in microseconds, divide to ms
                     timestampStr = Precise.stringDiv(timestampStr, "1000");
@@ -6726,11 +6726,11 @@ final Object finalPointFee = pointFee;
             lastTradeTimestampStr = this.safeString2(order, "update_time", "finish_time");
             if (Helpers.isTrue(!Helpers.isEqual(lastTradeTimestampStr, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(((String)lastTradeTimestampStr).length(), 10)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(lastTradeTimestampStr, "."), 0))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(lastTradeTimestampStr.length(), 10)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(lastTradeTimestampStr, "."), 0))))
                 {
                     // ts in seconds, multiply to ms
                     lastTradeTimestampStr = Precise.stringMul(lastTradeTimestampStr, "1000");
-                } else if (Helpers.isTrue(Helpers.isEqual(((String)lastTradeTimestampStr).length(), 16)))
+                } else if (Helpers.isTrue(Helpers.isEqual(lastTradeTimestampStr.length(), 16)))
                 {
                     // ts in microseconds, divide to ms
                     lastTradeTimestampStr = Precise.stringDiv(lastTradeTimestampStr, "1000");
@@ -8279,7 +8279,7 @@ final Object finalRebate = rebate;
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
                     String marketId = this.safeString(market, "id");
-                    Object optionParts = Helpers.split(((String)marketId), "-");
+                    Object optionParts = Helpers.split(marketId, "-");
                     Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 }
             } else
@@ -9838,7 +9838,7 @@ final Object finalI = i;
         String type = this.safeString(item, "type");
         String rawTimestamp = this.safeString(item, "time");
         Object timestamp = null;
-        if (Helpers.isTrue(Helpers.isGreaterThan(((String)((String)rawTimestamp)).length(), 10)))
+        if (Helpers.isTrue(Helpers.isGreaterThan(rawTimestamp.length(), 10)))
         {
             timestamp = Helpers.parseInt(((String)rawTimestamp));
         } else

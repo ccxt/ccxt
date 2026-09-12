@@ -734,7 +734,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String orderType = this.safeString(parameters, "ordType", type);
-            Object uppercaseOrderType = ((String)orderType).toUpperCase();
+            Object uppercaseOrderType = orderType.toUpperCase();
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("ordType", "clientOrderId", "clOrdId")));
             if (Helpers.isTrue(Helpers.isEqual(side, null)))

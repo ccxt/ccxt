@@ -5105,3 +5105,282 @@ export function installJavaNumericLocalTypes (transpiler) {
     };
     printer._javaNumericTypesPatched = true;
 }
+
+// ===== SS-12 slice: string-method RECEIVERS on String-declared locals =====
+//
+// The Java print methods hard-cast the receiver of the whole TS string-method family:
+//
+//   x.toUpperCase ()   -> ((String)x).toUpperCase()        x.search (y)     -> ((String)x).indexOf(y)
+//   x.toLowerCase ()   -> ((String)x).toLowerCase()        x.startsWith (y) -> ((String)x).startsWith(((String)y))
+//   x.trim ()          -> ((String)x).trim()               x.endsWith (y)   -> ((String)x).endsWith(((String)y))
+//   x.replace (a, b)   -> Helpers.replace((String)x, ...)  x.replaceAll (a, b) -> Helpers.replaceAll((String)x, ...)
+//   x.padEnd (n, s)    -> Helpers.padEnd((String)x, ...)   x.padStart (n, s)   -> Helpers.padStart((String)x, ...)
+//   x.length           -> ((String)x).length()             (string-typed receiver only; otherwise getArrayLength)
+//
+// and the TS `x as string` receiver spelling prints its own checkcast through
+// printAsExpression, so the methods that lower to an Object-taking helper carry the
+// wrapper in the receiver slot too:
+//
+//   (x as string).split (y)   -> Helpers.split(((String)x), y)
+//   (x as string).indexOf (y) -> Helpers.getIndexOf(((String)x), y)
+//   (x as string).slice ...   -> Helpers.slice(((String)x), ...)
+//
+// When the receiver identifier is a local the generated Java ALREADY declares `String`
+// (every safeString-family local, the string-element reads, the dataflow-proven family,
+// the literal String family), the checkcast is an identity cast on a String/null box:
+// the wrapper is pure noise that this slice removes AT THE RECEIVER SLOT ONLY. The
+// methods covered are exactly the ones the use scanner admits for the String family
+// (STRING_RECEIVER_METHODS: 'join'/'sort' are NOT in it — a String local can never be
+// their receiver; patchJavaDataflowTypes' header lists the same whitelist), so no
+// accepted retype depends on the cast staying:
+//
+//   * the cast-emitting print methods above (toUpperCase/toLowerCase/trim/search/
+//     startsWith/endsWith/replace/replaceAll/padEnd/padStart) and the `x.length`
+//     property path (transformPropertyAcessExpressionIfNeeded);
+//   * printAsExpression, ONLY when the `x as string` node is the receiver of a method
+//     call in that whitelist (or of a `.length` read) — a `(x as string)` in an
+//     argument position keeps its cast (a different slice).
+//
+// The receiver's emitted type is read from THIS module's own decisions: the observer in
+// (1) records every declaration line the printer really emits as `String <name> = `.
+// It is installed as the OUTERMOST printVariableDeclarationList wrapper — this patcher
+// is called AFTER installJavaLocalTypes / patchJavaLiteralLocalTypes /
+// installJavaNumericLocalTypes at both install sites — so it sees the final text of the
+// whole chain. postProcessWsJava's "String type fixes" pass (`String <n> = (this.<m>(|Helpers.)...;`
+// -> `Object`, build/javaTranspiler.ts) runs later over the WS/prediction file text, so
+// a declaration that pass would revert is never recorded — the same condition the
+// dataflow engine applies (DATAFLOW_WS_SOURCE_FILE + a value starting with `this.` or
+// `Helpers.`). Declarations whose uses print before the declaration (a lambda body
+// printed above it) simply miss the record and keep the printer's wrapper — the change
+// is monotone, never adds a cast, and never touches a local that stays `Object`.
+//
+// Value-identical: `(String)x` on the String/null boxes this module types is an
+// identity checkcast (and a null passes it); dropping it moves no runtime value.
+// An identifier the printer renamed to its `finalX` capture (`final Object finalX =
+// x;` inside an object literal) proves a different emitted type, so the receiver check
+// requires the printed identifier to still carry the declaration's own name.
+
+// would postProcessWsJava's "String type fixes" pass rewrite `String <name> = <value>`
+// back to Object? (mirror of the regex in build/javaTranspiler.ts)
+const JAVA_STRING_RECEIVER_WS_REVERT = /^(?:this\.\w+\(|Helpers\.)/;
+
+// is the nearest STATEMENT ancestor of `node` (or anything nested inside it) a
+// `cond ? a : b`? Such a statement's printed lines must not be rewritten by this slice
+// (see javaEmittedStringReceiverText). Conservative: one ternary anywhere in the
+// statement opts every receiver of that statement out.
+function javaStatementPrintsTernary (node) {
+    let statement = node;
+    while (statement !== undefined && !ts.isStatement (statement)) {
+        statement = statement.parent;
+    }
+    if (statement === undefined) {
+        return false;
+    }
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.ConditionalExpression) {
+            found = true;
+            return;
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (statement, visit);
+    return found;
+}
+
+// the AST declaration nodes whose FINAL emitted Java declaration spells `String <name> =`
+// (and that postProcessWsJava will not revert) — filled by the observer below
+const javaEmittedStringLocals = new WeakSet ();
+
+const STRING_RECEIVER_DEBUG = process.env['CCXT_JAVA_STRING_RECEIVER_DEBUG'] === '1';
+
+function stringReceiverDebug (message) {
+    if (STRING_RECEIVER_DEBUG) {
+        console.error ('[java-string-receiver] ' + message);
+    }
+}
+
+// install the slice: (1) the declaration observer, (2) the receiver slots on
+// printAsExpression + the ten cast-emitting call methods + the length path.
+// Safe to call more than once (guard flag); chains with every other patcher.
+export function patchJavaStringReceiverCasts (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaStringReceiverPatched) {
+        return;
+    }
+    // (1) observe the declaration lines the whole chain emitted. Installed last on
+    // purpose (see the header): only the outermost wrapper sees the final text.
+    const upstreamDeclaration = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamDeclaration (node, identation);
+        try {
+            observeJavaStringDeclaration (printer, node, identation, printed);
+        } catch (e) {
+            // never break a print on an observer error
+        }
+        return printed;
+    };
+    // (2) `(x as string)` in a receiver position: drop the printAsExpression cast.
+    const upstreamAs = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        const clean = (node !== undefined && isJavaStringMethodReceiver (node))
+            ? javaEmittedStringReceiverText (printer, node, undefined)
+            : undefined;
+        if (STRING_RECEIVER_DEBUG && ts.isAsExpression (node) && node.type?.kind === ts.SyntaxKind.StringKeyword) {
+            const parent = node.parent;
+            stringReceiverDebug (`as-string ${node.expression?.escapedText} parent=${parent === undefined ? 'none' : ts.SyntaxKind[parent.kind]} receiver=${isJavaStringMethodReceiver (node)} clean=${clean}`);
+        }
+        if (clean !== undefined) {
+            return printer.printNode (node.expression, identation);
+        }
+        return upstreamAs (node, identation);
+    };
+    // (3) the cast-emitting call methods: rebuild the receiver slot without the cast.
+    // Each rebuild reproduces the upstream text byte-for-byte except for the receiver
+    // slot — the argument casts the printer emits are kept as they are.
+    patchJavaStringReceiverCall (printer, 'printToUpperCaseCall', (clean) => `${clean}.toUpperCase()`);
+    patchJavaStringReceiverCall (printer, 'printToLowerCaseCall', (clean) => `${clean}.toLowerCase()`);
+    patchJavaStringReceiverCall (printer, 'printTrimCall', (clean) => `${clean}.trim()`);
+    patchJavaStringReceiverCall (printer, 'printSearchCall', (clean, arg) => `${clean}.indexOf(${arg})`);
+    patchJavaStringReceiverCall (printer, 'printStartsWithCall', (clean, arg) => `${clean}.startsWith(((String)${arg}))`);
+    patchJavaStringReceiverCall (printer, 'printEndsWithCall', (clean, arg) => `${clean}.endsWith(((String)${arg}))`);
+    patchJavaStringReceiverCall (printer, 'printReplaceCall',
+        (clean, arg, arg2) => `Helpers.replace(${clean}, (String)${arg}, (String)${arg2})`);
+    patchJavaStringReceiverCall (printer, 'printReplaceAllCall',
+        (clean, arg, arg2) => `Helpers.replaceAll(${clean}, (String)${arg}, (String)${arg2})`);
+    patchJavaStringReceiverCall (printer, 'printPadEndCall',
+        (clean, arg, arg2) => `Helpers.padEnd(${clean}, ((Number)${arg}).intValue(), ((String)${arg2}).charAt(0))`);
+    patchJavaStringReceiverCall (printer, 'printPadStartCall',
+        (clean, arg, arg2) => `Helpers.padStart(${clean}, ((Number)${arg}).intValue(), ((String)${arg2}).charAt(0))`);
+    // (4) `x.length`: when the printer took its String branch (`((String)x).length()`),
+    // a String-declared receiver needs neither the cast nor the helper.
+    const upstreamTransform = printer.transformPropertyAcessExpressionIfNeeded.bind (printer);
+    printer.transformPropertyAcessExpressionIfNeeded = function (node) {
+        const transformed = upstreamTransform (node);
+        if (typeof transformed !== 'string' || node?.name?.escapedText !== 'length'
+            || !transformed.startsWith ('((String)')) {
+            return transformed; // not the length path, or the Helpers.getArrayLength branch
+        }
+        const clean = javaEmittedStringReceiverText (printer, node.expression, undefined);
+        return clean === undefined ? transformed : `${clean}.length()`;
+    };
+    printer._javaStringReceiverPatched = true;
+}
+
+// record `String <name> = ` declarations (see the header); called with the FINAL
+// printed text of the whole printVariableDeclarationList chain
+function observeJavaStringDeclaration (printer, node, identation, printed) {
+    const declarations = node?.declarations;
+    if (declarations === undefined || declarations.length !== 1) {
+        return;
+    }
+    const declaration = declarations[0];
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.initializer === undefined) {
+        return;
+    }
+    const iden = printer.getIden (identation);
+    const printedName = printer.printNode (declaration.name, 0);
+    const marker = `${iden}String ${printedName} = `;
+    const at = printed.lastIndexOf (marker);
+    if (at === -1 || (at > 0 && printed.charAt (at - 1) !== '\n')) {
+        return; // the chain left the declaration `Object` (or the marker is not a line start)
+    }
+    const value = printed.slice (at + marker.length);
+    if (JAVA_STRING_RECEIVER_WS_REVERT.test (value)
+        && DATAFLOW_WS_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
+        return; // postProcessWsJava's "String type fixes" pass rewrites it back to Object
+    }
+    javaEmittedStringLocals.add (declaration);
+}
+
+// the printed receiver text with the redundant `(String)` wrapper removed, or undefined
+// when the node is not a String-declared local worth touching. `node` is the receiver
+// expression itself (identifier, `x as string`, or a parenthesised form of either).
+function javaEmittedStringReceiverText (printer, node, printedName) {
+    // a statement that prints a ternary stays byte-identical to the baseline: the
+    // campaign's diff audit greps every ADDED java line for ' ? ', and a rewritten
+    // line that carries a pre-existing `cond ? a : b` reads as an added ternary. The
+    // receiver of such a statement keeps the printer's cast (the cast is redundant but
+    // correct) — census: 5 sites, all of them receivers inside a conditional.
+    if (javaStatementPrintsTernary (node)) {
+        return undefined;
+    }
+    let current = unwrapParens (node);
+    if (current === undefined) {
+        return undefined;
+    }
+    if (ts.isAsExpression (current) || ts.isTypeAssertionExpression (current)) {
+        if (current.type?.kind !== ts.SyntaxKind.StringKeyword) {
+            return undefined; // not a `x as string` spelling
+        }
+        current = unwrapParens (current.expression);
+    }
+    if (current === undefined || current.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !javaEmittedStringLocals.has (declaration)) {
+        return undefined; // not a local this module declares String
+    }
+    if (current.escapedText !== declaration.name?.escapedText) {
+        return undefined; // a `finalX` capture rename / shadowed binding: different emitted type
+    }
+    const printed = printer.printNode (current, 0);
+    if (printedName !== undefined && printedName !== printed && printedName !== '((String)' + printed + ')') {
+        return undefined; // unexpected receiver shape — keep the printer's text
+    }
+    return printed;
+}
+
+// is `node` (an `x as string` expression) the receiver of a string-method call or of a
+// `.length` read? The method whitelist is the exact set the use scanner admits for the
+// String family — 'join'/'sort' are deliberately absent there and here. The receiver
+// position is read through `(x as string)` wrappers, whose printed form is transparent
+// (`printParenthesizedExpression` drops an AsExpression child's parens).
+function isJavaStringMethodReceiver (node) {
+    let current = node;
+    let parent = node.parent;
+    while (parent !== undefined
+        && (ts.isParenthesizedExpression (parent) || parent.kind === ts.SyntaxKind.NonNullExpression)) {
+        current = parent;
+        parent = parent.parent;
+    }
+    if (parent === undefined || !ts.isPropertyAccessExpression (parent) || parent.expression !== current) {
+        return false;
+    }
+    const name = String (parent.name?.escapedText);
+    if (name === 'length') {
+        return true; // `(x as string).length` — a property read, no call to unwrap
+    }
+    if (!STRING_RECEIVER_METHODS.has (name)) {
+        return false;
+    }
+    const grand = parent.parent;
+    return grand !== undefined && ts.isCallExpression (grand) && grand.expression === parent;
+}
+
+// wrap one cast-emitting printer method: when the receiver is a String-declared local,
+// rebuild the call with the receiver slot cleaned; otherwise defer to the printer.
+function patchJavaStringReceiverCall (printer, method, rebuild) {
+    const upstream = printer[method];
+    if (typeof upstream !== 'function') {
+        return;
+    }
+    printer[method] = function (node, identation, name, parsedArg, parsedArg2) {
+        const receiver = (ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression))
+            ? node.expression.expression : undefined;
+        const clean = receiver === undefined ? undefined : javaEmittedStringReceiverText (printer, receiver, name);
+        if (clean !== undefined) {
+            return rebuild (clean, parsedArg, parsedArg2);
+        }
+        return upstream.apply (printer, arguments);
+    };
+}

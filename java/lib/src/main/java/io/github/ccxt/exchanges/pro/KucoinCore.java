@@ -222,7 +222,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object requestId = String.valueOf(this.requestId());
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String urlType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? "futures" : "spot";
-            Object tradeType = ((String)urlType).toUpperCase();
+            Object tradeType = urlType.toUpperCase();
             Object action = "subscribe";
             if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
             {
@@ -643,7 +643,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object market = this.getMarketFromSymbols(symbols);
             Boolean isContract = (Helpers.isEqual(Helpers.GetValue(market, "contract"), true));
             String urlType = ((Helpers.isTrue(isContract))) ? "futures" : "spot";
-            Object tradeType = ((String)urlType).toUpperCase();
+            Object tradeType = urlType.toUpperCase();
             Object action = "subscribe";
             if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
             {

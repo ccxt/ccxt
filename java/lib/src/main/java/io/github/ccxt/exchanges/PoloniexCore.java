@@ -2495,7 +2495,7 @@ public class PoloniexCore extends PoloniexApi
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
             {
                 this.checkRequiredArgument("createOrder", marginMode, "marginMode", new java.util.ArrayList<Object>(java.util.Arrays.asList("cross", "isolated")));
-                Helpers.addElementToObject(request, "mgnMode", ((String)marginMode).toUpperCase());
+                Helpers.addElementToObject(request, "mgnMode", marginMode.toUpperCase());
             }
             String hedged = null;
             java.util.List<Object> hedgedparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "hedged");

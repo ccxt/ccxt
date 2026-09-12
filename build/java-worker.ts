@@ -1,7 +1,7 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import { patchJavaLocalTypes } from './javaTranspiler.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts } from './java-local-types.js';
 import log from 'ololog'
 
 // task payload posted by javaTranspiler.ts#webworkerTranspile (structured clone)
@@ -43,6 +43,10 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJavaLocalTypes (cachedTranspiler);
         patchJavaLiteralLocalTypes (cachedTranspiler);
         installJavaNumericLocalTypes (cachedTranspiler);
+        // SS-12: drop the redundant (String) wrapper on the receiver slot of the
+        // string-method prints when the receiver local is declared String — installed
+        // LAST so its declaration observer sees the final text of the whole chain
+        patchJavaStringReceiverCasts (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

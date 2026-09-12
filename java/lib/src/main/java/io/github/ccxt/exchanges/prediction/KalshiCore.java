@@ -829,7 +829,7 @@ public class KalshiCore extends KalshiApi
             Object settleFractionRaw = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(resolved) && Helpers.isTrue((!Helpers.isEqual(result, null)))) && Helpers.isTrue((!Helpers.isEqual(result, "")))))
             {
-                winnerRaw = (Helpers.isEqual(((String)label).toLowerCase(), result));
+                winnerRaw = (Helpers.isEqual(label.toLowerCase(), result));
                 settleFractionRaw = ((Helpers.isTrue((winnerRaw)))) ? 1 : 0;
                 if (Helpers.isTrue(winnerRaw))
                 {

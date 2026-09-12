@@ -6729,7 +6729,7 @@ public class HtxCore extends HtxApi
             Helpers.addElementToObject(request, "side", side);
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
             {
-                Helpers.addElementToObject(request, "time_in_force", ((String)timeInForce).toLowerCase());
+                Helpers.addElementToObject(request, "time_in_force", timeInForce.toLowerCase());
             }
             Object stopLoss = this.safeDict(parameters, "stopLoss");
             Object takeProfit = this.safeDict(parameters, "takeProfit");

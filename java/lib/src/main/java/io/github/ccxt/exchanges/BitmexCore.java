@@ -2557,7 +2557,7 @@ public class BitmexCore extends BitmexApi
         String execInst = this.safeString(order, "execInst", "");
         Object postOnly = null;
         Object reduceOnly = null;
-        if (Helpers.isTrue(Helpers.isGreaterThan(((String)execInst).length(), 0)))
+        if (Helpers.isTrue(Helpers.isGreaterThan(execInst.length(), 0)))
         {
             postOnly = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "ParticipateDoNotInitiate"), 0));
             reduceOnly = (Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "ReduceOnly"), 0))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "Close"), 0))));
@@ -3801,7 +3801,7 @@ public class BitmexCore extends BitmexApi
                 put( "info", response );
                 put( "currency", code );
                 put( "network", finalNetworkCode );
-                put( "address", Helpers.replace((String)Helpers.replace((String)response, (String)"\"", (String)""), (String)"\"", (String)"") );
+                put( "address", Helpers.replace((String)Helpers.replace(response, (String)"\"", (String)""), (String)"\"", (String)"") );
                 put( "tag", null );
             }};
         });

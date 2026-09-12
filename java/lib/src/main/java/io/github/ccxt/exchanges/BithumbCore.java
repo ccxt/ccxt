@@ -1696,7 +1696,7 @@ public class BithumbCore extends BithumbApi
             {
                 Object transactionDate = Helpers.GetValue(parts, 0);
                 String transactionTime = (String) Helpers.GetValue(parts, 1);
-                if (Helpers.isTrue(Helpers.isLessThan(((String)transactionTime).length(), 8)))
+                if (Helpers.isTrue(Helpers.isLessThan(transactionTime.length(), 8)))
                 {
                     transactionTime = Helpers.add("0", transactionTime);
                 }
@@ -2546,7 +2546,7 @@ public class BithumbCore extends BithumbApi
         {
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))
             {
-                Object normalized = Helpers.replace((String)datetime, (String)"+09:00", (String)"Z");
+                Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
                 Long normalizedTimestamp = this.parse8601(normalized);
                 if (Helpers.isTrue(!Helpers.isEqual(normalizedTimestamp, null)))
                 {
@@ -3281,7 +3281,7 @@ public class BithumbCore extends BithumbApi
         Object timestamp = this.parse8601(datetime);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(datetime, null))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))))
         {
-            Object normalized = Helpers.replace((String)datetime, (String)"+09:00", (String)"Z");
+            Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
             Long normalizedTimestamp = this.parse8601(normalized);
             if (Helpers.isTrue(!Helpers.isEqual(normalizedTimestamp, null)))
             {
@@ -3951,7 +3951,7 @@ public class BithumbCore extends BithumbApi
         } else
         {
             this.checkRequiredCredentials();
-            Boolean isVersionedApi = (Helpers.isTrue(((String)endpoint).startsWith(((String)"/v1/"))) || Helpers.isTrue(((String)endpoint).startsWith(((String)"/v2/"))));
+            Boolean isVersionedApi = (Helpers.isTrue(endpoint.startsWith(((String)"/v1/"))) || Helpers.isTrue(endpoint.startsWith(((String)"/v2/"))));
             if (Helpers.isTrue(isVersionedApi))
             {
                 headers = new java.util.HashMap<String, Object>() {{

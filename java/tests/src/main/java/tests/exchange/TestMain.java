@@ -1140,7 +1140,7 @@ public class TestMain extends BaseTest
                         // separators as spaces) so the scoped contract holds even without a pin
                         Object handleParts = Helpers.split(outcomeSymbol, ":");
                         String marketPart = (String) Helpers.GetValue(handleParts, 0);
-                        Object lowerPart = ((String)marketPart).toLowerCase();
+                        Object lowerPart = marketPart.toLowerCase();
                         Object dedashed = Helpers.replaceAll((String)lowerPart, (String)"-", (String)" ");
                         eventQuery = Helpers.replaceAll((String)dedashed, (String)"_", (String)" ");
                     }

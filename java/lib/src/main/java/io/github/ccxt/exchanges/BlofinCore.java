@@ -1824,7 +1824,7 @@ public class BlofinCore extends BlofinApi
             }};
         }
         String clientOrderId = this.safeString(order, "clientOrderId");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(((String)clientOrderId).length(), 1)))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(clientOrderId.length(), 1)))))
         {
             clientOrderId = null; // fix empty clientOrderId string
         }

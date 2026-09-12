@@ -685,9 +685,9 @@ public class HyperliquidCore extends HyperliquidApi
         Object midStr = this.numberToString(midPx);
         Object parts = Helpers.split(midStr, ".");
         String intPart = (String) Helpers.GetValue(parts, 0);
-        Object significantDigits = Helpers.mathMax(5, ((String)intPart).length());
+        Object significantDigits = Helpers.mathMax(5, intPart.length());
         Object maxDecimals = Helpers.subtract(8, szDecimals);
-        Object pricePrecisionDecimals = Helpers.mathMax(1, Helpers.mathMin(maxDecimals, Helpers.subtract(significantDigits, ((String)intPart).length())));
+        Object pricePrecisionDecimals = Helpers.mathMax(1, Helpers.mathMin(maxDecimals, Helpers.subtract(significantDigits, intPart.length())));
         Object zeros = "";
         Object zeroCount = Helpers.subtract(pricePrecisionDecimals, 1);
         for (var zi = 0; Helpers.isLessThan(zi, zeroCount); zi++)

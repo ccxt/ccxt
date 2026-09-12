@@ -3408,7 +3408,7 @@ public class CoinexCore extends CoinexApi
                 Object entry = Helpers.GetValue(data, i);
                 String code = this.safeString(entry, "code");
                 String message = this.safeString(entry, "message", "");
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(message.toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
                 {
                     Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
                     this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
@@ -5195,7 +5195,7 @@ final Object finalI = i;
         String tag = this.safeString(transaction, "memo");
         if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(((String)tag).length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(tag.length(), 1)))
             {
                 tag = null;
             }
@@ -5203,7 +5203,7 @@ final Object finalI = i;
         String remark = this.safeString(transaction, "remark");
         if (Helpers.isTrue(!Helpers.isEqual(remark, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(((String)remark).length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(remark.length(), 1)))
             {
                 remark = null;
             }
@@ -5211,7 +5211,7 @@ final Object finalI = i;
         String txid = this.safeString(transaction, "tx_id");
         if (Helpers.isTrue(!Helpers.isEqual(txid, null)))
         {
-            if (Helpers.isTrue(Helpers.isLessThan(((String)txid).length(), 1)))
+            if (Helpers.isTrue(Helpers.isLessThan(txid.length(), 1)))
             {
                 txid = null;
             }
@@ -6574,7 +6574,7 @@ final Object finalI = i;
         String code = this.safeString(response, "code");
         Object data = this.safeValue(response, "data");
         String message = this.safeString(response, "message", "");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(message.toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);

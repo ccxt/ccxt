@@ -703,7 +703,7 @@ public class LbankCore extends LbankApi
             {
                 Object market = Helpers.GetValue(data, i);
                 String marketId = this.safeString(market, "symbol");
-                Object parts = Helpers.split(((String)marketId), "_");
+                Object parts = Helpers.split(marketId, "_");
                 String baseId = (String) Helpers.GetValue(parts, 0);
                 String quoteId = (String) Helpers.GetValue(parts, 1);
                 String base = (String) this.safeCurrencyCode(baseId);
@@ -2199,7 +2199,7 @@ public class LbankCore extends LbankApi
         Boolean postOnly = false;
         String type = "limit";
         String rawType = this.safeString2(order, "type", "tradeType"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        Object parts = Helpers.split(((String)rawType), "_");
+        Object parts = Helpers.split(rawType, "_");
         String side = this.safeString(parts, 0);
         String typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (Helpers.isTrue(Helpers.isEqual(typePart, "market")))
