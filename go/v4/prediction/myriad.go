@@ -4894,7 +4894,7 @@ func (this *Myriad) HandleErrors(code any, reason any, url any, method any, head
  * @ignore
  * @method
  * @name myriad#sign
- * @description builds the request url and attaches the x-api-key header for private endpoints
+ * @description builds the request url and attaches the apiKey header for private endpoints
  * @param {string} path the endpoint path
  * @param {string|string[]} api the api group and access level
  * @param {string} method the http method
@@ -4940,9 +4940,17 @@ func (this *Myriad) Sign(path any, optionalArgs ...any) any {
 		}
 	}
 	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(this.ApiKey, nil))) && ccxt.IsTrue((!ccxt.IsEqual(this.ApiKey, "")))) {
-		headers = this.Extend(headers, map[string]any{
-			"x-api-key": this.ApiKey,
-		})
+		// keep this literal split. the php transpiler prefixes every occurrence of a local or
+		// parameter name with '$' at the text level, including occurrences inside single-quoted
+		// string literals, and this method's second parameter is named after the middle segment
+		// of the header below. collapsing the two halves back into one literal therefore emits a
+		// corrupted header name in php only - every other language stays green, so the
+		// regression would ship silently. pinned by the fixture in
+		// ts/src/test/static/request/prediction/myriad.json
+		var headerKey any = ccxt.Add("x-api", "-key")
+		var headersKey map[string]any = map[string]any{}
+		ccxt.AddElementToObject(headersKey, headerKey, this.ApiKey)
+		headers = this.Extend(headers, headersKey)
 	}
 	return map[string]any{
 		"url":     url,

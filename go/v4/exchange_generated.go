@@ -4631,9 +4631,9 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 	retryDelayparamsVariable := this.HandleOptionAndParams(params, path, "maxRetriesOnFailureDelay", retryDelay)
 	retryDelay = GetValue(retryDelayparamsVariable, 0)
 	params = GetValue(retryDelayparamsVariable, 1)
-	var fetchData any = nil
 	var fetchDataCacheEnabled bool = IsGreaterThan(this.FetchHistoryCacheSize, 0)
 	for i := 0; IsLessThan(i, Add(retries, 1)); i++ {
+		var fetchData any = nil
 		if IsTrue(fetchDataCacheEnabled) {
 			fetchData = map[string]any{
 				"request": nil,
@@ -4653,7 +4653,7 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 						}
 						ret_ = func(this *BaseExchange) any {
 							// catch block:
-							if IsTrue(IsTrue(fetchDataCacheEnabled) && IsTrue((!IsEqual(fetchData, nil)))) {
+							if IsTrue(!IsEqual(fetchData, nil)) {
 								AddElementToObject(fetchData, "error", e)
 								this.AddFetchCache(fetchData)
 							}
@@ -4683,14 +4683,14 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 
 				var request any = this.DerivedExchange.Sign(path, api, method, params, headers, body)
 				PanicOnError(request)
-				if IsTrue(IsTrue(fetchDataCacheEnabled) && IsTrue((!IsEqual(fetchData, nil)))) {
+				if IsTrue(!IsEqual(fetchData, nil)) {
 					AddElementToObject(fetchData, "request", request)
 				}
 				this.SetLastRequest(request)
 
 				response := (<-this.FetchAsync(GetValue(request, "url"), GetValue(request, "method"), GetValue(request, "headers"), GetValue(request, "body")))
 				PanicOnError(response)
-				if IsTrue(IsTrue(fetchDataCacheEnabled) && IsTrue((!IsEqual(fetchData, nil)))) {
+				if IsTrue(!IsEqual(fetchData, nil)) {
 					AddElementToObject(GetValue(fetchData, "response"), "body", response)
 					this.AddFetchCache(fetchData)
 				}

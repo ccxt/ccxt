@@ -28,6 +28,7 @@ var FunctionsMap = map[string]any{
 	"fetchHistory":                    TestFetchHistoryAsync,
 	"filterBy":                        TestFilterBy,
 	"groupBy":                         TestGroupBy,
+	"handleHttpStatusCode":            TestHandleHttpStatusCode,
 	"handleMethods":                   TestHandleMethods,
 	"implodeParams":                   TestImplodeParams,
 	"inArray":                         TestInArray,

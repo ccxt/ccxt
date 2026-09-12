@@ -7420,7 +7420,7 @@ func (this *Bingx) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
  * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Order  // spot
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  // swap
  * @param {string} id order id
- * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} symbol unified symbol of the market to create an order in, inverse (Coin-M) markets are not supported
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of the currency you want to trade in units of the base currency
@@ -7464,6 +7464,9 @@ func (this *Bingx) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 		PanicOnError(retRes673012)
 	}
 	var market any = this.Market(symbol)
+	if IsTrue(IsEqual(GetValue(market, "inverse"), true)) {
+		panic(NotSupported(Add(this.Id, " editOrder() is not supported for inverse swap markets")))
+	}
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	AddElementToObject(request, "cancelOrderId", id)
 	AddElementToObject(request, "cancelReplaceMode", "STOP_ON_FAILURE")
@@ -7505,8 +7508,8 @@ func (this *Bingx) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes684912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes684912)
+		retRes685212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes685212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -7567,8 +7570,8 @@ func (this *Bingx) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes691112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes691112)
+		retRes691412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes691412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -7713,8 +7716,8 @@ func (this *Bingx) fetchMarketLeverageTiersBody(ch chan any, symbol any, optiona
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes703812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes703812)
+		retRes704112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes704112)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
@@ -9443,7 +9446,7 @@ func (this *Bingx) SetPositionMode(hedged bool, options ...SetPositionModeOption
  * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Order  // spot
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  // swap
  * @param {string} id order id
- * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} symbol unified symbol of the market to create an order in, inverse (Coin-M) markets are not supported
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of the currency you want to trade in units of the base currency
