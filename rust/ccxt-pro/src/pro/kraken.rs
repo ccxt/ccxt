@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -1426,7 +1430,7 @@ impl KrakenCore {
             m
         })]);
         let mut symbol: Value = self.safe_string_k(first.clone(), "symbol", &[]);
-        let mut a: Value = self.safe_value_k(first.clone(), "asks", &[Value::List(vec![])]);
+        let mut a: Value = self.safe_list_k(first.clone(), "asks", &[Value::List(vec![])]);
         let mut b: Value = self.safe_value_k(first.clone(), "bids", &[Value::List(vec![])]);
         let mut c: Value = self.safe_integer_k(first.clone(), "checksum", &[]);
         let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[Value::Null, symbol.clone()]);
@@ -1462,7 +1466,7 @@ impl KrakenCore {
                 let mut key: Value = get_value(&keys, &i);
                 let mut bookside: Value = get_value(&orderbook, &key);
                 let mut bookside: Value = get_value(&orderbook, &key);
-                let mut deltas: Value = self.safe_value(first.clone(), key.clone(), &[Value::List(vec![])]);
+                let mut deltas: Value = self.safe_list(first.clone(), key.clone(), &[Value::List(vec![])]);
                 let mut deltasLength: Value = get_array_length(&deltas);
                 if is_greater_than(&deltasLength, &Value::Int(0)) {
                     self.custom_handle_deltas(bookside.clone(), deltas.clone());
@@ -1923,7 +1927,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut length: Value = get_array_length(&stored);
                 if is_equal(&length, &limit) && is_true(&(is_equal(&previousOrder, &Value::Null))) {
                     let mut first: Value = get_value(&stored, &Value::Int(0));
-                    let mut symbolsByOrderId: Value = self.safe_value_k(self.options.clone(), "symbolsByOrderId", &[Value::Map({
+                    let mut symbolsByOrderId: Value = self.safe_dict_k(self.options.clone(), "symbolsByOrderId", &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
                     })]);

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -1796,7 +1800,7 @@ impl GateCore {
         //     ]
         // }
         //
-        let mut result: Value = self.safe_value_k(message.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
         let mut tradesLength: Value = get_array_length(&result);
         if is_equal(&tradesLength, &Value::Int(0)) {
             return;
@@ -1947,7 +1951,7 @@ impl GateCore {
         //       ]
         //   }
         //
-        let mut result: Value = self.safe_value_k(message.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
         add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), result.clone());
         {
                         let mut i: Value = Value::Int(0);
@@ -2141,7 +2145,7 @@ impl GateCore {
         //    }
         //
         let mut type_var: Value = self.get_market_type_by_url(get_value(&client, &Value::Str("url".to_string())));
-        let mut data: Value = self.safe_value_k(message.clone(), "result", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
         let mut cache: Value = get_value(&self.positions, &type_var);
         let mut newPositions: Value = Value::List(vec![]);
         {

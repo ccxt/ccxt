@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct IndodaxCore {
@@ -722,10 +726,10 @@ impl IndodaxCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut free: Value = self.safe_value_k(balances.clone(), "balance", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut free: Value = self.safe_dict_k(balances.clone(), "balance", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut used: Value = self.safe_value_k(balances.clone(), "balance_hold", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1701,14 +1705,14 @@ impl IndodaxCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut withdraw: Value = self.safe_value_k(data.clone(), "withdraw", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut deposit: Value = self.safe_value_k(data.clone(), "deposit", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut withdraw: Value = self.safe_dict_k(data.clone(), "withdraw", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut deposit: Value = self.safe_dict_k(data.clone(), "deposit", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut transactions: Value = Value::List(vec![]);
         let mut currency: Value = Value::Null;
         if is_equal(&code, &Value::Null) {

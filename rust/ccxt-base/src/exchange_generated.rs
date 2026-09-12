@@ -5296,12 +5296,12 @@ pub trait ExchangeBase:
         { let __destr_tmp = self.handle_option_and_params(params.clone(), path.clone(), Value::Str("maxRetriesOnFailure".to_string()), &[retries.clone()]); retries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut retryDelay: Value = Value::Int(0);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), path.clone(), Value::Str("maxRetriesOnFailureDelay".to_string()), &[retryDelay.clone()]); retryDelay = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut fetchData: Value = Value::Null;
         let mut fetchDataCacheEnabled: bool = is_greater_than(&self.fetchHistoryCacheSize, &Value::Int(0));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_130: bool = true;
             while { if !__for_first_130 { i = add(&i, &Value::Int(1)); } __for_first_130 = false; is_less_than(&i, &add(&retries, &Value::Int(1))) } {
+            let mut fetchData: Value = Value::Null;
             if is_true(&fetchDataCacheEnabled) {
                 fetchData = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -5318,19 +5318,19 @@ pub trait ExchangeBase:
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.set_last_rest_request_timestamp();
                 let mut request: Value = <Self as crate::exchange_generated::ExchangeBase>::sign(self, path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()]);
-                if is_true(&fetchDataCacheEnabled) && is_true(&(!is_equal(&fetchData, &Value::Null))) {
+                if !is_equal(&fetchData, &Value::Null) {
                     add_element_to_object(&mut fetchData, &Value::Str("request".to_string()), request.clone());
                 }
                 self.set_last_request(request.clone());
                 let mut response: Value = self.fetch(get_value(&request, &Value::Str("url".to_string())), &[get_value(&request, &Value::Str("method".to_string())), get_value(&request, &Value::Str("headers".to_string())), get_value(&request, &Value::Str("body".to_string()))]).await;
-                if is_true(&fetchDataCacheEnabled) && is_true(&(!is_equal(&fetchData, &Value::Null))) {
+                if !is_equal(&fetchData, &Value::Null) {
                     add_element_to_object(get_value_mut(&mut fetchData, &Value::Str("response".to_string())), &Value::Str("body".to_string()), response.clone());
                     self.add_fetch_cache(fetchData.clone());
                 }
                 return response.clone();
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-                if is_true(&fetchDataCacheEnabled) && is_true(&(!is_equal(&fetchData, &Value::Null))) {
+                if !is_equal(&fetchData, &Value::Null) {
                     add_element_to_object(&mut fetchData, &Value::Str("error".to_string()), e.clone());
                     self.add_fetch_cache(fetchData.clone());
                 }

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -394,7 +398,7 @@ impl NdaxCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
-        let mut payload: Value = self.safe_value_k(message.clone(), "o", &[Value::List(vec![])]);
+        let mut payload: Value = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]);
         //
         // initial snapshot
         //
@@ -519,7 +523,7 @@ impl NdaxCore {
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        let mut payload: Value = self.safe_value_k(message.clone(), "o", &[Value::List(vec![])]);
+        let mut payload: Value = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]);
         //
         //     [
         //         [
@@ -708,7 +712,7 @@ impl NdaxCore {
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        let mut payload: Value = self.safe_value_k(message.clone(), "o", &[Value::List(vec![])]);
+        let mut payload: Value = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]);
         //
         //     [
         //         0,   // 0 MDUpdateId
