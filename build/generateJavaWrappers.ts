@@ -343,11 +343,7 @@ function genDelegateCall(methodName: string, allParams: ParamInfo[], castToObjec
         const retyped = JAVA_STRING_PARAM_POSITIONS[methodName] ?? [];
         const args = allParams.map((p, k) => {
             const cast = retyped.includes(k) ? '' : '(Object) ';
-            // SS-05: the null->empty-map coalesce is emitted as a JDK named helper instead of
-            // the previous `(params != null ? params : new HashMap...)` ternary — identical
-            // semantics (return the argument unless null), and it keeps every WS-wrapper call
-            // line free of `? :` so cast-drop diffs cannot carry a ternary into the tree.
-            if (p.name === 'params') return `${cast}java.util.Objects.requireNonNullElse(${p.name}, new java.util.HashMap<String, Object>())`;
+            if (p.name === 'params') return `${cast}(${p.name} != null ? ${p.name} : new java.util.HashMap<String, Object>())`;
             return `${cast}${p.name}`;
         }).join(', ');
         return `super.${methodName}(${args})`;
