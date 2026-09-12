@@ -5694,16 +5694,22 @@ ${arms.join('\n')}
                 // dispatch arm covers — a static-request test named after one
                 // (bingx's accountV1PrivateGetAccountApiRestrictions) otherwise
                 // computes a null url. Route them the way those wrappers do.
-                // Guarded on the api block so a genuinely unknown name still
-                // returns Null rather than panicking inside call_method.
+                // Required dynamic calls must fail for unknown names. An optional
+                // override lookup may still miss and fall back to its base body.
                 _ => {
                     if self.internals.implicit_api.is_empty() {
                         self.build_implicit_api();
                     }
                     if self.internals.implicit_api.contains_key(method) {
                         self.call_method(crate::Value::Str(method.to_string()), &args[..]).await
-                    } else {
+                    } else if self.internals.dispatch_stack.last().map(|name| name == method).unwrap_or(false) {
+                        // dispatch_to_derived is probing this exact override.
                         crate::Value::Null
+                    } else {
+                        panic!("{}", crate::error::ExchangeError::new(
+                            "NotSupported",
+                            format!("dynamic method {method:?} not found"),
+                        ))
                     }
                 }
             }

@@ -1737,10 +1737,14 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 impl<T: crate::exchange_generated::ExchangeBase> ExchangeRuntime for T {}
 
 /// Normalize a TS dynamic method name for the generated Rust dispatch table.
+/// Match the transpiler's acronym boundaries and preserve existing underscores.
 pub fn method_name_to_snake_case(name: &Value) -> String {
     let name = match name {
         Value::Str(name) => name,
-        _ => return String::new(),
+        _ => panic!("{}", ExchangeError::new(
+            "BadRequest",
+            format!("dynamic method name must be a string, got {name:?}"),
+        )),
     };
     let chars: Vec<char> = name.chars().collect();
     let mut out = String::with_capacity(name.len() + 4);
@@ -2293,6 +2297,128 @@ pub(crate) fn url_pct(s: &str) -> String {
         b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => (b as char).to_string(),
         _ => format!("%{b:02X}"),
     }).collect()
+}
+
+#[cfg(test)]
+mod dynamic_method_tests {
+    use super::{method_name_to_snake_case, BaseCore, Exchange};
+    use crate::exchange_generated::ExchangeBase;
+    use crate::Value;
+    use futures::FutureExt;
+    use std::panic::AssertUnwindSafe;
+
+    #[test]
+    fn normalizes_dispatch_names() {
+        for (name, expected) in [
+            ("fetchTransfers", "fetch_transfers"),
+            ("fetchOHLCV", "fetch_ohlcv"),
+            ("fetchOpenOrdersWs", "fetch_open_orders_ws"),
+            ("publicGetTicker24hr", "public_get_ticker24hr"),
+            ("fetch_ohlcv", "fetch_ohlcv"),
+        ] {
+            assert_eq!(
+                method_name_to_snake_case(&Value::from(name)), expected, "{name}"
+            );
+            assert_eq!(
+                Exchange::to_snake_case(name), expected, "implicit name: {name}"
+            );
+        }
+        // Dispatch names follow the transpiler, which preserves underscores;
+        // implicit endpoint registration also collapses and trims them.
+        assert_eq!(
+            method_name_to_snake_case(&Value::from("_fetch__OHLCV_")), "_fetch__ohlcv_"
+        );
+    }
+
+    #[test]
+    fn rejects_non_string_names_with_the_value() {
+        for name in [Value::Null, Value::Int(42), Value::Bool(false)] {
+            let error = std::panic::catch_unwind(|| method_name_to_snake_case(&name))
+                .expect_err("a non-string method name must fail");
+            let message = error.downcast_ref::<String>().expect("named exchange error");
+            assert!(message.contains("[BadRequest]"), "{message}");
+            assert!(
+                message.contains(&format!("dynamic method name must be a string, got {name:?}")),
+                "{message}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn unknown_names_report_not_supported() {
+        let mut core = BaseCore::new(Exchange::new(None));
+        for name in ["fetch_transfers_typo", ""] {
+            let error = AssertUnwindSafe(core.call_dynamic(name, vec![]))
+                .catch_unwind()
+                .await
+                .expect_err("an unknown method must fail");
+            let message = error.downcast_ref::<String>().expect("named exchange error");
+            assert!(message.contains("[NotSupported]"), "{message}");
+            assert!(
+                message.contains(&format!("dynamic method {name:?} not found")), "{message}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn known_methods_can_return_null() {
+        let mut core = BaseCore::new(Exchange::new(None));
+        let timeframes = Value::from_json(&serde_json::json!({ "1m": "60" }));
+        let name = method_name_to_snake_case(&Value::from("findTimeframe"));
+        assert_eq!(
+            core.call_dynamic(&name, vec![Value::from("60"), timeframes.clone()]).await,
+            Value::from("1m")
+        );
+        assert_eq!(
+            core.call_dynamic(&name, vec![Value::from("missing"), timeframes]).await,
+            Value::Null
+        );
+    }
+
+    #[tokio::test]
+    async fn optional_override_lookup_can_miss() {
+        let mut core = BaseCore::new(Exchange::new(None));
+        assert_eq!(
+            core.dispatch_to_derived("handle_deltas", vec![]).await,
+            Some(Value::Null)
+        );
+        assert!(core.internals.dispatch_stack.is_empty());
+        let error = AssertUnwindSafe(core.call_dynamic("handle_deltas", vec![]))
+            .catch_unwind()
+            .await
+            .expect_err("a required call must still fail after an optional lookup");
+        let message = error.downcast_ref::<String>().expect("named exchange error");
+        assert!(message.contains("[NotSupported]"), "{message}");
+        assert!(message.contains("handle_deltas"), "{message}");
+    }
+
+    #[tokio::test]
+    async fn optional_lookup_does_not_swallow_method_errors() {
+        let mut core = BaseCore::new(Exchange::new(None));
+        let error = AssertUnwindSafe(core.dispatch_to_derived("fetch_ohlcv", vec![]))
+            .catch_unwind()
+            .await
+            .expect_err("a dispatched method's error must propagate");
+        let message = error.downcast_ref::<String>().expect("named exchange error");
+        assert!(message.contains("[NotSupported]"), "{message}");
+        assert!(message.contains("fetchOHLCV() is not supported yet"), "{message}");
+        assert!(core.internals.dispatch_stack.is_empty());
+    }
+
+    #[tokio::test]
+    async fn registered_implicit_endpoints_still_dispatch() {
+        let mut core = BaseCore::new(Exchange::new(None));
+        core.api = Value::from_json(&serde_json::json!({
+            "public": { "get": ["ticker24hr"] }
+        }));
+        core.enableRateLimit = Value::Bool(false);
+        let response = Value::from_json(&serde_json::json!({ "ok": true }));
+        core.mock_response = response.clone();
+        let name = method_name_to_snake_case(&Value::from("publicGetTicker24hr"));
+        for alias in [name.as_str(), "publicGetTicker24hr"] {
+            assert_eq!(core.call_dynamic(alias, vec![]).await, response);
+        }
+    }
 }
 
 #[cfg(test)]
