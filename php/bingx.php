@@ -1571,17 +1571,9 @@ class bingx extends Exchange {
         }
         $amount = $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
         if (($market !== null) && ($market['swap'] === true) && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
-            if ($market['linear'] === true) {
-                // private linear swap trades report 'amount' as the notional (quote) value, not the base $amount;
-                // 'volume' is the exchange's own base-currency fill quantity (bingx linear $contractSize is always 1),
-                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
-                $amount = $this->safe_string($trade, 'volume');
-            } else {
-                // private $trade returns num of contracts instead of base currency (as the order-related methods do)
-                $contractSize = $this->safe_string($market['info'], 'tradeMinQuantity');
-                $volume = $this->safe_string($trade, 'volume');
-                $amount = Precise::string_mul($volume, $contractSize);
-            }
+            // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
+            // safeTrade applies contractSize when calculating inverse $cost->
+            $amount = $this->safe_string($trade, 'volume');
         }
         return $this->safe_trade(array(
             'id' => $this->safe_string_2($trade, 'id', 't'),
