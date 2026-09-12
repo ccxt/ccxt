@@ -99,3 +99,8 @@ add_test (NAME static-request-binance COMMAND ccxt-tests binance --requestTests)
 set_tests_properties (static-request-binance PROPERTIES WORKING_DIRECTORY ${CCXT_TEST_WORKDIR})
 add_test (NAME static-response-binance COMMAND ccxt-tests binance --responseTests)
 set_tests_properties (static-response-binance PROPERTIES WORKING_DIRECTORY ${CCXT_TEST_WORKDIR})
+
+# setMarkets profile probe (perf/gdb hot-path analysis; not a shipped binary)
+add_executable (setmarkets-probe tests/setmarkets_probe.cpp)
+target_link_libraries (setmarkets-probe PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>")
+target_compile_options (setmarkets-probe PRIVATE -g0 -O2)
