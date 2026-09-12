@@ -1912,27 +1912,24 @@ std::any Exchange::setMarkets(std::any markets, std::any currencies) {
   for (std::any i = 0; isLessThan(i, getArrayLength(marketValues));
        postFixIncrement(i)) {
     std::any value = ::getValue(marketValues, i);
-    if (isTrue(
-            inOp(this->markets_by_id, ::getValue(value, std::string("id"))))) {
-      std::any marketsByIdArray =
-          ::getValue(this->markets_by_id, ::getValue(value, std::string("id")));
+    std::any valueId = ::getValue(value, std::string("id"));
+    if (isTrue(inOp(this->markets_by_id, valueId))) {
+      std::any marketsByIdArray = ::getValue(this->markets_by_id, valueId);
       arrayPush(marketsByIdArray, value);
-      ::setValue(this->markets_by_id, ::getValue(value, std::string("id")),
-                 marketsByIdArray);
+      ::setValue(this->markets_by_id, valueId, marketsByIdArray);
     } else {
-      ::setValue(this->markets_by_id, ::getValue(value, std::string("id")),
-                 ccxt::list{value});
+      ::setValue(this->markets_by_id, valueId, ccxt::list{value});
     }
     // strip undefined-valued keys from the parsed market before deepExtend,
     // otherwise an explicit `taker: undefined` (from safeMarketStructure)
     // would clobber the fee defaults from this.fees['trading'] in the merge
     std::any valueDefined = ccxt::dict{};
-    std::any valueKeys = getObjectKeys(value);
-    for (std::any j = 0; isLessThan(j, getArrayLength(valueKeys));
-         postFixIncrement(j)) {
-      std::any valueKey = ::getValue(valueKeys, j);
-      if (isTrue(!isEqual(::getValue(value, valueKey), std::any{}))) {
-        ::setValue(valueDefined, valueKey, ::getValue(value, valueKey));
+    {
+      const ccxt::dict valueDict = std::any_cast<ccxt::dict>(value);
+      for (const auto &valueKv : valueDict.entries()) {
+        if (isTrue(!isEqual(valueKv.second, std::any{}))) {
+          ::setValue(valueDefined, valueKv.first, valueKv.second);
+        }
       }
     }
     std::any market = this->deepExtend(

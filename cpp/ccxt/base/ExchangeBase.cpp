@@ -15,6 +15,10 @@
 
 #include <nlohmann/json.hpp>
 
+#ifdef CCXT_HAS_SIMDJSON
+#include <simdjson.h>
+#endif
+
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -108,6 +112,60 @@ std::any jsonToAny (const nlohmann::ordered_json& j) {
     }
     return std::any {};
 }
+
+#ifdef CCXT_HAS_SIMDJSON
+// SIMD fast path for big payloads (live exchangeInfo is ~22MB): replaces the
+// digit-quoting scan + nlohmann parse + recursive build. Number semantics
+// mirror the old pipeline exactly: integer literals of 19+ digits stay exact
+// strings (int64 can't hold them and the old pre-pass quoted them), shorter
+// integers are int64, floats are doubles. Object field order is document
+// order (nlohmann::ordered_json parity).
+std::any simdToAny (simdjson::ondemand::value v) {
+    using simdjson::ondemand::json_type;
+    switch (v.type ()) {
+    case json_type::null:
+        return std::any {};
+    case json_type::boolean:
+        return std::any (v.get_bool ().value ());
+    case json_type::string:
+        return std::any (
+            std::string (std::string_view (v.get_string ().value ())));
+    case json_type::number: {
+        const simdjson::ondemand::number_type ntype =
+            v.get_number_type ().value ();
+        if (ntype == simdjson::ondemand::number_type::floating_point_number) {
+            return std::any (v.get_double ().value ());
+        }
+        const std::string_view raw = v.raw_json_token ();
+        std::size_t digits = raw.size ();
+        if (!raw.empty () && raw[0] == '-') {
+            digits--;
+        }
+        if (digits >= 19) {
+            return std::any (std::string (raw));   // exact, rides as a string
+        }
+        return std::any (static_cast<long long> (v.get_int64 ().value ()));
+    }
+    case json_type::array: {
+        list out;
+        for (auto item : v.get_array ()) {
+            out.push (simdToAny (item.value ()));
+        }
+        return std::any (out);
+    }
+    case json_type::object: {
+        dict out;
+        for (auto field : v.get_object ()) {
+            out.set (
+                std::string (std::string_view (field.unescaped_key ().value ())),
+                simdToAny (field.value ()));
+        }
+        return std::any (out);
+    }
+    }
+    return std::any {};
+}
+#endif
 
 // nlohmann::json objects sort keys, which would break request signing, so serialise
 // dictionaries by hand in insertion order.
@@ -929,6 +987,24 @@ std::any ExchangeBase::parseJson (std::any value) {
         // strings. (std::regex is ECMAScript-flavoured: no lookbehind, hence the
         // manual prev-char check instead of (?<!...).)
         std::string text = str (value);
+#ifdef CCXT_HAS_SIMDJSON
+        // big payloads take the SIMD path (see simdToAny). Fall back to the
+        // proven nlohmann pipeline on any simdjson error — guaranteed no
+        // regression, only the fast path is opt-in by size.
+        if (text.size () >= (1u << 20)
+            && !std::getenv ("CCXT_PARSE_FORCE_NLOHMANN")) {
+            try {
+                simdjson::ondemand::parser parser;
+                const simdjson::padded_string padded (text);
+                auto doc = parser.iterate (padded);
+                if (!doc.error ()) {
+                    return simdToAny (doc.get_value ().value ());
+                }
+            } catch (const std::exception&) {
+                // fall through to the nlohmann path
+            }
+        }
+#endif
         // exchange ids routinely exceed int64 (e.g. alpaca trade ids like
         // 2880534893454904000): nlohmann stores those as double, rounding the
         // value before any numberToString can recover it. Quote integer literals
