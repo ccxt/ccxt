@@ -182,6 +182,9 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "fetchTrades": {
+                "sideSequence": "need directional parsing, eg https://api.binance.com/api/v3/aggTrades?symbol=BTCUSDT&limit=12000"
             }
         }
     },
@@ -289,6 +292,9 @@
             },
             "fetchTicker": {
                 "lastBetweenBidAsk": "very low volume exchange"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check, eg https://bit2c.co.il/Exchanges/BtcNis/trades.json"
             }
         }
     },
@@ -399,6 +405,9 @@
             },
             "orderBook": {
                 "compareToZero": "frequently, zero amount is set in some orderbook entry"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check, eg https://api.bithumb.com/v1/trades/ticks?count=12000&market=KRW-BTC"
             }
         }
     },
@@ -516,6 +525,9 @@
             },
             "ticker": {
                 "compareOHLC": "todo fix rounding"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check, eg https://api.bitopro.com/v3/trades/btc_usdt"
             }
         }
     },
@@ -538,6 +550,9 @@
             "fetchTickers": {
                 "checkActiveSymbols": "todo",
                 "spread": "broken on exchange side https://github.com/ccxt/ccxt/actions/runs/21364685831/job/61493525089?pr=27750#step:10:238"
+            },
+            "fetchTrades": {
+                "sideSequence": "need directional parsing, eg https://www.bitrue.com/api/v1/trades?symbol=BTCUSDT&limit=12000"
             }
         }
     },
@@ -869,6 +884,9 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check, eg https://api.exchange.coinbase.com/products/BTC-USDT/trades?limit=12000"
             }
         }
     },
@@ -1262,6 +1280,9 @@
             },
             "watchOrderBook": {
                 "spread": "sometimes bid is greater than ask https://github.com/ccxt/ccxt/actions/runs/21364685838/job/61493659809?pr=27750#step:11:499"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check"
             }
         }
     },
@@ -2694,6 +2715,9 @@
         "skipMethods": {
             "ticker": {
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/31550755306/job/93972856257?pr=27862"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check, eg https://api.btse.com/public-api/market/v1/trades?symbol=BTC-USDT&limit=500"
             }
         }
     }
