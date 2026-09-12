@@ -988,5 +988,164 @@
             ]
         },
         "numericId": null
+    },
+    "VIRTUAL/USDT:USDT": {
+        "id": "VIRTUALUSDT",
+        "lowercaseId": "virtualusdt",
+        "symbol": "VIRTUAL/USDT:USDT",
+        "base": "VIRTUAL",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "VIRTUAL",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0008,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 100
+            },
+            "amount": {
+                "min": 1,
+                "max": 180000
+            },
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "symbol": "VIRTUALUSDT",
+            "displaySymbol": "VIRTUALUSDT",
+            "baseAsset": "VIRTUAL",
+            "quoteAsset": "USDT",
+            "marginAsset": "USDT",
+            "contractType": "PERPETUAL",
+            "underlyingType": "COIN",
+            "underlyingSubType": [
+                "AI"
+            ],
+            "pricePrecision": 4,
+            "quantityPrecision": 0,
+            "baseAssetPrecision": 4,
+            "quotePrecision": 8,
+            "contractVal": 1,
+            "delivery": [
+                "00:00:00",
+                "04:00:00",
+                " 08:00:00",
+                "12:00:00",
+                "16:00:00",
+                "20:00:00"
+            ],
+            "forwardContractFlag": true,
+            "minLeverage": 1,
+            "maxLeverage": 100,
+            "buyLimitPriceRatio": 0.05,
+            "sellLimitPriceRatio": 0.05,
+            "makerFeeRate": 0.0002,
+            "takerFeeRate": 0.0008,
+            "minOrderSize": 1,
+            "maxOrderSize": 180000,
+            "maxPositionSize": 300000,
+            "marketOpenLimitSize": 150000
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "quote",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.08
+                ],
+                [
+                    1000000,
+                    0.075
+                ],
+                [
+                    5000000,
+                    0.06
+                ],
+                [
+                    10000000,
+                    0.055
+                ],
+                [
+                    30000000,
+                    0.05
+                ],
+                [
+                    50000000,
+                    0.048
+                ],
+                [
+                    100000000,
+                    0.045
+                ],
+                [
+                    300000000,
+                    0.042
+                ],
+                [
+                    500000000,
+                    0.04
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.02
+                ],
+                [
+                    1000000,
+                    0.02
+                ],
+                [
+                    5000000,
+                    0.018
+                ],
+                [
+                    10000000,
+                    0.018
+                ],
+                [
+                    30000000,
+                    0.016
+                ],
+                [
+                    50000000,
+                    0.016
+                ],
+                [
+                    100000000,
+                    0.014
+                ],
+                [
+                    300000000,
+                    0.012
+                ],
+                [
+                    500000000,
+                    0.01
+                ]
+            ]
+        }
     }
 }
