@@ -223,6 +223,9 @@
             },
             "watchOrderBookForSymbols": {
                 "timestamp": "same"
+            },
+            "watchTickers": {
+                "compareQuoteVolumeBaseVolume": "https://github.com/ccxt/ccxt/actions/runs/32295515130/job/96206607580?pr=29952#step:11:295"
             }
         }
     },
