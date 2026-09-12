@@ -942,11 +942,11 @@ public class IndodaxCore extends IndodaxApi
         }
         String status = this.parseOrderStatus(this.safeString(order, "status", "open"));
         Object symbol = null;
-        Object cost = null;
+        String cost = null;
         String price = this.safeString(order, "price");
-        Object amount = null;
-        Object remaining = null;
-        Object filled = null;
+        String amount = null;
+        String remaining = null;
+        String filled = null;
         String marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))

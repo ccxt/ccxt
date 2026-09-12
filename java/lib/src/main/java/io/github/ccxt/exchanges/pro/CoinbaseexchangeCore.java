@@ -661,7 +661,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         // }
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object parsed = super.parseTrade(trade);
-        Object feeRate = null;
+        String feeRate = null;
         Boolean isMaker = false;
         if (Helpers.isTrue(Helpers.inOp(trade, "maker_fee_rate")))
         {
@@ -841,8 +841,8 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                         }
                         ((java.util.List<Object>)Helpers.GetValue(previousOrder, "trades")).add(trade);
                         Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", Helpers.GetValue(trade, "timestamp"));
-                        Object totalCost = "0";
-                        Object totalAmount = "0";
+                        String totalCost = "0";
+                        String totalAmount = "0";
                         Object trades = Helpers.GetValue(previousOrder, "trades");
                         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
                         {

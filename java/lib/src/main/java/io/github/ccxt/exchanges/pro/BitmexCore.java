@@ -1487,7 +1487,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object table = null;
+            String table = null;
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 table = this.safeString(this.options, "watchOrderBookLevel", "orderBookL2");

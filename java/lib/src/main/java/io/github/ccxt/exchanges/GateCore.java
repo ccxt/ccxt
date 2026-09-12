@@ -2033,7 +2033,7 @@ public class GateCore extends GateApi
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
         Object marketIdBase = Helpers.split(symbol, "_");
-        Object base = null;
+        String base = null;
         Object expiry = this.safeString(optionParts, 1);
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
@@ -6687,8 +6687,8 @@ final Object finalPointFee = pointFee;
         amount = this.safeString2(order, "amount", "size", amount);
         side = this.safeString(order, "side", side);
         price = this.safeString(order, "price", price);
-        Object remainingString = this.safeString(order, "left");
-        Object cost = this.safeString(order, "filled_total");
+        String remainingString = this.safeString(order, "left");
+        String cost = this.safeString(order, "filled_total");
         Double triggerPrice = this.safeNumber(trigger, "price");
         Object average = this.safeNumber2(order, "avg_deal_price", "fill_price");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isEqual(triggerPrice, 0)))))
@@ -8077,7 +8077,7 @@ final Object finalRebate = rebate;
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
         String unrealisedPnl = this.safeString(position, "unrealised_pnl");
-        Object collateral = marginBalance;
+        String collateral = marginBalance;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginBalance, null))) && Helpers.isTrue((!Helpers.isEqual(unrealisedPnl, null)))))
         {
             collateral = Precise.stringAdd(marginBalance, unrealisedPnl);
@@ -8572,7 +8572,7 @@ final Object finalRebate = rebate;
         String riskLimitStep = this.safeString(info, "risk_limit_step"); // '1000000',
         String riskLimitMax = this.safeString(info, "risk_limit_max"); // '16000000',
         String initialMarginUnit = Precise.stringDiv("1", leverageMax);
-        Object maintenanceMarginRate = maintenanceMarginUnit;
+        String maintenanceMarginRate = maintenanceMarginUnit;
         String initialMarginRatio = initialMarginUnit;
         Object floor = "0";
         java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());

@@ -3877,7 +3877,7 @@ public class BitgetCore extends BitgetApi
                 String quote = (String) this.safeCurrencyCode(quoteId);
                 String base = (String) this.safeCurrencyCode(baseId);
                 Object supportMarginCoins = this.safeValue(market, "supportMarginCoins", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object settleId = null;
+                String settleId = null;
                 if (Helpers.isTrue(this.inArray(baseId, supportMarginCoins)))
                 {
                     settleId = baseId;
@@ -4695,7 +4695,7 @@ public class BitgetCore extends BitgetApi
             }
             Object maxNotional = this.safeNumberN(item, new java.util.ArrayList<Object>(java.util.Arrays.asList("endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount", "maxTierValue")));
             String marginCurrency = this.safeString2(item, "coin", "baseCoin");
-            Object currencyId = ((Helpers.isTrue((!Helpers.isEqual(marginCurrency, null))))) ? marginCurrency : this.safeString(market, "base");
+            String currencyId = ((Helpers.isTrue((!Helpers.isEqual(marginCurrency, null))))) ? marginCurrency : this.safeString(market, "base");
             String marketId = this.safeString(item, "symbol");
 final Object finalMinNotional = minNotional;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
@@ -7409,8 +7409,8 @@ final Object finalMinNotional = minNotional;
         {
             reduceOnly = ((Helpers.isTrue((Helpers.isEqual(reduceOnlyRaw, "NO"))))) ? false : true;
         }
-        Object price = null;
-        Object average = null;
+        String price = null;
+        String average = null;
         String basePrice = this.safeString(order, "basePrice");
         if (Helpers.isTrue(!Helpers.isEqual(basePrice, null)))
         {
@@ -7422,8 +7422,8 @@ final Object finalMinNotional = minNotional;
             price = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "executePrice", "slLimitPrice", "tpLimitPrice")));
             average = this.safeString(order, "priceAvg");
         }
-        Object size = null;
-        Object filled = null;
+        String size = null;
+        String filled = null;
         String baseSize = this.safeString(order, "baseSize");
         if (Helpers.isTrue(!Helpers.isEqual(baseSize, null)))
         {
@@ -8161,7 +8161,7 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object symbol = null;
+            String symbol = null;
             Object marginMode = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -8254,7 +8254,7 @@ final Object finalMinNotional = minNotional;
                 return (this.createUtaOrders(orders, parameters)).join();
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object symbol = null;
+            String symbol = null;
             Object marginMode = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -8509,7 +8509,7 @@ final Object finalMinNotional = minNotional;
                     {
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
-                        Object finalCost = ((Helpers.isTrue((Helpers.isEqual(cost, null))))) ? (Precise.stringMul(amountString, priceString)) : cost;
+                        String finalCost = ((Helpers.isTrue((Helpers.isEqual(cost, null))))) ? (Precise.stringMul(amountString, priceString)) : cost;
                         Helpers.addElementToObject(request, "size", this.priceToPrecision(symbol, finalCost));
                     }
                 } else
@@ -9388,7 +9388,7 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object type = null;
+            String type = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object marginMode = null;
             java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", parameters);
@@ -11431,7 +11431,7 @@ final Object finalMinNotional = minNotional;
         Long timestamp = this.safeIntegerN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("cTime", "ctime", "createdTime")));
         String marginMode = this.safeString(position, "marginMode");
         String collateral = null;
-        Object initialMargin = null;
+        String initialMargin = null;
         String unrealizedPnl = this.safeString2(position, "unrealizedPL", "unrealisedPnl");
         String rawCollateral = this.safeString2(position, "marginSize", "positionBalance");
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
@@ -11477,7 +11477,7 @@ final Object finalMinNotional = minNotional;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(liquidationPrice, null))) && Helpers.isTrue((Helpers.isEqual(marginMode, "isolated")))) && Helpers.isTrue(Precise.stringGt(baseAmount, "0"))))
         {
             String signedMargin = Precise.stringDiv(rawCollateral, baseAmount);
-            Object signedMmp = maintenanceMarginPercentage;
+            String signedMmp = maintenanceMarginPercentage;
             if (Helpers.isTrue(Helpers.isEqual(side, "short")))
             {
                 signedMargin = Precise.stringNeg(signedMargin);

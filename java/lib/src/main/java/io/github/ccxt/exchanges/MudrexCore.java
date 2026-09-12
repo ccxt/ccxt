@@ -785,7 +785,7 @@ public class MudrexCore extends MudrexApi
                 }
                 response = (this.privateGetFuturesFunds(this.extend(request, parameters))).join();
             }
-            Object currency = requested;
+            String currency = requested;
             if (Helpers.isTrue(Helpers.isEqual(currency, null)))
             {
                 currency = "USDT";
@@ -1099,10 +1099,10 @@ public class MudrexCore extends MudrexApi
         // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
         Boolean isRiskOrder = Helpers.isTrue((Helpers.isEqual(rawSide, "STOPLOSS"))) || Helpers.isTrue((Helpers.isEqual(rawSide, "TAKEPROFIT")));
         String priceString = this.safeString2(order, "price", "order_price");
-        Object orderPrice = priceString;
-        Object triggerPrice = null;
-        Object stopLossPrice = null;
-        Object takeProfitPrice = null;
+        String orderPrice = priceString;
+        String triggerPrice = null;
+        String stopLossPrice = null;
+        String takeProfitPrice = null;
         if (Helpers.isTrue(isRiskOrder))
         {
             triggerPrice = priceString;

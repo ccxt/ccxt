@@ -1515,7 +1515,7 @@ public class BingxCore extends BingxApi
         String quoteId = (String) Helpers.GetValue(symbolParts, 1);
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        Object currency = this.safeString(market, "currency");
+        String currency = this.safeString(market, "currency");
         Object checkIsInverse = false;
         Object checkIsLinear = true;
         Object inverseContractSize = this.safeNumber(market, "minTickSize");
@@ -3815,7 +3815,7 @@ public class BingxCore extends BingxApi
                 }
             } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null)))))
             {
-                Object stopTakePrice = ((Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))))) ? stopLossPrice : takeProfitPrice;
+                String stopTakePrice = ((Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))))) ? stopLossPrice : takeProfitPrice;
                 if (Helpers.isTrue(Helpers.isEqual(type, "LIMIT")))
                 {
                     Helpers.addElementToObject(request, "type", "TAKE_STOP_LIMIT");
@@ -6219,7 +6219,7 @@ public class BingxCore extends BingxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object data = this.safeValue(transaction, "data");
-        Object dataId = ((Helpers.isTrue((Helpers.isEqual(data, null))))) ? null : this.safeString(data, "id");
+        String dataId = ((Helpers.isTrue((Helpers.isEqual(data, null))))) ? null : this.safeString(data, "id");
         String id = this.safeString(transaction, "id", dataId);
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "addressTag");
@@ -7742,7 +7742,7 @@ final Object finalMarket = market;
         //    }
         //
         String code = this.safeString(response, "code");
-        Object message = this.safeString(response, "msg");
+        String message = this.safeString(response, "msg");
         String transferErrorMsg = this.safeString(response, "transferErrorMsg"); // handling with errors from transfer endpoint
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(transferErrorMsg, null))) || Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue(!Helpers.isEqual(code, "0"))))))
         {

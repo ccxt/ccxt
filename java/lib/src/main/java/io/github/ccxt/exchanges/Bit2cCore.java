@@ -953,8 +953,8 @@ public class Bit2cCore extends Bit2cApi
             side = "sell";
         }
         String price = this.safeString(orderUnified, "price");
-        Object amount = null;
-        Object remaining = null;
+        String amount = null;
+        String remaining = null;
         if (Helpers.isTrue(isNewOrder))
         {
             amount = this.safeString(orderUnified, "amount"); // NOTE:'initialAmount' is currently not set on new order
@@ -1133,7 +1133,7 @@ public class Bit2cCore extends Bit2cApi
         Object timestamp = null;
         Object id = null;
         Object price = null;
-        Object amount = null;
+        String amount = null;
         Object orderId = null;
         Object fee = null;
         Object side = null;

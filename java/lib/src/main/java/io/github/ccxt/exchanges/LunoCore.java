@@ -1281,8 +1281,8 @@ public class LunoCore extends LunoApi
         }
         String feeBaseString = this.safeString(trade, "fee_base");
         String feeCounterString = this.safeString(trade, "fee_counter");
-        Object feeCurrency = null;
-        Object feeCost = null;
+        String feeCurrency = null;
+        String feeCost = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeBaseString, null)))
         {
             if (!Helpers.isTrue(Precise.stringEquals(feeBaseString, "0.0")))
@@ -1793,7 +1793,7 @@ public class LunoCore extends LunoApi
             put( "Bought", "trade" );
             put( "Failure", "failed" );
         }};
-        Object referenceId = null;
+        String referenceId = null;
         String firstWord = this.safeString(words, 0);
         String thirdWord = this.safeString(words, 2);
         String fourthWord = this.safeString(words, 3);
@@ -1828,7 +1828,7 @@ public class LunoCore extends LunoApi
         String balance_delta = this.safeString(entry, "balance_delta");
         String after = this.safeString(entry, "balance");
         String comment = this.safeString(entry, "description");
-        Object before = after;
+        String before = after;
         String amount = "0.0";
         Object result = this.parseLedgerComment(comment);
         Object type = Helpers.GetValue(result, "type");

@@ -1886,7 +1886,7 @@ public class BitsoCore extends BitsoApi
             java.util.Map<String, Object> response = (this.privateGetFundingDestination(this.extend(request, parameters))).join();
             Object payload = this.safeDict(response, "payload", new java.util.HashMap<String, Object>() {{}});
             String address = this.safeString(payload, "account_identifier");
-            Object tag = null;
+            String tag = null;
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)address), "?dt="), 0)))
             {
                 Object parts = Helpers.split(((String)address), "?dt=");

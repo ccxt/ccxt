@@ -1018,7 +1018,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object id = this.safeString2(trade, "t", "a");
         Long timestamp = this.safeInteger(trade, "T");
         Object price = this.safeString2(trade, "L", "p");
-        Object amount = null;
+        String amount = null;
         if (Helpers.isTrue(isPublicTrade))
         {
             amount = this.safeString(trade, "q");
@@ -1415,7 +1415,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbolString);
                 symbolString = Helpers.GetValue(market, "symbol");
                 Object unfiedTimeframe = this.safeString(data, 1);
-                Object timeframeId = ((Helpers.isTrue((Helpers.isEqual(unfiedTimeframe, null))))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+                String timeframeId = ((Helpers.isTrue((Helpers.isEqual(unfiedTimeframe, null))))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
                 ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(Helpers.add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol")), ":"), unfiedTimeframe));
             }
@@ -1485,7 +1485,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbolString);
                 symbolString = Helpers.GetValue(market, "symbol");
                 Object unfiedTimeframe = this.safeString(data, 1);
-                Object timeframeId = ((Helpers.isTrue((Helpers.isEqual(unfiedTimeframe, null))))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+                String timeframeId = ((Helpers.isTrue((Helpers.isEqual(unfiedTimeframe, null))))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
                 ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(Helpers.add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("unsubscribe:ohlcv:", Helpers.GetValue(market, "symbol")), ":"), unfiedTimeframe));
             }

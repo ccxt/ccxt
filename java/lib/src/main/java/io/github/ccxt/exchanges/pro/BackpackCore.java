@@ -972,7 +972,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         }
         Object price = this.safeString(trade, "p");
         Object amount = this.safeString(trade, "q");
-        Object orderId = null;
+        String orderId = null;
         if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
         {
             orderId = this.safeString(trade, "b");

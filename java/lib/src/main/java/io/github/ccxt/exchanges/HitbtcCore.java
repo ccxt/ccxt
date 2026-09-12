@@ -902,7 +902,7 @@ public class HitbtcCore extends HitbtcApi
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
                 String feeCurrency = (String) this.safeCurrencyCode(feeCurrencyId);
-                Object settleId = null;
+                String settleId = null;
                 Object settle = null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 String type = "spot";
@@ -1262,7 +1262,7 @@ public class HitbtcCore extends HitbtcApi
             String type = (String)this.safeStringLower(parameters, "type", "spot");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("type")));
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
-            Object account = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? null : this.safeString(accountsByType, type, type);
+            String account = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? null : this.safeString(accountsByType, type, type);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(account, "wallet")))
             {
@@ -1816,9 +1816,9 @@ public class HitbtcCore extends HitbtcApi
         String code = (String) this.safeCurrencyCode(currencyId);
         String txhash = this.safeString(nativeVar, "hash");
         String address = this.safeString(nativeVar, "address");
-        Object addressTo = address;
+        String addressTo = address;
         String tag = this.safeString(nativeVar, "payment_id");
-        Object tagTo = tag;
+        String tagTo = tag;
         Object sender = this.safeValue(nativeVar, "senders");
         String addressFrom = this.safeString(sender, 0);
         Double amount = this.safeNumber(nativeVar, "amount");

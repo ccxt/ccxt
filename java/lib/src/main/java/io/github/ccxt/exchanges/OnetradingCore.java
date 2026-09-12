@@ -860,8 +860,8 @@ public class OnetradingCore extends OnetradingApi
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                Object makerFee = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? spotMakerFee : futuresMakerFee;
-                Object takerFee = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? spotTakerFee : futuresTakerFee;
+                String makerFee = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? spotMakerFee : futuresMakerFee;
+                String takerFee = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? spotTakerFee : futuresTakerFee;
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );

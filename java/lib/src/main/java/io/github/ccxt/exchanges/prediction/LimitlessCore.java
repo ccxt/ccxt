@@ -1246,7 +1246,7 @@ public class LimitlessCore extends LimitlessApi
             raw = this.safeDict(ticker, "market", new java.util.HashMap<String, Object>() {{}});
             book = this.safeDict(ticker, "book");
         }
-        Object rawLabel = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? this.safeString(market, "label", this.safeString(Helpers.GetValue(market, "info"), "outcomeLabel", "yes")) : "yes";
+        String rawLabel = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? this.safeString(market, "label", this.safeString(Helpers.GetValue(market, "info"), "outcomeLabel", "yes")) : "yes";
         Boolean isYes = !Helpers.isEqual(((String)rawLabel).toLowerCase(), "no");
         Object bidStr = null;
         Object askStr = null;
@@ -2248,8 +2248,8 @@ public class LimitlessCore extends LimitlessApi
         Object rawStatus = this.safeString(rawOrder, "status");
         Object execution = this.safeDict(data, "execution");
         Object fee = null;
-        Object filled = null;
-        Object cost = null;
+        String filled = null;
+        String cost = null;
         if (Helpers.isTrue(!Helpers.isEqual(execution, null)))
         {
             rawStatus = this.safeString(execution, "settlementStatus");
@@ -2440,7 +2440,7 @@ public class LimitlessCore extends LimitlessApi
             // smartWallet field can stay populated after switching to eoa, so key off the option here
             Object tradeWalletOption = this.safeString(accountInfo, "tradeWalletOption");
             Boolean usesSmartWallet = (Helpers.isEqual(tradeWalletOption, "smartWallet"));
-            Object walletFromAccount = ((Helpers.isTrue((usesSmartWallet)))) ? this.safeString(accountInfo, "smartWallet") : this.safeString(accountInfo, "account");
+            String walletFromAccount = ((Helpers.isTrue((usesSmartWallet)))) ? this.safeString(accountInfo, "smartWallet") : this.safeString(accountInfo, "account");
             Object maker = ((Helpers.isTrue((!Helpers.isEqual(this.walletAddress, ""))))) ? this.walletAddress : walletFromAccount;
             java.util.List<Object> makerparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "maker", maker);
             maker = ((java.util.List<Object>) makerparametersVariable).get(0);

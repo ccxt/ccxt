@@ -1279,7 +1279,7 @@ public class CoinoneCore extends CoinoneApi
         }
         String remainingString = this.safeString2(order, "remainQty", "remain_qty");
         String amountString = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("originalQty", "qty", "original_qty")));
-        Object status = this.safeString(order, "status");
+        String status = this.safeString(order, "status");
         // https://github.com/ccxt/ccxt/pull/7067
         if (Helpers.isTrue(Helpers.isEqual(status, "live")))
         {

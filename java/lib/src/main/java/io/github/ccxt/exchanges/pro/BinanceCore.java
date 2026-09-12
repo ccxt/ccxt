@@ -3300,7 +3300,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         {
             unifiedPrefix = "ticker";
         }
-        Object channelName = null;
+        String channelName = null;
         java.util.List<Object> resolvedMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object rawTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         java.util.Map<String, Object> newTickers = new java.util.HashMap<String, Object>() {{}};

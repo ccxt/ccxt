@@ -717,11 +717,11 @@ public class CoincheckCore extends CoincheckApi
         Object quoteId = Helpers.GetValue(market, "quoteId");
         Object symbol = Helpers.GetValue(market, "symbol");
         String takerOrMaker = null;
-        Object amountString = null;
-        Object costString = null;
-        Object side = null;
+        String amountString = null;
+        String costString = null;
+        String side = null;
         Object fee = null;
-        Object orderId = null;
+        String orderId = null;
         if (Helpers.isTrue(Helpers.inOp(trade, "liquidity")))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.safeString(trade, "liquidity"), "T")))

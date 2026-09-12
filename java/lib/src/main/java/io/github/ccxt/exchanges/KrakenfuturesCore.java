@@ -896,8 +896,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         String percentage = Precise.stringMul(Precise.stringDiv(change, open), "100");
         String average = Precise.stringDiv(Precise.stringAdd(open, last), "2");
         String volume = this.safeString(ticker, "vol24h");
-        Object baseVolume = null;
-        Object quoteVolume = null;
+        String baseVolume = null;
+        String quoteVolume = null;
         Object isIndex = this.safeBool(market, "index", false);
         if (Helpers.isTrue(!Helpers.isEqual(isIndex, true)))
         {
@@ -1032,8 +1032,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object volume = Helpers.getArg(optionalArgs, 1, null);
         Object tiers = this.safeList(fee, "tiers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object makerFee = null;
-        Object takerFee = null;
+        String makerFee = null;
+        String takerFee = null;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tiers)); i++)
         {
             Object tier = Helpers.GetValue(tiers, i);
@@ -1391,7 +1391,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         String order = this.safeString(trade, "order_id");
         String marketId = this.safeString(trade, "symbol");
         String side = this.safeString(trade, "side");
-        Object type = null;
+        String type = null;
         Object priorEdit = this.safeValue(trade, "orderPriorEdit");
         Object priorExecution = this.safeValue(trade, "orderPriorExecution");
         if (Helpers.isTrue(!Helpers.isEqual(priorExecution, null)))
@@ -2746,8 +2746,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object details = null;
         Boolean isPrior = false;
         Boolean fixedVar = false;
-        Object statusId = null;
-        Object price = null;
+        String statusId = null;
+        String price = null;
         java.util.List<Object> trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isGreaterThan(orderEventsLength, 0)))
         {
@@ -2809,7 +2809,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Long lastUpdateTimestamp = this.parse8601(this.safeString(details, "lastUpdateTime"));
         String amount = this.safeString(details, "quantity");
         Object filled = this.safeString2(details, "filledSize", "filled", "0.0");
-        Object remaining = this.safeString(details, "unfilledSize");
+        String remaining = this.safeString(details, "unfilledSize");
         String average = null;
         Object filled2 = "0.0";
         Object tradesLength = Helpers.getArrayLength(trades);
@@ -2860,7 +2860,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         String cost = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(filled, null))) && Helpers.isTrue((!Helpers.isEqual(market, null)))))
         {
-            Object whichPrice = ((Helpers.isTrue((!Helpers.isEqual(average, null))))) ? average : price;
+            String whichPrice = ((Helpers.isTrue((!Helpers.isEqual(average, null))))) ? average : price;
             if (Helpers.isTrue(!Helpers.isEqual(whichPrice, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))

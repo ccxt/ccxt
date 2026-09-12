@@ -811,7 +811,7 @@ public class LbankCore extends LbankApi
                 String marketId = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseCurrency");
                 String settleId = this.safeString(market, "clearCurrency");
-                Object quoteId = settleId;
+                String quoteId = settleId;
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
                 String settle = (String) this.safeCurrencyCode(settleId);
@@ -1290,7 +1290,7 @@ public class LbankCore extends LbankApi
         String feeCost = this.safeString(trade, "tradeFee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
-            Object feeCurr = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? this.safeString(market, "base") : this.safeString(market, "quote");
+            String feeCurr = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? this.safeString(market, "base") : this.safeString(market, "quote");
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -2221,7 +2221,7 @@ public class LbankCore extends LbankApi
         }
         String price = this.safeString(order, "price");
         String costString = this.safeString(order, "cummulativeQuoteQty");
-        Object amountString = null;
+        String amountString = null;
         if (Helpers.isTrue(!Helpers.isEqual(rawType, "buy_market")))
         {
             amountString = this.safeString2(order, "origQty", "amount");
@@ -3005,8 +3005,8 @@ public class LbankCore extends LbankApi
         String txid = this.safeString(transaction, "txId");
         Long timestamp = (Long) this.safeInteger2(transaction, "insertTime", "applyTime");
         String address = this.safeString(transaction, "address");
-        Object addressFrom = null;
-        Object addressTo = null;
+        String addressFrom = null;
+        String addressTo = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "deposit")))
         {
             addressFrom = address;

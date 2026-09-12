@@ -1485,7 +1485,7 @@ public class CoinexCore extends CoinexApi
                 String quoteId = this.safeString(entry, "quote_ccy");
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
-                Object settleId = ((Helpers.isTrue((Helpers.isEqual(subType, "linear"))))) ? "USDT" : baseId;
+                String settleId = ((Helpers.isTrue((Helpers.isEqual(subType, "linear"))))) ? "USDT" : baseId;
                 String settle = (String) this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
                 Object leveragesLength = Helpers.getArrayLength(leverages);
@@ -1592,7 +1592,7 @@ public class CoinexCore extends CoinexApi
         Object symbol = Helpers.GetValue(market, "symbol");
         // on inverse contracts 'value' is denominated in the settle currency, not
         // the quote, so it is the quote volume only for spot and linear markets
-        Object quoteVolume = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true))))) ? null : this.safeString(ticker, "value");
+        String quoteVolume = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true))))) ? null : this.safeString(ticker, "value");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -3040,7 +3040,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object symbol = null;
+            String symbol = null;
             Object reduceOnly = false;
             Boolean isTriggerOrder = false;
             Boolean isStopLossOrTakeProfitTrigger = false;

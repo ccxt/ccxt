@@ -233,7 +233,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
                 return this.safeString(this.options, "listenKey");
             }
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
-            Object listenKey = null;
+            String listenKey = null;
             try
             {
                 Object listenKeyExpiryTimestamp = this.safeInteger(this.options, "listenKeyExpiryTimestamp", time);

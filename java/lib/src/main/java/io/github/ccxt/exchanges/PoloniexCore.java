@@ -2112,7 +2112,7 @@ public class PoloniexCore extends PoloniexApi
         String id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderNumber", "id", "orderId", "ordId")));
         Object fee = null;
         String feeCurrency = this.safeString2(order, "tokenFeeCurrency", "feeCcy");
-        Object feeCost = null;
+        String feeCost = null;
         Object feeCurrencyCode = null;
         String rate = this.safeString(order, "fee");
         if (Helpers.isTrue(Helpers.isEqual(feeCurrency, null)))
@@ -3334,12 +3334,12 @@ public class PoloniexCore extends PoloniexApi
 
     public Object parseDepositAddressSpecial(Object response, Object currency, Object networkEntry)
     {
-        Object address = this.safeString(response, "address");
+        String address = this.safeString(response, "address");
         if (Helpers.isTrue(Helpers.isEqual(address, null)))
         {
             address = this.safeString(response, Helpers.GetValue(networkEntry, "id"));
         }
-        Object tag = null;
+        String tag = null;
         this.checkAddress(address);
         if (Helpers.isTrue(!Helpers.isEqual(networkEntry, null)))
         {
@@ -4076,7 +4076,7 @@ public class PoloniexCore extends PoloniexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object shortLeverage = null;
         Object longLeverage = null;
-        Object marketId = null;
+        String marketId = null;
         Object marginMode = null;
         Object data = this.safeList(leverage, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)

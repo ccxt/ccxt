@@ -829,7 +829,7 @@ public class BtseCore extends BtseApi
         Object active = this.safeBool(market, "active");
         String type = "spot";
         Object expiry = null;
-        Object contractSize = null;
+        String contractSize = null;
         if (!Helpers.isTrue(isSpot))
         {
             symbol = Helpers.add(symbol, Helpers.add(":", quote));
@@ -2415,7 +2415,7 @@ public class BtseCore extends BtseApi
                 {
                     Helpers.addElementToObject(request, "orderType", "CONDITIONAL");
                     Object triggerOrderType = null;
-                    Object triggerPriceToSend = null;
+                    String triggerPriceToSend = null;
                     if (Helpers.isTrue(isStopLossOrder))
                     {
                         triggerOrderType = "STOP_LOSS";
@@ -2669,7 +2669,7 @@ public class BtseCore extends BtseApi
                     // the futures conditional variant has no trigger direction field,
                     // it takes a plain trigger price with an optional limit price
                     Helpers.addElementToObject(request, "orderType", "CONDITIONAL");
-                    Object triggerPriceToSend = triggerPrice;
+                    String triggerPriceToSend = triggerPrice;
                     if (Helpers.isTrue(Helpers.isEqual(triggerPriceToSend, null)))
                     {
                         triggerPriceToSend = takeProfitPrice;

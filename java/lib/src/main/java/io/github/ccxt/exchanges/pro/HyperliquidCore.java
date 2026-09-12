@@ -596,7 +596,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object userAddress = null;
+            String userAddress = null;
             Object userAddressResult = this.handlePublicAddress("watchMyTrades", parameters);
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);
@@ -660,7 +660,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             {
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
             }
-            Object userAddress = null;
+            String userAddress = null;
             Object userAddressResult = this.handlePublicAddress("unWatchMyTrades", parameters);
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);
@@ -1479,7 +1479,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             {
                 (this.loadMarkets()).join();
             }
-            Object userAddress = null;
+            String userAddress = null;
             Object userAddressResult = this.handlePublicAddress("watchPositions", parameters);
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);
@@ -1595,7 +1595,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             }
             String messageHash = (String) "unsubscribe:clearinghouseState";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
-            Object userAddress = null;
+            String userAddress = null;
             Object userAddressResult = this.handlePublicAddress("unWatchPositions", parameters);
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);
@@ -1638,7 +1638,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             {
                 (this.loadMarkets()).join();
             }
-            Object userAddress = null;
+            String userAddress = null;
             Object userAddressResult = this.handlePublicAddress("watchOrders", parameters);
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);
@@ -1708,7 +1708,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             }
             String messageHash = (String) "unsubscribe:order";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
-            Object userAddress = null;
+            String userAddress = null;
             Object userAddressResult = this.handlePublicAddress("unWatchOrders", parameters);
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);

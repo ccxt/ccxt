@@ -937,10 +937,10 @@ public class BittradeCore extends BittradeApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = (String) this.safeSymbol(null, market);
         Long timestamp = this.safeInteger(ticker, "ts");
-        Object bid = null;
-        Object bidVolume = null;
-        Object ask = null;
-        Object askVolume = null;
+        String bid = null;
+        String bidVolume = null;
+        String ask = null;
+        String askVolume = null;
         if (Helpers.isTrue(Helpers.inOp(ticker, "bid")))
         {
             if (Helpers.isTrue(Helpers.isArray(Helpers.GetValue(ticker, "bid"))))
@@ -1205,7 +1205,7 @@ public class BittradeCore extends BittradeApi
         String amount = this.safeString2(trade, "filled-amount", "amount");
         String cost = Precise.stringMul(price, amount);
         Object fee = null;
-        Object feeCost = this.safeString(trade, "filled-fees");
+        String feeCost = this.safeString(trade, "filled-fees");
         String feeCurrency = (String) this.safeCurrencyCode(this.safeString(trade, "fee-currency"));
         String filledPoints = this.safeString(trade, "filled-points");
         if (Helpers.isTrue(!Helpers.isEqual(filledPoints, null)))

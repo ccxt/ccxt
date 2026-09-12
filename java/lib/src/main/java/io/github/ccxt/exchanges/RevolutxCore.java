@@ -310,8 +310,8 @@ public class RevolutxCore extends RevolutxApi
         String id = this.safeString(market, "id");
         String base = this.safeString(market, "base", "");
         String quote = this.safeString(market, "quote", "");
-        Object baseId = base;
-        Object quoteId = quote;
+        String baseId = base;
+        String quoteId = quote;
         String baseStep = this.safeString(market, "base_step");
         String quoteStep = this.safeString(market, "quote_step");
         String minOrderSize = this.safeString(market, "min_order_size");
@@ -1008,7 +1008,7 @@ public class RevolutxCore extends RevolutxApi
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
                 String reserved = this.safeString(balance, "reserved");
                 String staked = this.safeString(balance, "staked");
-                Object used = reserved;
+                String used = reserved;
                 if (Helpers.isTrue(!Helpers.isEqual(staked, null)))
                 {
                     used = ((Helpers.isTrue((Helpers.isEqual(reserved, null))))) ? staked : Precise.stringAdd(reserved, staked);
@@ -1085,7 +1085,7 @@ public class RevolutxCore extends RevolutxApi
                 put( "currency", feeCurrency );
             }};
         }
-        Object amountValue = null;
+        String amountValue = null;
         if (Helpers.isTrue(!Helpers.isEqual(quantity, null)))
         {
             amountValue = quantity;
@@ -1093,7 +1093,7 @@ public class RevolutxCore extends RevolutxApi
         {
             amountValue = amount;
         }
-        Object filledValue = null;
+        String filledValue = null;
         if (Helpers.isTrue(!Helpers.isEqual(filledQuantity, null)))
         {
             filledValue = filledQuantity;
@@ -1101,7 +1101,7 @@ public class RevolutxCore extends RevolutxApi
         {
             filledValue = filledAmount;
         }
-        Object remainingValue = null;
+        String remainingValue = null;
         if (Helpers.isTrue(!Helpers.isEqual(leavesQuantity, null)))
         {
             remainingValue = leavesQuantity;
@@ -1761,7 +1761,7 @@ public class RevolutxCore extends RevolutxApi
                 return null;
             }
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            Object errorMessage = null;
+            String errorMessage = null;
             if (Helpers.isTrue((response instanceof java.util.Map)))
             {
                 errorMessage = this.safeString2(response, "message", "error");

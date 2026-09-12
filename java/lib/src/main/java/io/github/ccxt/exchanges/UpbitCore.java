@@ -501,7 +501,7 @@ public class UpbitCore extends UpbitApi
             String maxOnetimeWithdrawal = this.safeString(withdrawLimits, "onetime");
             String maxDailyWithdrawal = this.safeString(withdrawLimits, "daily", maxOnetimeWithdrawal);
             String remainingDailyWithdrawal = this.safeString(withdrawLimits, "remaining_daily", maxDailyWithdrawal);
-            Object maxWithdrawLimit = null;
+            String maxWithdrawLimit = null;
             if (Helpers.isTrue(Precise.stringGt(remainingDailyWithdrawal, "0")))
             {
                 maxWithdrawLimit = remainingDailyWithdrawal;
@@ -2357,7 +2357,7 @@ public class UpbitCore extends UpbitApi
         String amount = this.safeString(order, "volume");
         String remaining = this.safeString(order, "remaining_volume");
         String filled = this.safeString(order, "executed_volume");
-        Object cost = null;
+        String cost = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "price")))
         {
             type = "market";

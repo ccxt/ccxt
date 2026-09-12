@@ -2500,7 +2500,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             return;
         }
         Object c = this.safeString(message, "c");
-        Object channel = null;
+        String channel = null;
         if (Helpers.isTrue(Helpers.isEqual(c, null)))
         {
             channel = this.safeString(message, "channel");

@@ -2356,7 +2356,7 @@ public class FoxbitCore extends FoxbitApi
         String fee = this.safeString(transaction, "fee", "0");
         String amount = this.safeString(transaction, "amount");
         String currencySymbol = this.safeString(transaction, "currency_symbol");
-        Object actualAmount = amount;
+        String actualAmount = amount;
         String currencyCode = (String) this.safeCurrencyCode(currencySymbol);
         String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         String created_at = this.safeString(transaction, "created_at");

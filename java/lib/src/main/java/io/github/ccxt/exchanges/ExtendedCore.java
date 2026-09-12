@@ -720,7 +720,7 @@ public class ExtendedCore extends ExtendedApi
         Double minAmount = this.safeNumber(tradingConfig, "minOrderSize");
         Double maxCost = this.safeNumber(tradingConfig, "maxLimitOrderValue");
         Long created = this.safeInteger(market, "createdAt");
-        Object settleId = null;
+        String settleId = null;
         String settle = null;
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Boolean isSpot = false;
@@ -2492,8 +2492,8 @@ public class ExtendedCore extends ExtendedApi
         Object amount = ((Helpers.isTrue((Helpers.isEqual(amountString, null))))) ? null : this.parseNumber(Precise.stringAbs(amountString));
         String accountId = this.safeString(transfer, "accountId");
         String counterpartyAccountId = this.safeString(transfer, "counterpartyAccountId");
-        Object fromAccount = accountId;
-        Object toAccount = counterpartyAccountId;
+        String fromAccount = accountId;
+        String toAccount = counterpartyAccountId;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amountString, null))) && !Helpers.isTrue(Precise.stringLt(amountString, "0"))))
         {
             fromAccount = counterpartyAccountId;
@@ -3380,7 +3380,7 @@ public class ExtendedCore extends ExtendedApi
         put( "starkKey", starkKey );
         put( "collateralPosition", collateralPosition );
     }});
-            Object triggerPriceStr = this.safeString2(parameters, "triggerPrice", "stopPrice");
+            String triggerPriceStr = this.safeString2(parameters, "triggerPrice", "stopPrice");
             String stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
             String takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
             Boolean isStopLossOrder = !Helpers.isEqual(stopLossTriggerPrice, null);

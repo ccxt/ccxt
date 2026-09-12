@@ -677,7 +677,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         String marketId = this.safeString(order, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market, "-");
         String exchangeOrderId = this.safeString(order, "exOrdId");
-        Object price = ((Helpers.isTrue((!Helpers.isEqual(type, "market"))))) ? this.safeString(order, "price") : null;
+        String price = ((Helpers.isTrue((!Helpers.isEqual(type, "market"))))) ? this.safeString(order, "price") : null;
         Double average = this.safeNumber(order, "avgPx");
         Long timestamp = this.safeInteger(order, "timestamp");
         String datetime = this.iso8601(timestamp);
@@ -1134,8 +1134,8 @@ public class BlockchaincomCore extends BlockchaincomApi
             }};
             java.util.Map<String, Object> response = (this.privatePostDepositsCurrency(this.extend(request, parameters))).join();
             String rawAddress = this.safeString(response, "address");
-            Object tag = null;
-            Object address = null;
+            String tag = null;
+            String address = null;
             if (Helpers.isTrue(!Helpers.isEqual(rawAddress, null)))
             {
                 Object addressParts = Helpers.split(rawAddress, ";");
@@ -1197,7 +1197,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String type = null;
-        Object id = null;
+        String id = null;
         Double amount = this.safeNumber(transaction, "amount");
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");

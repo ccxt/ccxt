@@ -114,7 +114,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
                 try
                 {
-                    Object listenKey = null;
+                    String listenKey = null;
                     if (Helpers.isTrue(isContract))
                     {
                         java.util.Map<String, Object> response = (this.privateLinearGetFutureUserV1UserListenKey()).join();

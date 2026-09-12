@@ -1541,7 +1541,7 @@ public class BydfiCore extends BydfiApi
         Boolean isTakeProfitOrder = (!Helpers.isEqual(takeProfitPrice, null));
         String trailingPercent = this.safeString(parameters, "trailingPercent");
         Boolean isTailingStopOrder = (!Helpers.isEqual(trailingPercent, null));
-        Object stopPrice = null;
+        String stopPrice = null;
         if (Helpers.isTrue(Helpers.isTrue(isStopLossOrder) || Helpers.isTrue(isTakeProfitOrder)))
         {
             stopPrice = ((Helpers.isTrue(isStopLossOrder))) ? stopLossPrice : takeProfitPrice;

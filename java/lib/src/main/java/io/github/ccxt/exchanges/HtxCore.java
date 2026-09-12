@@ -2989,10 +2989,10 @@ public class HtxCore extends HtxApi
         Object symbol = this.safeSymbol(marketId, market);
         symbol = this.tryGetSymbolFromFutureMarkets(symbol);
         Long timestamp = (Long) this.safeInteger2(ticker, "ts", "quoteTime");
-        Object bid = null;
-        Object bidVolume = null;
-        Object ask = null;
-        Object askVolume = null;
+        String bid = null;
+        String bidVolume = null;
+        String ask = null;
+        String askVolume = null;
         if (Helpers.isTrue(Helpers.inOp(ticker, "bid")))
         {
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(ticker, "bid"), null)) && Helpers.isTrue(Helpers.isArray(Helpers.GetValue(ticker, "bid")))))
@@ -3597,7 +3597,7 @@ public class HtxCore extends HtxApi
         amountString = this.safeString(trade, "trade_volume", amountString);
         String costString = this.safeString(trade, "trade_turnover");
         Object fee = null;
-        Object feeCost = this.safeString(trade, "filled-fees");
+        String feeCost = this.safeString(trade, "filled-fees");
         if (Helpers.isTrue(Helpers.isEqual(feeCost, null)))
         {
             feeCost = Precise.stringNeg(this.safeString(trade, "trade_fee"));
@@ -3629,7 +3629,7 @@ public class HtxCore extends HtxApi
         // htx's multi-market trade-id is a bit complex to parse accordingly.
         // - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
         // - otherwise the least priority is given to the `id` key
-        Object id = null;
+        String id = null;
         String safeId = this.safeString(trade, "id");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(safeId, null)) && Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(safeId, "-"), 0))))
         {
@@ -6352,8 +6352,8 @@ public class HtxCore extends HtxApi
         }
         Long timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("created_at", "created-at", "create_date", "created_time")));
         String clientOrderId = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", Helpers.add("client-or", "der-id"), "algo_client_order_id"))); // transpiler regex trick for php issue
-        Object cost = null;
-        Object amount = null;
+        String cost = null;
+        String amount = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "market"), 0)))) && Helpers.isTrue((!Helpers.isEqual(isLinearOrder, true)))))
         {
             cost = this.safeString(order, "field-cash-amount");
@@ -7184,7 +7184,7 @@ public class HtxCore extends HtxApi
                 (this.loadMarkets()).join();
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object symbol = null;
+            String symbol = null;
             Object market = null;
             Object marginMode = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
@@ -9953,7 +9953,7 @@ public class HtxCore extends HtxApi
         String directionSide = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "long" : "short";
         String rawPositionSide = this.safeString(position, "position_side");
         // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
-        Object side = directionSide;
+        String side = directionSide;
         Boolean isHedgedPositionSide = Helpers.isTrue((Helpers.isEqual(rawPositionSide, "long"))) || Helpers.isTrue((Helpers.isEqual(rawPositionSide, "short")));
         if (Helpers.isTrue(isHedgedPositionSide))
         {
@@ -9980,8 +9980,8 @@ public class HtxCore extends HtxApi
         String maintenanceMarginLinear = this.safeString(position, "maintenance_margin");
         String marginRatioLinear = this.safeString(position, "margin_rate");
         String maintenanceMarginPercentage = null;
-        Object maintenanceMargin = null;
-        Object marginRatio = null;
+        String maintenanceMargin = null;
+        String marginRatio = null;
         Object maintenanceMarginPercentageResult = null;
         if (Helpers.isTrue(Helpers.isEqual(maintenanceMarginLinear, null)))
         {

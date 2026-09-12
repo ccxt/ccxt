@@ -637,7 +637,7 @@ public class HibachiCore extends HibachiApi
         Object side = null;
         Object fee = null;
         Object orderType = null;
-        Object orderId = null;
+        String orderId = null;
         String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
@@ -833,7 +833,7 @@ public class HibachiCore extends HibachiApi
         {
             filled = Precise.stringSub(totalQuantity, availableQuantity);
         }
-        Object remainingString = remaining;
+        String remainingString = remaining;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(remainingString, null)) && Helpers.isTrue(!Helpers.isEqual(totalQuantity, null))) && Helpers.isTrue(!Helpers.isEqual(filled, null))))
         {
             remainingString = Precise.stringSub(totalQuantity, filled);
@@ -2264,8 +2264,8 @@ public class HibachiCore extends HibachiApi
         String direction = null;
         Object amount = null;
         Object fee = null;
-        Object referenceId = null;
-        Object referenceAccount = null;
+        String referenceId = null;
+        String referenceAccount = null;
         String status = null;
         if (Helpers.isTrue(Helpers.isEqual(transactionType, null)))
         {
@@ -2490,7 +2490,7 @@ public class HibachiCore extends HibachiApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeIntegerProduct(transaction, "timestampSec", 1000);
         String address = this.safeString(transaction, "withdrawalAddress");
-        Object transactionType = this.safeString(transaction, "transactionType");
+        String transactionType = this.safeString(transaction, "transactionType");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(transactionType, "deposit")) && Helpers.isTrue(!Helpers.isEqual(transactionType, "withdrawal"))))
         {
             transactionType = this.parseTransactionType(transactionType);

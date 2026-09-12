@@ -2297,7 +2297,7 @@ public class PhemexCore extends PhemexApi
         Object priceString = null;
         Object amountString = null;
         Object timestamp = null;
-        Object id = null;
+        String id = null;
         Object side = null;
         Object costString = null;
         String type = null;
@@ -2308,7 +2308,7 @@ public class PhemexCore extends PhemexApi
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object orderId = null;
+        String orderId = null;
         String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isArray(trade)))
         {

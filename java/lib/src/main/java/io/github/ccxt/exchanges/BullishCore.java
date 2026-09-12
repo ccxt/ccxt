@@ -989,7 +989,7 @@ public class BullishCore extends BullishApi
         Boolean contract = true;
         Object linear = null;
         Object inverse = null;
-        Object expiryDatetime = null;
+        String expiryDatetime = null;
         Object contractSize = null;
         Object optionType = null;
         Object strike = null;

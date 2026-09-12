@@ -641,7 +641,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
                 type = "market";
             }
         }
-        Object orderId = ((Helpers.isTrue((!Helpers.isTrue(isPublic))))) ? this.safeString(trade, 3) : null;
+        String orderId = ((Helpers.isTrue((!Helpers.isTrue(isPublic))))) ? this.safeString(trade, 3) : null;
         Object id = this.safeString(trade, 0);
         Long timestamp = this.safeInteger(trade, createdKey);
         Object price = this.safeString(trade, priceKey);

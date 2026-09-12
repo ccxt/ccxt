@@ -1589,7 +1589,7 @@ public class CoinsphCore extends CoinsphApi
         {
             takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(isMaker, "true"))))) ? "maker" : "taker";
         }
-        Object costString = null;
+        String costString = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderId, null)))
         {
             costString = this.safeString(trade, "quoteQty");
@@ -1715,7 +1715,7 @@ public class CoinsphCore extends CoinsphApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object testOrder = this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
-            Object orderType = this.safeString(parameters, "type", type);
+            String orderType = this.safeString(parameters, "type", type);
             orderType = this.encodeOrderType(orderType);
             parameters = this.omit(parameters, "type");
             String orderSide = this.encodeOrderSide(side);

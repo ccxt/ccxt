@@ -1019,7 +1019,7 @@ public class DeriveCore extends DeriveApi
         Object expiry = null;
         Object strike = null;
         String optionType = null;
-        Object optionLetter = null;
+        String optionLetter = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "erc20")))
         {
             spot = true;
@@ -2561,9 +2561,9 @@ public class DeriveCore extends DeriveApi
             }
         }
         String triggerType = this.safeString(order, "trigger_type");
-        Object stopLossPrice = null;
-        Object takeProfitPrice = null;
-        Object triggerPrice = null;
+        String stopLossPrice = null;
+        String takeProfitPrice = null;
+        String triggerPrice = null;
         if (Helpers.isTrue(!Helpers.isEqual(triggerType, null)))
         {
             triggerPrice = this.safeString(order, "trigger_price");

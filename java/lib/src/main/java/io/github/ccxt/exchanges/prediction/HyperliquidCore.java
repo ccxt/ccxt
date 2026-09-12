@@ -1790,7 +1790,7 @@ public class HyperliquidCore extends HyperliquidApi
                 }}));
             }
             Object parsed = this.parsePredictionOrders(ordersWithStatus, null, since);
-            Object outcomeHandle = null;
+            String outcomeHandle = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 (this.loadOutcome(outcome)).join();
@@ -1867,7 +1867,7 @@ public class HyperliquidCore extends HyperliquidApi
             }
             Object dedupedValues = Helpers.objectValues(deduped);
             Object parsed = this.parsePredictionOrders(dedupedValues, null, since);
-            Object outcomeHandle = null;
+            String outcomeHandle = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 (this.loadOutcome(outcome)).join();
@@ -2135,7 +2135,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object outcomeHandle = null;
+            String outcomeHandle = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 Object outcomeObj = (this.loadOutcome(outcome)).join();

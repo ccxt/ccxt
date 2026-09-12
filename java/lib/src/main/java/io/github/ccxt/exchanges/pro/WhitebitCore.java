@@ -779,8 +779,8 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object stopPrice = this.safeString(order, "activation_price");
         Object rawType = this.safeString(order, "type");
         Object type = this.parseWsOrderType(rawType);
-        Object amount = null;
-        Object remaining = null;
+        String amount = null;
+        String remaining = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "market")))
         {
             amount = this.safeString(order, "deal_stock");

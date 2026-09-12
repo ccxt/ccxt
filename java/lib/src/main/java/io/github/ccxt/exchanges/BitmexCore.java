@@ -1119,7 +1119,7 @@ public class BitmexCore extends BitmexApi
     {
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "underlying");
-        Object quoteId = this.safeString(market, "quoteCurrency");
+        String quoteId = this.safeString(market, "quoteCurrency");
         String settleId = this.safeString(market, "settlCurrency");
         String settle = (String) this.safeCurrencyCode(settleId);
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
@@ -1163,7 +1163,7 @@ public class BitmexCore extends BitmexApi
         String status = this.safeString(market, "state");
         Boolean active = Helpers.isEqual(status, "Open"); // Open, Settled, Unlisted
         Object expiry = null;
-        Object expiryDatetime = null;
+        String expiryDatetime = null;
         Object symbol = null;
         if (Helpers.isTrue(spot))
         {
@@ -2042,9 +2042,9 @@ public class BitmexCore extends BitmexApi
         Long timestamp = this.parse8601(this.safeString(transaction, "timestamp"));
         String type = (String)this.safeStringLower(transaction, "transactType");
         // Deposits have no from address or to address, withdrawals have both
-        Object address = null;
-        Object addressFrom = null;
-        Object addressTo = null;
+        String address = null;
+        String addressFrom = null;
+        String addressTo = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "withdrawal")))
         {
             address = this.safeString(transaction, "address");
@@ -2060,7 +2060,7 @@ public class BitmexCore extends BitmexApi
         Object amount = this.convertToRealAmount(Helpers.GetValue(currency, "code"), amountStringAbs);
         String feeCostString = this.safeString(transaction, "fee");
         Object feeCost = this.convertToRealAmount(Helpers.GetValue(currency, "code"), feeCostString);
-        Object status = this.safeString(transaction, "transactStatus");
+        String status = this.safeString(transaction, "transactStatus");
         if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
             status = this.parseTransactionStatus(status);

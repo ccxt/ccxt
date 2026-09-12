@@ -2451,18 +2451,18 @@ public class AlpacaCore extends AlpacaApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String activityType = this.safeString(transaction, "activity_type");
-        Object txid = null;
+        String txid = null;
         Object timestamp = null;
-        Object datetime = null;
-        Object network = null;
-        Object address = null;
-        Object addressTo = null;
-        Object addressFrom = null;
+        String datetime = null;
+        String network = null;
+        String address = null;
+        String addressTo = null;
+        String addressFrom = null;
         String type = null;
         Object amount = null;
         Object code = null;
         String status = null;
-        Object comment = null;
+        String comment = null;
         Object intern = null;
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(activityType, null)))

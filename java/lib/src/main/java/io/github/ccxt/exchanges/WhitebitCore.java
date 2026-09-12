@@ -3334,7 +3334,7 @@ public class WhitebitCore extends WhitebitApi
         {
             remaining = null;
         }
-        Object amount = this.safeString(order, "amount");
+        String amount = this.safeString(order, "amount");
         String cost = this.safeString(order, "dealMoney");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "buy"))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "market"))) || Helpers.isTrue((Helpers.isEqual(type, "stop market")))))))
         {

@@ -894,7 +894,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             put( "orders", "handleOrder");
             put( "mytrades", "handleMyTrade");
         }};
-        Object eventVar = null;
+        String eventVar = null;
         Object parameters = this.safeDict(message, "params");
         if (Helpers.isTrue(!Helpers.isEqual(parameters, null)))
         {
