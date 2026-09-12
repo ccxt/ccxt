@@ -2058,7 +2058,8 @@ class RustTranspilerBuilder {
     /**
      * Rewrites paren-balanced dynamic call sites of the form
      *   `get_value(&self, &name)(args...)`
-     * into `self.call_method(name.clone(), &[args])`. The `args` can contain
+     * into `self.call_dynamic(snake_name, vec![args])`. These calls may target
+     * unified methods, not just implicit endpoints. The `args` can contain
      * nested calls so we use paren-balancing instead of regex.
      */
     rewriteDynamicSelfCalls(content: string): string {
@@ -2093,9 +2094,14 @@ class RustTranspilerBuilder {
             const rawInside = content.slice(callStart, j);
             const inside = this.rewriteDynamicSelfCalls(rawInside);
             const args = this.splitArgs(inside) ?? [];
-            const argList = args.length === 0 ? '&[]'
-                : `&[${args.map(a => a.trim()).join(', ')}]`;
-            out += `self.call_method(${name}.clone(), ${argList})`;
+            // Dynamic pagination calls reuse their arguments on subsequent pages.
+            const argList = args.length === 0 ? 'vec![]'
+                : `vec![${args.map(a => `(${a.trim()}).clone()`).join(', ')}]`;
+            // `call_dynamic_checked` snake-cases the name, dispatches, and
+            // raises NotSupported when the name resolved to neither a dispatch
+            // arm nor an implicit endpoint — `call_dynamic`'s bare `_ => Null`
+            // would hand a paginated caller an empty page instead of an error.
+            out += `self.call_dynamic_checked(${name}.clone(), ${argList})`;
             i = j + 1;
         }
         return out;
@@ -5694,6 +5700,12 @@ ${arms.join('\n')}
                 // computes a null url. Route them the way those wrappers do.
                 // Guarded on the api block so a genuinely unknown name still
                 // returns Null rather than panicking inside call_method.
+                //
+                // Returning Null keeps an optional probe cheap, but a dynamic
+                // re-entry (\`fetchPaginatedCall*\` / \`fetchWebEndpoint\`, which
+                // reach here via \`method_name_to_snake_case\`) must not silently
+                // see an empty page — so record the miss for
+                // \`crate::exchange::call_dynamic_required\` to raise on.
                 _ => {
                     if self.internals.implicit_api.is_empty() {
                         self.build_implicit_api();
@@ -5701,6 +5713,7 @@ ${arms.join('\n')}
                     if self.internals.implicit_api.contains_key(method) {
                         self.call_method(crate::Value::Str(method.to_string()), &args[..]).await
                     } else {
+                        self.internals.dynamic_dispatch_miss = Some(method.to_string());
                         crate::Value::Null
                     }
                 }
@@ -6168,7 +6181,7 @@ ${arms.join('\n')}
                     ...this.extractAsyncFnNames('./rust/ccxt-base/src/prediction_exchange_generated.rs'),
                   })
                 : [];
-            let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), ...predAsync, 'call_method', 'fetch', 'load_markets', 'throttle']);
+            let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), ...predAsync, 'call_method', 'call_dynamic', 'call_dynamic_checked', 'fetch', 'load_markets', 'throttle']);
             for (let iter = 0; iter < 8; iter++) {
                 const before = content;
                 content = this.appendAwaitToAsyncCalls(content, currentSet);
@@ -6386,6 +6399,10 @@ use crate::runtime::*;
 // \`self.load_markets(...)\`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic \`this[method](...)\` re-entries are emitted as
+// \`self.call_dynamic_checked(...)\` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 ${proImport}${predImport}`;
 
         // Collect inherent methods so we can emit a `DerivedExchange`
@@ -7005,7 +7022,7 @@ impl std::ops::DerefMut for ${coreName} {
         // error became an immediate hard failure (review P0-B).
         basePart = this.rewriteTryCatchAsync(basePart);
 
-        // Rewrite dynamic `get_value(&self, &name)(args)` → `self.call_method`.
+        // Rewrite dynamic `get_value(&self, &name)(args)` through unified dispatch.
         basePart = this.rewriteDynamicSelfCalls(basePart);
 
         // Close implicit API call sites (`self.call_method("X", &[` opened by
@@ -7101,7 +7118,7 @@ impl std::ops::DerefMut for ${coreName} {
         // Propagate async-ness through the call graph (see above).
         {
             const asyncSnake = Array.from(asyncMethods).map(n => toSnakeCase(n));
-            let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), 'call_method', 'fetch', 'load_markets', 'throttle']);
+            let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), 'call_method', 'call_dynamic', 'call_dynamic_checked', 'fetch', 'load_markets', 'throttle']);
             for (let iter = 0; iter < 8; iter++) {
                 const before = basePart;
                 basePart = this.appendAwaitToAsyncCalls(basePart, currentSet);
@@ -7273,6 +7290,11 @@ impl std::ops::DerefMut for ${coreName} {
             // (fetch/fetch_typed/request_typed); base trait defaults call them
             // on `self` (review #1). Blanket-impl'd, so any `Self: ExchangeBase`.
             (isExchangeBase || isPredictionBase) ? 'use crate::exchange::ExchangeRuntime;' : '',
+            // Dynamic `this[method](...)` re-entries (fetchPaginatedCall*,
+            // fetchWebEndpoint) are emitted as `self.call_dynamic_checked(...)`
+            // so an unresolvable name raises NotSupported instead of returning
+            // a silent Null. Blanket-impl'd, so any `Self: ExchangeBase`.
+            (isExchangeBase || isPredictionBase) ? 'use crate::exchange::CallDynamicChecked;' : '',
             // Prediction base methods call Exchange base methods + dispatch, so
             // they need ExchangeBase in scope (review #1).
             isPredictionBase ? 'use crate::exchange_generated::ExchangeBase;' : '',
