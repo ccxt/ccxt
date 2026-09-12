@@ -4016,14 +4016,19 @@ public class PacificaCore extends PacificaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             String operationType = "transfer_funds";
             java.util.Map<String, Object> sigPayload = new java.util.HashMap<String, Object>() {{
                 put( "to_account", toAccount );
-                put( "amount", amount );
+                put( "amount", PacificaCore.this.numberToString(amount) );
             }};
             Object request = this.postActionRequest(operationType, sigPayload, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiryWindow")));
-            Object response = this.privatePostAccountSubaccountTransfer(this.extend(request, parameters));
+            java.util.Map<String, Object> response = (this.privatePostAccountSubaccountTransfer(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -4036,7 +4041,11 @@ public class PacificaCore extends PacificaApi
             // }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return this.parseTransfer(data);
+            return this.extend(this.parseTransfer(data, currency), new java.util.HashMap<String, Object>() {{
+                put( "amount", amount );
+                put( "fromAccount", PacificaCore.this.safeString(request, "account") );
+                put( "toAccount", toAccount );
+            }});
         });
 
     }
@@ -4055,16 +4064,23 @@ public class PacificaCore extends PacificaApi
         // }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object success = this.safeBool(transfer, "success");
+        String status = null;
+        if (Helpers.isTrue(!Helpers.isEqual(success, null)))
+        {
+            status = ((Helpers.isTrue((Helpers.isEqual(success, true))))) ? "ok" : "failed";
+        }
+        final Object finalStatus = status;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", null );
+            put( "currency", PacificaCore.this.safeCurrencyCode(null, currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
-            put( "status", "ok" );
+            put( "status", finalStatus );
         }};
     }
 
