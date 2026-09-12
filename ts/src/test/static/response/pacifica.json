@@ -35,10 +35,10 @@
                     "id": null,
                     "timestamp": null,
                     "datetime": null,
-                    "currency": null,
-                    "amount": null,
-                    "fromAccount": null,
-                    "toAccount": null,
+                    "currency": "USDC",
+                    "amount": 10,
+                    "fromAccount": "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                    "toAccount": "B9AJ1AD23xkhgoJn4dBtUn8iGpHTXa9Rj4DoH5R5S6FJ",
                     "status": "ok"
                 }
             }
