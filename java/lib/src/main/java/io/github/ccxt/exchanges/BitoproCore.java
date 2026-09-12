@@ -1880,7 +1880,7 @@ final Object finalJ = j;
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "message");
         String status = this.safeString(transaction, "status");
-        Object networkId = this.safeString(transaction, "protocol");
+        String networkId = this.safeString(transaction, "protocol");
         if (Helpers.isTrue(Helpers.isEqual(networkId, "MAIN")))
         {
             networkId = code;
@@ -2140,7 +2140,7 @@ final Object finalJ = j;
                 Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
                 String requestedNetwork = (String)this.safeStringUpper(parameters, "network");
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
-                Object networkId = ((Helpers.isTrue((Helpers.isEqual(requestedNetwork, null))))) ? null : this.safeString(networks, requestedNetwork);
+                String networkId = ((Helpers.isTrue((Helpers.isEqual(requestedNetwork, null))))) ? null : this.safeString(networks, requestedNetwork);
                 if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
                 {
                     throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " invalid network "), requestedNetwork)) ;

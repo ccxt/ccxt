@@ -1052,7 +1052,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Boolean isV5Linear = (Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future))));
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                Object mode = null;
+                String mode = null;
                 if (Helpers.isTrue(Helpers.isEqual(mode, null)))
                 {
                     mode = this.safeString2(this.options, "watchMyTrades", "mode", "0");
@@ -2094,7 +2094,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             }
             Object messageHash = null;
             Object channel = null;
-            Object marginMode = null;
+            String marginMode = null;
             Boolean linear = (Helpers.isEqual(subType, "linear"));
             Boolean swap = (Helpers.isEqual(type, "swap"));
             Boolean future = (Helpers.isEqual(type, "future"));
@@ -3210,7 +3210,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             takerOrMaker = this.safeStringLower(trade, "role");
         }
-        Object type = null;
+        String type = null;
         Object orderTypeParts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(!Helpers.isEqual(orderType, null)))
         {

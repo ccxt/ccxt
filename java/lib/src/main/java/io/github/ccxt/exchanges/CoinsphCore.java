@@ -1589,7 +1589,7 @@ public class CoinsphCore extends CoinsphApi
         {
             takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(isMaker, "true"))))) ? "maker" : "taker";
         }
-        Object costString = null;
+        String costString = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderId, null)))
         {
             costString = this.safeString(trade, "quoteQty");

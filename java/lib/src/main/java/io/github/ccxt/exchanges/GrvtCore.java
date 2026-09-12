@@ -1002,7 +1002,7 @@ public class GrvtCore extends GrvtApi
         String marketId = this.safeString(market, "instrument");
         String baseId = this.safeString(market, "base");
         String quoteId = this.safeString(market, "quote");
-        Object settleId = quoteId;
+        String settleId = quoteId;
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         String settle = (String) this.safeCurrencyCode(settleId);
@@ -2091,7 +2091,7 @@ public class GrvtCore extends GrvtApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object direction = null;
-        Object txId = null;
+        String txId = null;
         Object networkCode = null;
         String addressFrom = this.safeString(transaction, "from_account_id");
         String addressTo = this.safeString(transaction, "to_account_id");
@@ -3707,11 +3707,11 @@ public class GrvtCore extends GrvtApi
         Object isReduceOnly = this.safeBool(order, "reduce_only");
         String timeInForceRaw = this.safeString(order, "time_in_force");
         String timeInForce = ((Helpers.isTrue((Helpers.isEqual(isPostOnly, true))))) ? "PO" : this.parseTimeInForce(timeInForceRaw);
-        Object size = null;
+        String size = null;
         String side = null;
-        Object price = null;
-        Object filled = null;
-        Object avgPrice = null;
+        String price = null;
+        String filled = null;
+        String avgPrice = null;
         Object legs = this.safeList(order, "legs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object metadata = this.safeDict(order, "metadata", new java.util.HashMap<String, Object>() {{}});
         Object stateObj = this.safeDict(order, "state", new java.util.HashMap<String, Object>() {{}});

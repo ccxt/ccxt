@@ -1668,7 +1668,7 @@ public class MyriadCore extends MyriadApi
         String tif = (String)this.safeStringUpper(order, "timeInForce");
         Boolean isMarketTif = Helpers.isTrue((Helpers.isEqual(tif, "FOK"))) || Helpers.isTrue((Helpers.isEqual(tif, "FAK")));
         // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
-        Object outcome = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : this.safeString(market, "outcome");
+        String outcome = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : this.safeString(market, "outcome");
         Object outcomeObj = market;
         if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
         {
@@ -1838,8 +1838,8 @@ public class MyriadCore extends MyriadApi
                 put( "address", finalTrader );
             }};
             Object outcomeObj = null;
-            Object outcomeSymbol = null;
-            Object rowOutcomeId = null;
+            String outcomeSymbol = null;
+            String rowOutcomeId = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 outcomeObj = (this.loadOutcome(outcome)).join();
@@ -2249,7 +2249,7 @@ public class MyriadCore extends MyriadApi
             String requestedTradingModel = (String)this.safeStringLower2(parameters, "tradingModel", "trading_model");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("tradingModel", "trading_model")));
             Object outcomeObj = null;
-            Object outcomeSymbol = null;
+            String outcomeSymbol = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 outcomeObj = (this.loadOutcome(outcome)).join();
@@ -3035,7 +3035,7 @@ final Object finalNetworkId = networkId;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object outcomeId = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(market, null)))))) ? this.safeString(Helpers.GetValue(market, "info"), "outcomeId") : null;
+        String outcomeId = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(market, null)))))) ? this.safeString(Helpers.GetValue(market, "info"), "outcomeId") : null;
         Object outcomes = (java.util.List<Object>)(this.safeList(raw, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
         Object price = null;
         Object change = null;

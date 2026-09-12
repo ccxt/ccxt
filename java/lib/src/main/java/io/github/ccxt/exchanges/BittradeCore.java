@@ -937,10 +937,10 @@ public class BittradeCore extends BittradeApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = (String) this.safeSymbol(null, market);
         Long timestamp = this.safeInteger(ticker, "ts");
-        Object bid = null;
-        Object bidVolume = null;
-        Object ask = null;
-        Object askVolume = null;
+        String bid = null;
+        String bidVolume = null;
+        String ask = null;
+        String askVolume = null;
         if (Helpers.isTrue(Helpers.inOp(ticker, "bid")))
         {
             if (Helpers.isTrue(Helpers.isArray(Helpers.GetValue(ticker, "bid"))))

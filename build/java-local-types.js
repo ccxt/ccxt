@@ -3514,8 +3514,9 @@ function dataflowTypeTokenCollides (index, javaType) {
 
 // a `this.<name>(...)` call whose Java return type is already the named type on every
 // path, so a local fed by it needs NO cast: the retyped signature families of section 1
-// (proved by resolvesToMethodNamed, i.e. a real method declaration of that name) and the
-// hand-written String-returning base methods.
+// (proved by resolvesToMethodNamed, i.e. a real method declaration of that name), the
+// hand-written String-returning base methods, and (SS-10) the hand-written safeString
+// accessors.
 function dataflowThisCallType (printer, node) {
     const name = node.expression.name.escapedText;
     if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
@@ -3523,6 +3524,44 @@ function dataflowThisCallType (printer, node) {
     }
     if (JAVA_LIST_RETURN_METHODS.has (name)) {
         return resolvesToMethodNamed (printer, node, name) ? JAVA_ARRAY_TYPE : undefined;
+    }
+    // ===== SS-10: safeString results as a proven String value =====
+    //
+    // `this.safeString / safeString2 / safeStringN (...)` are hand-written in
+    // BaseExchange.java and DECLARED `String` — SafeMethods coerces the found value to
+    // String and drops a non-String default, so the call's box is a String instance or
+    // null on every path and the printed call needs NO cast.
+    //
+    // The engine never knew the family: its locals are the safeString local-typing
+    // hook's business (build/javaTranspiler.ts#patchJavaLocalTypes), which only rewrites
+    // a WHOLE-call initializer. That left every other value position the family can
+    // occupy unproven, most importantly a CONDITIONAL arm: for
+    //
+    //     const s = cond ? this.safeString (a) : this.safeString (b);
+    //     const s = (k === undefined) ? undefined : this.safeString (o, k);
+    //     const s = cond ? this.safeString (a) : 'lit';
+    //
+    // the source's own ternary prints as a Java ternary of two String/null arms (the
+    // source's ternary — this engine emits none and rewrites no arm; it only NAMES the
+    // declaration's type), yet both arms proved nothing and the declaration stayed
+    // `Object s = ...`. With the family proven, the ordinary machinery does the rest:
+    // dataflowUnifyArms joins String/null arm types to String, and the declaration
+    // rewrites to `String s = ...` with no cast and no arm change.
+    //
+    // Every other value position follows the same rule the section header states: a
+    // local may become String only when EVERY value that can reach it is statically a
+    // String or null (campaign rule 4) — so a plain `x = this.safeString (...)` write
+    // and a `let x = null;` accumulator fed only by such values (and reads resolving
+    // through them) are proven the same way. Guarded like the safeString local-typing
+    // hook itself (isPlainSafeStringBaseCall: `this.` receiver + resolved declaration
+    // in ts/src/base/functions/type.ts), so a venue override — transpiled with its own
+    // Object signature — never classifies.
+    //
+    // The safeStringUpper/Lower CASE family is deliberately ABSENT: it stays declared
+    // `Object`, so naming a String local fed by it would need a `(String)` checkcast
+    // this engine never injects (that family is patchJavaLocalTypes' cast family).
+    if (SAFE_STRING_ACCESSORS.has (name) && isPlainSafeStringBaseCall (printer, node)) {
+        return JAVA_DATAFLOW_STRING;
     }
     if (DATAFLOW_STRING_BASE_METHODS.has (name)) {
         return resolvesToBaseAccessor (printer, node, name) ? JAVA_DATAFLOW_STRING : undefined;
@@ -3552,6 +3591,9 @@ function dataflowValueType (printer, node, context) {
         case ts.SyntaxKind.ParenthesizedExpression:
             return dataflowValueType (printer, node.expression, context);
         case ts.SyntaxKind.ConditionalExpression:
+            // SS-10: the arms now include the safeString family (dataflowThisCallType), so
+            // a source conditional with all-String/null arms unifies to String and its
+            // declaration becomes `String x = ...` — the ternary itself is the source's.
             return dataflowUnifyArms (
                 dataflowValueType (printer, node.whenTrue, context),
                 dataflowValueType (printer, node.whenFalse, context));

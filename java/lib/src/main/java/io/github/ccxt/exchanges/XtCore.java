@@ -1762,7 +1762,7 @@ public class XtCore extends XtApi
         String underlyingType = this.safeString(market, "underlyingType");
         Object linear = null;
         Object inverse = null;
-        Object settleId = null;
+        String settleId = null;
         String settle = null;
         Object expiry = null;
         Boolean future = false;
@@ -2948,7 +2948,7 @@ public class XtCore extends XtApi
         }
         Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "time", "timestamp")));
         String quantity = this.safeString2(trade, "q", "quantity");
-        Object amount = null;
+        String amount = null;
         if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
         {
             amount = quantity;
@@ -3272,7 +3272,7 @@ public class XtCore extends XtApi
                         {
                             Object amountString = this.numberToString(amount);
                             Object priceString = this.numberToString(price);
-                            Object costCalculated = null;
+                            String costCalculated = null;
                             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                             {
                                 costCalculated = Precise.stringMul(amountString, priceString);

@@ -1322,7 +1322,7 @@ public class DeribitCore extends DeribitApi
                     Boolean isComboMarket = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "combo"), 0);
                     Long expiry = this.safeInteger(market, "expiration_timestamp");
                     Object strike = null;
-                    Object optionType = null;
+                    String optionType = null;
                     Object symbol = id;
                     String type = "swap";
                     if (Helpers.isTrue(future))

@@ -910,7 +910,7 @@ public class BackpackCore extends BackpackApi
         Object linear = null;
         Object inverse = null;
         Object settle = null;
-        Object settleId = null;
+        String settleId = null;
         Object contractSize = null;
         if (Helpers.isTrue(Helpers.isEqual(typeOfMarket, "spot")))
         {

@@ -1127,7 +1127,7 @@ public class BitbnsCore extends BitbnsApi
             }
         }
         String factor = this.safeString(trade, "factor");
-        Object costString = null;
+        String costString = null;
         if (Helpers.isTrue(!Helpers.isEqual(factor, null)))
         {
             amountString = Precise.stringDiv(amountString, factor);

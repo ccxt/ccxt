@@ -1745,12 +1745,12 @@ public class ApexCore extends ApexApi
             String zkAccountId = this.safeString(spotAccount, "zkAccountId", "");
             String subAccountId = this.safeString(spotAccount, "defaultSubAccountId", "0");
             Object subAccounts = this.safeList(spotAccount, "subAccounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object nonce = "0";
+            String nonce = "0";
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(subAccounts), 0)))
             {
                 nonce = this.safeString(Helpers.GetValue(subAccounts, 0), "nonce", "0");
             }
-            Object finalNonce = nonce; // java req
+            String finalNonce = nonce; // java req
             String ethAddress = this.safeString(accountData, "ethereumAddress", "");
             String accountId = this.safeString(accountData, "id", "");
             Object currency = new java.util.HashMap<String, Object>() {{}};

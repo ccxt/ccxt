@@ -924,7 +924,7 @@ public class BlofinCore extends BlofinApi
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
         Object spot = this.safeBool(market, "spot", false);
-        Object quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCurrency24h") : null;
+        String quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCurrency24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
         String low = this.safeString(ticker, "low24h");
@@ -2514,12 +2514,12 @@ public class BlofinCore extends BlofinApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String type = null;
-        Object id = null;
+        String id = null;
         String status = null;
         String withdrawalId = this.safeString(transaction, "withdrawId");
         String depositId = this.safeString(transaction, "depositId");
         String addressTo = this.safeString(transaction, "address");
-        Object address = addressTo;
+        String address = addressTo;
         String tagTo = this.safeString(transaction, "tag");
         if (Helpers.isTrue(!Helpers.isEqual(withdrawalId, null)))
         {
@@ -3046,12 +3046,12 @@ public class BlofinCore extends BlofinApi
         }
         Object notional = this.parseNumber(notionalString);
         String marginMode = this.safeString(position, "marginMode");
-        Object initialMarginString = null;
+        String initialMarginString = null;
         String entryPriceString = this.safeString2(position, "averagePrice", "openAveragePrice");
         String unrealizedPnlString = this.safeString(position, "unrealizedPnl");
         String leverageString = this.safeString(position, "leverage");
         Object initialMarginPercentage = null;
-        Object collateralString = null;
+        String collateralString = null;
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
         {
             initialMarginString = this.safeString(position, "initialMargin");

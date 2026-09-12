@@ -7045,7 +7045,7 @@ public Object describe()
         {
             // contract trading
             String contractSize = this.safeString(market, "contractSize");
-            Object multiplyPrice = price;
+            String multiplyPrice = price;
             if (Helpers.isTrue(!Helpers.isEqual(contractSize, null)))
             {
                 Object inverse = this.safeBool(market, "inverse", false);
@@ -7288,7 +7288,7 @@ public Object describe()
                 {
                     Helpers.addElementToObject(reduced, feeCurrencyCode, new java.util.HashMap<String, Object>() {{}});
                 }
-                Object rateKey = ((Helpers.isTrue((Helpers.isEqual(rate, null))))) ? "" : rate;
+                String rateKey = ((Helpers.isTrue((Helpers.isEqual(rate, null))))) ? "" : rate;
                 if (Helpers.isTrue(Helpers.inOp(Helpers.GetValue(reduced, feeCurrencyCode), rateKey)))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(reduced, feeCurrencyCode), rateKey), "cost", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(reduced, feeCurrencyCode), rateKey), "cost"), cost));
@@ -8280,7 +8280,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 Object item = Helpers.GetValue(response, i);
-                Object id = ((Helpers.isTrue((Helpers.isEqual(marketIdKey, null))))) ? null : this.safeString(item, marketIdKey);
+                String id = ((Helpers.isTrue((Helpers.isEqual(marketIdKey, null))))) ? null : this.safeString(item, marketIdKey);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(id, null, null, "swap");
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object contract = this.safeBool(market, "contract", false);
@@ -12165,7 +12165,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(input)); i++)
         {
             Object entry = Helpers.GetValue(input, i);
-            Object uniqValue = ((Helpers.isTrue(fallbackToTimestamp))) ? this.safeStringN(entry, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "timestamp", 0))) : this.safeString(entry, "id");
+            String uniqValue = ((Helpers.isTrue(fallbackToTimestamp))) ? this.safeStringN(entry, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "timestamp", 0))) : this.safeString(entry, "id");
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(uniqValue, null)) && !Helpers.isTrue((Helpers.inOp(uniqueDic, uniqValue)))))
             {
                 Helpers.addElementToObject(uniqueDic, uniqValue, 1);
@@ -12343,9 +12343,9 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object info = Helpers.GetValue(response, i);
-            Object currencyId = ((Helpers.isTrue((Helpers.isEqual(currencyKey, null))))) ? null : this.safeString(info, currencyKey);
+            String currencyId = ((Helpers.isTrue((Helpers.isEqual(currencyKey, null))))) ? null : this.safeString(info, currencyKey);
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrency(currencyId);
-            Object marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
+            String marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, "option");
             Helpers.addElementToObject(optionStructures, Helpers.GetValue(market, "symbol"), this.parseOption(info, currency, market));
         }
@@ -12365,7 +12365,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object info = Helpers.GetValue(response, i);
-            Object marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
+            String marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue(this.inArray(Helpers.GetValue(market, "symbol"), symbols))))
             {
@@ -12394,7 +12394,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object info = Helpers.GetValue(response, i);
-            Object marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
+            String marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue(this.inArray(Helpers.GetValue(market, "symbol"), symbols))))
             {
@@ -12425,8 +12425,8 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(conversionsArray)); i++)
         {
             Object entry = Helpers.GetValue(conversionsArray, i);
-            Object fromId = ((Helpers.isTrue((Helpers.isEqual(fromCurrencyKey, null))))) ? null : this.safeString(entry, fromCurrencyKey);
-            Object toId = ((Helpers.isTrue((Helpers.isEqual(toCurrencyKey, null))))) ? null : this.safeString(entry, toCurrencyKey);
+            String fromId = ((Helpers.isTrue((Helpers.isEqual(fromCurrencyKey, null))))) ? null : this.safeString(entry, fromCurrencyKey);
+            String toId = ((Helpers.isTrue((Helpers.isEqual(toCurrencyKey, null))))) ? null : this.safeString(entry, toCurrencyKey);
             if (Helpers.isTrue(!Helpers.isEqual(fromId, null)))
             {
                 fromCurrency = this.safeCurrency(fromId);
@@ -12606,7 +12606,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object info = Helpers.GetValue(response, i);
-            Object marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
+            String marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue(this.inArray(Helpers.GetValue(market, "symbol"), symbols))))
             {

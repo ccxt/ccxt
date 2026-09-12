@@ -1616,14 +1616,14 @@ public class BitfinexCore extends BitfinexApi
         }
         Boolean isFundingCurrency = Helpers.isGreaterThanOrEqual(length, 17);
         symbol = this.safeSymbol(null, market);
-        Object last = null;
-        Object bid = null;
-        Object ask = null;
-        Object change = null;
-        Object percentage = null;
-        Object volume = null;
-        Object high = null;
-        Object low = null;
+        String last = null;
+        String bid = null;
+        String ask = null;
+        String change = null;
+        String percentage = null;
+        String volume = null;
+        String high = null;
+        String low = null;
         if (Helpers.isTrue(isFundingCurrency))
         {
             // per api docs, they are different array type
@@ -1834,9 +1834,9 @@ public class BitfinexCore extends BitfinexApi
         {
             side = "buy";
         }
-        Object orderId = null;
+        String orderId = null;
         String takerOrMaker = null;
-        Object type = null;
+        String type = null;
         Object fee = null;
         String symbol = (String) this.safeSymbol(null, market);
         Object timestampIndex = ((Helpers.isTrue(isPrivate))) ? 2 : 1;
@@ -2123,7 +2123,7 @@ public class BitfinexCore extends BitfinexApi
             }
         }
         String price = this.safeString(orderList, 16);
-        Object triggerPrice = null;
+        String triggerPrice = null;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(orderType, "EXCHANGE STOP"))) || Helpers.isTrue((Helpers.isEqual(orderType, "EXCHANGE STOP LIMIT")))))
         {
             price = null;
@@ -3125,8 +3125,8 @@ public class BitfinexCore extends BitfinexApi
             //
             Object result = this.safeValue(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String poolAddress = this.safeString(result, 5);
-            Object address = ((Helpers.isTrue((Helpers.isEqual(poolAddress, null))))) ? this.safeString(result, 4) : poolAddress;
-            Object tag = ((Helpers.isTrue((Helpers.isEqual(poolAddress, null))))) ? null : this.safeString(result, 4);
+            String address = ((Helpers.isTrue((Helpers.isEqual(poolAddress, null))))) ? this.safeString(result, 4) : poolAddress;
+            String tag = ((Helpers.isTrue((Helpers.isEqual(poolAddress, null))))) ? null : this.safeString(result, 4);
             this.checkAddress(address);
             return new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
@@ -3218,13 +3218,13 @@ public class BitfinexCore extends BitfinexApi
         Object amount = null;
         Object id = null;
         String status = null;
-        Object tag = null;
+        String tag = null;
         String type = null;
-        Object feeCost = null;
-        Object txid = null;
-        Object addressTo = null;
+        String feeCost = null;
+        String txid = null;
+        String addressTo = null;
         Object network = null;
-        Object comment = null;
+        String comment = null;
         if (Helpers.isTrue(Helpers.isEqual(transactionLength, 8)))
         {
             Object data = this.safeValue(transaction, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));

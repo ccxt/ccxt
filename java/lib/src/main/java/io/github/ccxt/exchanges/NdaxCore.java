@@ -1429,14 +1429,14 @@ public class NdaxCore extends NdaxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object priceString = null;
-        Object amountString = null;
-        Object costString = null;
+        String priceString = null;
+        String amountString = null;
+        String costString = null;
         Object timestamp = null;
-        Object id = null;
-        Object marketId = null;
+        String id = null;
+        String marketId = null;
         Object side = null;
-        Object orderId = null;
+        String orderId = null;
         Object takerOrMaker = null;
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{}};
         Object type = null;
@@ -1730,7 +1730,7 @@ public class NdaxCore extends NdaxApi
         currency = this.safeCurrency(currencyId, currency);
         String credit = this.safeString(item, "CR");
         String debit = this.safeString(item, "DR");
-        Object amount = null;
+        String amount = null;
         String direction = null;
         if (Helpers.isTrue(Precise.stringLt(credit, "0")))
         {
@@ -3067,7 +3067,7 @@ public class NdaxCore extends NdaxApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object id = null;
+        String id = null;
         String currencyId = this.safeString(transaction, "ProductId");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String type = null;

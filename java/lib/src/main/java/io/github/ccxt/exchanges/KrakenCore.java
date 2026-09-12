@@ -1731,13 +1731,13 @@ public class KrakenCore extends KrakenApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = null;
-        Object datetime = null;
-        Object side = null;
-        Object type = null;
-        Object price = null;
-        Object amount = null;
+        String datetime = null;
+        String side = null;
+        String type = null;
+        String price = null;
+        String amount = null;
         Object id = null;
-        Object orderId = null;
+        String orderId = null;
         Object fee = null;
         Object symbol = null;
         if (Helpers.isTrue(Helpers.isArray(trade)))
@@ -2114,7 +2114,7 @@ public class KrakenCore extends KrakenApi
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object orderSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object symbol = null;
+            String symbol = null;
             Object market = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -2370,7 +2370,7 @@ public class KrakenCore extends KrakenApi
         order = this.omit(order, "usingCost");
         Object description = this.safeDict(order, "descr", new java.util.HashMap<String, Object>() {{}});
         Object orderDescriptionObj = this.safeDict(order, "descr"); // can be null
-        Object orderDescription = null;
+        String orderDescription = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderDescriptionObj, null)))
         {
             orderDescription = this.safeString(orderDescriptionObj, "order");
@@ -2378,13 +2378,13 @@ public class KrakenCore extends KrakenApi
         {
             orderDescription = this.safeString(order, "descr");
         }
-        Object side = null;
+        String side = null;
         Object rawType = null;
-        Object marketId = null;
+        String marketId = null;
         Object price = null;
-        Object amount = null;
-        Object cost = null;
-        Object triggerPrice = null;
+        String amount = null;
+        String cost = null;
+        String triggerPrice = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderDescription, null)))
         {
             Object parts = Helpers.split(orderDescription, " ");
@@ -2498,8 +2498,8 @@ final Object finalId = id;
         }
         // as mentioned in #24192 PR, this field is not something consistent/actual
         // triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
-        Object stopLossPrice = null;
-        Object takeProfitPrice = null;
+        String stopLossPrice = null;
+        String takeProfitPrice = null;
         // the dashed strings are not provided from fields (eg. fetch order)
         // while spaced strings from "order" sentence (when other fields not available)
         if (Helpers.isTrue(!Helpers.isEqual(rawType, null)))

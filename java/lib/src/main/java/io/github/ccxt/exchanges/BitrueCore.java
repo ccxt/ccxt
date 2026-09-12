@@ -1074,7 +1074,7 @@ public class BitrueCore extends BitrueApi
         Boolean isContract = (!Helpers.isEqual(type, "spot"));
         String baseId = this.safeString(market, "baseAsset");
         String quoteId = this.safeString(market, "quoteAsset");
-        Object settleId = null;
+        String settleId = null;
         Object settle = null;
         if (Helpers.isTrue(isContract))
         {
@@ -1443,7 +1443,7 @@ public class BitrueCore extends BitrueApi
         String symbol = (String) this.safeSymbol(null, market);
         String last = this.safeString2(ticker, "lastPrice", "last");
         Long timestamp = this.safeInteger(ticker, "time");
-        Object percentage = null;
+        String percentage = null;
         if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "swap"), true)))
         {
             percentage = Precise.stringMul(this.safeString(ticker, "rose"), "100");
@@ -2330,7 +2330,7 @@ public class BitrueCore extends BitrueApi
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
                         String quoteAmount = Precise.stringMul(amountString, priceString);
-                        Object requestAmount = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
+                        String requestAmount = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                         Helpers.addElementToObject(request, "amount", this.costToPrecision(symbol, requestAmount));
                         Helpers.addElementToObject(request, "volume", this.costToPrecision(symbol, requestAmount));
                     }
@@ -3198,8 +3198,8 @@ public class BitrueCore extends BitrueApi
         String tagType = this.safeString(transaction, "tagType");
         String addressTo = this.safeString(transaction, "addressTo");
         String addressFrom = this.safeString(transaction, "addressFrom");
-        Object tagTo = null;
-        Object tagFrom = null;
+        String tagTo = null;
+        String tagFrom = null;
         if (Helpers.isTrue(!Helpers.isEqual(tagType, null)))
         {
             if (Helpers.isTrue(!Helpers.isEqual(addressTo, null)))
@@ -3445,8 +3445,8 @@ public class BitrueCore extends BitrueApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String transferType = this.safeString(transfer, "transferType");
-        Object fromAccount = null;
-        Object toAccount = null;
+        String fromAccount = null;
+        String toAccount = null;
         if (Helpers.isTrue(!Helpers.isEqual(transferType, null)))
         {
             Object accountSplit = Helpers.split(transferType, "_to_");

@@ -1813,7 +1813,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Boolean isSpot = (Helpers.isEqual(typeId, "SPOT"));
         Object fees = this.fees;
         Object symbol = Helpers.add(Helpers.add(baseId, "/"), quoteId);
-        Object settleId = null;
+        String settleId = null;
         if (!Helpers.isTrue(isSpot))
         {
             settleId = quoteId;

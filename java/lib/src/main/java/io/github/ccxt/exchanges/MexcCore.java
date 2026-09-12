@@ -2071,15 +2071,15 @@ public class MexcCore extends MexcApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = null;
         Object timestamp = null;
-        Object orderId = null;
+        String orderId = null;
         Object symbol = null;
         Object fee = null;
         Object type = null;
         String side = null;
         String takerOrMaker = null;
-        Object priceString = null;
-        Object amountString = null;
-        Object costString = null;
+        String priceString = null;
+        String amountString = null;
+        String costString = null;
         // if swap
         if (Helpers.isTrue(Helpers.inOp(trade, "v")))
         {
@@ -2545,18 +2545,18 @@ public class MexcCore extends MexcApi
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         Object timestamp = null;
-        Object bid = null;
-        Object ask = null;
-        Object bidVolume = null;
-        Object askVolume = null;
-        Object baseVolume = null;
-        Object quoteVolume = null;
-        Object open = null;
-        Object high = null;
-        Object low = null;
-        Object changePcnt = null;
-        Object changeValue = null;
-        Object prevClose = null;
+        String bid = null;
+        String ask = null;
+        String bidVolume = null;
+        String askVolume = null;
+        String baseVolume = null;
+        String quoteVolume = null;
+        String open = null;
+        String high = null;
+        String low = null;
+        String changePcnt = null;
+        String changeValue = null;
+        String prevClose = null;
         Object isSwap = this.safeValue(market, "swap");
         // if swap
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isSwap, true))) || Helpers.isTrue((Helpers.inOp(ticker, "timestamp")))))
@@ -3188,7 +3188,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object symbol = null;
+            String symbol = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -6618,8 +6618,8 @@ final Object finalRiskIncrVol = riskIncrVol;
         Long timestamp = (Long) this.safeInteger2(transfer, "createTime", "timestamp");
         String datetime = ((Helpers.isTrue((!Helpers.isEqual(timestamp, null))))) ? this.iso8601(timestamp) : null;
         String direction = this.safeString(transfer, "type");
-        Object accountFrom = null;
-        Object accountTo = null;
+        String accountFrom = null;
+        String accountTo = null;
         String fromAccountType = this.safeString(transfer, "fromAccountType");
         String toAccountType = this.safeString(transfer, "toAccountType");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fromAccountType, null))) && Helpers.isTrue((!Helpers.isEqual(toAccountType, null)))))

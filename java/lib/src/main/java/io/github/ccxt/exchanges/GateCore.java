@@ -2033,8 +2033,8 @@ public class GateCore extends GateApi
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
         Object marketIdBase = Helpers.split(symbol, "_");
-        Object base = null;
-        String expiry = this.safeString(optionParts, 1);
+        String base = null;
+        Object expiry = this.safeString(optionParts, 1);
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
             base = this.safeString(symbolBase, 0);
@@ -2222,7 +2222,7 @@ public class GateCore extends GateApi
                 String id = this.safeString(spotMarket, "id");
                 Object marginMarket = this.safeValue(marginMarkets, id);
                 java.util.Map<String, Object> market = this.deepExtend(marginMarket, spotMarket);
-                var baseIdquoteIdVariable = Helpers.split(id, "_");
+                var baseIdquoteIdVariable = Helpers.split(((String)id), "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 String base = (String) this.safeCurrencyCode(baseId);
@@ -2464,7 +2464,7 @@ public class GateCore extends GateApi
         //    }
         //
         String id = this.safeString(market, "name");
-        Object parts = Helpers.split(id, "_");
+        Object parts = Helpers.split(((String)id), "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String date = this.safeString(parts, 2);
@@ -3293,7 +3293,7 @@ public class GateCore extends GateApi
                 String address = this.safeString(entry, "address");
                 String tag = this.safeString(entry, "payment_id");
                 final Object finalCode = code;
-                Helpers.addElementToObject(result, network, new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(result, ((String)network), new java.util.HashMap<String, Object>() {{
         put( "info", entry );
         put( "code", finalCode );
         put( "currency", finalCode );
@@ -3389,8 +3389,8 @@ public class GateCore extends GateApi
         String code = this.safeString(currency, "code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", code );
-            put( "address", address );
+            put( "currency", ((String)code) );
+            put( "address", ((String)address) );
             put( "tag", GateCore.this.safeString(depositAddress, "payment_id") );
             put( "network", GateCore.this.networkIdToCode(GateCore.this.safeString(depositAddress, "chain"), code) );
         }};
@@ -4217,7 +4217,7 @@ public class GateCore extends GateApi
             {
                 this.checkRequiredArgument("fetchTickers", symbols, "symbols");
                 String marketId = this.safeString(market, "id");
-                Object optionParts = Helpers.split(marketId, "-");
+                Object optionParts = Helpers.split(((String)marketId), "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 response = (this.publicOptionsGetTickers(this.extend(request, requestParams))).join();
             } else
@@ -5302,7 +5302,7 @@ public class GateCore extends GateApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(trade, "id", "trade_id");
         Object timestamp = null;
-        String msString = this.safeString(trade, "create_time_ms");
+        Object msString = this.safeString(trade, "create_time_ms");
         if (Helpers.isTrue(!Helpers.isEqual(msString, null)))
         {
             msString = Precise.stringMul(msString, "1000");
@@ -6122,7 +6122,7 @@ final Object finalPointFee = pointFee;
                 //     prefixed with t-
                 //     no longer than 28 bytes without t- prefix
                 //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
-                if (Helpers.isTrue(Helpers.isGreaterThan(clientOrderId.length(), 28)))
+                if (Helpers.isTrue(Helpers.isGreaterThan(((String)clientOrderId).length(), 28)))
                 {
                     throw new BadRequest((String)Helpers.add(this.id, " createOrder () clientOrderId or text param must be up to 28 characters")) ;
                 }
@@ -6709,11 +6709,11 @@ final Object finalPointFee = pointFee;
             timestampStr = this.safeString2(order, "create_time", "ctime");
             if (Helpers.isTrue(!Helpers.isEqual(timestampStr, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(timestampStr.length(), 10)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(timestampStr, "."), 0))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(((String)timestampStr).length(), 10)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(timestampStr, "."), 0))))
                 {
                     // ts in seconds, multiply to ms
                     timestampStr = Precise.stringMul(timestampStr, "1000");
-                } else if (Helpers.isTrue(Helpers.isEqual(timestampStr.length(), 16)))
+                } else if (Helpers.isTrue(Helpers.isEqual(((String)timestampStr).length(), 16)))
                 {
                     // ts in microseconds, divide to ms
                     timestampStr = Precise.stringDiv(timestampStr, "1000");
@@ -6726,11 +6726,11 @@ final Object finalPointFee = pointFee;
             lastTradeTimestampStr = this.safeString2(order, "update_time", "finish_time");
             if (Helpers.isTrue(!Helpers.isEqual(lastTradeTimestampStr, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(lastTradeTimestampStr.length(), 10)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(lastTradeTimestampStr, "."), 0))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(((String)lastTradeTimestampStr).length(), 10)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(lastTradeTimestampStr, "."), 0))))
                 {
                     // ts in seconds, multiply to ms
                     lastTradeTimestampStr = Precise.stringMul(lastTradeTimestampStr, "1000");
-                } else if (Helpers.isTrue(Helpers.isEqual(lastTradeTimestampStr.length(), 16)))
+                } else if (Helpers.isTrue(Helpers.isEqual(((String)lastTradeTimestampStr).length(), 16)))
                 {
                     // ts in microseconds, divide to ms
                     lastTradeTimestampStr = Precise.stringDiv(lastTradeTimestampStr, "1000");
@@ -8077,7 +8077,7 @@ final Object finalRebate = rebate;
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
         String unrealisedPnl = this.safeString(position, "unrealised_pnl");
-        Object collateral = marginBalance;
+        String collateral = marginBalance;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginBalance, null))) && Helpers.isTrue((!Helpers.isEqual(unrealisedPnl, null)))))
         {
             collateral = Precise.stringAdd(marginBalance, unrealisedPnl);
@@ -8279,7 +8279,7 @@ final Object finalRebate = rebate;
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
                     String marketId = this.safeString(market, "id");
-                    Object optionParts = Helpers.split(marketId, "-");
+                    Object optionParts = Helpers.split(((String)marketId), "-");
                     Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 }
             } else
@@ -8572,7 +8572,7 @@ final Object finalRebate = rebate;
         String riskLimitStep = this.safeString(info, "risk_limit_step"); // '1000000',
         String riskLimitMax = this.safeString(info, "risk_limit_max"); // '16000000',
         String initialMarginUnit = Precise.stringDiv("1", leverageMax);
-        Object maintenanceMarginRate = maintenanceMarginUnit;
+        String maintenanceMarginRate = maintenanceMarginUnit;
         String initialMarginRatio = initialMarginUnit;
         Object floor = "0";
         java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -9838,7 +9838,7 @@ final Object finalI = i;
         String type = this.safeString(item, "type");
         String rawTimestamp = this.safeString(item, "time");
         Object timestamp = null;
-        if (Helpers.isTrue(Helpers.isGreaterThan(rawTimestamp.length(), 10)))
+        if (Helpers.isTrue(Helpers.isGreaterThan(((String)((String)rawTimestamp)).length(), 10)))
         {
             timestamp = Helpers.parseInt(((String)rawTimestamp));
         } else

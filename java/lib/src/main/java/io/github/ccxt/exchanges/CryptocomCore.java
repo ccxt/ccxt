@@ -1059,7 +1059,7 @@ public class CryptocomCore extends CryptocomApi
                 Boolean option = Helpers.isEqual(inst_type, "WARRANT");
                 String baseId = this.safeString(market, "base_ccy");
                 String quoteId = this.safeString(market, "quote_ccy");
-                Object settleId = ((Helpers.isTrue(spot))) ? null : quoteId;
+                String settleId = ((Helpers.isTrue(spot))) ? null : quoteId;
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
                 Object settle = ((Helpers.isTrue(spot))) ? null : this.safeCurrencyCode(settleId);

@@ -1407,8 +1407,8 @@ public class TokocryptoCore extends TokocryptoApi
         String symbol = (String) this.safeSymbol(marketId, market);
         String last = this.safeString(ticker, "lastPrice");
         Boolean isCoinm = (Helpers.inOp(ticker, "baseVolume"));
-        Object baseVolume = null;
-        Object quoteVolume = null;
+        String baseVolume = null;
+        String quoteVolume = null;
         if (Helpers.isTrue(isCoinm))
         {
             baseVolume = this.safeString(ticker, "baseVolume");

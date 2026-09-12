@@ -591,7 +591,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(trade, 0);
-        Object datetime = ((Helpers.isTrue((!Helpers.isEqual(timestamp, null))))) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
+        String datetime = ((Helpers.isTrue((!Helpers.isEqual(timestamp, null))))) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             timestamp = this.parse8601(datetime);

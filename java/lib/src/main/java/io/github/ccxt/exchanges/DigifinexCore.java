@@ -1642,7 +1642,7 @@ public class DigifinexCore extends DigifinexApi
         }
         Object timestamp = this.safeTimestamp2(trade, "date", "timestamp");
         String side = this.safeString2(trade, "type", "side");
-        Object type = null;
+        String type = null;
         String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")))
         {
@@ -2130,7 +2130,7 @@ public class DigifinexCore extends DigifinexApi
                 (this.loadMarkets()).join();
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object symbol = null;
+            String symbol = null;
             Object marginMode = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {

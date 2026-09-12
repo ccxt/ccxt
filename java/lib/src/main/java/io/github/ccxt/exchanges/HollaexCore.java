@@ -1797,7 +1797,7 @@ public class HollaexCore extends HollaexApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String address = this.safeString(depositAddress, "address");
-        Object tag = null;
+        String tag = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
             Object parts = Helpers.split(address, ":");
@@ -2135,10 +2135,10 @@ public class HollaexCore extends HollaexApi
         String type = this.safeString(transaction, "type");
         Double amount = this.safeNumber(transaction, "amount");
         String address = this.safeString(transaction, "address");
-        Object addressTo = null;
+        String addressTo = null;
         Object addressFrom = null;
-        Object tag = null;
-        Object tagTo = null;
+        String tag = null;
+        String tagTo = null;
         Object tagFrom = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {

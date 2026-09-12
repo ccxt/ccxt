@@ -888,8 +888,8 @@ public class PacificaCore extends PacificaApi
         String instrumentType = this.safeString(market, "instrument_type");
         Boolean isSpot = (Helpers.isEqual(instrumentType, "spot"));
         Boolean isSwap = !Helpers.isTrue(isSpot);
-        Object quoteId = "USDC";
-        Object settleId = null;
+        String quoteId = "USDC";
+        String settleId = null;
         String type = "spot";
         Object linear = null;
         Object inverse = null;

@@ -2935,7 +2935,7 @@ public class LighterCore extends LighterApi
             }
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
-        Object tif = null;
+        String tif = null;
         Long tifAsInteger = this.safeInteger(order, "time_in_force");
         if (Helpers.isTrue(!Helpers.isEqual(tifAsInteger, null)))
         {
@@ -3766,7 +3766,7 @@ public class LighterCore extends LighterApi
         String bidAccountId = this.safeString(trade, "bid_account_id");
         Object isMakerAsk = this.safeBool(trade, "is_maker_ask");
         String side = null;
-        Object orderId = null;
+        String orderId = null;
         if (Helpers.isTrue(!Helpers.isEqual(accountIndex, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(accountIndex, askAccountId)))

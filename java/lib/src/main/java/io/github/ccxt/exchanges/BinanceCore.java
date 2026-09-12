@@ -4291,7 +4291,7 @@ public class BinanceCore extends BinanceApi
         String settle = "USDT";
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
-        Object base = null;
+        String base = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
             base = this.safeString(symbolBase, 0);
@@ -6319,8 +6319,8 @@ public class BinanceCore extends BinanceApi
         String last = this.safeString(ticker, "lastPrice");
         String wAvg = this.safeString(ticker, "weightedAvgPrice");
         Boolean isCoinm = (Helpers.inOp(ticker, "baseVolume"));
-        Object baseVolume = null;
-        Object quoteVolume = null;
+        String baseVolume = null;
+        String quoteVolume = null;
         if (Helpers.isTrue(isCoinm))
         {
             baseVolume = this.safeString(ticker, "baseVolume");
@@ -11787,8 +11787,8 @@ public class BinanceCore extends BinanceApi
             put( "cost", BinanceCore.this.parseNumber(feeCostString) );
         }};
         Object symbol = null;
-        Object amountString = null;
-        Object costString = null;
+        String amountString = null;
+        String costString = null;
         String side = null;
         if (Helpers.isTrue(tradedCurrencyIsQuote))
         {
@@ -13912,8 +13912,8 @@ public class BinanceCore extends BinanceApi
             isolated = !Helpers.isTrue(Precise.stringEq(isolatedMarginRaw, "0"));
         }
         String marginMode = null;
-        Object collateralString = null;
-        Object walletBalance = null;
+        String collateralString = null;
+        String walletBalance = null;
         if (Helpers.isTrue(isolated))
         {
             marginMode = "isolated";
@@ -14235,14 +14235,14 @@ public class BinanceCore extends BinanceApi
             timestamp = null;
         }
         Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
-        Object maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
+        String maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
         if (Helpers.isTrue(Helpers.isEqual(maintenanceMarginString, null)))
         {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
             maintenanceMarginString = this.safeString(position, "maintMargin");
         }
         Object maintenanceMargin = this.parseNumber(maintenanceMarginString);
-        Object initialMarginString = null;
+        String initialMarginString = null;
         String initialMarginPercentageString = null;
         Object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
         if (Helpers.isTrue(!Helpers.isEqual(leverageString, null)))
@@ -14919,7 +14919,7 @@ final Object finalMarket = market;
             }
             (this.loadLeverageBrackets(false, parameters)).join();
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object defaultType = "future";
+            String defaultType = "future";
             defaultType = this.safeString(this.options, "defaultType", defaultType);
             String type = this.safeString(parameters, "type", defaultType);
             Object subType = null;

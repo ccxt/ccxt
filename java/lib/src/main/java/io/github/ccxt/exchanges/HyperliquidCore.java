@@ -1084,8 +1084,8 @@ public class HyperliquidCore extends HyperliquidApi
         //     }
         //
         String collateralTokenCode = this.safeString(market, "collateralTokenName");
-        Object quoteId = ((Helpers.isTrue((Helpers.isEqual(collateralTokenCode, null))))) ? "USDC" : collateralTokenCode;
-        Object settleId = ((Helpers.isTrue((Helpers.isEqual(collateralTokenCode, null))))) ? "USDC" : collateralTokenCode;
+        String quoteId = ((Helpers.isTrue((Helpers.isEqual(collateralTokenCode, null))))) ? "USDC" : collateralTokenCode;
+        String settleId = ((Helpers.isTrue((Helpers.isEqual(collateralTokenCode, null))))) ? "USDC" : collateralTokenCode;
         String baseName = this.safeString(market, "name");
         Object base = this.safeCurrencyCode(baseName);
         if (Helpers.isTrue(Helpers.isEqual(base, null)))
@@ -2762,7 +2762,7 @@ public class HyperliquidCore extends HyperliquidApi
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce")));
         Long nonce = this.milliseconds();
         java.util.List<Object> orderReq = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object grouping = "na";
+        String grouping = "na";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
             Object rawOrder = Helpers.GetValue(orders, i);
@@ -4616,7 +4616,7 @@ final Object finalClientOrderId = clientOrderId;
         String marginMode = this.safeString(leverage, "type");
         Boolean isIsolated = (Helpers.isEqual(marginMode, "isolated"));
         String rawSize = this.safeString(entry, "szi");
-        Object size = rawSize;
+        String size = rawSize;
         String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(size, null)))
         {
@@ -4626,7 +4626,7 @@ final Object finalClientOrderId = clientOrderId;
         String rawUnrealizedPnl = this.safeString(entry, "unrealizedPnl");
         String absRawUnrealizedPnl = Precise.stringAbs(rawUnrealizedPnl);
         String marginUsed = this.safeString(entry, "marginUsed");
-        Object initialMargin = null;
+        String initialMargin = null;
         if (Helpers.isTrue(isIsolated))
         {
             initialMargin = Precise.stringSub(marginUsed, rawUnrealizedPnl);
@@ -6058,7 +6058,7 @@ final Object finalClientOrderId = clientOrderId;
         //
         String status = this.safeString(response, "status", "");
         String error = this.safeString(response, "error");
-        Object message = null;
+        String message = null;
         if (Helpers.isTrue(Helpers.isEqual(status, "err")))
         {
             message = this.safeString(response, "response");

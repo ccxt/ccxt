@@ -1321,7 +1321,7 @@ public class BigoneCore extends BigoneApi
         }
         String makerOrderId = this.safeString(trade, "maker_order_id");
         String takerOrderId = this.safeString(trade, "taker_order_id");
-        Object orderId = null;
+        String orderId = null;
         if (Helpers.isTrue(!Helpers.isEqual(makerOrderId, null)))
         {
             orderId = makerOrderId;
@@ -1717,9 +1717,9 @@ public class BigoneCore extends BigoneApi
         }
         String type = this.parseType(this.safeString(order, "type"));
         String price = this.safeString(order, "price");
-        Object amount = null;
-        Object filled = null;
-        Object cost = null;
+        String amount = null;
+        String filled = null;
+        String cost = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "market")) && Helpers.isTrue(Helpers.isEqual(side, "buy"))))
         {
             cost = this.safeString(order, "filled_amount");

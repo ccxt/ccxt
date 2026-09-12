@@ -1486,7 +1486,7 @@ public class CoinbaseCore extends CoinbaseApi
         String feeCurrencyId = this.safeString(feeObject, "currency");
         String datetime = this.safeString(transaction, "created_at");
         String resource = this.safeString(transaction, "resource");
-        Object type = resource;
+        String type = resource;
         if (!Helpers.isTrue(this.inArray(type, new java.util.ArrayList<Object>(java.util.Arrays.asList("deposit", "withdrawal")))))
         {
             if (Helpers.isTrue(Precise.stringGt(amountString, "0")))
@@ -1616,7 +1616,7 @@ public class CoinbaseCore extends CoinbaseApi
         }
         Object sizeInQuote = this.safeBool(trade, "size_in_quote");
         String v3Price = this.safeString(trade, "price");
-        Object v3Cost = null;
+        String v3Cost = null;
         String v3Amount = this.safeString(trade, "size");
         if (Helpers.isTrue(Helpers.isEqual(sizeInQuote, true)))
         {
@@ -1627,8 +1627,8 @@ public class CoinbaseCore extends CoinbaseApi
         String v3FeeCost = this.safeString(trade, "commission");
         String amountString = this.safeString(amountObject, "amount", v3Amount);
         String costString = this.safeString(subtotalObject, "amount", v3Cost);
-        Object priceString = null;
-        Object cost = null;
+        String priceString = null;
+        String cost = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(costString, null))) && Helpers.isTrue((!Helpers.isEqual(amountString, null)))))
         {
             priceString = Precise.stringDiv(costString, amountString);
@@ -4001,10 +4001,10 @@ public class CoinbaseCore extends CoinbaseApi
         Object marketIOC = this.safeDict(orderConfiguration, "market_market_ioc");
         Boolean isLimit = (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limitGTC, null))) || Helpers.isTrue((!Helpers.isEqual(limitGTD, null)))) || Helpers.isTrue((!Helpers.isEqual(limitIOC, null))));
         Boolean isStop = (Helpers.isTrue((!Helpers.isEqual(stopLimitGTC, null))) || Helpers.isTrue((!Helpers.isEqual(stopLimitGTD, null))));
-        Object price = null;
-        Object amount = null;
+        String price = null;
+        String amount = null;
         Object postOnly = null;
-        Object triggerPrice = null;
+        String triggerPrice = null;
         if (Helpers.isTrue(isLimit))
         {
             Object target = null;
@@ -5333,7 +5333,7 @@ public class CoinbaseCore extends CoinbaseApi
         String networkId = this.safeString(depositAddress, "network");
         String code = (String) this.safeCurrencyCode(null, currency);
         String addressLabel = this.safeString(depositAddress, "address_label");
-        Object currencyId = null;
+        String currencyId = null;
         if (Helpers.isTrue(!Helpers.isEqual(addressLabel, null)))
         {
             Object splitAddressLabel = Helpers.split(addressLabel, " ");
@@ -6397,7 +6397,7 @@ public class CoinbaseCore extends CoinbaseApi
         if (Helpers.isTrue(signed))
         {
             String authorization = this.safeString(this.headers, "Authorization");
-            Object authorizationString = null;
+            String authorizationString = null;
             if (Helpers.isTrue(!Helpers.isEqual(authorization, null)))
             {
                 authorizationString = authorization;

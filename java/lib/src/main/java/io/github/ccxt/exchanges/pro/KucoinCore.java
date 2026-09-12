@@ -3076,8 +3076,8 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            Object defaultType = ((Helpers.isTrue(uta))) ? "unified" : "spot";
-            Object type = defaultType;
+            String defaultType = ((Helpers.isTrue(uta))) ? "unified" : "spot";
+            String type = defaultType;
             if (!Helpers.isTrue(uta))
             {
                 defaultType = this.safeString(this.options, "defaultType", defaultType);
@@ -3258,7 +3258,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object currencyId = this.safeString(data, "currency");
         Object relationEvent = this.safeString(data, "relationEvent");
-        Object requestAccountType = null;
+        String requestAccountType = null;
         if (Helpers.isTrue(!Helpers.isEqual(relationEvent, null)))
         {
             Object relationEventParts = Helpers.split(relationEvent, ".");

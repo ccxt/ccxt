@@ -1075,7 +1075,7 @@ public class WooCore extends WooApi
         String quoteId = this.safeString(parts, 2);
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        Object settleId = null;
+        String settleId = null;
         Object settle = null;
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object contractSize = null;

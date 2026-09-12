@@ -1976,10 +1976,10 @@ public class BitteamCore extends BitteamApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = (String)this.safeStringLower(ticker, "trading_pairs");
         market = this.safeMarket(marketId, market);
-        Object bestBidPrice = null;
-        Object bestAskPrice = null;
-        Object bestBidVolume = null;
-        Object bestAskVolume = null;
+        String bestBidPrice = null;
+        String bestAskPrice = null;
+        String bestBidVolume = null;
+        String bestAskVolume = null;
         Object bids = this.safeValue(ticker, "bids");
         Object asks = this.safeValue(ticker, "asks");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(bids, null))) && Helpers.isTrue((Helpers.isArray(bids)))) && Helpers.isTrue((!Helpers.isEqual(asks, null)))) && Helpers.isTrue((Helpers.isArray(asks)))))
@@ -2332,7 +2332,7 @@ public class BitteamCore extends BitteamApi
         // the exchange returns the side of the taker
         String side = this.safeString2(trade, "side", "type");
         Object feeInfo = null;
-        Object order = null;
+        String order = null;
         if (Helpers.isTrue(Helpers.isEqual(takerOrMaker, "maker")))
         {
             if (Helpers.isTrue(Helpers.isEqual(side, "sell")))

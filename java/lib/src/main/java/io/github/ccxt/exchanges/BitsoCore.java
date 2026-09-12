@@ -613,7 +613,7 @@ public class BitsoCore extends BitsoApi
             {
                 Object market = Helpers.GetValue(markets, i);
                 String id = this.safeString(market, "book");
-                var baseIdquoteIdVariable = Helpers.split(id, "_");
+                var baseIdquoteIdVariable = Helpers.split(((String)id), "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 Object base = ((String)baseId).toUpperCase();
@@ -1886,10 +1886,10 @@ public class BitsoCore extends BitsoApi
             java.util.Map<String, Object> response = (this.privateGetFundingDestination(this.extend(request, parameters))).join();
             Object payload = this.safeDict(response, "payload", new java.util.HashMap<String, Object>() {{}});
             String address = this.safeString(payload, "account_identifier");
-            Object tag = null;
-            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(address, "?dt="), 0)))
+            String tag = null;
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)address), "?dt="), 0)))
             {
-                Object parts = Helpers.split(address, "?dt=");
+                Object parts = Helpers.split(((String)address), "?dt=");
                 address = this.safeString(parts, 0);
                 tag = this.safeString(parts, 1);
             }

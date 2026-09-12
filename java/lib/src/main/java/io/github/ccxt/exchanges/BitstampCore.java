@@ -1753,8 +1753,8 @@ public class BitstampCore extends BitstampApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(trade, "id", "tid");
-        Object symbol = null;
-        Object side = null;
+        String symbol = null;
+        String side = null;
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         String orderId = this.safeString(trade, "order_id");
@@ -2981,7 +2981,7 @@ public class BitstampCore extends BitstampApi
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String feeCost = this.safeString(transaction, "fee");
         Object feeCurrency = null;
-        Object amount = null;
+        String amount = null;
         if (Helpers.isTrue(Helpers.inOp(transaction, "amount")))
         {
             amount = this.safeString(transaction, "amount");

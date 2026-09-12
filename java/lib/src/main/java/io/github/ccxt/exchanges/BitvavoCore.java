@@ -1687,8 +1687,8 @@ final Object finalBase = base;
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String subaccountId = this.safeString(transfer, "subaccountId");
         String direction = this.safeString(transfer, "direction");
-        Object fromAccount = null;
-        Object toAccount = null;
+        String fromAccount = null;
+        String toAccount = null;
         if (Helpers.isTrue(Helpers.isEqual(direction, "masterToSub")))
         {
             fromAccount = "master";

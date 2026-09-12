@@ -404,7 +404,7 @@ public class KalshiCore extends KalshiApi
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 1000));
             java.util.List<Object> flatMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.Map<String, Object> eventsDict = new java.util.HashMap<String, Object>() {{}};
-            Object cursor = null;
+            String cursor = null;
             // don't request a full 1000-market page (3+ MB) when the caller wants fewer
             Long pageLimit = this.safeInteger(this.options, "marketsPageLimit", 1000);
             Object limit = Helpers.mathMin(maxMarkets, pageLimit);
@@ -1176,7 +1176,7 @@ final Object finalOi = oi;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketAny = market;
         Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
-        Object outcomeLabel = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(market, null)))))) ? this.safeString(market, "label", this.safeString(Helpers.GetValue(market, "info"), "outcomeLabel", "YES")) : "YES";
+        String outcomeLabel = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(market, null)))))) ? this.safeString(market, "label", this.safeString(Helpers.GetValue(market, "info"), "outcomeLabel", "YES")) : "YES";
         Boolean isNo = Helpers.isEqual(((String)outcomeLabel).toUpperCase(), "NO");
         Long now = this.milliseconds();
         Object outcome = this.safeString(outcomeObj, "outcome");
@@ -1200,8 +1200,8 @@ final Object finalOi = oi;
             close = last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        Object bidSizeString = ((Helpers.isTrue((isNo)))) ? this.safeString(raw, "yes_ask_size_fp") : this.safeString(raw, "yes_bid_size_fp");
-        Object askSizeString = ((Helpers.isTrue((isNo)))) ? this.safeString(raw, "yes_bid_size_fp") : this.safeString(raw, "yes_ask_size_fp");
+        String bidSizeString = ((Helpers.isTrue((isNo)))) ? this.safeString(raw, "yes_ask_size_fp") : this.safeString(raw, "yes_bid_size_fp");
+        String askSizeString = ((Helpers.isTrue((isNo)))) ? this.safeString(raw, "yes_bid_size_fp") : this.safeString(raw, "yes_ask_size_fp");
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
         Object bidVolume = null;
@@ -1797,7 +1797,7 @@ final Object finalOi = oi;
             {
                 ((java.util.List<Object>)trades).add(this.parseMyTrade(Helpers.GetValue(fills, i), outcomeObj));
             }
-            Object wantedOutcome = null;
+            String wantedOutcome = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 wantedOutcome = this.safeString(this.outcome(outcome), "outcome");
@@ -2064,7 +2064,7 @@ final Object finalOi = oi;
             {
                 ((java.util.List<Object>)parsed).add(this.parseSettlement(Helpers.GetValue(rawSettlements, i)));
             }
-            Object wantedOutcome = null;
+            String wantedOutcome = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 wantedOutcome = this.safeString(this.outcome(outcome), "outcome");
@@ -3067,7 +3067,7 @@ final Object finalOi = oi;
                 {
                     break;
                 }
-                Object cursor = null;
+                String cursor = null;
                 for (var page = 0; Helpers.isLessThan(page, maxPages); page++)
                 {
                     Object reqLimit = pageLimit;

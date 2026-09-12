@@ -1082,7 +1082,7 @@ public class BithumbCore extends BithumbApi
         String marketId = this.safeString(ticker, "market");
         String symbol = (String) this.safeSymbol(marketId, market);
         String close = this.safeString2(ticker, "closing_price", "trade_price");
-        Object change = this.safeString2(ticker, "signed_change_price", "change_price");
+        String change = this.safeString2(ticker, "signed_change_price", "change_price");
         String percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
         String open = this.safeString(ticker, "opening_price");
         Object nonZeroOpen = this.omitZero(open);
@@ -1251,7 +1251,7 @@ public class BithumbCore extends BithumbApi
                     {
                         response = Helpers.GetValue(response, "data");
                     }
-                    Object expectedMarketId = null;
+                    String expectedMarketId = null;
                     Object marketIdsChunk = this.safeList(marketIdsChunks, i, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     String firstMarketId = this.safeString(marketIdsChunk, 0);
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(firstMarketId, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(marketIdsChunk, 1), null)))))

@@ -683,7 +683,7 @@ public class DeepcoinCore extends DeepcoinApi
         Boolean swap = (Helpers.isEqual(type, "swap"));
         String baseId = this.safeString(market, "baseCcy");
         String quoteId = this.safeString(market, "quoteCcy", "");
-        Object settleId = null;
+        String settleId = null;
         Object settle = null;
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);

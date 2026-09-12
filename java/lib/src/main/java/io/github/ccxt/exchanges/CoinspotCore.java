@@ -1000,7 +1000,7 @@ public class CoinspotCore extends CoinspotApi
         //     }
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = null;
-        Object priceString = null;
+        String priceString = null;
         Object fee = null;
         String audTotal = this.safeString(trade, "audtotal");
         String costString = this.safeString(trade, "total", audTotal);

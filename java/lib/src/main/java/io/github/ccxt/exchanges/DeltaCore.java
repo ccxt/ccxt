@@ -437,9 +437,9 @@ public class DeltaCore extends DeltaApi
         String quote = "USDT";
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
-        Object base = null;
+        String base = null;
         Object expiry = null;
-        Object optionType = null;
+        String optionType = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
             base = this.safeString(symbolBase, 0);

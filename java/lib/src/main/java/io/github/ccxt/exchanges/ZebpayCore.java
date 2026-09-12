@@ -539,9 +539,9 @@ public class ZebpayCore extends ZebpayApi
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Object chains = this.safeList(rawCurrency, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
-        Object minWithdrawFeeString = null;
-        Object minWithdrawString = null;
-        Object minDepositString = null;
+        String minWithdrawFeeString = null;
+        String minWithdrawString = null;
+        String minDepositString = null;
         Object deposit = false;
         Object withdraw = false;
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)

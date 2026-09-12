@@ -1355,7 +1355,7 @@ public class AsterCore extends AsterApi
         Object spot = null;
         Object symbol = null;
         Object settle = null;
-        Object settleId = null;
+        String settleId = null;
         Object swap = null;
         Object linear = null;
         Object inverse = null;
@@ -3444,7 +3444,7 @@ public class AsterCore extends AsterApi
         Boolean isStopLoss = Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)) || Helpers.isTrue(!Helpers.isEqual(trailingDelta, null));
         Boolean isTakeProfit = !Helpers.isEqual(takeProfitPrice, null);
         Object uppercaseType = initialUppercaseType;
-        Object stopPrice = null;
+        String stopPrice = null;
         if (Helpers.isTrue(isTrailingPercentOrder))
         {
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
@@ -4494,14 +4494,14 @@ public class AsterCore extends AsterApi
             timestamp = null;
         }
         Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
-        Object maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
+        String maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
         if (Helpers.isTrue(Helpers.isEqual(maintenanceMarginString, null)))
         {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
             maintenanceMarginString = this.safeString(position, "maintMargin");
         }
         Object maintenanceMargin = this.parseNumber(maintenanceMarginString);
-        Object initialMarginString = null;
+        String initialMarginString = null;
         String initialMarginPercentageString = null;
         String leverageString = this.safeString(position, "leverage");
         if (Helpers.isTrue(!Helpers.isEqual(leverageString, null)))
@@ -4794,8 +4794,8 @@ public class AsterCore extends AsterApi
             isolated = !Helpers.isTrue(Precise.stringEq(isolatedMarginRaw, "0"));
         }
         String marginMode = null;
-        Object collateralString = null;
-        Object walletBalance = null;
+        String collateralString = null;
+        String walletBalance = null;
         if (Helpers.isTrue(isolated))
         {
             marginMode = "isolated";

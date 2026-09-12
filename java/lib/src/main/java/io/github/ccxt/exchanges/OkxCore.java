@@ -2411,7 +2411,7 @@ public class OkxCore extends OkxApi
         String quote = "USD";
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
-        Object base = null;
+        String base = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
             base = this.safeString(symbolBase, 0);
@@ -2419,7 +2419,7 @@ public class OkxCore extends OkxApi
         {
             base = this.safeString(optionParts, 0);
         }
-        Object settle = base;
+        String settle = base;
         String expiry = this.safeString(optionParts, 2);
         String strike = this.safeString(optionParts, 3);
         String optionType = this.safeString(optionParts, 4);
@@ -2819,8 +2819,8 @@ public class OkxCore extends OkxApi
             symbol = id;
         }
         Object expiry = null;
-        Object strikePrice = null;
-        Object optionType = null;
+        String strikePrice = null;
+        String optionType = null;
         if (Helpers.isTrue(contract))
         {
             if (Helpers.isTrue(!Helpers.isEqual(settle, null)))
@@ -3304,7 +3304,7 @@ public class OkxCore extends OkxApi
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
         Object spot = this.safeBool(market, "spot", false);
-        Object quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCcy24h") : null;
+        String quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCcy24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
         String low = this.safeString(ticker, "low24h");
@@ -3853,7 +3853,7 @@ public class OkxCore extends OkxApi
                 put( "bar", finalBar );
                 put( "limit", finalLimit );
             }};
-            Object defaultType = "Candles";
+            String defaultType = "Candles";
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Long now = this.milliseconds();
@@ -4458,7 +4458,7 @@ public class OkxCore extends OkxApi
                 String currency = this.safeString(parameters, "ccy", defaultCurrency);
                 Helpers.addElementToObject(request, "ccy", this.safeCurrencyCode(currency));
             }
-            Object tradeMode = ((Helpers.isTrue((Helpers.isEqual(margin, true))))) ? marginMode : "cash";
+            String tradeMode = ((Helpers.isTrue((Helpers.isEqual(margin, true))))) ? marginMode : "cash";
             Helpers.addElementToObject(request, "tdMode", tradeMode);
         } else if (Helpers.isTrue(Helpers.isEqual(contract, true)))
         {
@@ -5730,8 +5730,8 @@ public class OkxCore extends OkxApi
         String average = this.safeString(order, "avgPx");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         String feeCostString = this.safeString(order, "fee");
-        Object amount = null;
-        Object cost = null;
+        String amount = null;
+        String cost = null;
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
         // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
         String defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
@@ -7582,12 +7582,12 @@ public class OkxCore extends OkxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String type = null;
-        Object id = null;
+        String id = null;
         String withdrawalId = this.safeString(transaction, "wdId");
         String addressFrom = this.safeString(transaction, "from");
         String addressTo = this.safeString(transaction, "to");
-        Object address = addressTo;
-        Object tagTo = this.safeString2(transaction, "tag", "memo");
+        String address = addressTo;
+        String tagTo = this.safeString2(transaction, "tag", "memo");
         tagTo = ((Helpers.isTrue((Helpers.isEqual(tagTo, null))))) ? this.safeString(transaction, "pmtId") : this.safeString2(transaction, "pmtId", tagTo);
         if (Helpers.isTrue(!Helpers.isEqual(withdrawalId, null)))
         {
@@ -7720,7 +7720,7 @@ public class OkxCore extends OkxApi
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = null;
+        String marketId = null;
         Object marginMode = null;
         Object longLeverage = null;
         Object shortLeverage = null;
@@ -8092,12 +8092,12 @@ public class OkxCore extends OkxApi
         }
         Object notional = this.parseNumber(notionalString);
         String marginMode = this.safeString(position, "mgnMode");
-        Object initialMarginString = null;
+        String initialMarginString = null;
         String entryPriceString = this.safeString2(position, "avgPx", "openAvgPx");
         String unrealizedPnlString = this.safeString(position, "upl");
         String leverageString = this.safeString(position, "lever");
         Object initialMarginPercentage = null;
-        Object collateralString = null;
+        String collateralString = null;
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
         {
             initialMarginString = this.safeString(position, "imr");
@@ -8860,7 +8860,7 @@ public class OkxCore extends OkxApi
                 String code = (String) this.safeCurrencyCode(currencyId);
                 String balanceChange = this.safeString(entry, "balChg");
                 String positionBalanceChange = this.safeString(entry, "posBalChg");
-                Object amount = null;
+                String amount = null;
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(balanceChange, null))) && Helpers.isTrue((!Helpers.isTrue(Precise.stringEq(balanceChange, "0"))))))
                 {
                     amount = balanceChange;
@@ -9490,7 +9490,7 @@ public class OkxCore extends OkxApi
         String amountRaw = this.safeString2(data, "amt", "posBalChg");
         String typeRaw = this.safeString(data, "type");
         // ledger uses numeric '6' (+/- amount); addMargin/reduceMargin already send 'add'/'reduce'
-        Object type = null;
+        String type = null;
         if (Helpers.isTrue(Helpers.isEqual(typeRaw, "6")))
         {
             type = ((Helpers.isTrue(Precise.stringGt(amountRaw, "0")))) ? "add" : "reduce";

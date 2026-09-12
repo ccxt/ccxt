@@ -1163,7 +1163,7 @@ public class BitmexCore extends BitmexApi
         String status = this.safeString(market, "state");
         Boolean active = Helpers.isEqual(status, "Open"); // Open, Settled, Unlisted
         Object expiry = null;
-        Object expiryDatetime = null;
+        String expiryDatetime = null;
         Object symbol = null;
         if (Helpers.isTrue(spot))
         {
@@ -2042,9 +2042,9 @@ public class BitmexCore extends BitmexApi
         Long timestamp = this.parse8601(this.safeString(transaction, "timestamp"));
         String type = (String)this.safeStringLower(transaction, "transactType");
         // Deposits have no from address or to address, withdrawals have both
-        Object address = null;
-        Object addressFrom = null;
-        Object addressTo = null;
+        String address = null;
+        String addressFrom = null;
+        String addressTo = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "withdrawal")))
         {
             address = this.safeString(transaction, "address");

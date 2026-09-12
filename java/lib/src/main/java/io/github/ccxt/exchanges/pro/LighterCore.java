@@ -828,7 +828,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Long bidAccountId = this.safeInteger(trade, "bid_account_id");
         Long askAccountId = this.safeInteger(trade, "ask_account_id");
         String side = null;
-        Object order = null;
+        String order = null;
         String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(accountIndex, null)))
         {
@@ -853,7 +853,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(takerOrMaker, null)))
         {
-            Object feeRateRaw = ((Helpers.isTrue((Helpers.isEqual(takerOrMaker, "maker"))))) ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");
+            String feeRateRaw = ((Helpers.isTrue((Helpers.isEqual(takerOrMaker, "maker"))))) ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");
             String feeRate = ((Helpers.isTrue((!Helpers.isEqual(feeRateRaw, null))))) ? Precise.stringDiv(feeRateRaw, "1000000") : "0";
             String feeAmount = Precise.stringMul(costString, feeRate);
             fee = new java.util.HashMap<String, Object>() {{
