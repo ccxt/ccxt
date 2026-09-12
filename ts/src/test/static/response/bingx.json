@@ -3479,6 +3479,164 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "Inverse swap trade preserves contracts and calculates settlement cost (10 USD contract)",
+                "method": "fetchMyTrades",
+                "input": [
+                    "SOL/USD:SOL",
+                    null,
+                    null,
+                    {
+                        "orderId": "1817441228670648320"
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1722147756019,
+                    "data": [
+                        {
+                            "orderId": "1817441228670648320",
+                            "symbol": "SOL-USD",
+                            "type": "MARKET",
+                            "side": "BUY",
+                            "positionSide": "LONG",
+                            "tradeId": "97244554",
+                            "volume": "2",
+                            "tradePrice": "182.652",
+                            "amount": "20.00000000",
+                            "realizedPnl": "0.00000000",
+                            "commission": "-0.00005475",
+                            "currency": "SOL",
+                            "buyer": true,
+                            "maker": false,
+                            "tradeTime": 1722146730000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "info": {
+                            "orderId": "1817441228670648320",
+                            "symbol": "SOL-USD",
+                            "type": "MARKET",
+                            "side": "BUY",
+                            "positionSide": "LONG",
+                            "tradeId": "97244554",
+                            "volume": "2",
+                            "tradePrice": "182.652",
+                            "amount": "20.00000000",
+                            "realizedPnl": "0.00000000",
+                            "commission": "-0.00005475",
+                            "currency": "SOL",
+                            "buyer": true,
+                            "maker": false,
+                            "tradeTime": 1722146730000
+                        },
+                        "timestamp": 1722146730000,
+                        "datetime": "2024-07-28T06:05:30.000Z",
+                        "symbol": "SOL/USD:SOL",
+                        "order": "1817441228670648320",
+                        "orderId": "1817441228670648320",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 182.652,
+                        "amount": 2,
+                        "cost": 0.109497842892495,
+                        "fee": {
+                            "cost": 0.00005475,
+                            "currency": "SOL"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.00005475,
+                                "currency": "SOL"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "Inverse swap trade preserves contracts and calculates settlement cost (100 USD contract, synthetic)",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USD:BTC",
+                    null,
+                    null,
+                    {
+                        "orderId": "1817441228670648321"
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1722147756019,
+                    "data": [
+                        {
+                            "orderId": "1817441228670648321",
+                            "symbol": "BTC-USD",
+                            "type": "MARKET",
+                            "side": "BUY",
+                            "positionSide": "LONG",
+                            "tradeId": "97244555",
+                            "volume": "3",
+                            "tradePrice": "50000",
+                            "amount": "300.00000000",
+                            "realizedPnl": "0.00000000",
+                            "commission": "-0.00000300",
+                            "currency": "BTC",
+                            "buyer": true,
+                            "maker": false,
+                            "tradeTime": 1722146730000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "info": {
+                            "orderId": "1817441228670648321",
+                            "symbol": "BTC-USD",
+                            "type": "MARKET",
+                            "side": "BUY",
+                            "positionSide": "LONG",
+                            "tradeId": "97244555",
+                            "volume": "3",
+                            "tradePrice": "50000",
+                            "amount": "300.00000000",
+                            "realizedPnl": "0.00000000",
+                            "commission": "-0.00000300",
+                            "currency": "BTC",
+                            "buyer": true,
+                            "maker": false,
+                            "tradeTime": 1722146730000
+                        },
+                        "timestamp": 1722146730000,
+                        "datetime": "2024-07-28T06:05:30.000Z",
+                        "symbol": "BTC/USD:BTC",
+                        "order": "1817441228670648321",
+                        "orderId": "1817441228670648321",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 50000,
+                        "amount": 3,
+                        "cost": 0.006,
+                        "fee": {
+                            "cost": 0.000003,
+                            "currency": "BTC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.000003,
+                                "currency": "BTC"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "description": "Swap trade",
                 "method": "fetchMyTrades",
                 "input": [
