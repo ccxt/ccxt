@@ -170,10 +170,14 @@ function main (): void {
         transpileOne (id);
     }
 
-    // 3. resolve the class-hierarchy closure, then prune everything else
+    // 3. resolve the class-hierarchy closure, then prune everything else.
+    //    An id can live in BOTH the REST and prediction tiers (binance,
+    //    hyperliquid, polymarket...): keep it wherever its TS source exists,
+    //    never only in the prediction bucket.
     const predictionIds = knownPredictionIds ();
     const keepPrediction = new Set (ids.filter ((id) => predictionIds.has (id)));
-    const { rest, pro } = resolveDependencies (new Set (ids.filter ((id) => !predictionIds.has (id))));
+    const restIds = new Set (ids.filter ((id) => fs.existsSync ('./ts/src/' + id + '.ts')));
+    const { rest, pro } = resolveDependencies (restIds);
     log.cyan ('Kept (with dependencies): REST [' + [...rest].join (', ') + '] pro [' + [...pro].join (', ') + '] prediction [' + [...keepPrediction].join (', ') + ']');
     pruneExchanges (rest, pro, keepPrediction);
 
