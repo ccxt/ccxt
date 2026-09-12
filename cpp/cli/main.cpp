@@ -158,6 +158,31 @@ int main (int argc, char** argv) {
                 cacheFile << str (exchange->json (exchange->markets)) << std::endl;
                 phase ("cache-write");
             }
+            // CCXT_BENCH=1: reproduce the setmarkets-probe flow IN THIS BINARY —
+            // fresh file read + parse + repeated setMarkets with per-call timing.
+            // Discriminates flow-level vs binary/process-level slowdown.
+            if (std::getenv ("CCXT_BENCH") != nullptr) {
+                std::ifstream benchFile (cachePath);
+                std::stringstream benchBuf;
+                benchBuf << benchFile.rdbuf ();
+                ccxt::ExchangeBase benchParser;
+                auto b0 = std::chrono::steady_clock::now ();
+                const std::any benchParsed = benchParser.parseJson (benchBuf.str ());
+                auto b1 = std::chrono::steady_clock::now ();
+                exchange->setMarkets (benchParsed, std::any {});
+                auto b2 = std::chrono::steady_clock::now ();
+                std::cerr << "[bench] parseJson: " << std::chrono::duration_cast<std::chrono::milliseconds> (b1 - b0).count ()
+                          << "ms, first setMarkets: " << std::chrono::duration_cast<std::chrono::milliseconds> (b2 - b1).count ()
+                          << "ms" << std::endl;
+                for (int rep = 0; rep < 3; rep++) {
+                    auto s0 = std::chrono::steady_clock::now ();
+                    exchange->setMarkets (benchParsed, std::any {});
+                    auto s1 = std::chrono::steady_clock::now ();
+                    std::cerr << "[bench] setMarkets #" << rep + 2 << ": "
+                              << std::chrono::duration_cast<std::chrono::milliseconds> (s1 - s0).count () << "ms" << std::endl;
+                }
+                return 0;
+            }
             phase ("markets-done");
         }
         ccxt::list callArgs;
