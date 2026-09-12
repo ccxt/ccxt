@@ -158,28 +158,34 @@ pub async fn test_ws_initialization() -> Result<(), String> {
     let at = |value: &Value, keys: &[&str]| {
         keys.iter().fold(value.clone(), |v, key| get_value(&v, &Value::str(*key)))
     };
-    // Granular builds may omit either venue; full base-test CI includes both.
+    // Granular builds may omit either venue, but at least one case must run.
     let mut ws_ids = Vec::new();
     macro_rules! ws_id { ($name:ident, $core:ident) => { ws_ids.push(stringify!($name)); }; }
     crate::registry::for_each_ws_core!(ws_id);
+    let mut tested_venues = 0;
     for (id, timeframe_path, expected, options) in [
         ("bingx", &["spot", "timeframes"][..], "1min",
-            serde_json::json!({"spot": {"timeframes": {"1h": "custom"}}})),
+            serde_json::json!({"spot": {"timeframes": {"1h": "custom"}}, "fixtureOnly": true})),
         ("bitget", &["timeframes"][..], "1m",
-            serde_json::json!({"timeframes": {"1h": "custom"}})),
+            serde_json::json!({"timeframes": {"1h": "custom"}, "fixtureOnly": true})),
     ] {
         if !ws_ids.contains(&id) {
             continue;
         }
+        tested_venues += 1;
         let market_id = if id == "bingx" { "BTC-USDT" } else { "BTCUSDT" };
         for ws in [false, true] {
-            let cfg = Value::from_json(&serde_json::json!({
+            let mut cfg = Value::from_json(&serde_json::json!({
                 "markets": {"BTC/USDT": {
                     "id": market_id, "symbol": "BTC/USDT",
                     "base": "BTC", "quote": "USDT", "type": "spot", "spot": true
                 }},
-                "options": options,
             }));
+            let pristine = crate::test_helpers::initExchange(
+                Value::str(id), &[cfg.clone(), Value::Bool(ws)],
+            );
+            let default_options = get_value(&pristine, &Value::str("options"));
+            set_value(&mut cfg, &Value::str("options"), Value::from_json(&options));
             let mut exchange = crate::test_helpers::initExchange(
                 Value::str(id), &[cfg, Value::Bool(ws)],
             );
@@ -204,20 +210,27 @@ pub async fn test_ws_initialization() -> Result<(), String> {
                 format!("{id} ws={ws}: loadMarkets must preserve the default timeframe"));
             assert_eq_msg!(get_value(&timeframes, &Value::str("1h")), Value::str("custom"),
                 format!("{id} ws={ws}: loadMarkets must preserve the configured timeframe"));
+            assert_eq_msg!(get_value(&core_options, &Value::str("fixtureOnly")), Value::Bool(true),
+                format!("{id} ws={ws}: fixture-only option must reach the Core"));
 
-            if !ws {
-                // REST fixtures replace their options between cases. A blanket
-                // merge in dispatch would retain the previous case's override.
-                set_value(&mut exchange, &Value::str("options"),
-                    Value::from_json(&serde_json::json!({})));
-                crate::live_dispatch::dispatch(
-                    &mut exchange, "load_markets", vec![Value::Bool(false)],
-                ).await;
-                let reset_options = get_value(&exchange, &Value::str("options"));
-                assert_eq_msg!(get_value(&at(&reset_options, timeframe_path), &Value::str("1h")),
-                    Value::Null, format!("{id}: REST fixture override must not leak"));
-            }
+            // Reset to the pristine REST/WS snapshot, not an empty map: defaults
+            // must return, and a merge must not retain fixture-only options.
+            set_value(&mut exchange, &Value::str("options"), default_options.clone());
+            crate::live_dispatch::dispatch(
+                &mut exchange, "load_markets", vec![Value::Bool(false)],
+            ).await;
+            let reset_options = get_value(&exchange, &Value::str("options"));
+            let reset_timeframes = at(&reset_options, timeframe_path);
+            assert_eq_msg!(get_value(&reset_timeframes, &Value::str("1m")), expected_default,
+                format!("{id} ws={ws}: reset must restore the default timeframe"));
+            assert_eq_msg!(get_value(&reset_timeframes, &Value::str("1h")),
+                get_value(&at(&default_options, timeframe_path), &Value::str("1h")),
+                format!("{id} ws={ws}: reset must remove the configured timeframe"));
+            assert_eq_msg!(get_value(&reset_options, &Value::str("fixtureOnly")), Value::Null,
+                format!("{id} ws={ws}: fixture-only option must not leak"));
         }
     }
+    assert_true!(tested_venues > 0,
+        "WS initialization: no cases ran; generate the BingX or Bitget WS core before running base tests");
     Ok(())
 }
