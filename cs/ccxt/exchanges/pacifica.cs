@@ -3685,14 +3685,19 @@ public partial class pacifica : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> currency = this.currency(((string)code));
         string operationType = "transfer_funds";
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "to_account", toAccount },
-            { "amount", amount },
+            { "amount", this.numberToString(amount) },
         };
         Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow"});
-        object response = this.privatePostAccountSubaccountTransfer(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostAccountSubaccountTransfer(this.extend(request, parameters));
         //
         // {
         //   "success": true,
@@ -3705,7 +3710,7 @@ public partial class pacifica : Exchange
         // }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data));
+        return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {             { "amount", amount },             { "fromAccount", this.safeString(request, "account") },             { "toAccount", toAccount },         }));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -3721,16 +3726,22 @@ public partial class pacifica : Exchange
         //   "code": null
         // }
         //
+        bool? success = this.safeBool(transfer, "success");
+        string? status = null;
+        if (isTrue(!isEqual(success, null)))
+        {
+            status = ((bool) isTrue((isEqual(success, true)))) ? "ok" : "failed";
+        }
         return new Dictionary<string, object>() {
             { "info", transfer },
             { "id", null },
             { "timestamp", null },
             { "datetime", null },
-            { "currency", null },
+            { "currency", this.safeCurrencyCode(null, currency) },
             { "amount", null },
             { "fromAccount", null },
             { "toAccount", null },
-            { "status", "ok" },
+            { "status", status },
         };
     }
 
