@@ -113,14 +113,14 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Client client = this.client(url);
             Object subMessageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
-            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("unsubscribe:", channel), ":"), marketId);
+            String messageHash = Helpers.add(Helpers.add(Helpers.add("unsubscribe:", channel), ":"), marketId);
             Object unSubTopic = Helpers.add(Helpers.add(Helpers.add(Helpers.add("unsubscribe", ":"), topic), ":"), symbol);
-            Object channelId = this.safeString(client.subscriptions, unSubTopic);
+            String channelId = this.safeString(client.subscriptions, unSubTopic);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "unsubscribe" );
                 put( "chanId", channelId );
             }};
-            Object unSubChanMsg = Helpers.add("unsubscribe:", channelId);
+            String unSubChanMsg = Helpers.add("unsubscribe:", channelId);
             Helpers.addElementToObject(client.subscriptions, unSubChanMsg, subMessageHash);
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)) );
@@ -176,7 +176,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object interval = this.safeString(this.timeframes, timeframe, timeframe);
+            String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String channel = "candles";
             Object key = Helpers.add(Helpers.add(Helpers.add("trade:", interval), ":"), Helpers.GetValue(market, "id"));
             Object messageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(channel, ":"), interval), ":"), Helpers.GetValue(market, "id"));
@@ -220,19 +220,19 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object interval = this.safeString(this.timeframes, timeframe, timeframe);
+            String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String channel = "candles";
             Object subMessageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(channel, ":"), interval), ":"), Helpers.GetValue(market, "id"));
-            String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
+            String messageHash = Helpers.add("unsubscribe:", subMessageHash);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Client client = this.client(url);
             Object subId = Helpers.add(Helpers.add(Helpers.add("unsubscribe:trade:", interval), ":"), Helpers.GetValue(market, "id")); // trade here because we use the key
-            Object channelId = this.safeString(client.subscriptions, subId);
+            String channelId = this.safeString(client.subscriptions, subId);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "unsubscribe" );
                 put( "chanId", channelId );
             }};
-            Object unSubChanMsg = Helpers.add("unsubscribe:", channelId);
+            String unSubChanMsg = Helpers.add("unsubscribe:", channelId);
             Helpers.addElementToObject(client.subscriptions, unSubChanMsg, subMessageHash);
             final Object finalSymbol = symbol;
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
@@ -307,9 +307,9 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             ohlcvs = new java.util.ArrayList<Object>(java.util.Arrays.asList(data));
         }
         Object channel = this.safeValue(subscription, "channel");
-        Object key = this.safeString(subscription, "key", "");
+        String key = this.safeString(subscription, "key", "");
         Object keyParts = Helpers.split(key, ":");
-        Object interval = this.safeString(keyParts, 1);
+        String interval = this.safeString(keyParts, 1);
         Object marketId = key;
         marketId = Helpers.replace((String)marketId, (String)"trade:", (String)"");
         marketId = Helpers.replace((String)marketId, (String)Helpers.add(interval, ":"), (String)"");
@@ -405,7 +405,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             {
                 (this.loadMarkets()).join();
             }
-            String messageHash = (String) "myTrade";
+            String messageHash = "myTrade";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -536,7 +536,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         //
         //
         Object channel = this.safeValue(subscription, "channel");
-        Object marketId = this.safeString(subscription, "symbol");
+        String marketId = this.safeString(subscription, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object messageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -563,7 +563,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         } else
         {
             // update
-            Object type = this.safeString(message, 1);
+            String type = this.safeString(message, 1);
             if (Helpers.isTrue(Helpers.isEqual(type, "tu")))
             {
                 // don't resolve for a duplicate update
@@ -630,7 +630,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         Object priceKey = ((Helpers.isTrue(isPublic))) ? 3 : 5;
         Object amountKey = ((Helpers.isTrue(isPublic))) ? 2 : 4;
         marketId = Helpers.GetValue(market, "id");
-        Object type = this.safeString(trade, 6);
+        String type = this.safeString(trade, 6);
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(type, "LIMIT"), Helpers.opNeg(1))))
@@ -642,10 +642,10 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             }
         }
         Object orderId = ((Helpers.isTrue((!Helpers.isTrue(isPublic))))) ? this.safeString(trade, 3) : null;
-        Object id = this.safeString(trade, 0);
+        String id = this.safeString(trade, 0);
         Long timestamp = this.safeInteger(trade, createdKey);
-        Object price = this.safeString(trade, priceKey);
-        Object amountString = this.safeString(trade, amountKey);
+        String price = this.safeString(trade, priceKey);
+        String amountString = this.safeString(trade, amountKey);
         Object amount = this.parseNumber(Precise.stringAbs(amountString));
         String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
@@ -653,11 +653,11 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             side = ((Helpers.isTrue(Precise.stringGt(amountString, "0")))) ? "buy" : "sell";
         }
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object feeValue = this.safeString(trade, 9);
+        String feeValue = this.safeString(trade, 9);
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeValue, null)))
         {
-            Object currencyId = this.safeString(trade, 10);
+            String currencyId = this.safeString(trade, 10);
             String code = (String) this.safeCurrencyCode(currencyId);
             final Object finalFeeValue = feeValue;
             fee = new java.util.HashMap<String, Object>() {{
@@ -713,7 +713,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         //  ]
         //
         Object ticker = this.safeValue(message, 1);
-        Object marketId = this.safeString(subscription, "symbol");
+        String marketId = this.safeString(subscription, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) this.safeSymbol(marketId);
         Object parsed = this.parseWsTicker(ticker, market);
@@ -742,8 +742,8 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         Object market = Helpers.getArg(optionalArgs, 0, null);
         market = this.safeMarket(null, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object last = this.safeString(ticker, 6);
-        Object change = this.safeString(ticker, 4);
+        String last = this.safeString(ticker, 6);
+        String change = this.safeString(ticker, 4);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -792,8 +792,8 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
                 }
             }
             Object options = this.safeValue(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
-            Object prec = this.safeString(options, "prec", "P0");
-            Object freq = this.safeString(options, "freq", "F0");
+            String prec = this.safeString(options, "prec", "P0");
+            String freq = this.safeString(options, "freq", "F0");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "prec", prec );
                 put( "freq", freq );
@@ -836,11 +836,11 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         //         ]
         //     ]
         //
-        Object marketId = this.safeString(subscription, "symbol");
+        String marketId = this.safeString(subscription, "symbol");
         String symbol = (String) this.safeSymbol(marketId);
         String channel = "book";
         Object messageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
-        Object prec = this.safeString(subscription, "prec", "P0");
+        String prec = this.safeString(subscription, "prec", "P0");
         Boolean isRaw = (Helpers.isEqual(prec, "R0"));
         // if it is an initial snapshot
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -866,7 +866,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
                     Object size = ((Helpers.isTrue((Helpers.isLessThan(delta2, 0))))) ? Helpers.opNeg(delta2) : delta2;
                     Object side = ((Helpers.isTrue((Helpers.isLessThan(delta2, 0))))) ? "asks" : "bids";
                     Object bookside = Helpers.GetValue(orderbook, side);
-                    Object idString = this.safeString(delta, 0);
+                    String idString = this.safeString(delta, 0);
                     Double price = this.safeFloat(delta, 1);
                     Helpers.callDynamically(bookside, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(price, size, idString))});
                 }
@@ -898,20 +898,20 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             io.github.ccxt.ws.WsOrderBook orderbookItem = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             if (Helpers.isTrue(isRaw))
             {
-                Object price = this.safeString(deltas, 1);
+                String price = this.safeString(deltas, 1);
                 Object deltas2 = Helpers.GetValue(deltas, 2);
                 Object size = ((Helpers.isTrue((Helpers.isLessThan(deltas2, 0))))) ? Helpers.opNeg(deltas2) : deltas2;
                 Object side = ((Helpers.isTrue((Helpers.isLessThan(deltas2, 0))))) ? "asks" : "bids";
                 Object bookside = Helpers.GetValue(orderbookItem, side);
                 // price = 0 means that you have to remove the order from your book
                 Object amount = ((Helpers.isTrue(Precise.stringGt(price, "0")))) ? size : "0";
-                Object idString = this.safeString(deltas, 0);
+                String idString = this.safeString(deltas, 0);
                 Helpers.callDynamically(bookside, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseNumber(price), this.parseNumber(amount), idString))});
             } else
             {
-                Object amount = this.safeString(deltas, 2);
-                Object counter = this.safeString(deltas, 1);
-                Object price = this.safeString(deltas, 0);
+                String amount = this.safeString(deltas, 2);
+                String counter = this.safeString(deltas, 1);
+                String price = this.safeString(deltas, 0);
                 Object size = ((Helpers.isTrue(Precise.stringLt(amount, "0")))) ? Precise.stringNeg(amount) : amount;
                 Object side = ((Helpers.isTrue(Precise.stringLt(amount, "0")))) ? "asks" : "bids";
                 Object bookside = Helpers.GetValue(orderbookItem, side);
@@ -926,7 +926,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         //
         // [ 173904, "cs", -890884919 ]
         //
-        Object marketId = this.safeString(subscription, "symbol");
+        String marketId = this.safeString(subscription, "symbol");
         String symbol = (String) this.safeSymbol(marketId);
         String channel = "book";
         Object messageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
@@ -939,7 +939,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         Object stringArray = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object bids = Helpers.GetValue(book, "bids");
         Object asks = Helpers.GetValue(book, "asks");
-        Object prec = this.safeString(subscription, "prec", "P0");
+        String prec = this.safeString(subscription, "prec", "P0");
         Boolean isRaw = (Helpers.isEqual(prec, "R0"));
         Object idToCheck = ((Helpers.isTrue(isRaw))) ? 2 : 0;
         // pepperoni pizza from bitfinex
@@ -993,9 +993,9 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             {
                 (this.loadMarkets()).join();
             }
-            Object balanceType = this.safeString(parameters, "wallet", "exchange"); // exchange, margin
+            String balanceType = this.safeString(parameters, "wallet", "exchange"); // exchange, margin
             parameters = this.omit(parameters, "wallet");
-            String messageHash = (String) Helpers.add("balance:", balanceType);
+            String messageHash = Helpers.add("balance:", balanceType);
             return (this.subscribePrivate(messageHash)).join();
         });
 
@@ -1078,10 +1078,10 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object rawBalance = Helpers.GetValue(data, i);
-            Object currencyId = this.safeString(rawBalance, 1);
+            String currencyId = this.safeString(rawBalance, 1);
             String code = (String) this.safeCurrencyCode(currencyId);
             Object balance = this.parseWsBalance(rawBalance);
-            Object balanceType = this.safeString(rawBalance, 0);
+            String balanceType = this.safeString(rawBalance, 0);
             Object oldBalance = this.safeDict(this.balance, balanceType, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -1095,7 +1095,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(updatesKeys)); i++)
         {
             Object type = Helpers.GetValue(updatesKeys, i);
-            String messageHash = (String) Helpers.add("balance:", type);
+            String messageHash = Helpers.add("balance:", type);
             client.resolve(Helpers.GetValue(this.balance, type), messageHash);
         }
     }
@@ -1113,8 +1113,8 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         //         null,
         //     ]
         //
-        Object totalBalance = this.safeString(balance, 2);
-        Object availableBalance = this.safeString(balance, 4);
+        String totalBalance = this.safeString(balance, 2);
+        String availableBalance = this.safeString(balance, 4);
         Object account = this.account();
         if (Helpers.isTrue(!Helpers.isEqual(availableBalance, null)))
         {
@@ -1146,9 +1146,9 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         //     "chanId": CHANNEL_ID
         // }
         //
-        Object channelId = this.safeString(message, "chanId");
+        String channelId = this.safeString(message, "chanId");
         Object unSubChannel = Helpers.add("unsubscribe:", channelId);
-        Object subMessageHash = this.safeString(client.subscriptions, unSubChannel);
+        String subMessageHash = this.safeString(client.subscriptions, unSubChannel);
         Object subscription = this.safeDict(client.subscriptions, Helpers.add("unsubscribe:", subMessageHash));
         ((java.util.Map<String,Object>)client.subscriptions).remove((String)unSubChannel);
         Object messageHashes = this.safeList(subscription, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1184,7 +1184,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         //       key: 'trade:1m:tBTCUST'
         //  }
         //
-        Object channelId = this.safeString(message, "chanId");
+        String channelId = this.safeString(message, "chanId");
         Helpers.addElementToObject(client.subscriptions, ((String)channelId), message);
         // store the opposite direction too for unWatch
         java.util.Map<String, Object> mappings = new java.util.HashMap<String, Object>() {{
@@ -1193,16 +1193,16 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             put( "ticker", "ticker" );
             put( "trades", "trades" );
         }};
-        Object unifiedChannel = this.safeString(mappings, this.safeString(message, "channel"));
+        String unifiedChannel = this.safeString(mappings, this.safeString(message, "channel"));
         if (Helpers.isTrue(Helpers.inOp(message, "key")))
         {
             // handle ohlcv differently because the message is different
-            Object key = this.safeString(message, "key");
-            Object subKeyId = Helpers.add("unsubscribe:", key);
+            String key = this.safeString(message, "key");
+            String subKeyId = Helpers.add("unsubscribe:", key);
             Helpers.addElementToObject(client.subscriptions, subKeyId, channelId);
         } else
         {
-            Object marketId = this.safeString(message, "symbol");
+            String marketId = this.safeString(message, "symbol");
             String symbol = (String) this.safeSymbol(marketId);
             if (Helpers.isTrue(!Helpers.isEqual(unifiedChannel, null)))
             {
@@ -1221,13 +1221,13 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             Client client = this.client(url);
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 Long nonce = this.milliseconds();
-                Object payload = Helpers.add("AUTH", String.valueOf(nonce));
+                String payload = Helpers.add("AUTH", String.valueOf(nonce));
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384(), "hex");
                 String eventVar = "auth";
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1247,8 +1247,8 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
 
     public void handleAuthenticationMessage(Client client, Object message)
     {
-        String messageHash = (String) "authenticated";
-        Object status = this.safeString(message, "status");
+        String messageHash = "authenticated";
+        String status = this.safeString(message, "status");
         if (Helpers.isTrue(Helpers.isEqual(status, "OK")))
         {
             // we resolve the future here permanently so authentication only happens once
@@ -1289,7 +1289,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             {
                 (this.loadMarkets()).join();
             }
-            String messageHash = (String) "orders";
+            String messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -1348,7 +1348,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         //    ]
         //
         Object data = this.safeList(message, 2, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object messageType = this.safeString(message, 1);
+        String messageType = this.safeString(message, 1);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1440,12 +1440,12 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         //   ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, 0);
-        Object clientOrderId = this.safeString(order, 1);
-        Object marketId = this.safeString(order, 3);
+        String id = this.safeString(order, 0);
+        String clientOrderId = this.safeString(order, 1);
+        String marketId = this.safeString(order, 3);
         String symbol = (String) this.safeSymbol(marketId);
         market = this.safeMarket(symbol);
-        Object amount = this.safeString(order, 7);
+        String amount = this.safeString(order, 7);
         String side = "buy";
         if (Helpers.isTrue(Precise.stringLt(amount, "0")))
         {
@@ -1453,7 +1453,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             side = "sell";
         }
         String remaining = Precise.stringAbs(this.safeString(order, 6));
-        Object type = this.safeString(order, 8, "");
+        String type = this.safeString(order, 8, "");
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(type, "LIMIT"), Helpers.opNeg(1))))
         {
             type = "limit";
@@ -1461,13 +1461,13 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         {
             type = "market";
         }
-        Object rawState = this.safeString(order, 13, "");
+        String rawState = this.safeString(order, 13, "");
         Object stateParts = Helpers.split(rawState, " ");
-        Object trimmedStatus = this.safeString(stateParts, 0);
-        Object status = this.parseWsOrderStatus(trimmedStatus);
-        Object price = this.safeString(order, 16);
+        String trimmedStatus = this.safeString(stateParts, 0);
+        String status = this.parseWsOrderStatus(trimmedStatus);
+        String price = this.safeString(order, 16);
         Long timestamp = (Long) this.safeInteger2(order, 5, 4);
-        Object average = this.safeString(order, 17);
+        String average = this.safeString(order, 17);
         Object stopPrice = this.omitZero(this.safeString(order, 18));
         final Object finalType = type;
         final Object finalSide = side;
@@ -1498,7 +1498,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
 
     public void handleMessage(Client client, Object message)
     {
-        Object channelId = this.safeString(message, 0);
+        String channelId = this.safeString(message, 0);
         //
         //     [
         //         1231,
@@ -1531,8 +1531,8 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
                 return;  // skip heartbeats within subscription channels for now
             }
             Object subscription = this.safeValue(client.subscriptions, channelId, new java.util.HashMap<String, Object>() {{}});
-            Object channel = this.safeString(subscription, "channel");
-            Object name = this.safeString(message, 1);
+            String channel = this.safeString(subscription, "channel");
+            String name = this.safeString(message, 1);
             java.util.Map<String, Object> publicMethods = new java.util.HashMap<String, Object>() {{
                 put( "book", "handleOrderBook");
                 put( "cs", "handleChecksum");
@@ -1563,7 +1563,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             }
         } else
         {
-            Object eventVar = this.safeString(message, "event");
+            String eventVar = this.safeString(message, "event");
             if (Helpers.isTrue(!Helpers.isEqual(eventVar, null)))
             {
                 java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{

@@ -1180,6 +1180,57 @@ function receiverMethodLocalType (initializer) {
     return entry !== undefined && entry.args.includes (argCount) ? entry : undefined;
 }
 
+// does the printed Java for an accepted `messageHash*` initializer still need a `(String)`
+// checkcast to assign to the String local? Only the shapes whose printed static type is
+// Object do — the String prover (isProvablyStringExpression) has already established the
+// TS value is a String. A conditional keeps its checkcast: dropping it would rewrite a
+// line that already carries a `?:` expression.
+function messageHashValueNeedsCast (printer, node) {
+    node = unwrapParens (node);
+    if (node === undefined) {
+        return true; // unknown shape — keep the checkcast
+    }
+    switch (node.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        case ts.SyntaxKind.NullKeyword:
+        case ts.SyntaxKind.Identifier:
+        case ts.SyntaxKind.AsExpression:
+        case ts.SyntaxKind.TypeAssertionExpression:
+        case ts.SyntaxKind.PropertyAccessExpression: // this.<String-declared field>
+            return false;
+        case ts.SyntaxKind.ConditionalExpression:
+            return true;
+        case ts.SyntaxKind.BinaryExpression:
+            // `a + b` prints Helpers.add(a, b): the call is String iff the LEFT operand is
+            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
+                ? messageHashValueNeedsCast (printer, node.left)
+                : true;
+        case ts.SyntaxKind.CallExpression: {
+            if (!isThisCall (node)) {
+                return false; // bare helper calls bind to declared-String base methods
+            }
+            const name = String (node.expression.name.escapedText);
+            if (SAFE_STRING_ACCESSORS.has (name) || name === 'iso8601') {
+                return false;
+            }
+            const accessor = LOCAL_THIS_RETURN_TYPES[name];
+            if (accessor !== undefined) {
+                return accessor.cast !== undefined; // Object-declared producer
+            }
+            if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+                return false; // signature retyped to String by this module
+            }
+            if (isBaseDeclaration (printer, node) && baseMethodReturnsString (printer, node, name)) {
+                return false; // hand-written base method, declared String
+            }
+            return true; // unknown call — keep the checkcast
+        }
+        default:
+            return true; // unknown shape — keep the checkcast
+    }
+}
+
 function localInitializerType (printer, declaration, isProFile, narrowed) {
     const initializer = unwrapParens (declaration.initializer);
     if (initializer === undefined) {
@@ -1217,11 +1268,11 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         }
         if (/^messageHash\d*$/.test (declaration.name.escapedText)
             && isProvablyStringExpression (printer, initializer, declaration.name.escapedText, narrowed)) {
-            // the (String) prefix also defeats postProcessWsJava's "String type fixes"
-            // revert regex (`String x = this.<m>(` / `String x = Helpers.` -> Object),
-            // which runs on every pro file after printing; a checkcast on a String box
-            // is free
-            return { type: 'String', cast: '(String)', strictPlus: true, skipInheritedAsyncGuard: true, anyValueShape: true };
+            // the checkcast is kept only for the producers whose printed Java is still
+            // Object-declared (case accessors, implodeParams, ..); literals, Helpers.add
+            // and the String-declared accessors assign to the String local directly (the
+            // old (String) prefix that defeated postProcessWsJava's revert is obsolete)
+            return { type: 'String', cast: messageHashValueNeedsCast (printer, initializer) ? '(String)' : undefined, strictPlus: true, skipInheritedAsyncGuard: true, anyValueShape: true };
         }
     }
     // ===== error paths: request/params object literals and typed base members =====
@@ -3150,10 +3201,10 @@ export function installJavaLocalTypes (transpiler) {
 //     per-type whitelist of the surviving scan (receiverCallIsSafe) is reused.
 //   - `typeof x === '...'` prints `x instanceof <box>` (inconvertible for the wrong
 //     family) and `delete x[k]` prints a Map receiver cast: both rejected.
-//   - WS/prediction files run build/javaTranspiler.ts#postProcessWsJava, whose
-//     "String type fixes" pass rewrites `String x = this.<m>(...)` / `Helpers.<...>(...)`
-//     back to `Object`: such a declaration — and every read resolving through it — is
-//     declined.
+//   - WS/prediction files used to run build/javaTranspiler.ts#postProcessWsJava, whose
+//     "String type fixes" pass rewrote `String x = this.<m>(...)` / `Helpers.<...>(...)`
+//     back to `Object`. That pass is gone (SS-07), so ws declarations now keep every
+//     type this engine proves — no ws-file special case here.
 //   - pro files: a local that feeds an inherited async call stays Object (the typed REST
 //     wrapper overloads would win Java overload resolution once an argument is a String).
 //
@@ -3195,9 +3246,6 @@ const PRECISE_STRING_STATICS = new Set ([
 // numberToString (Object)`, `public String iso8601 (Object)`) — no generated venue
 // declares an override (census)
 const DATAFLOW_STRING_BASE_METHODS = new Set ([ 'iso8601', 'numberToString' ]);
-
-// the files build/javaTranspiler.ts#createJavaClass runs postProcessWsJava over
-const DATAFLOW_WS_SOURCE_FILE = /[\\/](pro|prediction)[\\/]/;
 
 // declarations whose full decision is being computed right now (`let a = a;`)
 const dataflowClassifyInProgress = new Set ();
@@ -3448,7 +3496,10 @@ function dataflowEmittedType (printer, declaration, context) {
         return undefined; // the printer emits `var x = ...` for a NewExpression initializer
     }
     const type = dataflowEmittedTypeUnchecked (printer, declaration, context);
-    return dataflowWsReverts (printer, declaration, type) ? undefined : type;
+    // SS-07: the old `dataflowWsReverts` decline is gone — it existed only because
+    // postProcessWsJava's "String type fixes" regex would have re-declared these locals
+    // `Object` again; ws/prediction files now keep the proven String declaration.
+    return type;
 }
 
 // the surviving tables' decision when it exists, else the dataflow engine's
@@ -3467,30 +3518,6 @@ function dataflowEmittedTypeUnchecked (printer, declaration, context) {
     } finally {
         dataflowClassifyInProgress.delete (declaration);
     }
-}
-
-// would postProcessWsJava's "String type fixes" pass rewrite this declaration back to
-// `Object`? It matches `String <name> = (this.<m>(|Helpers.)...;` — only a String family
-// value is at risk, and only when its printed form starts with this./Helpers. (a
-// parenthesised initializer prints `(` first and never matches). The exact same test is
-// applied to the printed value by the declaration wrapper.
-function dataflowWsReverts (printer, declaration, javaType) {
-    if (javaType !== JAVA_DATAFLOW_STRING) {
-        return false;
-    }
-    if (!DATAFLOW_WS_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
-        return false;
-    }
-    const initializer = declaration.initializer;
-    if (initializer === undefined || initializer.kind !== ts.SyntaxKind.CallExpression) {
-        return false;
-    }
-    const callee = initializer.expression;
-    if (ts.isPropertyAccessExpression (callee)) {
-        // hmm: `Helpers.foo(...)` has an Identifier callee; `this.<m>(...)` a property one
-        return callee.expression.kind === ts.SyntaxKind.ThisKeyword;
-    }
-    return ts.isIdentifier (callee) && callee.escapedText === 'Helpers';
 }
 
 // a read of `identifier` resolves only when it provably refers to a single local
@@ -3873,11 +3900,8 @@ function dataflowRewriteDeclaration (printer, node, identation, printed) {
         return printed; // already retyped upstream / unexpected shape — leave it alone
     }
     const value = printed.slice (at + marker.length);
-    if (info.type === JAVA_DATAFLOW_STRING
-        && (value.startsWith ('this.') || value.startsWith ('Helpers.'))
-        && DATAFLOW_WS_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
-        return printed; // postProcessWsJava's String pass would revert the spelling
-    }
+    // SS-07: ws/prediction declarations keep the proven type — the postProcessWsJava
+    // "String type fixes" revert that used to re-declare this spelling Object is gone.
     return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${value}`;
 }
 

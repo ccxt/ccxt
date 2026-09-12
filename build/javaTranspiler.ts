@@ -2738,8 +2738,14 @@ class NewTranspiler {
         // `this.method` → `"method"`). Dispatch dynamically via Helpers.callDynamically.
         content = this.rewriteDelayWithStringCallback(content);
 
-        // ── String type fixes ──
-        content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
+        // ── String type fixes: revert pass REMOVED (SS-07) ──
+        // This used to rewrite every `String x = this.<m>(...)` / `String x = Helpers.<...>(...)`
+        // declaration in WS + prediction files back to `Object`:
+        //   content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
+        // It predates the Java local-typing layers, which now emit a String declaration only
+        // when every value that can reach the local is provably a String or null. Every
+        // declaration the regex matched was therefore already proven, so the pass only
+        // de-typed the WS tree (pro/prediction now match the REST tier).
 
         // ── CompletableFuture<Void> → <Object> ──
         content = content.replace(/CompletableFuture<Void>/gm, 'CompletableFuture<Object>');
