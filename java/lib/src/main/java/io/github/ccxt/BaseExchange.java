@@ -1877,9 +1877,12 @@ public class BaseExchange {
             // with in-flight handleMessage tasks the per-exchange tests still
             // need, causing 15 new exchanges to time out vs the baseline.
             // The leak the close() was meant to fix is slow-drip (virtual
-            // threads ~1KB each); we'll address it via a different mechanism
-            // (e.g. shutdown-on-Exchange.close() only, or a delayed shutdown).
+            // threads ~1KB each) and is now handled by the delayed shutdown
+            // below: scheduleExecutorShutdown() arms a grace-period timer that
+            // lets in-flight frames drain, re-checks liveness before shutting
+            // down, and disarms if the client is re-dialed in the meantime.
         }
+        client.scheduleExecutorShutdown();
     }
 
     /**

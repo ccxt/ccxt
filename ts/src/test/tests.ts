@@ -1949,6 +1949,21 @@ class testMainClass {
         try {
             const callOutput = exchange.safeValue (data, 'output');
             this.assertStaticRequestOutput (exchange, type, skipKeys, data['url'], requestUrl as string, callOutput, output);
+            // optional per-test header pinning. only the keys the fixture lists are compared, so a
+            // fixture can pin one auth header without freezing the whole header set. this is the
+            // only cross-language assertion on header *names*, which the php transpiler can
+            // silently corrupt when a header literal contains a local/parameter name of sign ()
+            const storedHeaders = exchange.safeDict (data, 'headers');
+            if (storedHeaders !== undefined) {
+                const sentHeaders = (exchange.last_request_headers !== undefined) ? exchange.last_request_headers : {};
+                const storedHeaderKeys = Object.keys (storedHeaders);
+                for (let i = 0; i < storedHeaderKeys.length; i++) {
+                    const headerKey = storedHeaderKeys[i];
+                    const storedHeaderValue = storedHeaders[headerKey];
+                    const sentHeaderValue = exchange.safeString (sentHeaders, headerKey);
+                    this.assertStaticError (sentHeaderValue === storedHeaderValue, 'header mismatch for ' + headerKey, storedHeaderValue, sentHeaderValue);
+                }
+            }
         }
         catch (e) {
             this.requestTestsFailed = true;

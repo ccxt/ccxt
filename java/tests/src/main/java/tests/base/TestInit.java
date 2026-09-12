@@ -34,6 +34,7 @@ public class TestInit extends BaseTest
             (new TestGroupBy()).testGroupBy();
             (new TestFilterBy()).testFilterBy();
             (new TestHandleMethods()).testHandleMethods();
+            (new TestHandleHttpStatusCode()).testHandleHttpStatusCode();
             (new TestRemoveRepeatedElementsFromArray()).testRemoveRepeatedElementsFromArray();
             (new TestParsePrecision()).testParsePrecision();
             (new TestArraysConcat()).testArraysConcat();

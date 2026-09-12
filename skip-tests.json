@@ -1880,7 +1880,7 @@
         }
     },
     "nado": {
-        "skipWs": "timeouts",
+        "skipWs": "live ws blocked per transport: the /v1/subscribe gateway rejects handshakes without a permessage-deflate offer pre-upgrade with HTTP 403 - php (ratchet/pawl sends no Sec-WebSocket-Extensions offer and builds MessageBuffer with deflate disabled), c# (netstandard2.x ClientWebSocket lacks DangerousDeflateOptions) and rust (tungstenite 0.24 rejects RSV1 frames) cannot offer it, go dials with EnableCompression:false in go/v4/exchange_wsclient.go; js/python/java offer deflate and connect fine (book/bbo watch methods verified live 2026-09-10) but trade-driven streams hang on spot - busiest spot market WSPYX/USDT0 turned over ~94k USDT0/24h measured 2026-09-10, too thin for the 120s harness window; message handling is covered offline by static/ws/nado.json; recheck 2026-12-10",
         "skipMethods": {
             "loadMarkets": {
                 "precisionAmountAbnormal": "some markets report integer amount tick sizes such as 5"
