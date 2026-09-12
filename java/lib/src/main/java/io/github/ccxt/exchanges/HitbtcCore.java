@@ -902,7 +902,7 @@ public class HitbtcCore extends HitbtcApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
-                Object settleId = null;
+                String settleId = null;
                 Object settle = null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 String type = "spot";
@@ -1141,7 +1141,7 @@ public class HitbtcCore extends HitbtcApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            String network = (String)this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(parameters, "network");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(network, null))) && Helpers.isTrue((Helpers.isEqual(code, "USDT")))))
             {
                 Object networks = this.safeValue(this.options, "networks");
@@ -1191,7 +1191,7 @@ public class HitbtcCore extends HitbtcApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            String network = (String)this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(parameters, "network");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(network, null))) && Helpers.isTrue((Helpers.isEqual(code, "USDT")))))
             {
                 Object networks = this.safeValue(this.options, "networks");
@@ -1259,10 +1259,10 @@ public class HitbtcCore extends HitbtcApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            String type = (String)this.safeStringLower(parameters, "type", "spot");
+            String type = this.safeStringLower(parameters, "type", "spot");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("type")));
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
-            Object account = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? null : this.safeString(accountsByType, type, type);
+            String account = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? null : this.safeString(accountsByType, type, type);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(account, "wallet")))
             {
@@ -1816,9 +1816,9 @@ public class HitbtcCore extends HitbtcApi
         String code = this.safeCurrencyCode(currencyId);
         String txhash = this.safeString(nativeVar, "hash");
         String address = this.safeString(nativeVar, "address");
-        Object addressTo = address;
+        String addressTo = address;
         String tag = this.safeString(nativeVar, "payment_id");
-        Object tagTo = tag;
+        String tagTo = tag;
         Object sender = this.safeValue(nativeVar, "senders");
         String addressFrom = this.safeString(sender, 0);
         Double amount = this.safeNumber(nativeVar, "amount");
@@ -3406,7 +3406,7 @@ public class HitbtcCore extends HitbtcApi
                 Helpers.addElementToObject(request, "payment_id", tag);
             }
             Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-            String network = (String)this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(parameters, "network");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(network, null))) && Helpers.isTrue((Helpers.isEqual(code, "USDT")))))
             {
                 String parsedNetwork = this.safeString(networks, network);

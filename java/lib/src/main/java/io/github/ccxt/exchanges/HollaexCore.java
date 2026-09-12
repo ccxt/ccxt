@@ -581,7 +581,7 @@ public class HollaexCore extends HollaexApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String rawType = this.safeString(rawCurrency, "type");
         String type = ((Helpers.isTrue((Helpers.isEqual(rawType, "blockchain"))))) ? "crypto" : "other";
@@ -669,7 +669,7 @@ public class HollaexCore extends HollaexApi
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object orderbook = this.safeDict(response, marketId, new java.util.HashMap<String, Object>() {{}});
-                String symbol = (String) this.safeSymbol(marketId, null, "-");
+                String symbol = this.safeSymbol(marketId, null, "-");
                 Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
                 Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp));
             }
@@ -1178,7 +1178,7 @@ public class HollaexCore extends HollaexApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(response, Helpers.add(currencyId, "_available")));
             Helpers.addElementToObject(account, "total", this.safeString(response, Helpers.add(currencyId, "_balance")));
@@ -1511,7 +1511,7 @@ public class HollaexCore extends HollaexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(order, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, "-");
+        String symbol = this.safeSymbol(marketId, market, "-");
         String id = this.safeString(order, "id");
         Long timestamp = this.parse8601(this.safeString(order, "created_at"));
         String type = this.safeString(order, "type");
@@ -1797,7 +1797,7 @@ public class HollaexCore extends HollaexApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String address = this.safeString(depositAddress, "address");
-        Object tag = null;
+        String tag = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
             Object parts = Helpers.split(address, ":");
@@ -2135,10 +2135,10 @@ public class HollaexCore extends HollaexApi
         String type = this.safeString(transaction, "type");
         Double amount = this.safeNumber(transaction, "amount");
         String address = this.safeString(transaction, "address");
-        Object addressTo = null;
+        String addressTo = null;
         Object addressFrom = null;
-        Object tag = null;
-        Object tagTo = null;
+        String tag = null;
+        String tagTo = null;
         Object tagFrom = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
@@ -2167,7 +2167,7 @@ public class HollaexCore extends HollaexApi
             status = "pending";
         }
         String feeCurrencyId = this.safeString(transaction, "fee_coin");
-        String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId, currency);
+        String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, currency);
         Double feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -2334,7 +2334,7 @@ public class HollaexCore extends HollaexApi
                 Object key = Helpers.GetValue(keys, i);
                 Object value = Helpers.GetValue(withdrawalFees, key);
                 String currencyId = this.safeString(value, "symbol");
-                String currencyCode = (String) this.safeCurrencyCode(currencyId);
+                String currencyCode = this.safeCurrencyCode(currencyId);
                 Object networkCode = this.networkIdToCode(key, currencyCode);
                 if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
                 {

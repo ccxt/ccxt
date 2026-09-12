@@ -307,7 +307,7 @@ public class HyperliquidCore extends HyperliquidApi
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(questionDescription, null))) && Helpers.isTrue((!Helpers.isEqual(questionDescription, "")))))
         {
             Object questionDesc = this.parseOutcomeDescription(questionDescription);
-            String questionClass = (String)this.safeStringLower(questionDesc, "class");
+            String questionClass = this.safeStringLower(questionDesc, "class");
             if (Helpers.isTrue(Helpers.isEqual(questionClass, "pricebucket")))
             {
                 String questionUnderlying = this.safeString(questionDesc, "underlying");
@@ -315,7 +315,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Object expiryDate = ((Helpers.isTrue((!Helpers.isEqual(questionExpiry, ""))))) ? Helpers.GetValue(Helpers.split(questionExpiry, "-"), 0) : "";
                 String thresholdsRaw = this.safeString(questionDesc, "priceThresholds", "");
                 String indexStr = this.safeString(desc, "index");
-                String rawDescription = (String)this.safeStringLower(desc, "description", "");
+                String rawDescription = this.safeStringLower(desc, "description", "");
                 Object nameLower = ((String)name).toLowerCase();
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(questionUnderlying, null)) && Helpers.isTrue(!Helpers.isEqual(questionUnderlying, "")))) && Helpers.isTrue((!Helpers.isEqual(thresholdsRaw, "")))) && Helpers.isTrue(!Helpers.isEqual(indexStr, null))))
                 {
@@ -551,8 +551,8 @@ public class HyperliquidCore extends HyperliquidApi
             }
         }
         // Side labels from sideSpecs (e.g. "Yes"/"No", but use YES/NO normalised)
-        String yesLabel = (String)this.safeStringUpper(this.safeDict(sideSpecs, 0, new java.util.HashMap<String, Object>() {{}}), "name", "YES");
-        String noLabel = (String)this.safeStringUpper(this.safeDict(sideSpecs, 1, new java.util.HashMap<String, Object>() {{}}), "name", "NO");
+        String yesLabel = this.safeStringUpper(this.safeDict(sideSpecs, 0, new java.util.HashMap<String, Object>() {{}}), "name", "YES");
+        String noLabel = this.safeStringUpper(this.safeDict(sideSpecs, 1, new java.util.HashMap<String, Object>() {{}}), "name", "NO");
         String quoteCurrency = this.safeString(this.options, "outcomeQuoteCurrency", "USDH");
         Integer szDecimals = 4; // outcomes use 4 decimal places
         Boolean active = true;
@@ -1301,7 +1301,7 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 Object oc = this.safeDict(outcomesList, i, new java.util.HashMap<String, Object>() {{}});
                 String ocSymbol = this.safeString2(oc, "outcome", "symbol", "");
-                String ocLabel = (String)this.safeStringUpper(oc, "label");
+                String ocLabel = this.safeStringUpper(oc, "label");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(ocLabel, normalizedHint)) || Helpers.isTrue(((String)ocSymbol).endsWith(Helpers.add(":", normalizedHint)))))
                 {
                     return oc;
@@ -1512,7 +1512,7 @@ public class HyperliquidCore extends HyperliquidApi
             }};
             if (Helpers.isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
             {
-                String wallet = (String)this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+                String wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
                 // feeInt defaults to 0: the builder is attached for statistics purposes only and the
                 // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
                 Object feeInt = this.safeInteger(this.options, "feeInt", 0);
@@ -1790,7 +1790,7 @@ public class HyperliquidCore extends HyperliquidApi
                 }}));
             }
             Object parsed = this.parsePredictionOrders(ordersWithStatus, null, since);
-            Object outcomeHandle = null;
+            String outcomeHandle = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 (this.loadOutcome(outcome)).join();
@@ -1867,7 +1867,7 @@ public class HyperliquidCore extends HyperliquidApi
             }
             Object dedupedValues = Helpers.objectValues(deduped);
             Object parsed = this.parsePredictionOrders(dedupedValues, null, since);
-            Object outcomeHandle = null;
+            String outcomeHandle = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 (this.loadOutcome(outcome)).join();
@@ -2135,7 +2135,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object outcomeHandle = null;
+            String outcomeHandle = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 Object outcomeObj = (this.loadOutcome(outcome)).join();
@@ -2317,8 +2317,8 @@ public class HyperliquidCore extends HyperliquidApi
                 if (Helpers.isTrue(Helpers.isGreaterThan(lowerQueriesLength, 0)))
                 {
                     Object description = this.safeString(info, "description", "").toLowerCase();
-                    Object parentSymbolOrEmpty = ((Helpers.isTrue((!Helpers.isEqual(parentSymbol, null))))) ? parentSymbol : "";
-                    Object symLower = ((String)parentSymbolOrEmpty).toLowerCase();
+                    String parentSymbolOrEmpty = ((Helpers.isTrue((!Helpers.isEqual(parentSymbol, null))))) ? parentSymbol : "";
+                    Object symLower = parentSymbolOrEmpty.toLowerCase();
                     // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
                     // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
                     Object haystack = Helpers.add(Helpers.add(description, " "), symLower);

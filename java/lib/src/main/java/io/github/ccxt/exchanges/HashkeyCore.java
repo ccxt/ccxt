@@ -1153,9 +1153,9 @@ public class HashkeyCore extends HashkeyApi
         //
         String marketId = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quoteAsset");
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String quote = this.safeCurrencyCode(quoteId);
         String settleId = this.safeString(market, "marginToken");
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         String baseId = this.safeString(market, "baseAsset");
         String marketType = "spot";
         Boolean isSpot = true;
@@ -1171,7 +1171,7 @@ public class HashkeyCore extends HashkeyApi
             baseId = this.safeString(market, "underlying");
             suffix = Helpers.add(suffix, Helpers.add(":", settleId));
         }
-        String base = (String) this.safeCurrencyCode(baseId);
+        String base = this.safeCurrencyCode(baseId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), suffix);
         String status = this.safeString(market, "status");
         Boolean active = Helpers.isEqual(status, "TRADING");
@@ -1348,7 +1348,7 @@ public class HashkeyCore extends HashkeyApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "coinId");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Object networks = this.safeList(rawCurrency, "chainTypes");
         java.util.Map<String, Object> parsedNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
@@ -1665,7 +1665,7 @@ public class HashkeyCore extends HashkeyApi
         Long timestamp = (Long) this.safeInteger2(trade, "t", "time");
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        String side = (String)this.safeStringLower(trade, "side"); // swap trades have side param
+        String side = this.safeStringLower(trade, "side"); // swap trades have side param
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             side = this.safeString(Helpers.split(side, "_"), 0);
@@ -2105,7 +2105,7 @@ public class HashkeyCore extends HashkeyApi
         {
             Object balanceEntry = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(balanceEntry, "asset");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balanceEntry, "total"));
             Helpers.addElementToObject(account, "free", this.safeString(balanceEntry, "free"));
@@ -2131,7 +2131,7 @@ public class HashkeyCore extends HashkeyApi
         //     }
         //
         String currencyId = this.safeString(balance, "asset");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
         String positionMargin = this.safeString(balance, "positionMargin");
@@ -2506,7 +2506,7 @@ public class HashkeyCore extends HashkeyApi
         }
         String txid = this.safeString(transaction, "txId");
         String coin = this.safeString(transaction, "coin");
-        String code = (String) this.safeCurrencyCode(coin, currency);
+        String code = this.safeCurrencyCode(coin, currency);
         Long timestamp = this.safeInteger(transaction, "time");
         Double amount = this.safeNumber(transaction, "quantity");
         Double feeCost = this.safeNumber(transaction, "fee");
@@ -2846,7 +2846,7 @@ public class HashkeyCore extends HashkeyApi
         Long timestamp = this.safeInteger(item, "created");
         Object type = this.parseLedgerEntryType(this.safeString(item, "flowTypeValue"));
         String currencyId = this.safeString(item, "coin");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amountString = this.safeString(item, "change");
         Object amount = this.parseNumber(amountString);
@@ -4528,7 +4528,7 @@ public class HashkeyCore extends HashkeyApi
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marginMode = (String)this.safeStringLower(leverage, "marginType");
+        String marginMode = this.safeStringLower(leverage, "marginType");
         Double leverageValue = this.safeNumber(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );

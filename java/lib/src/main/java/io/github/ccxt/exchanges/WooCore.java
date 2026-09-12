@@ -1075,7 +1075,7 @@ public class WooCore extends WooApi
         String quoteId = this.safeString(parts, 2);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object settleId = null;
+        String settleId = null;
         Object settle = null;
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object contractSize = null;
@@ -1271,7 +1271,7 @@ public class WooCore extends WooApi
             Helpers.addElementToObject(fee, "cost", feeCost);
         }
         String cost = Precise.stringMul(price, amount);
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
         String takerOrMaker = null;
         if (Helpers.isTrue(isFromFetchOrder))
@@ -1844,7 +1844,7 @@ public class WooCore extends WooApi
             Boolean isTrailing = Helpers.isTrue(isTrailingAmountOrder) || Helpers.isTrue(isTrailingPercentOrder);
             Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isTrailing) || Helpers.isTrue(!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue(hasStopLoss)) || Helpers.isTrue(hasTakeProfit)) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
             Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
-            String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
+            String timeInForce = this.safeStringLower(parameters, "timeInForce");
             Object postOnly = this.isPostOnly(isMarket, null, parameters);
             String clientOrderIdKey = ((Helpers.isTrue(isConditional))) ? "clientAlgoOrderId" : "clientOrderId";
             Helpers.addElementToObject(request, "type", orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
@@ -2617,9 +2617,9 @@ public class WooCore extends WooApi
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "quantity"); // This is base amount
         String cost = this.safeString(order, "amount"); // This is quote amount
-        String orderType = (String)this.safeStringLower(order, "type");
+        String orderType = this.safeStringLower(order, "type");
         Object status = this.safeValue2(order, "status", "algoStatus");
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         String filled = this.safeString2(order, "executed", "totalExecutedQuantity");
         Object average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
         // const remaining = Precise.stringSub (cost, filled);
@@ -3437,7 +3437,7 @@ public class WooCore extends WooApi
             Object parts = Helpers.split(networkizedCode, "_");
             Object partsLength = Helpers.getArrayLength(parts);
             String firstPart = this.safeString(parts, 0);
-            Object currencyId = this.safeString(parts, 1, firstPart);
+            String currencyId = this.safeString(parts, 1, firstPart);
             if (Helpers.isTrue(Helpers.isGreaterThan(partsLength, 2)))
             {
                 currencyId = Helpers.add(currencyId, Helpers.add("_", this.safeString(parts, 2)));
@@ -3562,7 +3562,7 @@ public class WooCore extends WooApi
         String networkizedCode = this.safeString(transaction, "token");
         Object currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         Object code = Helpers.GetValue(currencyDefined, "code");
-        String movementDirection = (String)this.safeStringLowerN(transaction, new java.util.ArrayList<Object>(java.util.Arrays.asList("token_side", "tokenSide", "type")));
+        String movementDirection = this.safeStringLowerN(transaction, new java.util.ArrayList<Object>(java.util.Arrays.asList("token_side", "tokenSide", "type")));
         if (Helpers.isTrue(Helpers.isEqual(movementDirection, "withdraw")))
         {
             movementDirection = "withdrawal";
@@ -4574,7 +4574,7 @@ public class WooCore extends WooApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "symbol");
         market = this.safeMarket(marketId, market);
-        String marginMode = (String)this.safeStringLower(leverage, "marginMode");
+        String marginMode = this.safeStringLower(leverage, "marginMode");
         Long spotLeverage = this.safeInteger(leverage, "leverage");
         if (Helpers.isTrue(Helpers.isEqual(spotLeverage, 0)))
         {

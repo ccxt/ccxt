@@ -308,7 +308,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = (String) Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
+            Object messageHash = Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"));
             Object trades = (this.subscribePublic(url, symbol, messageHash, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -432,7 +432,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
-            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
+            Object messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"));
             Object ohlcv = (this.subscribePublic(url, symbol, messageHash, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -563,7 +563,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 throw new ExchangeError(Helpers.add(this.id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
             }
-            String messageHash = (String) null;
+            String messageHash = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".mbp."), this.numberToString(limit));
@@ -960,7 +960,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         }
         Object parts = Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Object size = this.safeString(parts, 3);
@@ -1052,7 +1052,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Boolean isV5Linear = (Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future))));
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                Object mode = null;
+                String mode = null;
                 if (Helpers.isTrue(Helpers.isEqual(mode, null)))
                 {
                     mode = this.safeString2(this.options, "watchMyTrades", "mode", "0");
@@ -1108,7 +1108,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             marketCode = ((String)Helpers.GetValue(market, "lowercaseId")).toLowerCase();
         }
         Object baseId = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "baseId") : null;
-        Object prefix = orderType;
+        String prefix = orderType;
         messageHash = prefix;
         if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
         {
@@ -1217,7 +1217,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Boolean swap = (Helpers.isEqual(type, "swap"));
             Boolean future = (Helpers.isEqual(type, "future"));
             Boolean isV5Linear = (Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future))));
-            String messageHash = (String) null;
+            String messageHash = null;
             Object channel = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
@@ -1509,7 +1509,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             return;
         }
         Object genericMessageHash = Helpers.replace(((String)messageHash), Helpers.add(".", Helpers.GetValue(market, "lowercaseId")), "");
-        String lowerCaseBaseId = (String)this.safeStringLower(market, "baseId");
+        Object lowerCaseBaseId = this.safeStringLower(market, "baseId");
         genericMessageHash = Helpers.replace(((String)genericMessageHash), Helpers.add(".", lowerCaseBaseId), "");
         client.resolve(this.orders, genericMessageHash);
     }
@@ -1676,7 +1676,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Long created = (Long) this.safeInteger2(order, "orderCreateTime", "created_time");
         Object marketId = this.safeString2(order, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Object amount = this.safeString2(order, "orderSize", "volume");
         Object status = this.parseOrderStatus(this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderStatus", "state", "status"))));
         Object id = this.safeString2(order, "orderId", "order_id");
@@ -1714,7 +1714,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             type = this.safeString(order, "order_price_type");
         }
-        String side = (String)this.safeStringLower(typeSideParts, 0);
+        Object side = this.safeStringLower(typeSideParts, 0);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             side = this.safeString2(order, "direction", "side");
@@ -2094,7 +2094,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             }
             Object messageHash = null;
             Object channel = null;
-            Object marginMode = null;
+            String marginMode = null;
             Boolean linear = (Helpers.isEqual(subType, "linear"));
             Boolean swap = (Helpers.isEqual(type, "swap"));
             Boolean future = (Helpers.isEqual(type, "future"));
@@ -2330,7 +2330,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             // spot balance
             Object currencyId = this.safeString(data, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(data, "available"));
             Helpers.addElementToObject(account, "total", this.safeString(data, "balance"));
@@ -2357,7 +2357,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 {
                     Object detail = Helpers.GetValue(details, i);
                     Object currencyId = this.safeString(detail, "currency");
-                    String code = (String) this.safeCurrencyCode(currencyId);
+                    Object code = this.safeCurrencyCode(currencyId);
                     if (Helpers.isTrue(Helpers.isEqual(code, null)))
                     {
                         continue;
@@ -2378,7 +2378,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             }
             Object first = this.safeValue(data, 0, new java.util.HashMap<String, Object>() {{}});
             Object splitTopic = Helpers.split(topic, ".");
-            String messageHash = (String) this.safeString(splitTopic, 0);
+            Object messageHash = this.safeString(splitTopic, 0);
             Object subscription = this.safeValue2(client.subscriptions, messageHash, Helpers.add(messageHash, ".*"));
             if (Helpers.isTrue(Helpers.isEqual(subscription, null)))
             {
@@ -2412,7 +2412,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 //     "isolated_swap": []
                 // }
                 Object marginAsset = this.safeString(first, "margin_asset");
-                String code = (String) this.safeCurrencyCode(marginAsset);
+                Object code = this.safeCurrencyCode(marginAsset);
                 Object marginFrozen = this.safeString(first, "margin_frozen");
                 Object unifiedAccount = this.account();
                 Helpers.addElementToObject(unifiedAccount, "free", this.safeString(first, "withdraw_available"));
@@ -2430,7 +2430,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 {
                     // the cross account is one shared margin balance, keyed by the settle currency
                     Object currencyId = this.safeString2(first, "margin_asset", "margin_account");
-                    String code = (String) this.safeCurrencyCode(currencyId);
+                    Object code = this.safeCurrencyCode(currencyId);
                     if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                     {
                         Object account = this.account();
@@ -2450,7 +2450,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                         Helpers.addElementToObject(account, "free", this.safeString(isolatedBalance, "margin_balance", "margin_available"));
                         Helpers.addElementToObject(account, "used", this.safeString(isolatedBalance, "margin_frozen"));
                         Object currencyId = this.safeString2(isolatedBalance, "margin_asset", "symbol");
-                        String code = (String) this.safeCurrencyCode(currencyId);
+                        Object code = this.safeCurrencyCode(currencyId);
                         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                         {
                             Helpers.addElementToObject(this.balance, code, account);
@@ -2465,7 +2465,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 {
                     Object balance = Helpers.GetValue(data, i);
                     Object currencyId = this.safeString(balance, "symbol");
-                    String code = (String) this.safeCurrencyCode(currencyId);
+                    Object code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "free", this.safeString(balance, "margin_available"));
                     Helpers.addElementToObject(account, "used", this.safeString(balance, "margin_frozen"));
@@ -2826,7 +2826,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 try
                 {
                     this.throwExactlyMatchedException(Helpers.GetValue(Helpers.GetValue(this.exceptions, "ws"), "exact"), errorCode, this.json(message));
-                    throw new ExchangeError(this.json(message)) ;
+                    throw new ExchangeError((String)this.json(message)) ;
                 } catch(Exception e)
                 {
                     Object messageHash = this.safeString(subscription, "messageHash");
@@ -3137,7 +3137,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
                 Object genericOrderHash = Helpers.replace(((String)messageHash), Helpers.add(".", Helpers.GetValue(market, "lowercaseId")), "");
-                String lowerCaseBaseId = (String)this.safeStringLower(market, "baseId");
+                Object lowerCaseBaseId = this.safeStringLower(market, "baseId");
                 genericOrderHash = Helpers.replace(((String)genericOrderHash), Helpers.add(".", lowerCaseBaseId), "");
                 Object genericTradesHash = Helpers.add(Helpers.add(genericOrderHash, ":"), "trade");
                 client.resolve(this.myTrades, genericTradesHash);
@@ -3210,7 +3210,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             takerOrMaker = this.safeStringLower(trade, "role");
         }
-        Object type = null;
+        String type = null;
         Object orderTypeParts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(!Helpers.isEqual(orderType, null)))
         {
@@ -3218,7 +3218,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             type = this.safeString(orderTypeParts, 1, orderType);
         }
         Object fee = null;
-        String feeCurrency = (String) this.safeCurrencyCode(this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("feeCurrency", "fee_currency", "fee_asset"))));
+        Object feeCurrency = this.safeCurrencyCode(this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("feeCurrency", "fee_currency", "fee_asset"))));
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrency, null)))
         {
             final Object finalFeeCurrency = feeCurrency;
@@ -3336,7 +3336,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 put( "unsub", subMessageHash );
                 put( "id", requestId );
             }};
-            String messageHash = (String) Helpers.add("unsubscribe::", subMessageHash);
+            Object messageHash = Helpers.add("unsubscribe::", subMessageHash);
             Boolean isFeed = (Helpers.isEqual(topic, "orderbook"));
             if (Helpers.isTrue(Helpers.isEqual(market, null)))
             {
@@ -3425,7 +3425,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 throw new ArgumentsRequired(Helpers.add(this.id, " authenticate requires a url, hostname and type argument")) ;
             }
             this.checkRequiredCredentials();
-            String messageHash = (String) "auth";
+            String messageHash = "auth";
             Object relativePath = Helpers.replace(((String)url), Helpers.add("wss://", hostname), "");
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);

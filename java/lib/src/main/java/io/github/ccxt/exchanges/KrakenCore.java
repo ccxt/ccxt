@@ -764,10 +764,10 @@ public class KrakenCore extends KrakenApi
                 Object market = Helpers.GetValue(markets, id);
                 String baseIdRaw = this.safeString(market, "base");
                 String quoteIdRaw = this.safeString(market, "quote");
-                Object baseId = this.safeCurrencyCode(baseIdRaw);
-                Object quoteId = this.safeCurrencyCode(quoteIdRaw);
-                Object base = baseId;
-                Object quote = quoteId;
+                String baseId = this.safeCurrencyCode(baseIdRaw);
+                String quoteId = this.safeCurrencyCode(quoteIdRaw);
+                String base = baseId;
+                String quote = quoteId;
                 Object makerFees = this.safeList(market, "fees_maker", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object firstMakerFee = this.safeList(makerFees, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 String firstMakerFeeRate = this.safeString(firstMakerFee, 1);
@@ -1000,7 +1000,7 @@ public class KrakenCore extends KrakenApi
         // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
         //
         String id = this.safeString(rawCurrency, "_coin_id");
-        Object code = this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
@@ -1066,12 +1066,12 @@ public class KrakenCore extends KrakenApi
         }});
     }
 
-    public Object safeCurrencyCode(Object currencyId, Object... optionalArgs)
+    public String safeCurrencyCode(Object currencyId, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         if (Helpers.isTrue(Helpers.isEqual(currencyId, null)))
         {
-            return currencyId;
+            return (String) currencyId;
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(currencyId, "."), 0)))
         {
@@ -1251,7 +1251,7 @@ public class KrakenCore extends KrakenApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Object v = this.safeValue(ticker, "v", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String baseVolume = this.safeString(v, 1);
         Object p = this.safeValue(ticker, "p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1503,7 +1503,7 @@ public class KrakenCore extends KrakenApi
         Object referenceAccount = null;
         Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
         String currencyId = this.safeString(item, "asset");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amount = this.safeString(item, "amount");
         if (Helpers.isTrue(Precise.stringLt(amount, "0")))
@@ -1731,13 +1731,13 @@ public class KrakenCore extends KrakenApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = null;
-        Object datetime = null;
-        Object side = null;
-        Object type = null;
-        Object price = null;
-        Object amount = null;
+        String datetime = null;
+        String side = null;
+        String type = null;
+        String price = null;
+        String amount = null;
         Object id = null;
-        Object orderId = null;
+        String orderId = null;
         Object fee = null;
         Object symbol = null;
         if (Helpers.isTrue(Helpers.isArray(trade)))
@@ -1922,7 +1922,7 @@ public class KrakenCore extends KrakenApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object balance = this.safeValue(balances, currencyId, new java.util.HashMap<String, Object>() {{}});
             Object account = this.account();
             Helpers.addElementToObject(account, "used", this.safeString(balance, "hold_trade"));
@@ -2114,7 +2114,7 @@ public class KrakenCore extends KrakenApi
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object orderSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object symbol = null;
+            String symbol = null;
             Object market = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -2222,8 +2222,8 @@ public class KrakenCore extends KrakenApi
         }
         Object baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
         Object quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
         market = new java.util.HashMap<String, Object>() {{
@@ -2370,7 +2370,7 @@ public class KrakenCore extends KrakenApi
         order = this.omit(order, "usingCost");
         Object description = this.safeDict(order, "descr", new java.util.HashMap<String, Object>() {{}});
         Object orderDescriptionObj = this.safeDict(order, "descr"); // can be null
-        Object orderDescription = null;
+        String orderDescription = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderDescriptionObj, null)))
         {
             orderDescription = this.safeString(orderDescriptionObj, "order");
@@ -2378,13 +2378,13 @@ public class KrakenCore extends KrakenApi
         {
             orderDescription = this.safeString(order, "descr");
         }
-        Object side = null;
+        String side = null;
         Object rawType = null;
-        Object marketId = null;
+        String marketId = null;
         Object price = null;
-        Object amount = null;
-        Object cost = null;
-        Object triggerPrice = null;
+        String amount = null;
+        String cost = null;
+        String triggerPrice = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderDescription, null)))
         {
             Object parts = Helpers.split(orderDescription, " ");
@@ -2498,8 +2498,8 @@ final Object finalId = id;
         }
         // as mentioned in #24192 PR, this field is not something consistent/actual
         // triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
-        Object stopLossPrice = null;
-        Object takeProfitPrice = null;
+        String stopLossPrice = null;
+        String takeProfitPrice = null;
         // the dashed strings are not provided from fields (eg. fetch order)
         // while spaced strings from "order" sentence (when other fields not available)
         if (Helpers.isTrue(!Helpers.isEqual(rawType, null)))
@@ -3622,7 +3622,7 @@ final Object finalId = id;
         String txid = this.safeString(transaction, "txid");
         Object timestamp = this.safeTimestamp(transaction, "time");
         String currencyId = this.safeString(transaction, "asset");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String address = this.safeString(transaction, "info");
         Double amount = this.safeNumber(transaction, "amount");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
@@ -4001,7 +4001,7 @@ final Object finalId = id;
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            String network = (String)this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(parameters, "network");
             Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
             parameters = this.omit(parameters, "network");
@@ -4011,7 +4011,7 @@ final Object finalId = id;
             }
             Object defaultDepositMethods = this.safeValue(this.options, "depositMethods", new java.util.HashMap<String, Object>() {{}});
             String defaultDepositMethod = this.safeString(defaultDepositMethods, code);
-            Object depositMethod = this.safeString(parameters, "method", defaultDepositMethod);
+            String depositMethod = this.safeString(parameters, "method", defaultDepositMethod);
             // if the user has specified an exchange-specific method in params
             // we pass it as is, otherwise we take the 'network' unified param
             if (Helpers.isTrue(Helpers.isEqual(depositMethod, null)))

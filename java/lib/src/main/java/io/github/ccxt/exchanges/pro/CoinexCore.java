@@ -171,7 +171,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         {
             Object entry = Helpers.GetValue(rawTickers, i);
             Object marketId = this.safeString(entry, "market");
-            String symbol = (String) this.safeSymbol(marketId, null, null, defaultType);
+            Object symbol = this.safeSymbol(marketId, null, null, defaultType);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
             Object parsedTicker = this.parseWSTicker(entry, market);
             Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
@@ -296,7 +296,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             {
                 currencies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            String messageHash = (String) "balances";
+            String messageHash = "balances";
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 messageHash = Helpers.add(messageHash, ":spot");
@@ -396,7 +396,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             Object entry = Helpers.GetValue(rawBalances, i);
             this.parseWsBalance(entry, account);
         }
-        String messageHash = (String) null;
+        String messageHash = null;
         if (Helpers.isTrue(!Helpers.isEqual(account, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.balance, account), null)))
@@ -438,7 +438,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object accountType = Helpers.getArg(optionalArgs, 0, null);
         Object account = this.account();
         Object currencyId = this.safeString(balance, "ccy");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        Object code = this.safeCurrencyCode(currencyId);
         Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
         Helpers.addElementToObject(account, "used", this.safeString(balance, "frozen"));
         if (Helpers.isTrue(!Helpers.isEqual(accountType, null)))
@@ -498,7 +498,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             (this.authenticate(type)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
             java.util.List<Object> subscribedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            String messageHash = (String) "myTrades";
+            String messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
@@ -558,7 +558,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("myTrades:", symbol);
+        Object messageHash = Helpers.add("myTrades:", symbol);
         Object messageWithType = Helpers.add("myTrades:", Helpers.GetValue(market, "type"));
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -622,7 +622,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("trades:", symbol);
+        Object messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -1114,7 +1114,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             }
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
-            String messageHash = (String) "orders";
+            String messageHash = "orders";
             Object market = null;
             java.util.List<Object> marketList = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1540,7 +1540,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object parsedTicker = this.parseWsBidAsk(data);
         Object symbol = Helpers.GetValue(parsedTicker, "symbol");
         Helpers.addElementToObject(this.bidsasks, ((String)symbol), parsedTicker);
-        String messageHash = (String) Helpers.add("bidsasks:", symbol);
+        Object messageHash = Helpers.add("bidsasks:", symbol);
         client.resolve(parsedTicker, messageHash);
     }
 
@@ -1612,7 +1612,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         //     { "id": 2, "code": 21001, "message": "require auth" }
         //     { "id": 1, "code": 21002, "message": "Signature Incorrect" }
         //
-        String message = (String)this.safeStringLower(response, "message");
+        Object message = this.safeStringLower(response, "message");
         Boolean isErrorMessage = Helpers.isTrue((!Helpers.isEqual(message, null))) && Helpers.isTrue((!Helpers.isEqual(message, "ok")));
         Object errorCode = this.safeString(response, "code");
         Boolean isErrorCode = Helpers.isTrue((!Helpers.isEqual(errorCode, null))) && Helpers.isTrue((!Helpers.isEqual(errorCode, "0")));
@@ -1645,9 +1645,9 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         //         "message": ""
         //     }
         //
-        String status = (String)this.safeStringLower(message, "message");
+        Object status = this.safeStringLower(message, "message");
         Object errorCode = this.safeString(message, "code");
-        String messageHash = (String) "authenticated";
+        String messageHash = "authenticated";
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(status, "ok"))) || Helpers.isTrue((Helpers.isEqual(errorCode, "0")))))
         {
             Object future = this.safeValue(client.futures, messageHash);
@@ -1688,7 +1688,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             Client client = this.client(url);
             Long time = this.milliseconds();
             Object timestamp = String.valueOf(time);
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(!Helpers.isEqual(authenticated, null)))

@@ -546,7 +546,7 @@ public class NadoCore extends NadoApi
                 }};
                 Helpers.addElementToObject(placeOrder, "trigger", trigger);
             }
-            Object appendix = this.safeString(parameters, "appendix");
+            String appendix = this.safeString(parameters, "appendix");
             if (Helpers.isTrue(Helpers.isEqual(appendix, null)))
             {
                 appendix = this.createOrderAppendix(isTriggerOrder, parameters);
@@ -688,7 +688,7 @@ public class NadoCore extends NadoApi
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             String cancelNonce = this.createOrderNonce(recvWindow);
             String orderNonce = Precise.stringAdd(cancelNonce, "1");
-            Object appendix = this.safeString(parameters, "appendix");
+            String appendix = this.safeString(parameters, "appendix");
             if (Helpers.isTrue(Helpers.isEqual(appendix, null)))
             {
                 appendix = this.createOrderAppendix(false, parameters);
@@ -3696,7 +3696,7 @@ public class NadoCore extends NadoApi
         Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
-        Object v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v"))).toLowerCase();
+        Object v = ((String)this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")))).toLowerCase();
         return Helpers.add(Helpers.add(Helpers.add("0x", this.padHex(r, 64)), this.padHex(s, 64)), v);
     }
 

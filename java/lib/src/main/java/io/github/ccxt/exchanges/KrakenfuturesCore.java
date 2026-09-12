@@ -2808,7 +2808,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Long timestamp = this.parse8601(this.safeString2(details, "timestamp", "receivedTime"));
         Long lastUpdateTimestamp = this.parse8601(this.safeString(details, "lastUpdateTime"));
         String amount = this.safeString(details, "quantity");
-        Object filled = this.safeString2(details, "filledSize", "filled", "0.0");
+        String filled = this.safeString2(details, "filledSize", "filled", "0.0");
         String remaining = this.safeString(details, "unfilledSize");
         String average = null;
         Object filled2 = "0.0";

@@ -125,7 +125,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marketId = this.safeString(ticker, "symbol");
+        Object marketId = this.safeString(ticker, "symbol");
         java.util.Map<String, Object> marketResolved = (java.util.Map<String, Object>) this.safeMarket(marketId, market);
         market = marketResolved;
         Object symbol = Helpers.GetValue(marketResolved, "symbol");
@@ -194,7 +194,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //    ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marketId = this.safeString(ticker, 0);
+        Object marketId = this.safeString(ticker, 0);
         java.util.Map<String, Object> marketResolved = (java.util.Map<String, Object>) this.safeMarket(marketId, market);
         market = marketResolved;
         Object symbol = Helpers.GetValue(marketResolved, "symbol");
@@ -339,7 +339,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         {
             Object ticker = Helpers.GetValue(tickers, i);
             Object symbol = Helpers.GetValue(ticker, "symbol");
-            String messageHash = Helpers.add("ticker:", symbol);
+            Object messageHash = Helpers.add("ticker:", symbol);
             Long timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -429,19 +429,19 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
         {
             Object balance = Helpers.GetValue(message, i);
-            String currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object currencyId = this.safeString(balance, "currency");
+            Object code = this.safeCurrencyCode(currencyId);
             Object currency = this.safeValue(this.currencies, code, new java.util.HashMap<String, Object>() {{}});
             Long scale = this.safeInteger(currency, "valueScale", 8);
             Object account = this.account();
             Object used = this.safeString(balance, "totalUsedBalanceRv");
             if (Helpers.isTrue(Helpers.isEqual(used, null)))
             {
-                String usedEv = this.safeString(balance, "totalUsedBalanceEv");
+                Object usedEv = this.safeString(balance, "totalUsedBalanceEv");
                 if (Helpers.isTrue(Helpers.isEqual(usedEv, null)))
                 {
-                    String lockedTradingBalanceEv = this.safeString(balance, "lockedTradingBalanceEv");
-                    String lockedWithdrawEv = this.safeString2(balance, "lockedWithdrawEv", "lockedWithdrawRv");
+                    Object lockedTradingBalanceEv = this.safeString(balance, "lockedTradingBalanceEv");
+                    Object lockedWithdrawEv = this.safeString2(balance, "lockedWithdrawEv", "lockedWithdrawRv");
                     usedEv = Precise.stringAdd(lockedTradingBalanceEv, lockedWithdrawEv);
                 }
                 used = this.fromEn(usedEv, scale);
@@ -449,7 +449,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object total = this.safeString(balance, "accountBalanceRv");
             if (Helpers.isTrue(Helpers.isEqual(total, null)))
             {
-                String totalEv = this.safeString2(balance, "accountBalanceEv", "balanceEv");
+                Object totalEv = this.safeString2(balance, "accountBalanceEv", "balanceEv");
                 total = this.fromEn(totalEv, scale);
             }
             Helpers.addElementToObject(account, "used", used);
@@ -493,7 +493,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //     }
         //
         String name = "trade";
-        String marketId = this.safeString(message, "symbol");
+        Object marketId = this.safeString(message, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add(Helpers.add(name, ":"), symbol);
@@ -546,16 +546,16 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //         "type": "incremental",
         //     }
         //
-        String marketId = this.safeString(message, "symbol");
+        Object marketId = this.safeString(message, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object candles = this.safeValue2(message, "kline", "kline_p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object first = this.safeValue(candles, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        String interval = this.safeString(first, 1);
+        Object interval = this.safeString(first, 1);
         Object timeframe = this.findTimeframe(interval);
         if (Helpers.isTrue(!Helpers.isEqual(timeframe, null)))
         {
-            String messageHash = Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
+            Object messageHash = Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
             java.util.List<Object> ohlcvs = this.parseOHLCVs(candles, market);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
@@ -607,7 +607,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId();
             Object subscriptionHash = Helpers.add(name, ".subscribe");
-            String messageHash = Helpers.add("ticker:", symbol);
+            Object messageHash = Helpers.add("ticker:", symbol);
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", subscriptionHash );
                 put( "id", requestId );
@@ -711,7 +711,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Boolean settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             Boolean isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
             String name = ((Helpers.isTrue(isUsdtSwap))) ? "trade_p" : "trade";
-            String messageHash = Helpers.add("trade:", symbol);
+            Object messageHash = Helpers.add("trade:", symbol);
             Object method = Helpers.add(name, ".subscribe");
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
@@ -761,7 +761,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Boolean settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             Boolean isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
             String name = ((Helpers.isTrue(isUsdtSwap))) ? "orderbook_p" : "orderbook";
-            String messageHash = Helpers.add("orderbook:", symbol);
+            Object messageHash = Helpers.add("orderbook:", symbol);
             Object method = Helpers.add(name, ".subscribe");
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
@@ -810,7 +810,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Boolean settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             Boolean isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
             String name = ((Helpers.isTrue(isUsdtSwap))) ? "kline_p" : "kline";
-            String messageHash = Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
+            Object messageHash = Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
             Object method = Helpers.add(name, ".subscribe");
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
@@ -889,10 +889,10 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //        "type": "snapshot",
         //    }
         //
-        String marketId = this.safeString(message, "symbol");
+        Object marketId = this.safeString(message, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String type = this.safeString(message, "type");
+        Object type = this.safeString(message, "type");
         Long depth = this.safeInteger(message, "depth");
         String name = "orderbook";
         Object messageHash = Helpers.add(Helpers.add(name, ":"), symbol);
@@ -967,7 +967,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                String settle = this.safeString(parameters, "settle");
+                Object settle = this.safeString(parameters, "settle");
                 messageHash = ((Helpers.isTrue((Helpers.isEqual(settle, "USDT"))))) ? (Helpers.add(messageHash, "perpetual")) : (Helpers.add(messageHash, type));
             }
             Object trades = (this.subscribePrivate(type, messageHash, parameters)).join();
@@ -1092,7 +1092,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
         {
             Object rawTrade = Helpers.GetValue(message, i);
-            String marketId = this.safeString(rawTrade, "symbol");
+            Object marketId = this.safeString(rawTrade, "symbol");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object parsed = this.parseTrade(rawTrade);
             Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
@@ -1362,7 +1362,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
             {
                 Object update = Helpers.GetValue(message, i);
-                String action = this.safeString(update, "action");
+                Object action = this.safeString(update, "action");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(action, null))) && Helpers.isTrue((!Helpers.isEqual(action, "Cancel")))))
                 {
                     // order + trade info together
@@ -1401,7 +1401,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             client.resolve(this.orders, currentMessageHash);
         }
         // resolve generic subscription (spot or swap)
-        String messageHash = Helpers.add("orders:", type);
+        Object messageHash = Helpers.add("orders:", type);
         client.resolve(this.orders, messageHash);
     }
 
@@ -1530,32 +1530,32 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String id = this.safeString(order, "orderID");
-        String clientOrderId = this.safeString(order, "clOrdID");
+        Object id = this.safeString(order, "orderID");
+        Object clientOrderId = this.safeString(order, "clOrdID");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(((String)clientOrderId).length(), 1)))))
         {
             clientOrderId = null;
         }
-        String marketId = this.safeString(order, "symbol");
+        Object marketId = this.safeString(order, "symbol");
         java.util.Map<String, Object> marketResolved = (java.util.Map<String, Object>) this.safeMarket(marketId, market);
         market = marketResolved;
         Object symbol = Helpers.GetValue(marketResolved, "symbol");
-        String status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
-        String side = (String)this.safeStringLower(order, "side");
-        String type = this.parseOrderType(this.safeString(order, "ordType"));
-        String price = this.safeString(order, "priceRp", this.fromEp(this.safeString(order, "priceEp"), market));
-        String amount = this.safeString(order, "orderQty");
-        String filled = this.safeString(order, "cumQty");
-        String remaining = this.safeString(order, "leavesQty");
+        Object status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
+        Object side = this.safeStringLower(order, "side");
+        Object type = this.parseOrderType(this.safeString(order, "ordType"));
+        Object price = this.safeString(order, "priceRp", this.fromEp(this.safeString(order, "priceEp"), market));
+        Object amount = this.safeString(order, "orderQty");
+        Object filled = this.safeString(order, "cumQty");
+        Object remaining = this.safeString(order, "leavesQty");
         Long timestamp = this.safeIntegerProduct(order, "actionTimeNs", 0.000001);
-        String cost = this.safeString(order, "cumValueRv", this.fromEv(this.safeString(order, "cumValueEv"), market));
+        Object cost = this.safeString(order, "cumValueRv", this.fromEv(this.safeString(order, "cumValueEv"), market));
         Long lastTradeTimestamp = this.safeIntegerProduct(order, "transactTimeNs", 0.000001);
         if (Helpers.isTrue(Helpers.isEqual(lastTradeTimestamp, 0)))
         {
             lastTradeTimestamp = null;
         }
-        String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        String stopPrice = this.safeString(order, "stopPx");
+        Object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
+        Object stopPrice = this.safeString(order, "stopPx");
         Boolean postOnly = (Helpers.isEqual(timeInForce, "PO"));
         final Object finalClientOrderId = clientOrderId;
         final Object finalLastTradeTimestamp = lastTradeTimestamp;
@@ -1683,7 +1683,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //       }
         //     ]
         // }
-        String id = this.safeString(message, "id", "");
+        Object id = this.safeString(message, "id", "");
         if (Helpers.isTrue(Helpers.inOp(client.subscriptions, id)))
         {
             Object method = this.safeValue(client.subscriptions, id);
@@ -1694,7 +1694,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                 return;
             }
         }
-        String methodName = this.safeString(message, "method", "");
+        Object methodName = this.safeString(message, "method", "");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "market24h"))) || Helpers.isTrue((Helpers.inOp(message, "spot_market24h")))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(methodName, "perp_market24h_pack_p"), 0)))))
         {
             this.handleTicker(client, message);
@@ -1741,7 +1741,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         // }
         //
         Object result = this.safeValue(message, "result");
-        String status = this.safeString(result, "status");
+        Object status = this.safeString(result, "status");
         String messageHash = "authenticated";
         if (Helpers.isTrue(Helpers.isEqual(status, "success")))
         {

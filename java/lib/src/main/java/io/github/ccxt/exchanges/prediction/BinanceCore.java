@@ -484,7 +484,7 @@ public class BinanceCore extends BinanceApi
                 {
                     Helpers.addElementToObject(listingRequest, "l2Category", l2Category);
                 }
-                String sortBy = (String)this.safeStringUpper2(parameters, "sortBy", "sort");
+                String sortBy = this.safeStringUpper2(parameters, "sortBy", "sort");
                 if (Helpers.isTrue(!Helpers.isEqual(sortBy, null)))
                 {
                     // map the unified sort values onto the server enum, one of RECOMMENDED,
@@ -787,7 +787,7 @@ public class BinanceCore extends BinanceApi
         for (var oi = 0; Helpers.isLessThan(oi, rawOutcomesLength); oi++)
         {
             Object rawOutcome = Helpers.GetValue(rawOutcomes, oi);
-            String label = (String)this.safeStringUpper(rawOutcome, "name");
+            String label = this.safeStringUpper(rawOutcome, "name");
             String tokenId = this.safeString(rawOutcome, "tokenId");
             Object outcomeHandle = Helpers.add(Helpers.add(marketSymbol, ":"), label);
             String price = this.safeString(rawOutcome, "price");
@@ -965,7 +965,7 @@ final Object finalMarketSymbol = marketSymbol;
             isMirrored = (!Helpers.isEqual(outcomeIndex, "0"));
         } else
         {
-            String label = (String)this.safeStringUpper(outcomeObj, "label", "YES");
+            String label = this.safeStringUpper(outcomeObj, "label", "YES");
             isMirrored = Helpers.isTrue((Helpers.isEqual(label, "NO"))) || Helpers.isTrue((Helpers.isEqual(label, "DOWN")));
         }
         String lastString = this.safeString(raw, "lastTradePrice");
@@ -1198,7 +1198,7 @@ final Object finalMarketSymbol = marketSymbol;
         if (Helpers.isTrue(Helpers.isEqual(outcomeObj, null)))
         {
             String marketId = this.safeString(order, "marketId");
-            String outcome = (String)this.safeStringUpper(order, "outcome");
+            String outcome = this.safeStringUpper(order, "outcome");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object outcomeName = this.safeString(market, "market");
             if (Helpers.isTrue(Helpers.isEqual(outcomeName, null)))
@@ -1208,7 +1208,7 @@ final Object finalMarketSymbol = marketSymbol;
             outcomeName = Helpers.add(outcomeName, Helpers.add(":", outcome));
             outcomeObj = this.safeOutcome(outcomeName);
         }
-        String side = (String)this.safeStringLower(order, "side");
+        String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "createTime");
         final Object finalOutcomeObj = outcomeObj;
         return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
@@ -1627,7 +1627,7 @@ final Object finalMarketSymbol = marketSymbol;
         if (Helpers.isTrue(Helpers.isEqual(outcomeObj, null)))
         {
             String marketId = this.safeString(position, "marketId");
-            String outcome = (String)this.safeStringUpper(position, "outcomeName");
+            String outcome = this.safeStringUpper(position, "outcomeName");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object outcomeName = this.safeString(market, "market");
             if (Helpers.isTrue(Helpers.isEqual(outcomeName, null)))
@@ -1825,7 +1825,7 @@ final Object finalMarketSymbol = marketSymbol;
         if (Helpers.isTrue(Helpers.isEqual(outcomeObj, null)))
         {
             String marketId = this.safeString(trade, "marketId");
-            String outcome = (String)this.safeStringUpper(trade, "outcome");
+            String outcome = this.safeStringUpper(trade, "outcome");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object outcomeName = this.safeString(market, "market");
             if (Helpers.isTrue(Helpers.isEqual(outcomeName, null)))
@@ -1839,7 +1839,7 @@ final Object finalMarketSymbol = marketSymbol;
         String filled = this.safeString(trade, "filledShareQty");
         String cost = this.safeString(trade, "filledUsdtAmount");
         String price = this.safeString(trade, "price");
-        String orderType = (String)this.safeStringLower(trade, "orderType");
+        String orderType = this.safeStringLower(trade, "orderType");
         Object fee = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(orderType, "market"))) && Helpers.isTrue((!Helpers.isEqual(cost, null)))) && Helpers.isTrue((!Helpers.isEqual(price, null)))) && Helpers.isTrue((!Helpers.isEqual(filled, null)))))
         {
@@ -2104,7 +2104,7 @@ final Object finalMarketSymbol = marketSymbol;
                     amountStr = Precise.stringAdd(Precise.stringMul(amountStr, priceStr), fee);
                 }
             }
-            Object timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTif);
+            String timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTif);
             String accountType = this.safeString(parameters, "accountType");
             if (Helpers.isTrue(Helpers.isEqual(accountType, null)))
             {

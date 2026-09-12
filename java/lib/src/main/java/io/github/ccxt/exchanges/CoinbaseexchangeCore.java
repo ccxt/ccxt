@@ -1117,13 +1117,13 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = null;
-        Object bid = null;
-        Object ask = null;
-        Object last = null;
-        Object high = null;
-        Object low = null;
-        Object open = null;
-        Object volume = null;
+        String bid = null;
+        String ask = null;
+        String last = null;
+        String high = null;
+        String low = null;
+        String open = null;
+        String volume = null;
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
         if (Helpers.isTrue(Helpers.isArray(ticker)))
         {
@@ -1320,9 +1320,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Long timestamp = this.parse8601(this.safeString2(trade, "time", "created_at"));
         String marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market, "-");
-        Object feeRate = null;
+        String feeRate = null;
         String takerOrMaker = null;
-        Object cost = null;
+        String cost = null;
         String feeCurrencyId = this.safeStringLower(market, "quoteId");
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrencyId, null)))
         {
@@ -2275,9 +2275,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
         String code = this.safeCurrencyCode(null, currency);
         Object details = this.safeValue(item, "details", new java.util.HashMap<String, Object>() {{}});
-        Object account = null;
-        Object referenceAccount = null;
-        Object referenceId = null;
+        String account = null;
+        String referenceAccount = null;
+        String referenceId = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "transfer")))
         {
             account = this.safeString(details, "from");

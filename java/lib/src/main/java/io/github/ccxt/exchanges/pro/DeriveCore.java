@@ -342,7 +342,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object topic = Helpers.add(Helpers.add(Helpers.add("orderbook.", Helpers.GetValue(market, "id")), ".10."), this.numberToString(limit));
-            String messageHash = (String) Helpers.add("unwatch", topic);
+            Object messageHash = Helpers.add("unwatch", topic);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -561,7 +561,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             this.checkRequiredCredentials();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
@@ -866,7 +866,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         {
             if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
             {
-                String messageHash = (String) "authenticated";
+                String messageHash = "authenticated";
                 client.reject(error, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
@@ -894,7 +894,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             put( "orders", "handleOrder");
             put( "mytrades", "handleMyTrade");
         }};
-        Object eventVar = null;
+        String eventVar = null;
         Object parameters = this.safeDict(message, "params");
         if (Helpers.isTrue(!Helpers.isEqual(parameters, null)))
         {
@@ -948,7 +948,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         //     result: [ 130837 ]
         // }
         //
-        String messageHash = (String) "authenticated";
+        String messageHash = "authenticated";
         Object ids = this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(ids), 0)))
         {

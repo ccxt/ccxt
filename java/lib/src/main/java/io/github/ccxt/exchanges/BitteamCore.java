@@ -525,8 +525,8 @@ public class BitteamCore extends BitteamApi
         Object parts = Helpers.split((id), "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object active = this.safeValue(market, "active");
         String timeStart = this.safeString(market, "timeStart");
         Long created = this.parse8601(timeStart);
@@ -735,7 +735,7 @@ public class BitteamCore extends BitteamApi
         Object statusesResponse = this.safeValue(this.options, "_temp_currencies_statuses", new java.util.HashMap<String, Object>() {{}});
         String id = this.safeString(currency, "symbol");
         Long numericId = this.safeInteger(currency, "id");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object active = this.safeBool(currency, "active", false);
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         Object txLimits = this.safeValue(currency, "txLimits", new java.util.HashMap<String, Object>() {{}});
@@ -1974,12 +1974,12 @@ public class BitteamCore extends BitteamApi
         //         "lowest_price_24h": 37574.894999
         //     }
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marketId = (String)this.safeStringLower(ticker, "trading_pairs");
+        String marketId = this.safeStringLower(ticker, "trading_pairs");
         market = this.safeMarket(marketId, market);
-        Object bestBidPrice = null;
-        Object bestAskPrice = null;
-        Object bestBidVolume = null;
-        Object bestAskVolume = null;
+        String bestBidPrice = null;
+        String bestAskPrice = null;
+        String bestBidVolume = null;
+        String bestAskVolume = null;
         Object bids = this.safeValue(ticker, "bids");
         Object asks = this.safeValue(ticker, "asks");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(bids, null))) && Helpers.isTrue((Helpers.isArray(bids)))) && Helpers.isTrue((!Helpers.isEqual(asks, null)))) && Helpers.isTrue((Helpers.isArray(asks)))))
@@ -2332,7 +2332,7 @@ public class BitteamCore extends BitteamApi
         // the exchange returns the side of the taker
         String side = this.safeString2(trade, "side", "type");
         Object feeInfo = null;
-        Object order = null;
+        String order = null;
         if (Helpers.isTrue(Helpers.isEqual(takerOrMaker, "maker")))
         {
             if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
@@ -2459,7 +2459,7 @@ public class BitteamCore extends BitteamApi
             String free = this.safeString(currencyBalance, "free");
             String used = this.safeString(currencyBalance, "used");
             String total = this.safeString(currencyBalance, "total");
-            String currencyCode = (String) this.safeCurrencyCode(((String)rawCurrencyId).toLowerCase());
+            String currencyCode = this.safeCurrencyCode(((String)rawCurrencyId).toLowerCase());
             if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
             {
                 Helpers.addElementToObject(balance, currencyCode, new java.util.HashMap<String, Object>() {{
@@ -2655,7 +2655,7 @@ public class BitteamCore extends BitteamApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object currencyObject = this.safeValue(transaction, "currency");
         String currencyId = this.safeString(currencyObject, "symbol");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String id = this.safeString(transaction, "id");
         Object parameters = this.safeValue(transaction, "params");
         String txid = this.safeString(parameters, "tx_id");

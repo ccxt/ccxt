@@ -701,7 +701,7 @@ public class BithumbCore extends BithumbApi
                             continue;
                         }
                         Object market = Helpers.GetValue(data, currencyId);
-                        String base = (String) this.safeCurrencyCode(currencyId);
+                        String base = this.safeCurrencyCode(currencyId);
                         Boolean active = true;
                         if (Helpers.isTrue(Helpers.isArray(market)))
                         {
@@ -810,7 +810,7 @@ public class BithumbCore extends BithumbApi
                 Object code = Helpers.GetValue(codes, i);
                 Object account = this.account();
                 java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-                String lowerCurrencyId = (String)this.safeStringLower(currency, "id");
+                String lowerCurrencyId = this.safeStringLower(currency, "id");
                 Helpers.addElementToObject(account, "total", this.safeString(balances, Helpers.add("total_", lowerCurrencyId)));
                 Helpers.addElementToObject(account, "used", this.safeString(balances, Helpers.add("in_use_", lowerCurrencyId)));
                 Helpers.addElementToObject(account, "free", this.safeString(balances, Helpers.add("available_", lowerCurrencyId)));
@@ -823,7 +823,7 @@ public class BithumbCore extends BithumbApi
                 Object entry = Helpers.GetValue(response, i);
                 Object account = this.account();
                 String currencyId = this.safeString(entry, "currency");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {
                     continue;
@@ -1080,9 +1080,9 @@ public class BithumbCore extends BithumbApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = (Long) this.safeInteger2(ticker, "date", "trade_timestamp");
         String marketId = this.safeString(ticker, "market");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String close = this.safeString2(ticker, "closing_price", "trade_price");
-        Object change = this.safeString2(ticker, "signed_change_price", "change_price");
+        String change = this.safeString2(ticker, "signed_change_price", "change_price");
         String percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
         String open = this.safeString(ticker, "opening_price");
         Object nonZeroOpen = this.omitZero(open);
@@ -1096,8 +1096,8 @@ public class BithumbCore extends BithumbApi
                 percentage = null;
             }
         }
-        Object high = this.safeString2(ticker, "max_price", "high_price");
-        Object low = this.safeString2(ticker, "min_price", "low_price");
+        String high = this.safeString2(ticker, "max_price", "high_price");
+        String low = this.safeString2(ticker, "min_price", "low_price");
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(close, null))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue(Precise.stringGt(close, high))))
         {
@@ -1251,7 +1251,7 @@ public class BithumbCore extends BithumbApi
                     {
                         response = Helpers.GetValue(response, "data");
                     }
-                    Object expectedMarketId = null;
+                    String expectedMarketId = null;
                     Object marketIdsChunk = this.safeList(marketIdsChunks, i, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     String firstMarketId = this.safeString(marketIdsChunk, 0);
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(firstMarketId, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(marketIdsChunk, 1), null)))))
@@ -1291,7 +1291,7 @@ public class BithumbCore extends BithumbApi
                             continue;
                         }
                         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-                        String symbol = (String) this.safeSymbol(marketId, market);
+                        String symbol = this.safeSymbol(marketId, market);
                         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                         {
                             continue;
@@ -1342,7 +1342,7 @@ public class BithumbCore extends BithumbApi
                     {
                         Object currencyId = Helpers.GetValue(currencyIds, j);
                         Object ticker = Helpers.GetValue(data, currencyId);
-                        String base = (String) this.safeCurrencyCode(currencyId);
+                        String base = this.safeCurrencyCode(currencyId);
                         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
                         Helpers.addElementToObject(ticker, "date", timestamp);
@@ -1711,7 +1711,7 @@ public class BithumbCore extends BithumbApi
             timestamp = Helpers.subtract(timestamp, Helpers.multiply(9, 3600000)); // they report UTC + 9 hours, server in Korean timezone
         }
         Object type = null;
-        String side = (String)this.safeStringLower2(trade, "ask_bid", "type");
+        String side = this.safeStringLower2(trade, "ask_bid", "type");
         if (Helpers.isTrue(Helpers.isEqual(side, "bid")))
         {
             side = "buy";
@@ -2602,8 +2602,8 @@ public class BithumbCore extends BithumbApi
         Object symbol = null;
         String baseId = this.safeString(order, "order_currency");
         String quoteId = this.safeString(order, "payment_currency");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && Helpers.isTrue((!Helpers.isEqual(quote, null)))))
         {
             symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -2634,7 +2634,7 @@ public class BithumbCore extends BithumbApi
             }};
         }
         Object postOnly = null;
-        String timeInForce = (String)this.safeStringUpper(order, "time_in_force");
+        String timeInForce = this.safeStringUpper(order, "time_in_force");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "POST_ONLY")))
         {
             timeInForce = "PO";
@@ -3852,7 +3852,7 @@ public class BithumbCore extends BithumbApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(response, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String address = this.safeString(response, "deposit_address");
         if (Helpers.isTrue(Helpers.isEqual(address, null)))
         {
@@ -3903,7 +3903,7 @@ public class BithumbCore extends BithumbApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(value)); j++)
                 {
                     Object item = Helpers.GetValue(value, j);
-                    Object valueString = this.safeString(value, j);
+                    String valueString = this.safeString(value, j);
                     if (Helpers.isTrue(Helpers.isEqual(valueString, null)))
                     {
                         valueString = this.json(item);
@@ -3921,7 +3921,7 @@ public class BithumbCore extends BithumbApi
                     result = Helpers.add(result, "&");
                 }
                 Object encodedKey = this.encodeURIComponent(key);
-                Object valueString = this.safeString(query, key);
+                String valueString = this.safeString(query, key);
                 Object encodedValue = this.encodeURIComponent(valueString);
                 result = Helpers.add(result, Helpers.add(Helpers.add(encodedKey, "="), encodedValue));
             }

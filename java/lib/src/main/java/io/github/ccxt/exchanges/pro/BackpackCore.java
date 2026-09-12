@@ -244,7 +244,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object topic = Helpers.add(Helpers.add("ticker", "."), Helpers.GetValue(market, "id"));
-            String messageHash = (String) Helpers.add(Helpers.add("ticker", ":"), symbol);
+            Object messageHash = Helpers.add(Helpers.add("ticker", ":"), symbol);
             return (this.watchPublic(new java.util.ArrayList<Object>(java.util.Arrays.asList(topic)), new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), parameters)).join();
         });
 
@@ -363,9 +363,9 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object ticker = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(ticker, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Object parsedTicker = this.parseWsTicker(ticker, market);
-        String messageHash = (String) Helpers.add(Helpers.add("ticker", ":"), symbol);
+        Object messageHash = Helpers.add(Helpers.add("ticker", ":"), symbol);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
         client.resolve(parsedTicker, messageHash);
     }
@@ -391,7 +391,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Object marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Object last = this.safeString(ticker, "c");
         Object open = this.safeString(ticker, "o");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -508,9 +508,9 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Object parsedBidAsk = this.parseWsBidAsk(data, market);
-        String messageHash = (String) Helpers.add(Helpers.add("bidask", ":"), symbol);
+        Object messageHash = Helpers.add(Helpers.add("bidask", ":"), symbol);
         Helpers.addElementToObject(this.bidsasks, symbol, parsedBidAsk);
         client.resolve(parsedBidAsk, messageHash);
     }
@@ -737,7 +737,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object ohlcv = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         Object parsed = this.parseWsOHLCV(data);
         Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
-        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("candles:", symbol), ":"), timeframe);
+        Object messageHash = Helpers.add(Helpers.add(Helpers.add("candles:", symbol), ":"), timeframe);
         client.resolve(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, ohlcv)), messageHash);
     }
 
@@ -929,7 +929,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         Object trade = this.parseWsTrade(data, market);
         Helpers.callDynamically(cache, "append", new Object[]{trade});
-        String messageHash = (String) Helpers.add("trades:", symbol);
+        Object messageHash = Helpers.add("trades:", symbol);
         client.resolve(cache, messageHash);
         client.resolve(cache, "trades");
     }
@@ -972,7 +972,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         }
         Object price = this.safeString(trade, "p");
         Object amount = this.safeString(trade, "q");
-        Object orderId = null;
+        String orderId = null;
         if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
         {
             orderId = this.safeString(trade, "b");
@@ -1143,7 +1143,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -1151,7 +1151,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Long nonce = this.safeInteger(storedOrderBook, "nonce");
         Long deltaNonce = this.safeInteger(data, "u");
-        String messageHash = (String) Helpers.add("orderbook:", symbol);
+        Object messageHash = Helpers.add("orderbook:", symbol);
         if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
         {
             Object cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(storedOrderBook, "cache")));
@@ -1262,7 +1262,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 symbol = Helpers.GetValue(market, "symbol");
             }
             String topic = "account.orderUpdate";
-            String messageHash = (String) "orders";
+            String messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 topic = Helpers.add("account.orderUpdate.", Helpers.GetValue(market, "id"));
@@ -1305,7 +1305,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 symbol = Helpers.GetValue(market, "symbol");
             }
             String topic = "account.orderUpdate";
-            String messageHash = (String) "unsubscribe:orders";
+            String messageHash = "unsubscribe:orders";
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 topic = Helpers.add("account.orderUpdate.", Helpers.GetValue(market, "id"));
@@ -1398,7 +1398,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String type = (String)this.safeStringLower(order, "o");
+        Object type = this.safeStringLower(order, "o");
         Object timeInForce = this.safeString(order, "f");
         Object side = this.parseWsOrderSide(this.safeString(order, "S"));
         Object price = this.safeString(order, "p");

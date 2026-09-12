@@ -550,7 +550,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             var interval = ((java.util.List<Object>) intervalqueryVariable).get(0);
             var query = ((java.util.List<Object>) intervalqueryVariable).get(1);
             Object messageType = this.getTypeByMarket(market);
-            String messageHash = (String) Helpers.add(Helpers.add("orderbook", ":"), symbol);
+            Object messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? 50 : 100; // max 100 atm
@@ -655,7 +655,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 ((java.util.List<Object>)payload).add(stringLimit);
             }
             Object subMessageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
-            String messageHash = (String) Helpers.add(Helpers.add("unsubscribe:orderbook", ":"), symbol);
+            Object messageHash = Helpers.add(Helpers.add("unsubscribe:orderbook", ":"), symbol);
             return (this.unSubscribePublicMultiple(url, "orderbook", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), new java.util.ArrayList<Object>(java.util.Arrays.asList(subMessageHash)), payload, channel, parameters)).join();
         });
 
@@ -706,8 +706,8 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         }
         Object marketIdParts = Helpers.split(marketIdWithPrefix, ".");
         Object marketId = this.safeString(marketIdParts, 1);
-        String symbol = (String) this.safeSymbol(marketId, null, "_", "spot");
-        String messageHash = (String) Helpers.add("orderbook:", symbol);
+        Object symbol = this.safeSymbol(marketId, null, "_", "spot");
+        Object messageHash = Helpers.add("orderbook:", symbol);
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.orderbooks, symbol), null)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, 1000));
@@ -801,8 +801,8 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         Long deltaStart = this.safeInteger(delta, "U");
         Long deltaEnd = this.safeInteger(delta, "u");
         Object marketId = this.safeString(delta, "s");
-        String symbol = (String) this.safeSymbol(marketId, null, "_", marketType);
-        String messageHash = (String) Helpers.add("orderbook:", symbol);
+        Object symbol = this.safeSymbol(marketId, null, "_", marketType);
+        Object messageHash = Helpers.add("orderbook:", symbol);
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}));
         Long nonce = this.safeInteger(storedOrderBook, "nonce");
         if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
@@ -831,8 +831,8 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             this.handleDelta(storedOrderBook, delta);
         } else
         {
-            ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
-            ((java.util.Map<String,Object>)this.orderbooks).remove(symbol);
+            ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
             {
@@ -1324,7 +1324,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object messageType = this.getTypeByMarket(market);
             Object channel = Helpers.add(messageType, ".candlesticks");
-            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("candles:", interval), ":"), Helpers.GetValue(market, "symbol"));
+            Object messageHash = Helpers.add(Helpers.add(Helpers.add("candles:", interval), ":"), Helpers.GetValue(market, "symbol"));
             Object url = this.getUrlByMarket(market);
             Object payload = new java.util.ArrayList<Object>(java.util.Arrays.asList(interval, marketId));
             Object ohlcv = (this.subscribePublic(url, messageHash, payload, channel, parameters)).join();
@@ -1374,7 +1374,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object timeframe = this.findTimeframe(timeframeId);
             Object prefix = Helpers.add(timeframe, "_");
             Object marketId = Helpers.replace(((String)subscription), ((String)prefix), "");
-            String symbol = (String) this.safeSymbol(marketId, null, "_", marketType);
+            Object symbol = this.safeSymbol(marketId, null, "_", marketType);
             Object parsed = this.parseOHLCV(ohlcv);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
@@ -1452,7 +1452,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 put( "option", "options" );
             }});
             Object channel = Helpers.add(messageType, ".usertrades");
-            String messageHash = (String) "myTrades";
+            String messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
@@ -1649,7 +1649,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object rawBalance = Helpers.GetValue(result, i);
             Object account = this.account();
             Object currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object code = this.safeCurrencyCode(currencyId);
             Long timestamp = (Long) this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
             Helpers.addElementToObject(this.balance, "timestamp", timestamp);
             Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
@@ -2161,7 +2161,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Boolean isInverse = (Helpers.isEqual(subType, "inverse"));
             Object url = this.getUrlByMarketType(type, isInverse);
             Object payload = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            String messageHash = (String) "";
+            String messageHash = "";
             if (Helpers.isTrue(this.isEmpty(symbols)))
             {
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(typeId, "futures")) && !Helpers.isTrue(isInverse)))
@@ -2374,7 +2374,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, this.json(errs));
                 Object errorMessage = this.safeString(error, "message", this.safeString(errs, "message"));
                 this.throwBroadlyMatchedException(Helpers.GetValue(Helpers.GetValue(this.exceptions, "ws"), "broad"), errorMessage, this.json(message));
-                throw new ExchangeError(this.json(message)) ;
+                throw new ExchangeError((String)this.json(message)) ;
             } catch(Exception e)
             {
                 client.reject(e, messageHash);
@@ -2391,7 +2391,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(payload)); i++)
                     {
                         Object marketType = ((Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(parsedChannel, 0), "futures")))) ? "swap" : Helpers.GetValue(parsedChannel, 0);
-                        String symbol = (String) this.safeSymbol(Helpers.GetValue(payload, i), null, "_", marketType);
+                        Object symbol = this.safeSymbol(Helpers.GetValue(payload, i), null, "_", marketType);
                         Object messageHashSymbol = Helpers.add(Helpers.add(Helpers.GetValue(parsedChannel, 1), ":"), symbol);
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(messageHashSymbol, null))) && Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHashSymbol)))))
                         {
@@ -2811,7 +2811,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object messageType = messageType3;
             Object channel = Helpers.add(messageType, ".login");
             Client client = this.client(url);
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
@@ -2825,7 +2825,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
 
     public void handleAuthenticationMessage(Client client, Object message)
     {
-        String messageHash = (String) "authenticated";
+        String messageHash = "authenticated";
         Object future = this.safeValue(client.futures, messageHash);
         ((io.github.ccxt.ws.Future)future).resolve(true);
     }

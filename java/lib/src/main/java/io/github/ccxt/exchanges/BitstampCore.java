@@ -1663,7 +1663,7 @@ public class BitstampCore extends BitstampApi
         //         "eur": 0.0
         //     }
         //
-        String currencyId = (String)this.safeStringLower(transaction, "currency");
+        String currencyId = this.safeStringLower(transaction, "currency");
         if (Helpers.isTrue(!Helpers.isEqual(currencyId, null)))
         {
             return currencyId;
@@ -1753,8 +1753,8 @@ public class BitstampCore extends BitstampApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(trade, "id", "tid");
-        Object symbol = null;
-        Object side = null;
+        String symbol = null;
+        String side = null;
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         String orderId = this.safeString(trade, "order_id");
@@ -1787,8 +1787,8 @@ public class BitstampCore extends BitstampApi
         amountString = this.safeString(trade, this.safeString(market, "baseId"), amountString);
         costString = this.safeString(trade, this.safeString(market, "quoteId"), costString);
         // this endpoint is not aligned with "markets" endpoint
-        String baseIdLower = (String)this.safeStringLower(market, "baseId");
-        String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
+        String baseIdLower = this.safeStringLower(market, "baseId");
+        String quoteIdLower = this.safeStringLower(market, "quoteId");
         Object dashedIdLower = Helpers.add(Helpers.add(baseIdLower, "_"), quoteIdLower);
         if (Helpers.isTrue(Helpers.isEqual(priceString, null)))
         {
@@ -2981,7 +2981,7 @@ public class BitstampCore extends BitstampApi
         String code = this.safeCurrencyCode(currencyId, currency);
         String feeCost = this.safeString(transaction, "fee");
         Object feeCurrency = null;
-        Object amount = null;
+        String amount = null;
         if (Helpers.isTrue(Helpers.inOp(transaction, "amount")))
         {
             amount = this.safeString(transaction, "amount");
@@ -3022,7 +3022,7 @@ public class BitstampCore extends BitstampApi
             type = "withdrawal";
         }
         Object tag = null;
-        Object address = this.safeString(transaction, "address");
+        String address = this.safeString(transaction, "address");
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
             // dt (destination tag) is embedded into the address field
@@ -3030,7 +3030,7 @@ public class BitstampCore extends BitstampApi
             Object numParts = Helpers.getArrayLength(addressParts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
-                address = Helpers.GetValue(addressParts, 0);
+                address = (String) Helpers.GetValue(addressParts, 0);
                 tag = Helpers.GetValue(addressParts, 1);
             }
         }
@@ -3171,7 +3171,7 @@ public class BitstampCore extends BitstampApi
         }
         // there is no timestamp from fetchOrder
         Long timestamp = this.parse8601(this.safeString(order, "datetime"));
-        String marketId = (String)this.safeStringLower(order, "currency_pair");
+        String marketId = this.safeStringLower(order, "currency_pair");
         String symbol = this.safeSymbol(marketId, market, "/");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String amount = this.safeString(order, "amount");

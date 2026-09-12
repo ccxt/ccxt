@@ -432,8 +432,8 @@ public class BitflyerCore extends BitflyerApi
                     }
                     type = "future";
                 }
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object taker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker");
                 Object maker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker");
@@ -525,7 +525,7 @@ public class BitflyerCore extends BitflyerApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency_code");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
@@ -614,7 +614,7 @@ public class BitflyerCore extends BitflyerApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         String last = this.safeString(ticker, "ltp");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -699,7 +699,7 @@ public class BitflyerCore extends BitflyerApi
         //      },
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(Helpers.isLessThan(side.length(), 1)))
@@ -941,10 +941,10 @@ public class BitflyerCore extends BitflyerApi
         String filled = this.safeString(order, "executed_size");
         String remaining = this.safeString(order, "outstanding_size");
         String status = this.parseOrderStatus(this.safeString(order, "child_order_state"));
-        String type = (String)this.safeStringLower(order, "child_order_type");
-        String side = (String)this.safeStringLower(order, "side");
+        String type = this.safeStringLower(order, "child_order_type");
+        String side = this.safeStringLower(order, "side");
         String marketId = this.safeString(order, "product_code");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Object fee = null;
         Double feeCost = this.safeNumber(order, "total_commission");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -1436,7 +1436,7 @@ public class BitflyerCore extends BitflyerApi
         String id = this.safeString2(transaction, "id", "message_id");
         String address = this.safeString(transaction, "address");
         String currencyId = this.safeString(transaction, "currency_code");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString(transaction, "event_date"));
         Double amount = this.safeNumber(transaction, "amount");
         String txId = this.safeString(transaction, "tx_hash");

@@ -1059,11 +1059,11 @@ public class CryptocomCore extends CryptocomApi
                 Boolean option = Helpers.isEqual(inst_type, "WARRANT");
                 String baseId = this.safeString(market, "base_ccy");
                 String quoteId = this.safeString(market, "quote_ccy");
-                Object settleId = ((Helpers.isTrue(spot))) ? null : quoteId;
+                String settleId = ((Helpers.isTrue(spot))) ? null : quoteId;
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 Object settle = ((Helpers.isTrue(spot))) ? null : this.safeCurrencyCode(settleId);
-                String optionType = (String)this.safeStringLower(market, "put_call");
+                String optionType = this.safeStringLower(market, "put_call");
                 String strike = this.safeString(market, "strike");
                 Object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
                 Object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
@@ -1790,7 +1790,7 @@ public class CryptocomCore extends CryptocomApi
         {
             Helpers.addElementToObject(request, "spot_margin", "SPOT");
         }
-        String timeInForce = (String)this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
+        String timeInForce = this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
         if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTC")))
@@ -2067,7 +2067,7 @@ public class CryptocomCore extends CryptocomApi
         }
         String broker = this.safeString(this.options, "broker", "CCXT");
         Helpers.addElementToObject(request, "broker_id", broker);
-        String timeInForce = (String)this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
+        String timeInForce = this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
         if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTC")))
@@ -2789,13 +2789,13 @@ public class CryptocomCore extends CryptocomApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            String network = (String)this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
             Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             Object depositAddresses = depositAddressesRaw;
-            if (Helpers.isTrue(Helpers.inOp(depositAddresses, (network))))
+            if (Helpers.isTrue(Helpers.inOp(depositAddresses, network)))
             {
-                return Helpers.GetValue(depositAddresses, (network));
+                return Helpers.GetValue(depositAddresses, network);
             }
             Object keys = Helpers.objectKeys(depositAddresses);
             return Helpers.GetValue(depositAddresses, Helpers.GetValue(keys, 0));
@@ -4312,7 +4312,7 @@ public class CryptocomCore extends CryptocomApi
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "type", "MARKET" );
             }};
-            String type = (String)this.safeStringUpper(parameters, "type");
+            String type = this.safeStringUpper(parameters, "type");
             String price = this.safeString(parameters, "price");
             if (Helpers.isTrue(!Helpers.isEqual(type, null)))
             {
@@ -4490,7 +4490,7 @@ public class CryptocomCore extends CryptocomApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         String type = this.safeString(api, 0);
         String access = this.safeString(api, 1);
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), (type)), "/"), path);
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type), "/"), path);
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {

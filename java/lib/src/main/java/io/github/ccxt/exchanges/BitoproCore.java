@@ -1252,7 +1252,7 @@ public class BitoproCore extends BitoproApi
         {
             throw new ExchangeError(Helpers.add(this.id, " parseOrder() returned no side")) ;
         }
-        side = ((String)side).toLowerCase();
+        side = side.toLowerCase();
         String amount = this.safeString2(order, "amount", "originalAmount");
         String price = this.safeString(order, "price");
         String marketId = this.safeString(order, "pair");

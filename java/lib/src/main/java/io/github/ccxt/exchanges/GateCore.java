@@ -2034,14 +2034,14 @@ public class GateCore extends GateApi
         Object symbolBase = Helpers.split(symbol, "/");
         Object marketIdBase = Helpers.split(symbol, "_");
         String base = null;
-        Object expiry = this.safeString(optionParts, 1);
+        String expiry = this.safeString(optionParts, 1);
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
             base = this.safeString(symbolBase, 0);
         } else
         {
             base = this.safeString(marketIdBase, 0);
-            expiry = Helpers.slice(((String)expiry), 2, 8); // convert 20230728 to 230728
+            expiry = Helpers.slice((expiry), 2, 8); // convert 20230728 to 230728
         }
         String strike = this.safeString(optionParts, 2);
         String optionType = this.safeString(optionParts, 3);
@@ -3293,7 +3293,7 @@ public class GateCore extends GateApi
                 String address = this.safeString(entry, "address");
                 String tag = this.safeString(entry, "payment_id");
                 final Object finalCode = code;
-                Helpers.addElementToObject(result, (network), new java.util.HashMap<String, Object>() {{
+                Helpers.addElementToObject(result, network, new java.util.HashMap<String, Object>() {{
         put( "info", entry );
         put( "code", finalCode );
         put( "currency", finalCode );
@@ -3389,8 +3389,8 @@ public class GateCore extends GateApi
         String code = this.safeString(currency, "code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", (code) );
-            put( "address", (address) );
+            put( "currency", code );
+            put( "address", address );
             put( "tag", GateCore.this.safeString(depositAddress, "payment_id") );
             put( "network", GateCore.this.networkIdToCode(GateCore.this.safeString(depositAddress, "chain"), code) );
         }};
@@ -5302,11 +5302,11 @@ public class GateCore extends GateApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(trade, "id", "trade_id");
         Object timestamp = null;
-        Object msString = this.safeString(trade, "create_time_ms");
+        String msString = this.safeString(trade, "create_time_ms");
         if (Helpers.isTrue(!Helpers.isEqual(msString, null)))
         {
             msString = Precise.stringMul(msString, "1000");
-            msString = Helpers.slice(((String)msString), 0, 13);
+            msString = Helpers.slice((msString), 0, 13);
             timestamp = this.parseToInt(msString);
         } else
         {
@@ -5979,7 +5979,7 @@ final Object finalPointFee = pointFee;
         java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(exchangeSpecificTimeInForce, "poc"), parameters);
         postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-        Object timeInForce = this.handleTimeInForce(parameters);
+        String timeInForce = this.handleTimeInForce(parameters);
         if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             timeInForce = "poc";

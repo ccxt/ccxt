@@ -509,7 +509,7 @@ public class BitsoCore extends BitsoApi
         Object fee = null;
         String amount = this.safeString(firstBalance, "amount");
         String currencyId = this.safeString(firstBalance, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Object details = this.safeValue(item, "details", new java.util.HashMap<String, Object>() {{}});
         String referenceId = this.safeString2(details, "fid", "wid");
@@ -762,7 +762,7 @@ public class BitsoCore extends BitsoApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "code");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId);
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "code", code );
@@ -806,7 +806,7 @@ public class BitsoCore extends BitsoApi
         {
             Object balance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -918,7 +918,7 @@ public class BitsoCore extends BitsoApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         Long timestamp = this.parse8601(this.safeString(ticker, "created_at"));
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
@@ -1137,7 +1137,7 @@ public class BitsoCore extends BitsoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.parse8601(this.safeString(trade, "created_at"));
         String marketId = this.safeString(trade, "book");
-        String symbol = (String) this.safeSymbol(marketId, market, "_");
+        String symbol = this.safeSymbol(marketId, market, "_");
         String side = this.safeString(trade, "side");
         String makerSide = this.safeString(trade, "maker_side");
         String takerOrMaker = null;
@@ -1170,7 +1170,7 @@ public class BitsoCore extends BitsoApi
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             String feeCurrencyId = this.safeString(trade, "fees_currency");
-            String feeCurrency = (String) this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1310,7 +1310,7 @@ public class BitsoCore extends BitsoApi
             {
                 Object fee = Helpers.GetValue(fees, i);
                 String marketId = this.safeString(fee, "book");
-                String symbol = (String) this.safeSymbol(marketId, null, "_");
+                String symbol = this.safeSymbol(marketId, null, "_");
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
@@ -1585,7 +1585,7 @@ public class BitsoCore extends BitsoApi
         String side = this.safeString(order, "side");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String marketId = this.safeString(order, "book");
-        String symbol = (String) this.safeSymbol(marketId, market, "_");
+        String symbol = this.safeSymbol(marketId, market, "_");
         String orderType = this.safeString(order, "type");
         Long timestamp = this.parse8601(this.safeString(order, "created_at"));
         String price = this.safeString(order, "price");
@@ -1886,7 +1886,7 @@ public class BitsoCore extends BitsoApi
             java.util.Map<String, Object> response = (this.privateGetFundingDestination(this.extend(request, parameters))).join();
             Object payload = this.safeDict(response, "payload", new java.util.HashMap<String, Object>() {{}});
             String address = this.safeString(payload, "account_identifier");
-            Object tag = null;
+            String tag = null;
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf((address), "?dt="), 0)))
             {
                 Object parts = Helpers.split((address), "?dt=");
@@ -1980,7 +1980,7 @@ public class BitsoCore extends BitsoApi
             {
                 Object depositFee = Helpers.GetValue(depositFees, i);
                 String currencyId = this.safeString(depositFee, "currency");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(codes, null))) && !Helpers.isTrue(this.inArray(code, codes))))
                 {
                     continue;
@@ -2002,7 +2002,7 @@ public class BitsoCore extends BitsoApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
             {
                 Object currencyId = Helpers.GetValue(currencyIds, i);
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(codes, null))) && !Helpers.isTrue(this.inArray(code, codes))))
                 {
                     continue;
@@ -2146,7 +2146,7 @@ public class BitsoCore extends BitsoApi
         {
             Object entry = Helpers.GetValue(depositResponse, i);
             String currencyId = this.safeString(entry, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(codes, code)))))))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -2170,7 +2170,7 @@ public class BitsoCore extends BitsoApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(withdrawalKeys)); i++)
         {
             Object currencyId = Helpers.GetValue(withdrawalKeys, i);
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((Helpers.inOp(codes, code)))))))
             {
                 Object withdrawFee = this.parseNumber(Helpers.GetValue(withdrawalResponse, currencyId));

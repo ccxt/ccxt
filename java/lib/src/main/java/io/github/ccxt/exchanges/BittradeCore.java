@@ -937,10 +937,10 @@ public class BittradeCore extends BittradeApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = this.safeSymbol(null, market);
         Long timestamp = this.safeInteger(ticker, "ts");
-        Object bid = null;
-        Object bidVolume = null;
-        Object ask = null;
-        Object askVolume = null;
+        String bid = null;
+        String bidVolume = null;
+        String ask = null;
+        String askVolume = null;
         if (Helpers.isTrue(Helpers.inOp(ticker, "bid")))
         {
             if (Helpers.isTrue(Helpers.isArray(Helpers.GetValue(ticker, "bid"))))
@@ -1192,20 +1192,20 @@ public class BittradeCore extends BittradeApi
         String symbol = this.safeSymbol(marketId, market);
         Long timestamp = (Long) this.safeInteger2(trade, "ts", "created-at");
         String order = this.safeString(trade, "order-id");
-        Object side = this.safeString(trade, "direction");
-        Object type = this.safeString(trade, "type");
+        String side = this.safeString(trade, "direction");
+        String type = this.safeString(trade, "type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
             Object typeParts = Helpers.split(type, "-");
-            side = Helpers.GetValue(typeParts, 0);
-            type = Helpers.GetValue(typeParts, 1);
+            side = (String) Helpers.GetValue(typeParts, 0);
+            type = (String) Helpers.GetValue(typeParts, 1);
         }
         String takerOrMaker = this.safeString(trade, "role");
         String price = this.safeString(trade, "price");
         String amount = this.safeString2(trade, "filled-amount", "amount");
         String cost = Precise.stringMul(price, amount);
         Object fee = null;
-        Object feeCost = this.safeString(trade, "filled-fees");
+        String feeCost = this.safeString(trade, "filled-fees");
         String feeCurrency = this.safeCurrencyCode(this.safeString(trade, "fee-currency"));
         String filledPoints = this.safeString(trade, "filled-points");
         if (Helpers.isTrue(!Helpers.isEqual(filledPoints, null)))
@@ -2674,7 +2674,7 @@ public class BittradeCore extends BittradeApi
                 Helpers.addElementToObject(request, "addr-tag", tag); // only for XRP?
             }
             Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-            Object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
+            String network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {

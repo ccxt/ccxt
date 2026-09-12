@@ -404,7 +404,7 @@ public class KalshiCore extends KalshiApi
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 1000));
             java.util.List<Object> flatMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.Map<String, Object> eventsDict = new java.util.HashMap<String, Object>() {{}};
-            Object cursor = null;
+            String cursor = null;
             // don't request a full 1000-market page (3+ MB) when the caller wants fewer
             Long pageLimit = this.safeInteger(this.options, "marketsPageLimit", 1000);
             Object limit = Helpers.mathMin(maxMarkets, pageLimit);
@@ -778,7 +778,7 @@ public class KalshiCore extends KalshiApi
         String status = this.safeString(raw, "status");
         Boolean active = Helpers.isTrue((Helpers.isEqual(status, "active"))) || Helpers.isTrue((Helpers.isEqual(status, "open")));
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
-        String result = (String)this.safeStringLower(raw, "result");
+        String result = this.safeStringLower(raw, "result");
         Boolean resolved = Helpers.isTrue((Helpers.isEqual(status, "settled"))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(result, null))) && Helpers.isTrue((!Helpers.isEqual(result, "")))));
         String endDate = this.safeString(raw, "expiration_time");
         Double volume = this.safeNumber2(raw, "volume_fp", "volume");
@@ -798,7 +798,7 @@ public class KalshiCore extends KalshiApi
             seriesTicker = String.join("-", (java.util.List<String>)seriesParts);
         }
         // market symbol (no outcome suffix)
-        Object subtitleOrTicker = ((Helpers.isTrue((!Helpers.isEqual(subtitle, null))))) ? subtitle : ticker;
+        String subtitleOrTicker = ((Helpers.isTrue((!Helpers.isEqual(subtitle, null))))) ? subtitle : ticker;
         Object marketSymbol = this.slugToMarketSymbol(eventTicker, subtitleOrTicker);
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
@@ -1176,8 +1176,8 @@ final Object finalOi = oi;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketAny = market;
         Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
-        Object outcomeLabel = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(market, null)))))) ? this.safeString(market, "label", this.safeString(Helpers.GetValue(market, "info"), "outcomeLabel", "YES")) : "YES";
-        Boolean isNo = Helpers.isEqual(((String)outcomeLabel).toUpperCase(), "NO");
+        String outcomeLabel = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(market, null)))))) ? this.safeString(market, "label", this.safeString(Helpers.GetValue(market, "info"), "outcomeLabel", "YES")) : "YES";
+        Boolean isNo = Helpers.isEqual(outcomeLabel.toUpperCase(), "NO");
         Long now = this.milliseconds();
         String outcome = this.safeString(outcomeObj, "outcome");
         Double yesAsk = this.safeNumber(raw, "yes_ask_dollars");
@@ -1200,8 +1200,8 @@ final Object finalOi = oi;
             close = last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        Object bidSizeString = ((Helpers.isTrue((isNo)))) ? this.safeString(raw, "yes_ask_size_fp") : this.safeString(raw, "yes_bid_size_fp");
-        Object askSizeString = ((Helpers.isTrue((isNo)))) ? this.safeString(raw, "yes_bid_size_fp") : this.safeString(raw, "yes_ask_size_fp");
+        String bidSizeString = ((Helpers.isTrue((isNo)))) ? this.safeString(raw, "yes_ask_size_fp") : this.safeString(raw, "yes_bid_size_fp");
+        String askSizeString = ((Helpers.isTrue((isNo)))) ? this.safeString(raw, "yes_bid_size_fp") : this.safeString(raw, "yes_ask_size_fp");
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
         Object bidVolume = null;
@@ -1701,11 +1701,11 @@ final Object finalOi = oi;
         }
         Double amountFp = this.safeNumber2(trade, "count_fp", "size_fp");
         Double amount = this.safeNumber(trade, "count", amountFp);
-        String rawSide = (String)this.safeStringLower(trade, "taker_side");
+        String rawSide = this.safeStringLower(trade, "taker_side");
         Object marketAny = market;
         Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
         Object marketInfo = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-        String requestedOutcomeLabel = (String)this.safeStringLower(outcomeObj, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
+        String requestedOutcomeLabel = this.safeStringLower(outcomeObj, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
         String outcomeSymbol = this.safeString(outcomeObj, "outcome");
         String outcomeId = this.safeString2(outcomeObj, "outcomeId", "id");
         String side = null;
@@ -1797,7 +1797,7 @@ final Object finalOi = oi;
             {
                 ((java.util.List<Object>)trades).add(this.parseMyTrade(Helpers.GetValue(fills, i), outcomeObj));
             }
-            Object wantedOutcome = null;
+            String wantedOutcome = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 wantedOutcome = this.safeString(this.outcome(outcome), "outcome");
@@ -1832,7 +1832,7 @@ final Object finalOi = oi;
         String orderId = this.safeString(fill, "order_id");
         String ticker = this.safeString2(fill, "ticker", "market_ticker");
         // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
-        String sideLeg = (String)this.safeStringLower(fill, "side");
+        String sideLeg = this.safeStringLower(fill, "side");
         Object outcomeKey = ticker;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sideLeg, "no"))) && Helpers.isTrue((!Helpers.isEqual(ticker, null)))))
         {
@@ -1841,7 +1841,7 @@ final Object finalOi = oi;
         Object mkt = this.safeOutcome(outcomeKey, market);
         Long ts = this.parse8601(this.safeString(fill, "created_time"));
         // action is the order side (buy/sell) of the held leg
-        String action = (String)this.safeStringLower(fill, "action");
+        String action = this.safeStringLower(fill, "action");
         String side = ((Helpers.isTrue((Helpers.isEqual(action, "sell"))))) ? "sell" : "buy";
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
         Object price = null;
@@ -2064,7 +2064,7 @@ final Object finalOi = oi;
             {
                 ((java.util.List<Object>)parsed).add(this.parseSettlement(Helpers.GetValue(rawSettlements, i)));
             }
-            Object wantedOutcome = null;
+            String wantedOutcome = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 wantedOutcome = this.safeString(this.outcome(outcome), "outcome");
@@ -2106,7 +2106,7 @@ final Object finalOi = oi;
         Object heldTicker = ((Helpers.isTrue((useHeldYesTicker)))) ? ticker : (Helpers.add(ticker, "-NO"));
         Object mkt = this.safeOutcome(heldTicker, market);
         // which leg won; market_result is yes or no
-        String marketResult = (String)this.safeStringUpper(settlement, "market_result");
+        String marketResult = this.safeStringUpper(settlement, "market_result");
         Boolean won = (Helpers.isEqual(marketResult, heldLabel));
         // kalshi reports money as dollar keys on V2, else cents
         Object payout = this.safeNumber(settlement, "revenue_dollars");
@@ -2389,7 +2389,7 @@ final Object finalOi = oi;
         String ticker = this.safeString(order, "ticker");
         // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
         // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
-        String sideLeg = (String)this.safeStringLower(order, "side");
+        String sideLeg = this.safeStringLower(order, "side");
         Object outcomeKey = ticker;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sideLeg, "no"))) && Helpers.isTrue((!Helpers.isEqual(ticker, null)))))
         {
@@ -2399,7 +2399,7 @@ final Object finalOi = oi;
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
-        String action = (String)this.safeStringLower(order, "action");
+        String action = this.safeStringLower(order, "action");
         String side = null;
         if (Helpers.isTrue(Helpers.isEqual(action, "buy")))
         {
@@ -2534,7 +2534,7 @@ final Object finalOi = oi;
             Boolean isMarket = (Helpers.isEqual(type, "market"));
             // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
             // `time_in_force` param (handled below) still overrides
-            String unifiedTif = (String)this.safeStringUpper(parameters, "timeInForce");
+            String unifiedTif = this.safeStringUpper(parameters, "timeInForce");
             parameters = this.omit(parameters, "timeInForce");
             String defaultTif = ((Helpers.isTrue((isMarket)))) ? "immediate_or_cancel" : "good_till_canceled";
             // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
@@ -3067,7 +3067,7 @@ final Object finalOi = oi;
                 {
                     break;
                 }
-                Object cursor = null;
+                String cursor = null;
                 for (var page = 0; Helpers.isLessThan(page, maxPages); page++)
                 {
                     Object reqLimit = pageLimit;

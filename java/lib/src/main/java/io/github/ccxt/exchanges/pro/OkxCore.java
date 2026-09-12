@@ -408,7 +408,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Object arg = this.safeValue(message, "arg", new java.util.HashMap<String, Object>() {{}});
         Object channel = this.safeString(arg, "channel");
         Object marketId = this.safeString(arg, "instId");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -880,7 +880,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         {
             Helpers.addElementToObject(this.bidsasks, symbol, parsedTicker);
         }
-        String messageHash = (String) Helpers.add("bidask::", symbol);
+        Object messageHash = Helpers.add("bidask::", symbol);
         client.resolve(parsedTicker, messageHash);
     }
 
@@ -1715,7 +1715,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
         Object marketId = this.safeString(message, "instId");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        Object symbol = this.safeSymbol(marketId, market);
         Long seqId = this.safeInteger(message, "seqId");
         Long prevSeqId = this.safeInteger(message, "prevSeqId");
         Object nonce = Helpers.GetValue(orderbook, "nonce");
@@ -1729,7 +1729,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                ((java.util.Map<String,Object>)this.orderbooks).remove(symbol);
+                ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
             }
             client.reject(error, messageHash);
         }
@@ -1896,7 +1896,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object access = this.safeString(parameters, "access", "private");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("access")));
             Object url = this.getUrl("users", access);
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
@@ -3151,7 +3151,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
     public void handleUnSubscriptionTrades(Client client, String symbol, Object channel)
     {
         Object subMessageHash = Helpers.add(Helpers.add(channel, ":"), symbol);
-        String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
+        Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (Helpers.isTrue(Helpers.inOp(this.trades, symbol)))
         {
@@ -3162,7 +3162,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
     public void handleUnsubscriptionOrderBook(Client client, String symbol, Object channel)
     {
         Object subMessageHash = Helpers.add(Helpers.add(channel, ":"), symbol);
-        String messageHash = (String) Helpers.add("unsubscribe:orderbook:", symbol);
+        Object messageHash = Helpers.add("unsubscribe:orderbook:", symbol);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
@@ -3179,7 +3179,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             return;
         }
         Object subMessageHash = Helpers.add(Helpers.add(Helpers.add("multi:", channel), ":"), symbol);
-        String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
+        Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(timeframe, null)))) && Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), timeframe)))))
         {
@@ -3190,7 +3190,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
     public void handleUnsubscriptionTicker(Client client, String symbol, Object channel)
     {
         Object subMessageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
-        String messageHash = (String) Helpers.add("unsubscribe:ticker:", symbol);
+        Object messageHash = Helpers.add("unsubscribe:ticker:", symbol);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (Helpers.isTrue(Helpers.inOp(this.tickers, symbol)))
         {
@@ -3213,7 +3213,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
         Object channel = this.safeString(arg, "channel", "");
         Object marketId = this.safeString(arg, "instId");
-        String symbol = (String) this.safeSymbol(marketId);
+        Object symbol = this.safeSymbol(marketId);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(channel, "trades")) || Helpers.isTrue(Helpers.isEqual(channel, "trades-all"))))
         {
             this.handleUnSubscriptionTrades(client, symbol, channel);

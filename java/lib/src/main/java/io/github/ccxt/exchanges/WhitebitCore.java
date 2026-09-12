@@ -1278,7 +1278,7 @@ public class WhitebitCore extends WhitebitApi
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
                 {
-                    Object networkLength = ((String)networkId).length();
+                    Object networkLength = networkId.length();
                     networkId = Helpers.slice(networkId, 1, Helpers.subtract(networkLength, 1));
                     Object networkCode = this.networkIdToCode(networkId, code);
                     if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))

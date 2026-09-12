@@ -218,7 +218,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(method, null, parameters);
                 type = ((java.util.List<Object>) typeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-                String defaultSettle = this.safeString(this.options, "defaultSettle");
+                Object defaultSettle = this.safeString(this.options, "defaultSettle");
                 defaultSettle = this.safeString2(parameters, "settle", "defaultSettle", defaultSettle);
                 isUsdcSettled = (Helpers.isEqual(defaultSettle, "USDC"));
             }
@@ -452,7 +452,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = Helpers.add("ticker:", symbol);
+            Object messageHash = Helpers.add("ticker:", symbol);
             Object url = (this.getUrlByMarketType(symbol, false, "watchTicker", parameters)).join();
             parameters = this.cleanParams(parameters);
             Object options = this.safeValue(this.options, "watchTicker", new java.util.HashMap<String, Object>() {{}});
@@ -494,7 +494,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object url = (this.getUrlByMarketType(Helpers.GetValue(symbols, 0), false, "watchTickers", parameters)).join();
             parameters = this.cleanParams(parameters);
             Object options = this.safeValue(this.options, "watchTickers", new java.util.HashMap<String, Object>() {{}});
-            String topic = this.safeString(options, "name", "tickers");
+            Object topic = this.safeString(options, "name", "tickers");
             Object marketIds = this.marketIds(symbols);
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
@@ -538,7 +538,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             }
             symbols = (java.util.List<String>)(this.marketSymbols(symbols, null, false));
             Object options = this.safeValue(this.options, "watchTickers", new java.util.HashMap<String, Object>() {{}});
-            String topic = this.safeString(options, "name", "tickers");
+            Object topic = this.safeString(options, "name", "tickers");
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object marketIds = this.marketIds(symbols);
@@ -694,8 +694,8 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //         "ts":1709210212704
         //     }
         //
-        String topic = this.safeString(message, "topic", "");
-        String updateType = this.safeString(message, "type", "");
+        Object topic = this.safeString(message, "topic", "");
+        Object updateType = this.safeString(message, "type", "");
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Boolean isSpot = !Helpers.isEqual(this.safeString(data, "usdIndexPrice"), null);
         String type = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
@@ -709,7 +709,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         {
             Object topicParts = Helpers.split(topic, ".");
             Object topicLength = Helpers.getArrayLength(topicParts);
-            String marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
+            Object marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, type);
             symbol = Helpers.GetValue(market, "symbol");
             // update the info in place
@@ -726,7 +726,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Helpers.addElementToObject(parsed, "timestamp", timestamp);
         Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.tickers, symbol, parsed);
-        String messageHash = Helpers.add("ticker:", symbol);
+        Object messageHash = Helpers.add("ticker:", symbol);
         client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
     }
 
@@ -759,7 +759,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                String topic = Helpers.add("orderbook.1.", marketId);
+                Object topic = Helpers.add("orderbook.1.", marketId);
                 ((java.util.List<Object>)topics).add(topic);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("bidask:", Helpers.GetValue(symbols, i)));
             }
@@ -858,7 +858,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(data, 0));
                 Object symbolString = Helpers.GetValue(market, "symbol");
                 Object unfiedTimeframe = Helpers.GetValue(data, 1);
-                String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+                Object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
                 ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(Helpers.add("kline.", timeframeId), "."), Helpers.GetValue(market, "id")));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbolString), "::"), unfiedTimeframe));
             }
@@ -909,7 +909,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(data, 0));
                 Object symbolString = Helpers.GetValue(market, "symbol");
                 Object unfiedTimeframe = Helpers.GetValue(data, 1);
-                String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+                Object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
                 ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(Helpers.add("kline.", timeframeId), "."), Helpers.GetValue(market, "id")));
                 ((java.util.List<Object>)subMessageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbolString), "::"), unfiedTimeframe));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("unsubscribe::ohlcv::", symbolString), "::"), unfiedTimeframe));
@@ -971,16 +971,16 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //     }
         //
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
-        String topic = this.safeString(message, "topic", "");
+        Object topic = this.safeString(message, "topic", "");
         Object topicParts = Helpers.split(topic, ".");
         Object topicLength = Helpers.getArrayLength(topicParts);
-        String timeframeId = this.safeString(topicParts, 1);
+        Object timeframeId = this.safeString(topicParts, 1);
         Object timeframe = this.findTimeframe(timeframeId);
         if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
         {
             return;
         }
-        String marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
+        Object marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
         Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
         String marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
@@ -1001,7 +1001,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        String messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
+        Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
         java.util.List<Object> resolveData = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
@@ -1109,7 +1109,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 Object marketId = this.marketId(symbol);
                 Object topic = Helpers.add(Helpers.add(Helpers.add("orderbook.", String.valueOf(limit)), "."), marketId);
                 ((java.util.List<Object>)topics).add(topic);
-                String messageHash = Helpers.add("orderbook:", symbol);
+                Object messageHash = Helpers.add("orderbook:", symbol);
                 ((java.util.List<Object>)messageHashes).add(messageHash);
             }
             Object orderbook = (this.watchTopics(url, messageHashes, topics, parameters)).join();
@@ -1225,13 +1225,13 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //         }
         //     }
         //
-        String topic = this.safeString(message, "topic", "");
+        Object topic = this.safeString(message, "topic", "");
         Object limit = Helpers.GetValue(Helpers.split(topic, "."), 1);
         Boolean isSpot = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "spot"), 0);
-        String type = this.safeString(message, "type");
+        Object type = this.safeString(message, "type");
         Boolean isSnapshot = (Helpers.isEqual(type, "snapshot"));
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        String marketId = this.safeString(data, "s");
+        Object marketId = this.safeString(data, "s");
         String marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -1255,7 +1255,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }
-        String messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
+        Object messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
         if (Helpers.isTrue(Helpers.isEqual(limit, "1")))
@@ -1343,16 +1343,16 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                String topic = Helpers.add("publicTrade.", Helpers.GetValue(market, "id"));
+                Object topic = Helpers.add("publicTrade.", Helpers.GetValue(market, "id"));
                 ((java.util.List<Object>)topics).add(topic);
-                String messageHash = Helpers.add("trade:", symbol);
+                Object messageHash = Helpers.add("trade:", symbol);
                 ((java.util.List<Object>)messageHashes).add(messageHash);
             }
             Object trades = (this.watchTopics(url, messageHashes, topics, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeValue(trades, 0);
-                String tradeSymbol = this.safeString(first, "symbol");
+                Object tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -1388,9 +1388,9 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                String topic = Helpers.add("publicTrade.", Helpers.GetValue(market, "id"));
+                Object topic = Helpers.add("publicTrade.", Helpers.GetValue(market, "id"));
                 ((java.util.List<Object>)topics).add(topic);
-                String messageHash = Helpers.add("unsubscribe:trade:", symbol);
+                Object messageHash = Helpers.add("unsubscribe:trade:", symbol);
                 ((java.util.List<Object>)messageHashes).add(messageHash);
                 ((java.util.List<Object>)subMessageHashes).add(Helpers.add("trade:", symbol));
             }
@@ -1441,12 +1441,12 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //     }
         //
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
-        String topic = this.safeString(message, "topic", "");
+        Object topic = this.safeString(message, "topic", "");
         Object trades = data;
         Object parts = Helpers.split(topic, ".");
         Boolean isSpot = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "spot"), 0);
         String marketType = ((Helpers.isTrue((isSpot)))) ? "spot" : "contract";
-        String marketId = this.safeString(parts, 1);
+        Object marketId = this.safeString(parts, 1);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object stored = this.safeValue(this.trades, symbol);
@@ -1461,7 +1461,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object parsed = this.parseWsTrade(Helpers.GetValue(trades, j), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        String messageHash = Helpers.add(Helpers.add("trade", ":"), symbol);
+        Object messageHash = Helpers.add(Helpers.add("trade", ":"), symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -1499,18 +1499,18 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String id = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("i", "T", "v")));
+        Object id = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("i", "T", "v")));
         Boolean isContract = (Helpers.inOp(trade, "BT"));
         Object marketType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
         {
             marketType = Helpers.GetValue(market, "type");
         }
-        String marketId = this.safeString(trade, "s");
+        Object marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         Long timestamp = (Long) this.safeInteger2(trade, "t", "T");
-        String side = (String)this.safeStringLower(trade, "S");
+        Object side = this.safeStringLower(trade, "S");
         Object takerOrMaker = null;
         Object m = this.safeValue(trade, "m");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
@@ -1521,9 +1521,9 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             // spot private
             takerOrMaker = m;
         }
-        String price = this.safeString(trade, "p");
-        String amount = this.safeString2(trade, "q", "v");
-        String orderId = this.safeString(trade, "o");
+        Object price = this.safeString(trade, "p");
+        Object amount = this.safeString2(trade, "q", "v");
+        Object orderId = this.safeString(trade, "o");
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
@@ -1754,7 +1754,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //         ]
         //     }
         //
-        String topic = this.safeString(message, "topic", "");
+        Object topic = this.safeString(message, "topic", "");
         Boolean spot = Helpers.isEqual(topic, "ticketInfo");
         Boolean executionFast = Helpers.isEqual(topic, "execution.fast");
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1798,7 +1798,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             } else
             {
                 // filter unified trades
-                String execType = this.safeString(rawTrade, "execType", "");
+                Object execType = this.safeString(rawTrade, "execType", "");
                 if (Helpers.isTrue(executionFast))
                 {
                     execType = "Trade";
@@ -1820,7 +1820,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object keys = Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
-            String currentMessageHash = Helpers.add("myTrades:", Helpers.GetValue(keys, i));
+            Object currentMessageHash = Helpers.add("myTrades:", Helpers.GetValue(keys, i));
             client.resolve(trades, currentMessageHash);
         }
         // non-symbol specific
@@ -1995,7 +1995,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Object position = this.parsePosition(rawPosition);
-            String side = this.safeString(position, "side");
+            Object side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
             ((java.util.List<Object>)newPositions).add(position);
@@ -2097,7 +2097,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchLiquidations", "method", "allLiquidation");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
-            String messageHash = Helpers.add("liquidations::", symbol);
+            Object messageHash = Helpers.add("liquidations::", symbol);
             Object topic = Helpers.add(Helpers.add(method, "."), Helpers.GetValue(market, "id"));
             Object newLiquidation = (this.watchTopics(url, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), new java.util.ArrayList<Object>(java.util.Arrays.asList(topic)), parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -2146,7 +2146,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawLiquidations)); i++)
             {
                 Object rawLiquidation = Helpers.GetValue(rawLiquidations, i);
-                String marketId = this.safeString(rawLiquidation, "s");
+                Object marketId = this.safeString(rawLiquidation, "s");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "", "contract");
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object liquidation = this.parseWsLiquidation(rawLiquidation, market);
@@ -2163,7 +2163,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         } else
         {
             Object rawLiquidation = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-            String marketId = this.safeString(rawLiquidation, "symbol");
+            Object marketId = this.safeString(rawLiquidation, "symbol");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "", "contract");
             Object symbol = Helpers.GetValue(market, "symbol");
             Object liquidation = this.parseWsLiquidation(rawLiquidation, market);
@@ -2199,7 +2199,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marketId = this.safeString2(liquidation, "symbol", "s");
+        Object marketId = this.safeString2(liquidation, "symbol", "s");
         market = this.safeMarket(marketId, market, "", "contract");
         Long timestamp = (Long) this.safeInteger2(liquidation, "updatedTime", "T");
         final Object finalMarket = market;
@@ -2329,7 +2329,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //        "connId":"cojidqec0hv9fgvhtbt0-40e"
         //    }
         //
-        String messageHash = this.safeString(message, "reqId");
+        Object messageHash = this.safeString(message, "reqId");
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object order = this.parseOrder(data);
         client.resolve(order, messageHash);
@@ -2428,7 +2428,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object orders = this.orders;
         Object rawOrders = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object first = this.safeValue(rawOrders, 0, new java.util.HashMap<String, Object>() {{}});
-        String category = this.safeString(first, "category");
+        Object category = this.safeString(first, "category");
         Boolean isSpot = Helpers.isEqual(category, "spot");
         if (!Helpers.isTrue(isSpot))
         {
@@ -2454,7 +2454,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object symbolsArray = Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsArray)); i++)
         {
-            String currentMessageHash = Helpers.add("orders:", Helpers.GetValue(symbolsArray, i));
+            Object currentMessageHash = Helpers.add("orders:", Helpers.GetValue(symbolsArray, i));
             client.resolve(orders, currentMessageHash);
         }
         String messageHash = "orders";
@@ -2776,10 +2776,10 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //
         Object accountType = Helpers.getArg(optionalArgs, 0, null);
         Object account = this.account();
-        String currencyId = this.safeString2(balance, "a", "coin");
-        String code = (String) this.safeCurrencyCode(currencyId);
+        Object currencyId = this.safeString2(balance, "a", "coin");
+        Object code = this.safeCurrencyCode(currencyId);
         Helpers.addElementToObject(account, "free", this.safeStringN(balance, new java.util.ArrayList<Object>(java.util.Arrays.asList("availableToWithdraw", "f", "free"))));
-        String used = this.safeString2(balance, "l", "locked");
+        Object used = this.safeString2(balance, "l", "locked");
         if (Helpers.isTrue(!Helpers.isEqual(used, null)))
         {
             Helpers.addElementToObject(account, "used", used);
@@ -2788,8 +2788,8 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             // the unified account wallet stream has no locked field, the margin
             // lives in the per coin initial margin fields, so the used amount
             // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
-            String totalPositionIm = this.safeString(balance, "totalPositionIM", "0");
-            String totalOrderIm = this.safeString(balance, "totalOrderIM", "0");
+            Object totalPositionIm = this.safeString(balance, "totalPositionIM", "0");
+            Object totalOrderIm = this.safeString(balance, "totalOrderIM", "0");
             Helpers.addElementToObject(account, "used", Precise.stringAdd(totalPositionIm, totalOrderIm));
         }
         // on the unified rows the free amount and the margin are both measured
@@ -2933,23 +2933,23 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //       "connId":"cojifin88smerbj9t560-406"
         //   }
         //
-        String code = this.safeStringN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("code", "ret_code", "retCode")));
+        Object code = this.safeStringN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("code", "ret_code", "retCode")));
         try
         {
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue(!Helpers.isEqual(code, "0"))))
             {
                 Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(message));
                 this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, feedback);
-                String msg = this.safeString2(message, "retMsg", "ret_msg");
+                Object msg = this.safeString2(message, "retMsg", "ret_msg");
                 this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), msg, feedback);
                 throw new ExchangeError((String)feedback) ;
             }
             Object success = this.safeValue(message, "success");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(success, null))) && Helpers.isTrue((!Helpers.isEqual(success, true)))))
             {
-                String ret_msg = this.safeString(message, "ret_msg");
+                Object ret_msg = this.safeString(message, "ret_msg");
                 Object request = this.safeValue(message, "request", new java.util.HashMap<String, Object>() {{}});
-                String op = this.safeString(request, "op");
+                Object op = this.safeString(request, "op");
                 if (Helpers.isTrue(Helpers.isEqual(op, "auth")))
                 {
                     throw new AuthenticationError(Helpers.add("Authentication failed: ", ret_msg)) ;
@@ -2961,7 +2961,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             return false;
         } catch(Exception error)
         {
-            String messageHash = this.safeString2(message, "req_id", "reqId");
+            Object messageHash = this.safeString2(message, "req_id", "reqId");
             if (Helpers.isTrue(!Helpers.isEqual(messageHash, null)))
             {
                 client.reject(error, messageHash);
@@ -2973,7 +2973,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 {
                     ((java.util.Map<String,Object>)client.subscriptions).remove((String)authenticatedHash);
                 }
-                String op = this.safeString(message, "op");
+                Object op = this.safeString(message, "op");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(op, null))) && Helpers.isTrue((!Helpers.isEqual(op, "auth")))))
                 {
                     // an operation response that carries no reqId, e.g. bybit
@@ -2995,13 +2995,13 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
 
     public void handleMessage(Client client, Object message)
     {
-        String topic = this.safeString2(message, "topic", "op", "");
+        Object topic = this.safeString2(message, "topic", "op", "");
         if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }
         // contract pong
-        String ret_msg = this.safeString(message, "ret_msg");
+        Object ret_msg = this.safeString(message, "ret_msg");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(ret_msg, "pong"))) || Helpers.isTrue((Helpers.isEqual(topic, "pong")))))
         {
             this.handlePong(client, message);
@@ -3015,7 +3015,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             return;
         }
         // pong
-        String eventVar = this.safeString(message, "event");
+        Object eventVar = this.safeString(message, "event");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(eventVar, "sub")) || Helpers.isTrue((Helpers.isEqual(topic, "subscribe")))))
         {
             this.handleSubscriptionStatus(client, message);
@@ -3073,7 +3073,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             }
         }
         // unified auth acknowledgement
-        String type = this.safeString(message, "type");
+        Object type = this.safeString(message, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "AUTH_RESP")))
         {
             this.handleAuthenticate(client, message);
@@ -3188,7 +3188,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //         "subHash": "trade:LTC/USDT"
         //     },
         // }
-        String reqId = this.safeString(message, "req_id");
+        Object reqId = this.safeString(message, "req_id");
         Object keys = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
@@ -3200,7 +3200,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             if (Helpers.isTrue(((String)messageHash).startsWith("unsubscribe")))
             {
                 Object subscription = Helpers.GetValue(client.subscriptions, messageHash);
-                String subId = this.safeString(subscription, "id");
+                Object subId = this.safeString(subscription, "id");
                 if (Helpers.isTrue(!Helpers.isEqual(reqId, subId)))
                 {
                     continue;

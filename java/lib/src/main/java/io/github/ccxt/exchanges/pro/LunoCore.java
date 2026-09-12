@@ -71,13 +71,13 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
+            Object subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
             final Object finalSymbol = symbol;
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
-            String messageHash = Helpers.add("trades:", symbol);
+            Object messageHash = Helpers.add("trades:", symbol);
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "api_key_id", LunoCore.this.apiKey );
                 put( "api_key_secret", LunoCore.this.secret );
@@ -118,7 +118,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         }
         Object symbol = Helpers.GetValue(subscription, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        String messageHash = Helpers.add("trades:", symbol);
+        Object messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -193,13 +193,13 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
+            Object subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
             final Object finalSymbol = symbol;
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
-            String messageHash = Helpers.add("orderbook:", symbol);
+            Object messageHash = Helpers.add("orderbook:", symbol);
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "api_key_id", LunoCore.this.apiKey );
                 put( "api_key_secret", LunoCore.this.secret );
@@ -246,7 +246,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         //     }
         //
         Object symbol = Helpers.GetValue(subscription, "symbol");
-        String messageHash = Helpers.add("orderbook:", symbol);
+        Object messageHash = Helpers.add("orderbook:", symbol);
         Long timestamp = this.safeInteger(message, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -371,7 +371,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         if (Helpers.isTrue(!Helpers.isEqual(createUpdate, null)))
         {
             Object bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
-            String type = this.safeString(createUpdate, "type");
+            Object type = this.safeString(createUpdate, "type");
             if (Helpers.isTrue(Helpers.isEqual(type, "ASK")))
             {
                 Helpers.callDynamically(asksOrderSide, "storeArray", new Object[]{bidAskArray});
@@ -383,7 +383,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         Object deleteUpdate = this.safeValue(message, "delete_update");
         if (Helpers.isTrue(!Helpers.isEqual(deleteUpdate, null)))
         {
-            String orderId = this.safeString(deleteUpdate, "order_id");
+            Object orderId = this.safeString(deleteUpdate, "order_id");
             Helpers.callDynamically(asksOrderSide, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(0, 0, orderId))});
             Helpers.callDynamically(bidsOrderSide, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(0, 0, orderId))});
         }

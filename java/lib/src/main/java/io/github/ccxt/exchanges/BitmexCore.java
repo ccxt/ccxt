@@ -760,7 +760,7 @@ public class BitmexCore extends BitmexApi
     public Object parseCurrency(Object currency)
     {
         String asset = this.safeString(currency, "asset");
-        String code = (String) this.safeCurrencyCode(asset);
+        String code = this.safeCurrencyCode(asset);
         String id = this.safeString(currency, "currency");
         String name = this.safeString(currency, "name");
         Object chains = this.safeList(currency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1119,9 +1119,9 @@ public class BitmexCore extends BitmexApi
     {
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "underlying");
-        Object quoteId = this.safeString(market, "quoteCurrency");
+        String quoteId = this.safeString(market, "quoteCurrency");
         String settleId = this.safeString(market, "settlCurrency");
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
         String typ = this.safeString(market, "typ"); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
@@ -1153,8 +1153,8 @@ public class BitmexCore extends BitmexApi
             type = "swap";
             swap = true;
         }
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Boolean contract = Helpers.isTrue(swap) || Helpers.isTrue(future);
         String contractSize = null;
         Object isInverse = this.safeValue(market, "isInverse"); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
@@ -1163,7 +1163,7 @@ public class BitmexCore extends BitmexApi
         String status = this.safeString(market, "state");
         Boolean active = Helpers.isEqual(status, "Open"); // Open, Settled, Unlisted
         Object expiry = null;
-        Object expiryDatetime = null;
+        String expiryDatetime = null;
         Object symbol = null;
         if (Helpers.isTrue(spot))
         {
@@ -1191,7 +1191,7 @@ public class BitmexCore extends BitmexApi
             symbol = id;
         }
         String positionId = this.safeString2(market, "positionCurrency", "underlying");
-        String position = (String) this.safeCurrencyCode(positionId);
+        String position = this.safeCurrencyCode(positionId);
         Boolean positionIsQuote = (Helpers.isEqual(position, quote));
         Object maxOrderQty = this.safeNumber(market, "maxOrderQty");
         String initMargin = this.safeString(market, "initMargin", "1");
@@ -1331,7 +1331,7 @@ public class BitmexCore extends BitmexApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             String free = this.safeString(balance, "availableMargin");
             String total = this.safeString(balance, "marginBalance");
@@ -1823,7 +1823,7 @@ public class BitmexCore extends BitmexApi
         Object referenceAccount = null;
         Object type = this.parseLedgerEntryType(this.safeString(item, "transactType"));
         String currencyId = this.safeString(item, "currency");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amountString = this.safeString(item, "amount");
         Object amount = this.convertToRealAmount(code, amountString);
@@ -2040,11 +2040,11 @@ public class BitmexCore extends BitmexApi
         // For withdrawals, transactTime is submission, timestamp is processed
         Long transactTime = this.parse8601(this.safeString(transaction, "transactTime"));
         Long timestamp = this.parse8601(this.safeString(transaction, "timestamp"));
-        String type = (String)this.safeStringLower(transaction, "transactType");
+        String type = this.safeStringLower(transaction, "transactType");
         // Deposits have no from address or to address, withdrawals have both
-        Object address = null;
-        Object addressFrom = null;
-        Object addressTo = null;
+        String address = null;
+        String addressFrom = null;
+        String addressTo = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "withdrawal")))
         {
             address = this.safeString(transaction, "address");
@@ -2060,7 +2060,7 @@ public class BitmexCore extends BitmexApi
         Object amount = this.convertToRealAmount(Helpers.GetValue(currency, "code"), amountStringAbs);
         String feeCostString = this.safeString(transaction, "fee");
         Object feeCost = this.convertToRealAmount(Helpers.GetValue(currency, "code"), feeCostString);
-        Object status = this.safeString(transaction, "transactStatus");
+        String status = this.safeString(transaction, "transactStatus");
         if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
             status = this.parseTransactionStatus(status);
@@ -2178,7 +2178,7 @@ public class BitmexCore extends BitmexApi
         // see response sample under "fetchMarkets" because same endpoint is being used here
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         String open = this.safeString(ticker, "prevPrice24h");
         String last = this.safeString(ticker, "lastPrice");
@@ -2404,14 +2404,14 @@ public class BitmexCore extends BitmexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         Long timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         String priceString = this.safeString2(trade, "avgPx", "price");
         Object amountString = this.convertFromRawQuantity(symbol, this.safeString2(trade, "size", "lastQty"));
         Object execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
         String id = this.safeString(trade, "trdMatchID");
         String order = this.safeString(trade, "orderID");
-        String side = (String)this.safeStringLower(trade, "side");
+        String side = this.safeStringLower(trade, "side");
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         Object fee = null;
         Object feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
@@ -2432,7 +2432,7 @@ public class BitmexCore extends BitmexApi
         {
             takerOrMaker = ((Helpers.isTrue(Precise.stringLt(feeCostString, "0")))) ? "maker" : "taker";
         }
-        String type = (String)this.safeStringLower(trade, "ordType");
+        String type = this.safeStringLower(trade, "ordType");
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
@@ -3801,7 +3801,7 @@ public class BitmexCore extends BitmexApi
                 put( "info", response );
                 put( "currency", code );
                 put( "network", finalNetworkCode );
-                put( "address", Helpers.replace(((String)Helpers.replace(response, "\"", "")), "\"", "") );
+                put( "address", Helpers.replace(((String)Helpers.replace(response, (String)"\"", (String)"")), "\"", "") );
                 put( "tag", null );
             }};
         });
@@ -4000,8 +4000,8 @@ public class BitmexCore extends BitmexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String quoteId = this.safeString(interest, "currency");
         String baseId = this.safeString(interest, "rootSymbol");
-        String quoteSymbol = (String) this.safeCurrencyCode(quoteId);
-        String baseSymbol = (String) this.safeCurrencyCode(baseId);
+        String quoteSymbol = this.safeCurrencyCode(quoteId);
+        String baseSymbol = this.safeCurrencyCode(baseId);
         Object symbol = baseSymbol;
         if (Helpers.isTrue(!Helpers.isEqual(quoteSymbol, null)))
         {

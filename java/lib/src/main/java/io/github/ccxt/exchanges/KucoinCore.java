@@ -2103,7 +2103,7 @@ public class KucoinCore extends KucoinApi
             {
                 String defaultType = this.safeString(this.options, "defaultType", "spot");
                 String defaultTradeType = ((Helpers.isTrue((Helpers.isEqual(defaultType, "spot"))))) ? "SPOT" : "FUTURES";
-                Object tradeType = this.safeStringUpper(parameters, "tradeType", defaultTradeType);
+                String tradeType = this.safeStringUpper(parameters, "tradeType", defaultTradeType);
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "tradeType", tradeType );
                 }};
@@ -3010,7 +3010,7 @@ public class KucoinCore extends KucoinApi
                 String accountId = this.safeString(account, "id");
                 String currencyId = this.safeString(account, "currency");
                 String code = this.safeCurrencyCode(currencyId);
-                String type = (String)this.safeStringLower2(account, "type", "accountType"); // main or trade or unified
+                String type = this.safeStringLower2(account, "type", "accountType"); // main or trade or unified
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", accountId );
                     put( "type", type );
@@ -4419,11 +4419,11 @@ public class KucoinCore extends KucoinApi
     public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
+        String address = this.safeString(depositAddress, "address");
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
-            address = Helpers.replace(((String)address), "bitcoincash:", "");
+            address = Helpers.replace(address, "bitcoincash:", "");
         }
         Object code = null;
         if (Helpers.isTrue(!Helpers.isEqual(currency, null)))
@@ -5138,7 +5138,7 @@ public class KucoinCore extends KucoinApi
             put( "type", finalType );
             put( "leverage", 1 );
         }};
-        String marginModeUpper = (String)this.safeStringUpper(parameters, "marginMode");
+        String marginModeUpper = this.safeStringUpper(parameters, "marginMode");
         if (Helpers.isTrue(!Helpers.isEqual(marginModeUpper, null)))
         {
             parameters = this.omit(parameters, "marginMode");
@@ -5189,7 +5189,7 @@ public class KucoinCore extends KucoinApi
             Helpers.addElementToObject(request, "stopPriceType", triggerPriceTypeValue);
         } else if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)))
         {
-            Object priceType = triggerPriceTypeValue;
+            String priceType = triggerPriceTypeValue;
             if (Helpers.isTrue(hasStopLoss))
             {
                 String slPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
@@ -5220,7 +5220,7 @@ public class KucoinCore extends KucoinApi
             Helpers.addElementToObject(request, "stopPriceType", triggerPriceTypeValue);
         }
         Object uppercaseType = ((String)type).toUpperCase();
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "LIMIT")))
         {
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
@@ -5700,7 +5700,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object symbol = null;
+            String symbol = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -8004,7 +8004,7 @@ public class KucoinCore extends KucoinApi
         Object timestamp = this.safeIntegerProduct2(order, "orderTime", "ts", 0.000001);
         Long lastUpdateTimestamp = this.safeIntegerProduct(order, "updatedTime", 0.000001);
         String rawTimeInForce = this.safeString(order, "timeInForce");
-        Object amount = null;
+        String amount = null;
         Object cost = null;
         String sizeUnit = this.safeString(order, "sizeUnit");
         String size = this.safeString(order, "size");
@@ -9320,9 +9320,9 @@ public class KucoinCore extends KucoinApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Object address = this.safeString(transaction, "address");
+        String address = this.safeString(transaction, "address");
         String amount = this.safeString(transaction, "amount");
-        Object txid = this.safeString(transaction, "walletTxId");
+        String txid = this.safeString(transaction, "walletTxId");
         if (Helpers.isTrue(!Helpers.isEqual(txid, null)))
         {
             Object txidParts = Helpers.split(txid, "@");
@@ -9333,11 +9333,11 @@ public class KucoinCore extends KucoinApi
                 {
                     if (Helpers.isTrue(Helpers.isGreaterThan(((String)Helpers.GetValue(txidParts, 1)).length(), 1)))
                     {
-                        address = Helpers.GetValue(txidParts, 1);
+                        address = (String) Helpers.GetValue(txidParts, 1);
                     }
                 }
             }
-            txid = Helpers.GetValue(txidParts, 0);
+            txid = (String) Helpers.GetValue(txidParts, 0);
         }
         String type = ((Helpers.isTrue((Helpers.isEqual(txid, null))))) ? "withdrawal" : "deposit";
         String rawStatus = this.safeString(transaction, "status");
@@ -10148,7 +10148,7 @@ public class KucoinCore extends KucoinApi
                 requestedType = marginMode;
             }
             Object utaAccountsByType = this.safeDict(this.options, "utaAccountsByType", new java.util.HashMap<String, Object>() {{}});
-            Object type = null;
+            String type = null;
             type = this.safeString(utaAccountsByType, requestedType, requestedType);
             Boolean isIsolated = (Helpers.isEqual(type, "ISOLATED"));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
@@ -10608,7 +10608,7 @@ public class KucoinCore extends KucoinApi
         if (Helpers.isTrue(isLedgerEntry))
         {
             // Ledger entry format: uses accountType + direction
-            String accountType = (String)this.safeStringLower(transfer, "accountType");
+            String accountType = this.safeStringLower(transfer, "accountType");
             String direction = this.safeString(transfer, "direction");
             if (Helpers.isTrue(Helpers.isEqual(direction, "out")))
             {
@@ -10624,8 +10624,8 @@ public class KucoinCore extends KucoinApi
             accountToRaw = this.safeStringLower(transfer, "recAccountType");
         }
         Object accountsByType = this.safeDict(this.options, "accountsByType");
-        Object accountFrom = ((Helpers.isTrue((Helpers.isEqual(accountFromRaw, null))))) ? null : this.safeString(accountsByType, accountFromRaw, accountFromRaw);
-        Object accountTo = ((Helpers.isTrue((Helpers.isEqual(accountToRaw, null))))) ? null : this.safeString(accountsByType, accountToRaw, accountToRaw);
+        String accountFrom = ((Helpers.isTrue((Helpers.isEqual(accountFromRaw, null))))) ? null : this.safeString(accountsByType, accountFromRaw, accountFromRaw);
+        String accountTo = ((Helpers.isTrue((Helpers.isEqual(accountToRaw, null))))) ? null : this.safeString(accountsByType, accountToRaw, accountToRaw);
         return new java.util.HashMap<String, Object>() {{
             put( "id", KucoinCore.this.safeStringN(transfer, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "applyId", "orderId"))) );
             put( "currency", KucoinCore.this.safeCurrencyCode(currencyId, currency) );
@@ -10803,7 +10803,7 @@ public class KucoinCore extends KucoinApi
         //
         //     "{\"symbol\":\"ETH-USDT\",\"orderId\":\"617adcd1eb3fa20001dd29a1\",\"tradeId\":\"617adcd12e113d2b91222ff9\"}"
         //
-        Object referenceId = null;
+        String referenceId = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(context, null)) && Helpers.isTrue(!Helpers.isEqual(context, ""))))
         {
             try
@@ -10926,7 +10926,7 @@ public class KucoinCore extends KucoinApi
             {
                 accountsByType = this.safeDict(this.options, "utaAccountsByType");
             }
-            Object type = null;
+            String type = null;
             type = this.safeString(accountsByType, requestedType, requestedType);
             Integer maxLimit = 500; // for spot non-uta and margin
             if (Helpers.isTrue(Helpers.isEqual(hf, true)))
@@ -11330,7 +11330,7 @@ public class KucoinCore extends KucoinApi
         Object isolatedBase = this.safeDict(info, "baseAsset", new java.util.HashMap<String, Object>() {{}});
         Object amountBorrowed = null;
         Object interest = null;
-        Object currencyId = null;
+        String currencyId = null;
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
         {
             amountBorrowed = this.safeNumber(isolatedBase, "liabilityPrincipal");
@@ -12912,8 +12912,8 @@ public class KucoinCore extends KucoinApi
             timestamp = this.safeIntegerProduct(position, "creationTime", 0.000001);
         }
         String size = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("currentQty", "size", "maxSize", "closeSize")));
-        String side = (String)this.safeStringLower(position, "side");
-        String type = (String)this.safeStringLower(position, "type");
+        String side = this.safeStringLower(position, "side");
+        String type = this.safeStringLower(position, "type");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(!Helpers.isEqual(size, null)))
@@ -12943,7 +12943,7 @@ public class KucoinCore extends KucoinApi
         String unrealisedPnl = this.safeString2(position, "unrealisedPnl", "unrealizedPnL");
         Object crossMode = this.safeValue(position, "crossMode");
         // currently crossMode is always set to false and only isolated positions are supported
-        String marginMode = (String)this.safeStringLower(position, "marginMode");
+        String marginMode = this.safeStringLower(position, "marginMode");
         if (Helpers.isTrue(!Helpers.isEqual(crossMode, null)))
         {
             marginMode = ((Helpers.isTrue((Helpers.isEqual(crossMode, true))))) ? "cross" : "isolated";

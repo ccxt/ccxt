@@ -69,7 +69,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String messageHash = (String) Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
+            Object messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", "v4_trades" );
@@ -106,7 +106,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String messageHash = (String) Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
+            Object messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
                 put( "channel", "v4_trades" );
@@ -159,7 +159,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             Object parsed = Helpers.GetValue(parsedTrades, i);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        String messageHash = (String) Helpers.add(Helpers.add("trade", ":"), symbol);
+        Object messageHash = Helpers.add(Helpers.add("trade", ":"), symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -218,7 +218,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String messageHash = (String) Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
+            Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", "v4_orderbook" );
@@ -251,7 +251,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String messageHash = (String) Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
+            Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
                 put( "channel", "v4_orderbook" );
@@ -302,7 +302,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
         this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "message_id"));
-        String messageHash = (String) Helpers.add("orderbook:", symbol);
+        Object messageHash = Helpers.add("orderbook:", symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
@@ -348,7 +348,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String messageHash = (String) Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol"));
+            Object messageHash = Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol"));
             Object resolution = this.safeString(this.timeframes, timeframe, timeframe);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
@@ -389,7 +389,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String messageHash = (String) Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol"));
+            Object messageHash = Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol"));
             Object resolution = this.safeString(this.timeframes, timeframe, timeframe);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
@@ -463,7 +463,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         Object symbol = Helpers.GetValue(market, "symbol");
         Object content = this.safeDict(message, "contents");
         Object candles = this.safeList(content, "candles");
-        String messageHash = (String) Helpers.add("ohlcv:", symbol);
+        Object messageHash = Helpers.add("ohlcv:", symbol);
         Object ohlcv = this.safeDict(candles, 0, content);
         Object parsed = this.parseOHLCV(ohlcv, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));

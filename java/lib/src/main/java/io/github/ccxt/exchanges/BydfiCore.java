@@ -1541,7 +1541,7 @@ public class BydfiCore extends BydfiApi
         Boolean isTakeProfitOrder = (!Helpers.isEqual(takeProfitPrice, null));
         String trailingPercent = this.safeString(parameters, "trailingPercent");
         Boolean isTailingStopOrder = (!Helpers.isEqual(trailingPercent, null));
-        Object stopPrice = null;
+        String stopPrice = null;
         if (Helpers.isTrue(Helpers.isTrue(isStopLossOrder) || Helpers.isTrue(isTakeProfitOrder)))
         {
             stopPrice = ((Helpers.isTrue(isStopLossOrder))) ? stopLossPrice : takeProfitPrice;
@@ -2647,7 +2647,7 @@ public class BydfiCore extends BydfiApi
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         String buyOrSell = this.safeString(position, "side");
-        String rawPositionSide = (String)this.safeStringLower(position, "positionSide");
+        String rawPositionSide = this.safeStringLower(position, "positionSide");
         Object positionSide = this.parsePositionSide(buyOrSell);
         Object hedged = null;
         Boolean isFetchPositionsHistory = false;
@@ -3152,7 +3152,7 @@ public class BydfiCore extends BydfiApi
             if (Helpers.isTrue(Helpers.isEqual(wallet, null)))
             {
                 Object options = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
-                Object parsedAccountType = this.safeStringUpper(options, type, type);
+                String parsedAccountType = this.safeStringUpper(options, type, type);
                 Helpers.addElementToObject(request, "walletType", parsedAccountType);
                 //
                 //     {
@@ -3403,10 +3403,10 @@ public class BydfiCore extends BydfiApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        String status = (String)this.safeStringUpper2(transfer, "message", "status");
+        String status = this.safeStringUpper2(transfer, "message", "status");
         Object accountsById = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
-        String fromId = (String)this.safeStringUpper(transfer, "sourceWallet");
-        String toId = (String)this.safeStringUpper(transfer, "targetWallet");
+        String fromId = this.safeStringUpper(transfer, "sourceWallet");
+        String toId = this.safeStringUpper(transfer, "targetWallet");
         String fromAccount = this.safeString(accountsById, fromId, fromId);
         String toAccount = this.safeString(accountsById, toId, toId);
         Long timestamp = this.safeInteger(transfer, "timestamp");
@@ -3619,7 +3619,7 @@ public class BydfiCore extends BydfiApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "asset");
         String code = this.safeCurrencyCode(currencyId, currency);
-        String rawStatus = (String)this.safeStringLower(transaction, "status");
+        String rawStatus = this.safeStringLower(transaction, "status");
         Long timestamp = this.safeInteger(transaction, "createTime");
         Object fee = null;
         Double feeCost = this.safeNumber(transaction, "fee");

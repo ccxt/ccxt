@@ -201,7 +201,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeValue(trades, 0);
-                String tradeSymbol = this.safeString(first, "symbol");
+                Object tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -308,7 +308,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         {
             Helpers.addElementToObject(this.tickers, symbol, ticker);
         }
-        String messageHash = Helpers.add("ticker:", symbol);
+        Object messageHash = Helpers.add("ticker:", symbol);
         client.resolve(ticker, messageHash);
     }
 
@@ -333,9 +333,9 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         //        "ask_size": 1.585,
         //        "bid_size": 5 }, ... ],
         //   "stream_type": "SNAPSHOT" }
-        String marketId = this.safeString(message, "code");
-        String symbol = (String) this.safeSymbol(marketId, null, "-");
-        String type = this.safeString(message, "stream_type");
+        Object marketId = this.safeString(message, "code");
+        Object symbol = this.safeSymbol(marketId, null, "-");
+        Object type = this.safeString(message, "stream_type");
         Object options = this.safeValue(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(options, "limit", 15);
         if (Helpers.isTrue(Helpers.isEqual(type, "SNAPSHOT")))
@@ -363,10 +363,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Helpers.callDynamically(bids, "store", new Object[]{bid_price, bid_size});
         }
         Long timestamp = this.safeInteger(message, "timestamp");
-        String datetime = this.iso8601(timestamp);
+        Object datetime = this.iso8601(timestamp);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", datetime);
-        String messageHash = Helpers.add("orderbook:", symbol);
+        Object messageHash = Helpers.add("orderbook:", symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -400,7 +400,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Helpers.callDynamically(stored, "append", new Object[]{trade});
-        String messageHash = Helpers.add("trade:", symbol);
+        Object messageHash = Helpers.add("trade:", symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -420,9 +420,9 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         //     timestamp: 1745315434125,
         //     stream_type: 'REALTIME'
         //   }
-        String marketId = this.safeString(message, "code");
-        String symbol = (String) this.safeSymbol(marketId);
-        String messageHash = Helpers.add("candle.1s:", symbol);
+        Object marketId = this.safeString(message, "code");
+        Object symbol = this.safeSymbol(marketId);
+        Object messageHash = Helpers.add("candle.1s:", symbol);
         Object ohlcv = this.parseOHLCV(message);
         client.resolve(ohlcv, messageHash);
     }
@@ -435,7 +435,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             Object wsOptions = this.safeDict(this.options, "ws", new java.util.HashMap<String, Object>() {{}});
-            String authenticated = this.safeString(wsOptions, "token");
+            Object authenticated = this.safeString(wsOptions, "token");
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 java.util.Map<String, Object> auth = new java.util.HashMap<String, Object>() {{
@@ -640,8 +640,8 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String id = this.safeString(order, "uuid");
-        String side = (String)this.safeStringLower(order, "ask_bid");
+        Object id = this.safeString(order, "uuid");
+        Object side = this.safeStringLower(order, "ask_bid");
         if (Helpers.isTrue(Helpers.isEqual(side, "bid")))
         {
             side = "buy";
@@ -650,11 +650,11 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             side = "sell";
         }
         Long timestamp = this.parse8601(this.safeString(order, "order_timestamp"));
-        String status = this.parseWsOrderStatus(this.safeString(order, "state"));
-        String marketId = this.safeString(order, "code");
+        Object status = this.parseWsOrderStatus(this.safeString(order, "state"));
+        Object marketId = this.safeString(order, "code");
         market = this.safeMarket(marketId, market);
         Object fee = null;
-        String feeCost = this.safeString(order, "paid_fee");
+        Object feeCost = this.safeString(order, "paid_fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalMarket = market;
@@ -697,7 +697,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
     {
         // see: parseWsOrder
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String side = (String)this.safeStringLower(trade, "ask_bid");
+        Object side = this.safeStringLower(trade, "ask_bid");
         if (Helpers.isTrue(Helpers.isEqual(side, "bid")))
         {
             side = "buy";
@@ -706,10 +706,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             side = "sell";
         }
         Long timestamp = this.parse8601(this.safeString(trade, "trade_timestamp"));
-        String marketId = this.safeString(trade, "code");
+        Object marketId = this.safeString(trade, "code");
         market = this.safeMarket(marketId, market);
         Object fee = null;
-        String feeCost = this.safeString(trade, "paid_fee");
+        Object feeCost = this.safeString(trade, "paid_fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalMarket = market;
@@ -742,7 +742,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
     public void handleMyOrder(Client client, Object message)
     {
         // see: parseWsOrder
-        String tradeId = this.safeString(message, "trade_uuid");
+        Object tradeId = this.safeString(message, "trade_uuid");
         if (Helpers.isTrue(!Helpers.isEqual(tradeId, null)))
         {
             this.handleMyTrade(client, message);
@@ -770,8 +770,8 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
     public void handleOrder(Client client, Object message)
     {
         Object parsed = this.parseWsOrder(message);
-        String symbol = this.safeString(parsed, "symbol");
-        String orderId = this.safeString(parsed, "id");
+        Object symbol = this.safeString(parsed, "symbol");
+        Object orderId = this.safeString(parsed, "id");
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -853,10 +853,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object balance = Helpers.GetValue(data, i);
-            String currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
-            String available = this.safeString(balance, "balance");
-            String frozen = this.safeString(balance, "locked");
+            Object currencyId = this.safeString(balance, "currency");
+            Object code = this.safeCurrencyCode(currencyId);
+            Object available = this.safeString(balance, "balance");
+            Object frozen = this.safeString(balance, "locked");
             Object account = this.account();
             Helpers.addElementToObject(account, "free", available);
             Helpers.addElementToObject(account, "used", frozen);
@@ -866,7 +866,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             }
             this.balance = this.safeBalance(this.balance);
         }
-        String messageHash = this.safeString(message, "type");
+        Object messageHash = this.safeString(message, "type");
         client.resolve(this.balance, messageHash);
     }
 
@@ -880,7 +880,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             put( "myAsset", "handleBalance");
             put( "candle.1s", "handleOHLCV");
         }};
-        String methodName = this.safeString(message, "type");
+        Object methodName = this.safeString(message, "type");
         Object method = ((Helpers.isTrue((Helpers.isEqual(methodName, null))))) ? null : this.safeValue(methods, methodName);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {

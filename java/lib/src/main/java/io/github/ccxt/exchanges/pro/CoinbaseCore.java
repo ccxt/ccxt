@@ -343,7 +343,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
             }
-            String currentToken = this.safeString(this.options, "wsToken");
+            Object currentToken = this.safeString(this.options, "wsToken");
             Long tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
             Long seconds = this.seconds();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(currentToken, null)) || Helpers.isTrue(Helpers.isLessThan(Helpers.add(tokenTimestamp, 120), seconds))))
@@ -566,9 +566,9 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         //    }
         //
         //
-        String channel = this.safeString(message, "channel");
+        Object channel = this.safeString(message, "channel");
         Object events = this.safeList(message, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        String datetime = this.safeString(message, "timestamp");
+        Object datetime = this.safeString(message, "timestamp");
         Long timestamp = this.parse8601(datetime);
         java.util.List<Object> newTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
@@ -578,7 +578,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(tickers)); j++)
             {
                 Object ticker = Helpers.GetValue(tickers, j);
-                String wsMarketId = this.safeString(ticker, "product_id");
+                Object wsMarketId = this.safeString(ticker, "product_id");
                 if (Helpers.isTrue(Helpers.isEqual(wsMarketId, null)))
                 {
                     continue;
@@ -620,7 +620,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marketId = this.safeString(ticker, "product_id");
+        Object marketId = this.safeString(ticker, "product_id");
         Object timestamp = null;
         Double last = this.safeNumber(ticker, "price");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -735,7 +735,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeDict(trades, 0);
-                String tradeSymbol = this.safeString(first, "symbol");
+                Object tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -946,9 +946,9 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object eventVar = this.safeValue(events, 0);
         Object trades = this.safeList(eventVar, "trades");
         Object trade = this.safeDict(trades, 0);
-        String marketId = this.safeString(trade, "product_id");
-        String symbol = (String) this.safeSymbol(marketId);
-        String messageHash = Helpers.add("market_trades::", symbol);
+        Object marketId = this.safeString(trade, "product_id");
+        Object symbol = this.safeSymbol(marketId);
+        Object messageHash = Helpers.add("market_trades::", symbol);
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
@@ -1030,7 +1030,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
                 Object responseOrder = Helpers.GetValue(responseOrders, j);
                 Object parsed = this.parseWsOrder(responseOrder);
                 Object cachedOrders = this.orders;
-                String marketId = this.safeString(responseOrder, "product_id");
+                Object marketId = this.safeString(responseOrder, "product_id");
                 if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
                 {
                     if (!Helpers.isTrue((Helpers.inOp(marketIds, marketId))))
@@ -1044,8 +1044,8 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
-            String symbol = (String) this.safeSymbol(marketId);
-            String messageHash = Helpers.add("user::", symbol);
+            Object symbol = this.safeSymbol(marketId);
+            Object messageHash = Helpers.add("user::", symbol);
             client.resolve(this.orders, messageHash);
             this.tryResolveUsdc(client, messageHash, this.orders);
         }
@@ -1070,12 +1070,12 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String id = this.safeString(order, "order_id");
-        String clientOrderId = this.safeString(order, "client_order_id");
-        String marketId = this.safeString(order, "product_id");
-        String datetime = this.safeString2(order, "time", "creation_time");
+        Object id = this.safeString(order, "order_id");
+        Object clientOrderId = this.safeString(order, "client_order_id");
+        Object marketId = this.safeString(order, "product_id");
+        Object datetime = this.safeString2(order, "time", "creation_time");
         market = this.safeMarket(marketId, market);
-        String stopPrice = this.safeString(order, "stop_price");
+        Object stopPrice = this.safeString(order, "stop_price");
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
@@ -1111,8 +1111,8 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(updates)); i++)
         {
             Object trade = Helpers.GetValue(updates, i);
-            String sideId = this.safeString(trade, "side");
-            String side = this.safeString(Helpers.GetValue(this.options, "sides"), sideId);
+            Object sideId = this.safeString(trade, "side");
+            Object side = this.safeString(Helpers.GetValue(this.options, "sides"), sideId);
             Double price = this.safeNumber(trade, "price_level");
             Double amount = this.safeNumber(trade, "new_quantity");
             Object orderbookSide = this.safeValue(orderbook, side);
@@ -1155,19 +1155,19 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         {
             return;
         }
-        String datetime = this.safeString(message, "timestamp");
+        Object datetime = this.safeString(message, "timestamp");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
             Object updates = this.safeList(eventVar, "updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            String marketId = this.safeString(eventVar, "product_id");
+            Object marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = Helpers.add("level2::", symbol);
+            Object messageHash = Helpers.add("level2::", symbol);
             Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
             Long limit = this.safeInteger(subscription, "limit");
-            String type = this.safeString(eventVar, "type");
+            Object type = this.safeString(eventVar, "type");
             if (Helpers.isTrue(Helpers.isEqual(type, "snapshot")))
             {
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
@@ -1261,7 +1261,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
 
     public void handleMessage(Client client, Object message)
     {
-        String channel = this.safeString(message, "channel");
+        Object channel = this.safeString(message, "channel");
         java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "subscriptions", "handleSubscriptionStatus");
             put( "ticker", "handleTickers");
@@ -1271,13 +1271,13 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             put( "l2_data", "handleOrderBook");
             put( "heartbeats", "handleHeartbeats");
         }};
-        String type = this.safeString(message, "type");
+        Object type = this.safeString(message, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "error")))
         {
-            String errorMessage = this.safeString(message, "message");
+            Object errorMessage = this.safeString(message, "message");
             // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
-            Object errorMessageValue = ((Helpers.isTrue((!Helpers.isEqual(errorMessage, null))))) ? errorMessage : "unknown error";
-            throw new ExchangeError((String)errorMessageValue) ;
+            String errorMessageValue = ((Helpers.isTrue((!Helpers.isEqual(errorMessage, null))))) ? errorMessage : "unknown error";
+            throw new ExchangeError(errorMessageValue) ;
         }
         Object method = this.safeValue(methods, channel);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))

@@ -2420,11 +2420,11 @@ public class BybitCore extends BybitApi
     public Object createExpiredOptionMarket(Object symbol)
     {
         // support expired option contracts
-        Object quote = null;
-        Object settle = null;
+        String quote = null;
+        String settle = null;
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
-        Object base = null;
+        String base = null;
         Object expiry = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
@@ -2645,7 +2645,7 @@ public class BybitCore extends BybitApi
             Object list = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String status = "ok";
             Object eta = null;
-            Object url = null;
+            String url = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(list)); i++)
             {
                 Object eventVar = Helpers.GetValue(list, i);
@@ -3162,7 +3162,7 @@ public class BybitCore extends BybitApi
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseCoin");
                 String quoteId = this.safeString(market, "quoteCoin");
-                Object defaultSettledId = ((Helpers.isTrue(linear))) ? quoteId : baseId;
+                String defaultSettledId = ((Helpers.isTrue(linear))) ? quoteId : baseId;
                 String settleId = this.safeString(market, "settleCoin", defaultSettledId);
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
@@ -5236,8 +5236,8 @@ public class BybitCore extends BybitApi
         String type = this.safeStringLower(order, "orderType");
         String price = this.safeString(order, "price");
         String side = this.safeStringLower(order, "side");
-        Object amount = null;
-        Object cost = null;
+        String amount = null;
+        String cost = null;
         Boolean qtyIsQuote = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((Helpers.isEqual(type, "market")))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(marketUnit, "quoteCoin"))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(marketUnit, null))) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))));
         if (Helpers.isTrue(Helpers.isEqual(qtyIsQuote, true)))
         {
@@ -6011,7 +6011,7 @@ public class BybitCore extends BybitApi
         {
             Helpers.addElementToObject(request, "price", this.getPrice(symbol, this.numberToString(price)));
         }
-        Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
         Object stopLoss = this.safeValue(parameters, "stopLoss");
@@ -8229,7 +8229,7 @@ public class BybitCore extends BybitApi
         Object amount = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(afterString, null)) && Helpers.isTrue(!Helpers.isEqual(amountString, null))))
         {
-            Object difference = ((Helpers.isTrue((Helpers.isEqual(direction, "out"))))) ? amountString : Precise.stringNeg(amountString);
+            String difference = ((Helpers.isTrue((Helpers.isEqual(direction, "out"))))) ? amountString : Precise.stringNeg(amountString);
             before = this.parseToNumeric(Precise.stringAdd(afterString, difference));
             after = this.parseToNumeric(afterString);
             amount = this.parseToNumeric(Precise.stringAbs(amountString));
@@ -8762,7 +8762,7 @@ public class BybitCore extends BybitApi
                 side = null;
             }
         }
-        Object notional = null;
+        String notional = null;
         String contractSize = this.safeString(market, "contractSize");
         String markPrice = this.safeString(position, "markPrice");
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))

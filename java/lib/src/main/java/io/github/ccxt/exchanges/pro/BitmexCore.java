@@ -122,7 +122,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                     Object subscription = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
                     ((java.util.List<Object>)rawSubscriptions).add(subscription);
-                    String messageHash = (String) Helpers.add("ticker:", symbol);
+                    Object messageHash = Helpers.add("ticker:", symbol);
                     ((java.util.List<Object>)messageHashes).add(messageHash);
                 }
             } else
@@ -380,7 +380,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         {
             Object update = Helpers.GetValue(data, i);
             Object marketId = this.safeString(update, "symbol");
-            String symbol = (String) this.safeSymbol(marketId);
+            Object symbol = this.safeSymbol(marketId);
             if (!Helpers.isTrue((Helpers.inOp(this.tickers, symbol))))
             {
                 Helpers.addElementToObject(this.tickers, symbol, this.parseTicker(new java.util.HashMap<String, Object>() {{}}));
@@ -389,7 +389,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             java.util.Map<String, Object> fullParsedTicker = this.deepExtend(Helpers.GetValue(this.tickers, symbol), updatedTicker);
             Helpers.addElementToObject(tickers, symbol, fullParsedTicker);
             Helpers.addElementToObject(this.tickers, symbol, fullParsedTicker);
-            String messageHash = (String) Helpers.add("ticker:", symbol);
+            Object messageHash = Helpers.add("ticker:", symbol);
             client.resolve(fullParsedTicker, messageHash);
             client.resolve(fullParsedTicker, "alltickers");
         }
@@ -547,7 +547,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            String messageHash = (String) "margin";
+            String messageHash = "margin";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
@@ -784,7 +784,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
@@ -808,7 +808,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
     public void handleAuthenticationMessage(Client client, Object message)
     {
         Object authenticated = this.safeBool(message, "success", false);
-        String messageHash = (String) "authenticated";
+        String messageHash = "authenticated";
         if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
@@ -851,7 +851,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             }
             (this.authenticate()).join();
             String subscriptionHash = "position";
-            String messageHash = (String) "positions";
+            String messageHash = "positions";
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
                 symbols = this.marketSymbols(symbols);
@@ -1487,7 +1487,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object table = null;
+            String table = null;
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 table = this.safeString(this.options, "watchOrderBookLevel", "orderBookL2");

@@ -1515,7 +1515,7 @@ public class BingxCore extends BingxApi
         String quoteId = (String) Helpers.GetValue(symbolParts, 1);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object currency = this.safeString(market, "currency");
+        String currency = this.safeString(market, "currency");
         Object checkIsInverse = false;
         Object checkIsLinear = true;
         Object inverseContractSize = this.safeNumber(market, "minTickSize");
@@ -2076,7 +2076,7 @@ public class BingxCore extends BingxApi
         {
             takeOrMaker = ((Helpers.isTrue(isMakerSide))) ? "maker" : "taker";
         }
-        String side = (String)this.safeStringLower2(trade, "side", "S");
+        String side = this.safeStringLower2(trade, "side", "S");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isBuyerMaker, null))) || Helpers.isTrue((!Helpers.isEqual(m, null)))))
@@ -3094,10 +3094,10 @@ public class BingxCore extends BingxApi
         String close = this.safeString(ticker, "lastPrice");
         String quoteVolume = this.safeString(ticker, "quoteVolume");
         String baseVolume = this.safeString(ticker, "volume");
-        Object percentage = this.safeString(ticker, "priceChangePercent");
+        String percentage = this.safeString(ticker, "priceChangePercent");
         if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
         {
-            percentage = Helpers.replace(((String)percentage), "%", "");
+            percentage = Helpers.replace(percentage, "%", "");
         }
         String change = this.safeString(ticker, "priceChange");
         Long ts = this.safeInteger(ticker, "closeTime");
@@ -3762,7 +3762,7 @@ public class BingxCore extends BingxApi
         {
             Helpers.addElementToObject(request, exchangeClientOrderId, clientOrderId);
         }
-        String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarketOrder, Helpers.isEqual(timeInForce, "PostOnly"), parameters);
         postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
@@ -3815,7 +3815,7 @@ public class BingxCore extends BingxApi
                 }
             } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null)))))
             {
-                Object stopTakePrice = ((Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))))) ? stopLossPrice : takeProfitPrice;
+                String stopTakePrice = ((Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))))) ? stopLossPrice : takeProfitPrice;
                 if (Helpers.isTrue(Helpers.isEqual(type, "LIMIT")))
                 {
                     Helpers.addElementToObject(request, "type", "TAKE_STOP_LIMIT");
@@ -4623,10 +4623,10 @@ public class BingxCore extends BingxApi
         {
             market = this.safeMarket(marketId, null, null, marketType);
         }
-        String side = (String)this.safeStringLower2(order, "side", "S");
+        String side = this.safeStringLower2(order, "side", "S");
         Long timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "transactTime", "E", "createdTime")));
         Long lastTradeTimestamp = (Long) this.safeInteger2(order, "updateTime", "T");
-        String statusId = (String)this.safeStringUpperN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "X", "orderStatus")));
+        String statusId = this.safeStringUpperN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "X", "orderStatus")));
         Object feeCurrencyCode = this.safeString2(order, "feeAsset", "N");
         String feeCost = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee", "commission", "n")));
         if (Helpers.isTrue((Helpers.isEqual(feeCurrencyCode, null))))
@@ -6219,7 +6219,7 @@ public class BingxCore extends BingxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object data = this.safeValue(transaction, "data");
-        Object dataId = ((Helpers.isTrue((Helpers.isEqual(data, null))))) ? null : this.safeString(data, "id");
+        String dataId = ((Helpers.isTrue((Helpers.isEqual(data, null))))) ? null : this.safeString(data, "id");
         String id = this.safeString(transaction, "id", dataId);
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "addressTag");
@@ -6562,7 +6562,7 @@ public class BingxCore extends BingxApi
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
-            String side = (String)this.safeStringUpper(parameters, "side");
+            String side = this.safeStringUpper(parameters, "side");
             this.checkRequiredArgument("setLeverage", side, "side", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT", "BOTH")));
             parameters = this.omit(parameters, "side");
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -6669,7 +6669,7 @@ public class BingxCore extends BingxApi
                     fills = this.safeList(data, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 } else
                 {
-                    String tradingUnit = (String)this.safeStringUpper(parameters, "tradingUnit", "CONT");
+                    String tradingUnit = this.safeStringUpper(parameters, "tradingUnit", "CONT");
                     parameters = this.omit(parameters, "tradingUnit");
                     Helpers.addElementToObject(request, "tradingUnit", tradingUnit);
                     response = (this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, parameters))).join();
@@ -6815,7 +6815,7 @@ public class BingxCore extends BingxApi
                 put( "amount", BingxCore.this.currencyToPrecision(code, amount) );
                 put( "walletType", finalWalletType );
             }};
-            String network = (String)this.safeStringUpper(parameters, "network");
+            String network = this.safeStringUpper(parameters, "network");
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
                 Helpers.addElementToObject(request, "network", this.networkCodeToId(network, Helpers.GetValue(currency, "code")));
@@ -7363,7 +7363,7 @@ public class BingxCore extends BingxApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(marginMode, "symbol");
-        String marginType = (String)this.safeStringLower(marginMode, "marginType");
+        String marginType = this.safeStringLower(marginMode, "marginType");
         marginType = ((Helpers.isTrue((Helpers.isEqual(marginType, "crossed"))))) ? "cross" : marginType;
         final Object finalMarginType = marginType;
         return new java.util.HashMap<String, Object>() {{
@@ -7742,7 +7742,7 @@ final Object finalMarket = market;
         //    }
         //
         String code = this.safeString(response, "code");
-        Object message = this.safeString(response, "msg");
+        String message = this.safeString(response, "msg");
         String transferErrorMsg = this.safeString(response, "transferErrorMsg"); // handling with errors from transfer endpoint
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(transferErrorMsg, null))) || Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue(!Helpers.isEqual(code, "0"))))))
         {

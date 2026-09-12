@@ -97,7 +97,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = Helpers.add(Helpers.add("ORDER_BOOK", ":"), symbol);
+            Object messageHash = Helpers.add(Helpers.add("ORDER_BOOK", ":"), symbol);
             Object endPart = null;
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -135,10 +135,10 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         //         ]
         //     }
         //
-        String marketId = this.safeString(message, "pair");
+        Object marketId = this.safeString(message, "pair");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
-        String eventVar = this.safeString(message, "event");
+        Object eventVar = this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
@@ -176,7 +176,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = Helpers.add(Helpers.add("TRADE", ":"), symbol);
+            Object messageHash = Helpers.add(Helpers.add("TRADE", ":"), symbol);
             Object trades = (this.watchPublic("trades", messageHash, Helpers.GetValue(market, "id"))).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -208,10 +208,10 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         //         ]
         //     }
         //
-        String marketId = this.safeString(message, "pair");
+        Object marketId = this.safeString(message, "pair");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
-        String eventVar = this.safeString(message, "event");
+        Object eventVar = this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
         Object rawData = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> trades = this.parseTrades(rawData, market);
@@ -298,12 +298,12 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
-        String baseId = this.safeString(data, "base");
-        String quoteId = this.safeString(data, "quote");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
-        String symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
-        String messageHash = this.safeString(message, "event");
+        Object baseId = this.safeString(data, "base");
+        Object quoteId = this.safeString(data, "quote");
+        Object base = this.safeCurrencyCode(baseId);
+        Object quote = this.safeCurrencyCode(quoteId);
+        Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
+        Object messageHash = this.safeString(message, "event");
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -337,18 +337,18 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String id = this.safeString(trade, "matchID");
-        String orderId = this.safeString(trade, "orderID");
+        Object id = this.safeString(trade, "matchID");
+        Object orderId = this.safeString(trade, "orderID");
         Object timestamp = this.safeTimestamp(trade, "transactionTimestamp");
-        String baseId = this.safeString(trade, "base");
-        String quoteId = this.safeString(trade, "quote");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
-        String symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
+        Object baseId = this.safeString(trade, "base");
+        Object quoteId = this.safeString(trade, "quote");
+        Object base = this.safeCurrencyCode(baseId);
+        Object quote = this.safeCurrencyCode(quoteId);
+        Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
         market = this.safeMarket(symbol, market);
-        String price = this.safeString(trade, "price");
-        String type = (String)this.safeStringLower(trade, "orderType");
-        String side = this.safeString(trade, "side");
+        Object price = this.safeString(trade, "price");
+        Object type = this.safeStringLower(trade, "orderType");
+        Object side = this.safeString(trade, "side");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(side, "ask")))
@@ -359,10 +359,10 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
                 side = "buy";
             }
         }
-        String amount = this.safeString(trade, "volume");
+        Object amount = this.safeString(trade, "volume");
         Object fee = null;
-        String feeAmount = this.safeString(trade, "fee");
-        String feeSymbol = (String) this.safeCurrencyCode(this.safeString(trade, "feeCurrency"));
+        Object feeAmount = this.safeString(trade, "fee");
+        Object feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"));
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
             final Object finalFeeAmount = feeAmount;
@@ -425,7 +425,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = Helpers.add(Helpers.add("TICKER", ":"), symbol);
+            Object messageHash = Helpers.add(Helpers.add("TICKER", ":"), symbol);
             return (this.watchPublic("tickers", messageHash, Helpers.GetValue(market, "id"))).join();
         });
 
@@ -451,7 +451,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         //         "low24hr": "1179321"
         //     }
         //
-        String marketId = (String)this.safeStringLower(message, "pair");
+        Object marketId = this.safeStringLower(message, "pair");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
             return;  // some TICKER frames arrive without a pair - nothing to resolve them against
@@ -459,7 +459,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         // market-ids are lowercase in REST API and uppercase in WS API
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
-        String eventVar = this.safeString(message, "event");
+        Object eventVar = this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
         Object result = this.parseTicker(message, market);
         Helpers.addElementToObject(result, "symbol", this.safeString(market, "symbol")); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
@@ -551,10 +551,10 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         //         }
         //     }
         //
-        String eventVar = this.safeString(message, "event");
+        Object eventVar = this.safeString(message, "event");
         Object data = this.safeValue(message, "data");
         Long timestamp = this.safeInteger(message, "timestamp");
-        String datetime = this.safeString(message, "datetime");
+        Object datetime = this.safeString(message, "datetime");
         Object currencies = Helpers.objectKeys(data);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", data );
@@ -563,10 +563,10 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
         {
-            String currency = this.safeString(currencies, i);
+            Object currency = this.safeString(currencies, i);
             Object balance = this.safeValue(data, currency);
-            String currencyId = this.safeString(balance, "currency");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            Object currencyId = this.safeString(balance, "currency");
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
@@ -588,7 +588,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             put( "ACCOUNT_BALANCE", "handleBalance");
             put( "USER_TRADE", "handleMyTrade");
         }};
-        String eventVar = this.safeString(message, "event");
+        Object eventVar = this.safeString(message, "event");
         Object method = this.safeValue(methods, eventVar);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {

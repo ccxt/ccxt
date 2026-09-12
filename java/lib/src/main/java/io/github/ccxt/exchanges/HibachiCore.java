@@ -347,10 +347,10 @@ public class HibachiCore extends HibachiApi
         String marketType = "swap";
         String baseId = this.safeString(market, "underlyingSymbol");
         String quoteId = this.safeString(market, "settlementSymbol");
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         String settleId = this.safeString(market, "settlementSymbol");
-        String settle = (String) this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Long created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
         final Object finalBase = base;
@@ -477,7 +477,7 @@ public class HibachiCore extends HibachiApi
     put( "withdraw", null );
     put( "info", new java.util.HashMap<String, Object>() {{}} );
 }});
-        String code = (String) this.safeCurrencyCode("USDT");
+        String code = this.safeCurrencyCode("USDT");
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
         {
             final Object finalCode = code;
@@ -514,7 +514,7 @@ public class HibachiCore extends HibachiApi
             put( "info", response );
         }};
         // Hibachi only supports USDT on Arbitrum at this time
-        String code = (String) this.safeCurrencyCode("USDT");
+        String code = this.safeCurrencyCode("USDT");
         Object account = this.account();
         Helpers.addElementToObject(account, "total", this.safeString(response, "balance"));
         Helpers.addElementToObject(account, "free", this.safeString(response, "maximalWithdraw"));
@@ -637,7 +637,7 @@ public class HibachiCore extends HibachiApi
         Object side = null;
         Object fee = null;
         Object orderType = null;
-        Object orderId = null;
+        String orderId = null;
         String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
@@ -813,7 +813,7 @@ public class HibachiCore extends HibachiApi
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         String status = this.safeString(order, "status");
-        String type = (String)this.safeStringLower(order, "orderType");
+        String type = this.safeStringLower(order, "orderType");
         String price = this.safeString2(order, "price", "avgFillPrice");
         String rawSide = this.safeString(order, "side");
         String side = null;
@@ -833,7 +833,7 @@ public class HibachiCore extends HibachiApi
         {
             filled = Precise.stringSub(totalQuantity, availableQuantity);
         }
-        Object remainingString = remaining;
+        String remainingString = remaining;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(remainingString, null)) && Helpers.isTrue(!Helpers.isEqual(totalQuantity, null))) && Helpers.isTrue(!Helpers.isEqual(filled, null))))
         {
             remainingString = Precise.stringSub(totalQuantity, filled);
@@ -1087,7 +1087,7 @@ public class HibachiCore extends HibachiApi
         }};
         Object postOnly = this.isPostOnly(Helpers.isEqual(((String)type).toUpperCase(), "MARKET"), null, parameters);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
+        String timeInForce = this.safeStringLower(parameters, "timeInForce");
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         if (Helpers.isTrue(postOnly))
         {
@@ -2132,7 +2132,7 @@ public class HibachiCore extends HibachiApi
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String side = (String)this.safeStringLower(position, "direction");
+        String side = this.safeStringLower(position, "direction");
         String quantity = this.safeString(position, "quantity");
         String unrealizedFunding = this.safeString(position, "unrealizedFundingPnl", "0");
         String unrealizedTrading = this.safeString(position, "unrealizedTradingPnl", "0");
@@ -2264,8 +2264,8 @@ public class HibachiCore extends HibachiApi
         String direction = null;
         Object amount = null;
         Object fee = null;
-        Object referenceId = null;
-        Object referenceAccount = null;
+        String referenceId = null;
+        String referenceAccount = null;
         String status = null;
         if (Helpers.isTrue(Helpers.isEqual(transactionType, null)))
         {
@@ -2490,7 +2490,7 @@ public class HibachiCore extends HibachiApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeIntegerProduct(transaction, "timestampSec", 1000);
         String address = this.safeString(transaction, "withdrawalAddress");
-        Object transactionType = this.safeString(transaction, "transactionType");
+        String transactionType = this.safeString(transaction, "transactionType");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(transactionType, "deposit")) && Helpers.isTrue(!Helpers.isEqual(transactionType, "withdrawal"))))
         {
             transactionType = this.parseTransactionType(transactionType);

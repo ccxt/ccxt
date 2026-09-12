@@ -1518,7 +1518,7 @@ public class MexcCore extends MexcApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "coin");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
@@ -1664,8 +1664,8 @@ public class MexcCore extends MexcApi
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
                 String status = this.safeString(market, "status");
                 Object isSpotTradingAllowed = this.safeValue(market, "isSpotTradingAllowed");
                 Boolean active = false;
@@ -1808,9 +1808,9 @@ public class MexcCore extends MexcApi
                 String baseId = this.safeString(market, "baseCoin");
                 String quoteId = this.safeString(market, "quoteCoin");
                 String settleId = this.safeString(market, "settleCoin");
-                String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
-                String settle = (String) this.safeCurrencyCode(settleId);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                String settle = this.safeCurrencyCode(settleId);
                 String state = this.safeString(market, "state");
                 Boolean isLinear = Helpers.isEqual(quote, settle);
     final Object finalBase = base;
@@ -2071,15 +2071,15 @@ public class MexcCore extends MexcApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = null;
         Object timestamp = null;
-        Object orderId = null;
+        String orderId = null;
         Object symbol = null;
         Object fee = null;
         Object type = null;
         String side = null;
         String takerOrMaker = null;
-        Object priceString = null;
-        Object amountString = null;
-        Object costString = null;
+        String priceString = null;
+        String amountString = null;
+        String costString = null;
         // if swap
         if (Helpers.isTrue(Helpers.inOp(trade, "v")))
         {
@@ -2545,18 +2545,18 @@ public class MexcCore extends MexcApi
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         Object timestamp = null;
-        Object bid = null;
-        Object ask = null;
-        Object bidVolume = null;
-        Object askVolume = null;
-        Object baseVolume = null;
-        Object quoteVolume = null;
-        Object open = null;
-        Object high = null;
-        Object low = null;
-        Object changePcnt = null;
-        Object changeValue = null;
-        Object prevClose = null;
+        String bid = null;
+        String ask = null;
+        String bidVolume = null;
+        String askVolume = null;
+        String baseVolume = null;
+        String quoteVolume = null;
+        String open = null;
+        String high = null;
+        String low = null;
+        String changePcnt = null;
+        String changeValue = null;
+        String prevClose = null;
         Object isSwap = this.safeValue(market, "swap");
         // if swap
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isSwap, true))) || Helpers.isTrue((Helpers.inOp(ticker, "timestamp")))))
@@ -3188,7 +3188,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object symbol = null;
+            String symbol = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -4486,7 +4486,7 @@ public class MexcCore extends MexcApi
             {
                 Object account = Helpers.GetValue(data, i);
                 String currencyId = this.safeString2(account, "asset", "currency");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", MexcCore.this.safeString(account, "id") );
                     put( "type", MexcCore.this.safeString(account, "type") );
@@ -4634,8 +4634,8 @@ public class MexcCore extends MexcApi
                 Object entry = Helpers.GetValue(wallet, i);
                 Object base = this.safeValue(entry, "baseAsset", new java.util.HashMap<String, Object>() {{}});
                 Object quote = this.safeValue(entry, "quoteAsset", new java.util.HashMap<String, Object>() {{}});
-                String baseCode = (String) this.safeCurrencyCode(this.safeString(base, "asset"));
-                String quoteCode = (String) this.safeCurrencyCode(this.safeString(quote, "asset"));
+                String baseCode = this.safeCurrencyCode(this.safeString(base, "asset"));
+                String quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if (Helpers.isTrue(!Helpers.isEqual(baseCode, null)))
                 {
                     result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
@@ -4652,7 +4652,7 @@ public class MexcCore extends MexcApi
             {
                 Object entry = Helpers.GetValue(wallet, i);
                 String currencyId = this.safeString(entry, "currency");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "availableBalance"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "frozenBalance"));
@@ -4668,7 +4668,7 @@ public class MexcCore extends MexcApi
             {
                 Object entry = Helpers.GetValue(wallet, i);
                 String currencyId = this.safeString(entry, "asset");
-                String code = (String) this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
@@ -5266,7 +5266,7 @@ public class MexcCore extends MexcApi
         Double nextFundingRate = this.safeNumber2(contract, "fundingRate", "rate");
         Long nextFundingTimestamp = this.safeInteger(contract, "nextSettleTime");
         String marketId = this.safeString(contract, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market, null, "contract");
+        String symbol = this.safeSymbol(marketId, market, null, "contract");
         Long timestamp = this.safeInteger(contract, "timestamp");
         String interval = this.safeString(contract, "collectCycle");
         Object intervalString = null;
@@ -5430,7 +5430,7 @@ public class MexcCore extends MexcApi
             {
                 Object entry = Helpers.GetValue(result, i);
                 String marketId = this.safeString(entry, "symbol");
-                String symbolInner = (String) this.safeSymbol(marketId);
+                String symbolInner = this.safeSymbol(marketId);
                 Long timestamp = this.safeInteger(entry, "settleTime");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
@@ -5620,7 +5620,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String address = this.safeString(depositAddress, "address");
         String currencyId = this.safeString(depositAddress, "coin");
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String networkId = this.safeString(depositAddress, "netWork");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
@@ -6013,7 +6013,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         {
             currencyId = Helpers.GetValue(Helpers.split(currencyWithNetwork, "-"), 0);
         }
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Object network = null;
         String rawNetwork = this.safeString(transaction, "network");
         if (Helpers.isTrue(!Helpers.isEqual(rawNetwork, null)))
@@ -6618,8 +6618,8 @@ final Object finalRiskIncrVol = riskIncrVol;
         Long timestamp = (Long) this.safeInteger2(transfer, "createTime", "timestamp");
         String datetime = ((Helpers.isTrue((!Helpers.isEqual(timestamp, null))))) ? this.iso8601(timestamp) : null;
         String direction = this.safeString(transfer, "type");
-        Object accountFrom = null;
-        Object accountTo = null;
+        String accountFrom = null;
+        String accountTo = null;
         String fromAccountType = this.safeString(transfer, "fromAccountType");
         String toAccountType = this.safeString(transfer, "toAccountType");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fromAccountType, null))) && Helpers.isTrue((!Helpers.isEqual(toAccountType, null)))))
@@ -6887,7 +6887,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             String code = this.safeString(currency, "code");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))
             {
-                Helpers.addElementToObject(withdrawFees, (code), this.parseTransactionFee(entry, currency));
+                Helpers.addElementToObject(withdrawFees, code, this.parseTransactionFee(entry, currency));
             }
         }
         return new java.util.HashMap<String, Object>() {{
@@ -6934,7 +6934,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             String networkId = this.safeString(networkEntry, "network");
             String networkCode = this.safeString(Helpers.GetValue(this.options, "networks"), networkId, networkId);
             Double fee = this.safeNumber(networkEntry, "withdrawFee");
-            Helpers.addElementToObject(result, (networkCode), fee);
+            Helpers.addElementToObject(result, networkCode, fee);
         }
         return result;
     }
@@ -7292,7 +7292,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a leverage parameter")) ;
             }
-            String direction = (String)this.safeStringLower2(parameters, "direction", "positionId");
+            String direction = this.safeStringLower2(parameters, "direction", "positionId");
             final Object finalLeverage = leverage;
             final Object finalMarginModeLower = marginModeLower;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -7339,10 +7339,10 @@ final Object finalRiskIncrVol = riskIncrVol;
         {
             if (Helpers.isTrue(Helpers.isEqual(section, "broker")))
             {
-                url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), (access)), "/"), path);
+                url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), access), "/"), path);
             } else
             {
-                url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), (access)), "/api/"), this.version), "/"), path);
+                url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), access), "/api/"), this.version), "/"), path);
             }
             Object urlParams = parameters;
             if (Helpers.isTrue(Helpers.isEqual(access, "private")))
@@ -7383,7 +7383,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(section, "contract")) || Helpers.isTrue(Helpers.isEqual(section, "spot2"))))
         {
-            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), (access)), "/"), this.implodeParams(path, parameters));
+            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), access), "/"), this.implodeParams(path, parameters));
             parameters = this.omit(parameters, this.extractParams(path));
             if (Helpers.isTrue(Helpers.isEqual(access, "public")))
             {

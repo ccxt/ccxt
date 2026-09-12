@@ -579,7 +579,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object secondPart = this.safeString(parts, 1, "");
         Object timeframeId = Helpers.replace(((String)secondPart), "-TRADE", "");
         Object timeframe = this.findTimeframe(timeframeId);
-        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
+        Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
@@ -759,7 +759,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         // unconditional assignment is correct for every language.
         Helpers.addElementToObject(orderbook, "symbol", symbol);
         Helpers.addElementToObject(orderbook, "nonce", sequenceNumber);
-        String messageHash = (String) Helpers.add("orderbook::", symbol);
+        Object messageHash = Helpers.add("orderbook::", symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }

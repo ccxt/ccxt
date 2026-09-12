@@ -878,7 +878,7 @@ public class BitrueCore extends BitrueApi
     {
         String id = this.safeString(rawCurrency, "coin");
         String name = this.safeString(rawCurrency, "coinFulName");
-        String code = (String) this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id);
         Object networkDetails = this.safeList(rawCurrency, "chainDetail", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkDetails)); j++)
@@ -1057,7 +1057,7 @@ public class BitrueCore extends BitrueApi
     public Object parseMarket(Object market)
     {
         String id = this.safeString(market, "symbol", "");
-        String lowercaseId = (String)this.safeStringLower(market, "symbol");
+        String lowercaseId = this.safeStringLower(market, "symbol");
         Long side = this.safeInteger(market, "side"); // 1 linear, 0 inverse, undefined spot
         String type = "spot";
         Object isLinear = null;
@@ -1074,7 +1074,7 @@ public class BitrueCore extends BitrueApi
         Boolean isContract = (!Helpers.isEqual(type, "spot"));
         String baseId = this.safeString(market, "baseAsset");
         String quoteId = this.safeString(market, "quoteAsset");
-        Object settleId = null;
+        String settleId = null;
         Object settle = null;
         if (Helpers.isTrue(isContract))
         {
@@ -1090,8 +1090,8 @@ public class BitrueCore extends BitrueApi
             }
             settle = this.safeCurrencyCode(settleId);
         }
-        String base = (String) this.safeCurrencyCode(baseId);
-        String quote = (String) this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         if (Helpers.isTrue(!Helpers.isEqual(settle, null)))
         {
@@ -1239,7 +1239,7 @@ public class BitrueCore extends BitrueApi
         {
             Object balance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString2(balance, "asset", "marginCoin");
-            String code = (String) this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString2(balance, "free", "accountNormal"));
             Helpers.addElementToObject(account, "used", this.safeString2(balance, "locked", "accountLock"));
@@ -1440,10 +1440,10 @@ public class BitrueCore extends BitrueApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String symbol = (String) this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market);
         String last = this.safeString2(ticker, "lastPrice", "last");
         Long timestamp = this.safeInteger(ticker, "time");
-        Object percentage = null;
+        String percentage = null;
         if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "swap"), true)))
         {
             percentage = Precise.stringMul(this.safeString(ticker, "rose"), "100");
@@ -1960,7 +1960,7 @@ public class BitrueCore extends BitrueApi
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
         String marketId = this.safeString2(trade, "symbol", "contractName");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String orderId = this.safeString(trade, "orderId");
         String id = this.safeString2(trade, "id", "tradeId");
         String side = null;
@@ -2141,7 +2141,7 @@ public class BitrueCore extends BitrueApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String status = this.parseOrderStatus(this.safeString2(order, "status", "orderStatus"));
         String marketId = this.safeString(order, "symbol");
-        String symbol = (String) this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market);
         String filled = this.safeString(order, "executedQty");
         Object timestamp = null;
         Object lastTradeTimestamp = null;
@@ -2172,8 +2172,8 @@ public class BitrueCore extends BitrueApi
         //   Note this is not the actual cost, since the exchange uses leverage to calculate margins.
         String cost = this.safeString2(order, "cummulativeQuoteQty", "cumQuote");
         String id = this.safeString(order, "orderId");
-        String type = (String)this.safeStringLower(order, "type");
-        String side = (String)this.safeStringLower(order, "side");
+        String type = this.safeStringLower(order, "type");
+        String side = this.safeStringLower(order, "side");
         Object fills = this.safeList(order, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String clientOrderId = this.safeString(order, "clientOrderId");
         String timeInForce = this.safeString(order, "timeInForce");
@@ -2301,7 +2301,7 @@ public class BitrueCore extends BitrueApi
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Boolean isMarket = Helpers.isEqual(uppercaseType, "MARKET");
-                String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
+                String timeInForce = this.safeStringLower(parameters, "timeInForce");
                 Object postOnly = this.isPostOnly(isMarket, null, parameters);
                 if (Helpers.isTrue(postOnly))
                 {
@@ -2330,7 +2330,7 @@ public class BitrueCore extends BitrueApi
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
                         String quoteAmount = Precise.stringMul(amountString, priceString);
-                        Object requestAmount = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
+                        String requestAmount = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                         Helpers.addElementToObject(request, "amount", this.costToPrecision(symbol, requestAmount));
                         Helpers.addElementToObject(request, "volume", this.costToPrecision(symbol, requestAmount));
                     }
@@ -3198,8 +3198,8 @@ public class BitrueCore extends BitrueApi
         String tagType = this.safeString(transaction, "tagType");
         String addressTo = this.safeString(transaction, "addressTo");
         String addressFrom = this.safeString(transaction, "addressFrom");
-        Object tagTo = null;
-        Object tagFrom = null;
+        String tagTo = null;
+        String tagFrom = null;
         if (Helpers.isTrue(!Helpers.isEqual(tagType, null)))
         {
             if (Helpers.isTrue(!Helpers.isEqual(addressTo, null)))
@@ -3235,7 +3235,7 @@ public class BitrueCore extends BitrueApi
                 network = networkId.toUpperCase();
             }
         }
-        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         Double feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -3445,8 +3445,8 @@ public class BitrueCore extends BitrueApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String transferType = this.safeString(transfer, "transferType");
-        Object fromAccount = null;
-        Object toAccount = null;
+        String fromAccount = null;
+        String toAccount = null;
         if (Helpers.isTrue(!Helpers.isEqual(transferType, null)))
         {
             Object accountSplit = Helpers.split(transferType, "_to_");
@@ -3736,7 +3736,7 @@ public class BitrueCore extends BitrueApi
             url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type);
         } else
         {
-            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), (type)), "/"), version);
+            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type), "/"), version);
         }
         url = Helpers.add(Helpers.add(url, "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
