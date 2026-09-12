@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class nado { public nado(object args = null) : base(args) { } }
 public partial class nado : ccxt.nado
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -1236,7 +1236,7 @@ public partial class nado : ccxt.nado
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(!isEqual(authenticated, null)))
         {
-            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
             if (isTrue(!isEqual(future, null)))
             {
                 return await (future as Exchange.Future);
@@ -1298,7 +1298,7 @@ public partial class nado : ccxt.nado
         return this.signHash(hash, this.privateKey);
     }
 
-    public virtual object createPublicSubscriptionRequest(object method, object streamType, object market = null, object id = null, object parameters = null)
+    public virtual Dictionary<string, object> createPublicSubscriptionRequest(object method, object streamType, object market = null, object id = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> stream = new Dictionary<string, object>() {
@@ -1329,7 +1329,7 @@ public partial class nado : ccxt.nado
                 object market = getValue(markets, i);
                 object id = this.requestId();
                 object requestParams = ((bool) isTrue((isEqual(subscriptionParams, null)))) ? parameters : getValue(subscriptionParams, i);
-                object request = this.createPublicSubscriptionRequest("subscribe", streamType, market, id, requestParams);
+                Dictionary<string, object> request = this.createPublicSubscriptionRequest("subscribe", streamType, market, id, requestParams);
                 string subscribeHash = add("subscribe:", this.json(getValue(request, "stream")));
                 object streamSubscription = this.safeValue(((WebSocketClient)client).subscriptions, subscribeHash);
                 if (isTrue(isEqual(streamSubscription, null)))
@@ -1353,7 +1353,7 @@ public partial class nado : ccxt.nado
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "subscriptions");
         object id = this.requestId();
-        object request = this.createPublicSubscriptionRequest("unsubscribe", streamType, market, id, parameters);
+        Dictionary<string, object> request = this.createPublicSubscriptionRequest("unsubscribe", streamType, market, id, parameters);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", id },
             { "messageHash", messageHash },
@@ -1379,7 +1379,7 @@ public partial class nado : ccxt.nado
             object id = this.requestId();
             string unsubscribeHash = add("unsubscribe:", messageHash);
             object requestParams = ((bool) isTrue((isEqual(subscriptionParams, null)))) ? parameters : getValue(subscriptionParams, i);
-            object request = this.createPublicSubscriptionRequest("unsubscribe", streamType, getValue(markets, i), id, requestParams);
+            Dictionary<string, object> request = this.createPublicSubscriptionRequest("unsubscribe", streamType, getValue(markets, i), id, requestParams);
             Dictionary<string, object> subscription = new Dictionary<string, object>() {
                 { "id", id },
                 { "messageHash", messageHash },
@@ -1400,10 +1400,12 @@ public partial class nado : ccxt.nado
         {
             return null;
         }
-        int length = ((string)value).Length;
-        if (isTrue(isGreaterThan(length, 13)))
+        // keep the string-size reads inline: assigning the size to a standalone
+        // local is the regex transpiler's ARRAY hint and would emit php count()
+        // on a string, breaking every ws parser with a TypeError
+        if (isTrue(isGreaterThan(((string)value).Length, 13)))
         {
-            return this.parseToInt(slice(value, 0, subtract(length, 6)));
+            return this.parseToInt(slice(value, 0, subtract(((string)value).Length, 6)));
         }
         return this.safeInteger(message, key);
     }
@@ -1812,7 +1814,7 @@ public partial class nado : ccxt.nado
         callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, "ticker"});
     }
 
-    public virtual object parseWsAllBidsAsks(object message)
+    public virtual Dictionary<string, object> parseWsAllBidsAsks(object message)
     {
         //
         //     {
@@ -1837,7 +1839,7 @@ public partial class nado : ccxt.nado
             string maxPrice = "170141183460469231731687303715884105727";
             if (isTrue(isTrue(isTrue(isTrue(Precise.stringGt(bid, "0")) && isTrue(Precise.stringGt(ask, "0"))) && !isTrue(Precise.stringEquals(bid, maxPrice))) && !isTrue(Precise.stringEquals(ask, maxPrice))))
             {
-                object ticker = this.safeTicker(new Dictionary<string, object>() {
+                Dictionary<string, object> ticker = this.safeTicker(new Dictionary<string, object>() {
                     { "symbol", getValue(market, "symbol") },
                     { "timestamp", timestamp },
                     { "datetime", this.iso8601(timestamp) },
@@ -1849,12 +1851,12 @@ public partial class nado : ccxt.nado
                 ((IDictionary<string,object>)result)[(string)symbol] = ticker;
             }
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     public virtual void handleAllBidsAsks(WebSocketClient client, object message)
     {
-        object tickers = this.parseWsAllBidsAsks(message);
+        Dictionary<string, object> tickers = this.parseWsAllBidsAsks(message);
         List<object> symbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {

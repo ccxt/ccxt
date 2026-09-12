@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bitflyer : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bitflyer" },
@@ -495,7 +495,7 @@ public partial class bitflyer : Exchange
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency_code");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             if (isTrue(!isEqual(code, null)))
@@ -921,7 +921,7 @@ public partial class bitflyer : Exchange
             { "count", limitVar },
         };
         List<object> response = await this.privateGetGetchildorders(this.extend(request, parameters));
-        object orders = this.parseOrders(response, market, since, limitVar);
+        IList<object> orders = this.parseOrders(response, market, since, limitVar);
         if (isTrue(!isEqual(symbol, null)))
         {
             orders = this.filterBy(orders, "symbol", symbol);

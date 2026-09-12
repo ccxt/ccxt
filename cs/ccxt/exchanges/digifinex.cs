@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class digifinex : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "digifinex" },
@@ -641,7 +641,7 @@ public partial class digifinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicSpotGetCurrencies(parameters);
@@ -691,7 +691,7 @@ public partial class digifinex : Exchange
         return this.parseCurrencies(values);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         object networkEntries = rawCurrency;
         IDictionary<string, object> firstEntry = this.safeDict(networkEntries, 0, new Dictionary<string, object>() {}); // it must have at least one entry
@@ -946,7 +946,7 @@ public partial class digifinex : Exchange
         //         "code":0
         //     }
         //
-        object markets = this.safeValue(response, "data", new List<object>() {});
+        List<object> markets = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
@@ -1047,7 +1047,7 @@ public partial class digifinex : Exchange
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             string? free = this.safeString2(balance, "free", "avail_balance");
             string? total = this.safeString2(balance, "total", "equity");
             ((IDictionary<string,object>)account)["free"] = free;
@@ -1316,7 +1316,7 @@ public partial class digifinex : Exchange
         //     }
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        object tickers = this.safeValue2(response, "ticker", "data", new List<object>() {});
+        List<object> tickers = this.safeList2(response, "ticker", "data", new List<object>() {});
         Int64? date = this.safeInteger(response, "date");
         for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
@@ -2155,7 +2155,7 @@ public partial class digifinex : Exchange
         bool isLimitOrder = (isEqual(type, "limit"));
         string marketIdRequest = ((bool) isTrue(swap)) ? "instrument_id" : "symbol";
         ((IDictionary<string,object>)request)[(string)marketIdRequest] = getValue(market, "id");
-        object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
+        bool postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         object postOnlyParsed = null;
         if (isTrue(swap))
         {
@@ -2367,13 +2367,13 @@ public partial class digifinex : Exchange
         //
         if (isTrue(isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin")))))
         {
-            object canceledOrders = this.safeValue(response, "success", new List<object>() {});
+            List<object> canceledOrders = this.safeList(response, "success", new List<object>() {});
             int numCanceledOrders = getArrayLength(canceledOrders);
             if (isTrue(!isEqual(numCanceledOrders, 1)))
             {
                 throw new OrderNotFound ((string)add(add(add(this.id, " cancelOrder() "), idVar), " not found")) ;
             }
-            object orders = this.parseCancelOrders(response);
+            List<object> orders = this.parseCancelOrders(response);
             return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
         } else
         {
@@ -2381,7 +2381,7 @@ public partial class digifinex : Exchange
         }
     }
 
-    public virtual object parseCancelOrders(object response)
+    public virtual List<object> parseCancelOrders(object response)
     {
         List<object> success = this.safeList(response, "success", new List<object>() {});
         List<object> error = this.safeList(response, "error", new List<object>() {});
@@ -2405,7 +2405,7 @@ public partial class digifinex : Exchange
                 { "clientOrderId", this.safeString(order, "client-order-id") },
             }));
         }
-        return result;
+        return ((List<object>)((object)(result)));
     }
 
     /**
@@ -3596,7 +3596,7 @@ public partial class digifinex : Exchange
         bool fromSwap = (isEqual(fromAccount, "swap"));
         bool toSwap = (isEqual(toAccount, "swap"));
         Dictionary<string, object> response = null;
-        object amountString = this.currencyToPrecision(((string)code), amount);
+        string? amountString = this.currencyToPrecision(((string)code), amount);
         if (isTrue(isTrue(fromSwap) || isTrue(toSwap)))
         {
             if (isTrue(isTrue((!isEqual(fromId, "1"))) && isTrue((!isEqual(toId, "1")))))
@@ -3791,7 +3791,7 @@ public partial class digifinex : Exchange
         //         "equity": 45.133305540922
         //     }
         //
-        object data = this.safeValue(response, "list", new List<object>() {});
+        List<object> data = this.safeList(response, "list", new List<object>() {});
         object result = null;
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -3864,7 +3864,7 @@ public partial class digifinex : Exchange
         };
     }
 
-    public virtual object parseBorrowRates(object info, object codeKey)
+    public virtual Dictionary<string, object> parseBorrowRates(object info, object codeKey)
     {
         //
         //     {
@@ -3886,7 +3886,7 @@ public partial class digifinex : Exchange
                 ((IDictionary<string,object>)result)[(string)code] = borrowRate;
             }
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     /**
@@ -4051,7 +4051,7 @@ public partial class digifinex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object result = this.safeValue(data, "funding_rates", new List<object>() {});
+        List<object> result = this.safeList(data, "funding_rates", new List<object>() {});
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
@@ -4249,7 +4249,7 @@ public partial class digifinex : Exchange
         //     }
         //
         string positionRequest = ((bool) isTrue((isEqual(marketType, "swap")))) ? "data" : "positions";
-        object positions = this.safeValue(response, positionRequest, new List<object>() {});
+        List<object> positions = this.safeList(response, positionRequest, new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
@@ -4353,7 +4353,7 @@ public partial class digifinex : Exchange
         //     }
         //
         string dataRequest = ((bool) isTrue((isEqual(marketType, "swap")))) ? "data" : "positions";
-        object data = this.safeValue(response, dataRequest, new List<object>() {});
+        List<object> data = this.safeList(response, dataRequest, new List<object>() {});
         object position = this.parsePosition(getValue(data, 0), market);
         if (isTrue(isEqual(marketType, "swap")))
         {
@@ -4807,7 +4807,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(data, codes));
     }
 
-    public override object parseDepositWithdrawFees(object response, object codes = null, object currencyIdKey = null)
+    public override Dictionary<string, object> parseDepositWithdrawFees(object response, object codes = null, object currencyIdKey = null)
     {
         //
         //     [
@@ -4886,7 +4886,7 @@ public partial class digifinex : Exchange
             Dictionary<string, object> currency = this.currency(((string)code));
             ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
         }
-        return depositWithdrawFees;
+        return ((Dictionary<string, object>)((object)(depositWithdrawFees)));
     }
 
     /**
@@ -5109,7 +5109,7 @@ public partial class digifinex : Exchange
         parameters ??= new Dictionary<string, object>();
         bool signed = isEqual(getValue(api, 0), "private");
         object endpoint = getValue(api, 1);
-        object pathPart = ((bool) isTrue((isEqual(endpoint, "spot")))) ? "/v3" : "/swap/v2";
+        string pathPart = ((bool) isTrue((isEqual(endpoint, "spot")))) ? "/v3" : "/swap/v2";
         string request = add("/", this.implodeParams(path, parameters));
         object payload = add(pathPart, request);
         object url = add(getValue(getValue(this.urls, "api"), "rest"), payload);

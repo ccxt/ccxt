@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct PhemexCore {
@@ -3031,7 +3035,7 @@ impl PhemexCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1053: bool = true;
@@ -5190,7 +5194,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut positions: Value = self.safe_value_k(data.clone(), "positions", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(data.clone(), "positions", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -5527,7 +5531,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rows: Value = self.safe_value_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -7069,7 +7073,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut ranks: Value = self.safe_value_k(data.clone(), "positions", &[Value::List(vec![])]);
+        let mut ranks: Value = self.safe_list_k(data.clone(), "positions", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);

@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class coincheck : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coincheck" },
@@ -357,7 +357,7 @@ public partial class coincheck : Exchange
             object currencyId = getValue(currency, "id");
             if (isTrue(inOp(response, currencyId)))
             {
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 object reserved = add(currencyId, "_reserved");
                 ((IDictionary<string,object>)account)["free"] = this.safeString(response, currencyId);
                 ((IDictionary<string,object>)account)["used"] = this.safeString(response, reserved);

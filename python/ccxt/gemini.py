@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -656,7 +656,7 @@ class gemini(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_market_active(self, status: object):
+    def parse_market_active(self, status: object) -> Bool:
         statuses = {
             'open': True,
             'closed': False,
@@ -673,7 +673,7 @@ class gemini(Exchange, ImplicitAPI):
         # to load market ids which we don't need here
         if 'test' in self.urls:
             return []  # sandbox does not have usdt markets
-        fetchUsdtMarkets = self.safe_value(self.options, 'fetchUsdtMarkets', [])
+        fetchUsdtMarkets = self.safe_list(self.options, 'fetchUsdtMarkets', [])
         result = []
         for i in range(0, len(fetchUsdtMarkets)):
             marketId = fetchUsdtMarkets[i]

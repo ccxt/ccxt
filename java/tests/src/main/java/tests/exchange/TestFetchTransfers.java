@@ -16,7 +16,7 @@ public class TestFetchTransfers extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchTransfers";
+        String method = "fetchTransfers";
         Object transfers = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTransfers", new Object[]{code})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, transfers, code);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transfers)); i++)

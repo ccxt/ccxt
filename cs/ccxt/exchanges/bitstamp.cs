@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bitstamp : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bitstamp" },
@@ -1270,10 +1270,10 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public virtual object constructCurrencyObject(object id, object code, object name, object precision, object minCost, object originalPayload)
+    public virtual Dictionary<string, object> constructCurrencyObject(object id, object code, object name, object precision, object minCost, object originalPayload)
     {
         string currencyType = "crypto";
-        object description = this.describe();
+        Dictionary<string, object> description = this.describe();
         if (isTrue(this.isFiat(code)))
         {
             currencyType = "fiat";
@@ -1357,7 +1357,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = ccxt.BaseExchange.FromDictList(await this.FetchMarketsFromCache(parameters));
@@ -1969,7 +1969,7 @@ public partial class bitstamp : Exchange
             object currencyBalance = getValue(response, i);
             string? currencyId = this.safeString(currencyBalance, "currency");
             string? currencyCode = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(currencyBalance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(currencyBalance, "reserved");
             ((IDictionary<string,object>)account)["total"] = this.safeString(currencyBalance, "total");
@@ -2069,7 +2069,7 @@ public partial class bitstamp : Exchange
         };
     }
 
-    public virtual object parseTradingFees(object fees)
+    public virtual Dictionary<string, object> parseTradingFees(object fees)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", fees },
@@ -2083,7 +2083,7 @@ public partial class bitstamp : Exchange
                 ((IDictionary<string,object>)result)[(string)symbol] = fee;
             }
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     /**
@@ -2150,7 +2150,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToDict(this.parseTransactionFees(response));
     }
 
-    public virtual object parseTransactionFees(object response, object codes = null)
+    public virtual Dictionary<string, object> parseTransactionFees(object response, object codes = null)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> currencies = this.indexBy(response, "currency");
@@ -2173,7 +2173,7 @@ public partial class bitstamp : Exchange
                 };
             }
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     /**
@@ -2209,7 +2209,7 @@ public partial class bitstamp : Exchange
 
     public override object parseDepositWithdrawFee(object fee, object currency = null)
     {
-        object result = this.depositWithdrawFee(fee);
+        Dictionary<string, object> result = this.depositWithdrawFee(fee);
         string? code = this.safeString(currency, "code");
         for (int j = 0; isLessThan(j, getArrayLength(fee)); postFixIncrement(ref j))
         {
@@ -2448,7 +2448,7 @@ public partial class bitstamp : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public async override Task<string> FetchOrderStatus(object id, object symbol = null, object parameters = null)
+    public async override Task<string> FetchOrderStatus(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3279,9 +3279,9 @@ public partial class bitstamp : Exchange
         return ((string)code).ToLower();
     }
 
-    public virtual object isFiat(object code)
+    public virtual bool isFiat(object code)
     {
-        return isTrue(isTrue(isEqual(code, "USD")) || isTrue(isEqual(code, "EUR"))) || isTrue(isEqual(code, "GBP"));
+        return ((bool)((object)(isTrue(isTrue(isEqual(code, "USD")) || isTrue(isEqual(code, "EUR"))) || isTrue(isEqual(code, "GBP"))))!);
     }
 
     /**
@@ -3561,7 +3561,7 @@ public partial class bitstamp : Exchange
                 ((IList<object>)errors).Add(reasonInner);
             } else
             {
-                object all = this.safeValue(reasonInner, "__all__", new List<object>() {});
+                List<object> all = this.safeList(reasonInner, "__all__", new List<object>() {});
                 for (int i = 0; isLessThan(i, getArrayLength(all)); postFixIncrement(ref i))
                 {
                     ((IList<object>)errors).Add(getValue(all, i));

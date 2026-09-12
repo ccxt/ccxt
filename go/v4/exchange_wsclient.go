@@ -268,7 +268,7 @@ func (this *WSClient) OnPingInterval() {
 				}
 				if message != nil {
 					go func() {
-						future := this.Send(message)
+						future := this.SendAsync(message)
 						if err := <-future; err != nil {
 							if b, ok := err.(bool); ok && b {
 								return // not an error?
@@ -338,8 +338,8 @@ func (this *WSClient) Reject(err any, messageHash ...any) {
 	this.Client.Reject(err, messageHash...)
 }
 
-func (this *WSClient) Send(message any) <-chan any {
-	return this.Client.Send(message)
+func (this *WSClient) SendAsync(message any) <-chan any {
+	return this.Client.SendAsync(message)
 }
 
 func (this *WSClient) Reset(err any) {

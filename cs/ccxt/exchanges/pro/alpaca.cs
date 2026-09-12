@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class alpaca { public alpaca(object args = null) : base(args) { } }
 public partial class alpaca : ccxt.alpaca
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -306,7 +306,7 @@ public partial class alpaca : ccxt.alpaca
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseOrderBookBidAsk(delta, "p", "s");
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta, "p", "s");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -827,7 +827,7 @@ public partial class alpaca : ccxt.alpaca
         string? status = this.safeString(data, "status");
         if (isTrue(isTrue(isEqual(T, "success")) || isTrue(isEqual(status, "authorized"))))
         {
-            object promise = getValue(client.futures, "authenticated");
+            Future promise = ((Future)getValue(client.futures, "authenticated"));
             callDynamically(promise, "resolve", new object[] {message});
             return;
         }

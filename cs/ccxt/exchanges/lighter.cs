@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class lighter : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "lighter" },
@@ -597,7 +597,7 @@ public partial class lighter : Exchange
         return (!isEqual(signer, null));
     }
 
-    public virtual object handleApiKeyIndex(object parameters, object methodName1, object optionName1, object optionName2, object defaultValue = null)
+    public virtual List<object> handleApiKeyIndex(object parameters, object methodName1, object optionName1, object optionName2, object defaultValue = null)
     {
         object apiKeyIndex = null;
         IList<object> apiKeyIndexparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName1, optionName1, optionName2, defaultValue);
@@ -972,7 +972,7 @@ public partial class lighter : Exchange
         bool isConditional = (isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null))));
         bool isMarketOrder = (isEqual(orderType, "MARKET"));
         string? timeInForce = this.safeStringLower(parameters, "timeInForce", "gtt");
-        object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
+        bool postOnly = this.isPostOnly(isMarketOrder, null, parameters);
         parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit", "timeInForce"});
         object orderTypeNum = null;
         object timeInForceNum = null;
@@ -1551,7 +1551,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetAssetDetails(parameters);
@@ -1581,7 +1581,7 @@ public partial class lighter : Exchange
         return this.parseCurrencies(data);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "asset_id");
         string? code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
@@ -3812,7 +3812,7 @@ public partial class lighter : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "direction", 1 },
         };
-        return ccxt.BaseExchange.FromMarginModification(await this.SetMargin(symbol, amount, this.extend(request, parameters)));
+        return ccxt.BaseExchange.FromMarginModification(await this.SetMargin(((string)symbol),ccxt.BaseExchange.ToDoubleArgRequired(amount), this.extend(request, parameters)));
     }
 
     /**
@@ -3830,7 +3830,7 @@ public partial class lighter : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "direction", 0 },
         };
-        return ccxt.BaseExchange.FromMarginModification(await this.SetMargin(symbol, amount, this.extend(request, parameters)));
+        return ccxt.BaseExchange.FromMarginModification(await this.SetMargin(((string)symbol),ccxt.BaseExchange.ToDoubleArgRequired(amount), this.extend(request, parameters)));
     }
 
     /**
@@ -3844,7 +3844,7 @@ public partial class lighter : Exchange
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public async override Task<ccxt.MarginModification> SetMargin(object symbol, object amount, object parameters = null)
+    public async override Task<ccxt.MarginModification> SetMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))

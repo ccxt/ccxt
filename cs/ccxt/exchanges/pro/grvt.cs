@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class grvt { public grvt(object args = null) : base(args) { } }
 public partial class grvt : ccxt.grvt
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -604,7 +604,7 @@ public partial class grvt : ccxt.grvt
         interval = ((IList<object>)intervalparametersVariable)[0];
         parameters = ((IList<object>)intervalparametersVariable)[1];
         symbols = this.marketSymbols(symbols);
-        object extraPart = ((bool) isTrue(isSnapshot)) ? (add(add(((object)interval).ToString(), "-"), ((object)limitVar).ToString())) : ((object)interval).ToString();
+        string extraPart = ((bool) isTrue(isSnapshot)) ? (add(add(((object)interval).ToString(), "-"), ((object)limitVar).ToString())) : ((object)interval).ToString();
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))

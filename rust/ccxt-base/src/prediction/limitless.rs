@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 use crate::prediction_exchange_generated::PredictionBase;
 use crate::prediction_exchange::PredictionRuntime;
@@ -874,10 +878,10 @@ impl LimitlessCore {
         let mut groupId: Value = self.safe_string_n(raw.clone(), Value::List(vec![Value::Str("groupSlug".to_string()), Value::Str("groupId".to_string())]), &[slug.clone()]);
         // CTF condition id — needed to redeem a resolved winning position
         let mut conditionId: Value = self.safe_string_k(raw.clone(), "conditionId", &[]);
-        let mut tokens: Value = self.safe_value_k(raw.clone(), "tokens", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut tokens: Value = self.safe_dict_k(raw.clone(), "tokens", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
         let mut isExpired: Value = self.safe_bool_k(raw.clone(), "expired", &[Value::Bool(false)]);

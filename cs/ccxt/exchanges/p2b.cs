@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class p2b : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "p2b" },
@@ -380,7 +380,7 @@ public partial class p2b : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? marketId = this.safeString(market, "name");
         string? baseId = this.safeString(market, "stock");
@@ -390,7 +390,7 @@ public partial class p2b : Exchange
         IDictionary<string, object> limits = this.safeDict(market, "limits");
         string? maxAmount = this.safeString(limits, "max_amount");
         string? maxPrice = this.safeString(limits, "max_price");
-        return new Dictionary<string, object>() {
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", add(add(bs, "/"), quote) },
             { "base", bs },
@@ -438,7 +438,7 @@ public partial class p2b : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     /**
@@ -983,7 +983,7 @@ public partial class p2b : Exchange
         //        }
         //    }
         //
-        object result = this.safeDict(response, "result");
+        IDictionary<string, object> result = this.safeDict(response, "result");
         return ccxt.BaseExchange.ToOrder(this.parseOrder(result, market));
     }
 
@@ -1036,7 +1036,7 @@ public partial class p2b : Exchange
         //        }
         //    }
         //
-        object result = this.safeDict(response, "result");
+        IDictionary<string, object> result = this.safeDict(response, "result");
         return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
     }
 
@@ -1477,7 +1477,8 @@ public partial class p2b : Exchange
             string? errorCode = this.safeString(response, "errorCode");
             string feedback = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            if (isTrue(isLessThan(code, 400)))
+            string codeAsString = ((object)code).ToString();
+            if (isTrue(isTrue((isLessThan(code, 400))) || !isTrue((inOp(this.httpExceptions, codeAsString)))))
             {
                 throw new ExchangeError ((string)feedback) ;
             }

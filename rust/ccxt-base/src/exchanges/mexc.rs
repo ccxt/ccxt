@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct MexcCore {
@@ -2316,7 +2320,7 @@ impl MexcCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut chains: Value = self.safe_value_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
+        let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_935: bool = true;
@@ -2465,7 +2469,7 @@ impl MexcCore {
         // Notes:
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "symbols", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "symbols", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2622,7 +2626,7 @@ impl MexcCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -5029,7 +5033,7 @@ impl MexcCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.fetch_account_helper(marketType.clone(), query.clone()).await;
-        let mut data: Value = self.safe_value_k(response.clone(), "balances", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -5174,11 +5178,11 @@ impl MexcCore {
         //
         let mut wallet: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("margin".to_string())) {
-            wallet = self.safe_value_k(response.clone(), "assets", &[Value::List(vec![])]);
+            wallet = self.safe_list_k(response.clone(), "assets", &[Value::List(vec![])]);
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
-            wallet = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+            wallet = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }  else {
-            wallet = self.safe_value_k(response.clone(), "balances", &[Value::List(vec![])]);
+            wallet = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5683,7 +5687,7 @@ impl MexcCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut resultList: Value = self.safe_value_k(data.clone(), "resultList", &[Value::List(vec![])]);
+        let mut resultList: Value = self.safe_list_k(data.clone(), "resultList", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -5896,7 +5900,7 @@ impl MexcCore {
         //    }
         //
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
-        let mut result: Value = self.safe_value_k(data.clone(), "resultList", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(data.clone(), "resultList", &[Value::List(vec![])]);
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -7330,7 +7334,7 @@ impl MexcCore {
         //        ]
         //    }
         //
-        let mut networkList: Value = self.safe_value_k(transaction.clone(), "networkList", &[Value::List(vec![])]);
+        let mut networkList: Value = self.safe_list_k(transaction.clone(), "networkList", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -7404,7 +7408,7 @@ impl MexcCore {
         //        ]
         //    }
         //
-        let mut networkList: Value = self.safe_value_k(fee.clone(), "networkList", &[Value::List(vec![])]);
+        let mut networkList: Value = self.safe_list_k(fee.clone(), "networkList", &[Value::List(vec![])]);
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut j: Value = Value::Int(0);

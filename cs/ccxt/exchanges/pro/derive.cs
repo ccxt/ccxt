@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class derive { public derive(object args = null) : base(args) { } }
 public partial class derive : ccxt.derive
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -881,7 +881,7 @@ public partial class derive : ccxt.derive
         if (isTrue(isGreaterThan(getArrayLength(ids), 0)))
         {
             // client.resolve (message, messageHash);
-            var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
             (future as Future).resolve(true);
         } else
         {

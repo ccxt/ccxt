@@ -234,7 +234,7 @@ class onetrading extends \ccxt\async\onetrading {
         //         "time" => "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        $tickers = $this->safe_value($message, 'ticker_updates', array());
+        $tickers = $this->safe_list($message, 'ticker_updates', array());
         $datetime = $this->safe_string($message, 'time');
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
@@ -758,7 +758,7 @@ class onetrading extends \ccxt\async\onetrading {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
-        $rawOrders = $this->safe_value($message, 'orders', array());
+        $rawOrders = $this->safe_list($message, 'orders', array());
         $rawOrdersLength = count($rawOrders);
         if ($rawOrdersLength === 0) {
             return;
@@ -769,7 +769,7 @@ class onetrading extends \ccxt\async\onetrading {
             $symbol = $this->safe_string($order, 'symbol', '');
             $orders->append($order);
             $client->resolve($this->orders, 'orders:' . $symbol);
-            $rawTrades = $this->safe_value($rawOrders[$i], 'trades', array());
+            $rawTrades = $this->safe_list($rawOrders[$i], 'trades', array());
             for ($ii = 0; $ii < count($rawTrades); $ii++) {
                 $trade = $this->parse_trade($rawTrades[$ii]);
                 $symbol = $this->safe_string($trade, 'symbol', $symbol);
@@ -1019,7 +1019,7 @@ class onetrading extends \ccxt\async\onetrading {
             $orderId = $this->safe_string($update, 'order_id');
             $datetime = $this->safe_string_2($update, 'time', 'timestamp');
             $previousOrderArray = $this->filter_by_array($this->orders, 'id', $orderId, false);
-            $previousOrder = $this->safe_value($previousOrderArray, 0, array());
+            $previousOrder = $this->safe_dict($previousOrderArray, 0, array());
             $symbol = $previousOrder['symbol'];
             $filled = $this->safe_string($update, 'filled_amount');
             $status = $this->parse_ws_order_status($updateType);

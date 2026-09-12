@@ -701,7 +701,7 @@ class bitget extends \ccxt\async\bitget {
             $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $parsed = $this->parse_ws_ohlcv($data[$i], $market);
             $stored->append($parsed);
@@ -2490,7 +2490,7 @@ class bitget extends \ccxt\async\bitget {
         //
         $arg = $this->safe_dict($message, 'arg', array());
         $instType = $this->safe_string_lower($arg, 'instType');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $rawBalance = $data[$i];
             if ($instType === 'uta') {

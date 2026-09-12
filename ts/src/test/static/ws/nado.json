@@ -1,0 +1,384 @@
+{
+    "exchange": "nado",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTrades": [
+            {
+                "description": "swap trades, one trade frame per resolution",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ],
+                "url": "wss://gateway.prod.nado.xyz/v1/subscribe",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "type": "trade",
+                        "timestamp": "1789063905647804029",
+                        "product_id": 2,
+                        "price": "77000000000000000000000",
+                        "taker_qty": "18200000000000000",
+                        "maker_qty": "18200000000000000",
+                        "is_taker_buyer": true
+                    },
+                    {
+                        "type": "trade",
+                        "timestamp": "1789063922868358698",
+                        "product_id": 2,
+                        "price": "77004000000000000000000",
+                        "taker_qty": "3750000000000000",
+                        "maker_qty": "3750000000000000",
+                        "is_taker_buyer": false
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "stream": {
+                            "type": "trade",
+                            "product_id": 2
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "type": "trade",
+                                "timestamp": "1789063905647804029",
+                                "product_id": 2,
+                                "price": "77000000000000000000000",
+                                "taker_qty": "18200000000000000",
+                                "maker_qty": "18200000000000000",
+                                "is_taker_buyer": true
+                            },
+                            "id": null,
+                            "timestamp": 1789063905647,
+                            "datetime": "2026-09-10T18:11:45.647Z",
+                            "symbol": "BTC/USDT0:USDT0",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 77000,
+                            "amount": 0.0182,
+                            "cost": 1401.4,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "type": "trade",
+                                "timestamp": "1789063922868358698",
+                                "product_id": 2,
+                                "price": "77004000000000000000000",
+                                "taker_qty": "3750000000000000",
+                                "maker_qty": "3750000000000000",
+                                "is_taker_buyer": false
+                            },
+                            "id": null,
+                            "timestamp": 1789063922868,
+                            "datetime": "2026-09-10T18:12:02.868Z",
+                            "symbol": "BTC/USDT0:USDT0",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": "taker",
+                            "price": 77004,
+                            "amount": 0.00375,
+                            "cost": 288.765,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "swap best bid offer ticker",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ],
+                "url": "wss://gateway.prod.nado.xyz/v1/subscribe",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "type": "best_bid_offer",
+                        "timestamp": "1789063899348279813",
+                        "product_id": 2,
+                        "bid_price": "76999000000000000000000",
+                        "bid_qty": "1942800000000000000",
+                        "ask_price": "77000000000000000000000",
+                        "ask_qty": "3353700000000000000"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "stream": {
+                            "type": "best_bid_offer",
+                            "product_id": 2
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT0:USDT0",
+                        "timestamp": 1789063899348,
+                        "datetime": "2026-09-10T18:11:39.348Z",
+                        "ask": 77000,
+                        "askVolume": 3.3537,
+                        "bid": 76999,
+                        "bidVolume": 1.9428,
+                        "info": {
+                            "type": "best_bid_offer",
+                            "timestamp": "1789063899348279813",
+                            "product_id": 2,
+                            "bid_price": "76999000000000000000000",
+                            "bid_qty": "1942800000000000000",
+                            "ask_price": "77000000000000000000000",
+                            "ask_qty": "3353700000000000000"
+                        },
+                        "high": null,
+                        "low": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "previousClose": null,
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchTickers": [
+            {
+                "description": "all markets tickers over the all_bbo stream",
+                "input": [],
+                "url": "wss://gateway.prod.nado.xyz/v1/subscribe",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "type": "all_bbo",
+                        "time": "1789063899489",
+                        "bbos": {
+                            "2": {
+                                "bid": "76999000000000000000000",
+                                "ask": "77000000000000000000000"
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "stream": {
+                            "type": "all_bbo"
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDT0:USDT0": {
+                            "symbol": "BTC/USDT0:USDT0",
+                            "timestamp": 1789063899489,
+                            "datetime": "2026-09-10T18:11:39.489Z",
+                            "ask": 77000,
+                            "bid": 76999,
+                            "info": {
+                                "bid": "76999000000000000000000",
+                                "ask": "77000000000000000000000"
+                            },
+                            "bidVolume": null,
+                            "askVolume": null,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchBidsAsks": [
+            {
+                "description": "swap bid ask over the best_bid_offer stream",
+                "input": [
+                    [
+                        "BTC/USDT0:USDT0"
+                    ]
+                ],
+                "url": "wss://gateway.prod.nado.xyz/v1/subscribe",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "type": "best_bid_offer",
+                        "timestamp": "1789063899349414917",
+                        "product_id": 2,
+                        "bid_price": "76999000000000000000000",
+                        "bid_qty": "1952450000000000000",
+                        "ask_price": "77000000000000000000000",
+                        "ask_qty": "3353700000000000000"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "stream": {
+                            "type": "best_bid_offer",
+                            "product_id": 2
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDT0:USDT0": {
+                            "symbol": "BTC/USDT0:USDT0",
+                            "timestamp": 1789063899349,
+                            "datetime": "2026-09-10T18:11:39.349Z",
+                            "ask": 77000,
+                            "askVolume": 3.3537,
+                            "bid": 76999,
+                            "bidVolume": 1.95245,
+                            "info": {
+                                "type": "best_bid_offer",
+                                "timestamp": "1789063899349414917",
+                                "product_id": 2,
+                                "bid_price": "76999000000000000000000",
+                                "bid_qty": "1952450000000000000",
+                                "ask_price": "77000000000000000000000",
+                                "ask_qty": "3353700000000000000"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "swap one minute candles, one frame per resolution",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    "1m"
+                ],
+                "url": "wss://gateway.prod.nado.xyz/v1/subscribe",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "type": "latest_candlestick",
+                        "timestamp": "1789063860",
+                        "product_id": 2,
+                        "granularity": 60,
+                        "open_x18": "76999000000000000000000",
+                        "high_x18": "77005000000000000000000",
+                        "low_x18": "76999000000000000000000",
+                        "close_x18": "77000000000000000000000",
+                        "volume": "276750000000000000"
+                    },
+                    {
+                        "type": "latest_candlestick",
+                        "timestamp": "1789063920",
+                        "product_id": 2,
+                        "granularity": 60,
+                        "open_x18": "77004000000000000000000",
+                        "high_x18": "77005000000000000000000",
+                        "low_x18": "77000000000000000000000",
+                        "close_x18": "77000000000000000000000",
+                        "volume": "41450000000000000"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "stream": {
+                            "type": "latest_candlestick",
+                            "product_id": 2,
+                            "granularity": 60
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1789063860000,
+                            76999,
+                            77005,
+                            76999,
+                            77000,
+                            0.27675
+                        ]
+                    ],
+                    [
+                        [
+                            1789063920000,
+                            77004,
+                            77005,
+                            77000,
+                            77000,
+                            0.04145
+                        ]
+                    ]
+                ]
+            }
+        ]
+    }
+}

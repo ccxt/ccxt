@@ -1294,7 +1294,7 @@ class bingx(ccxt.async_support.bingx):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'swap:positions')
 
-    def handle_error_message(self, client: Client, message: object):
+    def handle_error_message(self, client: Client, message: object) -> bool:
         #
         # {code: 100400, msg: '', timestamp: 1696245808833}
         #

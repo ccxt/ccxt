@@ -548,7 +548,7 @@ class bitbank(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        pairs = self.safe_value(data, 'pairs', [])
+        pairs = self.safe_list(data, 'pairs', [])
         result = {}
         for i in range(0, len(pairs)):
             pair = pairs[i]
@@ -643,7 +643,7 @@ class bitbank(Exchange, ImplicitAPI):
             'datetime': None,
         }
         data = self.safe_value(response, 'data', {})
-        assets = self.safe_value(data, 'assets', [])
+        assets = self.safe_list(data, 'assets', [])
         for i in range(0, len(assets)):
             balance = assets[i]
             currencyId = self.safe_string(balance, 'asset')

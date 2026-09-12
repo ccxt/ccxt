@@ -2627,7 +2627,7 @@ export default class kucoin extends Exchange {
         return result;
     }
 
-    isFuturesMethod (methodName: any, params: any) {
+    isFuturesMethod (methodName: any, params: any): boolean {
         //
         // Helper
         // @methodName (string): The name of the method

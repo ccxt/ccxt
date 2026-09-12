@@ -2180,6 +2180,28 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let mut callOutput: Value = exchange.safe_value(data.clone(), Value::Str("output".to_string()), &[]);
             self.assert_static_request_output(exchange.clone(), type_var.clone(), skipKeys.clone(), get_value(&data, &Value::Str("url".to_string())), requestUrl.clone(), callOutput.clone(), output.clone());
+            // optional per-test header pinning. only the keys the fixture lists are compared, so a
+            // fixture can pin one auth header without freezing the whole header set. this is the
+            // only cross-language assertion on header *names*, which the php transpiler can
+            // silently corrupt when a header literal contains a local/parameter name of sign ()
+            let mut storedHeaders: Value = exchange.safe_dict(data.clone(), Value::Str("headers".to_string()), &[]);
+            if !is_equal(&storedHeaders, &Value::Null) {
+                let mut sentHeaders: Value = ternary(is_true(&(!is_equal(&get_value(&exchange, &Value::Str("last_request_headers".to_string())), &Value::Null))), get_value(&exchange, &Value::Str("last_request_headers".to_string())), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+                let mut storedHeaderKeys: Value = object_keys(&storedHeaders);
+                {
+                                        let mut i: Value = Value::Int(0);
+                    let mut __for_first_1521: bool = true;
+                    while { if !__for_first_1521 { i = add(&i, &Value::Int(1)); } __for_first_1521 = false; is_less_than(&i, &get_array_length(&storedHeaderKeys)) } {
+                    let mut headerKey: Value = get_value(&storedHeaderKeys, &i);
+                    let mut storedHeaderValue: Value = get_value(&storedHeaders, &headerKey);
+                    let mut sentHeaderValue: Value = exchange.safe_string(sentHeaders.clone(), headerKey.clone(), &[]);
+                    self.assert_static_error(Value::Bool(is_equal(&sentHeaderValue, &storedHeaderValue)), add(&Value::Str("header mismatch for ".to_string()), &headerKey), storedHeaderValue.clone(), sentHeaderValue.clone(), &[]);
+                }
+                }
+            }
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.requestTestsFailed = Value::Bool(true);
@@ -2221,8 +2243,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut sequential = get_arg(optional_args, 0, Value::Bool(false));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1521: bool = true;
-            while { if !__for_first_1521 { i = add(&i, &Value::Int(1)); } __for_first_1521 = false; is_less_than(&i, &get_array_length(&messages)) } {
+            let mut __for_first_1522: bool = true;
+            while { if !__for_first_1522 { i = add(&i, &Value::Int(1)); } __for_first_1522 = false; is_less_than(&i, &get_array_length(&messages)) } {
             let mut waited: Value = Value::Int(0);
             while !is_true(&wsClientHasPendingFutures(exchange.clone(), url.clone())) && is_true(&(is_less_than(&waited, &Value::Int(5000)))) {
                 exchange.sleep(Value::Int(50)).await;
@@ -2269,8 +2291,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1522: bool = true;
-                while { if !__for_first_1522 { i = add(&i, &Value::Int(1)); } __for_first_1522 = false; is_less_than(&i, &get_array_length(&expectedResults)) } {
+                let mut __for_first_1523: bool = true;
+                while { if !__for_first_1523 { i = add(&i, &Value::Int(1)); } __for_first_1523 = false; is_less_than(&i, &get_array_length(&expectedResults)) } {
                 let mut result: Value = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await;
                 // ws structures can be live typed objects (e.g. orderbooks) in some
                 // runtimes — roundtrip through json so the deep-compare sees plain
@@ -2309,8 +2331,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         assert(Value::Bool(is_equal(&sentLength, &expectedLength)), &[add(&add(&add(&add(&add(&Value::Str("sent ws messages count mismatch: sent ".to_string()), &to_string_val(&sentLength)), &Value::Str(", expected ".to_string())), &to_string_val(&expectedLength)), &Value::Str(" ".to_string())), &jsonStringify(sentMessages.clone()))]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1523: bool = true;
-            while { if !__for_first_1523 { i = add(&i, &Value::Int(1)); } __for_first_1523 = false; is_less_than(&i, &expectedLength) } {
+            let mut __for_first_1524: bool = true;
+            while { if !__for_first_1524 { i = add(&i, &Value::Int(1)); } __for_first_1524 = false; is_less_than(&i, &expectedLength) } {
             let mut unifiedSent: Value = jsonParse(jsonStringify(get_value(&sentMessages, &i)));
             self.assert_static_response_output(exchange.clone(), sentSkipKeys.clone(), unifiedSent.clone(), get_value(&expectedSent, &i));
         }
@@ -2378,14 +2400,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1525: bool = true;
-            while { if !__for_first_1525 { i = add(&i, &Value::Int(1)); } __for_first_1525 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
+            let mut __for_first_1526: bool = true;
+            while { if !__for_first_1526 { i = add(&i, &Value::Int(1)); } __for_first_1526 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1524: bool = true;
-                while { if !__for_first_1524 { j = add(&j, &Value::Int(1)); } __for_first_1524 = false; is_less_than(&j, &get_array_length(&results)) } {
+                let mut __for_first_1525: bool = true;
+                while { if !__for_first_1525 { j = add(&j, &Value::Int(1)); } __for_first_1525 = false; is_less_than(&j, &get_array_length(&results)) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut description: Value = get_value(&result, &Value::Str("description".to_string()));
                 if is_true(&(!is_equal(&testName, &Value::Null))) && is_true(&(!is_equal(&testName, &description))) {
@@ -2544,13 +2566,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut eventMarkets: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1527: bool = true;
-                while { if !__for_first_1527 { i = add(&i, &Value::Int(1)); } __for_first_1527 = false; is_less_than(&i, &get_array_length(&predictionEvents)) } {
+                let mut __for_first_1528: bool = true;
+                while { if !__for_first_1528 { i = add(&i, &Value::Int(1)); } __for_first_1528 = false; is_less_than(&i, &get_array_length(&predictionEvents)) } {
                 let mut evMarkets: Value = exchange.safe_list(get_value(&predictionEvents, &i), Value::Str("markets".to_string()), &[Value::List(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_1526: bool = true;
-                    while { if !__for_first_1526 { j = add(&j, &Value::Int(1)); } __for_first_1526 = false; is_less_than(&j, &get_array_length(&evMarkets)) } {
+                    let mut __for_first_1527: bool = true;
+                    while { if !__for_first_1527 { j = add(&j, &Value::Int(1)); } __for_first_1527 = false; is_less_than(&j, &get_array_length(&evMarkets)) } {
                     let mut evMarket: Value = get_value(&evMarkets, &j);
                     // every market row must carry the unified market handle (PredictionMarket
                     // declares it required) — enforce it on the fixtures so a venue that stops
@@ -2614,14 +2636,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1529: bool = true;
-            while { if !__for_first_1529 { i = add(&i, &Value::Int(1)); } __for_first_1529 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
+            let mut __for_first_1530: bool = true;
+            while { if !__for_first_1530 { i = add(&i, &Value::Int(1)); } __for_first_1530 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1528: bool = true;
-                while { if !__for_first_1528 { j = add(&j, &Value::Int(1)); } __for_first_1528 = false; is_less_than(&j, &get_array_length(&results)) } {
+                let mut __for_first_1529: bool = true;
+                while { if !__for_first_1529 { j = add(&j, &Value::Int(1)); } __for_first_1529 = false; is_less_than(&j, &get_array_length(&results)) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
                 let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".to_string()), &[Value::Map({
@@ -2724,14 +2746,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1531: bool = true;
-            while { if !__for_first_1531 { i = add(&i, &Value::Int(1)); } __for_first_1531 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
+            let mut __for_first_1532: bool = true;
+            while { if !__for_first_1532 { i = add(&i, &Value::Int(1)); } __for_first_1532 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1530: bool = true;
-                while { if !__for_first_1530 { j = add(&j, &Value::Int(1)); } __for_first_1530 = false; is_less_than(&j, &get_array_length(&results)) } {
+                let mut __for_first_1531: bool = true;
+                while { if !__for_first_1531 { j = add(&j, &Value::Int(1)); } __for_first_1531 = false; is_less_than(&j, &get_array_length(&results)) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".to_string()), &[]);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
@@ -2808,8 +2830,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1532: bool = true;
-            while { if !__for_first_1532 { i = add(&i, &Value::Int(1)); } __for_first_1532 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
+            let mut __for_first_1533: bool = true;
+            while { if !__for_first_1533 { i = add(&i, &Value::Int(1)); } __for_first_1533 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             let mut resultsLength: Value = get_array_length(&results);
@@ -2905,8 +2927,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1533: bool = true;
-            while { if !__for_first_1533 { i = add(&i, &Value::Int(1)); } __for_first_1533 = false; is_less_than(&i, &get_array_length(&exchanges)) } {
+            let mut __for_first_1534: bool = true;
+            while { if !__for_first_1534 { i = add(&i, &Value::Int(1)); } __for_first_1534 = false; is_less_than(&i, &get_array_length(&exchanges)) } {
             let mut exchangeName: Value = get_value(&exchanges, &i);
             let mut exchangeData: Value = get_value(&staticData, &exchangeName);
             let mut disabled: Value = self.check_if_exchange_is_disabled(exchangeName.clone(), exchangeData.clone());
@@ -3086,8 +3108,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut batchOrders: Value = get_value(&createOrdersRequest, &Value::Str("batchOrders".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1534: bool = true;
-            while { if !__for_first_1534 { i = add(&i, &Value::Int(1)); } __for_first_1534 = false; is_less_than(&i, &get_array_length(&batchOrders)) } {
+            let mut __for_first_1535: bool = true;
+            while { if !__for_first_1535 { i = add(&i, &Value::Int(1)); } __for_first_1535 = false; is_less_than(&i, &get_array_length(&batchOrders)) } {
             let mut current: Value = get_value(&batchOrders, &i);
             let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".to_string()));
             assert(Value::Bool(is_equal(&Value::Bool(starts_with(&currentClientOrderId, &swapIdString)), &Value::Bool(true))), &[add(&add(&add(&Value::Str("binance createOrders - clientOrderId: ".to_string()), &currentClientOrderId), &Value::Str(" does not start with swapId".to_string())), &swapIdString)]);

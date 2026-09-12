@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class aster { public aster(object args = null) : base(args) { } }
 public partial class aster : ccxt.aster
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -1261,7 +1261,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
         }
-        object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+        List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market(getValue(marketSymbols, 0));
         string? type = this.safeString(firstMarket, "type", "swap");
@@ -1326,7 +1326,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
         }
-        object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+        List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market(getValue(marketSymbols, 0));
         string? type = this.safeString(firstMarket, "type", "swap");
@@ -1603,7 +1603,7 @@ public partial class aster : ccxt.aster
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
         }
@@ -1679,7 +1679,7 @@ public partial class aster : ccxt.aster
             object entry = getValue(B, i);
             string? currencyId = this.safeString(entry, "a");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "f");
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "l");
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, wallet);
@@ -1786,7 +1786,7 @@ public partial class aster : ccxt.aster
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
         }
@@ -1844,7 +1844,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
         if (!isTrue(this.isEmpty(messageHashes)))
         {
             for (int i = 0; isLessThan(i, getArrayLength(newPositions)); postFixIncrement(ref i))
@@ -2065,7 +2065,7 @@ public partial class aster : ccxt.aster
                                 if (isTrue(isEqual(getValue(orderFee, "currency"), getValue(tradeFee, "currency"))))
                                 {
                                     object feeCost = this.sum(getValue(tradeFee, "cost"), getValue(orderFee, "cost"));
-                                    object feeCostString = this.currencyToPrecision(((string)getValue(tradeFee, "currency")), feeCost);
+                                    string? feeCostString = this.currencyToPrecision(((string)getValue(tradeFee, "currency")), feeCost);
                                     ((IDictionary<string,object>)getValue(getValue(order, "fees"), i))["cost"] = ((bool) isTrue((isEqual(feeCostString, null)))) ? null : parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;
                                     break;
@@ -2080,7 +2080,7 @@ public partial class aster : ccxt.aster
                             if (isTrue(isEqual(getValue(fee, "currency"), getValue(tradeFee, "currency"))))
                             {
                                 object feeCost = this.sum(getValue(fee, "cost"), getValue(tradeFee, "cost"));
-                                object feeCostString = this.currencyToPrecision(((string)getValue(tradeFee, "currency")), feeCost);
+                                string? feeCostString = this.currencyToPrecision(((string)getValue(tradeFee, "currency")), feeCost);
                                 ((IDictionary<string,object>)getValue(order, "fee"))["cost"] = ((bool) isTrue((isEqual(feeCostString, null)))) ? null : parseFloat(feeCostString);
                             } else if (isTrue(isEqual(getValue(fee, "currency"), null)))
                             {
@@ -2191,7 +2191,7 @@ public partial class aster : ccxt.aster
         //     }
         //
         string messageHash = "orders";
-        object market = this.getMarketFromOrder(client as WebSocketClient, message);
+        Dictionary<string, object> market = this.getMarketFromOrder(client as WebSocketClient, message);
         if (isTrue(isEqual(this.orders, null)))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2201,7 +2201,7 @@ public partial class aster : ccxt.aster
         object parsed = this.parseWsOrder(message, market);
         object symbol = getValue(market, "symbol");
         callDynamically(cache, "append", new object[] {parsed});
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
         if (!isTrue(this.isEmpty(messageHashes)))
         {
             object symbolMessageHash = add(add(messageHash, "::"), symbol);
@@ -2282,11 +2282,11 @@ public partial class aster : ccxt.aster
         });
     }
 
-    public virtual object getMarketFromOrder(WebSocketClient client, object order)
+    public virtual Dictionary<string, object> getMarketFromOrder(WebSocketClient client, object order)
     {
         string? marketId = this.safeString(order, "s");
         string marketType = this.getAccountTypeFromUrl(client.url);
-        return this.safeMarket(marketId, null, null, marketType);
+        return ((Dictionary<string, object>)((object)(this.safeMarket(marketId, null, null, marketType))));
     }
 
     public virtual void handleBalanceAndPosition(WebSocketClient client, object message)

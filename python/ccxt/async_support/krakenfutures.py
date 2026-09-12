@@ -457,7 +457,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "serverTime": "2018-07-19T11:32:39.433Z"
         #    }
         #
-        instruments = self.safe_value(response, 'instruments', [])
+        instruments = self.safe_list(response, 'instruments', [])
         result = []
         for i in range(0, len(instruments)):
             market = instruments[i]
@@ -1498,7 +1498,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         orders = []
-        clientOrderIds = self.safe_value(params, 'clientOrderIds', [])
+        clientOrderIds = self.safe_list(params, 'clientOrderIds', [])
         clientOrderIdsLength = len(clientOrderIds)
         if clientOrderIdsLength > 0:
             for i in range(0, len(clientOrderIds)):
@@ -2202,7 +2202,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fees': None,
                 'trades': None,
             })
-        orderEvents = self.safe_value(order, 'orderEvents', [])
+        orderEvents = self.safe_list(order, 'orderEvents', [])
         errorStatus = self.safe_string(order, 'status')
         orderEventsLength = len(orderEvents)
         if ('orderEvents' in order) and (errorStatus is not None) and (orderEventsLength == 0):
@@ -2722,7 +2722,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         accountType = self.safe_string_2(response, 'accountType', 'type')
         isFlex = (accountType == 'multiCollateralMarginAccount')
         isCash = (accountType == 'cashAccount')
-        balances = self.safe_value_2(response, 'balances', 'currencies', {})
+        balances = self.safe_dict_2(response, 'balances', 'currencies', {})
         result = {}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):

@@ -577,7 +577,7 @@ class bitfinex(Exchange, ImplicitAPI):
             },
         })
 
-    def is_fiat(self, code: object):
+    def is_fiat(self, code: object) -> bool:
         return(code in self.options['fiat'])
 
     def get_currency_name(self, code: object):
@@ -981,7 +981,7 @@ class bitfinex(Exchange, ImplicitAPI):
         # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
         if self.markets is None:
             self.load_markets()
-        accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'v2AccountsByType', {})
         requestedType = self.safe_string(params, 'type', 'exchange')
         accountType = self.safe_string(accountsByType, requestedType, requestedType)
         if accountType is None:
@@ -1029,7 +1029,7 @@ class bitfinex(Exchange, ImplicitAPI):
         # however we support it in CCXT(from just looking at web inspector)
         if self.markets is None:
             self.load_markets()
-        accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'v2AccountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount)
         if fromId is None:
             keys = list(accountsByType.keys())
@@ -1240,8 +1240,13 @@ class bitfinex(Exchange, ImplicitAPI):
         #     ]
         #
         length = len(ticker)
-        firstValue = self.safe_number(ticker, 0)
-        isFetchTicker = firstValue is not None  # if it's Nan, then it's string(symbol)
+        # the list shapes(fetchTickers) carry the market id in slot 0, the singular
+        # shapes(fetchTicker) do not. safeNumber is not a portable discriminator here:
+        # in PHP a non numeric string casts to 0.0 instead of None, so 'fUSD' would
+        # look like a number and the whole array would be read off by one.
+        firstValue = self.safe_string(ticker, 0)
+        hasMarketId = (firstValue is not None) and (firstValue.startswith('t') or firstValue.startswith('f'))
+        isFetchTicker = not hasMarketId
         symbol = None
         minusIndex = 0
         if isFetchTicker:
@@ -1265,7 +1270,9 @@ class bitfinex(Exchange, ImplicitAPI):
             bid = self.safe_string(ticker, 2 - minusIndex)
             ask = self.safe_string(ticker, 5 - minusIndex)
             change = self.safe_string(ticker, 8 - minusIndex)
-            percentage = self.safe_string(ticker, 9 - minusIndex)
+            # DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
+            # branch reads at index 6 and scales
+            percentage = Precise.string_mul(self.safe_string(ticker, 9 - minusIndex), '100')
             volume = self.safe_string(ticker, 11 - minusIndex)
             high = self.safe_string(ticker, 12 - minusIndex)
             low = self.safe_string(ticker, 13 - minusIndex)
@@ -2605,7 +2612,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #     ]
         #
         result = {}
-        fiat = self.safe_value(self.options, 'fiat', {})
+        fiat = self.safe_dict(self.options, 'fiat', {})
         feeData = self.safe_value(response, 4, [])
         makerData = self.safe_value(feeData, 0, [])
         takerData = self.safe_value(feeData, 1, [])

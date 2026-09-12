@@ -18,6 +18,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
 ansi.nice
@@ -848,6 +849,20 @@ class NewTranspiler {
         // narrows `Object x = this.safeString(...)` locals to `String` — see
         // patchJavaLocalTypes above (also applied per worker thread in java-worker.ts)
         patchJavaLocalTypes(this.transpiler);
+        // JAVA-15: parse* return signatures (String / java.util.List<Object>) and the
+        // parse* body locals fed by them + the timestamp/symbol/currency accessors —
+        // see build/java-local-types.js (also applied per worker thread in java-worker.ts)
+        installJavaLocalTypes(this.transpiler);
+        // JAVA-RE-4: literal / boolean-expression locals (`Object x = "lit"` -> String,
+        // `Object ok = Helpers.isEqual(...)` -> Boolean, object/array literals ->
+        // Map<String,Object>/List<Object>) — additive slice of the same module, also
+        // applied per worker thread in java-worker.ts
+        patchJavaLiteralLocalTypes(this.transpiler);
+        // JAVA-RE-7: numeric helper locals (safeInteger*/safeFloat*/safeNumber*/parseToInt/
+        // milliseconds/seconds/parse8601/parseTimeframe) -> Long/Double/int, the generated
+        // method returns those locals rely on, and the conditional-arm restorations —
+        // same module, additive section (also applied per worker thread in java-worker.ts)
+        installJavaNumericLocalTypes(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a

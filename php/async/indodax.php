@@ -450,7 +450,7 @@ class indodax extends Exchange {
 
     public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response, 'return', array());
-        $free = $this->safe_value($balances, 'balance', array());
+        $free = $this->safe_dict($balances, 'balance', array());
         $used = $this->safe_value($balances, 'balance_hold', array());
         $timestamp = $this->safe_timestamp($balances, 'server_time');
         $result = array(
@@ -1315,8 +1315,8 @@ class indodax extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'return', array());
-        $withdraw = $this->safe_value($data, 'withdraw', array());
-        $deposit = $this->safe_value($data, 'deposit', array());
+        $withdraw = $this->safe_dict($data, 'withdraw', array());
+        $deposit = $this->safe_dict($data, 'deposit', array());
         $transactions = array();
         $currency = null;
         if ($code === null) {

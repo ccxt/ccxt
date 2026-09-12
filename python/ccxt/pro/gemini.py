@@ -322,7 +322,7 @@ class gemini(ccxt.async_support.gemini):
         marketId = self.safe_string(message, 'symbol', '').lower()
         market = self.safe_market(marketId)
         symbol = self.safe_symbol(marketId, market)
-        changes = self.safe_value(message, 'changes', [])
+        changes = self.safe_list(message, 'changes', [])
         timeframe = self.find_timeframe(timeframeId)
         ohlcvsBySymbol = self.safe_value(self.ohlcvs, symbol)
         if ohlcvsBySymbol is None:
@@ -379,7 +379,7 @@ class gemini(ccxt.async_support.gemini):
 
     def handle_order_book(self, client: Client, message: object):
         isInitial = ('auction_events' in message) and ('trades' in message) and ('changes' in message)
-        changes = self.safe_value(message, 'changes', [])
+        changes = self.safe_list(message, 'changes', [])
         marketId = self.safe_string_lower(message, 'symbol')
         market = self.safe_market(marketId)
         symbol = market['symbol']

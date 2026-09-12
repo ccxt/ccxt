@@ -1089,7 +1089,7 @@ class gate(ccxt.async_support.gate):
         #     ]
         # }
         #
-        result = self.safe_value(message, 'result', [])
+        result = self.safe_list(message, 'result', [])
         tradesLength = len(result)
         if tradesLength == 0:
             return
@@ -1211,7 +1211,7 @@ class gate(ccxt.async_support.gate):
         #       ]
         #   }
         #
-        result = self.safe_value(message, 'result', [])
+        result = self.safe_list(message, 'result', [])
         self.balance['info'] = result
         for i in range(0, len(result)):
             rawBalance = result[i]
@@ -1352,7 +1352,7 @@ class gate(ccxt.async_support.gate):
         #    }
         #
         type = self.get_market_type_by_url(client.url)
-        data = self.safe_value(message, 'result', [])
+        data = self.safe_list(message, 'result', [])
         cache = self.positions[type]
         newPositions = []
         for i in range(0, len(data)):

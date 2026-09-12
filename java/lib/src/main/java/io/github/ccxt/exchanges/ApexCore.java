@@ -387,7 +387,7 @@ public class ApexCore extends ApexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetV3Time(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetV3Time(parameters)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             //
             // {
@@ -416,13 +416,13 @@ public class ApexCore extends ApexApi
         // }
         // }
         //
-        Object timestamp = this.milliseconds();
-        Object result = new java.util.HashMap<String, Object>() {{
+        Long timestamp = this.milliseconds();
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
             put( "datetime", ApexCore.this.iso8601(timestamp) );
         }};
-        Object code = "USDT";
+        String code = "USDT";
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(response, "availableBalance"));
         Helpers.addElementToObject(account, "total", this.safeString(response, "totalEquityValue"));
@@ -448,7 +448,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetV3AccountBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetV3AccountBalance(parameters)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseBalance(data);
         });
@@ -484,7 +484,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetV3Account(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetV3Account(parameters)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseAccount(data);
         });
@@ -505,7 +505,7 @@ public class ApexCore extends ApexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetV3Symbols(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetV3Symbols(parameters)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object spotConfig = this.safeDict(data, "spotConfig", new java.util.HashMap<String, Object>() {{}});
             Object multiChain = this.safeDict(spotConfig, "multiChain", new java.util.HashMap<String, Object>() {{}});
@@ -611,9 +611,9 @@ public class ApexCore extends ApexApi
     public Object parseCurrency(Object currency)
     {
         String currencyId = this.safeString(currency, "token");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         String name = this.safeString(currency, "displayName");
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = Helpers.GetValue(this.options, "_temp_currencies_chains");
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
@@ -656,7 +656,7 @@ public class ApexCore extends ApexApi
         }
         Object networkKeys = Helpers.objectKeys(networks);
         Object networksLength = Helpers.getArrayLength(networkKeys);
-        Object emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
+        Boolean emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "info", currency );
@@ -701,7 +701,7 @@ public class ApexCore extends ApexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetV3Symbols(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetV3Symbols(parameters)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object contractConfig = this.safeDict(data, "contractConfig", new java.util.HashMap<String, Object>() {{}});
             Object perpetualContract = this.safeList(contractConfig, "perpetualContract", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -771,9 +771,9 @@ public class ApexCore extends ApexApi
         String quoteId = this.safeString(market, "l2PairId");
         String baseId = this.safeString(market, "baseTokenId");
         String quote = this.safeString(market, "settleAssetId");
-        Object base = this.safeCurrencyCode(baseId);
+        String base = (String) this.safeCurrencyCode(baseId);
         String settleId = this.safeString(market, "settleAssetId");
-        Object settle = this.safeCurrencyCode(settleId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(baseId, "/"), quote), ":"), settle);
         Object expiry = 0;
         Object takerFee = this.parseNumber("0.0002");
@@ -855,10 +855,10 @@ public class ApexCore extends ApexApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.milliseconds();
+        Long timestamp = this.milliseconds();
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String last = this.safeString(ticker, "lastPrice");
         String percentage = this.safeString(ticker, "price24hPcnt");
         String quoteVolume = this.safeString(ticker, "turnover24h");
@@ -910,11 +910,11 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
-            Object response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawTicker = this.safeDict(tickers, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(rawTicker, market);
@@ -942,7 +942,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetV3DataAllTickerInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetV3DataAllTickerInfo(parameters)).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
         });
@@ -975,7 +975,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "interval", ApexCore.this.safeString(ApexCore.this.timeframes, timeframe, timeframe) );
                 put( "symbol", ApexCore.this.safeString(market, "id2") );
@@ -985,14 +985,14 @@ public class ApexCore extends ApexApi
                 limit = 200; // default is 200 when requested with `since`
             }
             Helpers.addElementToObject(request, "limit", limit); // max 200, default 200
-            var requestparametersVariable = this.handleUntilOption("end", request, parameters, 0.001);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
             }
-            Object response = (this.publicGetV3Klines(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV3Klines(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object OHLCVs = this.safeList(data, this.safeString(market, "id2"), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(OHLCVs, market, timeframe, since, limit);
@@ -1040,8 +1040,8 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -1049,7 +1049,7 @@ public class ApexCore extends ApexApi
                 limit = 100; // default is 200 when requested with `since`
             }
             Helpers.addElementToObject(request, "limit", limit); // max 100, default 100
-            Object response = (this.publicGetV3Depth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV3Depth(this.extend(request, parameters))).join();
             //
             // {
             //     "a": [
@@ -1077,7 +1077,7 @@ public class ApexCore extends ApexApi
             // }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.milliseconds();
+            Long timestamp = this.milliseconds();
             Object orderbook = this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "b", "a");
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "u"));
             return orderbook;
@@ -1110,8 +1110,8 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -1119,7 +1119,7 @@ public class ApexCore extends ApexApi
                 limit = 500; // default is 50
             }
             Helpers.addElementToObject(request, "limit", limit);
-            Object response = (this.publicGetV3Trades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV3Trades(this.extend(request, parameters))).join();
             //
             // [
             //  {
@@ -1164,7 +1164,7 @@ public class ApexCore extends ApexApi
         String marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market);
         String id = this.safeString2(trade, "i", "id");
-        Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "T", "createdAt")));
+        Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "T", "createdAt")));
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "v", "size");
         String side = (String)this.safeStringLower2(trade, "S", "side");
@@ -1207,11 +1207,11 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
-            Object response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawTicker = this.safeDict(tickers, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOpenInterest(rawTicker, market);
@@ -1240,10 +1240,10 @@ public class ApexCore extends ApexApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.milliseconds();
+        Long timestamp = this.milliseconds();
         String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "openInterestAmount", ApexCore.this.safeString(interest, "openInterest") );
@@ -1284,8 +1284,8 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -1295,17 +1295,17 @@ public class ApexCore extends ApexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object page = this.safeInteger(parameters, "page");
+            Long page = this.safeInteger(parameters, "page");
             if (Helpers.isTrue(!Helpers.isEqual(page, null)))
             {
                 Helpers.addElementToObject(request, "page", page);
             }
-            Object endTimeExclusive = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
+            Long endTimeExclusive = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
             if (Helpers.isTrue(!Helpers.isEqual(endTimeExclusive, null)))
             {
                 Helpers.addElementToObject(request, "endTimeExclusive", endTimeExclusive);
             }
-            Object response = (this.publicGetV3HistoryFunding(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV3HistoryFunding(this.extend(request, parameters))).join();
             //
             // {
             //     "historyFunds": [
@@ -1320,13 +1320,13 @@ public class ApexCore extends ApexApi
             //     "totalSize": 11
             // }
             //
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object resultList = this.safeList(data, "historyFunds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
             {
                 Object entry = Helpers.GetValue(resultList, i);
-                Object timestamp = this.safeInteger(entry, "fundingTimestamp");
+                Long timestamp = this.safeInteger(entry, "fundingTimestamp");
                 String marketId = this.safeString(entry, "symbol");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
@@ -1336,7 +1336,7 @@ public class ApexCore extends ApexApi
                     put( "datetime", ApexCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -1399,7 +1399,7 @@ public class ApexCore extends ApexApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(order, "createdAt");
+        Long timestamp = this.safeInteger(order, "createdAt");
         String orderId = this.safeString(order, "id");
         String clientOrderId = this.safeString(order, "clientId");
         String marketId = this.safeString(order, "symbol");
@@ -1412,7 +1412,7 @@ public class ApexCore extends ApexApi
         String side = (String)this.safeStringLower(order, "side");
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         Object remaining = this.omitZero(this.safeString(order, "remainingSize"));
-        Object lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
+        Long lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", orderId );
@@ -1446,9 +1446,9 @@ public class ApexCore extends ApexApi
         }}, market);
     }
 
-    public Object parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
-        Object timeInForces = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
             put( "GOOD_TIL_CANCEL", "GOOD_TIL_CANCEL" );
             put( "FILL_OR_KILL", "FILL_OR_KILL" );
             put( "IMMEDIATE_OR_CANCEL", "IMMEDIATE_OR_CANCEL" );
@@ -1457,11 +1457,11 @@ public class ApexCore extends ApexApi
         return this.safeString(timeInForces, timeInForce);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
-            Object statuses = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
                 put( "PENDING", "open" );
                 put( "OPEN", "open" );
                 put( "FILLED", "filled" );
@@ -1474,9 +1474,9 @@ public class ApexCore extends ApexApi
         return null;
     }
 
-    public Object parseOrderType(Object type)
+    public String parseOrderType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
             put( "MARKET", "market" );
             put( "STOP_LIMIT", "limit" );
@@ -1496,7 +1496,7 @@ public class ApexCore extends ApexApi
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(marketId, null))))
         {
             Object marketsMap = this.markets;
-            Object marketsById = this.markets_by_id;
+            java.util.Map<String, Object> marketsById = this.markets_by_id;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketsMap, null))) && Helpers.isTrue((Helpers.inOp(marketsMap, marketId)))))
             {
                 market = Helpers.GetValue(marketsMap, marketId);
@@ -1525,7 +1525,7 @@ public class ApexCore extends ApexApi
 
     public Object generateRandomClientIdOmni(Object _accountId)
     {
-        Object hasAccountId = Helpers.isTrue((!Helpers.isEqual(_accountId, null))) && Helpers.isTrue((!Helpers.isEqual(_accountId, "")));
+        Boolean hasAccountId = Helpers.isTrue((!Helpers.isEqual(_accountId, null))) && Helpers.isTrue((!Helpers.isEqual(_accountId, "")));
         Object accountId = ((Helpers.isTrue(hasAccountId))) ? _accountId : String.valueOf(this.randNumber(12));
         return Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("apexomni-", accountId), "-"), String.valueOf(this.milliseconds())), "-"), String.valueOf(this.randNumber(6)));
     }
@@ -1599,7 +1599,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object orderType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
@@ -1616,7 +1616,7 @@ public class ApexCore extends ApexApi
             String taker = this.safeString(fees, "taker", "0.0005");
             String maker = this.safeString(fees, "maker", "0.0002");
             Object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"))), TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
-            Object timeNow = this.milliseconds();
+            Long timeNow = this.milliseconds();
             Object triggerPrice = this.safeString(parameters, "triggerPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
             String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -1629,7 +1629,7 @@ public class ApexCore extends ApexApi
                 orderType = ((Helpers.isTrue((Helpers.isEqual(orderType, "MARKET"))))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT_LIMIT";
                 triggerPrice = takeProfitPrice;
             }
-            Object isMarket = Helpers.isEqual(orderType, "MARKET");
+            Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
             if (Helpers.isTrue(Helpers.isTrue(isMarket) && Helpers.isTrue((Helpers.isEqual(price, null)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;
@@ -1661,7 +1661,7 @@ public class ApexCore extends ApexApi
             Object finalClientOrderId = clientOrderId; // java req
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice")));
             Object finalOrderPrice = orderPrice; // java req
-            Object orderToSign = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> orderToSign = new java.util.HashMap<String, Object>() {{
                 put( "accountId", accountId );
                 put( "slotId", finalClientOrderId );
                 put( "nonce", finalClientOrderId );
@@ -1680,7 +1680,7 @@ public class ApexCore extends ApexApi
             final Object finalOrderType = orderType;
             final Object finalTimeNow = timeNow;
             final Object finalTimeInForce = timeInForce;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", orderSide );
                 put( "type", finalOrderType );
@@ -1697,7 +1697,7 @@ public class ApexCore extends ApexApi
                 Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             Helpers.addElementToObject(request, "signature", signature);
-            Object response = (this.privatePostV3Order(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV3Order(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
@@ -1728,7 +1728,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object configResponse = (this.publicGetV3Symbols(parameters)).join();
+            java.util.Map<String, Object> configResponse = (this.publicGetV3Symbols(parameters)).join();
             Object configData = this.safeDict(configResponse, "data", new java.util.HashMap<String, Object>() {{}});
             Object contractConfig = this.safeDict(configData, "contractConfig", new java.util.HashMap<String, Object>() {{}});
             Object contractAssets = this.safeList(contractConfig, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1739,7 +1739,7 @@ public class ApexCore extends ApexApi
             String receiverZkAccountId = this.safeString(globalConfig, "contractAssetPoolZkAccountId", "");
             String receiverSubAccountId = this.safeString(globalConfig, "contractAssetPoolSubAccount", "");
             String receiverAccountId = this.safeString(globalConfig, "contractAssetPoolAccountId", "");
-            Object accountResponse = (this.privateGetV3Account(parameters)).join();
+            java.util.Map<String, Object> accountResponse = (this.privateGetV3Account(parameters)).join();
             Object accountData = this.safeDict(accountResponse, "data", new java.util.HashMap<String, Object>() {{}});
             Object spotAccount = this.safeDict(accountData, "spotAccount", new java.util.HashMap<String, Object>() {{}});
             String zkAccountId = this.safeString(spotAccount, "zkAccountId", "");
@@ -1773,8 +1773,8 @@ public class ApexCore extends ApexApi
             Object decimalsNum = this.safeNumber(currency, "decimals", 0);
             Object decimalsNumber = ((Helpers.isTrue((Helpers.isEqual(decimalsNum, null))))) ? 0 : decimalsNum;
             Object mathPowResult = (Helpers.mathPow(Double.parseDouble(Helpers.toString(10)), Double.parseDouble(Helpers.toString(decimalsNumber))));
-            Object amountNumber = this.parseToInt(Helpers.multiply(amount, mathPowResult));
-            Object timestampSeconds = this.parseToInt(Helpers.divide(this.milliseconds(), 1000));
+            Long amountNumber = this.parseToInt(Helpers.multiply(amount, mathPowResult));
+            Long timestampSeconds = this.parseToInt(Helpers.divide(this.milliseconds(), 1000));
             Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
@@ -1784,10 +1784,10 @@ public class ApexCore extends ApexApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fromAccount, null)) && Helpers.isTrue(Helpers.isEqual(((String)fromAccount).toLowerCase(), "contract"))))
             {
-                Object formattedUint32 = "4294967295";
-                Object zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
+                String formattedUint32 = "4294967295";
+                String zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
                 Object expireTime = Helpers.add(timestampSeconds, Helpers.multiply(Helpers.multiply(3600, 24), 28));
-                Object orderToSign = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> orderToSign = new java.util.HashMap<String, Object>() {{
                     put( "zkAccountId", zkSignAccountId );
                     put( "receiverAddress", ethAddress );
                     put( "subAccountId", subAccountId );
@@ -1801,7 +1801,7 @@ public class ApexCore extends ApexApi
                 }};
                 Object signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
                 final Object finalAmount = amount;
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "amount", finalAmount );
                     put( "expireTime", expireTime );
                     put( "clientWithdrawId", finalClientOrderId );
@@ -1809,9 +1809,9 @@ public class ApexCore extends ApexApi
                     put( "token", code );
                     put( "ethAddress", ethAddress );
                 }};
-                Object response = (this.privatePostV3ContractTransferOut(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.privatePostV3ContractTransferOut(this.extend(request, parameters))).join();
                 Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                Object currentTime = this.milliseconds();
+                Long currentTime = this.milliseconds();
                 Object parsedAmount = this.parseNumber(amount);
                 return this.extend(this.parseTransfer(data, this.currency(code)), new java.util.HashMap<String, Object>() {{
                     put( "timestamp", currentTime );
@@ -1823,7 +1823,7 @@ public class ApexCore extends ApexApi
             } else
             {
                 final Object finalTimestampSeconds = timestampSeconds;
-                Object orderToSign = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> orderToSign = new java.util.HashMap<String, Object>() {{
                     put( "zkAccountId", zkAccountId );
                     put( "receiverAddress", receiverAddress );
                     put( "subAccountId", subAccountId );
@@ -1837,7 +1837,7 @@ public class ApexCore extends ApexApi
                 Object signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
                 Object amountStr = String.valueOf(amount);
                 Object ts = timestampSeconds; // java req
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "amount", amountStr );
                     put( "timestamp", ts );
                     put( "clientTransferId", finalClientOrderId );
@@ -1853,9 +1853,9 @@ public class ApexCore extends ApexApi
                     put( "receiverAddress", receiverAddress );
                     put( "nonce", finalNonce );
                 }};
-                Object response = (this.privatePostV3TransferOut(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.privatePostV3TransferOut(this.extend(request, parameters))).join();
                 Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                Object currentTime = this.milliseconds();
+                Long currentTime = this.milliseconds();
                 final Object finalAmount_2 = amount;
                 return this.extend(this.parseTransfer(data, this.currency(code)), new java.util.HashMap<String, Object>() {{
                     put( "timestamp", currentTime );
@@ -1873,7 +1873,7 @@ public class ApexCore extends ApexApi
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "coin");
-        Object timestamp = this.safeInteger(transfer, "timestamp");
+        Long timestamp = this.safeInteger(transfer, "timestamp");
         String fromAccount = this.safeString(transfer, "fromAccount");
         String toAccount = this.safeString(transfer, "toAccount");
         return new java.util.HashMap<String, Object>() {{
@@ -1910,13 +1910,13 @@ public class ApexCore extends ApexApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privatePostV3DeleteOpenOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV3DeleteOpenOrders(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseOrder(data, market)));
         });
@@ -1940,7 +1940,7 @@ public class ApexCore extends ApexApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -1982,7 +1982,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -2025,7 +2025,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetV3OpenOrders(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetV3OpenOrders(parameters)).join();
             Object orders = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, null, since, limit);
         });
@@ -2062,7 +2062,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2077,13 +2077,13 @@ public class ApexCore extends ApexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object endTimeExclusive = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
+            Long endTimeExclusive = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
             if (Helpers.isTrue(!Helpers.isEqual(endTimeExclusive, null)))
             {
                 Helpers.addElementToObject(request, "endTimeExclusive", endTimeExclusive);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
             }
-            Object response = (this.privateGetV3HistoryOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV3HistoryOrders(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
@@ -2116,7 +2116,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
@@ -2126,7 +2126,7 @@ public class ApexCore extends ApexApi
                 Helpers.addElementToObject(request, "orderId", id);
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "clientId")));
-            Object response = (this.privateGetV3OrderFills(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV3OrderFills(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(orders, null, since, limit);
@@ -2162,7 +2162,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2177,13 +2177,13 @@ public class ApexCore extends ApexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object endTimeExclusive = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
+            Long endTimeExclusive = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
             if (Helpers.isTrue(!Helpers.isEqual(endTimeExclusive, null)))
             {
                 Helpers.addElementToObject(request, "endTimeExclusive", endTimeExclusive);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
             }
-            Object response = (this.privateGetV3Fills(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV3Fills(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(orders, market, since, limit);
@@ -2218,7 +2218,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2233,13 +2233,13 @@ public class ApexCore extends ApexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object endTimeExclusive = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
+            Long endTimeExclusive = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
             if (Helpers.isTrue(!Helpers.isEqual(endTimeExclusive, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "endTimeExclusive", "until")));
                 Helpers.addElementToObject(request, "endTimeExclusive", endTimeExclusive);
             }
-            Object response = (this.privateGetV3Funding(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV3Funding(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object fundingValues = this.safeList(data, "fundingValues", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseIncomes(fundingValues, market, since, limit);
@@ -2266,8 +2266,8 @@ public class ApexCore extends ApexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
-        Object code = "USDT";
-        Object timestamp = this.safeInteger(income, "fundingTime");
+        String code = "USDT";
+        Long timestamp = this.safeInteger(income, "fundingTime");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
@@ -2306,14 +2306,14 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object leverageString = this.numberToString(leverage);
-            Object initialMarginRate = Precise.stringDiv("1", leverageString, 4);
-            Object request = new java.util.HashMap<String, Object>() {{
+            String initialMarginRate = Precise.stringDiv("1", leverageString, 4);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "initialMarginRate", initialMarginRate );
             }};
-            Object response = (this.privatePostV3SetInitialMarginRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV3SetInitialMarginRate(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return data;
         });
@@ -2340,7 +2340,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetV3Account(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetV3Account(parameters)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object positions = this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePositions(positions, symbols);
@@ -2371,7 +2371,7 @@ public class ApexCore extends ApexApi
         Object symbol = Helpers.GetValue(market, "symbol");
         String side = (String)this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
-        Object timestamp = this.safeInteger(position, "updatedTime");
+        Long timestamp = this.safeInteger(position, "updatedTime");
         Object leverage = 20;
         String customInitialMarginRate = this.safeString2(position, "customInitialMarginRate", "customImr", "0");
         if (Helpers.isTrue(!Helpers.isEqual(this.precisionFromString(customInitialMarginRate), 0)))
@@ -2430,7 +2430,7 @@ public class ApexCore extends ApexApi
             }
         } else
         {
-            Object sortedQuery = this.keysort(parameters);
+            java.util.Map<String, Object> sortedQuery = this.keysort(parameters);
             signBody = this.rawencode(sortedQuery);
         }
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
@@ -2469,7 +2469,7 @@ public class ApexCore extends ApexApi
         {
             return null;
         }
-        Object errorCode = this.safeInteger(response, "code");
+        Long errorCode = this.safeInteger(response, "code");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(errorCode, null)) && Helpers.isTrue(!Helpers.isEqual(errorCode, 0))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

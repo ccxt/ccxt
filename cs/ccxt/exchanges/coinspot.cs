@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class coinspot : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinspot" },
@@ -598,7 +598,7 @@ public partial class coinspot : Exchange
                     object currencyId = getValue(currencyIds, j);
                     object balance = getValue(currencies, currencyId);
                     string? code = this.safeCurrencyCode(currencyId);
-                    object account = this.account();
+                    Dictionary<string, object> account = this.account();
                     ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
                     if (isTrue(!isEqual(code, null)))
                     {
@@ -613,7 +613,7 @@ public partial class coinspot : Exchange
             {
                 object currencyId = getValue(currencyIds, i);
                 string? code = this.safeCurrencyCode(currencyId);
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balances, currencyId);
                 if (isTrue(!isEqual(code, null)))
                 {

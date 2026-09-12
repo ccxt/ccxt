@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class pacifica : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "pacifica" },
@@ -817,7 +817,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.filterBy(markets, "type", "swap"));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //     {
         //       "symbol": "BTC",
@@ -1153,7 +1153,7 @@ public partial class pacifica : Exchange
         }
     }
 
-    public virtual object parseAccountSettings(object settings)
+    public virtual Dictionary<string, object> parseAccountSettings(object settings)
     {
         int settingsLen = getArrayLength(settings);
         if (isTrue(isEqual(settingsLen, 0)))
@@ -1168,7 +1168,7 @@ public partial class pacifica : Exchange
             object symbol = getValue(market, "symbol");
             ((IDictionary<string,object>)settingsBySymbol)[(string)symbol] = getValue(settings, i);
         }
-        return settingsBySymbol;
+        return ((Dictionary<string, object>)((object)(settingsBySymbol)));
     }
 
     /**
@@ -1927,11 +1927,11 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)sigPayload)["client_order_id"] = clientOrderId;
         }
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         return new List<object>() {request, operationType};
     }
 
-    public virtual object batchOrdersRequest(object actions)
+    public virtual Dictionary<string, object> batchOrdersRequest(object actions)
     {
         //
         // [
@@ -2229,7 +2229,7 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)sigPayload)["all_symbols"] = true;
         }
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         return request;
     }
 
@@ -2306,7 +2306,7 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)sigPayload)["order_id"] = this.parseToInt(id);
         }
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         return request;
     }
 
@@ -2385,7 +2385,7 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)sigPayload)["order_id"] = this.parseToInt(id);
         }
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         return request;
     }
 
@@ -3205,7 +3205,7 @@ public partial class pacifica : Exchange
             { "symbol", getValue(market, "id") },
             { "is_isolated", isIsolated },
         };
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow"});
         Dictionary<string, object> response = await this.privatePostAccountMargin(request);
         // {
@@ -3242,7 +3242,7 @@ public partial class pacifica : Exchange
             { "symbol", getValue(market, "id") },
             { "leverage", leverage },
         };
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow"});
         Dictionary<string, object> response = await this.privatePostAccountLeverage(request);
         // {
@@ -3276,7 +3276,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "amount", ((object)amount).ToString() },
         };
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow"});
         Dictionary<string, object> response = await this.privatePostAccountWithdraw(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTransaction(new Dictionary<string, object>() {             { "info", response },         });
@@ -3685,14 +3685,19 @@ public partial class pacifica : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> currency = this.currency(((string)code));
         string operationType = "transfer_funds";
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "to_account", toAccount },
-            { "amount", amount },
+            { "amount", this.numberToString(amount) },
         };
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow"});
-        object response = this.privatePostAccountSubaccountTransfer(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostAccountSubaccountTransfer(this.extend(request, parameters));
         //
         // {
         //   "success": true,
@@ -3705,7 +3710,7 @@ public partial class pacifica : Exchange
         // }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data));
+        return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {             { "amount", amount },             { "fromAccount", this.safeString(request, "account") },             { "toAccount", toAccount },         }));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -3721,16 +3726,22 @@ public partial class pacifica : Exchange
         //   "code": null
         // }
         //
+        bool? success = this.safeBool(transfer, "success");
+        string? status = null;
+        if (isTrue(!isEqual(success, null)))
+        {
+            status = ((bool) isTrue((isEqual(success, true)))) ? "ok" : "failed";
+        }
         return new Dictionary<string, object>() {
             { "info", transfer },
             { "id", null },
             { "timestamp", null },
             { "datetime", null },
-            { "currency", null },
+            { "currency", this.safeCurrencyCode(null, currency) },
             { "amount", null },
             { "fromAccount", null },
             { "toAccount", null },
-            { "status", "ok" },
+            { "status", status },
         };
     }
 
@@ -3831,7 +3842,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "agent_wallet", agentAddress },
         };
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         return await this.privatePostAgentBind(this.extend(request, parameters));
     }
 
@@ -3840,7 +3851,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         string operationType = "create_api_key";
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {};
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         return ccxt.BaseExchange.ToDict(await this.privatePostAccountApiKeysCreate(this.extend(request, parameters)));
     }
 
@@ -3851,7 +3862,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "api_key", apiKey },
         };
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         return await this.privatePostAccountApiKeysRevoke(this.extend(request, parameters));
     }
 
@@ -3860,7 +3871,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         string operationType = "list_api_keys";
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {};
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         return ccxt.BaseExchange.ToDict(await this.privatePostAccountApiKeys(this.extend(request, parameters)));
     }
 
@@ -3872,7 +3883,7 @@ public partial class pacifica : Exchange
             { "builder_code", builderCode },
             { "max_fee_rate", maxFeeRate },
         };
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         return await this.privatePostAccountBuilderCodesApprove(this.extend(request, parameters));
     }
 
@@ -3891,11 +3902,11 @@ public partial class pacifica : Exchange
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "builder_code", builderCode },
         };
-        object request = this.postActionRequest(operationType, sigPayload, parameters);
+        Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
         return await this.privatePostAccountBuilderCodesRevoke(this.extend(request, parameters));
     }
 
-    public virtual object handleOriginAndSingleAddress(object methodName, object parameters)
+    public virtual List<object> handleOriginAndSingleAddress(object methodName, object parameters)
     {
         object address = null;
         IList<object> addressparametersVariable = (IList<object>)this.handleParamString2(parameters, "account", "address", null);
@@ -3953,7 +3964,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         object isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
-        string host = this.implodeHostname(getValue(getValue(this.urls, urlKey), api));
+        object host = this.implodeHostname(getValue(getValue(this.urls, urlKey), api));
         object url = add(add(add(add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         int paramsLen = getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys));
@@ -4002,7 +4013,7 @@ public partial class pacifica : Exchange
     {
         if (isTrue(this.isDictionary(value)))
         {
-            object result = new Dictionary<string, object>() {};
+            Dictionary<string, object> result = new Dictionary<string, object>() {};
             List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
             object sortedKeys = this.sort(keys);
             for (int i = 0; isLessThan(i, getArrayLength(sortedKeys)); postFixIncrement(ref i))
@@ -4050,7 +4061,7 @@ public partial class pacifica : Exchange
         return signatureBase58;
     }
 
-    public virtual object postActionRequest(object operationType, object sigPayload, object parameters)
+    public virtual Dictionary<string, object> postActionRequest(object operationType, object sigPayload, object parameters)
     {
         this.checkRequiredCredentials(); // check credentials every post action
         if (isTrue(isEqual(operationType, "undefined")))
@@ -4107,6 +4118,6 @@ public partial class pacifica : Exchange
         ((IDictionary<string,object>)finalHeaders)["timestamp"] = this.safeInteger(signatureHeader, "timestamp");
         ((IDictionary<string,object>)finalHeaders)["expiry_window"] = this.safeInteger(signatureHeader, "expiry_window");
         Dictionary<string, object> request = this.extend(finalHeaders, sigPayload);
-        return request;
+        return ((Dictionary<string, object>)((object)(request)));
     }
 }

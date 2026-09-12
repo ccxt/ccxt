@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class coinbase { public coinbase(object args = null) : base(args) { } }
 public partial class coinbase : ccxt.coinbase
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -280,7 +280,7 @@ public partial class coinbase : ccxt.coinbase
         return res;
     }
 
-    public virtual object createWSAuth(object name, object productIds)
+    public virtual Dictionary<string, object> createWSAuth(object name, object productIds)
     {
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {};
         object timestamp = this.numberToString(this.seconds());
@@ -310,7 +310,7 @@ public partial class coinbase : ccxt.coinbase
             }
             ((IDictionary<string,object>)subscribe)["jwt"] = this.safeString(this.options, "wsToken");
         }
-        return subscribe;
+        return ((Dictionary<string, object>)((object)(subscribe)));
     }
 
     /**
@@ -1098,7 +1098,7 @@ public partial class coinbase : ccxt.coinbase
         //      }
         //
         List<object> events = this.safeList(message, "events", new List<object>() {});
-        object firstEvent = this.safeValue(events, 0, new Dictionary<string, object>() {});
+        IDictionary<string, object> firstEvent = this.safeDict(events, 0, new Dictionary<string, object>() {});
         bool isUnsub = (inOp(firstEvent, "subscriptions"));
         List<object> subKeys = new List<object>(((IDictionary<string,object>)getValue(firstEvent, "subscriptions")).Keys);
         int subKeysLength = getArrayLength(subKeys);

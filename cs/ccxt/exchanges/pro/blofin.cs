@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class blofin { public blofin(object args = null) : base(args) { } }
 public partial class blofin : ccxt.blofin
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -139,7 +139,7 @@ public partial class blofin : ccxt.blofin
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg");
         object channelName = this.safeString(arg, "channel");
-        object data = this.safeList(message, "data");
+        List<object> data = this.safeList(message, "data");
         if (isTrue(isEqual(data, null)))
         {
             return;
@@ -333,7 +333,7 @@ public partial class blofin : ccxt.blofin
         this.handleBidAsk(client as WebSocketClient, message);
         IDictionary<string, object> arg = this.safeDict(message, "arg");
         object channelName = this.safeString(arg, "channel");
-        object data = this.safeList(message, "data");
+        List<object> data = this.safeList(message, "data");
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.parseWsTicker(getValue(data, i));
@@ -385,7 +385,7 @@ public partial class blofin : ccxt.blofin
                 { "instId", getValue(market, "id") },
             });
         }
-        object request = this.getSubscriptionRequest(args);
+        Dictionary<string, object> request = this.getSubscriptionRequest(args);
         object ticker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
@@ -398,7 +398,7 @@ public partial class blofin : ccxt.blofin
 
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
-        object data = this.safeList(message, "data");
+        List<object> data = this.safeList(message, "data");
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.parseWsBidAsk(getValue(data, i));
@@ -500,7 +500,7 @@ public partial class blofin : ccxt.blofin
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg");
         string? channelName = this.safeString(arg, "channel");
-        object data = this.safeList(message, "data");
+        List<object> data = this.safeList(message, "data");
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -553,7 +553,7 @@ public partial class blofin : ccxt.blofin
         Dictionary<string, object> sub = new Dictionary<string, object>() {
             { "channel", "account" },
         };
-        object request = this.getSubscriptionRequest(new List<object>() {sub});
+        Dictionary<string, object> request = this.getSubscriptionRequest(new List<object>() {sub});
         object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private");
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
     }
@@ -658,7 +658,7 @@ public partial class blofin : ccxt.blofin
         object orders = this.orders;
         IDictionary<string, object> arg = this.safeDict(message, "arg");
         object channelName = this.safeString(arg, "channel");
-        object data = this.safeList(message, "data");
+        List<object> data = this.safeList(message, "data");
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = this.parseWsOrder(getValue(data, i));
@@ -719,7 +719,7 @@ public partial class blofin : ccxt.blofin
         object cache = this.positions;
         IDictionary<string, object> arg = this.safeDict(message, "arg");
         object channelName = this.safeString(arg, "channel");
-        object data = this.safeList(message, "data");
+        List<object> data = this.safeList(message, "data");
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -762,7 +762,7 @@ public partial class blofin : ccxt.blofin
             { "channel", "funding-rate" },
             { "instId", getValue(market, "id") },
         };
-        object request = this.getSubscriptionRequest(new List<object>() {requestParams});
+        Dictionary<string, object> request = this.getSubscriptionRequest(new List<object>() {requestParams});
         object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public");
         return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
     }
@@ -868,13 +868,13 @@ public partial class blofin : ccxt.blofin
     { "channel", channelName },
 }};
         }
-        object request = this.getSubscriptionRequest(rawSubscriptions);
+        Dictionary<string, object> request = this.getSubscriptionRequest(rawSubscriptions);
         string privateOrPublic = ((bool) isTrue(isPublic)) ? "public" : "private";
         object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), privateOrPublic);
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }
 
-    public virtual object getSubscriptionRequest(object args)
+    public virtual Dictionary<string, object> getSubscriptionRequest(object args)
     {
         return new Dictionary<string, object>() {
             { "op", "subscribe" },
@@ -921,7 +921,7 @@ public partial class blofin : ccxt.blofin
                 return;
             } else if (isTrue(isEqual(eventVar, "login")))
             {
-                var future = this.safeValue((client as WebSocketClient).futures, "authenticate_hash");
+                Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticate_hash"));
                 (future as Future).resolve(true);
                 return;
             } else if (isTrue(isEqual(eventVar, "error")))

@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bydfi { public bydfi(object args = null) : base(args) { } }
 public partial class bydfi : ccxt.bydfi
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -253,7 +253,7 @@ public partial class bydfi : ccxt.bydfi
         {
             // all tickers and tickers for specific symbols are different channels
             // we need to unsubscribe from all ticker channels
-            object subHashes = this.getMessageHashesForTickersUnsubscription();
+            List<object> subHashes = this.getMessageHashesForTickersUnsubscription();
             ((IDictionary<string,object>)subscription)["subHashIsPrefix"] = true;
             for (int i = 0; isLessThan(i, getArrayLength(subHashes)); postFixIncrement(ref i))
             {
@@ -289,11 +289,11 @@ public partial class bydfi : ccxt.bydfi
         return await this.watchPublic(messageHashes, channels, parameters, subscription);
     }
 
-    public virtual object getMessageHashesForTickersUnsubscription()
+    public virtual List<object> getMessageHashesForTickersUnsubscription()
     {
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         var client = this.client(url);
-        object subscriptions = ((WebSocketClient)client).subscriptions;
+        IDictionary<string, object> subscriptions = ((WebSocketClient)client).subscriptions;
         List<object> messageHashes = new List<object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -304,7 +304,7 @@ public partial class bydfi : ccxt.bydfi
                 ((IList<object>)messageHashes).Add(key);
             }
         }
-        return messageHashes;
+        return ((List<object>)((object)(messageHashes)));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -1045,7 +1045,7 @@ public partial class bydfi : ccxt.bydfi
         object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         this.balance = this.extend(response, this.balance);
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
+        Future future = ((Future)getValue(client.futures, messageHash));
         (future as Future).resolve();
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
     }
@@ -1108,7 +1108,7 @@ public partial class bydfi : ccxt.bydfi
                 object balance = getValue(balances, i);
                 string? currencyId = this.safeString(balance, "a");
                 string? code = this.safeCurrencyCode(currencyId);
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "wb");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "tfm");
                 if (isTrue(!isEqual(code, null)))

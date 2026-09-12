@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class btcbox : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "btcbox" },
@@ -337,7 +337,7 @@ public partial class btcbox : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(markets);
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? baseId = this.safeString(market, "base");
         object bs = this.safeCurrencyCode(baseId);
@@ -410,7 +410,7 @@ public partial class btcbox : Exchange
             object free = add(currencyId, "_balance");
             if (isTrue(inOp(response, free)))
             {
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 object used = add(currencyId, "_lock");
                 ((IDictionary<string,object>)account)["free"] = this.safeString(response, free);
                 ((IDictionary<string,object>)account)["used"] = this.safeString(response, used);

@@ -55,6 +55,7 @@ from ccxt.test.base.test_after_constructor import test_after_constructor  # noqa
 from ccxt.test.base.test_rawencode import test_rawencode  # noqa E402
 from ccxt.test.base.test_fetch_history import test_fetch_history  # noqa E402
 from ccxt.test.base.test_handle_methods import test_handle_methods  # noqa E402
+from ccxt.test.base.test_handle_http_status_code import test_handle_http_status_code  # noqa E402
 from ccxt.test.base.test_remove_repeated_elements_from_array import test_remove_repeated_elements_from_array  # noqa E402
 from ccxt.test.base.test_urlencode_with_array_repeat import test_urlencode_with_array_repeat  # noqa E402
 from ccxt.test.base.test_parse_precision import test_parse_precision  # noqa E402
@@ -117,6 +118,7 @@ async def base_tests_init():
     test_in_array()
     test_filter_by()
     test_handle_methods()
+    test_handle_http_status_code()
     test_network_methods()
     test_remove_repeated_elements_from_array()
     test_is_empty()

@@ -4062,7 +4062,7 @@ class whitebit(Exchange, ImplicitAPI):
                     errorsLength = len(errorKeys)
                     if errorsLength > 0:
                         errorKey = errorKeys[0]
-                        errorMessageArray = self.safe_value(errorObject, errorKey, [])
+                        errorMessageArray = self.safe_list(errorObject, errorKey, [])
                         errorMessageLength = len(errorMessageArray)
                         errorInfo = errorMessageArray[0] if (errorMessageLength > 0) else body
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorInfo, feedback)

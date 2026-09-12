@@ -4911,7 +4911,8 @@ class BaseExchange(object):
                 close = Precise.string_add(open, change)
             # close(using average)
             if close is None and average is not None:
-                close = Precise.string_mul(average, '2')
+                # average is the midpoint of open and close, so twice it is their sum
+                close = Precise.string_sub(Precise.string_mul(average, '2'), open)
             # average
             if average is None and close is not None:
                 precision = 18
@@ -5712,24 +5713,24 @@ class BaseExchange(object):
         retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', retries)
         retryDelay = 0
         retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', retryDelay)
-        fetchData = None
         fetchDataCacheEnabled = self.fetchHistoryCacheSize > 0
         for i in range(0, retries + 1):
+            fetchData = None
             if fetchDataCacheEnabled:
                 fetchData = {'request': None, 'response': {'body': None}, 'error': None}
             try:
                 self.set_last_rest_request_timestamp()
                 request = self.sign(path, api, method, params, headers, body)
-                if fetchDataCacheEnabled and (fetchData is not None):
+                if fetchData is not None:
                     fetchData['request'] = request
                 self.set_last_request(request)
                 response = self.fetch(request['url'], request['method'], request['headers'], request['body'])
-                if fetchDataCacheEnabled and (fetchData is not None):
+                if fetchData is not None:
                     fetchData['response']['body'] = response
                     self.add_fetch_cache(fetchData)
                 return response
             except Exception as e:
-                if fetchDataCacheEnabled and (fetchData is not None):
+                if fetchData is not None:
                     fetchData['error'] = e
                     self.add_fetch_cache(fetchData)
                 if isinstance(e, OperationFailed):
@@ -6481,13 +6482,13 @@ class BaseExchange(object):
             return self.number_to_string(value)
         return value
 
-    def is_tick_precision(self):
+    def is_tick_precision(self) -> bool:
         return self.precisionMode == TICK_SIZE
 
-    def is_decimal_precision(self):
+    def is_decimal_precision(self) -> bool:
         return self.precisionMode == DECIMAL_PLACES
 
-    def is_significant_precision(self):
+    def is_significant_precision(self) -> bool:
         return self.precisionMode == SIGNIFICANT_DIGITS
 
     def safe_number(self, obj: object, key: NullableIndexType, defaultNumber: Num = None):

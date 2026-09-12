@@ -1545,16 +1545,9 @@ class bingx(Exchange, ImplicitAPI):
             takeOrMaker = 'maker' if isMaker else 'taker'
         amount = self.safe_string_n(trade, ['qty', 'amount', 'q'])
         if (market is not None) and (market['swap'] is True) and ('volume' in trade):
-            if market['linear'] is True:
-                # private linear swap trades report 'amount' as the notional(quote) value, not the base amount
-                # 'volume' is the exchange's own base-currency fill quantity(bingx linear contractSize is always 1),
-                # use it directly instead of 'notional / price', which picks up rounding noise from the notional field
-                amount = self.safe_string(trade, 'volume')
-            else:
-                # private trade returns num of contracts instead of base currency(as the order-related methods do)
-                contractSize = self.safe_string(market['info'], 'tradeMinQuantity')
-                volume = self.safe_string(trade, 'volume')
-                amount = Precise.string_mul(volume, contractSize)
+            # Linear volume is the base quantity(contractSize 1); inverse volume is the contract count.
+            # safeTrade applies contractSize when calculating inverse cost.
+            amount = self.safe_string(trade, 'volume')
         return self.safe_trade({
             'id': self.safe_string_2(trade, 'id', 't'),
             'info': trade,
@@ -4183,7 +4176,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
 
         :param str[] ids: order ids
-        :param str symbol: unified market symbol, default is None
+        :param str symbol: unified market symbol, inverse(Coin-M) markets are not supported
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str[] [params.clientOrderIds]: client order ids
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -4193,6 +4186,8 @@ class bingx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        if market['inverse'] is True:
+            raise NotSupported(self.id + ' cancelOrders() is not supported for inverse swap markets')
         request = {
             'symbol': market['id'],
         }
@@ -5099,12 +5094,12 @@ class bingx(Exchange, ImplicitAPI):
             request['fromAccount'] = fromId
         if toAccount is not None:
             request['toAccount'] = toId
-        params = self.omit(params, ['fromAccount', 'toAccount'])
         maxLimit = 100
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchTransfers', None, since, limit, params, maxLimit)
+            return await self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params, maxLimit)
+        params = self.omit(params, ['fromAccount', 'toAccount'])
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -6344,7 +6339,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  # swap
 
         :param str id: order id
-        :param str symbol: unified symbol of the market to create an order in
+        :param str symbol: unified symbol of the market to create an order in, inverse(Coin-M) markets are not supported
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
@@ -6371,6 +6366,8 @@ class bingx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        if market['inverse'] is True:
+            raise NotSupported(self.id + ' editOrder() is not supported for inverse swap markets')
         request = self.create_order_request(symbol, type, side, amount, price, params)
         request['cancelOrderId'] = id
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE'

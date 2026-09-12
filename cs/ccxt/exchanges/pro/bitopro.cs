@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bitopro { public bitopro(object args = null) : base(args) { } }
 public partial class bitopro : ccxt.bitopro
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -520,7 +520,7 @@ public partial class bitopro : ccxt.bitopro
             object balance = this.safeValue(data, currency);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
             if (isTrue(!isEqual(code, null)))

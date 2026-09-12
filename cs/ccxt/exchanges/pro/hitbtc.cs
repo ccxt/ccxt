@@ -7,12 +7,12 @@ namespace ccxt.pro;
 public partial class hitbtc { public hitbtc(object args = null) : base(args) { } }
 public partial class hitbtc : ccxt.hitbtc
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), this.describeData());
     }
 
-    public virtual object describeData()
+    public virtual Dictionary<string, object> describeData()
     {
         return new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -371,7 +371,7 @@ public partial class hitbtc : ccxt.hitbtc
         string? defaultMethod = this.safeString(options, "method", "ticker/{speed}/batch");
         string? method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
         string? speed = this.safeString(parameters, "speed", "1s");
-        string name = this.implodeParams(method, new Dictionary<string, object>() {
+        string? name = this.implodeParams(method, new Dictionary<string, object>() {
             { "speed", speed },
         });
         parameters = this.omit(parameters, new List<object>() {"method", "speed"});
@@ -448,7 +448,7 @@ public partial class hitbtc : ccxt.hitbtc
         //        }
         //    }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         List<object> result = new List<object>() {};
         string topic = "tickers";
@@ -546,7 +546,7 @@ public partial class hitbtc : ccxt.hitbtc
         string? defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
         string? method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
         string? speed = this.safeString(parameters, "speed", "100ms");
-        string name = this.implodeParams(method, new Dictionary<string, object>() {
+        string? name = this.implodeParams(method, new Dictionary<string, object>() {
             { "speed", speed },
         });
         parameters = this.omit(parameters, new List<object>() {"method", "speed"});
@@ -698,7 +698,7 @@ public partial class hitbtc : ccxt.hitbtc
         //        }
         //    }
         //
-        object data = this.safeValue2(message, "snapshot", "update", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -840,7 +840,7 @@ public partial class hitbtc : ccxt.hitbtc
         //        }
         //    }
         //
-        object data = this.safeValue2(message, "snapshot", "update", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         string? channel = this.safeString(message, "ch", "");
         List<object> splitChannel = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
@@ -863,7 +863,7 @@ public partial class hitbtc : ccxt.hitbtc
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
-            object ohlcvs = this.parseWsOHLCVs(getValue(data, marketId), market);
+            List<object> ohlcvs = this.parseWsOHLCVs(getValue(data, marketId), market);
             for (int j = 0; isLessThan(j, getArrayLength(ohlcvs)); postFixIncrement(ref j))
             {
                 callDynamically(stored, "append", new object[] {getValue(ohlcvs, j)});
@@ -1525,7 +1525,7 @@ public partial class hitbtc : ccxt.hitbtc
             if (isTrue(((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 // to do improve this, not very reliable right now
-                object first = this.safeValue(result, 0, new Dictionary<string, object>() {});
+                IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});
                 int arrayLength = getArrayLength(result);
                 if (isTrue(isTrue((isEqual(arrayLength, 0))) || isTrue((inOp(first, "client_order_id")))))
                 {
@@ -1547,7 +1547,7 @@ public partial class hitbtc : ccxt.hitbtc
         string messageHash = "authenticated";
         if (isTrue(isEqual(success, true)))
         {
-            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
             (future as Future).resolve(true);
         } else
         {
@@ -1561,7 +1561,7 @@ public partial class hitbtc : ccxt.hitbtc
         return message;
     }
 
-    public virtual object handleError(WebSocketClient client, object message)
+    public virtual bool handleError(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1601,9 +1601,9 @@ public partial class hitbtc : ccxt.hitbtc
                     string? id = this.safeString(message, "id");
                     ((WebSocketClient)client).reject(e, id);
                 }
-                return true;
+                return ((bool)((object)(true))!);
             }
         }
-        return null;
+        return ((bool)((object)(false))!);
     }
 }

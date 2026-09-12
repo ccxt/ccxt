@@ -1557,7 +1557,7 @@ class bybit extends \ccxt\async\bybit {
         $executionFast = $topic === 'execution.fast';
         $data = $this->safe_value($message, 'data', array());
         if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
-            $data = $this->safe_value($data, 'result', array());
+            $data = $this->safe_list($data, 'result', array());
         }
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1749,7 +1749,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $cache = $this->positions;
         $newPositions = array();
-        $rawPositions = $this->safe_value($message, 'data', array());
+        $rawPositions = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
             $position = $this->parse_position($rawPosition);
@@ -2138,7 +2138,7 @@ class bybit extends \ccxt\async\bybit {
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $orders = $this->orders;
-        $rawOrders = $this->safe_value($message, 'data', array());
+        $rawOrders = $this->safe_list($message, 'data', array());
         $first = $this->safe_value($rawOrders, 0, array());
         $category = $this->safe_string($first, 'category');
         $isSpot = $category === 'spot';
@@ -2385,7 +2385,7 @@ class bybit extends \ccxt\async\bybit {
         $account = null;
         if ($topic === 'outboundAccountInfo') {
             $account = 'spot';
-            $data = $this->safe_value($message, 'data', array());
+            $data = $this->safe_list($message, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $B = $this->safe_value($data[$i], 'B', array());
                 $rawBalances = $this->array_concat($rawBalances, $B);

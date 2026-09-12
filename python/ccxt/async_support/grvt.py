@@ -504,7 +504,7 @@ class grvt(Exchange, ImplicitAPI):
             },
         }
 
-    def uses_private_key(self):
+    def uses_private_key(self) -> bool:
         privateKeyDefined = self.privateKey is not None and self.privateKey != ''
         apiKeyDefined = self.apiKey is not None and self.apiKey != ''
         if privateKeyDefined and apiKeyDefined:

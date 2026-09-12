@@ -1359,7 +1359,7 @@ class kraken extends Exchange {
         //                                                    "fee" => "0.0050000000",
         //                                                "balance" => "0.0000051000"           ),
         $result = $this->safe_value($response, 'result', array());
-        $ledger = $this->safe_value($result, 'ledger', array());
+        $ledger = $this->safe_dict($result, 'ledger', array());
         $keys = is_array($ledger) ? array_keys($ledger) : array();
         $items = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -1613,7 +1613,7 @@ class kraken extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $balances = $this->safe_value($response, 'result', array());
+        $balances = $this->safe_dict($response, 'result', array());
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1836,7 +1836,7 @@ class kraken extends Exchange {
     }
 
     public function find_market_by_altname_or_id(mixed $id) {
-        $marketsByAltname = $this->safe_value($this->options, 'marketsByAltname', array());
+        $marketsByAltname = $this->safe_dict($this->options, 'marketsByAltname', array());
         if (is_array($marketsByAltname) && array_key_exists($id ?? '', $marketsByAltname)) {
             return $marketsByAltname[$id];
         } else {
@@ -2099,7 +2099,7 @@ class kraken extends Exchange {
         }
         $userref = $this->safe_string($order, 'userref');
         $clientOrderId = $this->safe_string($order, 'cl_ord_id', $userref);
-        $rawTrades = $this->safe_value($order, 'trades', array());
+        $rawTrades = $this->safe_list($order, 'trades', array());
         $trades = array();
         for ($i = 0; $i < count($rawTrades); $i++) {
             $rawTrade = $rawTrades[$i];
@@ -2538,7 +2538,7 @@ class kraken extends Exchange {
             'trades' => true, // whether or not to include trades in output (optional, default false)
             'txid' => implode(',', $ids), // comma delimited list of transaction $ids to query info about (20 maximum)
         ), $params));
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $orders = array();
         $orderIds = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($orderIds); $i++) {

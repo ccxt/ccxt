@@ -1950,7 +1950,7 @@ class mexc(ccxt.async_support.mexc):
             if method is not None:
                 method(client, message)
 
-    def handle_protobuf_message(self, client: Client, message: object):
+    def handle_protobuf_message(self, client: Client, message: object) -> bool:
         # protobuf message decoded
         #  {
         #    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",

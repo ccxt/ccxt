@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class woo { public woo(object args = null) : base(args) { } }
 public partial class woo : ccxt.woo
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -1007,7 +1007,7 @@ public partial class woo : ccxt.woo
         }, market);
     }
 
-    public virtual object checkRequiredUid(object error = null)
+    public virtual bool checkRequiredUid(object error = null)
     {
         error ??= true;
         if (isTrue(isTrue((isEqual(this.uid, null))) || isTrue((isEqual(this.uid, "")))))
@@ -1017,10 +1017,10 @@ public partial class woo : ccxt.woo
                 throw new AuthenticationError ((string)add(this.id, " requires `uid` credential (woox calls it `application_id`)")) ;
             } else
             {
-                return false;
+                return ((bool)((object)(false))!);
             }
         }
-        return true;
+        return ((bool)((object)(true))!);
     }
 
     public async virtual Task<object> authenticate(object parameters = null)
@@ -1328,7 +1328,7 @@ public partial class woo : ccxt.woo
             for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object order = getValue(data, i);
-                object tradeId = this.omitZero(this.safeString(data, "tradeId"));
+                string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
                 if (isTrue(!isEqual(tradeId, null)))
                 {
                     this.handleMyTrade(client as WebSocketClient, order);
@@ -1338,7 +1338,7 @@ public partial class woo : ccxt.woo
         } else
         {
             // executionreport
-            object tradeId = this.omitZero(this.safeString(data, "tradeId"));
+            string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
             if (isTrue(!isEqual(tradeId, null)))
             {
                 this.handleMyTrade(client as WebSocketClient, data);
@@ -1526,7 +1526,7 @@ public partial class woo : ccxt.woo
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
         }
@@ -1560,7 +1560,7 @@ public partial class woo : ccxt.woo
         //    }
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object rawPositions = this.safeValue(data, "positions", new Dictionary<string, object>() {});
+        IDictionary<string, object> rawPositions = this.safeDict(data, "positions", new Dictionary<string, object>() {});
         List<object> postitionsIds = new List<object>(((IDictionary<string,object>)rawPositions).Keys);
         if (isTrue(isEqual(this.positions, null)))
         {
@@ -1919,7 +1919,7 @@ public partial class woo : ccxt.woo
         if (isTrue(isEqual(success, true)))
         {
             // client.resolve (message, messageHash);
-            var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
             (future as Future).resolve(true);
         } else
         {

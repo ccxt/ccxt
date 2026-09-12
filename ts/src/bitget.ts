@@ -4519,7 +4519,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -9962,7 +9962,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         data['ts'] = this.safeInteger (response, 'requestTime');
         return this.parseTransfer (data, currency);
     }
@@ -10043,7 +10043,7 @@ export default class bitget extends Exchange {
         //         "transfer": "true""
         //     }
         //
-        const chains = this.safeValue (fee, 'chains', []);
+        const chains = this.safeList (fee, 'chains', []);
         const chainsLength = chains.length;
         const result: Dict = {
             'info': fee,
@@ -10554,7 +10554,7 @@ export default class bitget extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'requestTime');
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         first['timestamp'] = timestamp;
         return this.parseIsolatedBorrowRate (first, market);
     }
@@ -10679,7 +10679,7 @@ export default class bitget extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data', []);
-            result = this.safeValue (data, 0, {});
+            result = this.safeDict (data, 0, {});
         }
         const timestamp = this.safeInteger (response, 'requestTime');
         result['timestamp'] = timestamp;

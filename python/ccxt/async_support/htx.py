@@ -2842,10 +2842,10 @@ class htx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            trades = self.safe_value(data[i], 'data', [])
+            trades = self.safe_list(data[i], 'data', [])
             for j in range(0, len(trades)):
                 trade = self.parse_trade(trades[j], market)
                 result.append(trade)
@@ -3224,7 +3224,7 @@ class htx(Exchange, ImplicitAPI):
         keysLength = len(keys)
         if keysLength == 0:
             raise ExchangeError(self.id + ' networkCodeToId() - markets need to be loaded at first')
-        uniqueNetworkIds = self.safe_value(self.options['networkChainIdsByNames'], currencyCode, {})
+        uniqueNetworkIds = self.safe_dict(self.options['networkChainIdsByNames'], currencyCode, {})
         if networkCode in uniqueNetworkIds:
             return uniqueNetworkIds[networkCode]
         else:
@@ -3465,7 +3465,7 @@ class htx(Exchange, ImplicitAPI):
                         result = self.merge_balance_account(result, subCode, subResult[subCode])
                 result = self.safe_balance(result)
             else:
-                balances = self.safe_value(data, 'list', [])
+                balances = self.safe_list(data, 'list', [])
                 for i in range(0, len(balances)):
                     balance = balances[i]
                     currencyId = self.safe_string(balance, 'currency')
@@ -4836,7 +4836,7 @@ class htx(Exchange, ImplicitAPI):
         options = self.safe_value(self.options, market['type'], {})
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop-price'])
         if triggerPrice is None:
-            stopOrderTypes = self.safe_value(options, 'stopOrderTypes', {})
+            stopOrderTypes = self.safe_dict(options, 'stopOrderTypes', {})
             if orderType in stopOrderTypes:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice for a trigger order')
         else:
@@ -4897,7 +4897,7 @@ class htx(Exchange, ImplicitAPI):
             request['amount'] = quoteAmount
         else:
             request['amount'] = self.amount_to_precision(symbol, amount)
-        limitOrderTypes = self.safe_value(options, 'limitOrderTypes', {})
+        limitOrderTypes = self.safe_dict(options, 'limitOrderTypes', {})
         if orderType in limitOrderTypes:
             request['price'] = self.price_to_precision(symbol, price)
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce'])
@@ -6758,7 +6758,7 @@ class htx(Exchange, ImplicitAPI):
                 })
         else:
             cursor = self.safe_value(data, 'current_page')
-            result = self.safe_value(data, 'data', [])
+            result = self.safe_list(data, 'data', [])
             for i in range(0, len(result)):
                 entry = result[i]
                 entry['current_page'] = cursor
@@ -7701,7 +7701,7 @@ class htx(Exchange, ImplicitAPI):
             #       "ts": "1641109636572"
             #     }
             #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
         result = []
         for i in range(0, len(data)):
@@ -8358,7 +8358,7 @@ class htx(Exchange, ImplicitAPI):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         openInterest = self.parse_open_interest(data[0], market)
         openInterest['timestamp'] = timestamp
         openInterest['datetime'] = self.iso8601(timestamp)
@@ -8812,7 +8812,7 @@ class htx(Exchange, ImplicitAPI):
         #              "instStatus": "normal"
         #          }
         #
-        chains = self.safe_value(fee, 'chains', [])
+        chains = self.safe_list(fee, 'chains', [])
         code = self.safe_string(currency, 'code')
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(chains)):

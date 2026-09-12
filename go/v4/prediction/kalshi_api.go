@@ -8,371 +8,371 @@
 package ccxtprediction
 
 // KalshiPublicGetEvents returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetEvents(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetEvents(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetEvents", args...)
 }
 
 // KalshiPublicGetEventsMultivariate returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetEventsMultivariate(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetEventsMultivariate(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetEventsMultivariate", args...)
 }
 
 // KalshiPublicGetEventsFeeChanges returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetEventsFeeChanges(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetEventsFeeChanges(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetEventsFeeChanges", args...)
 }
 
 // KalshiPublicGetEventsEventTicker returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetEventsEventTicker(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetEventsEventTicker(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetEventsEventTicker", args...)
 }
 
 // KalshiPublicGetEventsEventTickerMetadata returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetEventsEventTickerMetadata(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetEventsEventTickerMetadata(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetEventsEventTickerMetadata", args...)
 }
 
 // KalshiPublicGetSeries returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetSeries(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetSeries(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetSeries", args...)
 }
 
 // KalshiPublicGetSeriesFeeChanges returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetSeriesFeeChanges(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetSeriesFeeChanges(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetSeriesFeeChanges", args...)
 }
 
 // KalshiPublicGetSeriesSeriesTicker returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetSeriesSeriesTicker(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetSeriesSeriesTicker(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetSeriesSeriesTicker", args...)
 }
 
 // KalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks", args...)
 }
 
 // KalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks", args...)
 }
 
 // KalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory", args...)
 }
 
 // KalshiPublicGetMarkets returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetMarkets(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetMarkets(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetMarkets", args...)
 }
 
 // KalshiPublicGetMarketsTrades returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetMarketsTrades(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetMarketsTrades(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetMarketsTrades", args...)
 }
 
 // KalshiPublicGetMarketsOrderbooks returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetMarketsOrderbooks(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetMarketsOrderbooks(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetMarketsOrderbooks", args...)
 }
 
 // KalshiPublicGetMarketsCandlesticks returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetMarketsCandlesticks(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetMarketsCandlesticks(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetMarketsCandlesticks", args...)
 }
 
 // KalshiPublicGetMarketsTicker returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetMarketsTicker(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetMarketsTicker(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetMarketsTicker", args...)
 }
 
 // KalshiPublicGetMarketsTickerOrderbook returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetMarketsTickerOrderbook(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetMarketsTickerOrderbook(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetMarketsTickerOrderbook", args...)
 }
 
 // KalshiPublicGetExchangeStatus returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetExchangeStatus(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetExchangeStatus(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetExchangeStatus", args...)
 }
 
 // KalshiPublicGetExchangeSchedule returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetExchangeSchedule(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetExchangeSchedule(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetExchangeSchedule", args...)
 }
 
 // KalshiPublicGetExchangeAnnouncements returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetExchangeAnnouncements(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetExchangeAnnouncements(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetExchangeAnnouncements", args...)
 }
 
 // KalshiPublicGetExchangeUserDataTimestamp returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetExchangeUserDataTimestamp(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetExchangeUserDataTimestamp(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetExchangeUserDataTimestamp", args...)
 }
 
 // KalshiPublicGetMilestones returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetMilestones(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetMilestones(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetMilestones", args...)
 }
 
 // KalshiPublicGetMilestonesMilestoneId returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetMilestonesMilestoneId(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetMilestonesMilestoneId(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetMilestonesMilestoneId", args...)
 }
 
 // KalshiPublicGetStructuredTargets returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetStructuredTargets(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetStructuredTargets(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetStructuredTargets", args...)
 }
 
 // KalshiPublicGetStructuredTargetsStructuredTargetId returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetStructuredTargetsStructuredTargetId(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetStructuredTargetsStructuredTargetId(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetStructuredTargetsStructuredTargetId", args...)
 }
 
 // KalshiPublicGetSearchFiltersBySport returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetSearchFiltersBySport(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetSearchFiltersBySport(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetSearchFiltersBySport", args...)
 }
 
 // KalshiPublicGetSearchTagsByCategories returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetSearchTagsByCategories(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetSearchTagsByCategories(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetSearchTagsByCategories", args...)
 }
 
 // KalshiPublicGetLiveDataBatch returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetLiveDataBatch(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetLiveDataBatch(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetLiveDataBatch", args...)
 }
 
 // KalshiPublicGetLiveDataMilestoneMilestoneId returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetLiveDataMilestoneMilestoneId(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetLiveDataMilestoneMilestoneId(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetLiveDataMilestoneMilestoneId", args...)
 }
 
 // KalshiPublicGetHistoricalMarkets returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetHistoricalMarkets(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetHistoricalMarkets(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetHistoricalMarkets", args...)
 }
 
 // KalshiPublicGetHistoricalMarketsTickerCandlesticks returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetHistoricalMarketsTickerCandlesticks(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetHistoricalMarketsTickerCandlesticks(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetHistoricalMarketsTickerCandlesticks", args...)
 }
 
 // KalshiPublicGetHistoricalTrades returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetHistoricalTrades(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetHistoricalTrades(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetHistoricalTrades", args...)
 }
 
 // KalshiPublicGetHistoricalCutoffTimestamps returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetHistoricalCutoffTimestamps(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetHistoricalCutoffTimestamps(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetHistoricalCutoffTimestamps", args...)
 }
 
 // KalshiPublicGetMultivariateEventCollections returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetMultivariateEventCollections(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetMultivariateEventCollections(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetMultivariateEventCollections", args...)
 }
 
 // KalshiPublicGetMultivariateEventCollectionsCollectionTicker returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetMultivariateEventCollectionsCollectionTicker(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetMultivariateEventCollectionsCollectionTicker(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetMultivariateEventCollectionsCollectionTicker", args...)
 }
 
 // KalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup", args...)
 }
 
 // KalshiPublicGetIncentivePrograms returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPublicGetIncentivePrograms(args ...any) <-chan any {
+func (this *Kalshi) KalshiPublicGetIncentivePrograms(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPublicGetIncentivePrograms", args...)
 }
 
 // KalshiPrivateGetPortfolioBalance returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioBalance(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioBalance(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioBalance", args...)
 }
 
 // KalshiPrivateGetPortfolioOrders returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioOrders(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioOrders(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioOrders", args...)
 }
 
 // KalshiPrivateGetPortfolioOrdersOrderId returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioOrdersOrderId(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioOrdersOrderId(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioOrdersOrderId", args...)
 }
 
 // KalshiPrivateGetPortfolioOrdersOrderIdQueuePosition returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioOrdersOrderIdQueuePosition(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioOrdersOrderIdQueuePosition(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition", args...)
 }
 
 // KalshiPrivateGetPortfolioOrdersQueuePositions returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioOrdersQueuePositions(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioOrdersQueuePositions(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioOrdersQueuePositions", args...)
 }
 
 // KalshiPrivateGetPortfolioPositions returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioPositions(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioPositions(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioPositions", args...)
 }
 
 // KalshiPrivateGetPortfolioFills returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioFills(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioFills(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioFills", args...)
 }
 
 // KalshiPrivateGetPortfolioSettlements returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioSettlements(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioSettlements(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioSettlements", args...)
 }
 
 // KalshiPrivateGetPortfolioDeposits returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioDeposits(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioDeposits(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioDeposits", args...)
 }
 
 // KalshiPrivateGetPortfolioWithdrawals returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioWithdrawals(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioWithdrawals(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioWithdrawals", args...)
 }
 
 // KalshiPrivateGetPortfolioOrderGroups returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioOrderGroups(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioOrderGroups(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioOrderGroups", args...)
 }
 
 // KalshiPrivateGetPortfolioOrderGroupsOrderGroupId returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioOrderGroupsOrderGroupId(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioOrderGroupsOrderGroupId(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioOrderGroupsOrderGroupId", args...)
 }
 
 // KalshiPrivateGetPortfolioSummaryTotalRestingOrderValue returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioSummaryTotalRestingOrderValue(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioSummaryTotalRestingOrderValue(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue", args...)
 }
 
 // KalshiPrivateGetPortfolioSubaccountsBalances returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioSubaccountsBalances(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioSubaccountsBalances(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioSubaccountsBalances", args...)
 }
 
 // KalshiPrivateGetPortfolioSubaccountsNetting returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioSubaccountsNetting(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioSubaccountsNetting(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioSubaccountsNetting", args...)
 }
 
 // KalshiPrivateGetPortfolioSubaccountsTransfers returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetPortfolioSubaccountsTransfers(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetPortfolioSubaccountsTransfers(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetPortfolioSubaccountsTransfers", args...)
 }
 
 // KalshiPrivateGetHistoricalFills returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetHistoricalFills(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetHistoricalFills(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetHistoricalFills", args...)
 }
 
 // KalshiPrivateGetHistoricalOrders returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateGetHistoricalOrders(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateGetHistoricalOrders(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateGetHistoricalOrders", args...)
 }
 
 // KalshiPrivatePostPortfolioOrders returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePostPortfolioOrders(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePostPortfolioOrders(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePostPortfolioOrders", args...)
 }
 
 // KalshiPrivatePostPortfolioEventsOrders returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePostPortfolioEventsOrders(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePostPortfolioEventsOrders(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePostPortfolioEventsOrders", args...)
 }
 
 // KalshiPrivatePostPortfolioOrdersBatched returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePostPortfolioOrdersBatched(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePostPortfolioOrdersBatched(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePostPortfolioOrdersBatched", args...)
 }
 
 // KalshiPrivatePostPortfolioOrdersOrderIdAmend returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePostPortfolioOrdersOrderIdAmend(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePostPortfolioOrdersOrderIdAmend(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePostPortfolioOrdersOrderIdAmend", args...)
 }
 
 // KalshiPrivatePostPortfolioOrdersOrderIdDecrease returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePostPortfolioOrdersOrderIdDecrease(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePostPortfolioOrdersOrderIdDecrease(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePostPortfolioOrdersOrderIdDecrease", args...)
 }
 
 // KalshiPrivatePostPortfolioOrderGroupsCreate returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePostPortfolioOrderGroupsCreate(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePostPortfolioOrderGroupsCreate(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePostPortfolioOrderGroupsCreate", args...)
 }
 
 // KalshiPrivatePostPortfolioSubaccounts returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePostPortfolioSubaccounts(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePostPortfolioSubaccounts(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePostPortfolioSubaccounts", args...)
 }
 
 // KalshiPrivatePostPortfolioSubaccountsTransfer returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePostPortfolioSubaccountsTransfer(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePostPortfolioSubaccountsTransfer(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePostPortfolioSubaccountsTransfer", args...)
 }
 
 // KalshiPrivatePostMultivariateEventCollectionsCollectionTicker returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePostMultivariateEventCollectionsCollectionTicker(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePostMultivariateEventCollectionsCollectionTicker(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePostMultivariateEventCollectionsCollectionTicker", args...)
 }
 
 // KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset", args...)
 }
 
 // KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger", args...)
 }
 
 // KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit", args...)
 }
 
 // KalshiPrivatePutPortfolioSubaccountsNetting returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePutPortfolioSubaccountsNetting(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePutPortfolioSubaccountsNetting(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePutPortfolioSubaccountsNetting", args...)
 }
 
 // KalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup", args...)
 }
 
 // KalshiPrivateDeletePortfolioOrdersOrderId returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateDeletePortfolioOrdersOrderId(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateDeletePortfolioOrdersOrderId(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateDeletePortfolioOrdersOrderId", args...)
 }
 
 // KalshiPrivateDeletePortfolioOrdersBatched returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateDeletePortfolioOrdersBatched(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateDeletePortfolioOrdersBatched(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateDeletePortfolioOrdersBatched", args...)
 }
 
 // KalshiPrivateDeletePortfolioEventsOrdersOrderId returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateDeletePortfolioEventsOrdersOrderId(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateDeletePortfolioEventsOrdersOrderId(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateDeletePortfolioEventsOrdersOrderId", args...)
 }
 
 // KalshiPrivateDeletePortfolioOrderGroupsOrderGroupId returns a channel that yields a JSON object.
-func (this *KalshiCore) KalshiPrivateDeletePortfolioOrderGroupsOrderGroupId(args ...any) <-chan any {
+func (this *Kalshi) KalshiPrivateDeletePortfolioOrderGroupsOrderGroupId(args ...any) <-chan any {
 	return this.CallEndpointAsync("kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId", args...)
 }
 
 // ElectionsPublicGetSearchSeries returns a channel that yields a JSON object.
-func (this *KalshiCore) ElectionsPublicGetSearchSeries(args ...any) <-chan any {
+func (this *Kalshi) ElectionsPublicGetSearchSeries(args ...any) <-chan any {
 	return this.CallEndpointAsync("electionsPublicGetSearchSeries", args...)
 }

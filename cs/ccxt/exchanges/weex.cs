@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class weex : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "weex" },
@@ -902,7 +902,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.publicGetApiV3Coins(parameters);
@@ -1019,7 +1019,7 @@ public partial class weex : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "coin");
         string? code = this.safeCurrencyCode(currencyId);
@@ -1115,7 +1115,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(result));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         // spot
@@ -1206,8 +1206,8 @@ public partial class weex : Exchange
         double? pricePrecision = this.safeNumber(market, "tickSize");
         if (isTrue(isEqual(amountPrecision, null)))
         {
-            object amountPrecisionString = this.parsePrecision(this.safeString(market, "quantityPrecision"));
-            object pricePrecisionString = this.parsePrecision(this.safeString(market, "pricePrecision"));
+            string? amountPrecisionString = this.parsePrecision(this.safeString(market, "quantityPrecision"));
+            string? pricePrecisionString = this.parsePrecision(this.safeString(market, "pricePrecision"));
             amountPrecision = this.parseNumber(amountPrecisionString);
             pricePrecision = this.parseNumber(pricePrecisionString);
         }
@@ -1849,7 +1849,7 @@ public partial class weex : Exchange
             if (isTrue(isTrue((isEqual(since, null))) || isTrue((isEqual(until, null)))))
             {
                 Int64 now = this.milliseconds();
-                object duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+                Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
                 object numberOfCandles = ((bool) isTrue((isTrue(isTrue(!isEqual(limitVar, null)) && isTrue(!isEqual(limitVar, null))) && isTrue(!isEqual(limitVar, 0))))) ? limitVar : maxHistoricalLimit;
                 object timeDelta = multiply(numberOfCandles, duration);
                 if (isTrue(isTrue((isEqual(since, null))) && isTrue((isEqual(until, null)))))
@@ -2358,7 +2358,7 @@ public partial class weex : Exchange
                 currencyId = "USDT"; // demo trading balances are denominated in the demo asset SUSDT
             }
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString2(entry, "availableBalance", "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString2(entry, "frozen", "locked");
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
@@ -3677,7 +3677,7 @@ public partial class weex : Exchange
         }
         Int64? timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
         string? rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
-        object triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
+        string? triggerPrice = ((string)this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice")));
         string? rawType = this.safeStringUpper2(order, "type", "orderType");
         bool? isReduceOnly = this.safeBool(order, "reduceOnly");
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
@@ -4175,7 +4175,7 @@ public partial class weex : Exchange
     public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositionsForSymbol(symbol, parameters));
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositionsForSymbol(((string)symbol), parameters));
         return ccxt.BaseExchange.ToPosition(this.safeDict(positions, 0));
     }
 
@@ -4189,7 +4189,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositionsForSymbol(object symbol, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositionsForSymbol(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4887,7 +4887,7 @@ public partial class weex : Exchange
         }
         if (isTrue(((string)marketId).EndsWith(((string)"SUSDT"))))
         {
-            object baseLength = subtract(((string)marketId).Length, 5);
+            int baseLength = subtract(((string)marketId).Length, 5);
             return add(slice(marketId, 0, baseLength), "USDT");
         }
         return marketId;
@@ -4904,7 +4904,7 @@ public partial class weex : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = this.implodeParams(path, parameters);
+        object endpoint = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         bool isBatch = (isGreaterThanOrEqual(getIndexOf(path, "batch"), 0));
         if (isTrue(!isTrue(isBatch) && isTrue((isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))))

@@ -2320,10 +2320,18 @@ func setDefaults(p any) {
 	}
 }
 
+// suffix carried by every transpiled channel-returning (async) method; the plain
+// name is the typed sync method. Mirrors GO_ASYNC_SUFFIX in build/goTranspiler.ts.
+const asyncMethodSuffix = "Async"
+
 func CallInternalMethod3(itf any, name2 string, args ...any) <-chan any {
 	name := Capitalize(name2)
 	baseValue := reflect.ValueOf(itf)
 	baseType := baseValue.Type()
+	// prefer the Async-suffixed channel trampoline over the same-named typed sync method
+	if _, ok := baseType.MethodByName(name + asyncMethodSuffix); ok {
+		name += asyncMethodSuffix
+	}
 
 	ch := make(chan any)
 	go func() {
@@ -2438,8 +2446,14 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 			}
 		}()
 
+		// dynamic callers name the unified method (fetchTicker). Its channel form is the
+		// Async-suffixed trampoline; the plain name is the typed sync method (or a plain
+		// sync helper when no trampoline exists), so the trampoline is looked up first.
 		cacheKey := fmt.Sprintf("%s", name)
-		cachedMethod, found := methodCache.Load(cacheKey)
+		cachedMethod, found := methodCache.Load(cacheKey + asyncMethodSuffix)
+		if !found {
+			cachedMethod, found = methodCache.Load(cacheKey)
+		}
 
 		if !found {
 			panic(name + " :method not found")

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct KrakenfuturesCore {
@@ -912,7 +916,7 @@ impl KrakenfuturesCore {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        let mut instruments: Value = self.safe_value_k(response.clone(), "instruments", &[Value::List(vec![])]);
+        let mut instruments: Value = self.safe_list_k(response.clone(), "instruments", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2239,7 +2243,7 @@ impl KrakenfuturesCore {
             self.load_markets(&[]).await;
         }
         let mut orders: Value = Value::List(vec![]);
-        let mut clientOrderIds: Value = self.safe_value_k(params.clone(), "clientOrderIds", &[Value::List(vec![])]);
+        let mut clientOrderIds: Value = self.safe_list_k(params.clone(), "clientOrderIds", &[Value::List(vec![])]);
         let mut clientOrderIdsLength: Value = get_array_length(&clientOrderIds);
         if is_greater_than(&clientOrderIdsLength, &Value::Int(0)) {
             {
@@ -3130,7 +3134,7 @@ impl KrakenfuturesCore {
     m
 }), &[]);
         }
-        let mut orderEvents: Value = self.safe_value_k(order.clone(), "orderEvents", &[Value::List(vec![])]);
+        let mut orderEvents: Value = self.safe_list_k(order.clone(), "orderEvents", &[Value::List(vec![])]);
         let mut errorStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut orderEventsLength: Value = get_array_length(&orderEvents);
         if is_true(&(Value::Bool(in_op(&order, &Value::Str("orderEvents".to_string()))))) && is_true(&(!is_equal(&errorStatus, &Value::Null))) && is_true(&(is_equal(&orderEventsLength, &Value::Int(0)))) {
@@ -3762,10 +3766,10 @@ impl KrakenfuturesCore {
         let mut accountType: Value = self.safe_string2(response.clone(), Value::Str("accountType".to_string()), Value::Str("type".to_string()), &[]);
         let mut isFlex: bool = is_equal(&accountType, &Value::Str("multiCollateralMarginAccount".to_string()));
         let mut isCash: bool = is_equal(&accountType, &Value::Str("cashAccount".to_string()));
-        let mut balances: Value = self.safe_value2(response.clone(), Value::Str("balances".to_string()), Value::Str("currencies".to_string()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut balances: Value = self.safe_dict2(response.clone(), Value::Str("balances".to_string()), Value::Str("currencies".to_string()), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

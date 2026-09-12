@@ -1113,7 +1113,7 @@ class bitrue extends Exchange {
             'info' => $response,
         );
         $timestamp = $this->safe_integer($response, 'updateTime');
-        $balances = $this->safe_value_2($response, 'balances', 'account', array());
+        $balances = $this->safe_list_2($response, 'balances', 'account', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string_2($balance, 'asset', 'marginCoin');

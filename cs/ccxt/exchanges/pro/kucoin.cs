@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class kucoin { public kucoin(object args = null) : base(args) { } }
 public partial class kucoin : ccxt.kucoin
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -254,7 +254,7 @@ public partial class kucoin : ccxt.kucoin
         this.checkRequiredCredentials();
         object utaToken = this.safeValue(this.options, "utaToken");
         Int64? lastUpdate = this.safeInteger(this.options, "utaTokenLastUpdate", 0);
-        object refreshInterval = multiply(multiply(multiply(1000, 60), 60), 24); // 24 hours
+        Int64? refreshInterval = multiply(multiply(multiply(1000, 60), 60), 24); // 24 hours
         refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", refreshInterval);
         Int64 now = this.milliseconds();
         bool expired = isGreaterThanOrEqual((subtract(now, lastUpdate)), refreshInterval);
@@ -2023,7 +2023,7 @@ public partial class kucoin : ccxt.kucoin
     {
         for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
         {
-            object bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
+            List<object> bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
         }
     }
@@ -2960,7 +2960,7 @@ public partial class kucoin : ccxt.kucoin
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
         }
@@ -3060,9 +3060,9 @@ public partial class kucoin : ccxt.kucoin
         ((IDictionary<string,object>)getValue(this.balance, uniformType))["timestamp"] = timestamp;
         ((IDictionary<string,object>)getValue(this.balance, uniformType))["datetime"] = this.iso8601(timestamp);
         string? code = this.safeCurrencyCode(currencyId);
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         string? used = this.safeString2(data, "hold", "holdBalance");
-        object isolatedPosMargin = this.omitZero(this.safeString(data, "isolatedPosMargin"));
+        string? isolatedPosMargin = ((string)this.omitZero(this.safeString(data, "isolatedPosMargin")));
         if (isTrue(!isEqual(isolatedPosMargin, null)))
         {
             used = Precise.stringAdd(used, isolatedPosMargin);
@@ -3108,7 +3108,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? timestamp = this.safeIntegerProduct(data, "U", 0.000001);
         ((IDictionary<string,object>)getValue(this.balance, type))["timestamp"] = timestamp;
         ((IDictionary<string,object>)getValue(this.balance, type))["datetime"] = this.iso8601(timestamp);
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(data, "a");
         ((IDictionary<string,object>)account)["used"] = this.safeString(data, "h");
         ((IDictionary<string,object>)account)["total"] = this.safeString(data, "b");
@@ -3229,7 +3229,7 @@ public partial class kucoin : ccxt.kucoin
             return null;
         }
         object cache = (this.positions as ArrayCache).hashmap;
-        object symbolCache = this.safeValue(cache, symbol, new Dictionary<string, object>() {});
+        IDictionary<string, object> symbolCache = this.safeDict(cache, symbol, new Dictionary<string, object>() {});
         List<object> values = new List<object>(((IDictionary<string,object>)symbolCache).Values);
         return this.safeValue(values, 0);
     }
@@ -3272,7 +3272,7 @@ public partial class kucoin : ccxt.kucoin
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
         }
@@ -3301,7 +3301,7 @@ public partial class kucoin : ccxt.kucoin
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {position, add("position:", symbol)});
         }

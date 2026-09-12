@@ -2786,7 +2786,7 @@ export default class bitstamp extends Exchange {
                 errors.push(reasonInner);
             }
             else {
-                const all = this.safeValue(reasonInner, '__all__', []);
+                const all = this.safeList(reasonInner, '__all__', []);
                 for (let i = 0; i < all.length; i++) {
                     errors.push(all[i]);
                 }

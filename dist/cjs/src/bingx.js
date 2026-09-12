@@ -1574,18 +1574,9 @@ class bingx extends bingx$1["default"] {
         }
         let amount = this.safeStringN(trade, ['qty', 'amount', 'q']);
         if ((market !== undefined) && (market['swap'] === true) && ('volume' in trade)) {
-            if (market['linear'] === true) {
-                // private linear swap trades report 'amount' as the notional (quote) value, not the base amount;
-                // 'volume' is the exchange's own base-currency fill quantity (bingx linear contractSize is always 1),
-                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
-                amount = this.safeString(trade, 'volume');
-            }
-            else {
-                // private trade returns num of contracts instead of base currency (as the order-related methods do)
-                const contractSize = this.safeString(market['info'], 'tradeMinQuantity');
-                const volume = this.safeString(trade, 'volume');
-                amount = Precise["default"].stringMul(volume, contractSize);
-            }
+            // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
+            // safeTrade applies contractSize when calculating inverse cost.
+            amount = this.safeString(trade, 'volume');
         }
         return this.safeTrade({
             'id': this.safeString2(trade, 'id', 't'),
@@ -4417,7 +4408,7 @@ class bingx extends bingx$1["default"] {
      * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20multiple%20orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
      * @param {string[]} ids order ids
-     * @param {string} symbol unified market symbol, default is undefined
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -4430,6 +4421,9 @@ class bingx extends bingx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        if (market['inverse'] === true) {
+            throw new errors.NotSupported(this.id + ' cancelOrders() is not supported for inverse swap markets');
+        }
         const request = {
             'symbol': market['id'],
         };
@@ -5390,13 +5384,13 @@ class bingx extends bingx$1["default"] {
         if (toAccount !== undefined) {
             request['toAccount'] = toId;
         }
-        params = this.omit(params, ['fromAccount', 'toAccount']);
         const maxLimit = 100;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchTransfers', undefined, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchTransfers', code, since, limit, params, maxLimit);
         }
+        params = this.omit(params, ['fromAccount', 'toAccount']);
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -6718,7 +6712,7 @@ class bingx extends bingx$1["default"] {
      * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Order  // spot
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  // swap
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} symbol unified symbol of the market to create an order in, inverse (Coin-M) markets are not supported
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of the currency you want to trade in units of the base currency
@@ -6747,6 +6741,9 @@ class bingx extends bingx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        if (market['inverse'] === true) {
+            throw new errors.NotSupported(this.id + ' editOrder() is not supported for inverse swap markets');
+        }
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         request['cancelOrderId'] = id;
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE';

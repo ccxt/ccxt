@@ -1171,7 +1171,7 @@ class htx(ccxt.async_support.htx):
         else:
             # contract branch
             parsedOrder = self.parse_ws_order(message, market)
-            rawTrades = self.safe_value(message, 'trade', [])
+            rawTrades = self.safe_list(message, 'trade', [])
             tradesLength = len(rawTrades)
             if tradesLength > 0:
                 tradesObject = {
@@ -1628,7 +1628,7 @@ class htx(ccxt.async_support.htx):
         clientPositions = self.safe_value(self.positions, url)
         if clientPositions is None:
             self.positions[url] = {}
-        rawPositions = self.safe_value(message, 'data', [])
+        rawPositions = self.safe_list(message, 'data', [])
         if self.is_empty(rawPositions):
             prefixes = ['cross:positions', 'isolated:positions']
             for i in range(0, len(prefixes)):
@@ -1885,7 +1885,7 @@ class htx(ccxt.async_support.htx):
         #     }
         #
         channel = self.safe_string(message, 'ch')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         timestamp = self.safe_integer(data, 'changeTime', self.safe_integer(message, 'ts'))
         self.balance['timestamp'] = timestamp
         self.balance['datetime'] = self.iso8601(timestamp)
@@ -2500,7 +2500,7 @@ class htx(ccxt.async_support.htx):
             else:
                 # self trades object is artificially created
                 # in handleOrder
-                rawTrades = self.safe_value(message, 'trades', [])
+                rawTrades = self.safe_list(message, 'trades', [])
                 marketId = self.safe_value(message, 'symbol')
                 market = self.market(marketId)
                 for i in range(0, len(rawTrades)):

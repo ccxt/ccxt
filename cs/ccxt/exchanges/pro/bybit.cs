@@ -7,13 +7,13 @@ namespace ccxt.pro;
 public partial class bybit { public bybit(object args = null) : base(args) { } }
 public partial class bybit : ccxt.bybit
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         object superDescribe = base.describe();
         return this.deepExtend(superDescribe, this.describeData());
     }
 
-    public virtual object describeData()
+    public virtual Dictionary<string, object> describeData()
     {
         return new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -769,7 +769,7 @@ public partial class bybit : ccxt.bybit
         {
             await this.loadMarkets();
         }
-        object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+        List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
         object firstSymbol = getValue(marketSymbols, 0);
         object url = await this.getUrlByMarketType(firstSymbol, false, "watchOHLCVForSymbols", parameters);
@@ -814,7 +814,7 @@ public partial class bybit : ccxt.bybit
         {
             await this.loadMarkets();
         }
-        object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+        List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
         object firstSymbol = getValue(marketSymbols, 0);
         object url = await this.getUrlByMarketType(firstSymbol, false, "watchOHLCVForSymbols", parameters);
@@ -1160,7 +1160,7 @@ public partial class bybit : ccxt.bybit
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -1612,7 +1612,7 @@ public partial class bybit : ccxt.bybit
         object data = this.safeValue(message, "data", new List<object>() {});
         if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            data = this.safeValue(data, "result", new List<object>() {});
+            data = this.safeList(data, "result", new List<object>() {});
         }
         if (isTrue(isEqual(this.myTrades, null)))
         {
@@ -1774,7 +1774,7 @@ public partial class bybit : ccxt.bybit
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "position"});
         }
@@ -1827,7 +1827,7 @@ public partial class bybit : ccxt.bybit
         }
         object cache = this.positions;
         List<object> newPositions = new List<object>() {};
-        object rawPositions = this.safeValue(message, "data", new List<object>() {});
+        List<object> rawPositions = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
@@ -1851,7 +1851,7 @@ public partial class bybit : ccxt.bybit
                 callDynamically(cache, "append", new object[] {position});
             }
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -2237,7 +2237,7 @@ public partial class bybit : ccxt.bybit
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object orders = this.orders;
-        object rawOrders = this.safeValue(message, "data", new List<object>() {});
+        object rawOrders = this.safeList(message, "data", new List<object>() {});
         object first = this.safeValue(rawOrders, 0, new Dictionary<string, object>() {});
         string? category = this.safeString(first, "category");
         bool isSpot = isEqual(category, "spot");
@@ -2505,7 +2505,7 @@ public partial class bybit : ccxt.bybit
         if (isTrue(isEqual(topic, "outboundAccountInfo")))
         {
             account = "spot";
-            object data = this.safeValue(message, "data", new List<object>() {});
+            List<object> data = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object B = this.safeValue(getValue(data, i), "B", new List<object>() {});
@@ -2580,7 +2580,7 @@ public partial class bybit : ccxt.bybit
         //         "bonus": "0"
         //     }
         //
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         string? currencyId = this.safeString2(balance, "a", "coin");
         string? code = this.safeCurrencyCode(currencyId);
         ((IDictionary<string,object>)account)["free"] = this.safeStringN(balance, new List<object>() {"availableToWithdraw", "f", "free"});
@@ -2931,7 +2931,7 @@ public partial class bybit : ccxt.bybit
         string messageHash = "authenticated";
         if (isTrue(isTrue((isEqual(success, true))) || isTrue((isEqual(code, 0)))))
         {
-            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
             (future as Future).resolve(true);
         } else
         {

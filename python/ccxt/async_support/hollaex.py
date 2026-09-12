@@ -362,7 +362,7 @@ class hollaex(Exchange, ImplicitAPI):
         #         "status": True
         #     }
         #
-        pairs = self.safe_value(response, 'pairs', {})
+        pairs = self.safe_dict(response, 'pairs', {})
         keys = list(pairs.keys())
         result = []
         for i in range(0, len(keys)):

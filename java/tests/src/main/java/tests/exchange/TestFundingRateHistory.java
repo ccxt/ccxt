@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestFundingRateHistory extends BaseTest {
     public static void testFundingRateHistory(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "symbol", "BTC/USDT:USDT" );
             put( "timestamp", 1638230400000L );

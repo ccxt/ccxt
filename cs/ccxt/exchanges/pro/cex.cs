@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class cex { public cex(object args = null) : base(args) { } }
 public partial class cex : ccxt.cex
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -102,7 +102,7 @@ public partial class cex : ccxt.cex
         //     }
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object freeBalance = this.safeValue(data, "balance", new Dictionary<string, object>() {});
+        IDictionary<string, object> freeBalance = this.safeDict(data, "balance", new Dictionary<string, object>() {});
         object usedBalance = this.safeValue(data, "obalance", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", data },
@@ -111,7 +111,7 @@ public partial class cex : ccxt.cex
         for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             string? currencyId = ((string)getValue(currencyIds, i));
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(freeBalance, currencyId);
             ((IDictionary<string,object>)account)["used"] = this.safeString(usedBalance, currencyId);
             string? code = this.safeCurrencyCode(currencyId);
@@ -1014,7 +1014,7 @@ public partial class cex : ccxt.cex
         //     }
         //
         string? symbol = this.safeString(message, "oid"); // symbol is set as requestId in watchOrders
-        object rawOrders = this.safeValue(message, "data", new List<object>() {});
+        List<object> rawOrders = this.safeList(message, "data", new List<object>() {});
         object myOrders = this.orders;
         if (isTrue(isEqual(myOrders, null)))
         {
@@ -1169,7 +1169,7 @@ public partial class cex : ccxt.cex
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -1319,7 +1319,7 @@ public partial class cex : ccxt.cex
         //         "pair": "BTC:USD"
         //     }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         string? pair = this.safeString(message, "pair");
         object symbol = this.pairToSymbol(pair);
         string messageHash = add("ohlcv:", symbol);
@@ -1700,7 +1700,7 @@ public partial class cex : ccxt.cex
         //         "timestamp":1448034593
         //     }
         //
-        var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
+        Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
         if (isTrue(!isEqual(future, null)))
         {
             (future as Future).resolve(true);

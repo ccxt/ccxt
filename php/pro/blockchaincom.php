@@ -119,7 +119,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             return;
         }
         $result = array( 'info' => $message );
-        $balances = $this->safe_value($message, 'balances', array());
+        $balances = $this->safe_list($message, 'balances', array());
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $balances[$i];
             $currencyId = $this->safe_string($entry, 'currency');
@@ -568,7 +568,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         } elseif ($event === 'rejected') {
             throw new ExchangeError($this->id . ' ' . $this->json($message));
         } elseif ($event === 'snapshot') {
-            $orders = $this->safe_value($message, 'orders', array());
+            $orders = $this->safe_list($message, 'orders', array());
             for ($i = 0; $i < count($orders); $i++) {
                 $order = $orders[$i];
                 $parsedOrder = $this->parse_ws_order($order);

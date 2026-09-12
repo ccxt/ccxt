@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class coinsph : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinsph" },
@@ -682,7 +682,7 @@ public partial class coinsph : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
@@ -754,7 +754,7 @@ public partial class coinsph : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "coin");
         string? code = this.safeCurrencyCode(id);
@@ -1272,7 +1272,7 @@ public partial class coinsph : Exchange
                 ((IDictionary<string,object>)request)["endTime"] = until;
             } else
             {
-                object duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+                Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
                 object endTimeByLimit = this.sum(since, multiply(duration, (subtract(limitVar, 1))));
                 Int64 now = this.milliseconds();
                 ((IDictionary<string,object>)request)["endTime"] = mathMin(endTimeByLimit, now);
@@ -1281,7 +1281,7 @@ public partial class coinsph : Exchange
         {
             ((IDictionary<string,object>)request)["endTime"] = until;
             // since work properly only when it is "younger" than last "limit" candle
-            object duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+            Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
             ((IDictionary<string,object>)request)["startTime"] = subtract(until, (multiply(duration, (subtract(limitVar, 1)))));
         }
         ((IDictionary<string,object>)request)["limit"] = limitVar;
@@ -1572,7 +1572,7 @@ public partial class coinsph : Exchange
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "asset");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
             if (isTrue(!isEqual(code, null)))
@@ -2586,7 +2586,7 @@ public partial class coinsph : Exchange
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), api);
         object query = this.omit(parameters, this.extractParams(path));
-        string endpoint = this.implodeParams(path, parameters);
+        string? endpoint = this.implodeParams(path, parameters);
         url = add(add(url, "/"), endpoint);
         if (isTrue(isEqual(api, "private")))
         {

@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class extended { public extended(object args = null) : base(args) { } }
 public partial class extended : ccxt.extended
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -275,7 +275,7 @@ public partial class extended : ccxt.extended
             string? code = this.safeCurrencyCode(currencyId);
             if (isTrue(!isEqual(code, null)))
             {
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "availableForWithdrawal");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
                 ((IDictionary<string,object>)result)[(string)code] = account;
@@ -289,7 +289,7 @@ public partial class extended : ccxt.extended
             string? code = this.safeCurrencyCode(currencyId);
             if (isTrue(!isEqual(code, null)))
             {
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(spotBalance, "availableToWithdraw");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(spotBalance, "balance");
                 ((IDictionary<string,object>)result)[(string)code] = account;
@@ -492,7 +492,7 @@ public partial class extended : ccxt.extended
             ((IList<object>)newPositions).Add(position);
             callDynamically(stored, "append", new object[] {position});
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -709,7 +709,7 @@ public partial class extended : ccxt.extended
         {
             timestamp = this.safeInteger(message, "ts");
         }
-        object ticker = this.safeTicker(new Dictionary<string, object>() {
+        Dictionary<string, object> ticker = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

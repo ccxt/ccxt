@@ -8,6 +8,7 @@ import testLbankServerPingLivenessWiring from "./test.serverPingLiveness.lbank.j
 import testWsKeepAliveTimeout from "./test.keepAliveTimeout.js";
 import testDeepcoinHeartbeatWiring from "./test.heartbeat.deepcoin.js";
 import testWsSnapshotReadiness from "./test.wsSnapshotReadiness.js";
+import testWsClientThrottleWiring from "./test.clientThrottleWiring.js";
 
 async function testBaseWs () {
     testWsOrderBook ();
@@ -20,6 +21,7 @@ async function testBaseWs () {
     await testLbankServerPingLivenessWiring ();
     await testWsKeepAliveTimeout ();
     await testDeepcoinHeartbeatWiring ();
+    await testWsClientThrottleWiring ();
 }
 
 export default testBaseWs;

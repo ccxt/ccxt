@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class gate : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "gate" },
@@ -1998,7 +1998,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "server_time"));
     }
 
-    public override object createExpiredOptionMarket(object symbol)
+    public override Dictionary<string, object> createExpiredOptionMarket(object symbol)
     {
         // support expired option contracts
         string quote = "USDT";
@@ -2020,7 +2020,7 @@ public partial class gate : Exchange
         string? optionType = this.safeString(optionParts, 3);
         object datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
-        return new Dictionary<string, object>() {
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "id", add(add(add(add(add(add(add(add(add(bs, "_"), quote), "-"), "20"), expiry), "-"), strike), "-"), optionType) },
             { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
             { "base", bs },
@@ -2063,7 +2063,7 @@ public partial class gate : Exchange
                 } },
             } },
             { "info", null },
-        };
+        });
     }
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
@@ -2269,7 +2269,7 @@ public partial class gate : Exchange
             for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 IDictionary<string, object> contract = this.safeDict(response, i, new Dictionary<string, object>() {});
-                object parsedMarket = this.parseContractMarket(contract, settleId);
+                Dictionary<string, object> parsedMarket = this.parseContractMarket(contract, settleId);
                 ((IList<object>)result).Add(parsedMarket);
             }
         }
@@ -2295,14 +2295,14 @@ public partial class gate : Exchange
             for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 IDictionary<string, object> contract = this.safeDict(response, i, new Dictionary<string, object>() {});
-                object parsedMarket = this.parseContractMarket(contract, settleId);
+                Dictionary<string, object> parsedMarket = this.parseContractMarket(contract, settleId);
                 ((IList<object>)result).Add(parsedMarket);
             }
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public virtual object parseContractMarket(object market, object settleId)
+    public virtual Dictionary<string, object> parseContractMarket(object market, object settleId)
     {
         //
         //  Perpetual swap
@@ -2650,7 +2650,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToStringList(underlyings);
     }
 
-    public virtual object prepareRequest(object market = null, object type = null, object parameters = null)
+    public virtual List<object> prepareRequest(object market = null, object type = null, object parameters = null)
     {
         /**
         * @ignore
@@ -2693,7 +2693,7 @@ public partial class gate : Exchange
         return new List<object>() {request, parameters};
     }
 
-    public virtual object spotOrderPrepareRequest(object market = null, object trigger = null, object parameters = null)
+    public virtual List<object> spotOrderPrepareRequest(object market = null, object trigger = null, object parameters = null)
     {
         /**
         * @ignore
@@ -2723,7 +2723,7 @@ public partial class gate : Exchange
         return new List<object>() {request, query};
     }
 
-    public virtual object multiOrderSpotPrepareRequest(object market = null, object trigger = null, object parameters = null)
+    public virtual List<object> multiOrderSpotPrepareRequest(object market = null, object trigger = null, object parameters = null)
     {
         /**
         * @ignore
@@ -2757,7 +2757,7 @@ public partial class gate : Exchange
         return new List<object>() {request, query};
     }
 
-    public virtual object getMarginMode(object trigger, object parameters)
+    public virtual List<object> getMarginMode(object trigger, object parameters)
     {
         /**
          * @ignore
@@ -2820,7 +2820,7 @@ public partial class gate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         // sandbox/testnet only supports future markets
         parameters ??= new Dictionary<string, object>();
@@ -2871,7 +2871,7 @@ public partial class gate : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(currencyId);
@@ -3353,7 +3353,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(response));
     }
 
-    public virtual object parseTradingFees(object response)
+    public virtual Dictionary<string, object> parseTradingFees(object response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object symbols = this.symbols;
@@ -3363,7 +3363,7 @@ public partial class gate : Exchange
             Dictionary<string, object> market = this.market(symbol);
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(response, market);
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     public virtual object parseTradingFee(object info, object market = null)
@@ -4061,7 +4061,7 @@ public partial class gate : Exchange
 
     public virtual object parseBalanceHelper(object entry)
     {
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         ((IDictionary<string,object>)account)["used"] = this.safeString2(entry, "freeze", "locked");
         ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
         ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "total");
@@ -5099,8 +5099,8 @@ public partial class gate : Exchange
         string? side = this.safeString2(trade, "side", "type", contractSide);
         string? orderId = this.safeString(trade, "order_id");
         string? feeAmount = this.safeString(trade, "fee");
-        object gtFee = this.omitZero(this.safeString(trade, "gt_fee"));
-        object pointFee = this.omitZero(this.safeString(trade, "point_fee"));
+        string? gtFee = ((string)this.omitZero(this.safeString(trade, "gt_fee")));
+        string? pointFee = ((string)this.omitZero(this.safeString(trade, "point_fee")));
         List<object> fees = new List<object>() {};
         if (isTrue(!isEqual(feeAmount, null)))
         {
@@ -5958,7 +5958,7 @@ public partial class gate : Exchange
                 {
                     Int64? defaultExpiration = this.safeInteger(options, "expiration");
                     Int64? expiration = this.safeInteger(parameters, "expiration", defaultExpiration);
-                    object rule = null;
+                    string? rule = null;
                     string? triggerOrderPrice = null;
                     if (isTrue(isStopLossOrder))
                     {
@@ -6539,7 +6539,7 @@ public partial class gate : Exchange
         }, market);
     }
 
-    public virtual object fetchOrderRequest(object id, object symbol = null, object parameters = null)
+    public virtual List<object> fetchOrderRequest(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
@@ -6743,7 +6743,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
 
-    public virtual object prepareOrdersByStatusRequest(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public virtual List<object> prepareOrdersByStatusRequest(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> market = null;
@@ -7415,7 +7415,7 @@ public partial class gate : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         object fromId = this.convertTypeToAccount(fromAccount);
         object toId = this.convertTypeToAccount(toAccount);
-        object truncated = this.currencyToPrecision(((string)code), amount);
+        string? truncated = this.currencyToPrecision(((string)code), amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "amount", truncated },
@@ -7685,10 +7685,10 @@ public partial class gate : Exchange
         }
         // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
         string? marginBalance = this.safeString(position, "margin");
-        object initialMarginString = this.omitZero(this.safeString(position, "initial_margin"));
+        string? initialMarginString = ((string)this.omitZero(this.safeString(position, "initial_margin")));
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
-        object maintenanceMarginString = this.omitZero(this.safeString(position, "maintenance_margin"));
+        string? maintenanceMarginString = ((string)this.omitZero(this.safeString(position, "maintenance_margin")));
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -8393,7 +8393,7 @@ public partial class gate : Exchange
         return this.parseMarginLoan(response, currency);
     }
 
-    public virtual object parseMarginLoan(object info, object currency = null)
+    public virtual Dictionary<string, object> parseMarginLoan(object info, object currency = null)
     {
         //
         // Cross
@@ -8632,7 +8632,7 @@ public partial class gate : Exchange
                 }
             } else
             {
-                object urlQueryParams = this.safeValue(query, "query", new Dictionary<string, object>() {});
+                IDictionary<string, object> urlQueryParams = this.safeDict(query, "query", new Dictionary<string, object>() {});
                 if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)urlQueryParams).Keys)), 0)))
                 {
                     queryString = this.urlencode(urlQueryParams);
@@ -8785,7 +8785,7 @@ public partial class gate : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(object symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object timeframeVar = timeframe;
         timeframeVar ??= "5m";
@@ -9042,7 +9042,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
-    public virtual object parseSettlement(object settlement, object market)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, object market)
     {
         //
         // fetchSettlementHistory

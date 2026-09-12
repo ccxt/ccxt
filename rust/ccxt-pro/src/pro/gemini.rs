@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -630,7 +634,7 @@ impl GeminiCore {
         let mut marketId: Value = to_lower(&self.safe_string_k(message.clone(), "symbol", &[Value::Str("".to_string())]));
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut changes: Value = self.safe_value_k(message.clone(), "changes", &[Value::List(vec![])]);
+        let mut changes: Value = self.safe_list_k(message.clone(), "changes", &[Value::List(vec![])]);
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
         let mut ohlcvsBySymbol: Value = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]);
         if is_equal(&ohlcvsBySymbol, &Value::Null) {
@@ -710,7 +714,7 @@ impl GeminiCore {
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         let mut isInitial: bool = is_true(&(Value::Bool(in_op(&message, &Value::Str("auction_events".to_string()))))) && is_true(&(Value::Bool(in_op(&message, &Value::Str("trades".to_string()))))) && is_true(&(Value::Bool(in_op(&message, &Value::Str("changes".to_string())))));
-        let mut changes: Value = self.safe_value_k(message.clone(), "changes", &[Value::List(vec![])]);
+        let mut changes: Value = self.safe_list_k(message.clone(), "changes", &[Value::List(vec![])]);
         let mut marketId: Value = self.safe_string_lower(message.clone(), Value::Str("symbol".to_string()), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));

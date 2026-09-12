@@ -76,9 +76,7 @@ cs/ccxt/wrappers/${EXCHANGE}.cs
 # Go
 go/v4/${EXCHANGE}.go
 go/v4/${EXCHANGE}_api.go
-go/v4/${EXCHANGE}_wrapper.go
 go/v4/pro/${EXCHANGE}.go
-go/v4/pro/${EXCHANGE}_wrapper.go
 # Java
 java/lib/src/main/java/io/github/ccxt/api/${CAPITALIZED}Api.java
 java/lib/src/main/java/io/github/ccxt/exchanges/${CAPITALIZED}.java

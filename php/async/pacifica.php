@@ -3380,12 +3380,16 @@ class pacifica extends Exchange {
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
+        return Async\async(self::do_transfer(...))($code, $amount, $fromAccount, $toAccount, $params);
+    }
+
+    private function do_transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()) {
         /**
-         * transfer currency internally between wallets on the same account
+         * transfer $currency internally between wallets on the same account
          *
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
          *
-         * @param {string} $code unified currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from *spot, swap*
          * @param {string} $toAccount account to transfer to *swap, spot or address*
@@ -3393,14 +3397,18 @@ class pacifica extends Exchange {
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
         $operationType = 'transfer_funds';
         $sigPayload = array(
             'to_account' => $toAccount,
-            'amount' => $amount,
+            'amount' => $this->number_to_string($amount),
         );
         $request = $this->post_action_request($operationType, $sigPayload, $params);
         $params = $this->omit($params, array( 'expiryWindow' ));
-        $response = $this->privatePostAccountSubaccountTransfer($this->extend($request, $params));
+        $response = Async\await($this->privatePostAccountSubaccountTransfer($this->extend($request, $params)));
         //
         // {
         //   "success" => true,
@@ -3413,7 +3421,11 @@ class pacifica extends Exchange {
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_transfer($data);
+        return $this->extend($this->parse_transfer($data, $currency), array(
+            'amount' => $amount,
+            'fromAccount' => $this->safe_string($request, 'account'),
+            'toAccount' => $toAccount,
+        ));
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -3428,16 +3440,21 @@ class pacifica extends Exchange {
         //   "code" => null
         // }
         //
+        $success = $this->safe_bool($transfer, 'success');
+        $status = null;
+        if ($success !== null) {
+            $status = ($success === true) ? 'ok' : 'failed';
+        }
         return array(
             'info' => $transfer,
             'id' => null,
             'timestamp' => null,
             'datetime' => null,
-            'currency' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'fromAccount' => null,
             'toAccount' => null,
-            'status' => 'ok',
+            'status' => $status,
         );
     }
 

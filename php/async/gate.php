@@ -7411,7 +7411,7 @@ class gate extends Exchange {
                     $body = $this->json($query);
                 }
             } else {
-                $urlQueryParams = $this->safe_value($query, 'query', array());
+                $urlQueryParams = $this->safe_dict($query, 'query', array());
                 if (count($urlQueryParams) > 0) {
                     $queryString = $this->urlencode($urlQueryParams);
                     $url .= '?' . $queryString;

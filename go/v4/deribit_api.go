@@ -8,736 +8,736 @@
 package ccxt
 
 // PublicGetAuth returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetAuth(args ...any) <-chan any {
+func (this *Deribit) PublicGetAuth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAuth", args...)
 }
 
 // PublicGetExchangeToken returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetExchangeToken(args ...any) <-chan any {
+func (this *Deribit) PublicGetExchangeToken(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangeToken", args...)
 }
 
 // PublicGetForkToken returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetForkToken(args ...any) <-chan any {
+func (this *Deribit) PublicGetForkToken(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetForkToken", args...)
 }
 
 // PublicGetSetHeartbeat returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetSetHeartbeat(args ...any) <-chan any {
+func (this *Deribit) PublicGetSetHeartbeat(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSetHeartbeat", args...)
 }
 
 // PublicGetDisableHeartbeat returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetDisableHeartbeat(args ...any) <-chan any {
+func (this *Deribit) PublicGetDisableHeartbeat(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetDisableHeartbeat", args...)
 }
 
 // PublicGetGetTime returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetTime(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetTime", args...)
 }
 
 // PublicGetHello returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetHello(args ...any) <-chan any {
+func (this *Deribit) PublicGetHello(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetHello", args...)
 }
 
 // PublicGetStatus returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetStatus(args ...any) <-chan any {
+func (this *Deribit) PublicGetStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetStatus", args...)
 }
 
 // PublicGetTest returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetTest(args ...any) <-chan any {
+func (this *Deribit) PublicGetTest(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTest", args...)
 }
 
 // PublicGetSubscribe returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetSubscribe(args ...any) <-chan any {
+func (this *Deribit) PublicGetSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSubscribe", args...)
 }
 
 // PublicGetUnsubscribe returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetUnsubscribe(args ...any) <-chan any {
+func (this *Deribit) PublicGetUnsubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetUnsubscribe", args...)
 }
 
 // PublicGetUnsubscribeAll returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetUnsubscribeAll(args ...any) <-chan any {
+func (this *Deribit) PublicGetUnsubscribeAll(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetUnsubscribeAll", args...)
 }
 
 // PublicGetGetAnnouncements returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetAnnouncements(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetAnnouncements(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetAnnouncements", args...)
 }
 
 // PublicGetGetAprHistory returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetAprHistory(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetAprHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetAprHistory", args...)
 }
 
 // PublicGetGetBookSummaryByCurrency returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetBookSummaryByCurrency(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetBookSummaryByCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetBookSummaryByCurrency", args...)
 }
 
 // PublicGetGetBookSummaryByInstrument returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetBookSummaryByInstrument(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetBookSummaryByInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetBookSummaryByInstrument", args...)
 }
 
 // PublicGetGetContractSize returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetContractSize(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetContractSize(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetContractSize", args...)
 }
 
 // PublicGetGetCurrencies returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetCurrencies(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetCurrencies", args...)
 }
 
 // PublicGetGetDeliveryPrices returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetDeliveryPrices(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetDeliveryPrices(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetDeliveryPrices", args...)
 }
 
 // PublicGetGetExpirations returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetExpirations(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetExpirations(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetExpirations", args...)
 }
 
 // PublicGetGetFundingChartData returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetFundingChartData(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetFundingChartData(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetFundingChartData", args...)
 }
 
 // PublicGetGetFundingRateHistory returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetFundingRateHistory(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetFundingRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetFundingRateHistory", args...)
 }
 
 // PublicGetGetFundingRateValue returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetFundingRateValue(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetFundingRateValue(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetFundingRateValue", args...)
 }
 
 // PublicGetGetHistoricalVolatility returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetHistoricalVolatility(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetHistoricalVolatility(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetHistoricalVolatility", args...)
 }
 
 // PublicGetGetIndex returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetIndex(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetIndex", args...)
 }
 
 // PublicGetGetIndexChartData returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetIndexChartData(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetIndexChartData(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetIndexChartData", args...)
 }
 
 // PublicGetGetIndexPrice returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetIndexPrice(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetIndexPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetIndexPrice", args...)
 }
 
 // PublicGetGetIndexPriceNames returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetIndexPriceNames(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetIndexPriceNames(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetIndexPriceNames", args...)
 }
 
 // PublicGetGetInstrument returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetInstrument(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetInstrument", args...)
 }
 
 // PublicGetGetInstruments returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetInstruments(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetInstruments", args...)
 }
 
 // PublicGetGetLastSettlementsByCurrency returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetLastSettlementsByCurrency(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetLastSettlementsByCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetLastSettlementsByCurrency", args...)
 }
 
 // PublicGetGetLastSettlementsByInstrument returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetLastSettlementsByInstrument(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetLastSettlementsByInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetLastSettlementsByInstrument", args...)
 }
 
 // PublicGetGetLastTradesByCurrency returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetLastTradesByCurrency(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetLastTradesByCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetLastTradesByCurrency", args...)
 }
 
 // PublicGetGetLastTradesByCurrencyAndTime returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetLastTradesByCurrencyAndTime(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetLastTradesByCurrencyAndTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetLastTradesByCurrencyAndTime", args...)
 }
 
 // PublicGetGetLastTradesByInstrument returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetLastTradesByInstrument(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetLastTradesByInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetLastTradesByInstrument", args...)
 }
 
 // PublicGetGetLastTradesByInstrumentAndTime returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetLastTradesByInstrumentAndTime(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetLastTradesByInstrumentAndTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetLastTradesByInstrumentAndTime", args...)
 }
 
 // PublicGetGetMarkPriceHistory returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetMarkPriceHistory(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetMarkPriceHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetMarkPriceHistory", args...)
 }
 
 // PublicGetGetOrderBook returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetOrderBook(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetOrderBook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetOrderBook", args...)
 }
 
 // PublicGetGetSupportedIndexNames returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetSupportedIndexNames(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetSupportedIndexNames(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetSupportedIndexNames", args...)
 }
 
 // PublicGetGetTradeVolumes returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetTradeVolumes(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetTradeVolumes(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetTradeVolumes", args...)
 }
 
 // PublicGetGetTradingviewChartData returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetTradingviewChartData(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetTradingviewChartData(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetTradingviewChartData", args...)
 }
 
 // PublicGetGetVolatilityIndexData returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetGetVolatilityIndexData(args ...any) <-chan any {
+func (this *Deribit) PublicGetGetVolatilityIndexData(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetVolatilityIndexData", args...)
 }
 
 // PublicGetTicker returns a channel that yields a JSON object.
-func (this *DeribitCore) PublicGetTicker(args ...any) <-chan any {
+func (this *Deribit) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
 // PrivateGetLogout returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetLogout(args ...any) <-chan any {
+func (this *Deribit) PrivateGetLogout(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLogout", args...)
 }
 
 // PrivateGetEnableCancelOnDisconnect returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetEnableCancelOnDisconnect(args ...any) <-chan any {
+func (this *Deribit) PrivateGetEnableCancelOnDisconnect(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetEnableCancelOnDisconnect", args...)
 }
 
 // PrivateGetDisableCancelOnDisconnect returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetDisableCancelOnDisconnect(args ...any) <-chan any {
+func (this *Deribit) PrivateGetDisableCancelOnDisconnect(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDisableCancelOnDisconnect", args...)
 }
 
 // PrivateGetGetCancelOnDisconnect returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetCancelOnDisconnect(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetCancelOnDisconnect(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetCancelOnDisconnect", args...)
 }
 
 // PrivateGetSubscribe returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSubscribe(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSubscribe", args...)
 }
 
 // PrivateGetUnsubscribe returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetUnsubscribe(args ...any) <-chan any {
+func (this *Deribit) PrivateGetUnsubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUnsubscribe", args...)
 }
 
 // PrivateGetUnsubscribeAll returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetUnsubscribeAll(args ...any) <-chan any {
+func (this *Deribit) PrivateGetUnsubscribeAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUnsubscribeAll", args...)
 }
 
 // PrivateGetChangeApiKeyName returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetChangeApiKeyName(args ...any) <-chan any {
+func (this *Deribit) PrivateGetChangeApiKeyName(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetChangeApiKeyName", args...)
 }
 
 // PrivateGetChangeScopeInApiKey returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetChangeScopeInApiKey(args ...any) <-chan any {
+func (this *Deribit) PrivateGetChangeScopeInApiKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetChangeScopeInApiKey", args...)
 }
 
 // PrivateGetChangeSubaccountName returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetChangeSubaccountName(args ...any) <-chan any {
+func (this *Deribit) PrivateGetChangeSubaccountName(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetChangeSubaccountName", args...)
 }
 
 // PrivateGetCreateApiKey returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetCreateApiKey(args ...any) <-chan any {
+func (this *Deribit) PrivateGetCreateApiKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCreateApiKey", args...)
 }
 
 // PrivateGetCreateSubaccount returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetCreateSubaccount(args ...any) <-chan any {
+func (this *Deribit) PrivateGetCreateSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCreateSubaccount", args...)
 }
 
 // PrivateGetDisableApiKey returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetDisableApiKey(args ...any) <-chan any {
+func (this *Deribit) PrivateGetDisableApiKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDisableApiKey", args...)
 }
 
 // PrivateGetDisableTfaForSubaccount returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetDisableTfaForSubaccount(args ...any) <-chan any {
+func (this *Deribit) PrivateGetDisableTfaForSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDisableTfaForSubaccount", args...)
 }
 
 // PrivateGetEnableAffiliateProgram returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetEnableAffiliateProgram(args ...any) <-chan any {
+func (this *Deribit) PrivateGetEnableAffiliateProgram(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetEnableAffiliateProgram", args...)
 }
 
 // PrivateGetEnableApiKey returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetEnableApiKey(args ...any) <-chan any {
+func (this *Deribit) PrivateGetEnableApiKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetEnableApiKey", args...)
 }
 
 // PrivateGetGetAccessLog returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetAccessLog(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetAccessLog(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAccessLog", args...)
 }
 
 // PrivateGetGetAccountSummary returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetAccountSummary(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetAccountSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAccountSummary", args...)
 }
 
 // PrivateGetGetAccountSummaries returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetAccountSummaries(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetAccountSummaries(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAccountSummaries", args...)
 }
 
 // PrivateGetGetAffiliateProgramInfo returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetAffiliateProgramInfo(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetAffiliateProgramInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAffiliateProgramInfo", args...)
 }
 
 // PrivateGetGetCurrencies returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetCurrencies(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetCurrencies", args...)
 }
 
 // PrivateGetGetEmailLanguage returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetEmailLanguage(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetEmailLanguage(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetEmailLanguage", args...)
 }
 
 // PrivateGetGetNewAnnouncements returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetNewAnnouncements(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetNewAnnouncements(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetNewAnnouncements", args...)
 }
 
 // PrivateGetGetPortfolioMargins returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetPortfolioMargins(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetPortfolioMargins(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetPortfolioMargins", args...)
 }
 
 // PrivateGetGetPosition returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetPosition(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetPosition", args...)
 }
 
 // PrivateGetGetPositions returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetPositions(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetPositions", args...)
 }
 
 // PrivateGetGetSubaccounts returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetSubaccounts(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetSubaccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetSubaccounts", args...)
 }
 
 // PrivateGetGetSubaccountsDetails returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetSubaccountsDetails(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetSubaccountsDetails(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetSubaccountsDetails", args...)
 }
 
 // PrivateGetGetTransactionLog returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetTransactionLog(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetTransactionLog(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetTransactionLog", args...)
 }
 
 // PrivateGetListApiKeys returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetListApiKeys(args ...any) <-chan any {
+func (this *Deribit) PrivateGetListApiKeys(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetListApiKeys", args...)
 }
 
 // PrivateGetRemoveApiKey returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetRemoveApiKey(args ...any) <-chan any {
+func (this *Deribit) PrivateGetRemoveApiKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetRemoveApiKey", args...)
 }
 
 // PrivateGetRemoveSubaccount returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetRemoveSubaccount(args ...any) <-chan any {
+func (this *Deribit) PrivateGetRemoveSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetRemoveSubaccount", args...)
 }
 
 // PrivateGetResetApiKey returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetResetApiKey(args ...any) <-chan any {
+func (this *Deribit) PrivateGetResetApiKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetResetApiKey", args...)
 }
 
 // PrivateGetSetAnnouncementAsRead returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSetAnnouncementAsRead(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSetAnnouncementAsRead(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSetAnnouncementAsRead", args...)
 }
 
 // PrivateGetSetApiKeyAsDefault returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSetApiKeyAsDefault(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSetApiKeyAsDefault(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSetApiKeyAsDefault", args...)
 }
 
 // PrivateGetSetDisabledTradingProducts returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSetDisabledTradingProducts(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSetDisabledTradingProducts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSetDisabledTradingProducts", args...)
 }
 
 // PrivateGetSetEmailForSubaccount returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSetEmailForSubaccount(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSetEmailForSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSetEmailForSubaccount", args...)
 }
 
 // PrivateGetSetEmailLanguage returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSetEmailLanguage(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSetEmailLanguage(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSetEmailLanguage", args...)
 }
 
 // PrivateGetSetPasswordForSubaccount returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSetPasswordForSubaccount(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSetPasswordForSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSetPasswordForSubaccount", args...)
 }
 
 // PrivateGetSimulatePortfolio returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSimulatePortfolio(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSimulatePortfolio(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSimulatePortfolio", args...)
 }
 
 // PrivateGetToggleNotificationsFromSubaccount returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetToggleNotificationsFromSubaccount(args ...any) <-chan any {
+func (this *Deribit) PrivateGetToggleNotificationsFromSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetToggleNotificationsFromSubaccount", args...)
 }
 
 // PrivateGetToggleSubaccountLogin returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetToggleSubaccountLogin(args ...any) <-chan any {
+func (this *Deribit) PrivateGetToggleSubaccountLogin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetToggleSubaccountLogin", args...)
 }
 
 // PrivateGetApproveBlockTrade returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetApproveBlockTrade(args ...any) <-chan any {
+func (this *Deribit) PrivateGetApproveBlockTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApproveBlockTrade", args...)
 }
 
 // PrivateGetExecuteBlockTrade returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetExecuteBlockTrade(args ...any) <-chan any {
+func (this *Deribit) PrivateGetExecuteBlockTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExecuteBlockTrade", args...)
 }
 
 // PrivateGetGetBlockTrade returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetBlockTrade(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetBlockTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetBlockTrade", args...)
 }
 
 // PrivateGetGetBlockTradeRequests returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetBlockTradeRequests(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetBlockTradeRequests(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetBlockTradeRequests", args...)
 }
 
 // PrivateGetGetBlockTrades returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetBlockTrades(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetBlockTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetBlockTrades", args...)
 }
 
 // PrivateGetGetLastBlockTradesByCurrency returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetLastBlockTradesByCurrency(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetLastBlockTradesByCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetLastBlockTradesByCurrency", args...)
 }
 
 // PrivateGetInvalidateBlockTradeSignature returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetInvalidateBlockTradeSignature(args ...any) <-chan any {
+func (this *Deribit) PrivateGetInvalidateBlockTradeSignature(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetInvalidateBlockTradeSignature", args...)
 }
 
 // PrivateGetRejectBlockTrade returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetRejectBlockTrade(args ...any) <-chan any {
+func (this *Deribit) PrivateGetRejectBlockTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetRejectBlockTrade", args...)
 }
 
 // PrivateGetSimulateBlockTrade returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSimulateBlockTrade(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSimulateBlockTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSimulateBlockTrade", args...)
 }
 
 // PrivateGetVerifyBlockTrade returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetVerifyBlockTrade(args ...any) <-chan any {
+func (this *Deribit) PrivateGetVerifyBlockTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetVerifyBlockTrade", args...)
 }
 
 // PrivateGetBuy returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetBuy(args ...any) <-chan any {
+func (this *Deribit) PrivateGetBuy(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetBuy", args...)
 }
 
 // PrivateGetSell returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSell(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSell(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSell", args...)
 }
 
 // PrivateGetEdit returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetEdit(args ...any) <-chan any {
+func (this *Deribit) PrivateGetEdit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetEdit", args...)
 }
 
 // PrivateGetEditByLabel returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetEditByLabel(args ...any) <-chan any {
+func (this *Deribit) PrivateGetEditByLabel(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetEditByLabel", args...)
 }
 
 // PrivateGetCancel returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetCancel(args ...any) <-chan any {
+func (this *Deribit) PrivateGetCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCancel", args...)
 }
 
 // PrivateGetCancelAll returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetCancelAll(args ...any) <-chan any {
+func (this *Deribit) PrivateGetCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCancelAll", args...)
 }
 
 // PrivateGetCancelAllByCurrency returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetCancelAllByCurrency(args ...any) <-chan any {
+func (this *Deribit) PrivateGetCancelAllByCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCancelAllByCurrency", args...)
 }
 
 // PrivateGetCancelAllByInstrument returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetCancelAllByInstrument(args ...any) <-chan any {
+func (this *Deribit) PrivateGetCancelAllByInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCancelAllByInstrument", args...)
 }
 
 // PrivateGetCancelByLabel returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetCancelByLabel(args ...any) <-chan any {
+func (this *Deribit) PrivateGetCancelByLabel(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCancelByLabel", args...)
 }
 
 // PrivateGetCancelQuotes returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetCancelQuotes(args ...any) <-chan any {
+func (this *Deribit) PrivateGetCancelQuotes(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCancelQuotes", args...)
 }
 
 // PrivateGetClosePosition returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetClosePosition(args ...any) <-chan any {
+func (this *Deribit) PrivateGetClosePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetClosePosition", args...)
 }
 
 // PrivateGetGetMargins returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetMargins(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetMargins(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetMargins", args...)
 }
 
 // PrivateGetGetMmpConfig returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetMmpConfig(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetMmpConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetMmpConfig", args...)
 }
 
 // PrivateGetGetMmpStatus returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetMmpStatus(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetMmpStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetMmpStatus", args...)
 }
 
 // PrivateGetGetOpenOrders returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetOpenOrders(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOpenOrders", args...)
 }
 
 // PrivateGetGetOpenOrdersByCurrency returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetOpenOrdersByCurrency(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetOpenOrdersByCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOpenOrdersByCurrency", args...)
 }
 
 // PrivateGetGetOpenOrdersByInstrument returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetOpenOrdersByInstrument(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetOpenOrdersByInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOpenOrdersByInstrument", args...)
 }
 
 // PrivateGetGetOpenOrdersByLabel returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetOpenOrdersByLabel(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetOpenOrdersByLabel(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOpenOrdersByLabel", args...)
 }
 
 // PrivateGetGetOrderHistoryByCurrency returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetOrderHistoryByCurrency(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetOrderHistoryByCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOrderHistoryByCurrency", args...)
 }
 
 // PrivateGetGetOrderHistoryByInstrument returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetOrderHistoryByInstrument(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetOrderHistoryByInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOrderHistoryByInstrument", args...)
 }
 
 // PrivateGetGetOrderMarginByIds returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetOrderMarginByIds(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetOrderMarginByIds(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOrderMarginByIds", args...)
 }
 
 // PrivateGetGetOrderState returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetOrderState(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetOrderState(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOrderState", args...)
 }
 
 // PrivateGetGetOrderStateByLabel returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetOrderStateByLabel(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetOrderStateByLabel(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetOrderStateByLabel", args...)
 }
 
 // PrivateGetGetStopOrderHistory returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetStopOrderHistory(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetStopOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetStopOrderHistory", args...)
 }
 
 // PrivateGetGetTriggerOrderHistory returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetTriggerOrderHistory(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetTriggerOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetTriggerOrderHistory", args...)
 }
 
 // PrivateGetGetUserTradesByCurrency returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetUserTradesByCurrency(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetUserTradesByCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserTradesByCurrency", args...)
 }
 
 // PrivateGetGetUserTradesByCurrencyAndTime returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetUserTradesByCurrencyAndTime(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetUserTradesByCurrencyAndTime(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserTradesByCurrencyAndTime", args...)
 }
 
 // PrivateGetGetUserTradesByInstrument returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetUserTradesByInstrument(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetUserTradesByInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserTradesByInstrument", args...)
 }
 
 // PrivateGetGetUserTradesByInstrumentAndTime returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetUserTradesByInstrumentAndTime(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetUserTradesByInstrumentAndTime(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserTradesByInstrumentAndTime", args...)
 }
 
 // PrivateGetGetUserTradesByOrder returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetUserTradesByOrder(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetUserTradesByOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetUserTradesByOrder", args...)
 }
 
 // PrivateGetMassQuote returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetMassQuote(args ...any) <-chan any {
+func (this *Deribit) PrivateGetMassQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMassQuote", args...)
 }
 
 // PrivateGetMovePositions returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetMovePositions(args ...any) <-chan any {
+func (this *Deribit) PrivateGetMovePositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMovePositions", args...)
 }
 
 // PrivateGetResetMmp returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetResetMmp(args ...any) <-chan any {
+func (this *Deribit) PrivateGetResetMmp(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetResetMmp", args...)
 }
 
 // PrivateGetSetMmpConfig returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSetMmpConfig(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSetMmpConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSetMmpConfig", args...)
 }
 
 // PrivateGetGetSettlementHistoryByInstrument returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetSettlementHistoryByInstrument(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetSettlementHistoryByInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetSettlementHistoryByInstrument", args...)
 }
 
 // PrivateGetGetSettlementHistoryByCurrency returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetSettlementHistoryByCurrency(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetSettlementHistoryByCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetSettlementHistoryByCurrency", args...)
 }
 
 // PrivateGetAddToAddressBook returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetAddToAddressBook(args ...any) <-chan any {
+func (this *Deribit) PrivateGetAddToAddressBook(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAddToAddressBook", args...)
 }
 
 // PrivateGetCancelTransferById returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetCancelTransferById(args ...any) <-chan any {
+func (this *Deribit) PrivateGetCancelTransferById(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCancelTransferById", args...)
 }
 
 // PrivateGetCancelWithdrawal returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetCancelWithdrawal(args ...any) <-chan any {
+func (this *Deribit) PrivateGetCancelWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCancelWithdrawal", args...)
 }
 
 // PrivateGetCreateDepositAddress returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetCreateDepositAddress(args ...any) <-chan any {
+func (this *Deribit) PrivateGetCreateDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCreateDepositAddress", args...)
 }
 
 // PrivateGetGetAddressBook returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetAddressBook(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetAddressBook(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetAddressBook", args...)
 }
 
 // PrivateGetGetCurrentDepositAddress returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetCurrentDepositAddress(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetCurrentDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetCurrentDepositAddress", args...)
 }
 
 // PrivateGetGetDeposits returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetDeposits(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetDeposits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetDeposits", args...)
 }
 
 // PrivateGetGetRewardEligibility returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetRewardEligibility(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetRewardEligibility(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetRewardEligibility", args...)
 }
 
 // PrivateGetGetTransfers returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetTransfers(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetTransfers", args...)
 }
 
 // PrivateGetGetWithdrawals returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetGetWithdrawals(args ...any) <-chan any {
+func (this *Deribit) PrivateGetGetWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetWithdrawals", args...)
 }
 
 // PrivateGetRemoveFromAddressBook returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetRemoveFromAddressBook(args ...any) <-chan any {
+func (this *Deribit) PrivateGetRemoveFromAddressBook(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetRemoveFromAddressBook", args...)
 }
 
 // PrivateGetSetClearanceOriginator returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSetClearanceOriginator(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSetClearanceOriginator(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSetClearanceOriginator", args...)
 }
 
 // PrivateGetSubmitTransferToSubaccount returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSubmitTransferToSubaccount(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSubmitTransferToSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSubmitTransferToSubaccount", args...)
 }
 
 // PrivateGetSubmitTransferToUser returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetSubmitTransferToUser(args ...any) <-chan any {
+func (this *Deribit) PrivateGetSubmitTransferToUser(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSubmitTransferToUser", args...)
 }
 
 // PrivateGetUpdateInAddressBook returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetUpdateInAddressBook(args ...any) <-chan any {
+func (this *Deribit) PrivateGetUpdateInAddressBook(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUpdateInAddressBook", args...)
 }
 
 // PrivateGetWithdraw returns a channel that yields a JSON object.
-func (this *DeribitCore) PrivateGetWithdraw(args ...any) <-chan any {
+func (this *Deribit) PrivateGetWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdraw", args...)
 }

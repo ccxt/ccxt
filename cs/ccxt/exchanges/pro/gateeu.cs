@@ -7,11 +7,11 @@ namespace ccxt.pro;
 public partial class gateeu { public gateeu(object args = null) : base(args) { } }
 public partial class gateeu : gate
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         // eslint-disable-next-line new-cap
         var restInstance = new ccxt.gateeu();
-        object restDescribe = restInstance.describe();
+        Dictionary<string, object> restDescribe = restInstance.describe();
         object parentWsDescribe = base.describeData();
         // the ws describe-data must be applied on top of the rest describe,
         // otherwise the explicit-undefined watch* defaults of the rest 'has'

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct BingxCore {
@@ -3022,17 +3026,9 @@ impl BingxCore {
         }
         let mut amount: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("qty".to_string()), Value::Str("amount".to_string()), Value::Str("q".to_string())]), &[]);
         if is_true(&(!is_equal(&market, &Value::Null))) && is_true(&(is_equal(&get_value(&market, &Value::Str("swap".to_string())), &Value::Bool(true)))) && is_true(&(Value::Bool(in_op(&trade, &Value::Str("volume".to_string()))))) {
-            if is_equal(&get_value(&market, &Value::Str("linear".to_string())), &Value::Bool(true)) {
-                // private linear swap trades report 'amount' as the notional (quote) value, not the base amount;
-                // 'volume' is the exchange's own base-currency fill quantity (bingx linear contractSize is always 1),
-                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
-                amount = self.safe_string_k(trade.clone(), "volume", &[]);
-            }  else {
-                // private trade returns num of contracts instead of base currency (as the order-related methods do)
-                let mut contractSize: Value = self.safe_string(get_value(&market, &Value::Str("info".to_string())), Value::Str("tradeMinQuantity".to_string()), &[]);
-                let mut volume: Value = self.safe_string_k(trade.clone(), "volume", &[]);
-                amount = crate::precise::Precise::stringMul(&volume, &contractSize);
-            }
+            // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
+            // safeTrade applies contractSize when calculating inverse cost.
+            amount = self.safe_string_k(trade.clone(), "volume", &[]);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5814,7 +5810,7 @@ impl BingxCore {
  * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20multiple%20orders
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
  * @param {string[]} ids order ids
- * @param {string} symbol unified market symbol, default is undefined
+ * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -5832,6 +5828,9 @@ impl BingxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        if is_equal(&get_value(&market, &Value::Str("inverse".to_string())), &Value::Bool(true)) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrders() is not supported for inverse swap markets".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -6596,13 +6595,13 @@ impl BingxCore {
         if !is_equal(&toAccount, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("toAccount".to_string()), toId.clone());
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("fromAccount".to_string()), Value::Str("toAccount".to_string())]), &[]);
         let mut maxLimit: Value = Value::Int(100);
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTransfers".to_string()), Value::Str("paginate".to_string()), &[Value::Bool(false)]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".to_string()), &[Value::Null, since.clone(), limit.clone(), params.clone(), maxLimit.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone(), maxLimit.clone()]).await;
         }
+        params = self.omit(params.clone(), Value::List(vec![Value::Str("fromAccount".to_string()), Value::Str("toAccount".to_string())]), &[]);
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
@@ -8000,7 +7999,7 @@ impl BingxCore {
  * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Order  // spot
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  // swap
  * @param {string} id order id
- * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} symbol unified symbol of the market to create an order in, inverse (Coin-M) markets are not supported
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of the currency you want to trade in units of the base currency
@@ -8035,6 +8034,9 @@ impl BingxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        if is_equal(&get_value(&market, &Value::Str("inverse".to_string())), &Value::Bool(true)) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" editOrder() is not supported for inverse swap markets".to_string()))));
+        }
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         add_element_to_object(&mut request, &Value::Str("cancelOrderId".to_string()), id.clone());
         add_element_to_object(&mut request, &Value::Str("cancelReplaceMode".to_string()), Value::Str("STOP_ON_FAILURE".to_string()));

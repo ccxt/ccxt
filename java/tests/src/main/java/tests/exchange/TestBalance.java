@@ -14,7 +14,7 @@ import io.github.ccxt.base.Precise;
 public class TestBalance extends BaseTest {
     public static void testBalance(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "free", new java.util.HashMap<String, Object>() {{}} );
             put( "used", new java.util.HashMap<String, Object>() {{}} );
             put( "total", new java.util.HashMap<String, Object>() {{}} );
@@ -51,7 +51,7 @@ public class TestBalance extends BaseTest {
             Assert(Precise.stringGe(total, "0"), Helpers.add("total is not positive", logText));
             Assert(Precise.stringGe(free, "0"), Helpers.add("free is not positive", logText));
             Assert(Precise.stringGe(used, "0"), Helpers.add("used is not positive", logText));
-            Object sumFreeUsed = Precise.stringAdd(free, used);
+            String sumFreeUsed = Precise.stringAdd(free, used);
             Assert(Precise.stringEq(total, sumFreeUsed), Helpers.add("free and used do not sum to total", logText));
         }
     }

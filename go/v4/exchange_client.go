@@ -30,7 +30,7 @@ type ClientInterface interface {
 	Future(messageHash any) <-chan any
 	ReusableFuture(messageHash any) *Future
 	Reject(err any, messageHash ...any)
-	Send(message any) <-chan any
+	SendAsync(message any) <-chan any
 	Reset(err any)
 	OnPong()
 	GetError() error
@@ -392,7 +392,7 @@ func (this *Client) OnUpgrade(message any) {
 	}
 }
 
-func (this *Client) Send(message any) <-chan any {
+func (this *Client) SendAsync(message any) <-chan any {
 	var msgStr string
 	if str, ok := message.(string); ok {
 		msgStr = str

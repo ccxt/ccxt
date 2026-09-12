@@ -558,7 +558,7 @@ class bittrade(Exchange, ImplicitAPI):
         #         ]
         #    }
         #
-        markets = self.safe_value(response, 'data', [])
+        markets = self.safe_list(response, 'data', [])
         numMarkets = len(markets)
         if numMarkets < 1:
             raise NetworkError(self.id + ' fetchMarkets() returned empty response: ' + self.json(markets))
@@ -813,7 +813,7 @@ class bittrade(Exchange, ImplicitAPI):
             self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.marketGetTickers(params)
-        tickers = self.safe_value(response, 'data', [])
+        tickers = self.safe_list(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
         result = {}
         for i in range(0, len(tickers)):
@@ -990,10 +990,10 @@ class bittrade(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            trades = self.safe_value(data[i], 'data', [])
+            trades = self.safe_list(data[i], 'data', [])
             for j in range(0, len(trades)):
                 trade = self.parse_trade(trades[j], market)
                 result.append(trade)
@@ -1164,7 +1164,7 @@ class bittrade(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response: object) -> Balances:
-        balances = self.safe_value(response['data'], 'list', [])
+        balances = self.safe_list(response['data'], 'list', [])
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]

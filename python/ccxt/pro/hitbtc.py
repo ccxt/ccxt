@@ -396,7 +396,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        }
         #    }
         #
-        data = self.safe_value(message, 'data', {})
+        data = self.safe_dict(message, 'data', {})
         marketIds = list(data.keys())
         result = []
         topic = 'tickers'
@@ -613,7 +613,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        }
         #    }
         #
-        data = self.safe_value_2(message, 'snapshot', 'update', {})
+        data = self.safe_dict_2(message, 'snapshot', 'update', {})
         marketIds = list(data.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -730,7 +730,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        }
         #    }
         #
-        data = self.safe_value_2(message, 'snapshot', 'update', {})
+        data = self.safe_dict_2(message, 'snapshot', 'update', {})
         marketIds = list(data.keys())
         channel = self.safe_string(message, 'ch', '')
         splitChannel = channel.split('/')
@@ -1283,7 +1283,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 self.handle_authenticate(client, message)
             if isinstance(result, list):
                 # to do improve self, not very reliable right now
-                first = self.safe_value(result, 0, {})
+                first = self.safe_dict(result, 0, {})
                 arrayLength = len(result)
                 if (arrayLength == 0) or ('client_order_id' in first):
                     self.handle_order_request(client, message)
@@ -1307,7 +1307,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 del client.subscriptions[messageHash]
         return message
 
-    def handle_error(self, client: Client, message: object):
+    def handle_error(self, client: Client, message: object) -> bool:
         #
         #    {
         #        jsonrpc: '2.0',
@@ -1339,4 +1339,4 @@ class hitbtc(ccxt.async_support.hitbtc):
                     id = self.safe_string(message, 'id')
                     client.reject(e, id)
                 return True
-        return None
+        return False

@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class modetrade { public modetrade(object args = null) : base(args) { } }
 public partial class modetrade : ccxt.modetrade
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -657,7 +657,7 @@ public partial class modetrade : ccxt.modetrade
         if (isTrue(isEqual(success, true)))
         {
             // client.resolve (message, messageHash);
-            var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
             (future as Future).resolve(true);
         } else
         {
@@ -1178,7 +1178,7 @@ public partial class modetrade : ccxt.modetrade
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
         }

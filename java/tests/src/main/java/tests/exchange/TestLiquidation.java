@@ -14,7 +14,7 @@ import io.github.ccxt.base.Precise;
 public class TestLiquidation extends BaseTest {
     public static void testLiquidation(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "symbol", "ETH/BTC" );
             put( "contracts", exchange.parseNumber("1.234") );
@@ -26,7 +26,7 @@ public class TestLiquidation extends BaseTest {
             put( "datetime", "2017-09-01T00:00:00" );
         }};
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "datetime", "quoteValue", "baseValue", "previousClose", "price", "contractSize", "contracts"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "datetime", "quoteValue", "baseValue", "previousClose", "price", "contractSize", "contracts"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         Object logText = TestSharedMethods.logTemplate(exchange, method, entry);

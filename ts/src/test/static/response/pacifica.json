@@ -8,6 +8,41 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "transfer": [
+            {
+                "description": "transfer between own accounts",
+                "method": "transfer",
+                "input": [
+                    "USDC",
+                    10,
+                    "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                    "B9AJ1AD23xkhgoJn4dBtUn8iGpHTXa9Rj4DoH5R5S6FJ"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "success": true,
+                        "error": null
+                    },
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "error": null
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDC",
+                    "amount": 10,
+                    "fromAccount": "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                    "toAccount": "B9AJ1AD23xkhgoJn4dBtUn8iGpHTXa9Rj4DoH5R5S6FJ",
+                    "status": "ok"
+                }
+            }
+        ],
         "cancelOrders": [
             {
                 "description": "Cancel Orders with ids",

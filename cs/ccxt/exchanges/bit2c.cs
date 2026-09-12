@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bit2c : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bit2c" },
@@ -348,7 +348,7 @@ public partial class bit2c : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(codes, i));
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             Dictionary<string, object> currency = this.currency(((string)code));
             string uppercase = ((string)getValue(currency, "id")).ToUpper();
             if (isTrue(inOp(response, uppercase)))
@@ -627,7 +627,7 @@ public partial class bit2c : Exchange
         //         }
         //     }
         //
-        object fees = this.safeValue(response, "Fees", new Dictionary<string, object>() {});
+        IDictionary<string, object> fees = this.safeDict(response, "Fees", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)fees).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -1121,9 +1121,9 @@ public partial class bit2c : Exchange
         }, market);
     }
 
-    public virtual object isFiat(object code)
+    public virtual bool isFiat(object code)
     {
-        return isEqual(code, "NIS");
+        return ((bool)((object)(isEqual(code, "NIS")))!);
     }
 
     /**

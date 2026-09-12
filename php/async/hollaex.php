@@ -362,7 +362,7 @@ class hollaex extends Exchange {
         //         "status" => true
         //     }
         //
-        $pairs = $this->safe_value($response, 'pairs', array());
+        $pairs = $this->safe_dict($response, 'pairs', array());
         $keys = is_array($pairs) ? array_keys($pairs) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {

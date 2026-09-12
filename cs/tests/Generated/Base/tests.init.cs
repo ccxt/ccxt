@@ -46,6 +46,7 @@ public partial class BaseTest
             testInArray();
             testFilterBy();
             testHandleMethods();
+            testHandleHttpStatusCode();
             testNetworkMethods();
             testRemoveRepeatedElementsFromArray();
             testIsEmpty();

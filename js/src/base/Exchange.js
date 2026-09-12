@@ -1441,12 +1441,13 @@ export class BaseExchange {
             else if ((httpProxyAgent !== undefined) && (httpProxyAgent !== null)) {
                 finalAgent = httpProxyAgent;
             }
-            //
+            const wsThrottler = new Throttler(this.tokenBucket);
             const options = this.deepExtend(this.streaming, {
                 'log': (this.log !== undefined) ? this.log.bind(this) : this.log,
                 'ping': (this.ping !== undefined) ? this.ping.bind(this) : this.ping,
+                'throttle': wsThrottler.throttle.bind(wsThrottler),
                 'verbose': this.verbose,
-                'throttler': new Throttler(this.tokenBucket),
+                'throttler': wsThrottler,
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
@@ -4776,7 +4777,8 @@ export class BaseExchange {
             }
             // close (using average)
             if (close === undefined && average !== undefined) {
-                close = Precise.stringMul(average, '2');
+                // average is the midpoint of open and close, so twice it is their sum
+                close = Precise.stringSub(Precise.stringMul(average, '2'), open);
             }
             // average
             if (average === undefined && close !== undefined) {
@@ -5733,28 +5735,28 @@ export class BaseExchange {
         [retries, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailure', retries);
         let retryDelay = 0;
         [retryDelay, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailureDelay', retryDelay);
-        let fetchData = undefined;
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
+            let fetchData = undefined;
             if (fetchDataCacheEnabled) {
                 fetchData = { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined };
             }
             try {
                 this.setLastRestRequestTimestamp();
                 const request = this.sign(path, api, method, params, headers, body);
-                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
+                if (fetchData !== undefined) {
                     fetchData['request'] = request;
                 }
                 this.setLastRequest(request);
                 const response = await this.fetch(request['url'], request['method'], request['headers'], request['body']);
-                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
+                if (fetchData !== undefined) {
                     fetchData['response']['body'] = response;
                     this.addFetchCache(fetchData);
                 }
                 return response;
             }
             catch (e) {
-                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
+                if (fetchData !== undefined) {
                     fetchData['error'] = e;
                     this.addFetchCache(fetchData);
                 }

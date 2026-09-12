@@ -1615,17 +1615,9 @@ class bingx extends Exchange {
         }
         $amount = $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
         if (($market !== null) && ($market['swap'] === true) && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
-            if ($market['linear'] === true) {
-                // private linear swap trades report 'amount' as the notional (quote) value, not the base $amount;
-                // 'volume' is the exchange's own base-currency fill quantity (bingx linear $contractSize is always 1),
-                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
-                $amount = $this->safe_string($trade, 'volume');
-            } else {
-                // private $trade returns num of contracts instead of base currency (as the order-related methods do)
-                $contractSize = $this->safe_string($market['info'], 'tradeMinQuantity');
-                $volume = $this->safe_string($trade, 'volume');
-                $amount = Precise::string_mul($volume, $contractSize);
-            }
+            // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
+            // safeTrade applies contractSize when calculating inverse $cost->
+            $amount = $this->safe_string($trade, 'volume');
         }
         return $this->safe_trade(array(
             'id' => $this->safe_string_2($trade, 'id', 't'),
@@ -4499,7 +4491,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
          *
          * @param {string[]} $ids order $ids
-         * @param {string} $symbol unified $market $symbol, default is null
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [$params->clientOrderIds] client order $ids
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
@@ -4511,6 +4503,9 @@ class bingx extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        if ($market['inverse'] === true) {
+            throw new NotSupported($this->id . ' cancelOrders() is not supported for inverse swap markets');
+        }
         $request = array(
             'symbol' => $market['id'],
         );
@@ -5496,13 +5491,13 @@ class bingx extends Exchange {
         if ($toAccount !== null) {
             $request['toAccount'] = $toId;
         }
-        $params = $this->omit($params, array( 'fromAccount', 'toAccount' ));
         $maxLimit = 100;
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', null, $since, $limit, $params, $maxLimit));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params, $maxLimit));
         }
+        $params = $this->omit($params, array( 'fromAccount', 'toAccount' ));
         if ($since !== null) {
             $request['startTime'] = $since;
         }
@@ -6912,7 +6907,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  // swap
          *
          * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $symbol unified $symbol of the $market to create an order in, inverse (Coin-M) markets are not supported
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of the currency you want to trade in units of the base currency
@@ -6940,6 +6935,9 @@ class bingx extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        if ($market['inverse'] === true) {
+            throw new NotSupported($this->id . ' editOrder() is not supported for inverse swap markets');
+        }
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request['cancelOrderId'] = $id;
         $request['cancelReplaceMode'] = 'STOP_ON_FAILURE';

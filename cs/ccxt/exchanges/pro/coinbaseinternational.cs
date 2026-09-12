@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class coinbaseinternational { public coinbaseinternational(object args = null) : base(args) { } }
 public partial class coinbaseinternational : ccxt.coinbaseinternational
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -260,7 +260,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return ccxt.BaseExchange.ToTicker(await this.subscribe(((string)channel), new List<object>() {symbol}, parameters));
     }
 
-    public virtual object getActiveSymbols()
+    public virtual List<object> getActiveSymbols()
     {
         object symbols = this.symbols;
         List<object> output = new List<object>() {};
@@ -273,7 +273,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
                 ((IList<object>)output).Add(symbol);
             }
         }
-        return output;
+        return ((List<object>)((object)(output)));
     }
 
     /**
