@@ -11,7 +11,7 @@ import tests.exchange.*;
 
 
 public class TestWatchOHLCV extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testWatchOHLCV(Exchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testWatchOHLCV(Exchange exchange, Object skippedProperties, String symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
