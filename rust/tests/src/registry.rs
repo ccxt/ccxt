@@ -39,7 +39,7 @@ pub(crate) use crate::generated_cores::for_each_ws_core;
 /// (incl. `brokerId` / `broker`), `has`, `urls`, etc. — which the
 /// broker-id tests assert against. Returns `Value::Null` for an id with
 /// no registered Core so callers can fall back to a plain config map.
-pub fn exchange_snapshot(id: &str, cfg: Value) -> Value {
+pub fn exchange_snapshot(id: &str, cfg: Value, ws: bool) -> Value {
     macro_rules! arm { ($name:ident, $core:ident) => {
         if id == stringify!($name) {
             let mut ex = Box::new(<$core>::new(Some(cfg.clone())));
@@ -55,6 +55,11 @@ pub fn exchange_snapshot(id: &str, cfg: Value) -> Value {
     if crate::live_dispatch::is_prediction_mode() {
         arm!(binance, PredBinanceCore);
         arm!(hyperliquid, PredHyperliquidCore);
+    }
+    // Match build_core's WS selection: loadMarkets writes snapshot.options back
+    // to the live Core, so a REST snapshot would discard the WS defaults.
+    if ws {
+        for_each_ws_core!(arm);
     }
     for_each_core!(arm);
     Value::Null
