@@ -1382,6 +1382,7 @@ class alpaca extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch orders for
+         * @param {string} [$params->direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when $since is set
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
@@ -1398,10 +1399,15 @@ class alpaca extends Exchange {
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $params = $this->omit($params, 'until');
-            $request['endTime'] = $this->iso8601($until);
+            $request['until'] = $this->iso8601($until);
         }
         if ($since !== null) {
             $request['after'] = $this->iso8601($since);
+            $direction = $this->safe_string($params, 'direction');
+            if ($direction === null) {
+                // the server default is desc, so a $limit would truncate the newest window instead of the range starting at $since — $request oldest-first like krakenfutures does
+                $request['direction'] = 'asc';
+            }
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1465,6 +1471,7 @@ class alpaca extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch orders for
+         * @param {string} [$params->direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when $since is set
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $request = array(
@@ -1488,6 +1495,7 @@ class alpaca extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch orders for
+         * @param {string} [$params->direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when $since is set
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $request = array(

@@ -1176,8 +1176,12 @@ class ndax extends Exchange {
             $timestamp = $this->safe_integer($trade, 6);
             $id = $this->safe_string($trade, 0);
             $marketId = $this->safe_string($trade, 1);
-            $takerSide = $this->safe_value($trade, 8);
-            $side = ($takerSide === true) ? 'sell' : 'buy';
+            $takerSide = $this->safe_integer($trade, 8);
+            if ($takerSide === 0) {
+                $side = 'buy';
+            } elseif ($takerSide === 1) {
+                $side = 'sell';
+            }
             $orderId = $this->safe_string($trade, 4);
         } else {
             $timestamp = $this->safe_integer_2($trade, 'TradeTimeMS', 'ReceiveTime');

@@ -3294,7 +3294,11 @@ class bingx extends Exchange {
                         $slRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
                     $slQuantity = $this->safe_string($stopLossDict, 'quantity', $stringifiedAmount);
-                    $slRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $slQuantity));
+                    $slQuantityRequest = $this->parse_to_numeric($slQuantity);
+                    if ($market['inverse'] !== true) {
+                        $slQuantityRequest = $this->parse_to_numeric($this->amount_to_precision($symbol, $slQuantity));
+                    }
+                    $slRequest['quantity'] = $slQuantityRequest;
                     $request['stopLoss'] = $this->json($slRequest);
                 }
                 if ($hasTakeProfit) {
@@ -3311,7 +3315,11 @@ class bingx extends Exchange {
                         $tpRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
                     $tkQuantity = $this->safe_string($takeProfitDict, 'quantity', $stringifiedAmount);
-                    $tpRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $tkQuantity));
+                    $tkQuantityRequest = $this->parse_to_numeric($tkQuantity);
+                    if ($market['inverse'] !== true) {
+                        $tkQuantityRequest = $this->parse_to_numeric($this->amount_to_precision($symbol, $tkQuantity));
+                    }
+                    $tpRequest['quantity'] = $tkQuantityRequest;
                     $request['takeProfit'] = $this->json($tpRequest);
                 }
             }

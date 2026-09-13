@@ -1465,7 +1465,8 @@ class bitget extends Exchange {
                     '40014' => '\\ccxt\\PermissionDenied', // Incorrect permissions
                     '40015' => '\\ccxt\\ExchangeError', // System is abnormal, please try again later
                     '40016' => '\\ccxt\\PermissionDenied', // The user must bind the phone or Google
-                    '40017' => '\\ccxt\\ExchangeError', // Parameter verification failed
+                    '40017' => '\\ccxt\\BadRequest', // Parameter verification failed
+                    '400172' => '\\ccxt\\BadRequest', // array("code":"400172","msg":"Parameter verification failed","requestTime":1789206270550,"data":null) - v3 uta twin of 40017
                     '40018' => '\\ccxt\\PermissionDenied', // Invalid IP
                     '40019' => '\\ccxt\\BadRequest', // array("code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null)
                     '40031' => '\\ccxt\\AccountSuspended', // The account has been cancelled and cannot be used again
@@ -4441,10 +4442,12 @@ class bitget extends Exchange {
          * fetch the trading fees for a $market
          *
          * @see https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+         * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-fee-rate
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
         if ($this->markets === null) {
@@ -4454,6 +4457,27 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
+        $uta = null;
+        list($uta, $params) = Async\await($this->handle_uta_and_params($params, 'fetchTradingFee', false));
+        if ($uta === true) {
+            $productType = null;
+            list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+            $request['category'] = $productType;
+            $utaResponse = Async\await($this->privateUtaGetV3AccountFeeRate($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1789206261241,
+            //         "data" => {
+            //             "makerFeeRate" => "0.001",
+            //             "takerFeeRate" => "0.001"
+            //         }
+            //     }
+            //
+            $utaData = $this->safe_dict($utaResponse, 'data', array());
+            return $this->parse_trading_fee($utaData, $market);
+        }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchTradingFee', $params);
         if ($market['spot'] === true) {
@@ -4492,10 +4516,12 @@ class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
          * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
          * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+         * @see https://www.bitget.com/docs/catalog/account/risk-position#get-all-$symbol-$fee-rates
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [$params->margin] set to true for spot $margin
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
          */
         if ($this->markets === null) {
@@ -4506,6 +4532,57 @@ class bitget extends Exchange {
         $marketType = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchTradingFees', $params);
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
+        $uta = null;
+        list($uta, $params) = Async\await($this->handle_uta_and_params($params, 'fetchTradingFees', false));
+        if ($uta === true) {
+            $utaMargin = $this->safe_bool($params, 'margin', false);
+            $params = $this->omit($params, 'margin');
+            $request = array();
+            if ($marketType === 'spot') {
+                if (($marginMode !== null) || ($utaMargin === true)) {
+                    $request['category'] = 'MARGIN';
+                } else {
+                    $request['category'] = 'SPOT';
+                }
+            } elseif (($marketType === 'swap') || ($marketType === 'future')) {
+                $productType = null;
+                list($productType, $params) = $this->handle_product_type_and_params(null, $params);
+                $request['category'] = $productType;
+            } else {
+                throw new NotSupported($this->id . ' does not support ' . $marketType . ' market');
+            }
+            $utaResponse = Async\await($this->privateUtaGetV3AccountAllFeeRate($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1789206286428,
+            //         "data" => array(
+            //             {
+            //                 "makerFeeRate" => "0.00036",
+            //                 "takerFeeRate" => "0.001",
+            //                 "symbol" => "BTCUSDT"
+            //             }
+            //         )
+            //     }
+            //
+            $rows = $this->safe_list($utaResponse, 'data', array());
+            $utaResult = array();
+            for ($i = 0; $i < count($rows); $i++) {
+                $entry = $rows[$i];
+                $entryMarketId = $this->safe_string($entry, 'symbol');
+                if (($entryMarketId === null) || ($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($entryMarketId ?? '', $this->markets_by_id))) {
+                    continue; // skip ids missing from the loaded $market map, a raw id must not become a unified $symbol key
+                }
+                $entryMarket = $this->safe_market($entryMarketId, null, null, $marketType);
+                $entrySymbol = $this->safe_string($entryMarket, 'symbol');
+                if (($entrySymbol === null) || ($entrySymbol === $entryMarketId)) {
+                    continue; // safeMarket found no $market of this type and fell back to a raw-id structure
+                }
+                $utaResult[$entrySymbol] = $this->parse_trading_fee($entry, $entryMarket);
+            }
+            return $utaResult;
+        }
         if ($marketType === 'spot') {
             $margin = $this->safe_bool($params, 'margin', false);
             $params = $this->omit($params, 'margin');
