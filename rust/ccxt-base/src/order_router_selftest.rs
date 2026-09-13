@@ -1035,6 +1035,114 @@ fn encode_uri_component_matches_javascript(r: &OrderRouter) -> Result<(), String
     Ok(())
 }
 
+fn balances_echo_is_verified(r: &OrderRouter) -> Result<(), String> {
+    // /route declares its query without a JSON schema, so a server that predates the balances
+    // feature answers byte-identically to one that never received any. It is the EMPTY wallet
+    // that used to slip through, because the old check skipped itself whenever the balances
+    // string was "".
+    let asked = |balances: &str| -> Value {
+        let mut params = HashMap::new();
+        params.insert("balances".to_string(), Value::Str(balances.to_string()));
+        Value::Map(params)
+    };
+    let empty_route = Value::Map(HashMap::new());
+    if r.assert_balances_applied(&empty_route, &asked("binance.USDT:1000")).is_ok() {
+        return Err("a non-empty wallet the server ignored must be refused".to_string());
+    }
+    if r.assert_balances_applied(&empty_route, &asked("")).is_ok() {
+        return Err("an EMPTY wallet the server ignored must be refused".to_string());
+    }
+    // an echo is proof enough
+    let mut echoed = HashMap::new();
+    echoed.insert("balancesApplied".to_string(), Value::Str("binance.USDT:1000".to_string()));
+    if r.assert_balances_applied(&Value::Map(echoed), &asked("binance.USDT:1000")).is_err() {
+        return Err("an echoed wallet is accepted".to_string());
+    }
+    // and balanceEntryCount 0 is how a CURRENT server confirms an empty one: presence, not value
+    let mut counted = HashMap::new();
+    counted.insert("balanceEntryCount".to_string(), Value::Int(0));
+    if r.assert_balances_applied(&Value::Map(counted), &asked("")).is_err() {
+        return Err("balanceEntryCount 0 confirms an empty wallet".to_string());
+    }
+    // the caller can opt out with their eyes open
+    let mut opted = HashMap::new();
+    opted.insert("balances".to_string(), Value::Str("binance.USDT:1000".to_string()));
+    opted.insert("requireBalancesApplied".to_string(), Value::Bool(false));
+    if r.assert_balances_applied(&empty_route, &Value::Map(opted)).is_err() {
+        return Err("the opt-out is honoured".to_string());
+    }
+    Ok(())
+}
+
+fn fee_is_not_subtracted_twice(r: &OrderRouter) -> Result<(), String> {
+    // THE REGRESSION THIS EXISTS FOR. execute reports realisedOut NET of a fee charged in
+    // the asset the step produced, because that is what the wallet receives. The router had
+    // already done the same: hop 0 sells 500 DOGE at 0.089 for 44.5 gross, reports amountOut
+    // 44.47482324238088 after a 0.025176757619121304 USDT fee, and hop 1's amountIn is that
+    // net figure to the last digit. Measuring the expectation GROSS against a NET realised
+    // amount reported a shortfall on a perfect fill and shrank hop 1 by the fee all over
+    // again, stranding it in the bridge asset.
+    let fixture = fixture()?;
+    let routes = r.dict_at(&fixture, "routes");
+    let route = r.dict_at(&routes, "multiHop");
+    let hops = r.list_at(&route, "hops");
+    let hop_zero = &hops[0];
+    let hop_one = &hops[1];
+    let hop_zero_out = r.number_at(hop_zero, "amountOut", 0.0);
+    let hop_zero_fee = r.number_at(hop_zero, "feeCost", 0.0);
+    // the premise, asserted rather than assumed: the router's own numbers really are net
+    if (hop_zero_out - (500.0 * 0.089 - hop_zero_fee)).abs() > TOLERANCE {
+        return Err(format!("the hop amountOut is net of its fee, got {hop_zero_out}"));
+    }
+    if (r.number_at(hop_one, "amountIn", 0.0) - hop_zero_out).abs() > TOLERANCE {
+        return Err("hop 1 was sized from the NET proceeds of hop 0".to_string());
+    }
+    let plan = r
+        .build_execution_plan(&route, &Value::Map(HashMap::new()))
+        .map_err(|e| e.to_string())?;
+    let steps = r.list_at(&plan, "steps");
+    let leg_fee = r.number_at(&r.list_at(hop_zero, "legs")[0], "feeCost", 0.0);
+    if (r.number_at(&steps[0], "expectedFeeCost", -1.0) - leg_fee).abs() > TOLERANCE {
+        return Err("the step carries the predicted fee".to_string());
+    }
+    let verdict = r
+        .reconcile_execution_step(&plan, 0, hop_zero_out)
+        .map_err(|e| e.to_string())?;
+    if (r.number_at(&verdict, "expectedOut", 0.0) - hop_zero_out).abs() > TOLERANCE {
+        return Err("expected equals what the router said the hop produces".to_string());
+    }
+    if r.number_at(&verdict, "shortfall", -1.0).abs() > TOLERANCE {
+        return Err("a perfect fill is not a shortfall".to_string());
+    }
+    if (r.number_at(&verdict, "scale", 0.0) - 1.0).abs() > TOLERANCE {
+        return Err("and does not resize anything".to_string());
+    }
+    for entry in r.list_at(&verdict, "resizedSteps") {
+        let before = r.number_at(&entry, "previousAmount", 0.0);
+        let after = r.number_at(&entry, "amount", 0.0);
+        if (before - after).abs() > TOLERANCE {
+            return Err("hop 1 keeps the size the router gave it".to_string());
+        }
+    }
+    // notionalQuote is what the order is worth to the VENUE and stays gross
+    if (r.number_at(&steps[0], "notionalQuote", 0.0) - 44.5).abs() > TOLERANCE {
+        return Err("the order notional stays gross".to_string());
+    }
+    // a BUY produces base, and the predicted fee is quote-denominated
+    if (r.step_expected_out(&steps[1]) - r.number_at(hop_one, "amountOut", 0.0)).abs() > TOLERANCE {
+        return Err("a buy is unaffected".to_string());
+    }
+    // a hand-built plan carries no expectedFeeCost, and behaves exactly as before
+    let mut hand = HashMap::new();
+    hand.insert("side".to_string(), Value::Str("sell".to_string()));
+    hand.insert("amount".to_string(), Value::Float(10.0));
+    hand.insert("expectedPrice".to_string(), Value::Float(2.0));
+    if (r.step_expected_out(&Value::Map(hand)) - 20.0).abs() > TOLERANCE {
+        return Err("a hand-built plan is unchanged".to_string());
+    }
+    Ok(())
+}
+
 fn route_body_carries_the_holdings_and_the_url_never_does(r: &OrderRouter) -> Result<(), String> {
     // The service scrubs balances from its own logs, but the URL leaves the
     // process: a reverse proxy, an ALB and a CDN all log the full request line,
@@ -1442,6 +1550,8 @@ pub fn run() -> Result<usize, String> {
         ("fetchRoute builds a deterministic query", Box::new(|| route_url_is_deterministic(&router()?))),
         ("the query escaping is encodeURIComponent's, not form-urlencoded's", Box::new(|| encode_uri_component_matches_javascript(&router()?))),
         ("a route carrying balances is POSTed, and the holdings never appear in the url", Box::new(|| route_body_carries_the_holdings_and_the_url_never_does(&router()?))),
+        ("a fee the router already subtracted is not subtracted a second time", Box::new(|| fee_is_not_subtracted_twice(&router()?))),
+        ("a router that ignored the balances is caught, including when the wallet is empty", Box::new(|| balances_echo_is_verified(&router()?))),
         ("execute: dry_run is the default and a forgotten live flag places nothing", Box::new(|| dry_run_places_nothing(&router()?))),
         ("execute: an unknown strategy is refused even in dry run", Box::new(|| an_unknown_strategy_is_refused_even_in_dry_run(&router()?))),
         ("execute: sequential places IOC limit orders in plan order", Box::new(|| sequential_places_and_fills(&router()?))),

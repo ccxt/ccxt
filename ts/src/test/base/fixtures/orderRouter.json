@@ -993,6 +993,8 @@
                 "fullyFillable": true,
                 "fillRatio": 1,
                 "unroutableReason": "",
+                "unroutableHopIndex": -1,
+                "requireFullFill": false,
                 "hopCount": 1,
                 "stepCount": 1,
                 "slippageBps": 25,
@@ -1011,7 +1013,9 @@
                         "expectedPrice": 78921.58,
                         "effectivePrice": 78961.04079,
                         "limitPrice": 79118.88395,
-                        "notionalQuote": 19.989708502209346
+                        "notionalQuote": 19.989708502209346,
+                        "expectedFeeCost": 0.010291497790653636,
+                        "balanceLimited": false
                     }
                 ]
             }
@@ -1034,6 +1038,8 @@
                 "fullyFillable": true,
                 "fillRatio": 1,
                 "unroutableReason": "",
+                "unroutableHopIndex": -1,
+                "requireFullFill": false,
                 "hopCount": 1,
                 "stepCount": 1,
                 "slippageBps": 50,
@@ -1052,7 +1058,9 @@
                         "expectedPrice": 79036.65,
                         "effectivePrice": 78941.80601999999,
                         "limitPrice": 78641.46674999999,
-                        "notionalQuote": 15.80733
+                        "notionalQuote": 15.80733,
+                        "expectedFeeCost": 0.019497175628156782,
+                        "balanceLimited": false
                     }
                 ]
             }
@@ -1073,6 +1081,8 @@
                 "fullyFillable": true,
                 "fillRatio": 1,
                 "unroutableReason": "",
+                "unroutableHopIndex": -1,
+                "requireFullFill": false,
                 "hopCount": 2,
                 "stepCount": 2,
                 "slippageBps": 25,
@@ -1091,7 +1101,9 @@
                         "expectedPrice": 0.089,
                         "effectivePrice": 0.0889555,
                         "limitPrice": 0.0887775,
-                        "notionalQuote": 44.5
+                        "notionalQuote": 44.5,
+                        "expectedFeeCost": 0.025176757619121304,
+                        "balanceLimited": false
                     },
                     {
                         "stepIndex": 1,
@@ -1106,7 +1118,9 @@
                         "expectedPrice": 95.61,
                         "effectivePrice": 95.657805,
                         "limitPrice": 95.849025,
-                        "notionalQuote": 44.451517220307224
+                        "notionalQuote": 44.451517220307224,
+                        "expectedFeeCost": 0.02330602207365473,
+                        "balanceLimited": false
                     }
                 ]
             }
@@ -1129,6 +1143,8 @@
                 "fullyFillable": true,
                 "fillRatio": 1,
                 "unroutableReason": "",
+                "unroutableHopIndex": -1,
+                "requireFullFill": false,
                 "hopCount": 2,
                 "stepCount": 3,
                 "slippageBps": 0,
@@ -1147,7 +1163,9 @@
                         "expectedPrice": 0.089,
                         "effectivePrice": 0.0889555,
                         "limitPrice": 0.089,
-                        "notionalQuote": 26.7
+                        "notionalQuote": 26.7,
+                        "expectedFeeCost": 0.0133,
+                        "balanceLimited": false
                     },
                     {
                         "stepIndex": 1,
@@ -1162,7 +1180,9 @@
                         "expectedPrice": 0.0888,
                         "effectivePrice": 0.0887556,
                         "limitPrice": 0.0888,
-                        "notionalQuote": 17.76
+                        "notionalQuote": 17.76,
+                        "expectedFeeCost": 0.00888,
+                        "balanceLimited": false
                     },
                     {
                         "stepIndex": 2,
@@ -1177,7 +1197,9 @@
                         "expectedPrice": 95.61,
                         "effectivePrice": 95.657805,
                         "limitPrice": 95.61,
-                        "notionalQuote": 43.9806
+                        "notionalQuote": 43.9806,
+                        "expectedFeeCost": 0.022,
+                        "balanceLimited": false
                     }
                 ]
             }
@@ -1198,6 +1220,8 @@
                 "fullyFillable": false,
                 "fillRatio": 0,
                 "unroutableReason": "no_market",
+                "unroutableHopIndex": -1,
+                "requireFullFill": false,
                 "hopCount": 0,
                 "stepCount": 0,
                 "slippageBps": 25,
@@ -1221,6 +1245,8 @@
                 "fullyFillable": true,
                 "fillRatio": 1,
                 "unroutableReason": "",
+                "unroutableHopIndex": -1,
+                "requireFullFill": false,
                 "hopCount": 1,
                 "stepCount": 1,
                 "slippageBps": 25,
@@ -1239,7 +1265,9 @@
                         "expectedPrice": 78921.58,
                         "effectivePrice": 78961.04079,
                         "limitPrice": 78724.27605,
-                        "notionalQuote": 19.989708502209346
+                        "notionalQuote": 19.989708502209346,
+                        "expectedFeeCost": 0.010291497790653636,
+                        "balanceLimited": false
                     }
                 ]
             }
@@ -1596,28 +1624,28 @@
             "expected": []
         },
         {
-                "id": "no_cap_by_default_means_no_notional_check",
-                "about": "The default is NO CAP. This class does not decide how much of your money you may trade: the same plan that trips a 25 USD cap passes untouched when no cap is set. maxNotionalUsd is an opt-in guardrail, not a ceiling.",
-                "route": "largeBuy",
-                "planOptions": {},
-                "markets": "permissive",
-                "options": {
-                        "usdRates": {
-                                "USDT": 1
-                        }
-                },
-                "expected": []
+            "id": "no_cap_by_default_means_no_notional_check",
+            "about": "The default is NO CAP. This class does not decide how much of your money you may trade: the same plan that trips a 25 USD cap passes untouched when no cap is set. maxNotionalUsd is an opt-in guardrail, not a ceiling.",
+            "route": "largeBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {
+                    "USDT": 1
+                }
+            },
+            "expected": []
         },
         {
-                "id": "an_unvaluable_step_passes_when_no_cap_is_set",
-                "about": "The counterpart to missing_rate_blocks_never_skips. A step that cannot be valued in USD BLOCKS when a cap is in force, because a cap that silently disappears is not a cap. With no cap there is nothing to enforce, so the caller is not made to supply usdRates for a check they never asked for.",
-                "route": "directBuy",
-                "planOptions": {},
-                "markets": "permissive",
-                "options": {
-                        "usdRates": {}
-                },
-                "expected": []
+            "id": "an_unvaluable_step_passes_when_no_cap_is_set",
+            "about": "The counterpart to missing_rate_blocks_never_skips. A step that cannot be valued in USD BLOCKS when a cap is in force, because a cap that silently disappears is not a cap. With no cap there is nothing to enforce, so the caller is not made to supply usdRates for a check they never asked for.",
+            "route": "directBuy",
+            "planOptions": {},
+            "markets": "permissive",
+            "options": {
+                "usdRates": {}
+            },
+            "expected": []
         }
     ],
     "reconcileCases": [
@@ -1630,19 +1658,19 @@
             "expected": {
                 "stepIndex": 0,
                 "hopIndex": 0,
-                "expectedOut": 44.5,
+                "expectedOut": 44.47482324238088,
                 "realisedOut": 44.47482324238088,
-                "shortfall": 0.025176757619121304,
-                "shortfallRatio": 0.0005657698341375573,
-                "scale": 0.9994342301658624,
+                "shortfall": 0,
+                "shortfallRatio": 0,
+                "scale": 1,
                 "verdict": "proceed",
                 "reason": "within_tolerance",
                 "resizedSteps": [
                     {
                         "stepIndex": 1,
                         "previousAmount": 0.4649253971374043,
-                        "amount": 0.46466235637257947,
-                        "notionalQuote": 44.426367892782324
+                        "amount": 0.4649253971374043,
+                        "notionalQuote": 44.451517220307224
                     }
                 ]
             }
@@ -1656,19 +1684,19 @@
             "expected": {
                 "stepIndex": 0,
                 "hopIndex": 0,
-                "expectedOut": 44.5,
+                "expectedOut": 44.47482324238088,
                 "realisedOut": 44,
-                "shortfall": 0.5,
-                "shortfallRatio": 0.011235955056179775,
-                "scale": 0.9887640449438202,
+                "shortfall": 0.4748232423808787,
+                "shortfallRatio": 0.010676225508377308,
+                "scale": 0.9893237744916227,
                 "verdict": "proceed",
                 "reason": "within_tolerance",
                 "resizedSteps": [
                     {
                         "stepIndex": 1,
                         "previousAmount": 0.4649253971374043,
-                        "amount": 0.45970151627069183,
-                        "notionalQuote": 43.95206197064085
+                        "amount": 0.45996174875299345,
+                        "notionalQuote": 43.976942798273704
                     }
                 ]
             }
@@ -1682,19 +1710,19 @@
             "expected": {
                 "stepIndex": 0,
                 "hopIndex": 0,
-                "expectedOut": 44.5,
+                "expectedOut": 44.47482324238088,
                 "realisedOut": 40,
-                "shortfall": 4.5,
-                "shortfallRatio": 0.10112359550561797,
-                "scale": 0.898876404494382,
+                "shortfall": 4.474823242380879,
+                "shortfallRatio": 0.10061475046216119,
+                "scale": 0.8993852495378388,
                 "verdict": "halt",
                 "reason": "shortfall_exceeds_tolerance",
                 "resizedSteps": [
                     {
                         "stepIndex": 1,
                         "previousAmount": 0.4649253971374043,
-                        "amount": 0.4179104693369926,
-                        "notionalQuote": 39.95641997330986
+                        "amount": 0.41814704432090316,
+                        "notionalQuote": 39.97903890752155
                     }
                 ]
             }
@@ -1708,9 +1736,9 @@
             "expected": {
                 "stepIndex": 0,
                 "hopIndex": 0,
-                "expectedOut": 44.5,
+                "expectedOut": 44.47482324238088,
                 "realisedOut": 0,
-                "shortfall": 44.5,
+                "shortfall": 44.47482324238088,
                 "shortfallRatio": 1,
                 "scale": 0,
                 "verdict": "halt",
@@ -1734,7 +1762,7 @@
             "expected": {
                 "stepIndex": 0,
                 "hopIndex": 0,
-                "expectedOut": 44.5,
+                "expectedOut": 44.47482324238088,
                 "realisedOut": 50,
                 "shortfall": 0,
                 "shortfallRatio": 0,
@@ -1760,19 +1788,19 @@
             "expected": {
                 "stepIndex": 0,
                 "hopIndex": 0,
-                "expectedOut": 26.7,
+                "expectedOut": 26.6867,
                 "realisedOut": 26.5,
-                "shortfall": 0.1999999999999993,
-                "shortfallRatio": 0.007490636704119823,
-                "scale": 0.9955015744489429,
+                "shortfall": 0.1866999999999983,
+                "shortfallRatio": 0.006995994259312629,
+                "scale": 0.995798623784875,
                 "verdict": "proceed",
                 "reason": "within_tolerance",
                 "resizedSteps": [
                     {
                         "stepIndex": 2,
                         "previousAmount": 0.46,
-                        "amount": 0.45793072424651377,
-                        "notionalQuote": 43.78275654520918
+                        "amount": 0.45806736694104255,
+                        "notionalQuote": 43.795820953233076
                     }
                 ]
             }
@@ -1807,19 +1835,19 @@
             "expected": {
                 "stepIndex": 0,
                 "hopIndex": 0,
-                "expectedOut": 44.5,
+                "expectedOut": 44.47482324238088,
                 "realisedOut": 44,
-                "shortfall": 0.5,
-                "shortfallRatio": 0.011235955056179775,
-                "scale": 0.9887640449438202,
+                "shortfall": 0.4748232423808787,
+                "shortfallRatio": 0.010676225508377308,
+                "scale": 0.9893237744916227,
                 "verdict": "halt",
                 "reason": "shortfall_exceeds_tolerance",
                 "resizedSteps": [
                     {
                         "stepIndex": 1,
                         "previousAmount": 0.4649253971374043,
-                        "amount": 0.45970151627069183,
-                        "notionalQuote": 43.95206197064085
+                        "amount": 0.45996174875299345,
+                        "notionalQuote": 43.976942798273704
                     }
                 ]
             }
@@ -1835,19 +1863,19 @@
             "expected": {
                 "stepIndex": 0,
                 "hopIndex": 0,
-                "expectedOut": 44.5,
+                "expectedOut": 44.47482324238088,
                 "realisedOut": 44,
-                "shortfall": 0.5,
-                "shortfallRatio": 0.011235955056179775,
-                "scale": 0.9887640449438202,
+                "shortfall": 0.4748232423808787,
+                "shortfallRatio": 0.010676225508377308,
+                "scale": 0.9893237744916227,
                 "verdict": "halt",
                 "reason": "shortfall_exceeds_tolerance",
                 "resizedSteps": [
                     {
                         "stepIndex": 1,
                         "previousAmount": 0.4649253971374043,
-                        "amount": 0.45970151627069183,
-                        "notionalQuote": 43.95206197064085
+                        "amount": 0.45996174875299345,
+                        "notionalQuote": 43.976942798273704
                     }
                 ]
             }
@@ -1863,19 +1891,19 @@
             "expected": {
                 "stepIndex": 0,
                 "hopIndex": 0,
-                "expectedOut": 44.5,
+                "expectedOut": 44.47482324238088,
                 "realisedOut": 44,
-                "shortfall": 0.5,
-                "shortfallRatio": 0.011235955056179775,
-                "scale": 0.9887640449438202,
+                "shortfall": 0.4748232423808787,
+                "shortfallRatio": 0.010676225508377308,
+                "scale": 0.9893237744916227,
                 "verdict": "proceed",
                 "reason": "within_tolerance",
                 "resizedSteps": [
                     {
                         "stepIndex": 1,
                         "previousAmount": 0.4649253971374043,
-                        "amount": 0.45970151627069183,
-                        "notionalQuote": 43.95206197064085
+                        "amount": 0.45996174875299345,
+                        "notionalQuote": 43.976942798273704
                     }
                 ]
             }
@@ -1891,19 +1919,19 @@
             "expected": {
                 "stepIndex": 0,
                 "hopIndex": 0,
-                "expectedOut": 44.5,
+                "expectedOut": 44.47482324238088,
                 "realisedOut": 40,
-                "shortfall": 4.5,
-                "shortfallRatio": 0.10112359550561797,
-                "scale": 0.898876404494382,
+                "shortfall": 4.474823242380879,
+                "shortfallRatio": 0.10061475046216119,
+                "scale": 0.8993852495378388,
                 "verdict": "halt",
                 "reason": "shortfall_exceeds_tolerance",
                 "resizedSteps": [
                     {
                         "stepIndex": 1,
                         "previousAmount": 0.4649253971374043,
-                        "amount": 0.4179104693369926,
-                        "notionalQuote": 39.95641997330986
+                        "amount": 0.41814704432090316,
+                        "notionalQuote": 39.97903890752155
                     }
                 ]
             }
@@ -1940,30 +1968,96 @@
             "about": "Each leg used to compute a scale from the hop total and multiply the downstream amounts by it, so the second leg scaled an already-scaled number: 0.9 x 0.8 = 0.72 of the hop instead of the true 0.70, sizing the next hop at 144 when only 140 had arrived. Over-sizing the next hop is not a rounding nuisance — it is a guaranteed insufficient-funds halt on exactly the bridged routes this class exists for. reconcileExecutionStep is pure and cannot remember across calls, so the hop's cumulative shortfall lives on the steps themselves, written by applyResize; that is why this case can only be expressed as a SEQUENCE. The tolerance is 1 so the shortfalls resize rather than halt.",
             "reconcileToleranceRatio": 1,
             "steps": [
-                { "stepIndex": 0, "hopIndex": 0, "legIndex": 0, "amount": 1, "expectedPrice": 100, "side": "sell", "base": "BTC", "quote": "USDT" },
-                { "stepIndex": 1, "hopIndex": 0, "legIndex": 1, "amount": 1, "expectedPrice": 100, "side": "sell", "base": "BTC", "quote": "USDT" },
-                { "stepIndex": 2, "hopIndex": 1, "legIndex": 0, "amount": 200, "expectedPrice": 1, "side": "buy", "base": "ETH", "quote": "USDT" }
+                {
+                    "stepIndex": 0,
+                    "hopIndex": 0,
+                    "legIndex": 0,
+                    "amount": 1,
+                    "expectedPrice": 100,
+                    "side": "sell",
+                    "base": "BTC",
+                    "quote": "USDT"
+                },
+                {
+                    "stepIndex": 1,
+                    "hopIndex": 0,
+                    "legIndex": 1,
+                    "amount": 1,
+                    "expectedPrice": 100,
+                    "side": "sell",
+                    "base": "BTC",
+                    "quote": "USDT"
+                },
+                {
+                    "stepIndex": 2,
+                    "hopIndex": 1,
+                    "legIndex": 0,
+                    "amount": 200,
+                    "expectedPrice": 1,
+                    "side": "buy",
+                    "base": "ETH",
+                    "quote": "USDT"
+                }
             ],
             "calls": [
-                { "stepIndex": 0, "realisedOut": 80 },
-                { "stepIndex": 1, "realisedOut": 60 }
+                {
+                    "stepIndex": 0,
+                    "realisedOut": 80
+                },
+                {
+                    "stepIndex": 1,
+                    "realisedOut": 60
+                }
             ],
-            "expectedScales": [ 0.9, 0.7777777777777778 ],
-            "expectedAmounts": [ 1, 1, 140 ]
+            "expectedScales": [
+                0.9,
+                0.7777777777777778
+            ],
+            "expectedAmounts": [
+                1,
+                1,
+                140
+            ]
         },
         {
             "id": "a_single_leg_hop_reconciles_exactly_as_before",
             "about": "The combined-scale change must be arithmetically inert when there is nothing to combine, which is every case the rest of this fixture covers: with one leg per hop priorShortfall is 0 and scaleBefore is 1.",
             "reconcileToleranceRatio": 1,
             "steps": [
-                { "stepIndex": 0, "hopIndex": 0, "legIndex": 0, "amount": 1, "expectedPrice": 100, "side": "sell", "base": "BTC", "quote": "USDT" },
-                { "stepIndex": 1, "hopIndex": 1, "legIndex": 0, "amount": 100, "expectedPrice": 1, "side": "buy", "base": "ETH", "quote": "USDT" }
+                {
+                    "stepIndex": 0,
+                    "hopIndex": 0,
+                    "legIndex": 0,
+                    "amount": 1,
+                    "expectedPrice": 100,
+                    "side": "sell",
+                    "base": "BTC",
+                    "quote": "USDT"
+                },
+                {
+                    "stepIndex": 1,
+                    "hopIndex": 1,
+                    "legIndex": 0,
+                    "amount": 100,
+                    "expectedPrice": 1,
+                    "side": "buy",
+                    "base": "ETH",
+                    "quote": "USDT"
+                }
             ],
             "calls": [
-                { "stepIndex": 0, "realisedOut": 50 }
+                {
+                    "stepIndex": 0,
+                    "realisedOut": 50
+                }
             ],
-            "expectedScales": [ 0.5 ],
-            "expectedAmounts": [ 1, 50 ]
+            "expectedScales": [
+                0.5
+            ],
+            "expectedAmounts": [
+                1,
+                50
+            ]
         }
     ],
     "unwindCases": [
@@ -2587,7 +2681,7 @@
             ]
         }
     },
-    "formatNumberAbout": "formatNumber must be byte-identical in all six ports: it builds the balances query string, and a balance spelled differently per language is a different question asked of the router. The reference is TypeScript's toFixed, which is ECMA-262's \u2014 the sign is stripped BEFORE the digits are chosen, so a TIE rounds AWAY FROM ZERO on the magnitude. Python's '%.12f', PHP's '%.12F', Rust's '{:.12}' and C#'s ToString(\"F12\") all round half to EVEN and disagreed on exactly those values, which is what the 2^-13 pair below pins.",
+    "formatNumberAbout": "formatNumber must be byte-identical in all six ports: it builds the balances query string, and a balance spelled differently per language is a different question asked of the router. The reference is TypeScript's toFixed, which is ECMA-262's — the sign is stripped BEFORE the digits are chosen, so a TIE rounds AWAY FROM ZERO on the magnitude. Python's '%.12f', PHP's '%.12F', Rust's '{:.12}' and C#'s ToString(\"F12\") all round half to EVEN and disagreed on exactly those values, which is what the 2^-13 pair below pins.",
     "formatNumberCases": [
         {
             "id": "a_tie_rounds_away_from_zero",
@@ -2616,7 +2710,7 @@
         },
         {
             "id": "no_exponent_for_a_small_number",
-            "value": 1e-07,
+            "value": 1e-7,
             "expected": "0.0000001"
         },
         {
@@ -2650,7 +2744,7 @@
             "expected": "100000000000000000"
         }
     ],
-    "feeNettingAbout": "Fee netting is the one placeStep behaviour that resizes the NEXT hop's order, and it was asserted only in TypeScript. Each case drives execute() against the port's own stub venue: the stub returns a filled order carrying `fee` and/or per-trade `trades[].fee` as named here, and the step the report comes back with must carry these four numbers. `grossOutAmount` is 0 when the port never set it \u2014 which is the correct answer whenever the fee was charged in some other currency.",
+    "feeNettingAbout": "Fee netting is the one placeStep behaviour that resizes the NEXT hop's order, and it was asserted only in TypeScript. Each case drives execute() against the port's own stub venue: the stub returns a filled order carrying `fee` and/or per-trade `trades[].fee` as named here, and the step the report comes back with must carry these four numbers. `grossOutAmount` is 0 when the port never set it — which is the correct answer whenever the fee was charged in some other currency.",
     "feeNettingCases": [
         {
             "id": "a_fee_in_the_acquired_asset_is_netted_out",

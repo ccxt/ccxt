@@ -398,6 +398,7 @@ class OrderRouterRecorder extends OrderRouter {
     public $lastUrl;
     public $lastMethod;
     public $lastBody;
+    public $lastRequestId;
     public $body;
 
     public function __construct($config, $body) {
@@ -406,12 +407,14 @@ class OrderRouterRecorder extends OrderRouter {
         $this->lastUrl = '';
         $this->lastMethod = '';
         $this->lastBody = array();
+        $this->lastRequestId = '';
     }
 
-    public function request($url, $method = 'GET', $requestBody = array()) {
+    public function request($url, $method = 'GET', $requestBody = array(), $requestId = '') {
         $this->lastUrl = $url;
         $this->lastMethod = $method;
         $this->lastBody = $requestBody;
+        $this->lastRequestId = $requestId;
         return $this->body;
     }
 }
@@ -792,15 +795,88 @@ function order_router_test_reconcile_never_scales_up($router) {
     order_router_assert(order_router_numbers_match(floatval($downstream['amount']), floatval($downstream['previousAmount'])), 'the downstream order is untouched');
 }
 
+function order_router_test_balances_echo_is_verified($router) {
+    //  /route declares its query without a JSON schema, so a server that predates the balances
+    //  feature answers byte-identically to one that never received any. It is the EMPTY wallet
+    //  that used to slip through, because the old check skipped itself whenever the balances
+    //  string was ''.
+    $legacy = new OrderRouterRecorder(array('apiKey' => 'k'), array('hops' => array()));
+    order_router_assert_throws(function () use ($legacy) {
+        $legacy->fetchRoute('USDT', 'BTC', array('amountIn' => 10, 'balances' => 'binance.USDT:1000'));
+    }, ExchangeError::class, 'a non-empty wallet the server ignored');
+    $legacyEmpty = new OrderRouterRecorder(array('apiKey' => 'k'), array('hops' => array()));
+    order_router_assert_throws(function () use ($legacyEmpty) {
+        $legacyEmpty->fetchRoute('USDT', 'BTC', array('amountIn' => 10, 'balances' => ''));
+    }, ExchangeError::class, 'an EMPTY wallet the server ignored');
+    //  a current server answering the empty wallet honestly is NOT an error
+    $current = new OrderRouterRecorder(array('apiKey' => 'k'), array('hops' => array(), 'balanceEntryCount' => 0));
+    $route = $current->fetchRoute('USDT', 'BTC', array('amountIn' => 10, 'balances' => ''));
+    order_router_assert($route['clientRequestedTo'] === 'BTC', 'the empty wallet routes');
+    //  and a caller can still opt out with their eyes open
+    $opted = new OrderRouterRecorder(array('apiKey' => 'k'), array('hops' => array()));
+    $opted->fetchRoute('USDT', 'BTC', array('amountIn' => 10, 'balances' => '', 'requireBalancesApplied' => false));
+    //  a route with NO balances is never subject to the check
+    $noBalances = new OrderRouterRecorder(array('apiKey' => 'k'), array('hops' => array()));
+    $noBalances->fetchRoute('USDT', 'BTC', array('amountIn' => 10));
+    order_router_assert($noBalances->lastMethod === 'GET', 'a route with no holdings stays a GET');
+}
+
+function order_router_test_request_id_header($router) {
+    //  the service mints one when absent; supplying one is what lets a caller join their own
+    //  log to the router's decision log for a request that never returned a body
+    $recorder = new OrderRouterRecorder(array('apiKey' => 'k'), array('hops' => array()));
+    $recorder->fetchRoute('USDT', 'BTC', array('amountIn' => 10, 'requestId' => 'caller-chosen-id'));
+    order_router_assert($recorder->lastRequestId === 'caller-chosen-id', 'the audit id reaches request()');
+    order_router_assert(strpos($recorder->lastUrl, 'requestId') === false, 'and is not a query parameter');
+}
+
+function order_router_test_fee_not_double_subtracted($router) {
+    //  THE REGRESSION THIS EXISTS FOR. execute() reports realisedOut NET of a fee charged in
+    //  the asset the step produced, because that is what the wallet receives. The router had
+    //  already done the same: hop 0 sells 500 DOGE at 0.089 for 44.5 gross, reports amountOut
+    //  44.47482324238088 after a 0.025176757619121304 USDT fee, and hop 1's amountIn is that
+    //  net figure to the last digit — hop 1's leg amount was sized from it. Measuring the
+    //  expectation GROSS against a NET realised amount reported a shortfall on a perfect fill
+    //  and shrank hop 1 by the fee all over again, stranding it in the bridge asset.
+    $fixture = order_router_fixture();
+    $route = $fixture['routes']['multiHop'];
+    $hopZero = $route['hops'][0];
+    $hopOne = $route['hops'][1];
+    $plan = $router->buildExecutionPlan($route, array());
+    //  the premise, asserted rather than assumed: the router's own numbers really are net
+    order_router_assert($hopZero['amountOut'] === 500 * 0.089 - $hopZero['feeCost'], 'the hop amountOut is net of its fee');
+    order_router_assert($hopOne['amountIn'] === $hopZero['amountOut'], 'hop 1 was sized from the NET proceeds of hop 0');
+    order_router_assert($plan['steps'][0]['expectedFeeCost'] === $hopZero['legs'][0]['feeCost'], 'the step carries the predicted fee');
+    $verdict = $router->reconcileExecutionStep($plan, 0, $hopZero['amountOut']);
+    order_router_assert($verdict['expectedOut'] === $hopZero['amountOut'], 'expected equals what the router said the hop produces');
+    order_router_assert($verdict['shortfall'] === 0.0 || $verdict['shortfall'] === 0, 'a perfect fill is not a shortfall');
+    order_router_assert($verdict['scale'] === 1.0 || $verdict['scale'] === 1, 'and does not resize anything');
+    order_router_assert($verdict['verdict'] === 'proceed', 'and proceeds');
+    for ($i = 0; $i < count($verdict['resizedSteps']); $i++) {
+        order_router_assert($verdict['resizedSteps'][$i]['amount'] === $verdict['resizedSteps'][$i]['previousAmount'], 'hop 1 keeps the size the router gave it');
+    }
+    //  notionalQuote is what the order is worth to the VENUE and stays gross
+    order_router_assert($plan['steps'][0]['notionalQuote'] === 44.5, 'the order notional stays gross');
+    //  a BUY produces base, and the predicted fee is quote-denominated
+    order_router_assert($router->stepExpectedOut($plan['steps'][1]) === $hopOne['amountOut'], 'a buy is unaffected');
+    //  a hand-built plan carries no expectedFeeCost, and behaves exactly as before
+    //  == not ===: PHP multiplies two ints into an int, and the fixture's own rule is that
+    //  numbers compare by value with a tolerance, never by type
+    order_router_assert(abs($router->stepExpectedOut(array('side' => 'sell', 'amount' => 10, 'expectedPrice' => 2)) - 20) < 1e-9, 'a hand-built plan is unchanged');
+}
+
 function order_router_test_reconcile_halts($router) {
     $fixture = order_router_fixture();
     $plan = $router->buildExecutionPlan($fixture['routes']['multiHop'], array());
     $nothing = $router->reconcileExecutionStep($plan, 0, 0);
     order_router_assert($nothing['verdict'] === 'halt', 'a total miss halts');
     order_router_assert($nothing['reason'] === 'nothing_filled', 'and says why');
-    //  expectedOut of step 0 is 500 * 0.089 = 44.5; 2% of that is 0.89
-    order_router_assert($router->reconcileExecutionStep($plan, 0, 44.5 - 0.88)['verdict'] === 'proceed', 'a shortfall inside the tolerance proceeds');
-    $over = $router->reconcileExecutionStep($plan, 0, 44.5 - 0.9);
+    //  expectedOut of step 0 is 500 * 0.089 = 44.5 GROSS, less the 0.025176757619121304
+    //  USDT fee the router itself predicted = 44.47482324238088. 2% of that is
+    //  0.8894964648476176.
+    $expectedOut = 44.47482324238088;
+    order_router_assert($router->reconcileExecutionStep($plan, 0, $expectedOut - 0.88)['verdict'] === 'proceed', 'a shortfall inside the tolerance proceeds');
+    $over = $router->reconcileExecutionStep($plan, 0, $expectedOut - 0.9);
     order_router_assert($over['verdict'] === 'halt', 'a shortfall past the tolerance halts');
     order_router_assert($over['reason'] === 'shortfall_exceeds_tolerance', 'and says why');
     order_router_assert_throws(function () use ($router, $plan) {
@@ -1120,7 +1196,7 @@ function order_router_test_fetch_route_balances_are_posted($router) {
     //  The service scrubs balances from its own logs, but the URL leaves the process: a
     //  reverse proxy, an ALB and a CDN all log the full request line, as do browser history
     //  and client-side tracing. This is the assertion that keeps the wallet out of them.
-    $recorder = new OrderRouterRecorder(array('apiKey' => 'k', 'baseUrl' => 'https://example.test/api'), array('hops' => array()));
+    $recorder = new OrderRouterRecorder(array('apiKey' => 'k', 'baseUrl' => 'https://example.test/api'), array('hops' => array(), 'balancesApplied' => 'binance.BTC:1,binance.USDT:1000'));
     $recorder->fetchRoute('usdt', 'btc', array('amountIn' => 10, 'balances' => 'binance.USDT:1000,binance.BTC:1', 'certified' => true, 'maxVenues' => 2));
     order_router_assert($recorder->lastMethod === 'POST', 'a route carrying holdings is POSTed');
     order_router_assert($recorder->lastUrl === 'https://example.test/api/route', 'no query string at all, got ' . $recorder->lastUrl);
@@ -1140,7 +1216,9 @@ function order_router_test_fetch_route_empty_balances_still_posted($router) {
     //  '' is what a caller gets from a venue with nothing in it. It is not "no balances
     //  parameter" — the router reads it, and a check that treated it as absent would put
     //  the NEXT non-empty value on the same code path back into the url.
-    $recorder = new OrderRouterRecorder(array('apiKey' => 'k', 'baseUrl' => 'https://example.test/api'), array('hops' => array()));
+    //  balanceEntryCount 0 is how a CURRENT server answers "you hold nothing": the echo
+    //  itself is empty, and only the presence of this field says the server understood.
+    $recorder = new OrderRouterRecorder(array('apiKey' => 'k', 'baseUrl' => 'https://example.test/api'), array('hops' => array(), 'balanceEntryCount' => 0));
     $recorder->fetchRoute('usdt', 'btc', array('amountIn' => 10, 'balances' => ''));
     order_router_assert($recorder->lastMethod === 'POST', 'an empty holdings string is still holdings');
     order_router_assert($recorder->lastBody['balances'] === '', 'and it reaches the body');
@@ -1718,6 +1796,9 @@ function test_order_router() {
         'an empty plan is not a safe plan' => 'ccxt\order_router_test_empty_plan_is_not_safe',
         'reconcileExecutionStep never scales a downstream order UP' => 'ccxt\order_router_test_reconcile_never_scales_up',
         'reconcileExecutionStep halts on a total miss and on an over-tolerance shortfall' => 'ccxt\order_router_test_reconcile_halts',
+        'a fee the router already subtracted is not subtracted a second time' => 'ccxt\order_router_test_fee_not_double_subtracted',
+        'a router that ignored the balances is caught, including when the wallet is empty' => 'ccxt\order_router_test_balances_echo_is_verified',
+        'a caller-chosen audit id travels as x-request-id' => 'ccxt\order_router_test_request_id_header',
         'buildUnwindPlan is never automatic and never nets across venues' => 'ccxt\order_router_test_unwind_is_never_automatic',
         'a buy-side unwind order never spends more quote than the residual actually holds' => 'ccxt\order_router_test_unwind_buy_is_fundable',
         'dry_run is the default: a live-looking call with live unset places nothing' => 'ccxt\order_router_test_dry_run_is_the_default',

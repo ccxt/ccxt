@@ -158,9 +158,21 @@ declare class OrderRouter {
      * @param {bool} [params.requireFullFill] refuse partial fills
      * @param {float} [params.hopPenaltyBps] how much better a bridged route must be per extra hop
      * @param {float} [params.minLegNotional] suppress legs below this quote notional
+     * @param {string} [params.requestId] a caller-chosen audit id, sent as the x-request-id header so your log and the router's decision log can be joined. The service mints one when this is absent, and caps it at 200 characters
+     * @param {bool} [params.requireBalancesApplied] when balances are sent, throw unless the router echoed that it read them. Default true — a server that predates the feature IGNORES balances and answers byte-identically to one that never received any
      * @returns {object} a RouteResult — an unroutable pair comes back as a RouteResult with an unroutableReason, not as an exception
      */
     fetchRoute(fromAsset: string, toAsset: string, params?: Dict): Promise<Dict>;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#assertBalancesApplied
+     * @description throws unless the router confirmed it read the holdings that were sent
+     * @param {object} route the RouteResult
+     * @param {object} params the parameters the caller supplied
+     * @returns {undefined}
+     */
+    assertBalancesApplied(route: Dict, params: Dict): void;
     /**
      * @ignore
      * @method
@@ -218,9 +230,10 @@ declare class OrderRouter {
      * @param {string} url the fully-formed url, including the query string on a GET
      * @param {string} method GET or POST
      * @param {object} requestBody the JSON body, sent on a POST and ignored on a GET
+     * @param {string} requestId an optional caller-chosen audit id, sent as x-request-id
      * @returns {object} the decoded JSON body
      */
-    request(url: string, method?: string, requestBody?: Dict): Promise<Dict>;
+    request(url: string, method?: string, requestBody?: Dict, requestId?: string): Promise<Dict>;
     /**
      * @method
      * @name OrderRouter#fetchHealth

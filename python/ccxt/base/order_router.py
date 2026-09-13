@@ -556,15 +556,58 @@ class OrderRouter:
         #
         # A request carrying no holdings still goes as a GET: cacheable, linkable, and
         # what every existing caller already uses.
-        if params.get('balances') is not None:
-            route = self.request(self.base_url + '/route', 'POST', self.route_body(from_asset, to_asset, params))
+        sends_balances = params.get('balances') is not None
+        # an audit id the caller chose, so their log and the router's decision log can be
+        # joined. The service mints one when this is absent, and echoes whichever it used.
+        request_id = self.string_at(params, 'requestId', '')
+        if sends_balances:
+            route = self.request(self.base_url + '/route', 'POST', self.route_body(from_asset, to_asset, params), request_id)
         else:
-            route = self.request(self.base_url + '/route?' + self.route_query(from_asset, to_asset, params), 'GET', {})
+            route = self.request(self.base_url + '/route?' + self.route_query(from_asset, to_asset, params), 'GET', {}, request_id)
+        if sends_balances:
+            # CHECKED HERE, not only in fetch_route_with_balances. `params['balances']` is a
+            # documented parameter of this method, and a caller who passes it directly was
+            # getting no verification at all — the same silent failure, one call lower down.
+            self.assert_balances_applied(route, params)
+        # What THIS CLIENT asked for, stamped client-side so check_execution_plan_safety can
+        # tell a flag that was honoured from one that was lost in transit. requireFullFill is
+        # the one route parameter that fails OPEN: lose it and an explicit "refuse rather than
+        # shrink" silently becomes an advisory partial_fill.
+        route['clientRequestedRequireFullFill'] = self.bool_at(params, 'requireFullFill', False)
         # Stamp what THIS CLIENT asked for, client-side, so build_execution_plan can check the
         # answer against the question. Everything else in the response is the server's word for it.
         route['clientRequestedFrom'] = from_asset.upper()
         route['clientRequestedTo'] = to_asset.upper()
         return route
+
+    def assert_balances_applied(self, route, params):
+        """
+        throws unless the router confirmed it read the holdings that were sent
+
+        :param dict route: the RouteResult
+        :param dict params: the parameters the caller supplied
+        """
+        if self.bool_at(params, 'requireBalancesApplied', True) is not True:
+            # the caller opted out, with their eyes open
+            return
+        # /route declares its query without a JSON schema, so a router that predates the
+        # balances feature IGNORES them and answers byte-identically to one that never
+        # received any. Executing a plan computed against a portfolio the server never saw is
+        # the case worth failing on.
+        if self.string_at(route, 'balancesApplied', '') != '':
+            return
+        # An EMPTY echo is ambiguous on its own: the spec types balancesApplied as
+        # [string, null] and returns null when none were sent, so '' is also the honest answer
+        # to `balances=` meaning "I hold nothing". balanceEntryCount disambiguates by
+        # PRESENCE, not by value — a current server sends 0, a server that never heard of the
+        # feature sends nothing at all — so it is read with a sentinel default.
+        #
+        # This is the case the old check skipped outright, which meant an empty-wallet caller
+        # against a legacy or proxy-stripped server got a full route, no error, and no way to
+        # know the balances were dropped.
+        if self.number_at(route, 'balanceEntryCount', -1) >= 0:
+            return
+        raise ExchangeError('OrderRouter did not echo balancesApplied: the balances were ignored, so this route is not funded-aware')
 
     def route_param_text(self, value):
         """
@@ -650,19 +693,25 @@ class OrderRouter:
         needed = self.number_at(body, 'minFreshBooksForReady', 0)
         return ' (' + self.format_number(fresh) + ' of ' + self.format_number(total) + ' books fresh, ' + self.format_number(needed) + ' needed)'
 
-    def request(self, url, method='GET', request_body={}):
+    def request(self, url, method='GET', request_body={}, request_id=''):
         """
         performs the authenticated call and maps router status codes onto CCXT exceptions
 
         :param str url: the fully-formed url, including the query string on a GET
         :param str method: GET or POST
         :param dict request_body: the JSON body, sent on a POST and ignored on a GET
+        :param str request_id: an optional caller-chosen audit id, sent as x-request-id
         :returns dict: the decoded JSON body
         """
         headers = {
             'x-api-key': self.api_key,
             'Accept': 'application/json',
         }
+        if request_id != '':
+            # the service caps this at 200 characters and mints its own when absent, so a
+            # longer one is dropped rather than sent and rejected
+            if len(request_id) <= 200:
+                headers['x-request-id'] = request_id
         retry_after = ''
         rate_limit_reset = ''
         try:
@@ -800,7 +849,6 @@ class OrderRouter:
         :param bool [params['requireBalancesApplied']]: raise when the router did not echo balancesApplied, default True
         :returns dict: the RouteResult, with the client-side keys balancesUsed and balancesDropped added
         """
-        require_applied = self.bool_at(params, 'requireBalancesApplied', True)
         exchange_ids = sorted(venues.keys())
         entries = []
         dropped = []
@@ -842,13 +890,9 @@ class OrderRouter:
             route_params[key] = params[key]
         route_params['balances'] = balances
         route = self.fetch_route(from_asset, to_asset, route_params)
-        if require_applied and balances != '':
-            # /route declares its query without a JSON schema, so a router that
-            # predates the balances feature answers byte-identically to one that
-            # never received it. Executing a plan computed against a portfolio
-            # the server never saw is the case worth failing on.
-            if self.string_at(route, 'balancesApplied', '') == '':
-                raise ExchangeError('OrderRouter did not echo balancesApplied: the balances were ignored, so this route is not funded-aware')
+        # The echo check itself now lives in fetch_route, which this call went through, and
+        # params['requireBalancesApplied'] travelled with it — including the empty-balances
+        # case, which the check that used to live here skipped outright.
         route['balancesUsed'] = balances
         route['balancesDropped'] = dropped
         return route
@@ -962,6 +1006,18 @@ class OrderRouter:
                     'effectivePrice': effective_price,
                     'limitPrice': limit_price,
                     'notionalQuote': amount * expected_price,
+                    # The taker fee the ROUTER predicted for this leg, always denominated in
+                    # the quote currency (the service's own RouteLeg.feeCost contract).
+                    # Carried so step_expected_out can measure the expectation the same way
+                    # execute measures the realised amount — see the note there. 0 on a
+                    # hand-built plan, which is exactly the old behaviour.
+                    'expectedFeeCost': self.number_at(leg, 'feeCost', 0),
+                    # This leg was cut short by the WALLET, not by the book: more was on
+                    # offer, the balances just could not pay for it. Size-capped and
+                    # depth-capped look identical in the numbers and need different
+                    # follow-up, and the plan is the artifact every downstream report is
+                    # built from — so the distinction has to survive the flattening.
+                    'balanceLimited': self.bool_at(leg, 'balanceLimited', False),
                 })
                 step_index = step_index + 1
         return {
@@ -976,6 +1032,15 @@ class OrderRouter:
             'fullyFillable': self.bool_at(route, 'fullyFillable', False),
             'fillRatio': self.number_at(route, 'fillRatio', 0),
             'unroutableReason': self.string_at(route, 'unroutableReason', ''),
+            # WHICH hop could not be solved. -1 when the route is routable or the server did
+            # not say; 0 is a real answer and must not read as "unknown", which is why the
+            # default is negative rather than 0.
+            'unroutableHopIndex': self.number_at(route, 'unroutableHopIndex', -1),
+            # What the CALLER asked for, stamped by fetch_route — not the server's echo.
+            # check_execution_plan_safety escalates on it, so reading the server's word for it
+            # would let a flag lost in transit switch off the check that exists to catch
+            # exactly that.
+            'requireFullFill': self.bool_at(route, 'clientRequestedRequireFullFill', False),
             'hopCount': len(hops),
             'stepCount': len(steps),
             'slippageBps': slippage_bps,
@@ -1015,7 +1080,13 @@ class OrderRouter:
         if unroutable_reason != '':
             violations.append(self.violation(-1, '', '', 'route_unroutable', True, 0, 0))
         if not self.bool_at(plan, 'fullyFillable', False):
-            violations.append(self.violation(-1, '', '', 'partial_fill', False, self.number_at(plan, 'fillRatio', 0), 1))
+            # BLOCKING when the caller asked for requireFullFill. That parameter is the one
+            # route flag that fails OPEN: the service honouring it means an unfillable size
+            # comes back unroutable, so a partial route in the same breath means the flag did
+            # not survive the trip. Reporting that as the same advisory a caller who never set
+            # it gets is exactly the silent downgrade from "refuse" to "shrink".
+            required_full_fill = self.bool_at(plan, 'requireFullFill', False)
+            violations.append(self.violation(-1, '', '', 'partial_fill', required_full_fill, self.number_at(plan, 'fillRatio', 0), 1))
         for i in range(len(steps)):
             step = steps[i]
             step_index = self.number_at(step, 'stepIndex', i)
@@ -1288,15 +1359,39 @@ class OrderRouter:
 
     def step_expected_out(self, step):
         """
-        how much of its output asset a step is expected to produce, gross of fees
+        how much of its output asset a step is expected to produce, net of the fee the router itself predicted
 
         :param dict step: the plan step
         :returns float: base units for a buy, quote units for a sell
         """
         amount = self.number_at(step, 'amount', 0)
         if self.string_at(step, 'side', '') == 'buy':
+            # A buy produces BASE, and the router's predicted fee is quote-denominated, so
+            # it does not reduce what this step hands to the next one. A venue that charges
+            # its buy fee in the base asset really does deliver less, and the resize that
+            # follows from it is correct.
             return amount
-        return amount * self.number_at(step, 'expectedPrice', 0)
+        # A SELL produces QUOTE, which is the currency the predicted fee is already in.
+        #
+        # This subtraction is what stops the fee being counted TWICE. execute() reports
+        # realisedOut net of a fee charged in the asset the step produced, because that is
+        # what the wallet actually receives. The router, in turn, already sized the next hop
+        # from its own NET figure: in the shared fixture, hop 0 sells 500 DOGE at 0.089 for
+        # 44.5 gross, reports amountOut 44.47482324238088 after a 0.025176757619121304 USDT
+        # fee, and hop 1's amountIn is that net number to the last digit. Measuring the
+        # expectation gross against a realised amount that is net therefore reported a
+        # shortfall on a PERFECT fill and shrank the next hop by the fee a second time,
+        # stranding it in the bridge asset.
+        #
+        # Gross stays gross where gross is right: notionalQuote is what the order is worth
+        # to the venue and is untouched, as is the notional cap built on it.
+        gross = amount * self.number_at(step, 'expectedPrice', 0)
+        expected_fee = self.number_at(step, 'expectedFeeCost', 0)
+        if expected_fee <= 0 or expected_fee >= gross:
+            # a fee at or above the whole proceeds is not a fee this class will subtract: it
+            # would report an expectation of zero or less and turn every fill into a halt
+            return gross
+        return gross - expected_fee
 
     # -----------------------------------------------------------------------
     # PURE: build_unwind_plan
@@ -1687,6 +1782,10 @@ class OrderRouter:
                 'effectivePrice': self.number_at(step, 'effectivePrice', 0),
                 'limitPrice': self.step_limit_price(step),
                 'notionalQuote': self.step_notional_quote(step),
+                # carried through the clone because execute() reconciles against THESE
+                # steps, not the plan's: without it the fee netting would be measured
+                # against a gross expectation on every live run
+                'expectedFeeCost': self.number_at(step, 'expectedFeeCost', 0),
             })
         return copies
 

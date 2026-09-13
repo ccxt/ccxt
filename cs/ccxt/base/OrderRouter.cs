@@ -769,20 +769,63 @@ public class OrderRouter
         //  A request carrying no holdings still goes as a GET: cacheable, linkable, and
         //  what every existing caller already uses.
         dict route = null;
-        if (this.ValueAt(parameters, "balances") != null)
+        var sendsBalances = this.ValueAt(parameters, "balances") != null;
+        //  an audit id the caller chose, so their log and the router's decision log can be
+        //  joined. The service mints one when this is absent, and echoes whichever it used.
+        var requestId = this.StringAt(parameters, "requestId", "");
+        if (sendsBalances)
         {
-            route = await this.Request(this.baseUrl + "/route", "POST", this.RouteBody(fromAsset, toAsset, parameters));
+            route = await this.Request(this.baseUrl + "/route", "POST", this.RouteBody(fromAsset, toAsset, parameters), requestId);
         }
         else
         {
-            route = await this.Request(this.baseUrl + "/route?" + this.RouteQuery(fromAsset, toAsset, parameters), "GET", null);
+            route = await this.Request(this.baseUrl + "/route?" + this.RouteQuery(fromAsset, toAsset, parameters), "GET", null, requestId);
         }
+        if (sendsBalances)
+        {
+            //  CHECKED HERE, not only in FetchRouteWithBalances. `balances` is a documented
+            //  parameter of this method, and a caller who passes it directly was getting no
+            //  verification at all — the same silent failure, one call lower down.
+            this.AssertBalancesApplied(route, parameters);
+        }
+        //  What THIS CLIENT asked for, stamped client-side so CheckExecutionPlanSafety can
+        //  tell a flag that was honoured from one that was lost in transit. requireFullFill
+        //  is the one route parameter that fails OPEN.
+        route["clientRequestedRequireFullFill"] = this.BoolAt(parameters, "requireFullFill", false);
         //  Stamp the client's OWN record of the question onto the answer, so BuildExecutionPlan
         //  can check that the route it is about to turn into real orders runs from the asset the
         //  caller offered to the asset the caller wanted — rather than trusting the server's echo.
         route["clientRequestedFrom"] = fromAsset.ToUpperInvariant();
         route["clientRequestedTo"] = toAsset.ToUpperInvariant();
         return route;
+    }
+
+    /// <summary>
+    /// Throws unless the router confirmed it read the holdings that were sent.
+    /// </summary>
+    public void AssertBalancesApplied(dict route, dict parameters)
+    {
+        if (this.BoolAt(parameters, "requireBalancesApplied", true) != true)
+        {
+            //  the caller opted out, with their eyes open
+            return;
+        }
+        //  /route declares its query without a JSON schema, so a router that predates the
+        //  balances feature IGNORES them and answers byte-identically to one that never
+        //  received any.
+        if (this.StringAt(route, "balancesApplied", "") != "")
+        {
+            return;
+        }
+        //  An EMPTY echo is ambiguous on its own: "" is also the honest answer to `balances=`
+        //  meaning "I hold nothing". balanceEntryCount disambiguates by PRESENCE, not by
+        //  value — a current server sends 0, a server that never heard of the feature sends
+        //  nothing at all. This is the case the old check skipped outright.
+        if (this.NumberAt(route, "balanceEntryCount", -1) >= 0)
+        {
+            return;
+        }
+        throw new ExchangeError("OrderRouter did not echo balancesApplied: the balances were ignored, so this route is not funded-aware");
     }
 
     /// <summary>
@@ -874,7 +917,7 @@ public class OrderRouter
     /// <param name="method">GET or POST</param>
     /// <param name="requestBody">the JSON body, sent on a POST and ignored on a GET</param>
     /// <returns>the decoded JSON body</returns>
-    public virtual async Task<dict> Request(string url, string method = "GET", dict requestBody = null)
+    public virtual async Task<dict> Request(string url, string method = "GET", dict requestBody = null, string requestId = "")
     {
         var status = 0;
         var text = "";
@@ -889,6 +932,12 @@ public class OrderRouter
                 {
                     message.Headers.TryAddWithoutValidation("x-api-key", this.apiKey);
                     message.Headers.TryAddWithoutValidation("Accept", "application/json");
+                    if (requestId != "" && requestId.Length <= 200)
+                    {
+                        //  the service caps this at 200 characters and mints its own when
+                        //  absent, so a longer one is dropped rather than sent and rejected
+                        message.Headers.TryAddWithoutValidation("x-request-id", requestId);
+                    }
                     if (method == "POST")
                     {
                         var payload = JsonConvert.SerializeObject((requestBody == null) ? new dict() : requestBody);
@@ -1130,7 +1179,6 @@ public class OrderRouter
 
     public async Task<dict> FetchRouteWithBalances(string fromAsset, string toAsset, Dictionary<string, Exchange> venues, dict parameters = null)
     {
-        var requireApplied = this.BoolAt(parameters, "requireBalancesApplied", true);
         var exchangeIds = this.SortedKeys(venues);
         var entries = new list();
         var dropped = new list();
@@ -1196,17 +1244,9 @@ public class OrderRouter
         }
         routeParams["balances"] = balances;
         var route = await this.FetchRoute(fromAsset, toAsset, routeParams);
-        if (requireApplied && (balances != ""))
-        {
-            //  /route declares its query without a JSON schema, so a router that
-            //  predates the balances feature answers byte-identically to one
-            //  that never received it. Executing a plan computed against a
-            //  portfolio the server never saw is the case worth failing on.
-            if (this.StringAt(route, "balancesApplied", "") == "")
-            {
-                throw new ExchangeError("OrderRouter did not echo balancesApplied: the balances were ignored, so this route is not funded-aware");
-            }
-        }
+        //  The echo check itself now lives in FetchRoute, which this call went through, and
+        //  requireBalancesApplied travelled with it — including the empty-balances case,
+        //  which the check that used to live here skipped outright.
         route["balancesUsed"] = balances;
         route["balancesDropped"] = dropped;
         return route;
@@ -1433,6 +1473,17 @@ public class OrderRouter
                     { "effectivePrice", effectivePrice },
                     { "limitPrice", limitPrice },
                     { "notionalQuote", amount * expectedPrice },
+                    //  The taker fee the ROUTER predicted for this leg, always denominated
+                    //  in the quote currency (the service's own RouteLeg.feeCost contract).
+                    //  Carried so StepExpectedOut can measure the expectation the same way
+                    //  Execute measures the realised amount — see the note there. 0 on a
+                    //  hand-built plan, which is exactly the old behaviour.
+                    { "expectedFeeCost", this.NumberAt(leg, "feeCost", 0) },
+                    //  This leg was cut short by the WALLET, not by the book: more was on
+                    //  offer, the balances just could not pay for it. Size-capped and
+                    //  depth-capped look identical in the numbers and need different
+                    //  follow-up.
+                    { "balanceLimited", this.BoolAt(leg, "balanceLimited", false) },
                 });
                 stepIndex = stepIndex + 1;
             }
@@ -1450,6 +1501,11 @@ public class OrderRouter
             { "fullyFillable", this.BoolAt(route, "fullyFillable", false) },
             { "fillRatio", this.NumberAt(route, "fillRatio", 0) },
             { "unroutableReason", this.StringAt(route, "unroutableReason", "") },
+            //  WHICH hop could not be solved. -1 when the route is routable or the server
+            //  did not say; 0 is a real answer and must not read as "unknown".
+            { "unroutableHopIndex", this.NumberAt(route, "unroutableHopIndex", -1) },
+            //  What the CALLER asked for, stamped by FetchRoute — not the server's echo.
+            { "requireFullFill", this.BoolAt(route, "clientRequestedRequireFullFill", false) },
             { "hopCount", hops.Count },
             { "stepCount", steps.Count },
             { "slippageBps", slippageBps },
@@ -1503,7 +1559,11 @@ public class OrderRouter
         }
         if (!this.BoolAt(plan, "fullyFillable", false))
         {
-            violations.Add(this.Violation(-1, "", "", "partial_fill", false, this.NumberAt(plan, "fillRatio", 0), 1));
+            //  BLOCKING when the caller asked for requireFullFill. That parameter is the one
+            //  route flag that fails OPEN: a partial route in the same breath as the flag
+            //  means the flag did not survive the trip.
+            var requiredFullFill = this.BoolAt(plan, "requireFullFill", false);
+            violations.Add(this.Violation(-1, "", "", "partial_fill", requiredFullFill, this.NumberAt(plan, "fillRatio", 0), 1));
         }
         for (var i = 0; i < steps.Count; i++)
         {
@@ -1883,9 +1943,35 @@ public class OrderRouter
         var amount = this.NumberAt(step, "amount", 0);
         if (this.StringAt(step, "side", "") == "buy")
         {
+            //  A buy produces BASE, and the router's predicted fee is quote-denominated,
+            //  so it does not reduce what this step hands to the next one. A venue that
+            //  charges its buy fee in the base asset really does deliver less, and the
+            //  resize that follows from it is correct.
             return amount;
         }
-        return amount * this.NumberAt(step, "expectedPrice", 0);
+        //  A SELL produces QUOTE, which is the currency the predicted fee is already in.
+        //
+        //  This subtraction is what stops the fee being counted TWICE. execute() reports
+        //  realisedOut net of a fee charged in the asset the step produced, because that is
+        //  what the wallet actually receives. The router, in turn, already sized the next
+        //  hop from its own NET figure: in the shared fixture, hop 0 sells 500 DOGE at
+        //  0.089 for 44.5 gross, reports amountOut 44.47482324238088 after a
+        //  0.025176757619121304 USDT fee, and hop 1's amountIn is that net number to the
+        //  last digit. Measuring the expectation gross against a realised amount that is
+        //  net therefore reported a shortfall on a PERFECT fill and shrank the next hop by
+        //  the fee a second time, stranding it in the bridge asset.
+        //
+        //  Gross stays gross where gross is right: notionalQuote is what the order is worth
+        //  to the venue and is untouched, as is the notional cap built on it.
+        var gross = amount * this.NumberAt(step, "expectedPrice", 0);
+        var expectedFee = this.NumberAt(step, "expectedFeeCost", 0);
+        if (expectedFee <= 0 || expectedFee >= gross)
+        {
+            //  a fee at or above the whole proceeds is not a fee this class will subtract:
+            //  it would report an expectation of zero or less and turn every fill into a halt
+            return gross;
+        }
+        return gross - expectedFee;
     }
 
     //  -----------------------------------------------------------------------
@@ -2409,6 +2495,10 @@ public class OrderRouter
                 { "effectivePrice", this.NumberAt(step, "effectivePrice", 0) },
                 { "limitPrice", this.StepLimitPrice(step) },
                 { "notionalQuote", this.StepNotionalQuote(step) },
+                //  carried through the clone because Execute reconciles against THESE
+                //  steps, not the plan's: without it the fee netting would be measured
+                //  against a gross expectation on every live run
+                { "expectedFeeCost", this.NumberAt(step, "expectedFeeCost", 0) },
             });
         }
         return copies;

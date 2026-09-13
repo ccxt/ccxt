@@ -1009,6 +1009,22 @@ scrubs holdings from its own logs, but a reverse proxy, an ALB, a CDN, browser h
 `Referer` all see the full request line, and no in-process redaction reaches them.
 `FetchRouteWithBalances` does this for you.
 
+
+**Two flags the client verifies for you**, because one silently lost in transit looks identical to
+one never sent. `balances`: the service ignores them entirely if it predates the feature and
+answers byte-identically, so `FetchRoute` throws unless the router echoes `balancesApplied` (or
+`balanceEntryCount`, which is how an *empty* wallet is confirmed) — pass `requireBalancesApplied:
+false` to opt out. `requireFullFill`: the one flag that fails *open*, so the client stamps what you
+asked for and the safety check makes `partial_fill` **blocking** when you asked for a full fill and
+did not get one.
+
+**An empty value is not an omitted one.** Omit `bridges` and you get the default bridge set; send
+`bridges=` and you have asked for no bridging at all. Same for `exchanges=` (no venues) and
+`balances=` (you hold nothing). The client forwards an empty value rather than dropping it.
+
+**`requestId`** is sent as the `x-request-id` header, so your log and the router's decision log can
+be joined; the service mints one when absent.
+
 ### Asking the service about itself
 
 | Method | Endpoint | Key? | Answers |

@@ -484,6 +484,8 @@ class OrderRouter {
      * @param {bool} [params.requireFullFill] refuse partial fills
      * @param {float} [params.hopPenaltyBps] how much better a bridged route must be per extra hop
      * @param {float} [params.minLegNotional] suppress legs below this quote notional
+     * @param {string} [params.requestId] a caller-chosen audit id, sent as the x-request-id header so your log and the router's decision log can be joined. The service mints one when this is absent, and caps it at 200 characters
+     * @param {bool} [params.requireBalancesApplied] when balances are sent, throw unless the router echoed that it read them. Default true — a server that predates the feature IGNORES balances and answers byte-identically to one that never received any
      * @returns {object} a RouteResult — an unroutable pair comes back as a RouteResult with an unroutableReason, not as an exception
      */
     async fetchRoute(fromAsset, toAsset, params = {}) {
@@ -508,13 +510,28 @@ class OrderRouter {
         //
         //  A request carrying no holdings still goes as a GET: cacheable, linkable, and
         //  what every existing caller already uses.
+        const sendsBalances = (params['balances'] !== undefined) && (params['balances'] !== null);
+        //  an audit id the caller chose, so their log and the router's decision log can be
+        //  joined. The service mints one when this is absent, and echoes whichever it used.
+        const requestId = this.stringAt(params, 'requestId', '');
         let route = {};
-        if (params['balances'] !== undefined && params['balances'] !== null) {
-            route = await this.request(this.baseUrl + '/route', 'POST', this.routeBody(fromAsset, toAsset, params));
+        if (sendsBalances) {
+            route = await this.request(this.baseUrl + '/route', 'POST', this.routeBody(fromAsset, toAsset, params), requestId);
         }
         else {
-            route = await this.request(this.baseUrl + '/route?' + this.routeQuery(fromAsset, toAsset, params), 'GET', {});
+            route = await this.request(this.baseUrl + '/route?' + this.routeQuery(fromAsset, toAsset, params), 'GET', {}, requestId);
         }
+        if (sendsBalances) {
+            //  CHECKED HERE, not only in fetchRouteWithBalances. `params.balances` is a
+            //  documented parameter of this method, and a caller who passes it directly was
+            //  getting no verification at all — the same silent failure, one call lower down.
+            this.assertBalancesApplied(route, params);
+        }
+        //  What THIS CLIENT asked for, stamped client-side so checkExecutionPlanSafety can
+        //  tell a flag that was honoured from one that was lost in transit. requireFullFill
+        //  is the one route parameter that fails OPEN: lose it and an explicit "refuse
+        //  rather than shrink" silently becomes an advisory partial_fill.
+        route['clientRequestedRequireFullFill'] = this.boolAt(params, 'requireFullFill', false);
         //  Stamp what THIS CLIENT asked for, client-side, so buildExecutionPlan can check the
         //  answer against the question. Everything else in the response — from, to, pair, side —
         //  is the server's word for it, and the plan used to trust all of it: a compromised or
@@ -523,6 +540,41 @@ class OrderRouter {
         route['clientRequestedFrom'] = fromAsset.toUpperCase();
         route['clientRequestedTo'] = toAsset.toUpperCase();
         return route;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#assertBalancesApplied
+     * @description throws unless the router confirmed it read the holdings that were sent
+     * @param {object} route the RouteResult
+     * @param {object} params the parameters the caller supplied
+     * @returns {undefined}
+     */
+    assertBalancesApplied(route, params) {
+        if (this.boolAt(params, 'requireBalancesApplied', true) !== true) {
+            //  the caller opted out, with their eyes open
+            return;
+        }
+        //  /route declares its query without a JSON schema, so a router that predates the
+        //  balances feature IGNORES them and answers byte-identically to one that never
+        //  received any. Executing a plan computed against a portfolio the server never saw
+        //  is the case worth failing on.
+        if (this.stringAt(route, 'balancesApplied', '') !== '') {
+            return;
+        }
+        //  An EMPTY echo is ambiguous on its own: the spec types balancesApplied as
+        //  [string, null] and returns null when none were sent, so "" is also the honest
+        //  answer to `balances=` meaning "I hold nothing". balanceEntryCount disambiguates
+        //  by PRESENCE, not by value — a current server sends 0, a server that never heard
+        //  of the feature sends nothing at all — so it is read with a sentinel default.
+        //
+        //  This is the case the old check skipped outright, which meant an empty-wallet
+        //  caller against a legacy or proxy-stripped server got a full route, no error, and
+        //  no way to know the balances were dropped.
+        if (this.numberAt(route, 'balanceEntryCount', -1) >= 0) {
+            return;
+        }
+        throw new ExchangeError('OrderRouter did not echo balancesApplied: the balances were ignored, so this route is not funded-aware');
     }
     /**
      * @ignore
@@ -639,13 +691,21 @@ class OrderRouter {
      * @param {string} url the fully-formed url, including the query string on a GET
      * @param {string} method GET or POST
      * @param {object} requestBody the JSON body, sent on a POST and ignored on a GET
+     * @param {string} requestId an optional caller-chosen audit id, sent as x-request-id
      * @returns {object} the decoded JSON body
      */
-    async request(url, method = 'GET', requestBody = {}) {
+    async request(url, method = 'GET', requestBody = {}, requestId = '') {
         const headers = {
             'x-api-key': this.apiKey,
             'Accept': 'application/json',
         };
+        if (requestId !== '') {
+            //  the service caps this at 200 characters and mints its own when absent, so a
+            //  longer one is dropped rather than sent and rejected
+            if (requestId.length <= 200) {
+                headers['x-request-id'] = requestId;
+            }
+        }
         const options = { 'method': method, 'headers': headers };
         if (method === 'POST') {
             headers['Content-Type'] = 'application/json';
@@ -826,7 +886,6 @@ class OrderRouter {
      * @returns {object} the RouteResult, with the client-side keys balancesUsed and balancesDropped added
      */
     async fetchRouteWithBalances(fromAsset, toAsset, venues, params = {}) {
-        const requireApplied = this.boolAt(params, 'requireBalancesApplied', true);
         const exchangeIds = Object.keys(venues);
         exchangeIds.sort();
         const entries = [];
@@ -890,15 +949,9 @@ class OrderRouter {
         }
         routeParams['balances'] = balances;
         const route = await this.fetchRoute(fromAsset, toAsset, routeParams);
-        if (requireApplied && (balances !== '')) {
-            //  /route declares its query without a JSON schema, so a router that
-            //  predates the balances feature answers byte-identically to one
-            //  that never received it. Executing a plan computed against a
-            //  portfolio the server never saw is the case worth failing on.
-            if (this.stringAt(route, 'balancesApplied', '') === '') {
-                throw new ExchangeError('OrderRouter did not echo balancesApplied: the balances were ignored, so this route is not funded-aware');
-            }
-        }
+        //  The echo check itself now lives in fetchRoute, which this call went through, and
+        //  params.requireBalancesApplied travelled with it — including the empty-balances
+        //  case, which the check that used to live here skipped outright.
         route['balancesUsed'] = balances;
         route['balancesDropped'] = dropped;
         return route;
@@ -1023,6 +1076,18 @@ class OrderRouter {
                     'effectivePrice': effectivePrice,
                     'limitPrice': limitPrice,
                     'notionalQuote': amount * expectedPrice,
+                    //  The taker fee the ROUTER predicted for this leg, always denominated
+                    //  in the quote currency (the service's own RouteLeg.feeCost contract).
+                    //  Carried so stepExpectedOut can measure the expectation the same way
+                    //  execute measures the realised amount — see the note there. 0 on a
+                    //  hand-built plan, which is exactly the old behaviour.
+                    'expectedFeeCost': this.numberAt(leg, 'feeCost', 0),
+                    //  This leg was cut short by the WALLET, not by the book: more was on
+                    //  offer, the balances just could not pay for it. Size-capped and
+                    //  depth-capped look identical in the numbers and need different
+                    //  follow-up, and the plan is the artifact every downstream report is
+                    //  built from — so the distinction has to survive the flattening.
+                    'balanceLimited': this.boolAt(leg, 'balanceLimited', false),
                 });
                 stepIndex = stepIndex + 1;
             }
@@ -1039,6 +1104,15 @@ class OrderRouter {
             'fullyFillable': this.boolAt(route, 'fullyFillable', false),
             'fillRatio': this.numberAt(route, 'fillRatio', 0),
             'unroutableReason': this.stringAt(route, 'unroutableReason', ''),
+            //  WHICH hop could not be solved. -1 when the route is routable or the server
+            //  did not say; 0 is a real answer and must not read as "unknown", which is why
+            //  the default is negative rather than 0.
+            'unroutableHopIndex': this.numberAt(route, 'unroutableHopIndex', -1),
+            //  What the CALLER asked for, stamped by fetchRoute — not the server's echo.
+            //  checkExecutionPlanSafety escalates on it, so reading the server's word for it
+            //  would let a flag lost in transit switch off the check that exists to catch
+            //  exactly that.
+            'requireFullFill': this.boolAt(route, 'clientRequestedRequireFullFill', false),
             'hopCount': hops.length,
             'stepCount': steps.length,
             'slippageBps': slippageBps,
@@ -1080,7 +1154,13 @@ class OrderRouter {
             violations.push(this.violation(-1, '', '', 'route_unroutable', true, 0, 0));
         }
         if (!this.boolAt(plan, 'fullyFillable', false)) {
-            violations.push(this.violation(-1, '', '', 'partial_fill', false, this.numberAt(plan, 'fillRatio', 0), 1));
+            //  BLOCKING when the caller asked for requireFullFill. That parameter is the one
+            //  route flag that fails OPEN: the service honouring it means an unfillable size
+            //  comes back unroutable, so a partial route in the same breath means the flag
+            //  did not survive the trip. Reporting that as the same advisory a caller who
+            //  never set it gets is exactly the silent downgrade from "refuse" to "shrink".
+            const requiredFullFill = this.boolAt(plan, 'requireFullFill', false);
+            violations.push(this.violation(-1, '', '', 'partial_fill', requiredFullFill, this.numberAt(plan, 'fillRatio', 0), 1));
         }
         for (let i = 0; i < steps.length; i++) {
             const step = steps[i];
@@ -1411,9 +1491,35 @@ class OrderRouter {
     stepExpectedOut(step) {
         const amount = this.numberAt(step, 'amount', 0);
         if (this.stringAt(step, 'side', '') === 'buy') {
+            //  A buy produces BASE, and the router's predicted fee is quote-denominated,
+            //  so it does not reduce what this step hands to the next one. A venue that
+            //  charges its buy fee in the base asset really does deliver less, and the
+            //  resize that follows from it is correct.
             return amount;
         }
-        return amount * this.numberAt(step, 'expectedPrice', 0);
+        //  A SELL produces QUOTE, which is the currency the predicted fee is already in.
+        //
+        //  This subtraction is what stops the fee being counted TWICE. execute() reports
+        //  realisedOut net of a fee charged in the asset the step produced, because that
+        //  is what the wallet actually receives. The router, in turn, already sized the
+        //  next hop from its own NET figure: in the shared fixture, hop 0 sells 500 DOGE
+        //  at 0.089 for 44.5 gross, reports amountOut 44.47482324238088 after a
+        //  0.025176757619121304 USDT fee, and hop 1's amountIn is that net number to the
+        //  last digit. Measuring the expectation gross against a realised amount that is
+        //  net therefore reported a shortfall on a PERFECT fill and shrank the next hop
+        //  by the fee a second time, stranding it in the bridge asset.
+        //
+        //  Gross stays gross where gross is right: notionalQuote is what the order is
+        //  worth to the venue and is untouched, as is the notional cap built on it.
+        const gross = amount * this.numberAt(step, 'expectedPrice', 0);
+        const expectedFee = this.numberAt(step, 'expectedFeeCost', 0);
+        if (expectedFee <= 0 || expectedFee >= gross) {
+            //  a fee at or above the whole proceeds is not a fee this class will
+            //  subtract: it would report an expectation of zero or less and turn every
+            //  fill into a halt
+            return gross;
+        }
+        return gross - expectedFee;
     }
     //  -----------------------------------------------------------------------
     //  PURE: buildUnwindPlan
@@ -1880,6 +1986,10 @@ class OrderRouter {
                 'effectivePrice': this.numberAt(step, 'effectivePrice', 0),
                 'limitPrice': this.stepLimitPrice(step),
                 'notionalQuote': this.stepNotionalQuote(step),
+                //  carried through the clone because execute() reconciles against THESE
+                //  steps, not the plan's: without it the fee netting below would be
+                //  measured against a gross expectation on every live run
+                'expectedFeeCost': this.numberAt(step, 'expectedFeeCost', 0),
             });
         }
         return copies;

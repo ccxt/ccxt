@@ -88,6 +88,9 @@ public class OrderRouterTest
         Run("an empty plan is not a safe plan", EmptyPlanIsNotSafe);
         Run("reconcileExecutionStep never scales a downstream order UP", ReconcileNeverScalesUp);
         Run("reconcileExecutionStep halts on a total miss and on an over-tolerance shortfall", ReconcileHalts);
+        Run("a fee the router already subtracted is not subtracted a second time", FeeIsNotDoubleSubtracted);
+        RunAsync("a router that ignored the balances is caught, including when the wallet is empty", BalancesEchoIsVerified);
+        RunAsync("a caller-chosen audit id travels as x-request-id", RequestIdHeader);
         Run("buildUnwindPlan is never automatic and never nets across venues", UnwindNeverNetsAcrossVenues);
         Run("a buy-side unwind order never spends more quote than the residual actually holds", UnwindBuyIsFundable);
         //  3. execute — stub venues only, and not one real order anywhere
@@ -1136,11 +1139,91 @@ public class OrderRouterTest
         var plan = router.BuildExecutionPlan(RouteNamed("multiHop"), new dict());
         EqualString((string)router.ReconcileExecutionStep(plan, 0, 0)["verdict"], "halt", "a total miss halts");
         EqualString((string)router.ReconcileExecutionStep(plan, 0, 0)["reason"], "nothing_filled", "and says why");
-        //  expectedOut of step 0 is 500 * 0.089 = 44.5; 2% of that is 0.89
-        EqualString((string)router.ReconcileExecutionStep(plan, 0, 44.5 - 0.88)["verdict"], "proceed", "inside the tolerance");
-        EqualString((string)router.ReconcileExecutionStep(plan, 0, 44.5 - 0.9)["verdict"], "halt", "outside the tolerance");
-        EqualString((string)router.ReconcileExecutionStep(plan, 0, 44.5 - 0.9)["reason"], "shortfall_exceeds_tolerance", "and says why");
+        //  expectedOut of step 0 is 500 * 0.089 = 44.5 GROSS, less the 0.025176757619121304
+        //  USDT fee the router itself predicted = 44.47482324238088. 2% of that is
+        //  0.8894964648476176.
+        var expectedOut = 44.47482324238088;
+        EqualString((string)router.ReconcileExecutionStep(plan, 0, expectedOut - 0.88)["verdict"], "proceed", "inside the tolerance");
+        EqualString((string)router.ReconcileExecutionStep(plan, 0, expectedOut - 0.9)["verdict"], "halt", "outside the tolerance");
+        EqualString((string)router.ReconcileExecutionStep(plan, 0, expectedOut - 0.9)["reason"], "shortfall_exceeds_tolerance", "and says why");
         Throws<BadRequest>(() => router.ReconcileExecutionStep(plan, 7, 1), "an out-of-range step index is refused");
+    }
+
+    private static async Task BalancesEchoIsVerified()
+    {
+        //  /route declares its query without a JSON schema, so a server that predates the
+        //  balances feature answers byte-identically to one that never received any. It is the
+        //  EMPTY wallet that used to slip through, because the old check skipped itself
+        //  whenever the balances string was "".
+        var legacy = new RecordingRouter(new dict() { { "apiKey", "k" } }, new dict() { { "hops", new list() } });
+        await Rejects<ExchangeError>(async () => await legacy.FetchRoute("USDT", "BTC", new dict() { { "amountIn", 10.0 }, { "balances", "binance.USDT:1000" } }), "a non-empty wallet the server ignored");
+        var legacyEmpty = new RecordingRouter(new dict() { { "apiKey", "k" } }, new dict() { { "hops", new list() } });
+        await Rejects<ExchangeError>(async () => await legacyEmpty.FetchRoute("USDT", "BTC", new dict() { { "amountIn", 10.0 }, { "balances", "" } }), "an EMPTY wallet the server ignored");
+        //  a current server answering the empty wallet honestly is NOT an error
+        var current = new RecordingRouter(new dict() { { "apiKey", "k" } }, new dict() { { "hops", new list() }, { "balanceEntryCount", 0 } });
+        var route = await current.FetchRoute("USDT", "BTC", new dict() { { "amountIn", 10.0 }, { "balances", "" } });
+        EqualString((string)route["clientRequestedTo"], "BTC", "the empty wallet routes");
+        //  and a caller can still opt out with their eyes open
+        var opted = new RecordingRouter(new dict() { { "apiKey", "k" } }, new dict() { { "hops", new list() } });
+        await opted.FetchRoute("USDT", "BTC", new dict() { { "amountIn", 10.0 }, { "balances", "" }, { "requireBalancesApplied", false } });
+        //  a route with NO balances is never subject to the check
+        var noBalances = new RecordingRouter(new dict() { { "apiKey", "k" } }, new dict() { { "hops", new list() } });
+        await noBalances.FetchRoute("USDT", "BTC", new dict() { { "amountIn", 10.0 } });
+        EqualString(noBalances.lastMethod, "GET", "a route with no holdings stays a GET");
+    }
+
+    private static async Task RequestIdHeader()
+    {
+        //  the service mints one when absent; supplying one is what lets a caller join their
+        //  own log to the router's decision log for a request that never returned a body
+        var recorder = new RecordingRouter(new dict() { { "apiKey", "k" } }, new dict() { { "hops", new list() } });
+        await recorder.FetchRoute("USDT", "BTC", new dict() { { "amountIn", 10.0 }, { "requestId", "caller-chosen-id" } });
+        EqualString(recorder.lastRequestId, "caller-chosen-id", "the audit id reaches Request");
+        Ok(recorder.lastUrl.IndexOf("requestId", StringComparison.Ordinal) < 0, "and is not a query parameter");
+    }
+
+    private static void FeeIsNotDoubleSubtracted()
+    {
+        //  THE REGRESSION THIS EXISTS FOR. Execute reports realisedOut NET of a fee charged in
+        //  the asset the step produced, because that is what the wallet receives. The router
+        //  had already done the same: hop 0 sells 500 DOGE at 0.089 for 44.5 gross, reports
+        //  amountOut 44.47482324238088 after a 0.025176757619121304 USDT fee, and hop 1's
+        //  amountIn is that net figure to the last digit. Measuring the expectation GROSS
+        //  against a NET realised amount reported a shortfall on a perfect fill and shrank
+        //  hop 1 by the fee all over again, stranding it in the bridge asset.
+        var router = NewRouter();
+        var route = RouteNamed("multiHop");
+        var hops = router.ListAt(route, "hops");
+        var hopZero = router.AsDict(hops[0]);
+        var hopOne = router.AsDict(hops[1]);
+        var plan = router.BuildExecutionPlan(route, new dict());
+        var steps = router.ListAt(plan, "steps");
+        var stepZero = router.AsDict(steps[0]);
+        var stepOne = router.AsDict(steps[1]);
+        var hopZeroFee = router.NumberAt(hopZero, "feeCost", 0);
+        var hopZeroOut = router.NumberAt(hopZero, "amountOut", 0);
+        //  the premise, asserted rather than assumed: the router's own numbers really are net
+        EqualNumber(hopZeroOut, 500 * 0.089 - hopZeroFee, "the hop amountOut is net of its fee");
+        EqualNumber(router.NumberAt(hopOne, "amountIn", 0), hopZeroOut, "hop 1 was sized from the NET proceeds of hop 0");
+        EqualNumber(router.NumberAt(stepZero, "expectedFeeCost", 0), router.NumberAt(router.AsDict(router.ListAt(hopZero, "legs")[0]), "feeCost", 0), "the step carries the predicted fee");
+        var verdict = router.ReconcileExecutionStep(plan, 0, hopZeroOut);
+        EqualNumber(router.NumberAt(verdict, "expectedOut", 0), hopZeroOut, "expected equals what the router said the hop produces");
+        EqualNumber(router.NumberAt(verdict, "shortfall", -1), 0, "a perfect fill is not a shortfall");
+        EqualNumber(router.NumberAt(verdict, "scale", 0), 1, "and does not resize anything");
+        EqualString((string)verdict["verdict"], "proceed", "and proceeds");
+        var resized = router.ListAt(verdict, "resizedSteps");
+        for (var i = 0; i < resized.Count; i++)
+        {
+            var entry = router.AsDict(resized[i]);
+            EqualNumber(router.NumberAt(entry, "amount", 0), router.NumberAt(entry, "previousAmount", 0), "hop 1 keeps the size the router gave it");
+        }
+        //  notionalQuote is what the order is worth to the VENUE and stays gross
+        EqualNumber(router.NumberAt(stepZero, "notionalQuote", 0), 44.5, "the order notional stays gross");
+        //  a BUY produces base, and the predicted fee is quote-denominated
+        EqualNumber(router.StepExpectedOut(stepOne), router.NumberAt(hopOne, "amountOut", 0), "a buy is unaffected");
+        //  a hand-built plan carries no expectedFeeCost, and behaves exactly as before
+        var handBuilt = new dict() { { "side", "sell" }, { "amount", 10.0 }, { "expectedPrice", 2.0 } };
+        EqualNumber(router.StepExpectedOut(handBuilt), 20, "a hand-built plan is unchanged");
     }
 
     private static void UnwindNeverNetsAcrossVenues()
@@ -2246,11 +2329,14 @@ public class OrderRouterTest
             this.body = body;
         }
 
-        public override Task<dict> Request(string url, string method = "GET", dict requestBody = null)
+        public string lastRequestId = "";
+
+        public override Task<dict> Request(string url, string method = "GET", dict requestBody = null, string requestId = "")
         {
             this.lastUrl = url;
             this.lastMethod = method;
             this.lastBody = requestBody;
+            this.lastRequestId = requestId;
             return Task.FromResult(this.body);
         }
     }
@@ -2284,7 +2370,7 @@ public class OrderRouterTest
         //  reverse proxy, an ALB and a CDN all log the full request line, as do browser
         //  history and client-side tracing. This is the assertion that keeps the wallet
         //  out of them.
-        var recorder = new RecordingRouter(new dict() { { "apiKey", "k" }, { "baseUrl", "https://example.test/api" } }, new dict() { { "hops", new list() } });
+        var recorder = new RecordingRouter(new dict() { { "apiKey", "k" }, { "baseUrl", "https://example.test/api" } }, new dict() { { "hops", new list() }, { "balancesApplied", "binance.BTC:1,binance.USDT:1000" } });
         await recorder.FetchRoute("usdt", "btc", new dict()
         {
             { "amountIn", 10.0 },
@@ -2311,7 +2397,7 @@ public class OrderRouterTest
         //  "" is what a caller gets from a venue with nothing in it. It is not "no balances
         //  parameter" — the router reads it, and a check that treated it as absent would
         //  put the NEXT non-empty value on the same code path back into the url.
-        var recorder = new RecordingRouter(new dict() { { "apiKey", "k" }, { "baseUrl", "https://example.test/api" } }, new dict() { { "hops", new list() } });
+        var recorder = new RecordingRouter(new dict() { { "apiKey", "k" }, { "baseUrl", "https://example.test/api" } }, new dict() { { "hops", new list() }, { "balanceEntryCount", 0 } });
         await recorder.FetchRoute("usdt", "btc", new dict() { { "amountIn", 10.0 }, { "balances", "" } });
         EqualString(recorder.lastMethod, "POST", "an empty holdings string is still holdings");
         EqualString((string)recorder.lastBody["balances"], "", "and it reaches the body");

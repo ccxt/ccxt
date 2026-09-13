@@ -459,11 +459,48 @@ def test_reconcile_halts():
     plan = router.build_execution_plan(fixture['routes']['multiHop'], {})
     assert router.reconcile_execution_step(plan, 0, 0)['verdict'] == 'halt'
     assert router.reconcile_execution_step(plan, 0, 0)['reason'] == 'nothing_filled'
-    # expectedOut of step 0 is 500 * 0.089 = 44.5; 2% of that is 0.89
-    assert router.reconcile_execution_step(plan, 0, 44.5 - 0.88)['verdict'] == 'proceed'
-    assert router.reconcile_execution_step(plan, 0, 44.5 - 0.9)['verdict'] == 'halt'
-    assert router.reconcile_execution_step(plan, 0, 44.5 - 0.9)['reason'] == 'shortfall_exceeds_tolerance'
+    # expectedOut of step 0 is 500 * 0.089 = 44.5 GROSS, less the 0.025176757619121304 USDT
+    # fee the router itself predicted = 44.47482324238088. 2% of that is 0.8894964648476176.
+    expected_out = 44.47482324238088
+    assert router.reconcile_execution_step(plan, 0, expected_out - 0.88)['verdict'] == 'proceed'
+    assert router.reconcile_execution_step(plan, 0, expected_out - 0.9)['verdict'] == 'halt'
+    assert router.reconcile_execution_step(plan, 0, expected_out - 0.9)['reason'] == 'shortfall_exceeds_tolerance'
     assert_raises(BadRequest, lambda: router.reconcile_execution_step(plan, 7, 1), 'an out-of-range stepIndex')
+
+
+@test('a fee the router already subtracted is not subtracted a second time')
+def test_fee_is_not_double_subtracted():
+    # THE REGRESSION THIS EXISTS FOR. execute() reports realisedOut NET of a fee charged in
+    # the asset the step produced, because that is what the wallet receives. The router had
+    # already done the same: in this fixture hop 0 sells 500 DOGE at 0.089 for 44.5 gross,
+    # reports amountOut 44.47482324238088 after a 0.025176757619121304 USDT fee, and hop 1's
+    # amountIn is that net figure to the last digit — hop 1's leg amount was sized from it.
+    #
+    # Measuring the expectation GROSS against a NET realised amount therefore reported a
+    # shortfall on a perfect fill and shrank hop 1 by the fee all over again, stranding it in
+    # the bridge asset.
+    route = fixture['routes']['multiHop']
+    hop_zero = route['hops'][0]
+    hop_one = route['hops'][1]
+    plan = router.build_execution_plan(route, {})
+    # the premise, asserted rather than assumed: the router's own numbers really are net
+    assert hop_zero['amountOut'] == 500 * 0.089 - hop_zero['feeCost']
+    assert hop_one['amountIn'] == hop_zero['amountOut'], 'hop 1 was sized from the NET proceeds of hop 0'
+    assert plan['steps'][0]['expectedFeeCost'] == hop_zero['legs'][0]['feeCost']
+    verdict = router.reconcile_execution_step(plan, 0, hop_zero['amountOut'])
+    assert verdict['expectedOut'] == hop_zero['amountOut'], 'expected equals what the router said the hop produces'
+    assert verdict['shortfall'] == 0, 'a perfect fill is not a shortfall'
+    assert verdict['scale'] == 1, 'and does not resize anything'
+    assert verdict['verdict'] == 'proceed'
+    for resized in verdict['resizedSteps']:
+        assert resized['amount'] == resized['previousAmount'], 'hop 1 keeps the size the router gave it'
+    # notionalQuote is what the order is worth to the VENUE and stays gross
+    assert plan['steps'][0]['notionalQuote'] == 44.5
+    # a BUY produces base, and the predicted fee is quote-denominated, so it never reduces
+    # what a buy hands to the next hop
+    assert router.step_expected_out(plan['steps'][1]) == hop_one['amountOut']
+    # a hand-built plan carries no expectedFeeCost, and behaves exactly as before
+    assert router.step_expected_out({'side': 'sell', 'amount': 10, 'expectedPrice': 2}) == 20
 
 
 @test('build_unwind_plan is never automatic and never nets across venues')
@@ -1093,11 +1130,13 @@ class RecordingRouter(OrderRouter):
         self.last_url = ''
         self.last_method = ''
         self.last_body = {}
+        self.last_request_id = ''
 
-    def request(self, url, method='GET', request_body={}):
+    def request(self, url, method='GET', request_body={}, request_id=''):
         self.last_url = url
         self.last_method = method
         self.last_body = request_body
+        self.last_request_id = request_id
         return self.body
 
 
@@ -1122,7 +1161,7 @@ def test_fetch_route_balances_are_posted():
     # The service scrubs balances from its own logs, but the URL leaves the process: a
     # reverse proxy, an ALB and a CDN all log the full request line, as do browser history
     # and client-side tracing. This is the assertion that keeps the wallet out of them.
-    recorder = RecordingRouter({'apiKey': 'k', 'baseUrl': 'https://example.test/api'}, {'hops': []})
+    recorder = RecordingRouter({'apiKey': 'k', 'baseUrl': 'https://example.test/api'}, {'hops': [], 'balancesApplied': 'binance.BTC:1,binance.USDT:1000'})
     recorder.fetch_route('usdt', 'btc', {'amountIn': 10, 'balances': 'binance.USDT:1000,binance.BTC:1', 'certified': True, 'maxVenues': 2})
     assert recorder.last_method == 'POST'
     assert recorder.last_url == 'https://example.test/api/route', 'no query string at all'
@@ -1143,10 +1182,52 @@ def test_fetch_route_empty_balances_still_posted():
     # '' is what a caller gets from a venue with nothing in it. It is not "no balances
     # parameter" — the router reads it, and a check that treated it as absent would put
     # the NEXT non-empty value on the same code path back into the url.
-    recorder = RecordingRouter({'apiKey': 'k', 'baseUrl': 'https://example.test/api'}, {'hops': []})
+    # balanceEntryCount 0 is how a CURRENT server answers "you hold nothing": the echo itself
+    # is empty, and only the presence of this field says the server understood.
+    recorder = RecordingRouter({'apiKey': 'k', 'baseUrl': 'https://example.test/api'}, {'hops': [], 'balanceEntryCount': 0})
     recorder.fetch_route('usdt', 'btc', {'amountIn': 10, 'balances': ''})
     assert recorder.last_method == 'POST'
     assert recorder.last_body['balances'] == ''
+
+
+@test('a router that ignored the balances is caught, including when the wallet is empty')
+def test_balances_echo_is_verified():
+    # /route declares its query without a JSON schema, so a server that predates the balances
+    # feature answers byte-identically to one that never received any. It is the EMPTY wallet
+    # that used to slip through, because the old check skipped itself whenever the balances
+    # string was ''.
+    legacy = RecordingRouter({'apiKey': 'k'}, {'hops': []})
+    assert_raises(ExchangeError, lambda: legacy.fetch_route('USDT', 'BTC', {'amountIn': 10, 'balances': 'binance.USDT:1000'}), 'a non-empty wallet the server ignored')
+    legacy_empty = RecordingRouter({'apiKey': 'k'}, {'hops': []})
+    assert_raises(ExchangeError, lambda: legacy_empty.fetch_route('USDT', 'BTC', {'amountIn': 10, 'balances': ''}), 'an EMPTY wallet the server ignored')
+    # a current server answering the empty wallet honestly is NOT an error
+    current = RecordingRouter({'apiKey': 'k'}, {'hops': [], 'balanceEntryCount': 0})
+    route = current.fetch_route('USDT', 'BTC', {'amountIn': 10, 'balances': ''})
+    assert route['clientRequestedTo'] == 'BTC'
+    # and a caller can still opt out with their eyes open
+    opted = RecordingRouter({'apiKey': 'k'}, {'hops': []})
+    opted.fetch_route('USDT', 'BTC', {'amountIn': 10, 'balances': '', 'requireBalancesApplied': False})
+    # a route with NO balances is never subject to the check
+    no_balances = RecordingRouter({'apiKey': 'k'}, {'hops': []})
+    no_balances.fetch_route('USDT', 'BTC', {'amountIn': 10})
+    assert no_balances.last_method == 'GET'
+
+
+@test('a caller-chosen audit id travels as x-request-id')
+def test_request_id_header():
+    # the service mints one when absent; supplying one is what lets a caller join their own
+    # log to the router's decision log for a request that never returned a body
+    config = {'apiKey': 'k', 'baseUrl': 'https://example.test/api'}
+    router_, session = stubbed(200, json.dumps({'hops': []}), {}, config)
+    router_.fetch_route('USDT', 'BTC', {'amountIn': 10, 'requestId': 'caller-chosen-id'})
+    assert session.calls[0]['headers']['x-request-id'] == 'caller-chosen-id'
+    # and it is NOT a route query parameter
+    assert session.calls[0]['url'].find('requestId') == -1
+    # the service caps it at 200 characters, so a longer one is dropped rather than sent and
+    # rejected
+    router_, session = stubbed(200, json.dumps({'hops': []}), {}, config)
+    router_.fetch_route('USDT', 'BTC', {'amountIn': 10, 'requestId': 'x' * 201})
+    assert 'x-request-id' not in session.calls[0]['headers']
 
 
 # ---------------------------------------------------------------------------
@@ -1285,7 +1366,7 @@ def test_cached_order_book_path():
 def test_post_body_and_headers():
     config = {'apiKey': 'secret-key', 'baseUrl': 'https://example.test/api'}
     router, session = stubbed(200, json.dumps({'hops': []}), {}, config)
-    router.fetch_route('USDT', 'BTC', {'amountIn': 10, 'balances': 'binance.USDT:1000'})
+    router.fetch_route('USDT', 'BTC', {'amountIn': 10, 'balances': 'binance.USDT:1000', 'requireBalancesApplied': False})
     call = session.calls[0]
     assert call['method'] == 'POST'
     assert call['headers']['Content-Type'] == 'application/json'

@@ -8634,6 +8634,51 @@ interval the service asked for:
 OrderRouter: cache is cold (0 of 12 books fresh, 1 needed), retry after 5s
 ```
 
+### The route parameters
+
+Exactly one of `amountIn` / `amountOut` is required; everything else is optional.
+
+| Parameter | Type | What it does |
+|---|---|---|
+| `amountIn` | float | how much of `from` to spend — a *notional* walk of the book |
+| `amountOut` | float | how much of `to` to end up with — a *quantity* walk. Not supported across a bridge |
+| `strategy` | string | `best_single`, `split_optimal` or `split_capped` — changes how many venues a hop uses, nothing else about the shape |
+| `maxVenues` | int | per-hop venue cap for `split_capped` |
+| `exchanges` | string/list | venue allowlist |
+| `bridges` | string/list | intermediary assets to consider for a two-hop route |
+| `balances` | string | what you hold, as `[exchangeId.]ASSET:amount` entries. Sends the request as a POST — see below |
+| `balanceMode` | string | `cap` (default) trims the size to what you hold; `require` refuses instead |
+| `includeQuotes` | bool | return the per-venue diagnostic |
+| `includeFees` | bool | rank on fee-adjusted price, default true |
+| `certified` | bool | restrict to CCXT-certified venues |
+| `requireFullFill` | bool | refuse to quote rather than return a partial fill |
+| `hopPenaltyBps` | float | how much better a bridged route must be, per extra hop |
+| `minLegNotional` | float | suppress legs below this quote notional and reallocate the freed size |
+| `requestId` | string | a caller-chosen audit id, sent as `x-request-id`. The service mints one when absent |
+| `requireBalancesApplied` | bool | client-side only — see below. Default true |
+
+**An empty value is not the same as omitting one**, and this catches people out. Omit `bridges`
+and you get the service's default bridge set; send `bridges=` and you have asked for **no
+bridging at all**. The same holds for `exchanges=` (no venues) and `balances=` (you hold nothing,
+which is a legitimate answer and comes back unroutable). The client forwards an empty value
+faithfully rather than dropping it, because the difference is the caller's to make.
+
+### Two flags the client verifies for you
+
+Both exist because a parameter that is silently lost in transit is worse than one that was never
+sent — the answer looks identical.
+
+**`balances`.** `/route` declares its query without a JSON schema, so a server that predates the
+balances feature simply ignores them and answers byte-identically to one that never received any.
+Executing a plan computed against a portfolio the server never saw is the case worth failing on,
+so `fetchRoute` throws unless the router echoes `balancesApplied` (or `balanceEntryCount`, which is
+how a current server confirms an *empty* wallet). Pass `requireBalancesApplied: false` to opt out.
+
+**`requireFullFill`.** This is the one route flag that fails *open*: lose it and an explicit
+"refuse rather than shrink" silently degrades to an advisory `partial_fill` you might not read. The
+client stamps what you asked for onto the route, and `checkExecutionPlanSafety` makes
+`partial_fill` **blocking** when you asked for a full fill and did not get one.
+
 ### Holdings are POSTed, never put in a URL
 
 `fetchRoute` sends a `GET` — cacheable, linkable, and what every caller already uses. The one

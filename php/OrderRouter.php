@@ -621,17 +621,60 @@ class OrderRouter {
         //  A request carrying no holdings still goes as a GET: cacheable, linkable, and
         //  what every existing caller already uses.
         $route = array();
-        if ($this->fieldAt($params, 'balances') !== null) {
-            $route = $this->request($this->baseUrl . '/route', 'POST', $this->routeBody($fromAsset, $toAsset, $params));
+        $sendsBalances = ($this->fieldAt($params, 'balances') !== null);
+        //  an audit id the caller chose, so their log and the router's decision log can be
+        //  joined. The service mints one when this is absent, and echoes whichever it used.
+        $requestId = $this->stringAt($params, 'requestId', '');
+        if ($sendsBalances) {
+            $route = $this->request($this->baseUrl . '/route', 'POST', $this->routeBody($fromAsset, $toAsset, $params), $requestId);
         } else {
-            $route = $this->request($this->baseUrl . '/route?' . $this->routeQuery($fromAsset, $toAsset, $params), 'GET', array());
+            $route = $this->request($this->baseUrl . '/route?' . $this->routeQuery($fromAsset, $toAsset, $params), 'GET', array(), $requestId);
         }
+        if ($sendsBalances) {
+            //  CHECKED HERE, not only in fetchRouteWithBalances. `params['balances']` is a
+            //  documented parameter of this method, and a caller who passes it directly was
+            //  getting no verification at all — the same silent failure, one call lower down.
+            $this->assertBalancesApplied($route, $params);
+        }
+        //  What THIS CLIENT asked for, stamped client-side so checkExecutionPlanSafety can
+        //  tell a flag that was honoured from one that was lost in transit. requireFullFill
+        //  is the one route parameter that fails OPEN.
+        $route['clientRequestedRequireFullFill'] = $this->boolAt($params, 'requireFullFill', false);
         //  Stamp the client's OWN record of the question onto the answer, so buildExecutionPlan
         //  can check that the route it is about to turn into real orders runs from the asset the
         //  caller offered to the asset the caller wanted — rather than trusting the server's echo.
         $route['clientRequestedFrom'] = strtoupper($fromAsset);
         $route['clientRequestedTo'] = strtoupper($toAsset);
         return $route;
+    }
+
+    /**
+     * @ignore
+     * throws unless the router confirmed it read the holdings that were sent
+     * @param array $route the RouteResult
+     * @param array $params the parameters the caller supplied
+     * @return void
+     */
+    public function assertBalancesApplied($route, $params) {
+        if ($this->boolAt($params, 'requireBalancesApplied', true) !== true) {
+            //  the caller opted out, with their eyes open
+            return;
+        }
+        //  /route declares its query without a JSON schema, so a router that predates the
+        //  balances feature IGNORES them and answers byte-identically to one that never
+        //  received any.
+        if ($this->stringAt($route, 'balancesApplied', '') !== '') {
+            return;
+        }
+        //  An EMPTY echo is ambiguous on its own: '' is also the honest answer to `balances=`
+        //  meaning "I hold nothing". balanceEntryCount disambiguates by PRESENCE, not by
+        //  value — a current server sends 0, a server that never heard of the feature sends
+        //  nothing at all — so it is read with a sentinel default. This is the case the old
+        //  check skipped outright.
+        if ($this->numberAt($route, 'balanceEntryCount', -1) >= 0) {
+            return;
+        }
+        throw new ExchangeError('OrderRouter did not echo balancesApplied: the balances were ignored, so this route is not funded-aware');
     }
 
     /**
@@ -768,13 +811,21 @@ class OrderRouter {
      * @param string $url the fully-formed url, including the query string on a GET
      * @param string $method GET or POST
      * @param array $requestBody the JSON body, sent on a POST and ignored on a GET
+     * @param string $requestId an optional caller-chosen audit id, sent as x-request-id
      * @return array the decoded JSON body
      */
-    public function request($url, $method = 'GET', $requestBody = array()) {
+    public function request($url, $method = 'GET', $requestBody = array(), $requestId = '') {
         $headers = array(
             'x-api-key: ' . $this->apiKey,
             'Accept: application/json',
         );
+        if ($requestId !== '') {
+            //  the service caps this at 200 characters and mints its own when absent, so a
+            //  longer one is dropped rather than sent and rejected
+            if (strlen($requestId) <= 200) {
+                $headers[] = 'x-request-id: ' . $requestId;
+            }
+        }
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         if ($method === 'POST') {
@@ -935,7 +986,6 @@ class OrderRouter {
      */
     public function fetchRouteWithBalances($fromAsset, $toAsset, $venues, $params = array()) {
         $this->assertSyncVenues($venues);
-        $requireApplied = $this->boolAt($params, 'requireBalancesApplied', true);
         $exchangeIds = array_keys($venues);
         sort($exchangeIds, SORT_STRING);
         $entries = array();
@@ -1001,15 +1051,9 @@ class OrderRouter {
         }
         $routeParams['balances'] = $balances;
         $route = $this->fetchRoute($fromAsset, $toAsset, $routeParams);
-        if ($requireApplied && ($balances !== '')) {
-            //  /route declares its query without a JSON schema, so a router that
-            //  predates the balances feature answers byte-identically to one
-            //  that never received it. Executing a plan computed against a
-            //  portfolio the server never saw is the case worth failing on.
-            if ($this->stringAt($route, 'balancesApplied', '') === '') {
-                throw new ExchangeError('OrderRouter did not echo balancesApplied: the balances were ignored, so this route is not funded-aware');
-            }
-        }
+        //  The echo check itself now lives in fetchRoute, which this call went through, and
+        //  params['requireBalancesApplied'] travelled with it — including the empty-balances
+        //  case, which the check that used to live here skipped outright.
         $route['balancesUsed'] = $balances;
         $route['balancesDropped'] = $dropped;
         return $route;
@@ -1189,6 +1233,17 @@ class OrderRouter {
                     'effectivePrice' => $effectivePrice,
                     'limitPrice' => $limitPrice,
                     'notionalQuote' => $amount * $expectedPrice,
+                    //  The taker fee the ROUTER predicted for this leg, always denominated
+                    //  in the quote currency (the service's own RouteLeg.feeCost contract).
+                    //  Carried so stepExpectedOut can measure the expectation the same way
+                    //  execute measures the realised amount — see the note there. 0 on a
+                    //  hand-built plan, which is exactly the old behaviour.
+                    'expectedFeeCost' => $this->numberAt($leg, 'feeCost', 0),
+                    //  This leg was cut short by the WALLET, not by the book: more was on
+                    //  offer, the balances just could not pay for it. Size-capped and
+                    //  depth-capped look identical in the numbers and need different
+                    //  follow-up.
+                    'balanceLimited' => $this->boolAt($leg, 'balanceLimited', false),
                 );
                 $stepIndex = $stepIndex + 1;
             }
@@ -1205,6 +1260,11 @@ class OrderRouter {
             'fullyFillable' => $this->boolAt($route, 'fullyFillable', false),
             'fillRatio' => $this->numberAt($route, 'fillRatio', 0),
             'unroutableReason' => $this->stringAt($route, 'unroutableReason', ''),
+            //  WHICH hop could not be solved. -1 when the route is routable or the server did
+            //  not say; 0 is a real answer and must not read as "unknown".
+            'unroutableHopIndex' => $this->numberAt($route, 'unroutableHopIndex', -1),
+            //  What the CALLER asked for, stamped by fetchRoute — not the server's echo.
+            'requireFullFill' => $this->boolAt($route, 'clientRequestedRequireFullFill', false),
             'hopCount' => count($hops),
             'stepCount' => count($steps),
             'slippageBps' => $slippageBps,
@@ -1246,7 +1306,11 @@ class OrderRouter {
             $violations[] = $this->violation(-1, '', '', 'route_unroutable', true, 0, 0);
         }
         if (!$this->boolAt($plan, 'fullyFillable', false)) {
-            $violations[] = $this->violation(-1, '', '', 'partial_fill', false, $this->numberAt($plan, 'fillRatio', 0), 1);
+            //  BLOCKING when the caller asked for requireFullFill. That parameter is the one
+            //  route flag that fails OPEN: a partial route in the same breath as the flag
+            //  means the flag did not survive the trip.
+            $requiredFullFill = $this->boolAt($plan, 'requireFullFill', false);
+            $violations[] = $this->violation(-1, '', '', 'partial_fill', $requiredFullFill, $this->numberAt($plan, 'fillRatio', 0), 1);
         }
         for ($i = 0; $i < count($steps); $i++) {
             $step = $steps[$i];
@@ -1573,9 +1637,34 @@ class OrderRouter {
     public function stepExpectedOut($step) {
         $amount = $this->numberAt($step, 'amount', 0);
         if ($this->stringAt($step, 'side', '') === 'buy') {
+            //  A buy produces BASE, and the router's predicted fee is quote-denominated,
+            //  so it does not reduce what this step hands to the next one. A venue that
+            //  charges its buy fee in the base asset really does deliver less, and the
+            //  resize that follows from it is correct.
             return $amount;
         }
-        return $amount * $this->numberAt($step, 'expectedPrice', 0);
+        //  A SELL produces QUOTE, which is the currency the predicted fee is already in.
+        //
+        //  This subtraction is what stops the fee being counted TWICE. execute() reports
+        //  realisedOut net of a fee charged in the asset the step produced, because that is
+        //  what the wallet actually receives. The router, in turn, already sized the next
+        //  hop from its own NET figure: in the shared fixture, hop 0 sells 500 DOGE at
+        //  0.089 for 44.5 gross, reports amountOut 44.47482324238088 after a
+        //  0.025176757619121304 USDT fee, and hop 1's amountIn is that net number to the
+        //  last digit. Measuring the expectation gross against a realised amount that is
+        //  net therefore reported a shortfall on a PERFECT fill and shrank the next hop by
+        //  the fee a second time, stranding it in the bridge asset.
+        //
+        //  Gross stays gross where gross is right: notionalQuote is what the order is worth
+        //  to the venue and is untouched, as is the notional cap built on it.
+        $gross = $amount * $this->numberAt($step, 'expectedPrice', 0);
+        $expectedFee = $this->numberAt($step, 'expectedFeeCost', 0);
+        if (($expectedFee <= 0) || ($expectedFee >= $gross)) {
+            //  a fee at or above the whole proceeds is not a fee this class will subtract:
+            //  it would report an expectation of zero or less and turn every fill into a halt
+            return $gross;
+        }
+        return $gross - $expectedFee;
     }
 
     //  -----------------------------------------------------------------------
@@ -2060,6 +2149,10 @@ class OrderRouter {
                 'effectivePrice' => $this->numberAt($step, 'effectivePrice', 0),
                 'limitPrice' => $this->stepLimitPrice($step),
                 'notionalQuote' => $this->stepNotionalQuote($step),
+                //  carried through the clone because execute() reconciles against THESE
+                //  steps, not the plan's: without it the fee netting would be measured
+                //  against a gross expectation on every live run
+                'expectedFeeCost' => $this->numberAt($step, 'expectedFeeCost', 0),
             );
         }
         return $copies;

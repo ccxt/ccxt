@@ -405,11 +405,53 @@ test('reconcileExecutionStep halts on a total miss and on an over-tolerance shor
     const plan = router.buildExecutionPlan(fixture['routes']['multiHop'], {});
     assert.strictEqual(router.reconcileExecutionStep(plan, 0, 0)['verdict'], 'halt');
     assert.strictEqual(router.reconcileExecutionStep(plan, 0, 0)['reason'], 'nothing_filled');
-    //  expectedOut of step 0 is 500 * 0.089 = 44.5; 2% of that is 0.89
-    assert.strictEqual(router.reconcileExecutionStep(plan, 0, 44.5 - 0.88)['verdict'], 'proceed');
-    assert.strictEqual(router.reconcileExecutionStep(plan, 0, 44.5 - 0.9)['verdict'], 'halt');
-    assert.strictEqual(router.reconcileExecutionStep(plan, 0, 44.5 - 0.9)['reason'], 'shortfall_exceeds_tolerance');
+    //  expectedOut of step 0 is 500 * 0.089 = 44.5 GROSS, less the 0.025176757619121304
+    //  USDT fee the router itself predicted = 44.47482324238088. 2% of that is
+    //  0.8894964648476176.
+    const expectedOut = 44.47482324238088;
+    assert.strictEqual(router.reconcileExecutionStep(plan, 0, expectedOut - 0.88)['verdict'], 'proceed');
+    assert.strictEqual(router.reconcileExecutionStep(plan, 0, expectedOut - 0.9)['verdict'], 'halt');
+    assert.strictEqual(router.reconcileExecutionStep(plan, 0, expectedOut - 0.9)['reason'], 'shortfall_exceeds_tolerance');
     assert.throws(() => router.reconcileExecutionStep(plan, 7, 1), BadRequest);
+});
+test('a fee the router already subtracted is not subtracted a second time', () => {
+    //  THE REGRESSION THIS EXISTS FOR. execute() reports realisedOut NET of a fee charged
+    //  in the asset the step produced, because that is what the wallet receives. The
+    //  router had already done the same: in this fixture hop 0 sells 500 DOGE at 0.089
+    //  for 44.5 gross, reports amountOut 44.47482324238088 after a 0.025176757619121304
+    //  USDT fee, and hop 1's amountIn is that net figure to the last digit — hop 1's leg
+    //  amount was sized from it.
+    //
+    //  Measuring the expectation GROSS against a NET realised amount therefore reported a
+    //  shortfall on a perfect fill and shrank hop 1 by the fee all over again, stranding
+    //  it in the bridge asset. This asserts the arithmetic closes: a fill of exactly what
+    //  the router promised is a fill of exactly what the router promised.
+    const route = fixture['routes']['multiHop'];
+    const hopZero = route['hops'][0];
+    const hopOne = route['hops'][1];
+    const plan = router.buildExecutionPlan(route, {});
+    //  the premise, asserted rather than assumed: the router's own numbers really are net
+    assert.strictEqual(hopZero['amountOut'], 500 * 0.089 - hopZero['feeCost']);
+    assert.strictEqual(hopOne['amountIn'], hopZero['amountOut'], 'hop 1 was sized from the NET proceeds of hop 0');
+    //  and the plan measures the expectation the same way the router did
+    assert.strictEqual(plan['steps'][0]['expectedFeeCost'], hopZero['legs'][0]['feeCost']);
+    const verdict = router.reconcileExecutionStep(plan, 0, hopZero['amountOut']);
+    assert.strictEqual(verdict['expectedOut'], hopZero['amountOut'], 'expected equals what the router said the hop produces');
+    assert.strictEqual(verdict['shortfall'], 0, 'a perfect fill is not a shortfall');
+    assert.strictEqual(verdict['scale'], 1, 'and does not resize anything');
+    assert.strictEqual(verdict['verdict'], 'proceed');
+    for (let i = 0; i < verdict['resizedSteps'].length; i++) {
+        assert.strictEqual(verdict['resizedSteps'][i]['amount'], verdict['resizedSteps'][i]['previousAmount'], 'hop 1 keeps the size the router gave it');
+    }
+    //  notionalQuote is what the order is worth to the VENUE and stays gross — the fee is
+    //  charged on top of it, not deducted from what is sent
+    assert.strictEqual(plan['steps'][0]['notionalQuote'], 44.5);
+    //  a BUY produces base, and the predicted fee is quote-denominated, so it never
+    //  reduces what a buy hands to the next hop
+    assert.strictEqual(router.stepExpectedOut(plan['steps'][1]), hopOne['amountOut']);
+    //  a hand-built plan carries no expectedFeeCost, and behaves exactly as before
+    const handBuilt = { 'side': 'sell', 'amount': 10, 'expectedPrice': 2 };
+    assert.strictEqual(router.stepExpectedOut(handBuilt), 20);
 });
 test('buildUnwindPlan is never automatic and never nets across venues', () => {
     const unwind = router.buildUnwindPlan(fixture['reports']['haltedCrossVenue']);
@@ -1024,7 +1066,7 @@ test('a route carrying balances is POSTed, and the holdings never appear in the 
     //  The service scrubs balances from its own logs, but the URL leaves the process: a
     //  reverse proxy, an ALB and a CDN all log the full request line, as do browser history
     //  and client-side tracing. This is the assertion that keeps the wallet out of them.
-    const recorder = new RecordingRouter({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' }, { 'hops': [] });
+    const recorder = new RecordingRouter({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' }, { 'hops': [], 'balancesApplied': 'binance.BTC:1,binance.USDT:1000' });
     await recorder.fetchRoute('usdt', 'btc', { 'amountIn': 10, 'balances': 'binance.USDT:1000,binance.BTC:1', 'certified': true, 'maxVenues': 2 });
     assert.strictEqual(recorder.lastMethod, 'POST');
     assert.strictEqual(recorder.lastUrl, 'https://example.test/api/route', 'no query string at all');
@@ -1044,10 +1086,68 @@ test('an empty-string balances value is still holdings, and still goes by POST',
     //  '' is what a caller gets from a venue with nothing in it. It is not "no balances
     //  parameter" — the router reads it, and a check that treated it as absent would put
     //  the NEXT non-empty value on the same code path back into the url.
-    const recorder = new RecordingRouter({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' }, { 'hops': [] });
+    //  balanceEntryCount 0 is how a CURRENT server answers "you hold nothing": the echo
+    //  itself is empty, and only the presence of this field says the server understood.
+    const recorder = new RecordingRouter({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' }, { 'hops': [], 'balanceEntryCount': 0 });
     await recorder.fetchRoute('usdt', 'btc', { 'amountIn': 10, 'balances': '' });
     assert.strictEqual(recorder.lastMethod, 'POST');
     assert.strictEqual(recorder.lastBody['balances'], '');
+});
+test('a router that ignored the balances is caught, including when the wallet is empty', async () => {
+    //  /route declares its query without a JSON schema, so a server that predates the
+    //  balances feature answers byte-identically to one that never received any. Executing
+    //  a plan computed against a portfolio the server never saw is the case worth failing
+    //  on — and it is the EMPTY wallet that used to slip through, because the old check
+    //  skipped itself whenever the balances string was ''.
+    const legacyNonEmpty = new RecordingRouter({ 'apiKey': 'k' }, { 'hops': [] });
+    await assert.rejects(async () => {
+        await legacyNonEmpty.fetchRoute('USDT', 'BTC', { 'amountIn': 10, 'balances': 'binance.USDT:1000' });
+    }, ExchangeError, 'a non-empty wallet the server ignored');
+    const legacyEmpty = new RecordingRouter({ 'apiKey': 'k' }, { 'hops': [] });
+    await assert.rejects(async () => {
+        await legacyEmpty.fetchRoute('USDT', 'BTC', { 'amountIn': 10, 'balances': '' });
+    }, ExchangeError, 'an EMPTY wallet the server ignored — the case that used to be skipped');
+    //  a current server answering the empty wallet honestly is NOT an error
+    const current = new RecordingRouter({ 'apiKey': 'k' }, { 'hops': [], 'balanceEntryCount': 0 });
+    const route = await current.fetchRoute('USDT', 'BTC', { 'amountIn': 10, 'balances': '' });
+    assert.strictEqual(route['clientRequestedTo'], 'BTC');
+    //  and a caller can still opt out with their eyes open
+    const opted = new RecordingRouter({ 'apiKey': 'k' }, { 'hops': [] });
+    await opted.fetchRoute('USDT', 'BTC', { 'amountIn': 10, 'balances': '', 'requireBalancesApplied': false });
+    //  a route with NO balances is never subject to the check
+    const noBalances = new RecordingRouter({ 'apiKey': 'k' }, { 'hops': [] });
+    await noBalances.fetchRoute('USDT', 'BTC', { 'amountIn': 10 });
+    assert.strictEqual(noBalances.lastMethod, 'GET');
+});
+test('a caller-chosen audit id travels as x-request-id', async () => {
+    //  the service mints one when absent; supplying one is what lets a caller join their own
+    //  log to the router's decision log for a request that never returned a body
+    const stub = stubFetch(200, JSON.stringify({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' });
+        await router.fetchRoute('USDT', 'BTC', { 'amountIn': 10, 'requestId': 'caller-chosen-id' });
+        assert.strictEqual(stub.calls[0]['options']['headers']['x-request-id'], 'caller-chosen-id');
+        //  and it is NOT a route query parameter
+        assert.strictEqual(stub.calls[0]['url'].indexOf('requestId'), -1);
+    }
+    finally {
+        stub.restore();
+    }
+    //  the service caps it at 200 characters, so a longer one is dropped rather than sent
+    //  and rejected
+    const tooLong = stubFetch(200, JSON.stringify({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter({ 'apiKey': 'k', 'baseUrl': 'https://example.test/api' });
+        let id = '';
+        for (let i = 0; i < 201; i++) {
+            id = id + 'x';
+        }
+        await router.fetchRoute('USDT', 'BTC', { 'amountIn': 10, 'requestId': id });
+        assert.strictEqual(tooLong.calls[0]['options']['headers']['x-request-id'], undefined);
+    }
+    finally {
+        tooLong.restore();
+    }
 });
 test('fetchRouteWithBalances skips zeros, sorts largest first and reports what it dropped', async () => {
     const recorder = new RecordingRouter({ 'apiKey': 'k' }, { 'hops': [], 'balancesApplied': 'stub.BTC:1,stub.USDT:1000' });
@@ -1260,7 +1360,7 @@ test('a POST carries a JSON body and the key, a GET carries no body at all', asy
     const stub = stubFetch(200, JSON.stringify({ 'hops': [] }), {});
     try {
         const router = new OrderRouter({ 'apiKey': 'secret-key', 'baseUrl': 'https://example.test/api' });
-        await router.fetchRoute('USDT', 'BTC', { 'amountIn': 10, 'balances': 'binance.USDT:1000' });
+        await router.fetchRoute('USDT', 'BTC', { 'amountIn': 10, 'balances': 'binance.USDT:1000', 'requireBalancesApplied': false });
         const options = stub.calls[0]['options'];
         assert.strictEqual(options['method'], 'POST');
         assert.strictEqual(options['headers']['Content-Type'], 'application/json');
@@ -1484,6 +1584,44 @@ test('fixture: a fee in the acquired asset resizes what the next hop is sized on
         assert.ok(numbersMatch(step['outAmount'], expected['outAmount']), where + ': outAmount ' + String(step['outAmount']));
         assert.ok(numbersMatch(step['feeCost'], expected['feeCost']), where + ': feeCost ' + String(step['feeCost']));
     }
+});
+test('the fee fix reaches the LIVE path, not just a direct reconcile call', async () => {
+    //  THE GUARD AGAINST A SILENT NO-OP. execute() does not reconcile against the plan's
+    //  steps — it reconciles against cloneSteps(plan), which rebuilds each step from a
+    //  whitelist. expectedFeeCost therefore has to be carried through that clone or the
+    //  netting above is correct in reconcileExecutionStep and INERT in every real run, which
+    //  is exactly the shape of bug that ships unnoticed.
+    //
+    //  A sell of 100 BTC at 100 is 10000 gross; the router predicts a 5 USDT fee, so it
+    //  promises 9995. The venue fills completely and charges exactly that, in USDT — the
+    //  asset the step produced. Nothing went wrong, and nothing should be reported wrong.
+    const route = oneLegRoute('sell', 'BTC', 'USDT', 100, 100);
+    route['hops'][0]['legs'][0]['feeCost'] = 5;
+    route['hops'][0]['amountOut'] = 9995;
+    //  slippageBps 0 so the limit price equals the expected price: the stub fills AT the
+    //  limit, and any slippage would put a second, unrelated shortfall in the same number
+    const plan = router.buildExecutionPlan(route, { 'slippageBps': 0 });
+    assert.strictEqual(plan['steps'][0]['expectedFeeCost'], 5);
+    //  the clone execute actually runs on
+    const cloned = router.cloneSteps(plan);
+    assert.strictEqual(cloned[0]['expectedFeeCost'], 5, 'the clone carries the predicted fee');
+    const venue = new StubVenue('stub');
+    venue.feeToCharge = { 'cost': 5, 'currency': 'USDT' };
+    const events = [];
+    const report = await router.execute(plan, { 'stub': venue }, {
+        'strategy': 'sequential',
+        'live': true,
+        'usdRates': { 'USDT': 1 },
+        'onStep': (event) => { events.push(event); return 'continue'; },
+    });
+    const step = report['steps'][0];
+    assert.strictEqual(step['outAmount'], 9995, 'the wallet received the net amount');
+    assert.strictEqual(step['grossOutAmount'], 10000, 'and the gross is still reported');
+    const reconciliation = events[0]['reconciliation'];
+    assert.strictEqual(reconciliation['expectedOut'], 9995, 'the expectation is the router\'s own net promise');
+    assert.strictEqual(reconciliation['shortfall'], 0, 'a complete fill charged exactly the predicted fee is not a shortfall');
+    assert.strictEqual(reconciliation['scale'], 1);
+    assert.strictEqual(report['halted'], false);
 });
 test('a fee charged in the acquired asset is netted out of what the next hop is sized on', async () => {
     //  filled and cost are GROSS of fees — the manual says so — so a venue taking its cut in the

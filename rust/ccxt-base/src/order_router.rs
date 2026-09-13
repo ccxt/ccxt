@@ -768,6 +768,22 @@ impl OrderRouter {
                 step.insert("effectivePrice".into(), Value::Float(effective_price));
                 step.insert("limitPrice".into(), Value::Float(limit_price));
                 step.insert("notionalQuote".into(), Value::Float(amount * expected_price));
+                // The taker fee the ROUTER predicted for this leg, always denominated in
+                // the quote currency (the service's own RouteLeg.feeCost contract). Carried
+                // so step_expected_out can measure the expectation the same way execute
+                // measures the realised amount — see the note there. 0 on a hand-built plan,
+                // which is exactly the old behaviour.
+                step.insert(
+                    "expectedFeeCost".into(),
+                    Value::Float(self.number_at(leg, "feeCost", 0.0)),
+                );
+                // This leg was cut short by the WALLET, not by the book: more was on offer,
+                // the balances just could not pay for it. Size-capped and depth-capped look
+                // identical in the numbers and need different follow-up.
+                step.insert(
+                    "balanceLimited".into(),
+                    Value::Bool(self.bool_at(leg, "balanceLimited", false)),
+                );
                 steps.push(Value::Map(step));
                 step_index += 1;
             }
@@ -784,6 +800,17 @@ impl OrderRouter {
         plan.insert("fullyFillable".into(), Value::Bool(self.bool_at(route, "fullyFillable", false)));
         plan.insert("fillRatio".into(), Value::Float(self.number_at(route, "fillRatio", 0.0)));
         plan.insert("unroutableReason".into(), Value::Str(self.string_at(route, "unroutableReason", "")));
+        // WHICH hop could not be solved. -1 when the route is routable or the server did not
+        // say; 0 is a real answer and must not read as "unknown".
+        plan.insert(
+            "unroutableHopIndex".into(),
+            Value::Float(self.number_at(route, "unroutableHopIndex", -1.0)),
+        );
+        // What the CALLER asked for, stamped by fetch_route — not the server's echo.
+        plan.insert(
+            "requireFullFill".into(),
+            Value::Bool(self.bool_at(route, "clientRequestedRequireFullFill", false)),
+        );
         plan.insert("hopCount".into(), Value::Float(hops.len() as f64));
         plan.insert("stepCount".into(), Value::Float(steps.len() as f64));
         plan.insert("slippageBps".into(), Value::Float(slippage_bps));
@@ -969,7 +996,16 @@ impl OrderRouter {
         }
         if !self.bool_at(plan, "fullyFillable", false) {
             violations.push(self.violation(
-                -1.0, "", "", "partial_fill", false, self.number_at(plan, "fillRatio", 0.0), 1.0,
+                // BLOCKING when the caller asked for requireFullFill. That parameter is
+                // the one route flag that fails OPEN: a partial route in the same breath as
+                // the flag means the flag did not survive the trip.
+                -1.0,
+                "",
+                "",
+                "partial_fill",
+                self.bool_at(plan, "requireFullFill", false),
+                self.number_at(plan, "fillRatio", 0.0),
+                1.0,
             ));
         }
         for (i, step) in steps.iter().enumerate() {
@@ -1103,9 +1139,35 @@ impl OrderRouter {
     pub fn step_expected_out(&self, step: &Value) -> f64 {
         let amount = self.number_at(step, "amount", 0.0);
         if self.string_at(step, "side", "") == "buy" {
+            // A buy produces BASE, and the router's predicted fee is quote-denominated,
+            // so it does not reduce what this step hands to the next one. A venue that
+            // charges its buy fee in the base asset really does deliver less, and the
+            // resize that follows from it is correct.
             return amount;
         }
-        amount * self.number_at(step, "expectedPrice", 0.0)
+        // A SELL produces QUOTE, which is the currency the predicted fee is already in.
+        //
+        // This subtraction is what stops the fee being counted TWICE. execute reports
+        // realisedOut net of a fee charged in the asset the step produced, because that
+        // is what the wallet actually receives. The router, in turn, already sized the
+        // next hop from its own NET figure: in the shared fixture, hop 0 sells 500 DOGE
+        // at 0.089 for 44.5 gross, reports amountOut 44.47482324238088 after a
+        // 0.025176757619121304 USDT fee, and hop 1's amountIn is that net number to the
+        // last digit. Measuring the expectation gross against a realised amount that is
+        // net therefore reported a shortfall on a PERFECT fill and shrank the next hop by
+        // the fee a second time, stranding it in the bridge asset.
+        //
+        // Gross stays gross where gross is right: notionalQuote is what the order is
+        // worth to the venue and is untouched, as is the notional cap built on it.
+        let gross = amount * self.number_at(step, "expectedPrice", 0.0);
+        let expected_fee = self.number_at(step, "expectedFeeCost", 0.0);
+        if expected_fee <= 0.0 || expected_fee >= gross {
+            // a fee at or above the whole proceeds is not a fee this class will
+            // subtract: it would report an expectation of zero or less and turn every
+            // fill into a halt
+            return gross;
+        }
+        gross - expected_fee
     }
 
     /// Reports whether a field holds a usable number, as opposed to holding
@@ -1662,16 +1724,31 @@ impl OrderRouter {
         // A request carrying no holdings still goes as a GET: cacheable,
         // linkable, and what every existing caller already uses. One that
         // carries them is POSTed — see build_route_body for why.
-        let mut route = match field(params, "balances") {
-            Some(_) => {
-                let body = self.build_route_body(from_asset, to_asset, params)?;
-                self.request(&format!("{}/route", self.base_url), "POST", &body).await?
-            }
-            None => {
-                let url = self.build_route_url(from_asset, to_asset, params)?;
-                self.request(&url, "GET", &Value::Null).await?
-            }
+        let sends_balances = field(params, "balances").is_some();
+        // an audit id the caller chose, so their log and the router's decision log can be
+        // joined. The service mints one when this is absent, and echoes whichever it used.
+        let request_id = self.string_at(params, "requestId", "");
+        let mut route = if sends_balances {
+            let body = self.build_route_body(from_asset, to_asset, params)?;
+            self.request(&format!("{}/route", self.base_url), "POST", &body, &request_id).await?
+        } else {
+            let url = self.build_route_url(from_asset, to_asset, params)?;
+            self.request(&url, "GET", &Value::Null, &request_id).await?
         };
+        if sends_balances {
+            // CHECKED HERE, not only in fetch_route_with_balances. `balances` is a
+            // documented parameter of this method, and a caller who passes it directly was
+            // getting no verification at all — the same silent failure, one call lower down.
+            self.assert_balances_applied(&route, params)?;
+        }
+        // What THIS CLIENT asked for, stamped client-side so check_execution_plan_safety can
+        // tell a flag that was honoured from one that was lost in transit. requireFullFill is
+        // the one route parameter that fails OPEN.
+        Self::put(
+            &mut route,
+            "clientRequestedRequireFullFill",
+            Value::Bool(self.bool_at(params, "requireFullFill", false)),
+        );
         // Stamp what THIS CLIENT asked for, client-side, so build_execution_plan
         // can check the answer against the question. Everything else in the
         // response — from, to, pair, side — is the server's word for it, and the
@@ -1682,6 +1759,30 @@ impl OrderRouter {
         Self::put(&mut route, "clientRequestedFrom", Value::Str(from_asset.to_uppercase()));
         Self::put(&mut route, "clientRequestedTo", Value::Str(to_asset.to_uppercase()));
         Ok(route)
+    }
+
+    /// Errors unless the router confirmed it read the holdings that were sent.
+    pub fn assert_balances_applied(&self, route: &Value, params: &Value) -> RouterResult<()> {
+        if !self.bool_at(params, "requireBalancesApplied", true) {
+            // the caller opted out, with their eyes open
+            return Ok(());
+        }
+        // /route declares its query without a JSON schema, so a router that predates the
+        // balances feature IGNORES them and answers byte-identically to one that never
+        // received any.
+        if !self.string_at(route, "balancesApplied", "").is_empty() {
+            return Ok(());
+        }
+        // An EMPTY echo is ambiguous on its own: "" is also the honest answer to `balances=`
+        // meaning "I hold nothing". balanceEntryCount disambiguates by PRESENCE, not by
+        // value — a current server sends 0, a server that never heard of the feature sends
+        // nothing at all. This is the case the old check skipped outright.
+        if self.number_at(route, "balanceEntryCount", -1.0) >= 0.0 {
+            return Ok(());
+        }
+        Err(exchange_error(
+            "OrderRouter did not echo balancesApplied: the balances were ignored, so this route is not funded-aware",
+        ))
     }
 
     /// Renders a retry interval as a message suffix, empty when the service sent
@@ -1719,7 +1820,13 @@ impl OrderRouter {
 
     /// Performs the authenticated call and maps router status codes onto ccxt
     /// error kinds.
-    pub async fn request(&self, url: &str, method: &str, request_body: &Value) -> RouterResult<Value> {
+    pub async fn request(
+        &self,
+        url: &str,
+        method: &str,
+        request_body: &Value,
+        request_id: &str,
+    ) -> RouterResult<Value> {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_millis(self.timeout_ms.max(0.0) as u64))
             .build()
@@ -1735,6 +1842,11 @@ impl OrderRouter {
         builder = builder
             .header("x-api-key", &self.api_key)
             .header("Accept", "application/json");
+        if !request_id.is_empty() && request_id.len() <= 200 {
+            // the service caps this at 200 characters and mints its own when absent, so a
+            // longer one is dropped rather than sent and rejected
+            builder = builder.header("x-request-id", request_id);
+        }
         let response = builder.send().await;
         let response = match response {
             Ok(found) => found,
@@ -1832,7 +1944,7 @@ impl OrderRouter {
     /// boot, before a single venue has connected. Use `fetch_readiness` to decide
     /// whether the router can actually price anything.
     pub async fn fetch_health(&self) -> RouterResult<Value> {
-        self.request(&format!("{}/health", self.base_url), "GET", &Value::Null).await
+        self.request(&format!("{}/health", self.base_url), "GET", &Value::Null, "").await
     }
 
     /// Whether the router has enough fresh books to rank on, measured with the
@@ -1842,7 +1954,7 @@ impl OrderRouter {
     /// it returns on 200, and this method returns it rather than erroring,
     /// because a caller asking "are you ready" needs the counts that say why not.
     pub async fn fetch_readiness(&self) -> RouterResult<Value> {
-        self.request(&format!("{}/ready", self.base_url), "GET", &Value::Null).await
+        self.request(&format!("{}/ready", self.base_url), "GET", &Value::Null, "").await
     }
 
     /// Build provenance of the running process. This is what a deploy pipeline
@@ -1850,13 +1962,13 @@ impl OrderRouter {
     /// happily when a deploy silently no-ops, and `commit` is the only field that
     /// tells the two apart.
     pub async fn fetch_version(&self) -> RouterResult<Value> {
-        self.request(&format!("{}/version", self.base_url), "GET", &Value::Null).await
+        self.request(&format!("{}/version", self.base_url), "GET", &Value::Null, "").await
     }
 
     /// The unified symbols the router currently holds a cached book for. A pair
     /// absent from this list cannot be routed no matter how it is spelled.
     pub async fn fetch_symbols(&self) -> RouterResult<Vec<Value>> {
-        let response = self.request(&format!("{}/symbols", self.base_url), "GET", &Value::Null).await?;
+        let response = self.request(&format!("{}/symbols", self.base_url), "GET", &Value::Null, "").await?;
         Ok(self.list_at(&response, "symbols"))
     }
 
@@ -1865,7 +1977,7 @@ impl OrderRouter {
     /// only the connected flag.
     pub async fn fetch_exchanges_status(&self) -> RouterResult<Vec<Value>> {
         let response = self
-            .request(&format!("{}/exchanges/status", self.base_url), "GET", &Value::Null)
+            .request(&format!("{}/exchanges/status", self.base_url), "GET", &Value::Null, "")
             .await?;
         Ok(self.list_at(&response, "exchanges"))
     }
@@ -1885,7 +1997,7 @@ impl OrderRouter {
             Self::encode_uri_component(exchange_id),
             Self::encode_uri_component(symbol)
         );
-        self.request(&url, "GET", &Value::Null).await
+        self.request(&url, "GET", &Value::Null, "").await
     }
 }
 
@@ -1938,13 +2050,40 @@ impl OrderRouter {
     /// back into the caller's plan.
     fn clone_steps(&self, plan: &Value) -> Vec<Value> {
         let mut copied = Vec::new();
-        for step in self.list_at(plan, "steps") {
+        let steps = self.list_at(plan, "steps");
+        for (i, step) in steps.iter().enumerate() {
+            // NORMALISE, do not shallow-copy. This used to clone the incoming map field
+            // for field, which is fine for a plan build_execution_plan produced and wrong
+            // for every other plan the Manual says execute accepts: a hand-assembled one,
+            // one that travelled through JSON, or the rebuilt tail of a halted route.
+            //
+            // A step carrying no stepIndex then stayed absent, apply_resize reads it as
+            // -1.0, and reconcile_execution_step only ever names targets >= 0 — so the
+            // downstream resize matched nothing and silently applied NOTHING. Later hops
+            // went to the venue at their original unshrunk size, sized for money the
+            // bridge asset never received, and realisedOut was never written back, so a
+            // multi-leg hop compounded its scale instead of accumulating the shortfall.
+            //
+            // The other five ports have always rebuilt the step here; this is Rust
+            // catching up to them, field for field.
             let mut fresh = HashMap::new();
-            if let Some(map) = step.as_map() {
-                for (key, value) in map.iter() {
-                    fresh.insert(key.clone(), value.clone());
-                }
-            }
+            fresh.insert("stepIndex".into(), Value::Float(self.number_at(step, "stepIndex", i as f64)));
+            fresh.insert("hopIndex".into(), Value::Float(self.number_at(step, "hopIndex", 0.0)));
+            fresh.insert("legIndex".into(), Value::Float(self.number_at(step, "legIndex", 0.0)));
+            fresh.insert("exchangeId".into(), Value::Str(self.string_at(step, "exchangeId", "")));
+            fresh.insert("symbol".into(), Value::Str(self.string_at(step, "symbol", "")));
+            fresh.insert("side".into(), Value::Str(self.string_at(step, "side", "")));
+            fresh.insert("base".into(), Value::Str(self.string_at(step, "base", "")));
+            fresh.insert("quote".into(), Value::Str(self.string_at(step, "quote", "")));
+            fresh.insert("amount".into(), Value::Float(self.number_at(step, "amount", 0.0)));
+            fresh.insert("expectedPrice".into(), Value::Float(self.number_at(step, "expectedPrice", 0.0)));
+            fresh.insert("effectivePrice".into(), Value::Float(self.number_at(step, "effectivePrice", 0.0)));
+            fresh.insert("limitPrice".into(), Value::Float(self.step_limit_price(step)));
+            fresh.insert("notionalQuote".into(), Value::Float(self.step_notional_quote(step)));
+            // carried through the clone because execute reconciles against THESE steps,
+            // not the plan's: without it the fee netting would be measured against a
+            // gross expectation on every live run
+            fresh.insert("expectedFeeCost".into(), Value::Float(self.number_at(step, "expectedFeeCost", 0.0)));
             copied.push(Value::Map(fresh));
         }
         copied
@@ -2205,16 +2344,24 @@ impl OrderRouter {
             // No cap set, so there is nothing to enforce here.
             return Ok(());
         }
-        let usd_value = self.notional_usd(step, amount * price, usd_rates);
+        // A PROBE, not the step: `amount` here is the venue-SNAPPED size actually being
+        // sent, and the step still carries the unsnapped plan amount. notional_usd's
+        // base-side fallback values the order off `amount`, so passing the step valued the
+        // wrong quantity — the other five ports have always built this probe.
+        let mut probe = HashMap::new();
+        probe.insert("base".to_string(), Value::Str(self.string_at(step, "base", "")));
+        probe.insert("quote".to_string(), Value::Str(self.string_at(step, "quote", "")));
+        probe.insert("amount".to_string(), Value::Float(amount));
+        let usd_value = self.notional_usd(&Value::Map(probe), amount * price, usd_rates);
         if usd_value <= 0.0 {
             return Err(exchange_error(
                 "OrderRouter: refusing to place an order that cannot be valued in USD",
             ));
         }
         if usd_value > cap * (1.0 + TOLERANCE) {
-            return Err(exchange_error(&format!(
-                "OrderRouter: refusing to place an order of {usd_value} USD, over the {cap} USD cap"
-            )));
+            return Err(exchange_error(
+                "OrderRouter: refusing to place an order above the per-trade USD notional cap",
+            ));
         }
         Ok(())
     }
@@ -2280,9 +2427,12 @@ impl OrderRouter {
         // reconciliation since, and the snapped price is not the one that was
         // checked.
         if let Err(e) = self.assert_under_cap(step, amount, price, usd_rates, options) {
-            Self::put(&mut result, "errorCode", Value::Str("over_cap".into()));
-            self.record_error(report, step_index, &exchange_id, &symbol, "over_cap");
-            let _ = e;
+            // the exception's own class name, exactly as the other five ports record it.
+            // A hardcoded "over_cap" was wrong twice over: it did not match the five, and
+            // it labelled the "cannot be valued in USD" refusal — which is not a cap
+            // breach at all — as though the notional had exceeded the cap.
+            Self::put(&mut result, "errorCode", Value::Str(e.kind.clone()));
+            self.record_error(report, step_index, &exchange_id, &symbol, &e.kind);
             return result;
         }
         let order_params = self.dict_at(options, "orderParams");

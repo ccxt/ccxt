@@ -713,17 +713,115 @@ func TestOrderRouterReconcileHaltsOnATotalMissAndAnOverToleranceShortfall(t *tes
 	if routerStringAt(nothing, "verdict", "") != "halt" || routerStringAt(nothing, "reason", "") != "nothing_filled" {
 		t.Fatalf("nothing filled halts, got %v %v", nothing["verdict"], nothing["reason"])
 	}
-	// expectedOut of step 0 is 500 * 0.089 = 44.5; 2% of that is 0.89
-	inside, _ := router.ReconcileExecutionStep(plan, 0, 44.5-0.88)
+	// expectedOut of step 0 is 500 * 0.089 = 44.5 GROSS, less the 0.025176757619121304 USDT
+	// fee the router itself predicted = 44.47482324238088. 2% of that is 0.8894964648476176.
+	expectedOut := 44.47482324238088
+	inside, _ := router.ReconcileExecutionStep(plan, 0, expectedOut-0.88)
 	if routerStringAt(inside, "verdict", "") != "proceed" {
 		t.Fatalf("a shortfall inside tolerance proceeds, got %v", inside["verdict"])
 	}
-	outside, _ := router.ReconcileExecutionStep(plan, 0, 44.5-0.9)
+	outside, _ := router.ReconcileExecutionStep(plan, 0, expectedOut-0.9)
 	if routerStringAt(outside, "verdict", "") != "halt" || routerStringAt(outside, "reason", "") != "shortfall_exceeds_tolerance" {
 		t.Fatalf("a shortfall past tolerance halts, got %v %v", outside["verdict"], outside["reason"])
 	}
 	if _, err := router.ReconcileExecutionStep(plan, 7, 1); routerErrorCode(err) != "BadRequest" {
 		t.Fatalf("an out-of-range stepIndex is refused, got %v", err)
+	}
+}
+
+func TestOrderRouterBalancesEchoIsVerified(t *testing.T) {
+	// /route declares its query without a JSON schema, so a server that predates the balances
+	// feature answers byte-identically to one that never received any. It is the EMPTY wallet
+	// that used to slip through, because the old check skipped itself whenever the balances
+	// string was "".
+	legacy, _ := routerRecordingRouterFull(t, map[string]any{"apiKey": "k"}, map[string]any{"hops": []any{}})
+	if _, err := legacy.FetchRoute("USDT", "BTC", map[string]any{"amountIn": 10.0, "balances": "binance.USDT:1000"}); routerErrorCode(err) != "ExchangeError" {
+		t.Fatalf("a non-empty wallet the server ignored, got %v", err)
+	}
+	legacyEmpty, _ := routerRecordingRouterFull(t, map[string]any{"apiKey": "k"}, map[string]any{"hops": []any{}})
+	if _, err := legacyEmpty.FetchRoute("USDT", "BTC", map[string]any{"amountIn": 10.0, "balances": ""}); routerErrorCode(err) != "ExchangeError" {
+		t.Fatalf("an EMPTY wallet the server ignored, got %v", err)
+	}
+	// a current server answering the empty wallet honestly is NOT an error
+	current, _ := routerRecordingRouterFull(t, map[string]any{"apiKey": "k"}, map[string]any{"hops": []any{}, "balanceEntryCount": 0.0})
+	route, err := current.FetchRoute("USDT", "BTC", map[string]any{"amountIn": 10.0, "balances": ""})
+	if err != nil || routerStringAt(route, "clientRequestedTo", "") != "BTC" {
+		t.Fatalf("the empty wallet routes, got %v %v", route, err)
+	}
+	// and a caller can still opt out with their eyes open
+	opted, _ := routerRecordingRouterFull(t, map[string]any{"apiKey": "k"}, map[string]any{"hops": []any{}})
+	if _, err := opted.FetchRoute("USDT", "BTC", map[string]any{"amountIn": 10.0, "balances": "", "requireBalancesApplied": false}); err != nil {
+		t.Fatalf("the opt-out is honoured, got %v", err)
+	}
+	// a route with NO balances is never subject to the check
+	noBalances, seen := routerRecordingRouterFull(t, map[string]any{"apiKey": "k"}, map[string]any{"hops": []any{}})
+	if _, err := noBalances.FetchRoute("USDT", "BTC", map[string]any{"amountIn": 10.0}); err != nil || seen.method != "GET" {
+		t.Fatalf("a route with no holdings stays a GET, got %v %v", seen.method, err)
+	}
+}
+
+func TestOrderRouterFeeIsNotDoubleSubtracted(t *testing.T) {
+	// THE REGRESSION THIS EXISTS FOR. Execute reports realisedOut NET of a fee charged in
+	// the asset the step produced, because that is what the wallet receives. The router had
+	// already done the same: hop 0 sells 500 DOGE at 0.089 for 44.5 gross, reports amountOut
+	// 44.47482324238088 after a 0.025176757619121304 USDT fee, and hop 1's amountIn is that
+	// net figure to the last digit. Measuring the expectation GROSS against a NET realised
+	// amount reported a shortfall on a perfect fill and shrank hop 1 by the fee all over
+	// again, stranding it in the bridge asset.
+	router := routerTestRouter(t)
+	fixture := routerFixture(t)
+	route := routerDictAt(routerDictAt(fixture, "routes"), "multiHop")
+	hops := routerListAt(route, "hops")
+	hopZero := hops[0]
+	hopOne := hops[1]
+	plan := routerMustPlan(router.BuildExecutionPlan(route, nil))
+	steps := routerListAt(plan, "steps")
+	hopZeroFee := routerNumberAt(hopZero, "feeCost", 0)
+	hopZeroOut := routerNumberAt(hopZero, "amountOut", 0)
+	// the premise, asserted rather than assumed: the router's own numbers really are net
+	if hopZeroOut != 500*0.089-hopZeroFee {
+		t.Fatalf("the hop amountOut is net of its fee, got %v", hopZeroOut)
+	}
+	if routerNumberAt(hopOne, "amountIn", 0) != hopZeroOut {
+		t.Fatalf("hop 1 was sized from the NET proceeds of hop 0, got %v", routerNumberAt(hopOne, "amountIn", 0))
+	}
+	legFee := routerNumberAt(routerListAt(hopZero, "legs")[0], "feeCost", 0)
+	if routerNumberAt(steps[0], "expectedFeeCost", -1) != legFee {
+		t.Fatalf("the step carries the predicted fee, got %v", routerNumberAt(steps[0], "expectedFeeCost", -1))
+	}
+	verdict, err := router.ReconcileExecutionStep(plan, 0, hopZeroOut)
+	if err != nil {
+		t.Fatalf("reconcile: %v", err)
+	}
+	if routerNumberAt(verdict, "expectedOut", 0) != hopZeroOut {
+		t.Fatalf("expected equals what the router said the hop produces, got %v", routerNumberAt(verdict, "expectedOut", 0))
+	}
+	if routerNumberAt(verdict, "shortfall", -1) != 0 {
+		t.Fatalf("a perfect fill is not a shortfall, got %v", routerNumberAt(verdict, "shortfall", -1))
+	}
+	if routerNumberAt(verdict, "scale", 0) != 1 {
+		t.Fatalf("and does not resize anything, got %v", routerNumberAt(verdict, "scale", 0))
+	}
+	if routerStringAt(verdict, "verdict", "") != "proceed" {
+		t.Fatalf("and proceeds, got %v", verdict["verdict"])
+	}
+	for _, entry := range routerListAt(verdict, "resizedSteps") {
+		if routerNumberAt(entry, "amount", 0) != routerNumberAt(entry, "previousAmount", 0) {
+			t.Fatalf("hop 1 keeps the size the router gave it, got %v", entry)
+		}
+	}
+	// notionalQuote is what the order is worth to the VENUE and stays gross
+	if routerNumberAt(steps[0], "notionalQuote", 0) != 44.5 {
+		t.Fatalf("the order notional stays gross, got %v", routerNumberAt(steps[0], "notionalQuote", 0))
+	}
+	// a BUY produces base, and the predicted fee is quote-denominated
+	if router.stepExpectedOut(steps[1]) != routerNumberAt(hopOne, "amountOut", 0) {
+		t.Fatalf("a buy is unaffected, got %v", router.stepExpectedOut(steps[1]))
+	}
+	// a hand-built plan carries no expectedFeeCost, and behaves exactly as before
+	handBuilt := map[string]any{"side": "sell", "amount": 10.0, "expectedPrice": 2.0}
+	if router.stepExpectedOut(handBuilt) != 20 {
+		t.Fatalf("a hand-built plan is unchanged, got %v", router.stepExpectedOut(handBuilt))
 	}
 }
 
@@ -1790,7 +1888,7 @@ func TestOrderRouterFetchRouteWithBalancesIsPostedAndNeverInTheUrl(t *testing.T)
 	// process: a reverse proxy, an ALB and a CDN all log the full request line,
 	// as do browser history and client-side tracing. This is the assertion that
 	// keeps the wallet out of them.
-	router, seen := routerRecordingRouterFull(t, map[string]any{"apiKey": "k", "baseUrl": "https://example.test/api"}, map[string]any{"hops": []any{}})
+	router, seen := routerRecordingRouterFull(t, map[string]any{"apiKey": "k", "baseUrl": "https://example.test/api"}, map[string]any{"hops": []any{}, "balancesApplied": "binance.BTC:1,binance.USDT:1000"})
 	if _, err := router.FetchRoute("usdt", "btc", map[string]any{"amountIn": 10.0, "balances": "binance.USDT:1000,binance.BTC:1", "certified": true, "maxVenues": 2.0}); err != nil {
 		t.Fatalf("fetchRoute: %v", err)
 	}
@@ -1827,7 +1925,9 @@ func TestOrderRouterFetchRouteEmptyBalancesStillPosted(t *testing.T) {
 	// balances parameter" — the router reads it, and a check that treated it as
 	// absent would put the NEXT non-empty value on the same code path back into
 	// the url.
-	router, seen := routerRecordingRouterFull(t, map[string]any{"apiKey": "k", "baseUrl": "https://example.test/api"}, map[string]any{"hops": []any{}})
+	// balanceEntryCount 0 is how a CURRENT server answers "you hold nothing": the echo itself
+	// is empty, and only the presence of this field says the server understood.
+	router, seen := routerRecordingRouterFull(t, map[string]any{"apiKey": "k", "baseUrl": "https://example.test/api"}, map[string]any{"hops": []any{}, "balanceEntryCount": 0.0})
 	if _, err := router.FetchRoute("usdt", "btc", map[string]any{"amountIn": 10.0, "balances": ""}); err != nil {
 		t.Fatalf("fetchRoute: %v", err)
 	}
