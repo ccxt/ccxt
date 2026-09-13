@@ -7984,7 +7984,11 @@ export default class bitget extends Exchange {
             if (marketType !== 'spot') {
                 cursorReceived = 'endId';
             }
-            return await this.fetchPaginatedCallCursor ('fetchLedger', symbol, since, limit, params, cursorReceived, 'idLessThan') as LedgerEntry[];
+            params = this.extend (params, { 'type': marketType });
+            if (symbol !== undefined) {
+                params = this.extend (params, { 'symbol': symbol });
+            }
+            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, cursorReceived, 'idLessThan') as LedgerEntry[];
         }
         let currency: Currency = undefined;
         let request: Dict = {};

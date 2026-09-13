@@ -2669,7 +2669,7 @@
                 ],
                 "output": null
             },
-                        {
+            {
                 "description": "uta swap ledger for a single symbol",
                 "method": "fetchLedger",
                 "url": "https://api.bitget.com/api/v3/account/financial-records?category=USDT-FUTURES&symbol=BTCUSDT",
