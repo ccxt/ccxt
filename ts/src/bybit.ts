@@ -10111,11 +10111,9 @@ export default class bybit extends Exchange {
             }
         }
         if (method === 'POST') {
-            const brokerId = this.safeString (this.options, 'brokerId');
-            if (brokerId !== undefined) {
-                headers = (headers === undefined) ? {} : headers;
-                headers['Referer'] = brokerId;
-            }
+            const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
+            headers = (headers === undefined) ? {} : headers;
+            headers['Referer'] = brokerId;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
