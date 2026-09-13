@@ -7,6 +7,12 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.Order;
+import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Ticker;
+import io.github.ccxt.types.Tickers;
+import io.github.ccxt.types.Trade;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -99,7 +105,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    public CompletableFuture<io.github.ccxt.types.Ticker> watchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -136,7 +142,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 return (this.watch(url, messageHash, request, messageHash, null)).join();
             }
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        }).thenApply(io.github.ccxt.types.Ticker::new);
+        }).thenApply(Ticker::new);
 
     }
 
@@ -152,7 +158,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols
      */
-    public CompletableFuture<io.github.ccxt.types.Tickers> watchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -224,7 +230,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(io.github.ccxt.types.Tickers::new);
+        }).thenApply(Tickers::new);
 
     }
 
@@ -440,7 +446,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<io.github.ccxt.types.OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return CompletableFuture.supplyAsync(() -> {
@@ -479,7 +485,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(io.github.ccxt.types.OrderBook::new);
+        }).thenApply(OrderBook::new);
 
     }
 
@@ -651,7 +657,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    public CompletableFuture<List<io.github.ccxt.types.Trade>> watchTrades(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return CompletableFuture.supplyAsync(() -> {
@@ -695,7 +701,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -905,7 +911,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<io.github.ccxt.types.Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -931,7 +937,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }});
             Object balance = (this.watch(url, messageHash, request, messageHash, null)).join();
             return balance;
-        }).thenApply(io.github.ccxt.types.Balances::new);
+        }).thenApply(Balances::new);
 
     }
 
@@ -1054,7 +1060,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<io.github.ccxt.types.Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -1096,7 +1102,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 

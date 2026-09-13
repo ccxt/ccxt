@@ -6,6 +6,12 @@ import io.github.ccxt.api.BtcboxApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.Order;
+import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Ticker;
+import io.github.ccxt.types.Tickers;
+import io.github.ccxt.types.Trade;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -454,7 +460,7 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<io.github.ccxt.types.Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -466,7 +472,7 @@ public class Btcbox extends BtcboxApi
             }
             Map<String, Object> response = (this.privatePostBalance(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(io.github.ccxt.types.Balances::new);
+        }).thenApply(Balances::new);
 
     }
 
@@ -480,7 +486,7 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -500,7 +506,7 @@ public class Btcbox extends BtcboxApi
             }
             Map<String, Object> response = (this.publicGetDepth(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
-        }).thenApply(io.github.ccxt.types.OrderBook::new);
+        }).thenApply(OrderBook::new);
 
     }
 
@@ -542,7 +548,7 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -561,7 +567,7 @@ public class Btcbox extends BtcboxApi
             }
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
-        }).thenApply(io.github.ccxt.types.Ticker::new);
+        }).thenApply(Ticker::new);
 
     }
 
@@ -573,7 +579,7 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -586,7 +592,7 @@ public class Btcbox extends BtcboxApi
             }
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             return this.parseTickers(response, symbols);
-        }).thenApply(io.github.ccxt.types.Tickers::new);
+        }).thenApply(Tickers::new);
 
     }
 
@@ -640,7 +646,7 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -672,7 +678,7 @@ public class Btcbox extends BtcboxApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Trade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -689,7 +695,7 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -715,7 +721,7 @@ public class Btcbox extends BtcboxApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(io.github.ccxt.types.Order::new);
+        }).thenApply(Order::new);
 
     }
 
@@ -729,7 +735,7 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -755,7 +761,7 @@ public class Btcbox extends BtcboxApi
             //     {"result":true, "id":"11"}
             //
             return this.parseOrder(response, market);
-        }).thenApply(io.github.ccxt.types.Order::new);
+        }).thenApply(Order::new);
 
     }
 
@@ -851,7 +857,7 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -886,7 +892,7 @@ public class Btcbox extends BtcboxApi
             //      }
             //
             return this.parseOrder(response, market);
-        }).thenApply(io.github.ccxt.types.Order::new);
+        }).thenApply(Order::new);
 
     }
 
@@ -953,7 +959,7 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -963,7 +969,7 @@ public class Btcbox extends BtcboxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByType("all", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -978,7 +984,7 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -988,7 +994,7 @@ public class Btcbox extends BtcboxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByType("open", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, io.github.ccxt.types.Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
