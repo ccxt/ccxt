@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestLeverageTier extends BaseTest {
     public static void testLeverageTier(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "tier", exchange.parseNumber("1") );
             put( "minNotional", exchange.parseNumber("0") );
             put( "maxNotional", exchange.parseNumber("5000") );
@@ -21,7 +21,7 @@ public class TestLeverageTier extends BaseTest {
             put( "maxLeverage", exchange.parseNumber("25") );
             put( "info", new java.util.HashMap<String, Object>() {{}} );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("maintenanceMarginRate"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("maintenanceMarginRate"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         //
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "tier", "0");

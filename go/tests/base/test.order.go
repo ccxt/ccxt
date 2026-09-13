@@ -12,7 +12,7 @@ func TestOrder(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 			"symbol": true,
 		}, skippedProperties)
 	}
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":               map[string]any{},
 		"id":                 "123",
 		"clientOrderId":      "1234",
@@ -35,7 +35,7 @@ func TestOrder(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 		"fee":                map[string]any{},
 		"trades":             []any{},
 	}
-	var emptyAllowedFor any = []any{"clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee"} // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
+	var emptyAllowedFor []any = []any{"clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee"} // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now)
 	//

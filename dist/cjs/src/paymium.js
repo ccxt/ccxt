@@ -85,6 +85,7 @@ class paymium extends paymium$1["default"] {
                         'user/orders': { 'cost': 1 },
                         'user/orders/{uuid}': { 'cost': 1 },
                         'user/price_alerts': { 'cost': 1 },
+                        'user/withdrawals': { 'cost': 1 },
                         'merchant/get_payment/{uuid}': { 'cost': 1 },
                     },
                     'post': {
@@ -418,7 +419,7 @@ class paymium extends paymium$1["default"] {
         //         }
         //     ]
         //
-        return this.parseDepositAddresses(response, codes);
+        return this.parseDepositAddresses(response, codes, false);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -617,7 +618,7 @@ class paymium extends paymium$1["default"] {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -630,14 +631,14 @@ class paymium extends paymium$1["default"] {
                 'Api-Nonce': nonce,
             };
             if (method === 'POST') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     auth += body;
                     headers['Content-Type'] = 'application/json';
                 }
             }
             else {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     const queryString = this.urlencode(query);
                     auth += queryString;
                     url += '?' + queryString;

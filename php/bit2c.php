@@ -126,6 +126,7 @@ class bit2c extends Exchange {
                     'get' => array(
                         'Exchanges/{pair}/Ticker' => array( 'cost' => 1 ),
                         'Exchanges/{pair}/orderbook' => array( 'cost' => 1 ),
+                        'Exchanges/{pair}/orderbook-top' => array( 'cost' => 1 ),
                         'Exchanges/{pair}/trades' => array( 'cost' => 1 ),
                         'Exchanges/{pair}/lasttrades' => array( 'cost' => 1 ),
                     ),
@@ -134,6 +135,7 @@ class bit2c extends Exchange {
                     'post' => array(
                         'Merchant/CreateCheckout' => array( 'cost' => 1 ),
                         'Funds/AddCoinFundsRequest' => array( 'cost' => 1 ),
+                        'Funds/WithdrawCoin' => array( 'cost' => 1 ),
                         'Order/AddFund' => array( 'cost' => 1 ),
                         'Order/AddOrder' => array( 'cost' => 1 ),
                         'Order/GetById' => array( 'cost' => 1 ),
@@ -153,6 +155,7 @@ class bit2c extends Exchange {
                         'Order/GetById' => array( 'cost' => 1 ),
                         'Order/AccountHistory' => array( 'cost' => 1 ),
                         'Order/OrderHistory' => array( 'cost' => 1 ),
+                        'Order/HistoryByOrderId' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -538,7 +541,7 @@ class bit2c extends Exchange {
         //         }
         //     }
         //
-        $fees = $this->safe_value($response, 'Fees', array());
+        $fees = $this->safe_dict($response, 'Fees', array());
         $keys = is_array($fees) ? array_keys($fees) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -932,8 +935,8 @@ class bit2c extends Exchange {
             $market = $this->safe_market($marketId, $market);
             $market = $this->safe_market($reference_parts[0], $market);
             $isMaker = $this->safe_value($trade, 'isMaker');
-            $makerOrTaker = $isMaker ? 'maker' : 'taker';
-            $orderId = $isMaker ? $reference_parts[2] : $reference_parts[1];
+            $makerOrTaker = ($isMaker === true) ? 'maker' : 'taker';
+            $orderId = ($isMaker === true) ? $reference_parts[2] : $reference_parts[1];
             $action = $this->safe_integer($trade, 'action');
             if ($action === 0) {
                 $side = 'buy';
@@ -954,7 +957,7 @@ class bit2c extends Exchange {
             $amount = $this->safe_string($trade, 'amount');
             $side = $this->safe_value($trade, 'isBid');
             if ($side !== null) {
-                if ($side) {
+                if (($side !== null) && ($side !== '')) {
                     $side = 'buy';
                 } else {
                     $side = 'sell';
@@ -979,7 +982,7 @@ class bit2c extends Exchange {
         ), $market);
     }
 
-    public function is_fiat(mixed $code) {
+    public function is_fiat(mixed $code): bool {
         return $code === 'NIS';
     }
 
@@ -1048,7 +1051,7 @@ class bit2c extends Exchange {
             ), $params);
             $auth = $this->urlencode($query);
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $auth;
                 }
             } else {

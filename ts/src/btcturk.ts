@@ -141,6 +141,7 @@ export default class btcturk extends Exchange {
                     'get': {
                         'orderbook': { 'cost': 1 } as Endpoint<Dict>,
                         'ticker': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'ticker/currency': { 'cost': 0.1 } as Endpoint<Dict>,
                         'trades': { 'cost': 1 } as Endpoint<Dict>,   // ?last=COUNT (max 50)
                         'ohlc': { 'cost': 1 } as Endpoint<Dict>,
                         'server/exchangeinfo': { 'cost': 1 } as Endpoint<Dict>,
@@ -151,13 +152,18 @@ export default class btcturk extends Exchange {
                         'users/balances': { 'cost': 1 } as Endpoint<Dict>,
                         'openOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'allOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
                         'users/transactions/trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/transactions/crypto': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/transactions/fiat': { 'cost': 1 } as Endpoint<Dict>,
+                        'crypto-deposit-declarations': { 'cost': 1 } as Endpoint<List>,
                     },
                     'post': {
                         'users/transactions/crypto': { 'cost': 1 } as Endpoint<Dict>,
                         'users/transactions/fiat': { 'cost': 1 } as Endpoint<Dict>,
                         'order': { 'cost': 1 } as Endpoint<Dict>,
                         'cancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'crypto-deposit-declarations/confirm': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
                         'order': { 'cost': 1 } as Endpoint<Dict>,
@@ -1075,7 +1081,7 @@ export default class btcturk extends Exchange {
         }
         let url = this.urls['api'][api] + '/' + path;
         if ((method === 'GET') || (method === 'DELETE')) {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {

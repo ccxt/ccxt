@@ -95,6 +95,35 @@
         ],
         "createOrder": [
             {
+                "description": "rpi maker order",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                    "BTC/USDT",
+                    "rpi",
+                    "buy",
+                    0.01,
+                    50000
+                ],
+                "output": [{"instId": "BTC-USDT", "side": "buy", "ordType": "rpi", "sz": "0.01", "tdMode": "cash", "tgtCcy": "base_ccy", "px": "50000", "clOrdId": "6b9ad766b55dBCDE3ff101da441dab86", "tag": "6b9ad766b55dBCDE"}]
+            },
+            {
+                "description": "taker order opting into rpi liquidity",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    50000,
+                    {
+                        "rpiTakerAccess": true
+                    }
+                ],
+                "output": [{"instId": "BTC-USDT", "side": "buy", "ordType": "limit", "sz": "0.01", "tdMode": "cash", "tgtCcy": "base_ccy", "px": "50000", "clOrdId": "6b9ad766b55dBCDE9a36680934b294ef", "tag": "6b9ad766b55dBCDE", "rpiTakerAccess": true}]
+            },
+            {
                 "description": "order with closeFraction shouldn't send sz",
                 "method": "createOrder",
                 "url": "https://www.okx.com/api/v5/trade/order-algo",
@@ -1491,6 +1520,69 @@
                     "BTC/USDT",
                     null,
                     {
+                        "method": "publicGetMarketBooksFull"
+                    }
+                ]
+            },
+            {
+                "description": "fetch rpi orderbook with params",
+                "method": "fetchOrderBook",
+                "url": "https://www.okx.com/api/v5/market/books-rpi?instId=BTC-USDT&sz=5",
+                "input": [
+                    "BTC/USDT",
+                    5,
+                    {
+                        "rpi": true
+                    }
+                ]
+            },
+            {
+                "description": "fetch rpi orderbook via exchange options",
+                "method": "fetchOrderBook",
+                "url": "https://www.okx.com/api/v5/market/books-rpi?instId=BTC-USDT-SWAP&sz=5",
+                "options": {
+                    "fetchOrderBook": {
+                        "rpi": true
+                    }
+                },
+                "input": [
+                    "BTC/USDT:USDT",
+                    5
+                ]
+            },
+            {
+                "description": "rpi orderbook at the 400 limit boundary",
+                "method": "fetchOrderBook",
+                "url": "https://www.okx.com/api/v5/market/books-rpi?instId=BTC-USDT&sz=400",
+                "input": [
+                    "BTC/USDT",
+                    400,
+                    {
+                        "rpi": true
+                    }
+                ]
+            },
+            {
+                "description": "rpi orderbook clamps a limit above 400",
+                "method": "fetchOrderBook",
+                "url": "https://www.okx.com/api/v5/market/books-rpi?instId=BTC-USDT&sz=400",
+                "input": [
+                    "BTC/USDT",
+                    500,
+                    {
+                        "rpi": true
+                    }
+                ]
+            },
+            {
+                "description": "rpi orderbook clamps the books-full default of 5000",
+                "method": "fetchOrderBook",
+                "url": "https://www.okx.com/api/v5/market/books-rpi?instId=BTC-USDT&sz=400",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    {
+                        "rpi": true,
                         "method": "publicGetMarketBooksFull"
                     }
                 ]

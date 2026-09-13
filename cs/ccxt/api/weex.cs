@@ -186,6 +186,55 @@ public partial class weex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetApiV3AgencyGetDealData",parameters);
     }
 
+    /// <summary>Calls the privateGetApiV3ApiReferralCheckUserEligibility endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV3ApiReferralCheckUserEligibility (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV3ApiReferralCheckUserEligibility",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV3ApiReferralRebateRecentRecord endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV3ApiReferralRebateRecentRecord (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV3ApiReferralRebateRecentRecord",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV3ApiReferralRebateRatio endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV3ApiReferralRebateRatio (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV3ApiReferralRebateRatio",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV3ContentArticlesDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV3ContentArticlesDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV3ContentArticlesDetail",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV3ContentArticlesList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV3ContentArticlesList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV3ContentArticlesList",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV3ContentArticlesListByCoin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV3ContentArticlesListByCoin (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV3ContentArticlesListByCoin",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV3ContentBannersLatest endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV3ContentBannersLatest (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV3ContentBannersLatest",parameters);
+    }
+
     /// <summary>Calls the privatePostApiV3AccountBills endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privatePostApiV3AccountBills (object parameters = null)
@@ -219,6 +268,13 @@ public partial class weex : Exchange
     public async Task<string> privatePostApiV3RebateAffiliateInternalWithdrawal (object parameters = null)
     {
         return await this.callAsync<string> ("privatePostApiV3RebateAffiliateInternalWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privatePostApiV3TaxIncome endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostApiV3TaxIncome (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostApiV3TaxIncome",parameters);
     }
 
     /// <summary>Calls the privateDeleteApiV3Order endpoint.</summary>
@@ -452,6 +508,69 @@ public partial class weex : Exchange
         return await this.callAsync<List<object>> ("contractPrivateGetCapiV3SimOrderHistory",parameters);
     }
 
+    /// <summary>Calls the contractPrivateGetCapiV3CopyFollowerHistoryOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivateGetCapiV3CopyFollowerHistoryOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivateGetCapiV3CopyFollowerHistoryOrders",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetCapiV3CopyFollowerMyTraders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivateGetCapiV3CopyFollowerMyTraders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivateGetCapiV3CopyFollowerMyTraders",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetCapiV3CopyFollowerOpenOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> contractPrivateGetCapiV3CopyFollowerOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("contractPrivateGetCapiV3CopyFollowerOpenOrders",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetCapiV3CopyFollowerSettings endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> contractPrivateGetCapiV3CopyFollowerSettings (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("contractPrivateGetCapiV3CopyFollowerSettings",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetCapiV3CopyTraderHistoryOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivateGetCapiV3CopyTraderHistoryOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivateGetCapiV3CopyTraderHistoryOrders",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetCapiV3CopyTraderOpenOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> contractPrivateGetCapiV3CopyTraderOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("contractPrivateGetCapiV3CopyTraderOpenOrders",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetCapiV3CopyTraderPairs endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> contractPrivateGetCapiV3CopyTraderPairs (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("contractPrivateGetCapiV3CopyTraderPairs",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetCapiV3TrailingOpenOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> contractPrivateGetCapiV3TrailingOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("contractPrivateGetCapiV3TrailingOpenOrders",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetCapiV3TrailingHistoryOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> contractPrivateGetCapiV3TrailingHistoryOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("contractPrivateGetCapiV3TrailingHistoryOrders",parameters);
+    }
+
     /// <summary>Calls the contractPrivatePostCapiV3AccountIncome endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> contractPrivatePostCapiV3AccountIncome (object parameters = null)
@@ -534,6 +653,27 @@ public partial class weex : Exchange
     public async Task<Dictionary<string, object>> contractPrivatePostCapiV3SimOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("contractPrivatePostCapiV3SimOrder",parameters);
+    }
+
+    /// <summary>Calls the contractPrivatePostCapiV3CopyFollowerClosePos endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivatePostCapiV3CopyFollowerClosePos (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivatePostCapiV3CopyFollowerClosePos",parameters);
+    }
+
+    /// <summary>Calls the contractPrivatePostCapiV3CopyFollowerSettings endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivatePostCapiV3CopyFollowerSettings (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivatePostCapiV3CopyFollowerSettings",parameters);
+    }
+
+    /// <summary>Calls the contractPrivatePostCapiV3CopyFollowerStopCopy endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivatePostCapiV3CopyFollowerStopCopy (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivatePostCapiV3CopyFollowerStopCopy",parameters);
     }
 
     /// <summary>Calls the contractPrivateDeleteCapiV3Order endpoint.</summary>

@@ -157,7 +157,7 @@ class alpaca(ccxt.async_support.alpaca):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         url = self.urls['api']['ws']['crypto']
         await self.authenticate(url)
@@ -257,7 +257,7 @@ class alpaca(ccxt.async_support.alpaca):
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
-        if isSnapshot:
+        if isSnapshot is True:
             snapshot = self.parse_order_book(message, symbol, timestamp, 'b', 'a', 'p', 's')
             orderbook.reset(snapshot)
         else:

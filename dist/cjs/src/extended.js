@@ -189,6 +189,8 @@ class extended extends extended$1["default"] {
                             'info/{market}/funding': { 'cost': 1 },
                             'info/{market}/open-interests': { 'cost': 1 },
                             'info/builder/dashboard': { 'cost': 1 },
+                            'interest/info/rate-curves': { 'cost': 1 },
+                            'interest/info/latest-rate-curves': { 'cost': 1 },
                         },
                     },
                     'private': {
@@ -219,12 +221,28 @@ class extended extends extended$1["default"] {
                             'user/rewards/leaderboard/stats': { 'cost': 1 },
                             'portfolio/charts/equities': { 'cost': 1 },
                             'portfolio/charts/pnl': { 'cost': 1 },
+                            'portfolio/charts/pnl/percentage': { 'cost': 1 },
+                            'portfolio/charts/pnl/cumulative': { 'cost': 1 },
+                            'portfolio/charts/pnl/cumulative/percentage': { 'cost': 1 },
+                            'portfolio/charts/vault-equities': { 'cost': 1 },
+                            'portfolio/charts/max-drawdown': { 'cost': 1 },
+                            'portfolio/charts/funding': { 'cost': 1 },
+                            'portfolio/accounts/summary': { 'cost': 1 },
+                            'portfolio/accounts/health': { 'cost': 1 },
+                            'portfolio/accounts/performance': { 'cost': 1 },
+                            'portfolio/funding/stats': { 'cost': 1 },
+                            'portfolio/funding/history': { 'cost': 1 },
                             'vault/public/performance': { 'cost': 1 },
                             'vault/public/summary': { 'cost': 1 },
                             'builder/trades': { 'cost': 1 },
+                            'interest/key-metrics': { 'cost': 1 },
+                            'interest/daily-metrics': { 'cost': 1 },
+                            'interest/payment-chart': { 'cost': 1 },
+                            'interest/payments': { 'cost': 1 },
                         },
                         'post': {
                             'user/order': { 'cost': 1 },
+                            'user/order/rfq': { 'cost': 1 },
                             'user/order/massCancel': { 'cost': 1 },
                             'user/deadmanswitch': { 'cost': 1 },
                             'user/bridge/quote': { 'cost': 1 },
@@ -2564,7 +2582,7 @@ class extended extends extended$1["default"] {
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const uppercaseSide = side.toUpperCase();
-        if (market['spot'] && uppercaseType !== 'LIMIT') {
+        if ((market['spot'] === true) && uppercaseType !== 'LIMIT') {
             throw new errors.BadRequest(this.id + ' createOrder() supports limit orders for spot markets only');
         }
         if (!this.inArray(uppercaseType, ['LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL'])) {
@@ -3465,7 +3483,7 @@ class extended extends extended$1["default"] {
         ]);
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3503,7 +3521,7 @@ class extended extends extended$1["default"] {
             }
         }
         url = url + '/api/' + version + endpoint;
-        if ((method === 'GET' || method === 'DELETE' || queryPost) && Object.keys(query).length) {
+        if ((method === 'GET' || method === 'DELETE' || queryPost) && (Object.keys(query).length > 0)) {
             url += '?' + this.urlencodeWithArrayRepeat(query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

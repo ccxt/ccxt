@@ -189,6 +189,8 @@ export default class extended extends Exchange {
                             'info/{market}/funding': { 'cost': 1 } as Endpoint<Dict>,
                             'info/{market}/open-interests': { 'cost': 1 } as Endpoint<Dict>,
                             'info/builder/dashboard': { 'cost': 1 } as Endpoint<Dict>,
+                            'interest/info/rate-curves': { 'cost': 1 } as Endpoint<Dict>,
+                            'interest/info/latest-rate-curves': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
@@ -219,12 +221,28 @@ export default class extended extends Exchange {
                             'user/rewards/leaderboard/stats': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolio/charts/equities': { 'cost': 1 } as Endpoint<Dict>,
                             'portfolio/charts/pnl': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/charts/pnl/percentage': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/charts/pnl/cumulative': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/charts/pnl/cumulative/percentage': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/charts/vault-equities': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/charts/max-drawdown': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/charts/funding': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/accounts/summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/accounts/health': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/accounts/performance': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/funding/stats': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/funding/history': { 'cost': 1 } as Endpoint<Dict>,
                             'vault/public/performance': { 'cost': 1 } as Endpoint<Dict>,
                             'vault/public/summary': { 'cost': 1 } as Endpoint<Dict>,
                             'builder/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'interest/key-metrics': { 'cost': 1 } as Endpoint<Dict>,
+                            'interest/daily-metrics': { 'cost': 1 } as Endpoint<Dict>,
+                            'interest/payment-chart': { 'cost': 1 } as Endpoint<Dict>,
+                            'interest/payments': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'user/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/order/rfq': { 'cost': 1 } as Endpoint<Dict>,
                             'user/order/massCancel': { 'cost': 1 } as Endpoint<Dict>,
                             'user/deadmanswitch': { 'cost': 1 } as Endpoint<string>,
                             'user/bridge/quote': { 'cost': 1 } as Endpoint<Dict>,
@@ -2615,7 +2633,7 @@ export default class extended extends Exchange {
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
         const uppercaseSide = (side as string).toUpperCase ();
-        if (market['spot'] && uppercaseType !== 'LIMIT') {
+        if ((market['spot'] === true) && uppercaseType !== 'LIMIT') {
             throw new BadRequest (this.id + ' createOrder() supports limit orders for spot markets only');
         }
         if (!this.inArray (uppercaseType, [ 'LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL' ])) {
@@ -3539,7 +3557,7 @@ export default class extended extends Exchange {
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3578,7 +3596,7 @@ export default class extended extends Exchange {
             }
         }
         url = url + '/api/' + version + endpoint;
-        if ((method === 'GET' || method === 'DELETE' || queryPost) && Object.keys (query).length) {
+        if ((method === 'GET' || method === 'DELETE' || queryPost) && (Object.keys (query).length > 0)) {
             url += '?' + this.urlencodeWithArrayRepeat (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

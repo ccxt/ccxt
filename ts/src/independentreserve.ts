@@ -143,6 +143,8 @@ export default class independentreserve extends Exchange {
                         'GetRecentTrades': { 'cost': 1 } as Endpoint<Dict>,
                         'GetFxRates': { 'cost': 1 } as Endpoint<List>,
                         'GetOrderMinimumVolumes': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDepositFees': { 'cost': 1 } as Endpoint<List>,
+                        'GetFiatWithdrawalFees': { 'cost': 1 } as Endpoint<List>,
                         'GetCryptoWithdrawalFees': { 'cost': 1 } as Endpoint<Dict>,
                         'GetCryptoWithdrawalFees2': { 'cost': 1 } as Endpoint<List>,
                         'GetNetworks': { 'cost': 1 } as Endpoint<List>,
@@ -163,11 +165,16 @@ export default class independentreserve extends Exchange {
                         'GetDigitalCurrencyDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
                         'GetDigitalCurrencyDepositAddresses2': { 'cost': 1 } as Endpoint<Dict>,
                         'GetTrades': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetTradesByOrder': { 'cost': 1 } as Endpoint<Dict>,
                         'GetBrokerageFees': { 'cost': 1 } as Endpoint<List>,
                         'GetDigitalCurrencyWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetFiatWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDepositLimits': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetWithdrawalLimits': { 'cost': 1 } as Endpoint<Dict>,
                         'PlaceLimitOrder': { 'cost': 1 } as Endpoint<Dict>,
                         'PlaceMarketOrder': { 'cost': 1 } as Endpoint<Dict>,
                         'CancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'CancelOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'SynchDigitalCurrencyDepositAddressWithBlockchain': { 'cost': 1 } as Endpoint<Dict>,
                         'RequestFiatWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
                         'WithdrawFiatCurrency': { 'cost': 1 } as Endpoint<Dict>,
@@ -1144,7 +1151,7 @@ export default class independentreserve extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {

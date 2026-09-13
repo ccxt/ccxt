@@ -569,7 +569,7 @@ class paradex(ccxt.async_support.paradex):
             return False
 
     def handle_message(self, client: Client, message: object):
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is not True:
             return
         #
         # auth response

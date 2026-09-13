@@ -532,7 +532,7 @@ class ndax(Exchange, ImplicitAPI):
             'type': type,
             'precision': self.safe_number(rawCurrency, 'TickSize'),
             'info': rawCurrency,
-            'active': not self.safe_bool(rawCurrency, 'IsDisabled'),
+            'active': (self.safe_bool(rawCurrency, 'IsDisabled') is not True),
             'deposit': self.safe_bool(rawCurrency, 'DepositEnabled'),
             'withdraw': self.safe_bool(rawCurrency, 'WithdrawEnabled'),
             'fee': None,
@@ -637,7 +637,7 @@ class ndax(Exchange, ImplicitAPI):
             'swap': False,
             'future': False,
             'option': False,
-            'active': (sessionRunning and not isDisable),
+            'active': (sessionRunning and (isDisable is not True)),
             'contract': False,
             'linear': None,
             'inverse': None,
@@ -698,7 +698,7 @@ class ndax(Exchange, ImplicitAPI):
                     nonce = max(nonce, newNonce)
             bidask = self.parse_order_book_bid_ask(level, priceKey, amountKey)
             levelSide = self.safe_integer(level, 9)
-            side = asksKey if levelSide else bidsKey
+            side = asksKey if (levelSide is not None and levelSide is not None and levelSide != 0) else bidsKey
             result[side].append(bidask)
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
@@ -952,7 +952,7 @@ class ndax(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         if self.markets is None:
@@ -1115,7 +1115,7 @@ class ndax(Exchange, ImplicitAPI):
             id = self.safe_string(trade, 0)
             marketId = self.safe_string(trade, 1)
             takerSide = self.safe_value(trade, 8)
-            side = 'sell' if takerSide else 'buy'
+            side = 'sell' if (takerSide is True) else 'buy'
             orderId = self.safe_string(trade, 4)
         else:
             timestamp = self.safe_integer_2(trade, 'TradeTimeMS', 'ReceiveTime')
@@ -1191,7 +1191,7 @@ class ndax(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
-        if not self.login:
+        if (self.login is None) or (self.login == ''):
             raise AuthenticationError(self.id + ' fetchAccounts() requires exchange.login email credential')
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.check_required_credentials()
@@ -1555,7 +1555,7 @@ class ndax(Exchange, ImplicitAPI):
             'InstrumentId': self.parse_to_int(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
-            'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute to opening price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+            'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
             # 'ClientOrderId': clientOrderId,  # defaults to 0
             # If self order is order A, OrderIdOCO refers to the order ID of an order B(which is not the order being created by self call).
             # If order B executes, then order A created by self call is canceled.
@@ -1620,7 +1620,7 @@ class ndax(Exchange, ImplicitAPI):
             'InstrumentId': self.parse_to_int(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
-            'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute to opening price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+            'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
             # 'ClientOrderId': clientOrderId,  # defaults to 0
             # If self order is order A, OrderIdOCO refers to the order ID of an order B(which is not the order being created by self call).
             # If order B executes, then order A created by self call is canceled.
@@ -2598,7 +2598,7 @@ class ndax(Exchange, ImplicitAPI):
                         # 'Content-Type': 'application/json',
                     }
                     query = self.omit(query, 'pending2faToken')
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
@@ -2621,7 +2621,7 @@ class ndax(Exchange, ImplicitAPI):
                 headers['Content-Type'] = 'application/json'
                 body = self.json(query)
             else:
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

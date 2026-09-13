@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestBorrowRate(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, requestedCode any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":      map[string]any{},
 		"currency":  "USDT",
 		"timestamp": 1638230400000,

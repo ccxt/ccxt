@@ -155,11 +155,17 @@ class backpack extends Exchange {
                         'api/v1/collateral' => array( 'cost' => 1 ), // not used
                         'api/v1/borrowLend/markets' => array( 'cost' => 1 ),
                         'api/v1/borrowLend/markets/history' => array( 'cost' => 1 ),
+                        'api/v1/borrowLend/apy' => array( 'cost' => 1 ),
                         'api/v1/markets' => array( 'cost' => 1 ), // done
                         'api/v1/market' => array( 'cost' => 1 ), // not used
                         'api/v1/ticker' => array( 'cost' => 1 ), // done
                         'api/v1/tickers' => array( 'cost' => 1 ), // done
                         'api/v1/depth' => array( 'cost' => 1 ), // done
+                        'api/v1/prediction' => array( 'cost' => 1 ),
+                        'api/v1/prediction/tags' => array( 'cost' => 1 ),
+                        'api/v1/market-sessions' => array( 'cost' => 1 ),
+                        'api/v1/market-holidays' => array( 'cost' => 1 ),
+                        'api/v1/securities' => array( 'cost' => 1 ),
                         'api/v1/klines' => array( 'cost' => 1 ), // done
                         'api/v1/markPrices' => array( 'cost' => 1 ), // done
                         'api/v1/openInterest' => array( 'cost' => 1 ), // done
@@ -179,6 +185,7 @@ class backpack extends Exchange {
                         'api/v1/account/limits/order' => array( 'cost' => 1 ), // not used
                         'api/v1/account/limits/withdrawal' => array( 'cost' => 1 ), // not used
                         'api/v1/borrowLend/positions' => array( 'cost' => 1 ), // todo fetchBorrowInterest
+                        'api/v1/borrowLend/position/liquidationPrice' => array( 'cost' => 1 ),
                         'api/v1/capital' => array( 'cost' => 1 ), // done
                         'api/v1/capital/collateral' => array( 'cost' => 1 ), // not used
                         'wapi/v1/capital/deposits' => array( 'cost' => 1 ), // done
@@ -191,11 +198,17 @@ class backpack extends Exchange {
                         'wapi/v1/history/dust' => array( 'cost' => 1 ), // not used
                         'wapi/v1/history/fills' => array( 'cost' => 1 ), // done
                         'wapi/v1/history/funding' => array( 'cost' => 1 ), // done
+                        'wapi/v1/history/position' => array( 'cost' => 1 ),
                         'wapi/v1/history/orders' => array( 'cost' => 1 ), // done
+                        'api/v1/rfqs' => array( 'cost' => 1 ),
                         'wapi/v1/history/rfq' => array( 'cost' => 1 ),
                         'wapi/v1/history/quote' => array( 'cost' => 1 ),
+                        'wapi/v1/history/rfq/fill' => array( 'cost' => 1 ),
+                        'wapi/v1/history/quote/fill' => array( 'cost' => 1 ),
                         'wapi/v1/history/settlement' => array( 'cost' => 1 ),
                         'wapi/v1/history/strategies' => array( 'cost' => 1 ),
+                        'api/v1/strategy' => array( 'cost' => 1 ),
+                        'api/v1/strategies' => array( 'cost' => 1 ),
                         'api/v1/order' => array( 'cost' => 1 ), // done
                         'api/v1/orders' => array( 'cost' => 1 ), // done
                     ),
@@ -210,10 +223,13 @@ class backpack extends Exchange {
                         'api/v1/rfq/refresh' => array( 'cost' => 1 ),
                         'api/v1/rfq/cancel' => array( 'cost' => 1 ),
                         'api/v1/rfq/quote' => array( 'cost' => 1 ),
+                        'api/v1/strategy' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         'api/v1/order' => array( 'cost' => 1 ), // done
                         'api/v1/orders' => array( 'cost' => 1 ), // done
+                        'api/v1/strategy' => array( 'cost' => 1 ),
+                        'api/v1/strategies' => array( 'cost' => 1 ),
                     ),
                     'patch' => array(
                         'api/v1/account' => array( 'cost' => 1 ),
@@ -603,7 +619,7 @@ class backpack extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $this->load_time_difference();
         }
         $response = $this->publicGetApiV1Markets($params);
@@ -953,7 +969,7 @@ class backpack extends Exchange {
          * @param {int} [$since] timestamp in seconds of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch (default 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -975,7 +991,7 @@ class backpack extends Exchange {
                 $limit = $defaultLimit;
             }
             $duration = $this->parse_timeframe($timeframe);
-            $endTime = $until ? $this->parse_to_int($until / 1000) : $this->seconds();
+            $endTime = ($until !== null && $until !== null && $until !== 0) ? $this->parse_to_int($until / 1000) : $this->seconds();
             $startTime = $endTime - ($limit * $duration);
             $request['startTime'] = $startTime;
         } else {
@@ -1032,7 +1048,7 @@ class backpack extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             throw new BadRequest($this->id . ' fetchFundingRate() $symbol does not support $market ' . $symbol);
         }
         $request = array(
@@ -1093,7 +1109,7 @@ class backpack extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             throw new BadRequest($this->id . ' fetchOpenInterest() $symbol does not support $market ' . $symbol);
         }
         $request = array(

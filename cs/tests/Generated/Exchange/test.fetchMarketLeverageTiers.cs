@@ -9,10 +9,10 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchMarketLeverageTiers(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        object method = "fetchMarketLeverageTiers";
-        object tiers = await ((dynamic)exchange).fetchMarketLeverageTiers(symbol);
+        string method = "fetchMarketLeverageTiers";
+        object tiers = await invokeExchangeDynamically(exchange, "fetchMarketLeverageTiers", symbol);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol);
-        for (object j = 0; isLessThan(j, getArrayLength(tiers)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(tiers)); postFixIncrement(ref j))
         {
             testLeverageTier(exchange, skippedProperties, method, getValue(tiers, j));
         }

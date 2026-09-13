@@ -86,8 +86,8 @@ class coinbaseinternational extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMyBuys' => true,
-                'fetchMySells' => true,
+                'fetchMyBuys' => false,
+                'fetchMySells' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
@@ -153,12 +153,20 @@ class coinbaseinternational extends Exchange {
                             'instruments/{instrument}/quote' => array( 'cost' => 1 ),
                             'instruments/{instrument}/funding' => array( 'cost' => 1 ),
                             'instruments/{instrument}/candles' => array( 'cost' => 1 ),
+                            'instruments/volumes/daily' => array( 'cost' => 1 ),
+                            'position-offsets' => array( 'cost' => 1 ),
+                            'fee-rate-tiers' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
+                            'address-book' => array( 'cost' => 1 ),
                             'orders' => array( 'cost' => 1 ),
                             'orders/{id}' => array( 'cost' => 1 ),
+                            'index/{index}/composition' => array( 'cost' => 1 ),
+                            'index/{index}/composition-history' => array( 'cost' => 1 ),
+                            'index/{index}/price' => array( 'cost' => 1 ),
+                            'index/{index}/candles' => array( 'cost' => 1 ),
                             'portfolios' => array( 'cost' => 1 ),
                             'portfolios/{portfolio}' => array( 'cost' => 1 ),
                             'portfolios/{portfolio}/detail' => array( 'cost' => 1 ),
@@ -167,16 +175,30 @@ class coinbaseinternational extends Exchange {
                             'portfolios/{portfolio}/balances/{asset}' => array( 'cost' => 1 ),
                             'portfolios/{portfolio}/positions' => array( 'cost' => 1 ),
                             'portfolios/{portfolio}/positions/{instrument}' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/position-limits' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/position-limits/positions' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/position-limits/positions/{instrument}' => array( 'cost' => 1 ),
                             'portfolios/fills' => array( 'cost' => 1 ),
                             'portfolios/{portfolio}/fills' => array( 'cost' => 1 ),
+                            'portfolios/fee-rates' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/loans' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/loans/{asset}' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/loans/{asset}/availability' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/margin-call-status' => array( 'cost' => 1 ),
                             'transfers' => array( 'cost' => 1 ),
                             'transfers/{transfer_uuid}' => array( 'cost' => 1 ),
+                            'transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'orders' => array( 'cost' => 1 ),
                             'portfolios' => array( 'cost' => 1 ),
                             'portfolios/margin' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/cross-collateral-enabled' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/auto-margin-enabled' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/loans/{asset}' => array( 'cost' => 1 ),
+                            'portfolios/{portfolio}/loans/{asset}/preview' => array( 'cost' => 1 ),
                             'portfolios/transfer' => array( 'cost' => 1 ),
+                            'portfolios/transfer-position' => array( 'cost' => 1 ),
                             'transfers/withdraw' => array( 'cost' => 1 ),
                             'transfers/address' => array( 'cost' => 1 ),
                             'transfers/create-counterparty-id' => array( 'cost' => 1 ),
@@ -190,6 +212,9 @@ class coinbaseinternational extends Exchange {
                         'delete' => array(
                             'orders' => array( 'cost' => 1 ),
                             'orders/{id}' => array( 'cost' => 1 ),
+                        ),
+                        'patch' => array(
+                            'portfolios/{portfolio}' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -353,7 +378,7 @@ class coinbaseinternational extends Exchange {
         for ($i = 0; $i < count($accounts); $i++) {
             $account = $accounts[$i];
             $info = $this->safe_dict($account, 'info', array());
-            if ($this->safe_bool($info, 'is_default')) {
+            if ($this->safe_bool($info, 'is_default') === true) {
                 $portfolioId = $this->safe_string($info, 'portfolio_id');
                 $this->options['portfolio'] = $portfolioId;
                 return array( $portfolioId, $params );
@@ -463,7 +488,7 @@ class coinbaseinternational extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch, default 100 max 10000
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          */
@@ -1032,7 +1057,7 @@ class coinbaseinternational extends Exchange {
         $maxEntriesPerRequest = 100;
         list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         $pageKey = 'ccxtPageKey';
-        if ($paginate) {
+        if ($paginate === true) {
             return Async\await($this->fetch_paginated_call_incremental('fetchDepositsWithdrawals', $code, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
         }
         $page = $this->safe_integer($params, $pageKey, 1) - 1;
@@ -1848,7 +1873,7 @@ class coinbaseinternational extends Exchange {
             'amount' => $amount,
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $success ? 'ok' : 'failed',
+            'status' => ($success === true) ? 'ok' : 'failed',
         );
     }
 
@@ -2018,6 +2043,9 @@ class coinbaseinternational extends Exchange {
 
     public function parse_order_status(?string $status) {
         $statuses = array(
+            // order_status carries WORKING and DONE; the other keys are event_type
+            // values, which the same payload reports in its own field
+            'WORKING' => 'open',
             'NEW' => 'open',
             'PARTIAL_FILLED' => 'open',
             'FILLED' => 'closed',
@@ -2120,7 +2148,7 @@ class coinbaseinternational extends Exchange {
             'portfolio' => $portfolio,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
             $request['instrument'] = $market['id'];
         }
@@ -2275,7 +2303,7 @@ class coinbaseinternational extends Exchange {
             'result_offset' => $offSet,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
             $request['instrument'] = $symbol;
         }
@@ -2488,7 +2516,7 @@ class coinbaseinternational extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $savedPath = '/api' . $fullPath;
         if ($method === 'GET' || $method === 'DELETE') {
-            if ($query) {
+            if (count($query) > 0) {
                 $fullPath .= '?' . $this->urlencode_with_array_repeat($query);
             }
         }
@@ -2498,7 +2526,7 @@ class coinbaseinternational extends Exchange {
             $nonce = (string) $this->nonce();
             $payload = '';
             if ($method !== 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $payload = $body;
                 }

@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
 from ccxt.base.types import Balances, Int, Liquidation, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 from ccxt.base.precise import Precise
 
 
@@ -459,7 +460,7 @@ class lighter(ccxt.async_support.lighter):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
         isMakerAsk = self.safe_bool(trade, 'is_maker_ask')
-        side = 'buy' if isMakerAsk else 'sell'
+        side = 'buy' if (isMakerAsk is True) else 'sell'
         return self.safe_trade({
             'info': trade,
             'id': tradeId,
@@ -623,14 +624,14 @@ class lighter(ccxt.async_support.lighter):
                 # Own trades should use the account's order side
                 side = 'buy'
                 order = self.safe_string(trade, 'bid_id')
-                takerOrMaker = 'taker' if isMakerAsk else 'maker'
+                takerOrMaker = 'taker' if (isMakerAsk is True) else 'maker'
             elif askAccountId == accountIndex:
                 side = 'sell'
                 order = self.safe_string(trade, 'ask_id')
-                takerOrMaker = 'maker' if isMakerAsk else 'taker'
+                takerOrMaker = 'maker' if (isMakerAsk is True) else 'taker'
         # public trades use Lighter's taker-side convention
         if side is None:
-            side = 'buy' if isMakerAsk else 'sell'
+            side = 'buy' if (isMakerAsk is True) else 'sell'
         fee = None
         if takerOrMaker is not None:
             feeRateRaw = self.safe_string(trade, 'maker_fee') if (takerOrMaker == 'maker') else self.safe_string(trade, 'taker_fee')
@@ -657,7 +658,7 @@ class lighter(ccxt.async_support.lighter):
             'fee': fee,
         }, market)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: object) -> bool:
         #
         #     {
         #         "channel": "account_all_trades:723310",
@@ -806,7 +807,7 @@ class lighter(ccxt.async_support.lighter):
         #
         timestamp = self.safe_integer(liquidation, 'timestamp')
         isMakerAsk = self.safe_bool(liquidation, 'is_maker_ask')
-        side = 'buy' if isMakerAsk else 'sell'
+        side = 'buy' if (isMakerAsk is True) else 'sell'
         contracts = self.safe_string(liquidation, 'size')
         contractSize = self.safe_string(market, 'contractSize')
         price = self.safe_string(liquidation, 'price')
@@ -930,7 +931,7 @@ class lighter(ccxt.async_support.lighter):
             request['channel'] = 'user_stats/' + self.number_to_string(accountIndex)
             return await self.subscribe_public(messageHash, self.extend(request, params))
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: object) -> bool:
         #
         #    spot balance
         #    {
@@ -1191,7 +1192,7 @@ class lighter(ccxt.async_support.lighter):
         id = self.safe_string(message, 'id')
         client.resolve(message, 'jsonapi/sendtx:' + id)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: object) -> bool:
         #
         #    {
         #        "account": {ACCOUNT_INDEX},
@@ -1235,7 +1236,7 @@ class lighter(ccxt.async_support.lighter):
         client.resolve(stored, messageHash)
         return True
 
-    def handle_error_message(self, client: Client, message: object):
+    def handle_error_message(self, client: Client, message: object) -> bool:
         #
         #     {
         #         "error": {
@@ -1248,11 +1249,17 @@ class lighter(ccxt.async_support.lighter):
         try:
             if error is not None:
                 code = self.safe_string(error, 'code')
-                if code is not None:
-                    feedback = self.id + ' ' + self.json(message)
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                errorMessage = self.safe_string(error, 'message')
+                feedback = self.id + ' ' + self.json(message)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+                # the rest handler ends with the same unconditional throw. without it an
+                # unmapped code raises nothing and is dropped by the routing below,
+                # leaving the request that caused it awaiting a response that never comes
+                raise ExchangeError(feedback)
         except Exception as e:
             id = self.safe_string(message, 'id')
+            handled = False
             if id is not None:
                 subscriptionKeys = list(client.subscriptions.keys())
                 for i in range(0, len(subscriptionKeys)):
@@ -1261,9 +1268,11 @@ class lighter(ccxt.async_support.lighter):
                     subscription = self.safe_string(client.subscriptions[subscriptionHash], 'subscription')
                     if id == subscriptionId:
                         client.reject(e, subscriptionHash)
+                        handled = True
                         if subscription is not None:
                             del client.subscriptions[subscription]
-            client.reject(e)
+            if not handled:
+                client.reject(e)
         return True
 
     def handle_message(self, client: Client, message: object):

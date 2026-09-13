@@ -31,7 +31,7 @@ export default class tokocrypto extends Exchange {
      * @see https://www.tokocrypto.com/apidocs/#order-book
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, symbol type 3 markets accept 5, 10, 20, 50, 100, 500 or 1000 only
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -61,7 +61,24 @@ export default class tokocrypto extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    getMarketIdByType(market: any): any;
+    /**
+     * @ignore
+     * @method
+     * @name tokocrypto#isNativeMarket
+     * @description whether a market is served by the tokocrypto native endpoints instead of the binance backed host
+     * @param {object} market a unified market structure
+     * @returns {boolean} true when the symbol type of the market is known and is not 1
+     */
+    isNativeMarket(market: Market): boolean;
+    /**
+     * @ignore
+     * @method
+     * @name tokocrypto#getMarketIdByType
+     * @description the market id spelling expected by the host that serves the market
+     * @param {object} market a unified market structure
+     * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
+     */
+    getMarketIdByType(market: Market): Str;
     /**
      * @method
      * @name tokocrypto#fetchTicker

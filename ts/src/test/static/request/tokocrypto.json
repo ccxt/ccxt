@@ -260,6 +260,30 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "symbol type 1 orderbook quoted in IDR, routed to the binance host with the underscore-less id",
+                "method": "fetchOrderBook",
+                "url": "https://api.binance.com/api/v3/depth?symbol=BTCIDR",
+                "input": [
+                    "BTC/IDR"
+                ]
+            },
+            {
+                "description": "symbol type 3 orderbook, routed to open/v1 with the raw id",
+                "method": "fetchOrderBook",
+                "url": "https://www.tokocrypto.com/open/v1/market/depth?symbol=ALCH_IDR",
+                "input": [
+                    "ALCH/IDR"
+                ]
+            },
+            {
+                "description": "symbol type 3 orderbook quoted in USDT, routed to open/v1 although the quote is USDT",
+                "method": "fetchOrderBook",
+                "url": "https://www.tokocrypto.com/open/v1/market/depth?symbol=ATH_USDT",
+                "input": [
+                    "ATH/USDT"
+                ]
             }
         ],
         "fetchBidsAsks": [
@@ -285,11 +309,29 @@
                 ]
             },
             {
-                "description": "non-USDT quoted spot ohlcv",
+                "description": "symbol type 1 spot ohlcv quoted in IDR, routed to the binance host with the underscore-less id",
                 "method": "fetchOHLCV",
-                "url": "https://www.tokocrypto.com/open/v1/market/klines?interval=1m&limit=500&symbol=BTC_IDR",
+                "url": "https://api.binance.com/api/v3/klines?interval=1m&limit=500&symbol=BTCIDR",
                 "input": [
                     "BTC/IDR"
+                ]
+            },
+            {
+                "description": "symbol type 3 spot ohlcv, routed to open/v1 with the raw id",
+                "method": "fetchOHLCV",
+                "url": "https://www.tokocrypto.com/open/v1/market/klines?interval=1h&limit=500&symbol=ALCH_IDR",
+                "input": [
+                    "ALCH/IDR",
+                    "1h"
+                ]
+            },
+            {
+                "description": "symbol type 3 spot ohlcv quoted in USDT, routed to open/v1 although the quote is USDT",
+                "method": "fetchOHLCV",
+                "url": "https://www.tokocrypto.com/open/v1/market/klines?interval=1h&limit=500&symbol=ATH_USDT",
+                "input": [
+                    "ATH/USDT",
+                    "1h"
                 ]
             }
         ]

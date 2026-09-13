@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testLedgerEntry(BaseExchange exchange, object skippedProperties, object method, object entry, object requestedCode, object now)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "id", "x1234" },
             { "currency", "BTC" },
@@ -26,7 +26,7 @@ public partial class testMainClass : BaseTest
             { "datetime", "2021-11-30T00:00:00.000Z" },
             { "type", "deposit" },
         };
-        object emptyAllowedFor = new List<object>() {"referenceId", "referenceAccount", "id"};
+        List<object> emptyAllowedFor = new List<object>() {"referenceId", "referenceAccount", "id"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "currency"), requestedCode);

@@ -85,6 +85,7 @@ class paymium extends Exchange {
                         'user/orders' => array( 'cost' => 1 ),
                         'user/orders/{uuid}' => array( 'cost' => 1 ),
                         'user/price_alerts' => array( 'cost' => 1 ),
+                        'user/withdrawals' => array( 'cost' => 1 ),
                         'merchant/get_payment/{uuid}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
@@ -456,7 +457,7 @@ class paymium extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_deposit_addresses($response, $codes);
+        return $this->parse_deposit_addresses($response, $codes, false);
     }
 
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
@@ -674,7 +675,7 @@ class paymium extends Exchange {
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -686,13 +687,13 @@ class paymium extends Exchange {
                 'Api-Nonce' => $nonce,
             );
             if ($method === 'POST') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $auth .= $body;
                     $headers['Content-Type'] = 'application/json';
                 }
             } else {
-                if ($query) {
+                if (count($query) > 0) {
                     $queryString = $this->urlencode($query);
                     $auth .= $queryString;
                     $url .= '?' . $queryString;

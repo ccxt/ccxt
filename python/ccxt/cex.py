@@ -169,6 +169,7 @@ class cex(Exchange, ImplicitAPI):
                         'do_cancel_my_order': {'cost': 1},
                         'do_cancel_all_orders': {'cost': 5},
                         'get_order_book': {'cost': 1},
+                        'get_ticker': {'cost': 1},
                         'get_candles': {'cost': 1},
                         'get_trade_history': {'cost': 1},
                         'get_my_transaction_history': {'cost': 1},
@@ -372,7 +373,8 @@ class cex(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(id)
-        type = 'fiat' if self.safe_bool(rawCurrency, 'fiat') else 'crypto'
+        isFiat = (self.safe_bool(rawCurrency, 'fiat') is True)
+        type = 'fiat' if isFiat else 'crypto'
         currencyPrecision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision')))
         networks = {}
         rawNetworks = self.safe_dict(rawCurrency, 'blockchains', {})
@@ -761,7 +763,7 @@ class cex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest entry
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         dataType = None
         dataType, params = self.handle_option_and_params(params, 'fetchOHLCV', 'dataType')
@@ -1565,7 +1567,7 @@ class cex(Exchange, ImplicitAPI):
         else:
             transfer = self.transfer_between_main_and_sub_account(code, amount, fromAccount, toAccount, params)
         fillResponseFromRequest = self.handle_option('transfer', 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
         return transfer
@@ -1721,7 +1723,7 @@ class cex(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             else:
                 body = self.json(query)

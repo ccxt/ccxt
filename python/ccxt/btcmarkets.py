@@ -303,7 +303,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_transactions_with_method(self, method: object, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transactions_with_method(self, method: object, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -452,7 +452,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'assetName')
         code = self.safe_currency_code(currencyId)
         amount = self.safe_string(transaction, 'amount')
-        if fee:
+        if (fee is not None) and (fee != ''):
             amount = Precise.string_sub(amount, fee)
         return {
             'id': self.safe_string(transaction, 'id'),
@@ -649,7 +649,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -800,7 +800,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_ticker_2(self, symbol: str, params={}):
+    def fetch_ticker_2(self, symbol: str, params={}) -> Ticker:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -1362,7 +1362,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             secret = self.base64_to_binary(self.secret)
             auth = method + request + nonce
             if (method == 'GET') or (method == 'DELETE'):
-                if query:
+                if len(query) > 0:
                     request += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
@@ -1377,7 +1377,7 @@ class btcmarkets(Exchange, ImplicitAPI):
                 'BM-AUTH-SIGNATURE': signature,
             }
         elif api == 'public':
-            if query:
+            if len(query) > 0:
                 request += '?' + self.urlencode(query)
         url = self.urls['api'][api] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

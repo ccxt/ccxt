@@ -350,6 +350,94 @@ public class BingxApi extends Exchange
     }
 
     /**
+     * Calls the spotV2PublicGetQuoteBookTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV2PublicGetQuoteBookTicker (Object... optionalArgs)
+    {
+        return this.callAsync ("spotV2PublicGetQuoteBookTicker", optionalArgs);
+    }
+
+    /**
+     * Calls the spotV2PublicGetQuoteDepth endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV2PublicGetQuoteDepth (Object... optionalArgs)
+    {
+        return this.callAsync ("spotV2PublicGetQuoteDepth", optionalArgs);
+    }
+
+    /**
+     * Calls the spotV2PublicGetQuoteHistoricalKlines endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV2PublicGetQuoteHistoricalKlines (Object... optionalArgs)
+    {
+        return this.callAsync ("spotV2PublicGetQuoteHistoricalKlines", optionalArgs);
+    }
+
+    /**
+     * Calls the spotV2PublicGetQuoteHistoricalTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV2PublicGetQuoteHistoricalTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("spotV2PublicGetQuoteHistoricalTrades", optionalArgs);
+    }
+
+    /**
+     * Calls the spotV2PublicGetQuoteKlines endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV2PublicGetQuoteKlines (Object... optionalArgs)
+    {
+        return this.callAsync ("spotV2PublicGetQuoteKlines", optionalArgs);
+    }
+
+    /**
+     * Calls the spotV2PublicGetQuotePrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV2PublicGetQuotePrice (Object... optionalArgs)
+    {
+        return this.callAsync ("spotV2PublicGetQuotePrice", optionalArgs);
+    }
+
+    /**
+     * Calls the spotV2PublicGetQuoteTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV2PublicGetQuoteTicker (Object... optionalArgs)
+    {
+        return this.callAsync ("spotV2PublicGetQuoteTicker", optionalArgs);
+    }
+
+    /**
+     * Calls the spotV2PublicGetQuoteTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotV2PublicGetQuoteTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("spotV2PublicGetQuoteTrades", optionalArgs);
+    }
+
+    /**
      * Calls the spotV3PrivateGetGetAssetTransfer endpoint.
      *
      * @param optionalArgs the request parameters
@@ -955,6 +1043,17 @@ public class BingxApi extends Exchange
     }
 
     /**
+     * Calls the swapV2PrivateGetTradePositionHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  swapV2PrivateGetTradePositionHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("swapV2PrivateGetTradePositionHistory", optionalArgs);
+    }
+
+    /**
      * Calls the swapV2PrivateGetUserIncomeExport endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1406,6 +1505,17 @@ public class BingxApi extends Exchange
     }
 
     /**
+     * Calls the cswapV2PrivatePostTradeOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  cswapV2PrivatePostTradeOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("cswapV2PrivatePostTradeOrder", optionalArgs);
+    }
+
+    /**
      * Calls the contractV1PrivateGetAllPosition endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1678,6 +1788,17 @@ public class BingxApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  accountV1PrivateGetAccountApiPermissions (Object... optionalArgs)
     {
         return this.callAsync ("accountV1PrivateGetAccountApiPermissions", optionalArgs);
+    }
+
+    /**
+     * Calls the accountV1PrivateGetAccountApiRestrictions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  accountV1PrivateGetAccountApiRestrictions (Object... optionalArgs)
+    {
+        return this.callAsync ("accountV1PrivateGetAccountApiRestrictions", optionalArgs);
     }
 
     /**
@@ -2074,6 +2195,61 @@ public class BingxApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  agentV1PrivateGetAccountSuperiorCheck (Object... optionalArgs)
     {
         return this.callAsync ("agentV1PrivateGetAccountSuperiorCheck", optionalArgs);
+    }
+
+    /**
+     * Calls the wealthV1PrivateGetProductDualCurrencyPreOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  wealthV1PrivateGetProductDualCurrencyPreOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("wealthV1PrivateGetProductDualCurrencyPreOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the wealthV1PrivateGetProductDualCurrencyPosition endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  wealthV1PrivateGetProductDualCurrencyPosition (Object... optionalArgs)
+    {
+        return this.callAsync ("wealthV1PrivateGetProductDualCurrencyPosition", optionalArgs);
+    }
+
+    /**
+     * Calls the wealthV1PrivateGetProductDualCurrencyOrderRecords endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  wealthV1PrivateGetProductDualCurrencyOrderRecords (Object... optionalArgs)
+    {
+        return this.callAsync ("wealthV1PrivateGetProductDualCurrencyOrderRecords", optionalArgs);
+    }
+
+    /**
+     * Calls the wealthV1PrivatePostProductDualCurrencyInvestAssetList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  wealthV1PrivatePostProductDualCurrencyInvestAssetList (Object... optionalArgs)
+    {
+        return this.callAsync ("wealthV1PrivatePostProductDualCurrencyInvestAssetList", optionalArgs);
+    }
+
+    /**
+     * Calls the wealthV1PrivatePostProductDualCurrencyOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  wealthV1PrivatePostProductDualCurrencyOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("wealthV1PrivatePostProductDualCurrencyOrder", optionalArgs);
     }
 
 }

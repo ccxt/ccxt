@@ -16,6 +16,6 @@ sys.path.append(root)
 
 def test_sign_in(exchange, skipped_properties):
     method = 'signIn'
-    if exchange.has[method]:
+    if exchange.has[method] is not None and exchange.has[method] is not False:
         exchange.sign_in()
     return True

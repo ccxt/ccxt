@@ -11,20 +11,20 @@ import tests.exchange.*;
 
 
 public class TestWatchTrades extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testWatchTrades(Exchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testWatchTrades(Exchange exchange, Object skippedProperties, String symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "watchTrades";
+        String method = "watchTrades";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        Object maxIdleTime = 5000;
-        Object idle = false;
+        Integer maxIdleTime = 5000;
+        Boolean idle = false;
         while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object success = true;
+            Boolean success = true;
             Object startTime = exchange.milliseconds();
             try
             {

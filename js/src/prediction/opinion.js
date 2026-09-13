@@ -1099,7 +1099,7 @@ export default class opinion extends Exchange {
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        const status = (canceled) ? 'canceled' : undefined;
+        const status = (canceled === true) ? 'canceled' : undefined;
         return this.safePredictionOrder({ 'id': id, 'status': status, 'info': response });
     }
     /**
@@ -2161,7 +2161,7 @@ export default class opinion extends Exchange {
             }
         }
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

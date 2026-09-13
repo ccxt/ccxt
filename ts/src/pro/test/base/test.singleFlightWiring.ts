@@ -4,7 +4,7 @@ import ccxt from '../../../../ccxt.js';
 
 // native ts test, intentionally not transpiled - pins the single-flight
 // authentication logic from https://github.com/ccxt/ccxt/issues/29393 on the
-// real venue classes that carry it (aster, binance, bingx). the logic is
+// real venue classes that carry it (aster, binance, bingx, toobit). the logic is
 // inlined directly into each authenticate (), so there is no helper method to
 // unit-test: this file is the only guard, and no build/lint gate sees it -
 // dropping the in-progress early-return or the flight settlement still
@@ -296,6 +296,76 @@ async function testBingxAuthenticateSingleFlight () {
     assert (failing.options['listenKey'] === 'BINGX-KEY-RETRY', 'a retry after a rejected flight must re-lead and cache');
 }
 
+async function testToobitAuthenticateSingleFlight () {
+    // toobit: single bucket nested under options['ws'], one endpoint, the key
+    // rides the private url built by getUserStreamUrl (). the election used to
+    // run on this.client (this.getUserStreamUrl ()), so it moved with the key
+    // it was minting: the cold call elected on .../ws/undefined and every
+    // later call landed on .../ws/<key> with an empty subscriptions map, found
+    // the key still fresh, skipped the fetch and hung on a future nobody
+    // resolved - watchPositions () authenticates twice and hung on its own
+    const state = { 'fetches': 0 };
+    const exchange = new ccxt.pro.toobit ({
+        'apiKey': 'test-api-key',
+        'secret': 'test-secret',
+    });
+    (exchange as any).privatePostApiV1UserDataStream = async () => {
+        state.fetches = state.fetches + 1;
+        await sleep (50); // the race window
+        return { 'listenKey': 'TOOBIT-KEY-' + state.fetches.toString () };
+    };
+    (exchange as any).delay = () => {};
+    await Promise.all ([
+        exchange.authenticate (),
+        exchange.authenticate (),
+        exchange.authenticate (),
+    ]);
+    assert (state.fetches === 1, 'concurrent toobit authenticates must elect exactly one leader (got ' + state.fetches.toString () + ' fetches)');
+    assert (exchange.options['ws']['listenKey'] === 'TOOBIT-KEY-1', 'the leader listenKey must be cached');
+    assert (flightCount (exchange) === 0, 'settled flights must be cleared');
+    assert (parkedCount (exchange) === 0, 'a settled flight must leave no parked value or rejection behind');
+    // the warm call is the regression: the url now carries the key, so this
+    // caller sees a different client than the leader elected on. it must
+    // return on the staleness check instead of hanging on an unresolved future
+    const warm = await Promise.race ([
+        exchange.authenticate ().then (() => 'returned'),
+        sleep (2000).then (() => 'hung'),
+    ]);
+    assert (warm === 'returned', 'a warm authenticate within the refresh window must return, not hang');
+    assert (state.fetches === 1, 'a warm authenticate within the refresh window must not fetch');
+    // hollow 200: fresh instance, both callers reject typed, cache untouched
+    const failState = { 'fetches': 0 };
+    const failing = new ccxt.pro.toobit ({
+        'apiKey': 'test-api-key',
+        'secret': 'test-secret',
+    });
+    (failing as any).privatePostApiV1UserDataStream = async () => {
+        failState.fetches = failState.fetches + 1;
+        await sleep (10);
+        return {}; // hollow response, no listenKey
+    };
+    (failing as any).delay = () => {};
+    const outcomes = await Promise.allSettled ([
+        failing.authenticate (),
+        failing.authenticate (),
+    ]);
+    assert (failState.fetches === 1, 'a failing flight must also elect exactly one leader');
+    assert (outcomes[0].status === 'rejected' && outcomes[1].status === 'rejected', 'both the leader and the waiter must throw on an empty listenKey');
+    assert ((outcomes[0] as any).reason instanceof AuthenticationError, 'the toobit leader must reject with AuthenticationError');
+    assert ((outcomes[1] as any).reason instanceof AuthenticationError, 'the toobit waiter must observe the same AuthenticationError');
+    assert (failing.safeString (failing.options['ws'], 'listenKey') === undefined, 'an empty listenKey must never be cached');
+    assert (failing.safeInteger (failing.options['ws'], 'lastAuthenticatedTime', 0) === 0, 'a failed flight must not stamp lastAuthenticatedTime');
+    assert (flightCount (failing) === 0, 'a rejected flight must be cleared');
+    assert (parkedCount (failing) === 0, 'a fanned-out rejection must not park in client.rejections');
+    // recovery: a good response re-leads and caches
+    (failing as any).privatePostApiV1UserDataStream = async () => {
+        failState.fetches = failState.fetches + 1;
+        return { 'listenKey': 'TOOBIT-KEY-RETRY' };
+    };
+    await failing.authenticate ();
+    assert (failing.options['ws']['listenKey'] === 'TOOBIT-KEY-RETRY', 'a retry after a rejected flight must re-lead and cache');
+}
+
 async function testWsSingleFlightWiring () {
     await testAsterAuthenticateSingleFlight ();
     await testAsterAuthenticateSoloLeaderRejection ();
@@ -303,6 +373,7 @@ async function testWsSingleFlightWiring () {
     await testAsterAuthenticateEmptyKeyRejection ();
     await testBinanceAuthenticateEmptyKeyRejection ();
     await testBingxAuthenticateSingleFlight ();
+    await testToobitAuthenticateSingleFlight ();
 }
 
 export default testWsSingleFlightWiring;

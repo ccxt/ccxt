@@ -12,13 +12,13 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleex" },
             });
-            object ms = exchange.milliseconds();
-            object fileName = add(add("ccxt-test-io-", ((object)ms).ToString()), ".ccxtfile");
+            Int64 ms = exchange.milliseconds();
+            string fileName = add(add("ccxt-test-io-", ((object)ms).ToString()), ".ccxtfile");
             // upper tmp dir
             object tempDir = exchange.getTempDir();
             Assert(isTrue(!isEqual(tempDir, null)) && isTrue(!isEqual(tempDir, "")), "temp dir should not be empty");
             object filePath = add(tempDir, fileName); // '../../../../../../../../../../../../tmp/' + fileName;
-            object fileContent = "hello world";
+            string fileContent = "hello world";
             Assert(exchange.writeFile(filePath, fileContent), add("can not write file ", filePath));
             Assert(exchange.existsFile(filePath), add("file does not exist: ", filePath));
             object readContent = exchange.readFile(filePath);

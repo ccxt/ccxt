@@ -37,6 +37,7 @@ declare class testMainClass {
     testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<boolean>;
     getSkips(exchange: Exchange, methodName: string): string | Dict;
     testSafe(methodName: any, exchange: any, args?: never[], isPublic?: boolean): Promise<boolean>;
+    getLastRequestUrl(exchange: any): string;
     runPublicTests(exchange: any, symbols: any): Promise<boolean>;
     runTests(exchange: any, tests: any, isPublicTest: boolean): Promise<boolean>;
     loadExchange(exchange: any): Promise<boolean>;
@@ -65,6 +66,9 @@ declare class testMainClass {
     loadStaticData(folder: string, targetExchange?: Str): Dict | undefined;
     removeHostnamefromUrl(url: string): string | undefined;
     urlencodedToDict(url: string): Dict;
+    isEmptyOutputValue(exchange: Exchange, value: any): boolean;
+    isVacantValue(exchange: Exchange, value: any): boolean;
+    countSignificantKeys(exchange: Exchange, target: any, otherKeys: string[]): number;
     assertNewAndStoredOutputInner(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     varToString(obj?: any): string;

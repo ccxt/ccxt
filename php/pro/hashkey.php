@@ -101,7 +101,7 @@ class hashkey extends \ccxt\async\hashkey {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->binary] true or false - default false
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -496,7 +496,7 @@ class hashkey extends \ccxt\async\hashkey {
         $timeInForce = $this->safe_string($order, 'f');
         $postOnly = null;
         list($type, $timeInForce, $postOnly) = $this->parseOrderTypeTimeInForceAndPostOnly($type, $timeInForce);
-        if ($market['contract']) { // swap orders are always have $type 'LIMIT', thus we can not define the correct $type
+        if ($market['contract'] === true) { // swap orders are always have $type 'LIMIT', thus we can not define the correct $type
             $type = null;
         }
         return $this->safe_order(array(
@@ -804,7 +804,7 @@ class hashkey extends \ccxt\async\hashkey {
         }
         $options = $this->safe_dict($this->options, 'watchBalance');
         $snapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', true);
-        if ($snapshot) {
+        if ($snapshot === true) {
             $messageHash = $type . ':' . 'fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);

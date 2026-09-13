@@ -311,7 +311,7 @@ class pacifica extends \ccxt\async\pacifica {
             $orderId = $this->safe_string($order, 'i');
             $clientOrderId = $this->safe_string($order, 'I');
             $status = null;
-            if (($error !== null) || (!$success)) {
+            if (($error !== null) || ($success !== true)) {
                 $status = 'closed';
             } else {
                 $status = 'canceled';
@@ -557,7 +557,7 @@ class pacifica extends \ccxt\async\pacifica {
         $timestamp = $this->safe_integer($entry, 't');
         $snapshot = $this->parse_order_book($result, $symbol, $timestamp, 'bids', 'asks', 'p', 'a');
         $nonce = $this->safe_integer($entry, 'li');
-        if ($nonce) {
+        if (($nonce !== null) && ($nonce !== 0)) {
             $snapshot['nonce'] = $nonce;
         }
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
@@ -739,7 +739,7 @@ class pacifica extends \ccxt\async\pacifica {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_ws_tickers(Client $client, mixed $message) {
+    public function handle_ws_tickers(Client $client, mixed $message): bool {
         //
         // {
         //     "channel" => "prices",
@@ -1043,7 +1043,7 @@ class pacifica extends \ccxt\async\pacifica {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1084,7 +1084,7 @@ class pacifica extends \ccxt\async\pacifica {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1442,7 +1442,7 @@ class pacifica extends \ccxt\async\pacifica {
         //     }
         // }
         //
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $postType = $this->safe_string($message, 'type');

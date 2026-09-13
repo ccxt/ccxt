@@ -370,7 +370,8 @@ create a trade order
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
 | price | <code>float</code> | No | the price to fulfill the order, in units of the quote currency, can be ignored in market orders |
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
-| params.timeInForce | <code>string</code> | No | 'GTC', 'IOC', 'FOK' or 'GTX' |
+| params.timeInForce | <code>string</code> | No | 'GTC', 'IOC', 'FOK', 'PO' or 'GTX' |
+| params.postOnly | <code>bool</code> | No | true or false whether the order is post-only, mapped to timeInForce GTX |
 | params.entrustType | <code>string</code> | No | 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side |
 | params.triggerPriceType | <code>string</code> | No | 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined |
 | params.triggerPrice | <code>float</code> | No | price to trigger a stop order |

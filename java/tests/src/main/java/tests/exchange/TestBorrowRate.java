@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestBorrowRate extends BaseTest {
     public static void testBorrowRate(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "currency", "USDT" );
             put( "timestamp", 1638230400000L );

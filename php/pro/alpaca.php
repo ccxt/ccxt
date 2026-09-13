@@ -173,7 +173,7 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $url = $this->urls['api']['ws']['crypto'];
         Async\await($this->authenticate($url));
@@ -285,7 +285,7 @@ class alpaca extends \ccxt\async\alpaca {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
-        if ($isSnapshot) {
+        if ($isSnapshot === true) {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'b', 'a', 'p', 's');
             $orderbook->reset($snapshot);
         } else {

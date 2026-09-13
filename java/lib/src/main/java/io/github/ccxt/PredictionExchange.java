@@ -92,14 +92,14 @@ public Object describe()
 
     public Object isPrediction()
     {
-        return Helpers.isEqual(this.safeBool(this.has, "prediction", false), true);
+        return this.safeBool(this.has, "prediction", false);
     }
 
     public Object parseSearchQueries(Object... optionalArgs)
     {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object singleQuery = this.safeString(parameters, "query");
+        String singleQuery = this.safeString(parameters, "query");
         if (Helpers.isTrue(!Helpers.isEqual(singleQuery, null)))
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(singleQuery));
@@ -114,11 +114,11 @@ public Object describe()
         // venue-specific scope params an exchange declares in options['eventScopeParams'],
         // e.g. kalshi's category / series_ticker
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object query = this.safeString(parameters, "query");
+        String query = this.safeString(parameters, "query");
         Object queries = this.safeList(parameters, "queries", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object tags = this.safeList(parameters, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object eventId = this.safeString(parameters, "eventId");
-        Object slug = this.safeString(parameters, "slug");
+        String eventId = this.safeString(parameters, "eventId");
+        String slug = this.safeString(parameters, "slug");
         Object queriesLength = Helpers.getArrayLength(queries);
         Object tagsLength = Helpers.getArrayLength(tags);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(query, null))) || Helpers.isTrue((Helpers.isGreaterThan(queriesLength, 0)))) || Helpers.isTrue((Helpers.isGreaterThan(tagsLength, 0)))) || Helpers.isTrue((!Helpers.isEqual(eventId, null)))) || Helpers.isTrue((!Helpers.isEqual(slug, null)))))
@@ -137,7 +137,7 @@ public Object describe()
             }
             extraNames = Helpers.add(Helpers.add(extraNames, ", "), scopeKey);
         }
-        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchEvents() requires at least one of query, queries, tags, eventId, slug"), extraNames), " to scope the search")) ;
+        throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchEvents() requires at least one of query, queries, tags, eventId, slug"), extraNames), " to scope the search")) ;
     }
 
     public Object applyEventFetchParams(Object events, Object... optionalArgs)
@@ -150,16 +150,16 @@ public Object describe()
         Object queries = Helpers.getArg(optionalArgs, 1, null);
         this.setEvents(events);
         Object result = events;
-        Object eventId = this.safeString(parameters, "eventId");
-        Object slug = this.safeString(parameters, "slug");
+        String eventId = this.safeString(parameters, "eventId");
+        String slug = this.safeString(parameters, "slug");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventId, null))) || Helpers.isTrue((!Helpers.isEqual(slug, null)))))
         {
-            Object filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object eventVar = Helpers.GetValue(result, i);
-                Object idMatch = Helpers.isTrue((!Helpers.isEqual(eventId, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(eventVar, "id"), eventId)));
-                Object slugMatch = Helpers.isTrue((!Helpers.isEqual(slug, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(eventVar, "slug"), slug)));
+                Boolean idMatch = Helpers.isTrue((!Helpers.isEqual(eventId, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(eventVar, "id"), eventId)));
+                Boolean slugMatch = Helpers.isTrue((!Helpers.isEqual(slug, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(eventVar, "slug"), slug)));
                 if (Helpers.isTrue(Helpers.isTrue(idMatch) || Helpers.isTrue(slugMatch)))
                 {
                     ((java.util.List<Object>)filtered).add(eventVar);
@@ -180,10 +180,10 @@ public Object describe()
         {
             result = this.filterEventsBySearchIn(result, queries, this.safeString(parameters, "searchIn"));
         }
-        Object sort = this.safeString(parameters, "sort");
+        String sort = this.safeString(parameters, "sort");
         if (Helpers.isTrue(!Helpers.isEqual(sort, null)))
         {
-            Object sortKey = null;
+            String sortKey = null;
             if (Helpers.isTrue(Helpers.isEqual(sort, "volume")))
             {
                 sortKey = "volume";
@@ -206,7 +206,7 @@ public Object describe()
                 result = this.sortBy(result, sortKey, true, 0);
             }
         }
-        Object limit = this.safeInteger(parameters, "limit");
+        Long limit = this.safeInteger(parameters, "limit");
         if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
         {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
@@ -230,8 +230,8 @@ public Object describe()
         {
             return events;
         }
-        Object wantActive = (Helpers.isEqual(status, "active"));
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Boolean wantActive = (Helpers.isEqual(status, "active"));
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
@@ -259,21 +259,21 @@ public Object describe()
         {
             return events;
         }
-        Object checkTitle = Helpers.isTrue((Helpers.isEqual(searchIn, "title"))) || Helpers.isTrue((Helpers.isEqual(searchIn, "both")));
-        Object checkDescription = Helpers.isTrue((Helpers.isEqual(searchIn, "description"))) || Helpers.isTrue((Helpers.isEqual(searchIn, "both")));
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Boolean checkTitle = Helpers.isTrue((Helpers.isEqual(searchIn, "title"))) || Helpers.isTrue((Helpers.isEqual(searchIn, "both")));
+        Boolean checkDescription = Helpers.isTrue((Helpers.isEqual(searchIn, "description"))) || Helpers.isTrue((Helpers.isEqual(searchIn, "both")));
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
-            Object title = this.safeStringLower(eventVar, "title", "");
-            Object description = this.safeStringLower(eventVar, "description", "");
-            Object matched = false;
+            String title = this.safeStringLower(eventVar, "title", "");
+            String description = this.safeStringLower(eventVar, "description", "");
+            Boolean matched = false;
             for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(queries)); qi++)
             {
                 Object q = ((String)Helpers.GetValue(queries, qi)).toLowerCase();
                 if (Helpers.isTrue(Helpers.isEqual(title, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " filterEventsBySearchIn() missing title")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " filterEventsBySearchIn() missing title")) ;
                 }
                 if (Helpers.isTrue(Helpers.isTrue(checkTitle) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(title, q), 0)))))
                 {
@@ -282,7 +282,7 @@ public Object describe()
                 }
                 if (Helpers.isTrue(Helpers.isEqual(description, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " filterEventsBySearchIn() missing description")) ;
+                    throw new ExchangeError(Helpers.add(this.id, " filterEventsBySearchIn() missing description")) ;
                 }
                 if (Helpers.isTrue(Helpers.isTrue(checkDescription) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(description, q), 0)))))
                 {
@@ -306,10 +306,10 @@ public Object describe()
         // pass any of them. keeping the word boundary avoids cross-word false positives that
         // plain concatenation would create ("us open" vs "household")
         Object lower = ((String)tag).toLowerCase();
-        Object allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
+        String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
         Object s = "";
-        Object pendingSep = false;
+        Boolean pendingSep = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
             Object ch = Helpers.GetValue(chars, i);
@@ -338,7 +338,7 @@ public Object describe()
         {
             return events;
         }
-        Object wanted = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> wanted = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tags)); i++)
         {
             Object wantedKey = this.normalizeTagKey(Helpers.GetValue(tags, i));
@@ -348,12 +348,12 @@ public Object describe()
                 ((java.util.List<Object>)wanted).add(wantedKey);
             }
         }
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
             Object eventTags = this.safeList(eventVar, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object matched = false;
+            Boolean matched = false;
             for (var ti = 0; Helpers.isLessThan(ti, Helpers.getArrayLength(eventTags)); ti++)
             {
                 Object tag = Helpers.GetValue(eventTags, ti);
@@ -396,18 +396,18 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchEvents() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchEvents() is not supported yet")) ;
         });
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchEvent(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchEvent(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchEvent() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchEvent() is not supported yet")) ;
         });
 
     }
@@ -428,9 +428,9 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
-            Object id = this.safeString(eventVar, "id");
-            Object slug = this.safeString(eventVar, "slug");
-            Object handle = this.safeString(eventVar, "event");
+            String id = this.safeString(eventVar, "id");
+            String slug = this.safeString(eventVar, "slug");
+            String handle = this.safeString(eventVar, "event");
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
                 Helpers.addElementToObject(this.events, id, eventVar);
@@ -455,13 +455,13 @@ public Object describe()
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList());
         }
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object seen = new java.util.HashMap<String, Object>() {{}};
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
         Object keys = Helpers.objectKeys(this.events);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object eventVar = Helpers.GetValue(this.events, Helpers.GetValue(keys, i));
-            Object identity = this.safeString2(eventVar, "id", "event", Helpers.GetValue(keys, i));
+            String identity = this.safeString2(eventVar, "id", "event", Helpers.GetValue(keys, i));
             if (!Helpers.isTrue((Helpers.inOp(seen, identity))))
             {
                 Helpers.addElementToObject(seen, identity, true);
@@ -481,7 +481,7 @@ public Object describe()
             // markets), so prefer fetchEvents (params) directly when you need a specific scope
             Object reload = Helpers.getArg(optionalArgs, 0, false);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(!Helpers.isTrue(reload) && Helpers.isTrue(this.events)))
+            if (Helpers.isTrue(!Helpers.isTrue(reload) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(this.events, null)) && Helpers.isTrue(!Helpers.isEqual(this.events, null))))))
             {
                 return this.events;
             }
@@ -518,18 +518,18 @@ public Object describe()
         {
             return Helpers.GetValue(this.events_by_slug, eventIdOrSlug);
         }
-        throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " has no cached event "), eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")) ;
+        throw new BadSymbol(Helpers.add(Helpers.add(Helpers.add(this.id, " has no cached event "), eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")) ;
     }
 
     public Object outcome(Object outcomeSymbol)
     {
         if (Helpers.isTrue(Helpers.isEqual(outcomeSymbol, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " outcome() requires an outcomeSymbol argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " outcome() requires an outcomeSymbol argument")) ;
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.outcomes, null))) || Helpers.isTrue(this.isEmpty(this.outcomes))))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")) ;
+            throw new ExchangeError(Helpers.add(this.id, " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")) ;
         }
         if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
         {
@@ -539,7 +539,7 @@ public Object describe()
         {
             return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
         }
-        throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have outcome "), outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
+        throw new BadSymbol(Helpers.add(Helpers.add(Helpers.add(this.id, " does not have outcome "), outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
 
     public Object hasOutcome(Object outcomeIdOrSymbol)
@@ -598,9 +598,9 @@ public Object describe()
         return Helpers.GetValue(outcomeObj, "outcome");
     }
 
-    public Object shortenSlug(Object slug)
+    public String shortenSlug(Object slug)
     {
-        Object replacements = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> replacements = new java.util.HashMap<String, Object>() {{
             put( "federal-reserve", "fed" );
             put( "interest-rates", "rates" );
             put( "interest-rate", "rate" );
@@ -627,12 +627,12 @@ public Object describe()
             put( "trillion", "T" );
             put( "percent", "pct" );
         }};
-        Object stopWords = new java.util.ArrayList<Object>(java.util.Arrays.asList("will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"));
+        java.util.List<Object> stopWords = new java.util.ArrayList<Object>(java.util.Arrays.asList("will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"));
         Object lower = ((Helpers.isTrue((Helpers.isEqual(slug, null))))) ? "" : ((String)slug).toLowerCase();
-        Object allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
+        String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
         Object s = "";
-        Object lastDash = true; // start true to drop leading separators
+        Boolean lastDash = true; // start true to drop leading separators
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
             Object ch = Helpers.GetValue(chars, i);
@@ -650,23 +650,23 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(replacementKeys)); i++)
         {
             Object replacementKey = Helpers.GetValue(replacementKeys, i);
-            Object replacementValue = this.safeString(replacements, replacementKey);
+            String replacementValue = this.safeString(replacements, replacementKey);
             if (Helpers.isTrue(!Helpers.isEqual(replacementValue, null)))
             {
-                s = Helpers.replaceAll((String)s, (String)replacementKey, (String)replacementValue);
+                s = Helpers.replaceAll(((String)s), ((String)replacementKey), replacementValue);
             }
         }
         Object rawParts = Helpers.split(s, "-");
         Object parts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawParts)); i++)
         {
-            Object w = Helpers.GetValue(rawParts, i);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThan(((String)w).length(), 0)) && !Helpers.isTrue(this.inArray(w, stopWords))))
+            String w = (String) Helpers.GetValue(rawParts, i);
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThan(w.length(), 0)) && !Helpers.isTrue(this.inArray(w, stopWords))))
             {
                 ((java.util.List<Object>)parts).add(w);
             }
         }
-        Object joined = String.join((String)"_", (java.util.List<String>)parts);
+        Object joined = String.join("_", (java.util.List<String>)parts);
         return ((String)joined).toUpperCase();
     }
 
@@ -681,8 +681,8 @@ public Object describe()
         // resolve an outcome to the wrong event (wrong-market trade). skip the prefix when the
         // event slug is absent or identical to the market slug (e.g. myriad's 1:1 markets), so
         // already-unique handles stay clean.
-        Object marketPart = this.shortenSlug(marketSlug);
-        Object eventPart = this.shortenSlug(eventSlug);
+        String marketPart = this.shortenSlug(marketSlug);
+        String eventPart = this.shortenSlug(eventSlug);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(eventPart, null))) || Helpers.isTrue((Helpers.isEqual(eventPart, "")))) || Helpers.isTrue((Helpers.isEqual(eventPart, marketPart)))))
         {
             return marketPart;
@@ -703,10 +703,10 @@ public Object describe()
             outcome = "";
         }
         Object upper = ((String)outcome).toUpperCase();
-        Object allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        String allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Object chars = this.stringToCharsArray(upper);
         Object label = "";
-        Object pendingSep = false;
+        Boolean pendingSep = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
             Object ch = Helpers.GetValue(chars, i);
@@ -737,12 +737,12 @@ public Object describe()
         // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
         // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
         Object currencies = Helpers.getArg(optionalArgs, 0, null);
-        Object marketsList = this.toArray(markets);
-        Object aliased = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> marketsList = this.toArray(markets);
+        java.util.List<Object> aliased = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketsList)); i++)
         {
             Object row = Helpers.GetValue(marketsList, i);
-            Object copy = this.extend(new java.util.HashMap<String, Object>() {{}}, row);
+            java.util.Map<String, Object> copy = this.extend(new java.util.HashMap<String, Object>() {{}}, row);
             Helpers.addElementToObject(copy, "symbol", this.safeString2(row, "market", "symbol"));
             ((java.util.List<Object>)aliased).add(copy);
         }
@@ -780,8 +780,8 @@ public Object describe()
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
         {
             Object oc = Helpers.GetValue(outcomesList, j);
-            Object ocSymbol = this.safeString2(oc, "outcome", "symbol");
-            Object ocId = this.safeString2(oc, "outcomeId", "id");
+            String ocSymbol = this.safeString2(oc, "outcome", "symbol");
+            String ocId = this.safeString2(oc, "outcomeId", "id");
             // assign unconditionally — safeString2 keeps the canonical key when present
             // and falls back to the legacy one, so this never clobbers and avoids a
             // missing-key access that throws in Python/PHP, unlike TS undefined
@@ -796,10 +796,10 @@ public Object describe()
                 Object existing = this.safeValue(this.outcomes, ocSymbol);
                 if (Helpers.isTrue(!Helpers.isEqual(existing, null)))
                 {
-                    Object existingId = this.safeString(existing, "outcomeId");
+                    String existingId = this.safeString(existing, "outcomeId");
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(existingId, null))) && Helpers.isTrue((!Helpers.isEqual(ocId, null)))) && Helpers.isTrue((!Helpers.isEqual(existingId, ocId)))))
                     {
-                        Object idLen = ((String)ocId).length();
+                        Object idLen = ocId.length();
                         Object suffix = ocId;
                         if (Helpers.isTrue(Helpers.isGreaterThan(idLen, 6)))
                         {
@@ -856,7 +856,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, marketsLength); i++)
         {
             Object m = Helpers.GetValue(markets, i);
-            Object marketHandle = this.safeString2(m, "market", "symbol");
+            String marketHandle = this.safeString2(m, "market", "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(marketHandle, null)))
             {
                 Helpers.addElementToObject(this.markets, marketHandle, m);
@@ -886,7 +886,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
             {
-                Object missing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> missing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
                 {
                     if (Helpers.isTrue(Helpers.isTrue(reload) || !Helpers.isTrue(this.hasOutcome(Helpers.GetValue(outcomes, i)))))
@@ -895,12 +895,12 @@ public Object describe()
                     }
                 }
                 Object missingLength = Helpers.getArrayLength(missing);
-                Object wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
+                Boolean wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
                 Object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(missingLength, 0))) && Helpers.isTrue(loadAll)) && !Helpers.isTrue(wasWarm)) && !Helpers.isTrue(reload)))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(missingLength, 0))) && Helpers.isTrue((Helpers.isEqual(loadAll, true)))) && !Helpers.isTrue(wasWarm)) && !Helpers.isTrue(reload)))
                 {
                     (this.loadOutcomes()).join();
-                    Object stillMissing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    java.util.List<Object> stillMissing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                     for (var i = 0; Helpers.isLessThan(i, missingLength); i++)
                     {
                         if (!Helpers.isTrue(this.hasOutcome(Helpers.GetValue(missing, i))))
@@ -965,7 +965,7 @@ public Object describe()
             Object reload = Helpers.getArg(optionalArgs, 0, false);
             if (Helpers.isTrue(Helpers.isEqual(outcomeSymbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " loadOutcome() requires an outcomeSymbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " loadOutcome() requires an outcomeSymbol argument")) ;
             }
             if (!Helpers.isTrue(reload))
             {
@@ -973,7 +973,7 @@ public Object describe()
                 {
                     return this.safeOutcome(outcomeSymbol);
                 }
-                Object wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
+                Boolean wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
                 // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
                 // but the outcome cache is cold, index them for free before hitting the network — this
                 // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
@@ -986,7 +986,7 @@ public Object describe()
                     }
                 }
                 Object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
-                if (Helpers.isTrue(Helpers.isTrue(loadAll) && !Helpers.isTrue(wasWarm)))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(loadAll, true))) && !Helpers.isTrue(wasWarm)))
                 {
                     // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                     // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
@@ -1004,7 +1004,7 @@ public Object describe()
 
     }
 
-    public Object outcomeSearchQuery(Object outcomeSymbol)
+    public String outcomeSearchQuery(Object outcomeSymbol)
     {
         // derive a human search query from a unified outcome handle (EVENT_MARKET:LABEL) so a
         // cache miss can be resolved through the venue's scoped search instead of a bulk listing
@@ -1021,21 +1021,21 @@ public Object describe()
             return null;
         }
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-        Object normalized = Helpers.replaceAll((String)((String)marketPart).toLowerCase(), (String)"-", (String)"_");
+        Object normalized = Helpers.replaceAll(((String)((String)marketPart).toLowerCase()), "-", "_");
         Object rawWords = Helpers.split(normalized, "_");
         Object words = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object hasLetters = false;
-        Object letters = "abcdefghijklmnopqrstuvwxyz";
+        Boolean hasLetters = false;
+        String letters = "abcdefghijklmnopqrstuvwxyz";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawWords)); i++)
         {
-            Object word = Helpers.GetValue(rawWords, i);
+            String word = (String) Helpers.GetValue(rawWords, i);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
-            if (Helpers.isTrue(Helpers.isEqual(((String)word).length(), 0)))
+            if (Helpers.isTrue(Helpers.isEqual(word.length(), 0)))
             {
                 continue;
             }
-            Object wordHasLetters = false;
+            Boolean wordHasLetters = false;
             Object chars = this.stringToCharsArray(word);
             for (var ci = 0; Helpers.isLessThan(ci, Helpers.getArrayLength(chars)); ci++)
             {
@@ -1062,7 +1062,7 @@ public Object describe()
             // a purely numeric/symbolic handle is an id, not searchable text
             return null;
         }
-        return String.join((String)" ", (java.util.List<String>)words);
+        return String.join(" ", (java.util.List<String>)words);
     }
 
     public java.util.concurrent.CompletableFuture<Object> fetchOutcome(Object outcomeSymbol)
@@ -1075,10 +1075,10 @@ public Object describe()
             // through the venue's own scoped fetchEvents (which caches everything it finds), then
             // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
             // token id) override this with a cheaper single fetch and fall back to super on a miss.
-            Object searchQuery = this.outcomeSearchQuery(outcomeSymbol);
+            String searchQuery = this.outcomeSearchQuery(outcomeSymbol);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(searchQuery, null))) && Helpers.isTrue(this.safeBool(this.has, "fetchEvents", false))))
             {
-                Object searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
+                Long searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
                 try
                 {
                     (this.fetchEvents(new java.util.HashMap<String, Object>() {{
@@ -1099,7 +1099,7 @@ public Object describe()
                     return this.safeOutcome(outcomeSymbol);
                 }
             }
-            throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
+            throw new BadSymbol(Helpers.add(Helpers.add(Helpers.add(this.id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
         });
 
     }
@@ -1112,13 +1112,13 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTicker() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchTicker() is not supported yet")) ;
         });
 
     }
@@ -1138,7 +1138,7 @@ public Object describe()
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
         });
 
     }
@@ -1159,7 +1159,7 @@ public Object describe()
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrderBook() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrderBook() is not supported yet")) ;
         });
 
     }
@@ -1199,7 +1199,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1207,7 +1207,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchTrades() is not supported yet")) ;
         });
 
     }
@@ -1231,7 +1231,7 @@ public Object describe()
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " createOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrder() is not supported yet")) ;
         });
 
     }
@@ -1252,7 +1252,7 @@ public Object describe()
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " cancelOrder() is not supported yet")) ;
         });
 
     }
@@ -1265,13 +1265,13 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTicker(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchTicker() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchTicker() is not supported yet")) ;
         });
 
     }
@@ -1285,14 +1285,14 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchOrderBook() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchOrderBook() is not supported yet")) ;
         });
 
     }
@@ -1307,7 +1307,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTrades(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1315,7 +1315,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchTrades() is not supported yet")) ;
         });
 
     }
@@ -1339,7 +1339,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrders() is not supported yet")) ;
         });
 
     }
@@ -1363,7 +1363,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
         });
 
     }
@@ -1387,7 +1387,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
         });
 
     }
@@ -1403,7 +1403,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1412,7 +1412,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrderTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrderTrades() is not supported yet")) ;
         });
 
     }
@@ -1436,7 +1436,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchMyTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchMyTrades() is not supported yet")) ;
         });
 
     }
@@ -1455,7 +1455,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
         });
 
     }
@@ -1475,7 +1475,7 @@ public Object describe()
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
         });
 
     }
@@ -1488,13 +1488,13 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFee() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchTradingFee() is not supported yet")) ;
         });
 
     }
@@ -1507,13 +1507,13 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOpenInterest() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOpenInterest() is not supported yet")) ;
         });
 
     }
@@ -1532,7 +1532,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " createOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createOrders() is not supported yet")) ;
         });
 
     }
@@ -1553,7 +1553,7 @@ public Object describe()
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
         });
 
     }
@@ -1567,7 +1567,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object outcome, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String outcome, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1579,7 +1579,7 @@ public Object describe()
             {
                 return (this.createOrder(outcome, "market", "buy", cost, 1, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
         });
 
     }
@@ -1593,7 +1593,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(Object outcome, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(String outcome, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1603,7 +1603,7 @@ public Object describe()
             {
                 return (this.createOrder(outcome, "market", "sell", cost, 1, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
         });
 
     }
@@ -1623,7 +1623,7 @@ public Object describe()
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchTickers() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchTickers() is not supported yet")) ;
         });
 
     }
@@ -1647,7 +1647,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchOrders() is not supported yet")) ;
         });
 
     }
@@ -1671,7 +1671,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchMyTrades() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchMyTrades() is not supported yet")) ;
         });
 
     }
@@ -1695,7 +1695,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " watchPositions() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " watchPositions() is not supported yet")) ;
         });
 
     }
@@ -1720,7 +1720,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchSettlements() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchSettlements() is not supported yet")) ;
         });
 
     }
@@ -1733,19 +1733,19 @@ public Object describe()
         // outcome-addressed row). prediction is always linear with a contract size of 1.
         Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
         Object amount = this.omitZero(this.safeString(outcomeOrder, "amount"));
-        Object filled = this.safeString(outcomeOrder, "filled");
-        Object remaining = this.safeString(outcomeOrder, "remaining");
-        Object cost = this.safeString(outcomeOrder, "cost");
+        String filled = this.safeString(outcomeOrder, "filled");
+        String remaining = this.safeString(outcomeOrder, "remaining");
+        String cost = this.safeString(outcomeOrder, "cost");
         Object average = this.omitZero(this.safeString(outcomeOrder, "average"));
         Object price = this.omitZero(this.safeString(outcomeOrder, "price"));
-        Object side = this.safeString(outcomeOrder, "side");
-        Object status = this.safeString(outcomeOrder, "status");
+        String side = this.safeString(outcomeOrder, "side");
+        String status = this.safeString(outcomeOrder, "status");
         Object lastTradeTimestamp = this.safeInteger(outcomeOrder, "lastTradeTimestamp");
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
         Object rawTrades = this.safeList(outcomeOrder, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object trades = this.parsePredictionTrades(rawTrades, outcomeObj);
         Object tradesLength = Helpers.getArrayLength(trades);
-        Object feeList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> feeList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isGreaterThan(tradesLength, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(filled, null)))
@@ -1759,12 +1759,12 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, tradesLength); i++)
             {
                 Object trade = Helpers.GetValue(trades, i);
-                Object tradeAmount = this.safeString(trade, "amount");
+                String tradeAmount = this.safeString(trade, "amount");
                 if (Helpers.isTrue(!Helpers.isEqual(tradeAmount, null)))
                 {
                     filled = Precise.stringAdd(filled, tradeAmount);
                 }
-                Object tradeCost = this.safeString(trade, "cost");
+                String tradeCost = this.safeString(trade, "cost");
                 if (Helpers.isTrue(!Helpers.isEqual(tradeCost, null)))
                 {
                     cost = Precise.stringAdd(cost, tradeCost);
@@ -1773,7 +1773,7 @@ public Object describe()
                 {
                     side = this.safeString(trade, "side");
                 }
-                Object tradeTimestamp = this.safeInteger(trade, "timestamp");
+                Long tradeTimestamp = this.safeInteger(trade, "timestamp");
                 if (Helpers.isTrue(!Helpers.isEqual(tradeTimestamp, null)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(lastTradeTimestamp, null)))
@@ -1830,8 +1830,8 @@ public Object describe()
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
-        Object orderType = this.safeString(outcomeOrder, "type");
-        Object timeInForce = this.safeString(outcomeOrder, "timeInForce");
+        String orderType = this.safeString(outcomeOrder, "type");
+        String timeInForce = this.safeString(outcomeOrder, "timeInForce");
         Object postOnly = this.safeBool(outcomeOrder, "postOnly");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
         {
@@ -1839,7 +1839,7 @@ public Object describe()
             {
                 timeInForce = "IOC";
             }
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 timeInForce = "PO";
             }
@@ -1847,8 +1847,8 @@ public Object describe()
         {
             postOnly = (Helpers.isEqual(timeInForce, "PO"));
         }
-        Object timestamp = this.safeInteger(outcomeOrder, "timestamp");
-        Object datetime = this.safeString(outcomeOrder, "datetime");
+        Long timestamp = this.safeInteger(outcomeOrder, "timestamp");
+        String datetime = this.safeString(outcomeOrder, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
             datetime = this.iso8601(timestamp);
@@ -1865,7 +1865,7 @@ public Object describe()
         final Object finalCost = cost;
         final Object finalFee = fee;
         final Object finalPostOnly = postOnly;
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "id", PredictionExchange.this.safeString(outcomeOrder, "id") );
             put( "clientOrderId", PredictionExchange.this.safeString(outcomeOrder, "clientOrderId") );
             put( "timestamp", timestamp );
@@ -1900,15 +1900,15 @@ public Object describe()
     {
         // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
         Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
-        Object price = this.safeString(trade, "price");
-        Object amount = this.safeString(trade, "amount");
-        Object cost = this.safeString(trade, "cost");
+        String price = this.safeString(trade, "price");
+        String amount = this.safeString(trade, "amount");
+        String cost = this.safeString(trade, "cost");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(cost, null))) && Helpers.isTrue((!Helpers.isEqual(price, null)))) && Helpers.isTrue((!Helpers.isEqual(amount, null)))))
         {
             cost = Precise.stringMul(price, amount);
         }
-        Object timestamp = this.safeInteger(trade, "timestamp");
-        Object datetime = this.safeString(trade, "datetime");
+        Long timestamp = this.safeInteger(trade, "timestamp");
+        String datetime = this.safeString(trade, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
             datetime = this.iso8601(timestamp);
@@ -1917,7 +1917,7 @@ public Object describe()
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalCost = cost;
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "id", PredictionExchange.this.safeString(trade, "id") );
             put( "order", PredictionExchange.this.safeString(trade, "order") );
             put( "timestamp", timestamp );
@@ -1948,7 +1948,7 @@ public Object describe()
         Object open = this.omitZero(this.safeString(ticker, "open"));
         Object close = this.omitZero(this.safeString2(ticker, "close", "last"));
         Object last = this.omitZero(this.safeString2(ticker, "last", "close"));
-        Object change = this.safeString(ticker, "change");
+        String change = this.safeString(ticker, "change");
         Object percentage = this.omitZero(this.safeString(ticker, "percentage"));
         Object average = this.omitZero(this.safeString(ticker, "average"));
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(change, null))) && Helpers.isTrue((!Helpers.isEqual(open, null)))) && Helpers.isTrue((!Helpers.isEqual(close, null)))))
@@ -1963,8 +1963,8 @@ public Object describe()
         {
             average = Precise.stringDiv(Precise.stringAdd(open, close), "2");
         }
-        Object timestamp = this.safeInteger(ticker, "timestamp");
-        Object datetime = this.safeString(ticker, "datetime");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
+        String datetime = this.safeString(ticker, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
             datetime = this.iso8601(timestamp);
@@ -1975,7 +1975,7 @@ public Object describe()
         final Object finalChange = change;
         final Object finalPercentage = percentage;
         final Object finalAverage = average;
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "timestamp", timestamp );
             put( "datetime", finalDatetime );
             put( "high", PredictionExchange.this.safeNumber(ticker, "high") );
@@ -2007,14 +2007,14 @@ public Object describe()
     {
         // build the prediction position directly (no crypto safePosition, which carries the whole
         // leverage/marginMode/liquidation block the prediction type omits)
-        Object timestamp = this.safeInteger(position, "timestamp");
-        Object datetime = this.safeString(position, "datetime");
+        Long timestamp = this.safeInteger(position, "timestamp");
+        String datetime = this.safeString(position, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
             datetime = this.iso8601(timestamp);
         }
         final Object finalDatetime = datetime;
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "id", PredictionExchange.this.safeString(position, "id") );
             put( "timestamp", timestamp );
             put( "datetime", finalDatetime );
@@ -2049,7 +2049,7 @@ public Object describe()
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
-        Object fallback = this.safeString2(orderbook, "outcome", "symbol");
+        String fallback = this.safeString2(orderbook, "outcome", "symbol");
         Helpers.addElementToObject(orderbook, "outcome", ((Helpers.isTrue((Helpers.isEqual(outcomeObj, null))))) ? fallback : this.safeString(outcomeObj, "outcome", fallback));
         Helpers.addElementToObject(orderbook, "outcomeId", ((Helpers.isTrue((Helpers.isEqual(outcomeObj, null))))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId"));
         Helpers.addElementToObject(orderbook, "market", ((Helpers.isTrue((Helpers.isEqual(outcomeObj, null))))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market"));
@@ -2060,31 +2060,31 @@ public Object describe()
     public Object parsePredictionTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        throw new NotSupported((String)Helpers.add(this.id, " parsePredictionTicker() is not supported yet")) ;
+        throw new NotSupported(Helpers.add(this.id, " parsePredictionTicker() is not supported yet")) ;
     }
 
     public Object parsePredictionOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        throw new NotSupported((String)Helpers.add(this.id, " parsePredictionOrder() is not supported yet")) ;
+        throw new NotSupported(Helpers.add(this.id, " parsePredictionOrder() is not supported yet")) ;
     }
 
     public Object parsePredictionTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        throw new NotSupported((String)Helpers.add(this.id, " parsePredictionTrade() is not supported yet")) ;
+        throw new NotSupported(Helpers.add(this.id, " parsePredictionTrade() is not supported yet")) ;
     }
 
     public Object parsePredictionPosition(Object position, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        throw new NotSupported((String)Helpers.add(this.id, " parsePredictionPosition() is not supported yet")) ;
+        throw new NotSupported(Helpers.add(this.id, " parsePredictionPosition() is not supported yet")) ;
     }
 
     public Object parsePredictionOpenInterest(Object interest, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        throw new NotSupported((String)Helpers.add(this.id, " parsePredictionOpenInterest() is not supported yet")) ;
+        throw new NotSupported(Helpers.add(this.id, " parsePredictionOpenInterest() is not supported yet")) ;
     }
 
     /**
@@ -2109,16 +2109,16 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object rows = this.toArray(trades);
+        java.util.List<Object> rows = this.toArray(trades);
         Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
         {
             Object parsed = this.parsePredictionTrade(Helpers.GetValue(rows, i), outcomeObj);
-            Object trade = this.extend(parsed, parameters);
+            java.util.Map<String, Object> trade = this.extend(parsed, parameters);
             ((java.util.List<Object>)results).add(trade);
         }
         results = this.sortBy2(results, "timestamp", "id");
-        Object outcomeHandle = this.safeString(outcomeObj, "outcome");
+        String outcomeHandle = this.safeString(outcomeObj, "outcome");
         return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
     }
 
@@ -2141,16 +2141,16 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object rows = this.toArray(orders);
+        java.util.List<Object> rows = this.toArray(orders);
         Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
         {
             Object parsed = this.parsePredictionOrder(Helpers.GetValue(rows, i), outcomeObj);
-            Object order = this.extend(parsed, parameters);
+            java.util.Map<String, Object> order = this.extend(parsed, parameters);
             ((java.util.List<Object>)results).add(order);
         }
         results = this.sortBy(results, "timestamp");
-        Object outcomeHandle = this.safeString(outcomeObj, "outcome");
+        String outcomeHandle = this.safeString(outcomeObj, "outcome");
         return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
     }
 
@@ -2170,12 +2170,12 @@ public Object describe()
         // venue-specific outcome filtering stays in the exchange (position identity differs
         // per venue: kalshi positions are market-level, polymarket ones are per token)
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object rows = this.toArray(positions);
-        Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> rows = this.toArray(positions);
+        java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
         {
             Object parsed = this.parsePredictionPosition(Helpers.GetValue(rows, i));
-            Object position = this.extend(parsed, parameters);
+            java.util.Map<String, Object> position = this.extend(parsed, parameters);
             ((java.util.List<Object>)results).add(position);
         }
         return results;
@@ -2203,21 +2203,21 @@ public Object describe()
     public Object amountToPredictionPrecision(Object outcome, Object amount)
     {
         Object outcomeObj = this.outcome(outcome);
-        Object marketSymbol = this.safeString(outcomeObj, "market");
+        String marketSymbol = this.safeString(outcomeObj, "market");
         return this.amountToPrecision(marketSymbol, amount);
     }
 
-    public Object priceToPredictionPrecision(Object outcome, Object price)
+    public Object priceToPredictionPrecision(String outcome, Object price)
     {
         Object outcomeObj = this.outcome(outcome);
-        Object marketSymbol = this.safeString(outcomeObj, "market");
+        String marketSymbol = this.safeString(outcomeObj, "market");
         return this.priceToPrecision(marketSymbol, price);
     }
 
-    public Object costToPredictionPrecision(Object outcome, Object cost)
+    public String costToPredictionPrecision(Object outcome, Object cost)
     {
         Object outcomeObj = this.outcome(outcome);
-        Object marketSymbol = this.safeString(outcomeObj, "market");
+        String marketSymbol = this.safeString(outcomeObj, "market");
         return this.costToPrecision(marketSymbol, cost);
     }
 
@@ -2261,7 +2261,7 @@ public Object describe()
             return "";
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        Object byteLength = this.parseToInt(Helpers.divide(((String)hex).length(), 2));
+        Long byteLength = this.parseToInt(Helpers.divide(((String)hex).length(), 2));
         if (Helpers.isTrue(Helpers.isEqual(byteLength, 0)))
         {
             return "80";
@@ -2276,7 +2276,7 @@ public Object describe()
         }
         Object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
-        Object lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
+        Long lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
         return Helpers.add(Helpers.add(this.intToBase16(Helpers.add(183, lengthOfLength)), lengthHex), hex);
     }
 
@@ -2287,14 +2287,14 @@ public Object describe()
         {
             concatenated = Helpers.add(concatenated, Helpers.GetValue(items, i));
         }
-        Object byteLength = this.parseToInt(Helpers.divide(((String)concatenated).length(), 2));
+        Long byteLength = this.parseToInt(Helpers.divide(((String)concatenated).length(), 2));
         if (Helpers.isTrue(Helpers.isLessThan(byteLength, 56)))
         {
             return Helpers.add(this.intToBase16(Helpers.add(192, byteLength)), concatenated);
         }
         Object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
-        Object lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
+        Long lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
         return Helpers.add(Helpers.add(this.intToBase16(Helpers.add(247, lengthOfLength)), lengthHex), concatenated);
     }
 
@@ -2302,7 +2302,7 @@ public Object describe()
     {
         if (Helpers.isTrue(Helpers.isEqual(value, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " intToRlpHex() requires a value argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " intToRlpHex() requires a value argument")) ;
         }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
         if (Helpers.isTrue(Helpers.isEqual(value, 0)))
@@ -2341,7 +2341,7 @@ public Object describe()
     // eslint-disable-next-line no-unused-vars
     public Object signEvmTransaction(Object tx, Object privateKey)
     {
-        throw new NotSupported((String)Helpers.add(this.id, " signEvmTransaction() must be overridden by the exchange")) ;
+        throw new NotSupported(Helpers.add(this.id, " signEvmTransaction() must be overridden by the exchange")) ;
     }
 
     public java.util.concurrent.CompletableFuture<Object> ethRpc(Object rpcUrl, Object method, Object rpcParams)
@@ -2349,20 +2349,20 @@ public Object describe()
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object payload = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "id", 1 );
                 put( "method", method );
                 put( "params", rpcParams );
             }};
-            Object headers = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};
             Object response = (this.fetch(rpcUrl, "POST", headers, this.json(payload))).join();
             Object rpcError = this.safeValue(response, "error");
             if (Helpers.isTrue(!Helpers.isEqual(rpcError, null)))
             {
-                throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " rpc "), method), " error: "), this.json(rpcError))) ;
+                throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " rpc "), method), " error: "), this.json(rpcError))) ;
             }
             // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
             // safeString would coerce a receipt object to "[object Object]"
@@ -2378,7 +2378,7 @@ public Object describe()
 
             Object nonce = (this.ethRpc(rpcUrl, "eth_getTransactionCount", new java.util.ArrayList<Object>(java.util.Arrays.asList(fromAddress, "pending")))).join();
             Object gasPrice = (this.ethRpc(rpcUrl, "eth_gasPrice", new java.util.ArrayList<Object>(java.util.Arrays.asList()))).join();
-            Object tx = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> tx = new java.util.HashMap<String, Object>() {{
                 put( "chainId", chainId );
                 put( "nonce", nonce );
                 put( "maxPriorityFeePerGas", gasPrice );
@@ -2400,22 +2400,22 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object timeout = Helpers.getArg(optionalArgs, 0, 60000);
-            Object start = this.milliseconds();
+            Long start = this.milliseconds();
             while (Helpers.isLessThan((Helpers.subtract(this.milliseconds(), start)), timeout))
             {
                 Object receipt = (this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new java.util.ArrayList<Object>(java.util.Arrays.asList(txHash)))).join();
-                if (Helpers.isTrue(receipt))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(receipt, null))) && Helpers.isTrue((!Helpers.isEqual(receipt, null)))))
                 {
                     return receipt;
                 }
                 (this.sleep(2000)).join();
             }
-            throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " transaction "), txHash), " not mined within timeout")) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " transaction "), txHash), " not mined within timeout")) ;
         });
 
     }
 
-public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+public java.util.concurrent.CompletableFuture<Object> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2445,7 +2445,7 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOrder() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchOrder() is not supported yet")) ;
         });
 
     }
@@ -2465,7 +2465,7 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
 
 
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2481,11 +2481,11 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(this.has, "createMarketOrderWithCost")) || Helpers.isTrue((Helpers.isTrue(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost")) && Helpers.isTrue(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"))))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCost"), false)))) || Helpers.isTrue((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), false)))) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), false))))))))
             {
                 return (this.createOrder(symbol, "market", side, cost, 1, parameters)).join();
             }
-            throw new NotSupported((String)Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
         });
 
     }
@@ -2526,7 +2526,7 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() is not supported yet")) ;
         });
 
     }
@@ -2546,7 +2546,7 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchCanceledOrders() is not supported yet")) ;
+            throw new NotSupported(Helpers.add(this.id, " fetchCanceledOrders() is not supported yet")) ;
         });
 
     }

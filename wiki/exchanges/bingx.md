@@ -159,7 +159,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch (max 1000 for inverse swaps, 1440 otherwise) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
@@ -215,7 +215,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return (max 1000) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -287,9 +287,9 @@ fetches historical funding rate prices
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for, inverse (Coin-M) markets are not supported |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch (max 1000) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate to fetch |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
@@ -312,10 +312,11 @@ fetches historical funding received
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding history for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding history for, inverse (Coin-M) markets are not supported |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding to fetch |
 | limit | <code>int</code> | No | the maximum amount of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding to fetch |
 
 
@@ -684,7 +685,7 @@ create a list of trade orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
+| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params, linear swap and spot only |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.sync | <code>boolean</code> | No | *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type |
 
@@ -768,7 +769,7 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | unified market symbol, default is undefined |
+| symbol | <code>string</code> | Yes | unified market symbol, inverse (Coin-M) markets are not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | client order ids |
 
@@ -797,6 +798,7 @@ dead man's switch, cancel all orders after the given timeout
 | timeout | <code>number</code> | Yes | time in milliseconds, 0 represents cancel the timer |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | spot or swap market |
+| params.subType | <code>string</code> | No | 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported |
 
 
 ```javascript
@@ -1027,8 +1029,10 @@ fetch a history of internal transfers made on an account
 | since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
 | limit | <code>int</code> | No | the maximum number of transfers structures to retrieve (default 10, max 100) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.fromAccount | <code>string</code> | Yes | (mandatory) transfer from (spot, swap (linear or inverse), future, or funding) |
-| params.toAccount | <code>string</code> | Yes | (mandatory) transfer to (spot, swap(linear or inverse), future, or funding) |
+| params.fromAccount | <code>string</code> | No | transfer from (spot, swap (linear or inverse), future, or funding), required unless transferId is provided |
+| params.toAccount | <code>string</code> | No | transfer to (spot, swap(linear or inverse), future, or funding), required unless transferId is provided |
+| params.transferId | <code>string</code> | No | the transfer ID, either transferId or both fromAccount and toAccount are required |
+| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for |
 | params.paginate | <code>boolean</code> | No | whether to paginate the results (default false) |
 
 
@@ -1096,6 +1100,7 @@ fetch all deposits made to an account
 | since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
 | limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch deposits for |
 
 
 ```javascript
@@ -1119,6 +1124,7 @@ fetch all withdrawals made from an account
 | since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
 | limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch withdrawals for |
 
 
 ```javascript
@@ -1321,7 +1327,7 @@ retrieves the users liquidated positions
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | No | unified CCXT market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
-| limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve (max 100) |
 | params | <code>object</code> | No | exchange specific parameters for the bingx api endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest liquidation |
 
@@ -1351,7 +1357,7 @@ closes open positions for a market
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | not used by bingx |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close |
+| params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close, only supported for linear swap |
 
 
 ```javascript
@@ -1371,7 +1377,7 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| symbol | <code>string</code> | Yes | unified market symbol, inverse (Coin-M) markets are not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1393,7 +1399,7 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by setPositionMode () |
+| symbol | <code>string</code> | Yes | unified market symbol, inverse (Coin-M) markets are not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1419,7 +1425,7 @@ cancels an order and places a new order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in, inverse (Coin-M) markets are not supported |
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
@@ -1509,7 +1515,7 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | Yes | unified market symbol, inverse (Coin-M) markets are not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

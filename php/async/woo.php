@@ -231,7 +231,7 @@ class woo extends Exchange {
                             'order' => array( 'cost' => 1 ),
                             'client/order' => array( 'cost' => 1 ),
                             'orders' => array( 'cost' => 1 ),
-                            'asset/withdraw' => array( 'cost' => 120 ), // cancel a pending withdrawal, undocumented but alive 2026-08
+                            'asset/withdraw' => array( 'cost' => 120 ), // cancel a pending withdrawal, undocumented but alive as of 2026-08
                         ),
                     ),
                 ),
@@ -303,6 +303,8 @@ class woo extends Exchange {
                             'asset/wallet/withdraw' => array( 'cost' => 60 ), // 10/60s
                             'spotMargin/leverage' => array( 'cost' => 120 ), // 5/60s
                             'spotMargin/interestRepay' => array( 'cost' => 60 ), // 10/60s
+                            'futures/defaultMarginMode/reset' => array( 'cost' => 60 ),
+                            'isolatedMargin/margin' => array( 'cost' => 60 ),
                             'algo/order' => array( 'cost' => 5 ),
                             'convert/rft' => array( 'cost' => 60 ),
                         ),
@@ -311,6 +313,8 @@ class woo extends Exchange {
                             'trade/algoOrder' => array( 'cost' => 2 ), // 5/1s
                             'futures/leverage' => array( 'cost' => 60 ), // 10/60s
                             'futures/positionMode' => array( 'cost' => 120 ), // 5/60s
+                            'futures/defaultMarginMode' => array( 'cost' => 60 ),
+                            'futures/defaultMarginMode/{symbol}' => array( 'cost' => 60 ),
                             'order/{oid}' => array( 'cost' => 2 ),
                             'order/client/{client_order_id}' => array( 'cost' => 2 ),
                             'algo/order/{oid}' => array( 'cost' => 2 ),
@@ -326,6 +330,7 @@ class woo extends Exchange {
                             'algo/orders/pending' => array( 'cost' => 1 ),
                             'algo/orders/pending/{symbol}' => array( 'cost' => 1 ),
                             'orders/pending' => array( 'cost' => 1 ),
+                            'asset/wallet/withdraw/{withdrawId}' => array( 'cost' => 60 ),
                         ),
                     ),
                 ),
@@ -526,7 +531,7 @@ class woo extends Exchange {
                     '317176' => '\\ccxt\\InvalidOrder', // The trigger after should from 0 to `${maxTriggerAfter}`
                     '317177' => '\\ccxt\\InvalidOrder', // Order has terminated
                     '317178' => '\\ccxt\\BadRequest', // The receive window is invalid.
-                    '317179' => '\\ccxt\\BadRequest', // Request has failed receive window => `${recv_window}` millisecond is exceeded from `${api_timestamp}`
+                    '317179' => '\\ccxt\\BadRequest', // Request has failed as the receive window => `${recv_window}` millisecond is exceeded from `${api_timestamp}`
                     '317184' => '\\ccxt\\OrderNotFound', // The order cannot be found, or it is already completed.
                     '317206' => '\\ccxt\\InvalidOrder', // Spot trading is disabled while futures credits are active. Please remove or fully utilize your futures credits to enable spot trading.
                     '317207' => '\\ccxt\\InsufficientFunds', // Request failed. Please ensure you have sufficient USDT to cover the futures credits currently in use.
@@ -543,7 +548,7 @@ class woo extends Exchange {
                     '302110' => '\\ccxt\\ExchangeError', // application is lock now
                     '302111' => '\\ccxt\\InvalidOrder', // Your account position is being liquidated. Trading has been suspended at the moment. Please try again later.
                     '302112' => '\\ccxt\\InvalidOrder', // Remaining order quantity is smaller than transaction quantity
-                    '302113' => '\\ccxt\\InvalidOrder', // Order side is not same side
+                    '302113' => '\\ccxt\\InvalidOrder', // Order side is not same as transaction side
                     '302114' => '\\ccxt\\InvalidOrder', // Order price too small
                     '302115' => '\\ccxt\\InvalidOrder', // Order quantity too small
                     '302117' => '\\ccxt\\DuplicateOrderId', // The client_order_id is repeated.
@@ -572,7 +577,7 @@ class woo extends Exchange {
                     '302142' => '\\ccxt\\InvalidOrder', // The order quantity must bigger than the executed quantity.
                     '302143' => '\\ccxt\\ExchangeError', // Application not found.
                     '302144' => '\\ccxt\\InvalidOrder', // There isn’t a positive amount to repay the interest balance.
-                    '302145' => '\\ccxt\\InsufficientFunds', // Your margin will be insufficient after disabling this token.
+                    '302145' => '\\ccxt\\InsufficientFunds', // Your margin will be insufficient after disabling this token as collateral.
                     '302147' => '\\ccxt\\InvalidOrder', // Amount is required for buy market orders when margin disabled.
                     '302148' => '\\ccxt\\InvalidOrder', // Amount is required for ASK buy order when margin disabled.
                     '302149' => '\\ccxt\\InvalidOrder', // Amount is required for BID buy order when margin disabled.
@@ -597,7 +602,7 @@ class woo extends Exchange {
                     '302171' => '\\ccxt\\InvalidOrder', // Buy or sell orders by amount are not supported under Reduce Only trading mode.
                     '302172' => '\\ccxt\\InvalidOrder', // `${token}` max position size of `${maxPosition}` is exceeded.
                     '302177' => '\\ccxt\\InvalidOrder', // Pending new orders cannot be edited.
-                    '302178' => '\\ccxt\\InvalidOrder', // Order is rejected have an existing market close order.
+                    '302178' => '\\ccxt\\InvalidOrder', // Order is rejected as you have an existing market close order.
                     '302185' => '\\ccxt\\InvalidOrder', // Your order request cannot be processed at this moment because the position mode is currently being switched.
                     '302186' => '\\ccxt\\InvalidOrder', // The position side you’ve used is not compatible with your current position mode.
                     '302188' => '\\ccxt\\InvalidOrder', // exceed max open notional
@@ -727,7 +732,7 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             Async\await($this->load_time_difference());
         }
         $response = Async\await($this->v3PublicGetInstruments($params));
@@ -1309,7 +1314,7 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         return Async\await($this->create_order($symbol, 'market', 'buy', $cost, 1, $params));
@@ -1334,7 +1339,7 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
         }
         return Async\await($this->create_order($symbol, 'market', 'sell', $cost, 1, $params));
@@ -1426,7 +1431,7 @@ class woo extends Exchange {
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {float} [$params->algoType] 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {string} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
          * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
          * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
@@ -1477,7 +1482,7 @@ class woo extends Exchange {
                 $request['type'] = 'IOC';
             }
         }
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['reduceOnly'] = $reduceOnly;
         }
         if (!$isMarket && $price !== null) {
@@ -1488,7 +1493,7 @@ class woo extends Exchange {
             $cost = $this->safe_string_n($params, array( 'cost', 'order_amount', 'orderAmount' ));
             $params = $this->omit($params, array( 'cost', 'order_amount', 'orderAmount' ));
             $isPriceProvided = $price !== null;
-            if ($market['spot'] && ($isPriceProvided || ($cost !== null))) {
+            if (($market['spot'] === true) && ($isPriceProvided || ($cost !== null))) {
                 $quoteAmount = null;
                 if ($cost !== null) {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
@@ -1680,7 +1685,7 @@ class woo extends Exchange {
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop' ));
-        $isConditional = $isTrigger || $isTrailing || ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
+        $isConditional = ($isTrigger === true) || $isTrailing || ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
         $response = null;
         if ($isConditional) {
             if ($isByClientOrder) {
@@ -1735,7 +1740,7 @@ class woo extends Exchange {
          */
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'trigger', 'stop' ));
-        if (!$isTrigger && ($symbol === null)) {
+        if (($isTrigger !== true) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         if ($this->markets === null) {
@@ -1751,7 +1756,7 @@ class woo extends Exchange {
         $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         $response = null;
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             if ($isByClientOrder) {
                 $request['clientAlgoOrderId'] = $clientOrderIdExchangeSpecific;
             } else {
@@ -1813,7 +1818,7 @@ class woo extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $response = null;
-        if ($trigger) {
+        if ($trigger === true) {
             $response = Async\await($this->v3PrivateDeleteTradeAlgoOrders($params));
         } else {
             // cancels both regular and algo orders
@@ -1894,7 +1899,7 @@ class woo extends Exchange {
         $request = array();
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $response = null;
-        if ($trigger) {
+        if ($trigger === true) {
             if ($clientOrderId !== null) {
                 $request['clientAlgoOrderId'] = $id;
             } else {
@@ -2029,7 +2034,7 @@ class woo extends Exchange {
             $request['size'] = min($limit, 500);
         }
         $response = null;
-        if ($trigger) {
+        if ($trigger === true) {
             $response = Async\await($this->v3PrivateGetTradeAlgoOrders($this->extend($request, $params)));
             //
             //     {
@@ -2363,7 +2368,7 @@ class woo extends Exchange {
             );
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2434,7 +2439,7 @@ class woo extends Exchange {
          * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe ?? '', ms))))
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3208,7 +3213,7 @@ class woo extends Exchange {
         $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $transfer['amount'] = $amount;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -3478,19 +3483,19 @@ class woo extends Exchange {
         $params = $this->keysort($params);
         if ($access === 'public') {
             $url .= $access . '/' . $pathWithParams;
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($access === 'pub') {
             $url .= $pathWithParams;
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
             if ($method === 'POST' && ($path === 'trade/algoOrder' || $path === 'trade/order')) {
                 $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-                if (!$isSandboxMode) {
+                if ($isSandboxMode !== true) {
                     $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
                     $isTrigger = mb_strpos($path, 'algo') > -1;
@@ -3516,7 +3521,7 @@ class woo extends Exchange {
                     $auth .= $body;
                     $headers['content-type'] = 'application/json';
                 } else {
-                    if ($params) {
+                    if (count($params) > 0) {
                         $query = $this->urlencode($params);
                         $url .= '?' . $query;
                         $auth .= '?' . $query;
@@ -3527,7 +3532,7 @@ class woo extends Exchange {
                 if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
                     $body = $auth;
                 } else {
-                    if ($params) {
+                    if (count($params) > 0) {
                         $url .= '?' . $auth;
                     }
                 }
@@ -3540,7 +3545,7 @@ class woo extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null; // fallback to default error handler
         }
         //
@@ -3549,7 +3554,7 @@ class woo extends Exchange {
         //
         $success = $this->safe_bool($response, 'success');
         $errorCode = $this->safe_string($response, 'code');
-        if (!$success) {
+        if ($success !== true) {
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
@@ -3966,7 +3971,7 @@ class woo extends Exchange {
         }
         $market = $this->market($symbol);
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = Async\await($this->v3PrivateGetAccountInfo($params));
             //
             //     {
@@ -3997,7 +4002,7 @@ class woo extends Exchange {
             //         "timestamp" => 1752645129054
             //     }
             //
-        } elseif ($market['swap']) {
+        } elseif ($market['swap'] === true) {
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -4113,9 +4118,9 @@ class woo extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        if (($symbol === null) || $this->safe_bool($market, 'spot')) {
+        if (($symbol === null) || ($this->safe_bool($market, 'spot') === true)) {
             return Async\await($this->v3PrivatePostSpotMarginLeverage($this->extend($request, $params)));
-        } elseif ($this->safe_bool($market, 'swap')) {
+        } elseif ($this->safe_bool($market, 'swap') === true) {
             $request['symbol'] = $this->safe_string($market, 'id');
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');

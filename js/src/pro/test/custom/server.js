@@ -38,7 +38,7 @@ class WebSocketServer {
         // terminate any incoming connection
         // immediately after it has been successfully established
         if (Number.isInteger(this.terminateTimeout)) {
-            if (this.terminateTimeout) {
+            if (this.terminateTimeout !== 0) {
                 setTimeout(() => { ws.terminate(); }, this.terminateTimeout);
             }
             else {
@@ -47,7 +47,7 @@ class WebSocketServer {
         }
         // close the connection after a certain amount of time
         if (Number.isInteger(this.closeTimeout)) {
-            if (this.closeTimeout) {
+            if (this.closeTimeout !== 0) {
                 setTimeout(() => {
                     console.log(new Date(), 'Closing with code', this.closeCode, typeof this);
                     // ws.terminate ()
@@ -60,7 +60,7 @@ class WebSocketServer {
         }
         // error the connection after a certain amount of time
         if (Number.isInteger(this.errorTimeout)) {
-            if (this.errorTimeout) {
+            if (this.errorTimeout !== 0) {
                 setTimeout(() => {
                     console.log(new Date(), 'Closing with code', this.errorTimeout, typeof this);
                     // ws.terminate ()

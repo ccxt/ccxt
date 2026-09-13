@@ -1204,6 +1204,112 @@
                         }
                     }
                 ]
+            },
+            {
+                "description": "fetchMarkets: TradFi futures are parsed as linear swaps",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "name": "RIVN_PERP",
+                        "stock": "RIVN",
+                        "money": "USDT",
+                        "stockPrec": "2",
+                        "moneyPrec": "2",
+                        "feePrec": "6",
+                        "makerFee": "0.01",
+                        "takerFee": "0.055",
+                        "minAmount": "0.01",
+                        "minTotal": "5",
+                        "tradesEnabled": true,
+                        "type": "tradfiFutures",
+                        "isCollateral": true,
+                        "maxTotal": "100000000000",
+                        "isTradFiFutures": true,
+                        "delistedAt": null,
+                        "tickSize": "0.01",
+                        "stepSize": "0.01"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "RIVN_PERP",
+                        "lowercaseId": null,
+                        "symbol": "RIVN/USDT:USDT",
+                        "base": "RIVN",
+                        "quote": "USDT",
+                        "settle": "USDT",
+                        "baseId": "RIVN",
+                        "quoteId": "USDT",
+                        "settleId": "USDT",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.00055,
+                        "maker": 0.0001,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 5,
+                                "max": 100000000000
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "name": "RIVN_PERP",
+                            "stock": "RIVN",
+                            "money": "USDT",
+                            "stockPrec": "2",
+                            "moneyPrec": "2",
+                            "feePrec": "6",
+                            "makerFee": "0.01",
+                            "takerFee": "0.055",
+                            "minAmount": "0.01",
+                            "minTotal": "5",
+                            "tradesEnabled": true,
+                            "type": "tradfiFutures",
+                            "isCollateral": true,
+                            "maxTotal": "100000000000",
+                            "isTradFiFutures": true,
+                            "delistedAt": null,
+                            "tickSize": "0.01",
+                            "stepSize": "0.01"
+                        }
+                    }
+                ]
             }
         ],
         "fetchOrder": [
@@ -4115,6 +4221,14 @@
                         "tierBased": false,
                         "maker": 0.001,
                         "taker": 0.001
+                    },
+                    "RIVN/USDT:USDT": {
+                        "info": {},
+                        "symbol": "RIVN/USDT:USDT",
+                        "percentage": true,
+                        "tierBased": false,
+                        "maker": null,
+                        "taker": null
                     }
                 }
             }

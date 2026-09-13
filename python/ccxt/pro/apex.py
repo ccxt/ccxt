@@ -450,7 +450,7 @@ class apex(ccxt.async_support.apex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
@@ -466,7 +466,7 @@ class apex(ccxt.async_support.apex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A list of candles ordered, open, high, low, close, volume
+        :returns dict: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -738,7 +738,7 @@ class apex(ccxt.async_support.apex):
             self.spawn(self.load_positions_snapshot, client, messageHash)
 
     async def load_positions_snapshot(self, client: Client, messageHash: object):
-        # one ws channel gives positions for all types, for snapshot must load all positions
+        # as only one ws channel gives positions for all types, for snapshot must load all positions
         fetchFunctions = [
             self.fetch_positions(),
         ]
@@ -895,11 +895,11 @@ class apex(ccxt.async_support.apex):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], msg, feedback)
                 raise ExchangeError(feedback)
             success = self.safe_value(message, 'success')
-            if success is not None and not success:
+            if (success is not None) and (success is not True):
                 ret_msg = self.safe_string(message, 'ret_msg')
                 request = self.safe_value(message, 'request', {})
                 op = self.safe_string(request, 'op')
-                # Benign re-subscribe notice(same shape 90008 /
+                # Benign re-subscribe notice(same shape as bitmart 90008 /
                 # krakenfutures "Already subscribed"): the original subscription
                 # is still active and delivering data on self socket. Without
                 # self short-circuit the catch-clause's `client.reject(error,
@@ -924,7 +924,12 @@ class apex(ccxt.async_support.apex):
             return True
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
+            return
+        ret_msg = self.safe_string(message, 'ret_msg')
+        pong = self.safe_integer(message, 'pong')
+        if ret_msg == 'pong' or pong is not None:
+            self.handle_pong(client, message)
             return
         topic = self.safe_string_2(message, 'topic', 'op', '')
         methods = {
@@ -991,6 +996,7 @@ class apex(ccxt.async_support.apex):
         return message
 
     def handle_ping(self, client: Client, message: object):
+        client.lastPong = self.milliseconds()
         self.spawn(self.pong, client, message)
 
     def handle_account(self, client: Client, message: object):
@@ -1017,7 +1023,7 @@ class apex(ccxt.async_support.apex):
         success = self.safe_value(message, 'success')
         code = self.safe_integer(message, 'retCode')
         messageHash = 'authenticated'
-        if success or code == 0:
+        if (success is True) or (code == 0):
             future = self.safe_value(client.futures, messageHash)
             future.resolve(True)
         else:

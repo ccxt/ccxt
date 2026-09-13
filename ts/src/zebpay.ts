@@ -106,6 +106,7 @@ export default class zebpay extends Exchange {
                             'v2/system/time': { 'cost': 10 } as Endpoint<Dict>,
                             'v2/system/status': { 'cost': 10 } as Endpoint<Dict>,
                             'v2/market/orderbook': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/market/orderbook/ticker': { 'cost': 10 } as Endpoint<Dict>,
                             'v2/market/trades': { 'cost': 10 } as Endpoint<Dict>,
                             'v2/market/ticker': { 'cost': 10 } as Endpoint<Dict>,
                             'v2/market/allTickers': { 'cost': 10 } as Endpoint<Dict>,
@@ -121,9 +122,12 @@ export default class zebpay extends Exchange {
                             'v1/system/status': { 'cost': 10 } as Endpoint<Dict>,
                             'v1/exchange/tradefee': { 'cost': 10 } as Endpoint<Dict>,
                             'v1/exchange/tradefees': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/exchange/exchangeInfo': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/exchange/pairs': { 'cost': 10 } as Endpoint<Dict>,
                             'v1/market/orderBook': { 'cost': 10 } as Endpoint<Dict>,
                             'v1/market/ticker24Hr': { 'cost': 10 } as Endpoint<Dict>,
                             'v1/market/markets': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/market/marketInfo': { 'cost': 10 } as Endpoint<Dict>,
                             'v1/market/aggTrade': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'post': {
@@ -140,6 +144,7 @@ export default class zebpay extends Exchange {
                             'v2/ex/orders': { 'cost': 10 } as Endpoint<Dict>,
                             'v2/account/balance': { 'cost': 10 } as Endpoint<Dict>,
                             'v2/ex/tradefee': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/ex/myfee/{symbol}': { 'cost': 10 } as Endpoint<Dict>,
                             'v2/ex/order': { 'cost': 10 } as Endpoint<Dict>,
                             'v2/ex/order/fills': { 'cost': 10 } as Endpoint<Dict>,
                         },
@@ -154,10 +159,12 @@ export default class zebpay extends Exchange {
                             'v1/wallet/balance': { 'cost': 10 } as Endpoint<Dict>,
                             'v1/trade/order': { 'cost': 10 } as Endpoint<Dict>,
                             'v1/trade/order/open-orders': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/order/history': { 'cost': 10 } as Endpoint<Dict>,
                             'v1/trade/userLeverages': { 'cost': 10 } as Endpoint<Dict>,
                             'v1/trade/userLeverage': { 'cost': 10 } as Endpoint<Dict>,
                             'v1/trade/positions': { 'cost': 10 } as Endpoint<Dict>,
                             'v1/trade/history': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/transaction/history': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'post': {
                             'v1/trade/order': { 'cost': 10 } as Endpoint<Dict>,
@@ -168,6 +175,10 @@ export default class zebpay extends Exchange {
                             'v1/trade/update/userLeverage': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'delete': {
+                            'v1/trade/order': { 'cost': 10 } as Endpoint<Dict>,
+                            'v1/trade/order/all': { 'cost': 10 } as Endpoint<Dict>,
+                        },
+                        'patch': {
                             'v1/trade/order': { 'cost': 10 } as Endpoint<Dict>,
                         },
                     },
@@ -478,7 +489,7 @@ export default class zebpay extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.privateSpotGetV2ExTradefee (this.extend (request, params));
             //
             // {
@@ -579,7 +590,7 @@ export default class zebpay extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
@@ -624,7 +635,7 @@ export default class zebpay extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.publicSpotGetV2MarketTicker (this.extend (request, params));
             //
             //     [
@@ -718,16 +729,16 @@ export default class zebpay extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (market['spot']) {
+        if (market['spot'] === true) {
             request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
         } else {
             request['interval'] = timeframe;
         }
-        if (market['contract'] && (limit !== undefined)) {
+        if ((market['contract'] === true) && (limit !== undefined)) {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 request['startTime'] = since;
             } else {
                 request['since'] = since;
@@ -739,7 +750,7 @@ export default class zebpay extends Exchange {
             params = this.omit (params, [ 'endtime', 'until' ]);
         }
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (until === undefined || since === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a both a since and until/endtime parameter for spot markets');
             }
@@ -802,11 +813,11 @@ export default class zebpay extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (market['spot'] && limit !== undefined) {
+        if ((market['spot'] === true) && limit !== undefined) {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.publicSpotGetV2MarketTrades (this.extend (request, params));
         } else {
             response = await this.publicSwapGetV1MarketAggTrade (this.extend (request, params));
@@ -1044,7 +1055,7 @@ export default class zebpay extends Exchange {
             'side': side.toUpperCase (),
         };
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             [ request, params ] = this.orderRequest (symbol, type, amount, request, price, params);
             response = await this.privateSpotPostV2ExOrders (this.extend (request, params));
         } else {
@@ -1129,7 +1140,7 @@ export default class zebpay extends Exchange {
         const market = this.market (symbol);
         let response = undefined;
         const request: Dict = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             request['orderId'] = id;
             response = await this.privateSpotDeleteV2ExOrder (this.extend (request, params));
         } else {
@@ -1207,7 +1218,7 @@ export default class zebpay extends Exchange {
         };
         let response = undefined;
         let orders: List = [];
-        if (market['spot']) {
+        if (market['spot'] === true) {
             request['currentPage'] = 1;
             if (limit !== undefined) {
                 request['pageSize'] = limit;
@@ -1274,7 +1285,7 @@ export default class zebpay extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {};
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             request['orderId'] = id;
             response = await this.privateSpotGetV2ExOrder (this.extend (request, params));
         } else {
@@ -1933,7 +1944,7 @@ export default class zebpay extends Exchange {
         const access = this.safeString (api, 0, 'public');
         if (access === 'public') {
             if (method === 'GET' || method === 'DELETE') {
-                if (queryLength) {
+                if ((queryLength !== undefined) && (queryLength !== 0)) {
                     url += '?' + this.urlencode (query);
                 }
             } else {
@@ -1968,7 +1979,7 @@ export default class zebpay extends Exchange {
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if (response === undefined) {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
             return undefined;
         }

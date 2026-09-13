@@ -251,6 +251,149 @@ public class GeminiApi extends Exchange
     }
 
     /**
+     * Calls the publicGetV1PredictionMarketsEvents endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsEvents (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsEvents", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1PredictionMarketsEventsEventTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsEventsEventTicker (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsEventsEventTicker", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1PredictionMarketsEventsEventTickerStrike endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsEventsEventTickerStrike (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsEventsEventTickerStrike", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1PredictionMarketsEventsNewlyListed endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsEventsNewlyListed (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsEventsNewlyListed", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1PredictionMarketsEventsRecentlySettled endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsEventsRecentlySettled (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsEventsRecentlySettled", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1PredictionMarketsEventsUpcoming endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsEventsUpcoming (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsEventsUpcoming", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1PredictionMarketsCategories endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsCategories (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsCategories", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1PredictionMarketsVolumeDate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1PredictionMarketsVolumeDate (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsVolumeDate", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1PredictionMarketsVolumeDateHourly endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1PredictionMarketsVolumeDateHourly (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsVolumeDateHourly", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1PredictionMarketsTerms endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsTerms (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsTerms", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1PredictionMarketsMakerRebateRates endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsMakerRebateRates (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsMakerRebateRates", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1PredictionMarketsLiquidityRewardsConfig endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsLiquidityRewardsConfig (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsLiquidityRewardsConfig", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV1PredictionMarketsLiquidityRewardsEvents endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PredictionMarketsLiquidityRewardsEvents (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV1PredictionMarketsLiquidityRewardsEvents", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetV1PerpetualsFundingpaymentreportRecordsXlsx endpoint.
      *
      * @param optionalArgs the request parameters
@@ -259,6 +402,72 @@ public class GeminiApi extends Exchange
     public java.util.concurrent.CompletableFuture<String>  privateGetV1PerpetualsFundingpaymentreportRecordsXlsx (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1PerpetualsFundingpaymentreportRecordsXlsx", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV1PredictionMarketsTermsStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1PredictionMarketsTermsStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV1PredictionMarketsTermsStatus", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV1PredictionMarketsMakerRebateSummaryTotal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1PredictionMarketsMakerRebateSummaryTotal (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV1PredictionMarketsMakerRebateSummaryTotal", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2NetworkToken endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2NetworkToken (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2NetworkToken", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2NetworksNetworkAssets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2NetworksNetworkAssets (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2NetworksNetworkAssets", optionalArgs);
     }
 
     /**
@@ -919,6 +1128,160 @@ public class GeminiApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1Positions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Positions", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV1PredictionMarketsOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV1PredictionMarketsOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV1PredictionMarketsOrderBatch endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsOrderBatch (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV1PredictionMarketsOrderBatch", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV1PredictionMarketsOrderCancel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsOrderCancel (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV1PredictionMarketsOrderCancel", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV1PredictionMarketsOrderBatchCancel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsOrderBatchCancel (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV1PredictionMarketsOrderBatchCancel", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV1PredictionMarketsOrdersActive endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsOrdersActive (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV1PredictionMarketsOrdersActive", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV1PredictionMarketsOrdersHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsOrdersHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV1PredictionMarketsOrdersHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV1PredictionMarketsPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsPositions (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV1PredictionMarketsPositions", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV1PredictionMarketsPositionsSettled endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsPositionsSettled (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV1PredictionMarketsPositionsSettled", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV1PredictionMarketsMetricsVolume endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsMetricsVolume (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV1PredictionMarketsMetricsVolume", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV1PredictionMarketsTermsAccept endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsTermsAccept (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV1PredictionMarketsTermsAccept", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV1PredictionMarketsMakerRebatePayouts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1PredictionMarketsMakerRebatePayouts (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV1PredictionMarketsMakerRebatePayouts", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2Transfers endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV2Transfers (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2Transfers", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2WithdrawNetworkTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2WithdrawNetworkTicker (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2WithdrawNetworkTicker", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2WithdrawNetworkTickerFeeEstimate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2WithdrawNetworkTickerFeeEstimate (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2WithdrawNetworkTickerFeeEstimate", optionalArgs);
     }
 
 }

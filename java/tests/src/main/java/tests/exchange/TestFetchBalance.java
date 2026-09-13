@@ -16,7 +16,7 @@ public class TestFetchBalance extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchBalance";
+        String method = "fetchBalance";
         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBalance", new Object[]{})).join();
         TestBalance.testBalance(exchange, skippedProperties, method, response);
         return true;

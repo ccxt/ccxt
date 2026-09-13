@@ -232,6 +232,12 @@ class bydfi(Exchange, ImplicitAPI):
                         'v1/fapi/trade/history_trade': {'cost': 1},
                         'v1/fapi/trade/position_history': {'cost': 1},
                         'v1/fapi/trade/positions': {'cost': 1},
+                        'v2/fapi/trade/open_order': {'cost': 1},
+                        'v2/fapi/trade/plan_order': {'cost': 1},
+                        'v2/fapi/trade/history_order': {'cost': 1},
+                        'v2/fapi/trade/history_trade': {'cost': 1},
+                        'v2/fapi/trade/position_history': {'cost': 1},
+                        'v2/fapi/trade/positions': {'cost': 1},
                         'v1/fapi/account/balance': {'cost': 1},
                         'v1/fapi/user_data/assets_margin': {'cost': 1},
                         'v1/fapi/user_data/position_side/dual': {'cost': 1},
@@ -254,6 +260,13 @@ class bydfi(Exchange, ImplicitAPI):
                         'v1/fapi/trade/cancel_all_order': {'cost': 1},
                         'v1/fapi/trade/leverage': {'cost': 1},
                         'v1/fapi/trade/batch_leverage_margin': {'cost': 1},  # https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v2/fapi/trade/place_order': {'cost': 1},
+                        'v2/fapi/trade/batch_place_order': {'cost': 1},
+                        'v2/fapi/trade/edit_order': {'cost': 1},
+                        'v2/fapi/trade/batch_edit_order': {'cost': 1},
+                        'v2/fapi/trade/cancel_order': {'cost': 1},
+                        'v2/fapi/trade/batch_cancel_order': {'cost': 1},
+                        'v2/fapi/trade/cancel_all_order': {'cost': 1},
                         'v1/fapi/user_data/margin_type': {'cost': 1},
                         'v1/fapi/user_data/position_side/dual': {'cost': 1},
                         'v1/agent/internal_withdrawal': {'cost': 1},  # https://developers.bydfi.com/en/agent/#internal-withdrawal
@@ -525,7 +538,7 @@ class bydfi(Exchange, ImplicitAPI):
             'option': False,
             'active': status == 'NORMAL',
             'contract': True,
-            'linear': not inverse,
+            'linear': inverse is not True,
             'inverse': inverse,
             'taker': taker,
             'maker': maker,
@@ -686,7 +699,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 500
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -817,7 +830,7 @@ class bydfi(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch(max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -833,7 +846,7 @@ class bydfi(Exchange, ImplicitAPI):
             'interval': interval,
         }
         startTime = since
-        numberOfCandles = limit if limit else maxLimit
+        numberOfCandles = limit if (limit is not None and limit is not None and limit != 0) else maxLimit
         until = None
         until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
         now = self.milliseconds()
@@ -1264,11 +1277,11 @@ class bydfi(Exchange, ImplicitAPI):
         if hedged:
             params = self.omit(params, 'reduceOnly')
             if side == 'buy':
-                request['positionSide'] = 'SHORT' if reduceOnly else 'LONG'
+                request['positionSide'] = 'SHORT' if (reduceOnly is True) else 'LONG'
             elif side == 'sell':
-                request['positionSide'] = 'LONG' if reduceOnly else 'SHORT'
+                request['positionSide'] = 'LONG' if (reduceOnly is True) else 'SHORT'
         closePosition = self.safe_bool(params, 'closePosition', False)
-        if not closePosition:
+        if closePosition is not True:
             params = self.omit(params, 'closePosition')
             request['quantity'] = self.amount_to_precision(symbol, amount)
         elif (type != 'STOP_MARKET') and (type != 'TAKE_PROFIT_MARKET'):
@@ -1602,7 +1615,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 500
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -2508,7 +2521,7 @@ class bydfi(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             timestamp = self.milliseconds()
             transfer['timestamp'] = timestamp
             transfer['datetime'] = self.iso8601(timestamp)
@@ -2537,7 +2550,7 @@ class bydfi(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 50
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -2664,7 +2677,7 @@ class bydfi(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 50
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})

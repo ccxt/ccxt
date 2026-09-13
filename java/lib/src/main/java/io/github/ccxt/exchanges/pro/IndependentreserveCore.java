@@ -58,7 +58,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -70,10 +70,10 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), Helpers.GetValue(market, "base")), "-"), Helpers.GetValue(market, "quote"));
-            Object messageHash = Helpers.add("trades:", symbol);
+            String messageHash = Helpers.add("trades:", symbol);
             Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         });
@@ -101,13 +101,13 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //    }
         //
         Object data = this.safeValue(message, "Data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(data, "Pair");
-        Object symbol = this.safeSymbol(marketId, null, "-");
-        Object messageHash = Helpers.add("trades:", symbol);
+        String marketId = this.safeString(data, "Pair");
+        String symbol = this.safeSymbol(marketId, null, "-");
+        String messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -132,8 +132,8 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object datetime = this.safeString(trade, "TradeDate");
-        Object marketId = this.safeString(market, "Pair");
+        String datetime = this.safeString(trade, "TradeDate");
+        String marketId = this.safeString(market, "Pair");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", IndependentreserveCore.this.safeString(trade, "TradeGuid") );
@@ -160,7 +160,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -171,7 +171,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -179,8 +179,8 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             }
             Object limitString = this.numberToString(limit);
             Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), Helpers.GetValue(market, "base")), "-"), Helpers.GetValue(market, "quote"));
-            Object messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), limitString);
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            String messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), limitString);
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "receivedSnapshot", false );
             }};
             Object orderbook = (this.watch(url, messageHash, null, messageHash, subscription)).join();
@@ -213,35 +213,39 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //        "Event": "OrderBookSnapshot",
         //    }
         //
-        Object eventVar = this.safeString(message, "Event");
-        Object channel = this.safeString(message, "Channel");
+        String eventVar = this.safeString(message, "Event");
+        String channel = this.safeString(message, "Channel");
         if (Helpers.isTrue(Helpers.isEqual(channel, null)))
         {
             return;
         }
         Object parts = Helpers.split(channel, "/");
-        Object depth = this.safeString(parts, 1);
-        Object baseId = this.safeString(parts, 2);
-        Object quoteId = this.safeString(parts, 3);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String depth = this.safeString(parts, 1);
+        String baseId = this.safeString(parts, 2);
+        String quoteId = this.safeString(parts, 3);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object orderBook = this.safeDict(message, "Data", new java.util.HashMap<String, Object>() {{}});
-        Object messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), depth);
+        String messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), depth);
         Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
         Object receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
-        Object timestamp = this.safeInteger(message, "Time");
+        Long timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}));
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(eventVar, "OrderBookSnapshot")))
         {
             Object snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
-            Helpers.addElementToObject(subscription, "receivedSnapshot", true);
+            // write through the parent index: php copies arrays by value, so
+            // mutating the local bind would not persist the flag
+            Helpers.addElementToObject(client.subscriptions, messageHash, this.extend(subscription, new java.util.HashMap<String, Object>() {{
+    put( "receivedSnapshot", true );
+}}));
         } else
         {
             Object asks = this.safeList(orderBook, "Offers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -252,7 +256,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }
         Object checksum = this.handleOption("watchOrderBook", "checksum", true);
-        if (Helpers.isTrue(Helpers.isTrue(checksum) && Helpers.isTrue(receivedSnapshot)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(checksum, true))) && Helpers.isTrue((Helpers.isEqual(receivedSnapshot, true)))))
         {
             Object storedAsks = Helpers.GetValue(orderbook, "asks");
             Object storedBids = Helpers.GetValue(orderbook, "bids");
@@ -273,8 +277,8 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
                     payload = Helpers.add(Helpers.add(payload, this.valueToChecksum(Helpers.GetValue(Helpers.GetValue(storedAsks, i), 0))), this.valueToChecksum(Helpers.GetValue(Helpers.GetValue(storedAsks, i), 1)));
                 }
             }
-            Object calculatedChecksum = this.crc32(payload, true);
-            Object responseChecksum = this.safeInteger(orderBook, "Crc32");
+            Object calculatedChecksum = this.crc32(payload, false);
+            Long responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (Helpers.isTrue(!Helpers.isEqual(calculatedChecksum, responseChecksum)))
             {
                 var error = new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol)));
@@ -284,7 +288,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
                 return;
             }
         }
-        if (Helpers.isTrue(receivedSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(receivedSnapshot, true)))
         {
             client.resolve(orderbook, messageHash);
         }
@@ -292,8 +296,11 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
 
     public Object valueToChecksum(Object value)
     {
-        Object result = toFixed(value, 8);
-        result = Helpers.replace((String)result, (String)".", (String)"");
+        // toFixed returns a zero-padded *string* in js but a *number* in
+        // go/c#/java, dropping trailing zeros. decimalToPrecision with
+        // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
+        Object result = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
+        result = Helpers.replace(((String)result), ".", "");
         // remove leading zeros
         result = this.parseNumber(result);
         result = this.numberToString(result);
@@ -339,8 +346,8 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
 
     public void handleMessage(Client client, Object message)
     {
-        Object eventVar = this.safeString(message, "Event");
-        Object handlers = new java.util.HashMap<String, Object>() {{
+        String eventVar = this.safeString(message, "Event");
+        java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
             put( "Subscriptions", "handleSubscriptions");
             put( "Heartbeat", "handleHeartbeat");
             put( "Trade", "handleTrades");
@@ -353,6 +360,6 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             Helpers.callDynamically(this, handler, new Object[] {client, message});
             return;
         }
-        throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " received an unsupported message: "), this.json(message))) ;
+        throw new NotSupported(Helpers.add(Helpers.add(this.id, " received an unsupported message: "), this.json(message))) ;
     }
 }

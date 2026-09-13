@@ -210,7 +210,7 @@ export default class onetrading extends onetradingRest {
         //         "time": "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        const tickers = this.safeValue(message, 'ticker_updates', []);
+        const tickers = this.safeList(message, 'ticker_updates', []);
         const datetime = this.safeString(message, 'time');
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
@@ -715,7 +715,7 @@ export default class onetrading extends onetradingRest {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
-        const rawOrders = this.safeValue(message, 'orders', []);
+        const rawOrders = this.safeList(message, 'orders', []);
         const rawOrdersLength = rawOrders.length;
         if (rawOrdersLength === 0) {
             return;
@@ -726,7 +726,7 @@ export default class onetrading extends onetradingRest {
             let symbol = this.safeString(order, 'symbol', '');
             orders.append(order);
             client.resolve(this.orders, 'orders:' + symbol);
-            const rawTrades = this.safeValue(rawOrders[i], 'trades', []);
+            const rawTrades = this.safeList(rawOrders[i], 'trades', []);
             for (let ii = 0; ii < rawTrades.length; ii++) {
                 const trade = this.parseTrade(rawTrades[ii]);
                 symbol = this.safeString(trade, 'symbol', symbol);
@@ -975,7 +975,7 @@ export default class onetrading extends onetradingRest {
             const orderId = this.safeString(update, 'order_id');
             const datetime = this.safeString2(update, 'time', 'timestamp');
             const previousOrderArray = this.filterByArray(this.orders, 'id', orderId, false);
-            const previousOrder = this.safeValue(previousOrderArray, 0, {});
+            const previousOrder = this.safeDict(previousOrderArray, 0, {});
             symbol = previousOrder['symbol'];
             const filled = this.safeString(update, 'filled_amount');
             let status = this.parseWsOrderStatus(updateType);
@@ -1079,7 +1079,7 @@ export default class onetrading extends onetradingRest {
             if (subscription !== undefined) {
                 const ohlcvMarket = this.safeValue(subscription, marketId, {});
                 const marketSubscribed = this.safeBool(ohlcvMarket, timeframe, false);
-                if (!marketSubscribed) {
+                if (marketSubscribed !== true) {
                     type = 'UPDATE_SUBSCRIPTION';
                     client.subscriptions[subscriptionHash] = undefined;
                 }
@@ -1188,7 +1188,9 @@ export default class onetrading extends onetradingRest {
         client.resolve(stored, channel);
     }
     findTimeframe(timeframe, timeframes = undefined) {
-        timeframes = timeframes || this.timeframes;
+        if (timeframes === undefined) {
+            timeframes = this.timeframes;
+        }
         if (timeframes === undefined) {
             throw new ArgumentsRequired(this.id + ' findTimeframe() timeframes is required');
         }
@@ -1333,7 +1335,7 @@ export default class onetrading extends onetradingRest {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketSubscribed = this.safeBool(subscription, marketId, false);
-                    if (!marketSubscribed) {
+                    if (marketSubscribed !== true) {
                         type = 'UPDATE_SUBSCRIPTION';
                         client.subscriptions[subscriptionHash] = undefined;
                     }

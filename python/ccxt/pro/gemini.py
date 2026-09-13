@@ -185,7 +185,7 @@ class gemini(ccxt.async_support.gemini):
         #             ["buy", '22252.37', "0.02"],
         #             ["buy", '22251.61', "0.04"],
         #             ["buy", '22251.60', "0.04"],
-        #             # some asks
+        #             # some asks as well
         #         ],
         #         "trades": [
         #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy"},
@@ -265,7 +265,7 @@ class gemini(ccxt.async_support.gemini):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -322,7 +322,7 @@ class gemini(ccxt.async_support.gemini):
         marketId = self.safe_string(message, 'symbol', '').lower()
         market = self.safe_market(marketId)
         symbol = self.safe_symbol(marketId, market)
-        changes = self.safe_value(message, 'changes', [])
+        changes = self.safe_list(message, 'changes', [])
         timeframe = self.find_timeframe(timeframeId)
         ohlcvsBySymbol = self.safe_value(self.ohlcvs, symbol)
         if ohlcvsBySymbol is None:
@@ -379,7 +379,7 @@ class gemini(ccxt.async_support.gemini):
 
     def handle_order_book(self, client: Client, message: object):
         isInitial = ('auction_events' in message) and ('trades' in message) and ('changes' in message)
-        changes = self.safe_value(message, 'changes', [])
+        changes = self.safe_list(message, 'changes', [])
         marketId = self.safe_string_lower(message, 'symbol')
         market = self.safe_market(marketId)
         symbol = market['symbol']
@@ -497,7 +497,7 @@ class gemini(ccxt.async_support.gemini):
             raise NotSupported(self.id + ' watchMultiple requires at least one symbol')
         symbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbols[0])
-        if not firstMarket['spot'] and not firstMarket['linear']:
+        if (firstMarket['spot'] is not True) and (firstMarket['linear'] is not True):
             raise NotSupported(self.id + ' watchMultiple supports only spot or linear-swap symbols')
         messageHashes = []
         marketIds = []
@@ -570,7 +570,7 @@ class gemini(ccxt.async_support.gemini):
         #             ["buy", '22252.37', "0.02"],
         #             ["buy", '22251.61', "0.04"],
         #             ["buy", '22251.60', "0.04"],
-        #             # some asks
+        #             # some asks as well
         #         ],
         #         "trades": [
         #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy"},

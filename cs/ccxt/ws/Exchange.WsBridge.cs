@@ -63,6 +63,21 @@ public partial class BaseExchange
         return new ccxt.pro.CountedOrderBook(snapshot, depth);
     }
 
+    // Typed reads of this.orderbooks. Every value stored into the map is constructed by
+    // orderBook() / indexedOrderBook() / countedOrderBook() (or read back from the same
+    // map), so a returned slot always holds a ccxt.pro.IOrderBook — the ws transpiler
+    // rewrites `this.safeValue(this.orderbooks, symbol)` and `this.orderbooks[symbol]`
+    // to these so generated locals can name the type without changing the box.
+    public ccxt.pro.IOrderBook getOrderBook(object orderbooks, object key)
+    {
+        return getValue(orderbooks, key) as ccxt.pro.IOrderBook;
+    }
+
+    public ccxt.pro.IOrderBook safeOrderBook(object orderbooks, object key, object defaultValue = null)
+    {
+        return safeValueN(orderbooks, new List<object> { key }, defaultValue) as ccxt.pro.IOrderBook;
+    }
+
     public virtual void onClose(WebSocketClient client, object error = null)
     {
         if (client.error)
@@ -106,54 +121,6 @@ public partial class BaseExchange
         urlClient.futures.Clear();
         urlClient.subscriptions.Clear();
     }
-
-    public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        if (!isTrue((inOp(this.orderbooks, symbol))))
-        {
-            (client).reject(new ExchangeError(add(this.id, " loadOrderBook() orderbook is not initiated")), messageHash);
-            return;
-        }
-        object maxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
-        object tries = 0;
-        Exception error = null;
-        try
-        {
-            var stored = getValue(this.orderbooks, symbol) as ccxt.pro.IOrderBook;
-            while (isLessThan(tries, maxRetries))
-            {
-                var cache = stored.cache;
-                object orderBook = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
-                object index = this.getCacheIndex(orderBook, cache);
-                if (isTrue(isGreaterThanOrEqual(index, 0)))
-                {
-                    stored.reset(orderBook);
-                    this.handleDeltas(stored, arraySlice(cache, index));
-                    // getArrayLength((stored as ccxt.pro.OrderBook).cache) = 0;
-                    stored.cache.Clear();
-                    client.resolve(stored, messageHash);
-                    return;
-                }
-                postFixIncrement(ref tries);
-            }
-            error = new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries."));
-        }
-        catch (Exception e)
-        {
-            error = e;
-        }
-        // a failed synchronization must not recurse into another attempt with the
-        // same broken state - previously the catch invoked loadOrderBook again,
-        // recursing endlessly when the snapshot request kept failing, see
-        // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
-        // instead, reject the watcher and drop the connection and the cached
-        // orderbook, so the next watchOrderBook() call resubscribes cleanly
-        (client).reject(error, messageHash);
-        this.clients.TryRemove(client.url, out _);
-        ((System.Collections.Generic.IDictionary<string, object>)this.orderbooks)[(string)symbol] = this.orderBook();
-    }
-
 
     public virtual void handleMessage(WebSocketClient client, object messageContent)
     {
@@ -329,5 +296,48 @@ public partial class BaseExchange
         }
 
         return await future;
+    }
+}
+
+public partial class Exchange
+{
+    public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue((inOp(this.orderbooks, symbol))))
+        {
+            (client).reject(new ExchangeError(add(this.id, " loadOrderBook() orderbook is not initiated")), messageHash);
+            return;
+        }
+        object maxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
+        object tries = 0;
+        Exception error = null;
+        try
+        {
+            var stored = getValue(this.orderbooks, symbol) as ccxt.pro.IOrderBook;
+            while (isLessThan(tries, maxRetries))
+            {
+                var cache = stored.cache;
+                object orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
+                object index = this.getCacheIndex(orderBook, cache);
+                if (isTrue(isGreaterThanOrEqual(index, 0)))
+                {
+                    stored.reset(orderBook);
+                    this.handleDeltas(stored, arraySlice(cache, index));
+                    stored.cache.Clear();
+                    client.resolve(stored, messageHash);
+                    return;
+                }
+                postFixIncrement(ref tries);
+            }
+            error = new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries."));
+        }
+        catch (Exception e)
+        {
+            error = e;
+        }
+        (client).reject(error, messageHash);
+        this.clients.TryRemove(client.url, out _);
+        ((System.Collections.Generic.IDictionary<string, object>)this.orderbooks)[(string)symbol] = this.orderBook();
     }
 }

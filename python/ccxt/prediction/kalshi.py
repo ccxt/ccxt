@@ -268,11 +268,11 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 parsed = self.parse_binary_market_to_outcomes(raw)
                 eventTicker = self.safe_string(raw, 'event_ticker')
                 eventTitle = self.safe_string(raw, 'title', eventTicker)
-                eventKey = self.shorten_slug(eventTitle) if eventTitle else None
+                eventKey = self.shorten_slug(eventTitle) if (eventTitle is not None and eventTitle != '') else None
                 for j in range(0, len(parsed)):
                     m = parsed[j]
                     flatMarkets.append(m)
-                    if eventKey:
+                    if (eventKey is not None) and (eventKey != ''):
                         if not (eventKey in eventsDict):
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -290,7 +290,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                         eventEntry['markets'] = entryMarkets
             cursor = self.safe_string(response, 'cursor')
             collectedLength = len(flatMarkets)
-            if not cursor or rawMarketsLength < limit or collectedLength >= maxMarkets:
+            if (cursor is None or cursor == '') or rawMarketsLength < limit or collectedLength >= maxMarkets:
                 break
         self.events = eventsDict
         flatMarketsLength = len(flatMarkets)
@@ -312,9 +312,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: the resolved outcome object
         """
         # a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
-        # sending a unified handle(EVENT_MARKET:LABEL) ticker is a guaranteed 404.
+        # sending a unified handle(EVENT_MARKET:LABEL) as a ticker is a guaranteed 404.
         # the indexOf comparison must stay INLINE and `< 0` — the php transpiler only rewrites the
-        # inline form to mb_strpos's `== False`; assigned to a variable first, absence(False)
+        # inline form to mb_strpos's `is False`; assigned to a variable first, absence(False)
         # never satisfies `< 0` and id-form inputs take the wrong branch
         if outcomeSymbol.find(':') < 0:
             # parseToInt-wrapped .length: the bare `n = len(str);` statement is the php
@@ -427,7 +427,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # errors(e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         # outage(the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
         # through to the base http-status handling.
-        if not response:
+        if (response is None) or (response is None):
             return None
         error = self.safe_dict(response, 'error')
         if error is not None:
@@ -525,7 +525,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         openInt = self.safe_number_2(raw, 'open_interest_fp', 'open_interest')
         # Derive series ticker: drop last hyphen-segment from event_ticker
         eventParts = []
-        if eventTicker:
+        if (eventTicker is not None) and (eventTicker != ''):
             eventParts = eventTicker.split('-')
         seriesTicker = eventTicker
         eventPartsLength = len(eventParts)
@@ -615,7 +615,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'linear': None,
             'inverse': None,
             'contractSize': None,
-            'expiry': self.parse8601(endDate) if endDate else None,
+            'expiry': self.parse8601(endDate) if (endDate is not None and endDate != '') else None,
             'expiryDatetime': endDate,
             'strike': None,
             'optionType': None,
@@ -734,7 +734,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #
         tradingActive = self.safe_bool(response, 'trading_active', False)
         return {
-            'status': 'ok' if tradingActive else 'maintenance',
+            'status': 'ok' if (tradingActive is True) else 'maintenance',
             'updated': None,
             'eta': None,
             'url': None,
@@ -844,7 +844,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #
         marketAny = market
         outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
-        outcomeLabel = self.safe_string(market, 'label', self.safe_string(market['info'], 'outcomeLabel', 'YES')) if market else 'YES'
+        outcomeLabel = self.safe_string(market, 'label', self.safe_string(market['info'], 'outcomeLabel', 'YES')) if (market is not None and market is not None) else 'YES'
         isNo = outcomeLabel.upper() == 'NO'
         now = self.milliseconds()
         outcome = self.safe_string(outcomeObj, 'outcome')
@@ -1059,7 +1059,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum number of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -1150,7 +1150,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
         :param dict ohlcv: the raw candlestick object
         :param dict [market]: the outcome object the candle belongs to
-        :returns int[]: a candle ordered, open, high, low, close, volume
+        :returns int[]: a candle ordered as timestamp, open, high, low, close, volume
         """
         #
         #     {
@@ -1217,7 +1217,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
         request = {'ticker': ticker}
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         response = await self.kalshiPublicGetMarketsTrades(self.extend(request, params))
         trades = self.safe_list(response, 'trades', [])
         filteredTrades = []
@@ -1363,7 +1363,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if (price is not None) and (amount is not None):
             cost = price * amount
         isTaker = self.safe_bool(fill, 'is_taker', True)
-        takerOrMaker = 'taker' if (isTaker) else 'maker'
+        takerOrMaker = 'taker' if (isTaker is True) else 'maker'
         feeCost = self.safe_number(fill, 'fee_cost')
         fee = None
         if feeCost is not None:
@@ -1514,7 +1514,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # which leg won; market_result is yes or no
         marketResult = self.safe_string_upper(settlement, 'market_result')
         won = (marketResult == heldLabel)
-        # kalshi reports money keys on V2, else cents
+        # kalshi reports money as dollar keys on V2, else cents
         payout = self.safe_number(settlement, 'revenue_dollars')
         if payout is None:
             revenueCents = self.safe_number(settlement, 'revenue')
@@ -1839,7 +1839,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         order['side'] = side
         order['amount'] = amount
         order['price'] = price
-        # the minimal create response reports fills/remaining_count(not the *_fp keys
+        # the minimal create response reports fills as fill_count/remaining_count(not the *_fp keys
         # parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
         # otherwise a fully-filled order would return status 'closed' with filled 0
         remainingCount = self.safe_number(response, 'remaining_count')
@@ -1985,7 +1985,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             status = 'settled'
         # anything beyond the unified keys is forwarded verbatim to the events endpoint(kalshi filters)
         rest = self.omit(params, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker'])
-        if not self.markets:
+        if self.markets is None:
             self.markets = self.create_safe_dictionary()
         eventId = self.safe_string_2(params, 'eventId', 'slug')
         rawEvents = []
@@ -2307,13 +2307,15 @@ class kalshi(PredictionExchange, ImplicitAPI):
             end = latestClose
         ticker = self.safe_string(rawEvent, 'event_ticker')
         title = self.safe_string(rawEvent, 'title')
+        hasTitle = (title is not None) and (title != '')
+        eventSlug = self.shorten_slug(title) if hasTitle else None
         created = self.parse8601(self.safe_string(rawEvent, 'created_date_iso'))
         if created is None:
             created = earliestCreated
         return self.extend({
             'id': ticker,
             'slug': ticker,
-            'event': self.shorten_slug(title) if title else None,
+            'event': eventSlug,
             'title': title,
             'markets': marketsList,
             'volume': totalVolume,
@@ -2353,7 +2355,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         url = baseUrl + '/' + implodedPath
         query = self.omit(params, self.extract_params(path))
         querystring = self.urlencode(query)
-        if method == 'GET' and querystring:
+        if method == 'GET' and (querystring != ''):
             url += '?' + querystring
         existingHeaders = headers if (headers is not None) else {}
         headers = self.extend({
@@ -2379,7 +2381,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'KALSHI-ACCESS-SIGNATURE': signature,
                 'KALSHI-ACCESS-TIMESTAMP': timestamp,
             })
-            if method != 'GET' and querystring:
+            if method != 'GET' and (querystring != ''):
                 # kalshi expects a JSON body; the signature covers only timestamp+method+path
                 body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -369,7 +369,7 @@ class polymarket extends polymarket$1["default"] {
             }
             const parsedEvent = this.parseEvent(rawEvent);
             const eventSlug = this.safeString(rawEvent, 'slug');
-            if (eventSlug) {
+            if ((eventSlug !== undefined) && (eventSlug !== '')) {
                 const eventKey = this.shortenSlug(eventSlug);
                 eventsDict[eventKey] = parsedEvent;
             }
@@ -468,7 +468,7 @@ class polymarket extends polymarket$1["default"] {
             for (let ei = 0; ei < allEvents.length; ei++) {
                 const rawEvent = allEvents[ei];
                 const eventId = this.safeString(rawEvent, 'id');
-                if (eventId && !(eventId in seen)) {
+                if ((eventId !== undefined && eventId !== '') && !(eventId in seen)) {
                     seen[eventId] = true;
                     rawEvents.push(rawEvent);
                 }
@@ -713,7 +713,7 @@ class polymarket extends polymarket$1["default"] {
             const active = this.safeBool(market, 'active', false);
             const closed = this.safeBool(market, 'closed', false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            const marketResolved = closed || (this.safeStringLower(market, 'umaResolutionStatus') === 'resolved');
+            const marketResolved = (closed === true) || (this.safeStringLower(market, 'umaResolutionStatus') === 'resolved');
             let resolvedOutcome = undefined;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             const tickSize = this.safeNumber2(market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
@@ -741,13 +741,13 @@ class polymarket extends polymarket$1["default"] {
             if (parsedPrices !== undefined) {
                 parsedPricesLength = parsedPrices.length;
             }
-            if (parsedOutcomes && (parsedOutcomesLength !== undefined)) {
+            if ((parsedOutcomes !== undefined) && (parsedOutcomesLength !== undefined)) {
                 outcomeLabels = parsedOutcomes;
             }
-            if (parsedTokenIds && (parsedTokenIdsLength !== undefined)) {
+            if ((parsedTokenIds !== undefined) && (parsedTokenIdsLength !== undefined)) {
                 clobTokenIds = parsedTokenIds;
             }
-            if (parsedPrices && (parsedPricesLength !== undefined)) {
+            if ((parsedPrices !== undefined) && (parsedPricesLength !== undefined)) {
                 outcomePrices = parsedPrices;
             }
             const outcomeLabelsLength = outcomeLabels.length;
@@ -763,7 +763,7 @@ class polymarket extends polymarket$1["default"] {
                 const outcomeLabel = outcomeLabels[oi];
                 const clobTokenId = clobTokenIds[oi];
                 const outcomePrice = this.safeNumber(outcomePrices, oi);
-                if (!clobTokenId) {
+                if ((clobTokenId === undefined) || (clobTokenId === '')) {
                     continue;
                 }
                 const outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel);
@@ -794,7 +794,7 @@ class polymarket extends polymarket$1["default"] {
                     'market': marketSymbol,
                     'label': outcomeLabel,
                     'price': outcomePrice,
-                    'active': active && !closed,
+                    'active': (active === true) && (closed !== true),
                     'winner': winner,
                     'settleFraction': settleFraction,
                     // carry the order precision so createOrder needs no extra request
@@ -829,14 +829,14 @@ class polymarket extends polymarket$1["default"] {
                 'future': false,
                 'option': false,
                 'prediction': true,
-                'active': active && !closed,
+                'active': (active === true) && (closed !== true),
                 'resolved': marketResolved,
                 'resolvedOutcome': marketResolvedOutcome,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'expiry': endDate ? this.parse8601(endDate) : undefined,
+                'expiry': (endDate !== undefined && endDate !== '') ? this.parse8601(endDate) : undefined,
                 'expiryDatetime': endDate,
                 'strike': undefined,
                 'optionType': undefined,
@@ -2081,7 +2081,7 @@ class polymarket extends polymarket$1["default"] {
             if (builderHex.length <= 40) {
                 const builderFeeEnabled = this.safeBool(this.options, 'builderFee', true);
                 let feeRate = 0;
-                if (builderFeeEnabled) {
+                if (builderFeeEnabled === true) {
                     feeRate = this.safeInteger(this.options, 'feeRate', 0);
                 }
                 let feeHex = this.intToBase16(feeRate);
@@ -2115,7 +2115,7 @@ class polymarket extends polymarket$1["default"] {
         };
         const exchangeV2 = this.safeString(this.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         const negRiskExchangeV2 = this.safeString(this.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
-        const exchangeAddress = negRisk ? negRiskExchangeV2 : exchangeV2;
+        const exchangeAddress = (negRisk === true) ? negRiskExchangeV2 : exchangeV2;
         const domainVersion = this.safeString(this.options, 'ctfExchangeVersion', '2');
         const signature = this.signClobOrder(message, exchangeAddress, domainVersion, signatureType);
         const owner = this.safeString(this.options, 'l2ApiKey', this.apiKey);
@@ -2422,10 +2422,10 @@ class polymarket extends polymarket$1["default"] {
             rawEvents = await this.fetchRawEventsList(rest);
         }
         // Parse and merge into class-level caches
-        if (!this.events) {
+        if (this.events === undefined) {
             this.events = {};
         }
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
         const result = [];
@@ -2573,7 +2573,7 @@ class polymarket extends polymarket$1["default"] {
         const closed = this.safeBool(rawEvent, 'closed', false);
         let active = undefined;
         if (rawActive !== undefined) {
-            active = rawActive && !closed;
+            active = (rawActive === true) && (closed !== true);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
@@ -2591,7 +2591,7 @@ class polymarket extends polymarket$1["default"] {
         return this.extend({
             'id': this.safeString(rawEvent, 'id'),
             'slug': slug,
-            'event': slug ? this.shortenSlug(slug) : undefined,
+            'event': (slug !== undefined && slug !== '') ? this.shortenSlug(slug) : undefined,
             'title': this.safeString(rawEvent, 'title'),
             'tags': parsedTags,
             'markets': marketsList,
@@ -2630,7 +2630,7 @@ class polymarket extends polymarket$1["default"] {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
-        if (!response) {
+        if (response === undefined) {
             return undefined;
         }
         const errorMessage = this.safeString2(response, 'error', 'errorMsg');
@@ -2685,7 +2685,7 @@ class polymarket extends polymarket$1["default"] {
                 }
             }
             const querystring = hasArrayParam ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
-            if (querystring) {
+            if (querystring !== '') {
                 url += '?' + querystring;
             }
         }
@@ -2936,7 +2936,7 @@ class polymarket extends polymarket$1["default"] {
         const events = Array.isArray(message) ? message : [message];
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
-            if (!event || typeof event !== 'object') {
+            if ((event === undefined) || (event === null) || (typeof event !== 'object')) {
                 continue;
             }
             const eventType = this.safeString(event, 'event_type');
@@ -3054,7 +3054,7 @@ class polymarket extends polymarket$1["default"] {
             'cost': undefined,
             'fee': undefined,
         }, market);
-        if (!this.trades) {
+        if (this.trades === undefined) {
             this.trades = {};
         }
         let stored = this.safeValue(this.trades, outcome);
@@ -3284,7 +3284,7 @@ class polymarket extends polymarket$1["default"] {
         }
     }
     tokenIdToSymbol(tokenId) {
-        if (!tokenId) {
+        if ((tokenId === undefined) || (tokenId === '')) {
             return undefined;
         }
         // outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);

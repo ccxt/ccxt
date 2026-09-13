@@ -16,7 +16,7 @@ public class TestFetchMarkets extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchMarkets";
+        String method = "fetchMarkets";
         Object markets = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarkets", new Object[]{})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, markets);
         Object marketValues = Helpers.objectValues(markets);
@@ -33,7 +33,7 @@ public class TestFetchMarkets extends BaseTest {
     public Object detectMarketConflicts(BaseExchange exchange, Object marketValues)
     {
         // detect if there are markets with different ids for the same symbol
-        Object ids = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> ids = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)
         {
             Object market = Helpers.GetValue(marketValues, i);
@@ -43,7 +43,7 @@ public class TestFetchMarkets extends BaseTest {
                 Helpers.addElementToObject(ids, symbol, Helpers.GetValue(market, "id"));
             } else
             {
-                Object isDifferent = !Helpers.isEqual(Helpers.GetValue(ids, symbol), Helpers.GetValue(market, "id"));
+                Boolean isDifferent = !Helpers.isEqual(Helpers.GetValue(ids, symbol), Helpers.GetValue(market, "id"));
                 Assert(!Helpers.isTrue(isDifferent), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " fetchMarkets() has different ids for the same symbol: "), symbol), " "), Helpers.GetValue(ids, symbol)), " "), Helpers.GetValue(market, "id")));
             }
         }

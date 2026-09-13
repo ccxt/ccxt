@@ -2,19 +2,11 @@ import assert from 'assert';
 import { AuthenticationError } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
 
-// native ts test, intentionally not transpiled - pins the single-flight listen
-// key acquisition from https://github.com/ccxt/ccxt/issues/29393 on xt. xt has
-// no authenticate (): its equivalent is getListenKey (isContract), which reads
-// client.subscriptions['token'], fetches over REST, then writes the result
-// back. the logic is inlined directly into getListenKey (), so there is no
-// helper method to unit-test: this file is the only guard, and no build/lint
-// gate sees it - dropping the in-progress early-return or the flight settlement
-// still compiles and only surfaces as duplicate token fetches against a live
-// venue. xt parks each flight on the LIVE per-tradeType client (spot and
-// contract resolve to different ws urls) under a tradeType-scoped hash, so the
-// two token streams are isolated twice over - these tests interleave both kinds
-// to prove that. no test here calls watch* : getListenKey () only ever touches
-// this.client (url), which constructs a WsClient without dialing a socket
+// native ts test, intentionally not transpiled - pins xt's single-flight
+// getListenKey (isContract) (https://github.com/ccxt/ccxt/issues/29393). each flight is
+// parked on the live per-tradeType client under a tradeType-scoped hash, so spot and
+// contract token streams are isolated; tests interleave both to prove it. the logic is
+// inlined, so this file is the only guard. no watch* calls: this.client (url) never dials a socket
 
 function sleep (ms: number) {
     return new Promise ((resolve) => setTimeout (resolve, ms));

@@ -89,8 +89,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyBuys': True,
-                'fetchMySells': True,
+                'fetchMyBuys': False,
+                'fetchMySells': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
@@ -156,12 +156,20 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                             'instruments/{instrument}/quote': {'cost': 1},
                             'instruments/{instrument}/funding': {'cost': 1},
                             'instruments/{instrument}/candles': {'cost': 1},
+                            'instruments/volumes/daily': {'cost': 1},
+                            'position-offsets': {'cost': 1},
+                            'fee-rate-tiers': {'cost': 1},
                         },
                     },
                     'private': {
                         'get': {
+                            'address-book': {'cost': 1},
                             'orders': {'cost': 1},
                             'orders/{id}': {'cost': 1},
+                            'index/{index}/composition': {'cost': 1},
+                            'index/{index}/composition-history': {'cost': 1},
+                            'index/{index}/price': {'cost': 1},
+                            'index/{index}/candles': {'cost': 1},
                             'portfolios': {'cost': 1},
                             'portfolios/{portfolio}': {'cost': 1},
                             'portfolios/{portfolio}/detail': {'cost': 1},
@@ -170,16 +178,30 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                             'portfolios/{portfolio}/balances/{asset}': {'cost': 1},
                             'portfolios/{portfolio}/positions': {'cost': 1},
                             'portfolios/{portfolio}/positions/{instrument}': {'cost': 1},
+                            'portfolios/{portfolio}/position-limits': {'cost': 1},
+                            'portfolios/{portfolio}/position-limits/positions': {'cost': 1},
+                            'portfolios/{portfolio}/position-limits/positions/{instrument}': {'cost': 1},
                             'portfolios/fills': {'cost': 1},
                             'portfolios/{portfolio}/fills': {'cost': 1},
+                            'portfolios/fee-rates': {'cost': 1},
+                            'portfolios/{portfolio}/loans': {'cost': 1},
+                            'portfolios/{portfolio}/loans/{asset}': {'cost': 1},
+                            'portfolios/{portfolio}/loans/{asset}/availability': {'cost': 1},
+                            'portfolios/{portfolio}/margin-call-status': {'cost': 1},
                             'transfers': {'cost': 1},
                             'transfers/{transfer_uuid}': {'cost': 1},
+                            'transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit': {'cost': 1},
                         },
                         'post': {
                             'orders': {'cost': 1},
                             'portfolios': {'cost': 1},
                             'portfolios/margin': {'cost': 1},
+                            'portfolios/{portfolio}/cross-collateral-enabled': {'cost': 1},
+                            'portfolios/{portfolio}/auto-margin-enabled': {'cost': 1},
+                            'portfolios/{portfolio}/loans/{asset}': {'cost': 1},
+                            'portfolios/{portfolio}/loans/{asset}/preview': {'cost': 1},
                             'portfolios/transfer': {'cost': 1},
+                            'portfolios/transfer-position': {'cost': 1},
                             'transfers/withdraw': {'cost': 1},
                             'transfers/address': {'cost': 1},
                             'transfers/create-counterparty-id': {'cost': 1},
@@ -193,6 +215,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                         'delete': {
                             'orders': {'cost': 1},
                             'orders/{id}': {'cost': 1},
+                        },
+                        'patch': {
+                            'portfolios/{portfolio}': {'cost': 1},
                         },
                     },
                 },
@@ -349,7 +374,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         for i in range(0, len(accounts)):
             account = accounts[i]
             info = self.safe_dict(account, 'info', {})
-            if self.safe_bool(info, 'is_default'):
+            if self.safe_bool(info, 'is_default') is True:
                 portfolioId = self.safe_string(info, 'portfolio_id')
                 self.options['portfolio'] = portfolioId
                 return [portfolioId, params]
@@ -437,7 +462,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch, default 100 max 10000
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         """
@@ -935,7 +960,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         maxEntriesPerRequest = 100
         maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest)
         pageKey = 'ccxtPageKey'
-        if paginate:
+        if paginate is True:
             return self.fetch_paginated_call_incremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest)
         page = self.safe_integer(params, pageKey, 1) - 1
         offSet = self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest)
@@ -1672,7 +1697,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': 'ok' if success else 'failed',
+            'status': 'ok' if (success is True) else 'failed',
         }
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1824,6 +1849,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status: Str):
         statuses = {
+            # order_status carries WORKING and DONE; the other keys are event_type
+            # values, which the same payload reports in its own field
+            'WORKING': 'open',
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',
             'FILLED': 'closed',
@@ -1911,7 +1939,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'portfolio': portfolio,
         }
         market = None
-        if symbol:
+        if (symbol is not None) and (symbol != ''):
             market = self.market(symbol)
             request['instrument'] = market['id']
         orders = self.v1PrivateDeleteOrders(self.extend(request, params))
@@ -2040,7 +2068,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'result_offset': offSet,
         }
         market = None
-        if symbol:
+        if (symbol is not None) and (symbol != ''):
             market = self.market(symbol)
             request['instrument'] = symbol
         if limit is not None:
@@ -2229,7 +2257,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         savedPath = '/api' + fullPath
         if method == 'GET' or method == 'DELETE':
-            if query:
+            if len(query) > 0:
                 fullPath += '?' + self.urlencode_with_array_repeat(query)
         url = self.urls['api']['rest'] + fullPath
         if signed:
@@ -2237,7 +2265,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             nonce = str(self.nonce())
             payload = ''
             if method != 'GET':
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     payload = body
             auth = nonce + method + savedPath + payload

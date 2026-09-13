@@ -570,7 +570,7 @@ class bigone(Exchange, ImplicitAPI):
                 }
         chainLength = len(chains)
         type = None
-        if self.safe_bool(rawCurrency, 'is_fiat'):
+        if self.safe_bool(rawCurrency, 'is_fiat') is True:
             type = 'fiat'
         elif chainLength == 0:
             if self.is_leveraged_currency(id):
@@ -756,7 +756,7 @@ class bigone(Exchange, ImplicitAPI):
                 'option': False,
                 'active': self.safe_bool(market, 'enable'),
                 'contract': True,
-                'linear': not inverse,
+                'linear': (inverse is not True),
                 'inverse': inverse,
                 'contractSize': self.safe_number(market, 'multiplier'),
                 'expiry': None,
@@ -1033,7 +1033,7 @@ class bigone(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         response: dict
-        if market['contract']:
+        if market['contract'] is True:
             request = {
                 'symbol': market['id'],
             }
@@ -1254,7 +1254,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract']:
+        if market['contract'] is True:
             raise NotSupported(self.id + ' fetchTrades() can only fetch trades for spot markets')
         request = {
             'asset_pair_name': market['id'],
@@ -1316,12 +1316,12 @@ class bigone(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the earliest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract']:
+        if market['contract'] is True:
             raise NotSupported(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
         until = self.safe_integer(params, 'until')
         untilIsDefined = (until is not None)
@@ -1463,7 +1463,7 @@ class bigone(Exchange, ImplicitAPI):
             triggerPrice = None
         immediateOrCancel = self.safe_bool(order, 'immediate_or_cancel')
         timeInForce = None
-        if immediateOrCancel:
+        if immediateOrCancel is True:
             timeInForce = 'IOC'
         type = self.parse_type(self.safe_string(order, 'type'))
         price = self.safe_string(order, 'price')
@@ -1513,7 +1513,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -1533,7 +1533,7 @@ class bigone(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.operator]: *stop order only* GTE or LTE(default)
@@ -1566,7 +1566,7 @@ class bigone(Exchange, ImplicitAPI):
                 timeInForce = self.safe_string(params, 'timeInForce')
                 if timeInForce == 'IOC':
                     request['immediate_or_cancel'] = True
-                if postOnly:
+                if postOnly is True:
                     request['post_only'] = True
             request['amount'] = self.amount_to_precision(symbol, amount)
         else:
@@ -1878,7 +1878,7 @@ class bigone(Exchange, ImplicitAPI):
         url = baseUrl + '/' + self.implode_params(path, params)
         headers = {}
         if api == 'public' or api == 'webExchange' or api == 'contractPublic':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -1892,7 +1892,7 @@ class bigone(Exchange, ImplicitAPI):
             token = self.jwt(request, self.encode(self.secret), 'sha256')
             headers['Authorization'] = 'Bearer ' + token
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             elif method == 'POST':
                 headers['Content-Type'] = 'application/json'
@@ -1919,7 +1919,7 @@ class bigone(Exchange, ImplicitAPI):
         networkCode, paramsOmitted = self.handle_network_code_and_params(params)
         response = self.privateGetAssetsAssetSymbolAddress(self.extend(request, paramsOmitted))
         #
-        # the actual response format is not the same documented one
+        # the actual response format is not the same as the documented one
         # the data key contains an array in the actual response
         #
         #     {
@@ -2192,7 +2192,7 @@ class bigone(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount

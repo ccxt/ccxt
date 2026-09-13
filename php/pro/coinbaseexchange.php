@@ -967,7 +967,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         } elseif ($type === 'l2update') {
             $orderbook = $this->orderbooks[$symbol];
             $timestamp = $this->parse8601($this->safe_string($message, 'time'));
-            $changes = $this->safe_value($message, 'changes', array());
+            $changes = $this->safe_list($message, 'changes', array());
             $sides = array(
                 'sell' => 'asks',
                 'buy' => 'bids',

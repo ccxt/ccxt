@@ -24,7 +24,7 @@ class blofin extends Exchange {
             'name' => 'BloFin',
             'countries' => array( 'US' ),
             'version' => 'v1',
-            'rateLimit' => 100,
+            'rateLimit' => 200, // 1500 requests per 5 minutes per IP is the binding budget => 200ms per request (500/min allows 120ms, but 1500/5min does not)
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -180,6 +180,7 @@ class blofin extends Exchange {
                 'public' => array(
                     'get' => array(
                         'market/instruments' => array( 'cost' => 1 ),
+                        'market/instruments-history' => array( 'cost' => 1 ),
                         'market/tickers' => array( 'cost' => 1 ),
                         'market/books' => array( 'cost' => 1 ),
                         'market/trades' => array( 'cost' => 1 ),
@@ -190,6 +191,12 @@ class blofin extends Exchange {
                         'market/index-candles' => array( 'cost' => 1 ),
                         'market/mark-price-candles' => array( 'cost' => 1 ),
                         'market/position-tiers' => array( 'cost' => 1 ),
+                        // spot
+                        'spot/market/instruments' => array( 'cost' => 1 ),
+                        'spot/market/tickers' => array( 'cost' => 1 ),
+                        'spot/market/books' => array( 'cost' => 1 ),
+                        'spot/market/trades' => array( 'cost' => 1 ),
+                        'spot/market/candles' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
@@ -199,26 +206,28 @@ class blofin extends Exchange {
                         'asset/bills' => array( 'cost' => 1 ),
                         'asset/withdrawal-history' => array( 'cost' => 1 ),
                         'asset/deposit-history' => array( 'cost' => 1 ),
+                        'asset/deposit-address' => array( 'cost' => 1 ),
                         'account/config' => array( 'cost' => 1 ),
                         'asset/currencies' => array( 'cost' => 1 ),
                         // trading
                         'account/balance' => array( 'cost' => 1 ),
                         'account/positions' => array( 'cost' => 1 ),
                         'account/positions-history' => array( 'cost' => 1 ),
+                        'account/funding-fees' => array( 'cost' => 1 ),
                         'account/margin-mode' => array( 'cost' => 1 ),
                         'account/position-mode' => array( 'cost' => 1 ),
                         'account/leverage-info' => array( 'cost' => 1 ),
                         'account/batch-leverage-info' => array( 'cost' => 1 ),
-                        'trade/orders-pending' => array( 'cost' => 1 ),
-                        'trade/order-detail' => array( 'cost' => 1 ),
-                        'trade/orders-tpsl-pending' => array( 'cost' => 1 ),
-                        'trade/order-tpsl-detail' => array( 'cost' => 1 ),
-                        'trade/orders-algo-pending' => array( 'cost' => 1 ),
-                        'trade/orders-history' => array( 'cost' => 1 ),
-                        'trade/orders-tpsl-history' => array( 'cost' => 1 ),
-                        'trade/orders-algo-history' => array( 'cost' => 1 ), // todo new
-                        'trade/fills-history' => array( 'cost' => 1 ),
-                        'trade/order/price-range' => array( 'cost' => 1 ),
+                        'trade/orders-pending' => array( 'cost' => 1.67 ),
+                        'trade/order-detail' => array( 'cost' => 1.67 ),
+                        'trade/orders-tpsl-pending' => array( 'cost' => 1.67 ),
+                        'trade/order-tpsl-detail' => array( 'cost' => 1.67 ),
+                        'trade/orders-algo-pending' => array( 'cost' => 1.67 ),
+                        'trade/orders-history' => array( 'cost' => 1.67 ),
+                        'trade/orders-tpsl-history' => array( 'cost' => 1.67 ),
+                        'trade/orders-algo-history' => array( 'cost' => 1.67 ), // todo new
+                        'trade/fills-history' => array( 'cost' => 1.67 ),
+                        'trade/order/price-range' => array( 'cost' => 1.67 ),
                         // affiliate
                         'affiliate/basic' => array( 'cost' => 1 ),
                         'affiliate/referral-code' => array( 'cost' => 1 ),
@@ -235,44 +244,63 @@ class blofin extends Exchange {
                         'copytrading/account/positions-by-contract' => array( 'cost' => 1 ),
                         'copytrading/account/position-mode' => array( 'cost' => 1 ),
                         'copytrading/account/leverage-info' => array( 'cost' => 1 ),
-                        'copytrading/trade/orders-pending' => array( 'cost' => 1 ),
-                        'copytrading/trade/pending-tpsl-by-contract' => array( 'cost' => 1 ),
-                        'copytrading/trade/position-history-by-order' => array( 'cost' => 1 ),
-                        'copytrading/trade/orders-history' => array( 'cost' => 1 ),
-                        'copytrading/trade/pending-tpsl-by-order' => array( 'cost' => 1 ),
+                        'copytrading/trade/orders-pending' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/pending-tpsl-by-contract' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/position-history-by-order' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/orders-history' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/pending-tpsl-by-order' => array( 'cost' => 1.67 ),
                         // user
                         'user/query-apikey' => array( 'cost' => 1 ),
                         // tax
                         'spot/trade/fills-history' => array( 'cost' => 1 ),
+                        // spot
+                        'spot/trade/orders-pending' => array( 'cost' => 1.67 ),
+                        'spot/trade/order-detail' => array( 'cost' => 1.67 ),
+                        'spot/trade/orders-algo-pending' => array( 'cost' => 1.67 ),
+                        'spot/trade/orders-history' => array( 'cost' => 1.67 ),
+                        'spot/trade/orders-algo-history' => array( 'cost' => 1.67 ),
+                        'spot/trade/order/price-range' => array( 'cost' => 1.67 ),
                     ),
                     'post' => array(
                         // account
                         'asset/transfer' => array( 'cost' => 1 ),
                         'asset/demo-apply-money' => array( 'cost' => 1 ),
+                        'asset/withdrawal-apply' => array( 'cost' => 1 ),
                         // trading
-                        'account/set-margin-mode' => array( 'cost' => 1 ),
-                        'account/set-position-mode' => array( 'cost' => 1 ),
-                        'account/set-leverage' => array( 'cost' => 1 ),
-                        'trade/order' => array( 'cost' => 1 ),
-                        'trade/batch-orders' => array( 'cost' => 1 ),
-                        'trade/order-tpsl' => array( 'cost' => 1 ),
-                        'trade/order-algo' => array( 'cost' => 1 ),
-                        'trade/cancel-order' => array( 'cost' => 1 ),
-                        'trade/cancel-batch-orders' => array( 'cost' => 1 ),
-                        'trade/cancel-tpsl' => array( 'cost' => 1 ),
-                        'trade/cancel-algo' => array( 'cost' => 1 ),
-                        'trade/close-position' => array( 'cost' => 1 ),
+                        'account/set-margin-mode' => array( 'cost' => 1.67 ),
+                        'account/set-position-mode' => array( 'cost' => 1.67 ),
+                        'account/set-leverage' => array( 'cost' => 1.67 ),
+                        'trade/order' => array( 'cost' => 1.67 ),
+                        'trade/batch-orders' => array( 'cost' => 1.67 ),
+                        'trade/order-tpsl' => array( 'cost' => 1.67 ),
+                        'trade/order-algo' => array( 'cost' => 1.67 ),
+                        'trade/cancel-order' => array( 'cost' => 1.67 ),
+                        'trade/cancel-batch-orders' => array( 'cost' => 1.67 ),
+                        'trade/cancel-tpsl' => array( 'cost' => 1.67 ),
+                        'trade/cancel-algo' => array( 'cost' => 1.67 ),
+                        'trade/amend-order' => array( 'cost' => 1.67 ),
+                        'trade/amend-batch-orders' => array( 'cost' => 1.67 ),
+                        'trade/amend-tpsl' => array( 'cost' => 1.67 ),
+                        'trade/amend-algo' => array( 'cost' => 1.67 ),
+                        'trade/close-position' => array( 'cost' => 1.67 ),
+                        // spot
+                        'spot/trade/order' => array( 'cost' => 1.67 ),
+                        'spot/trade/batch-orders' => array( 'cost' => 1.67 ),
+                        'spot/trade/order-algo' => array( 'cost' => 1.67 ),
+                        'spot/trade/cancel-order' => array( 'cost' => 1.67 ),
+                        'spot/trade/cancel-batch-orders' => array( 'cost' => 1.67 ),
+                        'spot/trade/cancel-algo' => array( 'cost' => 1.67 ),
                         // copy trading
-                        'copytrading/account/set-position-mode' => array( 'cost' => 1 ),
-                        'copytrading/account/set-leverage' => array( 'cost' => 1 ),
-                        'copytrading/trade/place-order' => array( 'cost' => 1 ),
-                        'copytrading/trade/cancel-order' => array( 'cost' => 1 ),
-                        'copytrading/trade/place-tpsl-by-contract' => array( 'cost' => 1 ),
-                        'copytrading/trade/cancel-tpsl-by-contract' => array( 'cost' => 1 ),
-                        'copytrading/trade/place-tpsl-by-order' => array( 'cost' => 1 ),
-                        'copytrading/trade/cancel-tpsl-by-order' => array( 'cost' => 1 ),
-                        'copytrading/trade/close-position-by-order' => array( 'cost' => 1 ),
-                        'copytrading/trade/close-position-by-contract' => array( 'cost' => 1 ),
+                        'copytrading/account/set-position-mode' => array( 'cost' => 1.67 ),
+                        'copytrading/account/set-leverage' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/place-order' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/cancel-order' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/place-tpsl-by-contract' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/cancel-tpsl-by-contract' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/place-tpsl-by-order' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/cancel-tpsl-by-order' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/close-position-by-order' => array( 'cost' => 1.67 ),
+                        'copytrading/trade/close-position-by-contract' => array( 'cost' => 1.67 ),
                     ),
                 ),
             ),
@@ -418,7 +446,7 @@ class blofin extends Exchange {
                     '102055' => '\\ccxt\\InvalidOrder',  // stop loss trigger price should be lower than the best ask price
                     '102064' => '\\ccxt\\BadRequest',  // Buy price is not within the price limit (Minimum => 310.40; Maximum:1,629.40)
                     '102065' => '\\ccxt\\BadRequest',  // Sell price is not within the price limit
-                    '102068' => '\\ccxt\\BadRequest',  // Cancel failed order has been filled, triggered, canceled or does not exist
+                    '102068' => '\\ccxt\\BadRequest',  // Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013' => '\\ccxt\\ExchangeError',  // Internal error; unable to process your request. Please try again.
                     'Order failed. Insufficient USDT margin in account' => '\\ccxt\\InsufficientFunds',  // Insufficient USDT margin in account
                 ),
@@ -682,7 +710,7 @@ class blofin extends Exchange {
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
         $spot = $this->safe_bool($market, 'spot', false);
-        $quoteVolume = $spot ? $this->safe_string($ticker, 'volCurrency24h') : null;
+        $quoteVolume = ($spot === true) ? $this->safe_string($ticker, 'volCurrency24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         $high = $this->safe_string($ticker, 'high24h');
         $low = $this->safe_string($ticker, 'low24h');
@@ -983,7 +1011,7 @@ class blofin extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1126,7 +1154,7 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets');
         }
         $request = array(
@@ -1253,7 +1281,7 @@ class blofin extends Exchange {
         return array(
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
-            // blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
+            // blofin returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'maker', 'makerU'))),
             'taker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'taker', 'takerU'))),
             'percentage' => null,
@@ -1316,7 +1344,7 @@ class blofin extends Exchange {
         $triggerPriceSlTp = $this->safe_string_2($params, 'stopLossPrice', 'takeProfitPrice');
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $isHedged = $this->safe_bool($params, 'hedged', false);
-        if ($isHedged) {
+        if ($isHedged === true) {
             $request['positionSide'] = ($side === 'buy') ? 'long' : 'short';
         }
         $isMarketOrder = $type === 'market';
@@ -1443,13 +1471,11 @@ class blofin extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
         $amount = $this->safe_string($order, 'size');
-        $leverage = $this->safe_string($order, 'leverage', '1');
         $contractSize = $this->safe_string($market, 'contractSize');
         $baseAmount = Precise::string_mul($contractSize, $filled);
         $cost = null;
         if ($average !== null) {
             $cost = Precise::string_mul($average, $baseAmount);
-            $cost = Precise::string_div($cost, $leverage);
         }
         // spot $market buy => "sz" can refer either to base currency units or to quote currency units
         $fee = null;
@@ -1578,7 +1604,7 @@ class blofin extends Exchange {
         $market = $this->market($symbol);
         $hedged = $this->safe_bool($params, 'hedged', false);
         $positionSide = 'net';
-        if ($hedged) {
+        if ($hedged === true) {
             $positionSide = ($side === 'buy') ? 'short' : 'long';
         }
         $request = array(
@@ -1662,20 +1688,20 @@ class blofin extends Exchange {
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
         } else {
-            if (!$isTrigger && !$isTpsl) {
+            if (($isTrigger !== true) && ($isTpsl !== true)) {
                 $request['orderId'] = (string) $id;
-            } elseif ($isTpsl) {
+            } elseif ($isTpsl === true) {
                 $request['tpslId'] = (string) $id;
-            } elseif ($isTrigger) {
+            } elseif ($isTrigger === true) {
                 $request['algoId'] = (string) $id;
             }
         }
         $query = $this->omit($params, array( 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ));
-        if ($isTpsl) {
+        if ($isTpsl === true) {
             $tpslResponse = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
             $first = $this->safe_dict($tpslResponse, 0);
             return $first;
-        } elseif ($isTrigger) {
+        } elseif ($isTrigger === true) {
             $triggerResponse = Async\await($this->privatePostTradeCancelAlgo($this->extend($request, $query)));
             $triggerData = $this->safe_dict($triggerResponse, 'data');
             return $this->parse_order($triggerData, $market);
@@ -1764,9 +1790,9 @@ class blofin extends Exchange {
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
-        if ($isTpSl || ($method === 'privateGetTradeOrdersTpslPending')) {
+        if (($isTpSl === true) || ($method === 'privateGetTradeOrdersTpslPending')) {
             $response = Async\await($this->privateGetTradeOrdersTpslPending($this->extend($request, $query)));
-        } elseif ($isTrigger || ($method === 'privateGetTradeOrdersAlgoPending')) {
+        } elseif (($isTrigger === true) || ($method === 'privateGetTradeOrdersAlgoPending')) {
             $request['orderType'] = 'trigger';
             $response = Async\await($this->privateGetTradeOrdersAlgoPending($this->extend($request, $query)));
         } else {
@@ -2174,7 +2200,7 @@ class blofin extends Exchange {
         $clientOrderIds = $this->parse_ids($this->safe_value($params, 'clientOrderId'));
         $tpslIds = $this->parse_ids($this->safe_value($params, 'tpslId'));
         $trigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl' ));
-        if ($trigger) {
+        if ($trigger === true) {
             $method = 'privatePostTradeCancelTpsl';
         }
         if ($clientOrderIds === null) {
@@ -2188,7 +2214,7 @@ class blofin extends Exchange {
                 }
             }
             for ($i = 0; $i < count($ids); $i++) {
-                if ($trigger) {
+                if ($trigger === true) {
                     $request[] = array(
                         'tpslId' => $ids[$i],
                         'instId' => $market['id'],
@@ -2467,7 +2493,7 @@ class blofin extends Exchange {
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPrice');
         $notionalString = $this->safe_string($position, 'notionalUsd');
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         }
         $notional = $this->parse_number($notionalString);
@@ -2558,7 +2584,7 @@ class blofin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverages', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross $marginMode
+            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default $marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' fetchLeverages() requires a $marginMode parameter that must be either cross or isolated');
@@ -2618,7 +2644,7 @@ class blofin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross $marginMode
+            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default $marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
@@ -2710,7 +2736,7 @@ class blofin extends Exchange {
          * @see https://blofin.com/docs#close-positions
          *
          * @param {string} $symbol Unified CCXT $market $symbol
-         * @param {string} [$side] 'buy' or 'sell', leave in net mode
+         * @param {string} [$side] 'buy' or 'sell', leave as null in net mode
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross;
@@ -2783,7 +2809,7 @@ class blofin extends Exchange {
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
-        if (($isTrigger) || ($method === 'privateGetTradeOrdersTpslHistory')) {
+        if (($isTrigger === true) || ($method === 'privateGetTradeOrdersTpslHistory')) {
             $response = Async\await($this->privateGetTradeOrdersTpslHistory($this->extend($request, $query)));
         } else {
             $response = Async\await($this->privateGetTradeOrdersHistory($this->extend($request, $query)));

@@ -397,7 +397,7 @@ class bingx extends bingx$1["default"] {
             limit = trades.getLimit(symbol, limit);
         }
         const result = this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
-        if (this.handleOption('watchTrades', 'ignoreDuplicates', true)) {
+        if (this.handleOption('watchTrades', 'ignoreDuplicates', true) === true) {
             let filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, 'timestamp');
             return filtered;
@@ -577,7 +577,7 @@ class bingx extends bingx$1["default"] {
             request['reqType'] = 'sub';
         }
         let subscriptionArgs = {};
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             subscriptionArgs = {
                 'id': uuid,
                 'unsubscribe': false,
@@ -717,7 +717,7 @@ class bingx extends bingx$1["default"] {
         let snapshot;
         let timestamp = this.safeInteger2(message, 'timestamp', 'ts');
         timestamp = this.safeInteger2(data, 'timestamp', 'ts', timestamp);
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             snapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         }
         else {
@@ -748,9 +748,11 @@ class bingx extends bingx$1["default"] {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        let timestamp = this.safeBool(market, 'spot') ? 't' : 'T';
-        if (this.safeBool(market, 'swap')) {
-            timestamp = this.safeBool(market, 'inverse') ? 't' : 'T';
+        const isSpot = (this.safeBool(market, 'spot') === true);
+        const isInverse = (this.safeBool(market, 'inverse') === true);
+        let timestamp = isSpot ? 't' : 'T';
+        if (this.safeBool(market, 'swap') === true) {
+            timestamp = isInverse ? 't' : 'T';
         }
         return [
             this.safeInteger(ohlcv, timestamp),
@@ -836,7 +838,7 @@ class bingx extends bingx$1["default"] {
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         let candles = undefined;
         if (isSwap) {
-            if (market['inverse']) {
+            if (market['inverse'] === true) {
                 candles = [this.safeDict(message, 'data', {})];
             }
             else {
@@ -1158,7 +1160,8 @@ class bingx extends bingx$1["default"] {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
-        const fetchBalanceSnapshot = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        let fetchBalanceSnapshot = false;
+        [fetchBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1243,7 +1246,7 @@ class bingx extends bingx$1["default"] {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -1355,6 +1358,9 @@ class bingx extends bingx$1["default"] {
         }
         const cache = this.positions;
         const data = this.safeDict(message, 'a', {});
+        if (!('P' in data)) {
+            return;
+        }
         const rawPositions = this.safeList(data, 'P', []);
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
@@ -1826,7 +1832,7 @@ class bingx extends bingx$1["default"] {
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool(subscription, 'unsubscribe', false);
-        if (isUnSubMessage) {
+        if (isUnSubMessage === true) {
             this.handleUnSubscription(client, subscription);
         }
         return message;

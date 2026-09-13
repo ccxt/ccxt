@@ -176,7 +176,7 @@
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
                         "average": 68.11,
-                        "cost": 22.703333333333333,
+                        "cost": 68.11,
                         "amount": 1,
                         "filled": 1,
                         "remaining": 0,

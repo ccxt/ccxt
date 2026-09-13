@@ -919,7 +919,7 @@ class bitvavo(Exchange, ImplicitAPI):
         taker = self.safe_value(trade, 'taker')
         takerOrMaker = None
         if taker is not None:
-            takerOrMaker = 'taker' if taker else 'maker'
+            takerOrMaker = 'taker' if (taker is True) else 'maker'
         feeCostString = self.safe_string(trade, 'fee')
         fee = None
         if feeCostString is not None:
@@ -1128,7 +1128,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1260,7 +1260,7 @@ class bitvavo(Exchange, ImplicitAPI):
         else:
             raise ArgumentsRequired(self.id + ' transfer() requires either fromAccount or toAccount to be master')
         if subaccountId is None:
-            raise ArgumentsRequired(self.id + ' transfer() requires a subaccount id(provide it/toAccount or params.subaccountId)')
+            raise ArgumentsRequired(self.id + ' transfer() requires a subaccount id(provide it as fromAccount/toAccount or params.subaccountId)')
         request = {
             'subaccountId': subaccountId,
             'direction': direction,
@@ -2537,13 +2537,13 @@ class bitvavo(Exchange, ImplicitAPI):
         url = '/' + self.version + '/' + self.implode_params(path, params)
         getOrDelete = (method == 'GET') or (method == 'DELETE')
         if getOrDelete:
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
             payload = ''
             if not getOrDelete:
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     payload = body
             timestamp = str(self.milliseconds())

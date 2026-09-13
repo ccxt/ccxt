@@ -29,7 +29,7 @@ func TestPosition(exchange ccxt.ICoreExchange, skippedProperties any, method any
 			"percentage":                  true,
 		}, skippedProperties)
 	}
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":                        map[string]any{},
 		"symbol":                      "XYZ/USDT",
 		"timestamp":                   1504224000000,
@@ -52,7 +52,7 @@ func TestPosition(exchange ccxt.ICoreExchange, skippedProperties any, method any
 		"side":                        "long",
 		"percentage":                  exchange.ParseNumber("1.234"),
 	}
-	var emptyotAllowedFor any = []any{"liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"}
+	var emptyotAllowedFor []any = []any{"liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyotAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now)
 	AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol)

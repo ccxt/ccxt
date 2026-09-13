@@ -37,7 +37,7 @@ function test_load_markets($exchange, $skipped_properties) {
     }
     for ($i = 0; $i < count($market_types); $i++) {
         $m_type = $market_types[$i];
-        if ($exchange->has[$m_type]) {
+        if ($exchange->has[$m_type] !== null && $exchange->has[$m_type] !== false) {
             $skip_market_types = (is_array($skipped_properties) && array_key_exists('optionsNotLoadedByDefault', $skipped_properties)) && $m_type === 'option';
             assert($exchange->in_array($m_type, $collected_types) || $skip_market_types, 'exchange.has[' . $m_type . '] is true, but no markets of type ' . $m_type . ' were found in exchange.markets');
         } elseif ($exchange->has[$m_type] === false) {

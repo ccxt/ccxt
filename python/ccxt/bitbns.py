@@ -118,14 +118,19 @@ class bitbns(Exchange, ImplicitAPI):
                         'withdrawHistory/{symbol}': {'cost': 1},
                         'withdrawHistoryAll/{symbol}': {'cost': 1},
                         'depositHistoryAll/{symbol}': {'cost': 1},
+                        'userHistoryNew': {'cost': 1},
                         'listOpenOrders/{symbol}': {'cost': 1},
+                        'listOpenOrdersOther/{symbol}': {'cost': 1},
                         'listOpenStopOrders/{symbol}': {'cost': 1},
                         'getCoinAddress/{symbol}': {'cost': 1},
                         'placeSellOrder/{symbol}': {'cost': 1},
+                        'placeSellOrderOther/{symbol}': {'cost': 1},
                         'placeBuyOrder/{symbol}': {'cost': 1},
+                        'placeBuyOrderOther/{symbol}': {'cost': 1},
                         'buyStopLoss/{symbol}': {'cost': 1},
                         'sellStopLoss/{symbol}': {'cost': 1},
                         'cancelOrder/{symbol}': {'cost': 1},
+                        'cancelOrderOther/{symbol}': {'cost': 1},
                         'cancelStopLossOrder/{symbol}': {'cost': 1},
                         'listExecutedOrders/{symbol}': {'cost': 1},
                         'placeMarketOrder/{symbol}': {'cost': 1},
@@ -724,7 +729,7 @@ class bitbns(Exchange, ImplicitAPI):
             'symbol': market['uppercaseId'],
         }
         response = None
-        tail = 'StopLossOrder' if isTrigger else 'Order'
+        tail = 'StopLossOrder' if (isTrigger is True) else 'Order'
         quoteSide = 'usdtcancel' if (market['quoteId'] == 'USDT') else 'cancel'
         quoteSide += tail
         request['side'] = quoteSide
@@ -753,7 +758,7 @@ class bitbns(Exchange, ImplicitAPI):
             'entry_id': id,
         }
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
-        if trigger:
+        if trigger is True:
             raise BadRequest(self.id + ' fetchOrder cannot fetch stop orders')
         response = self.v1PostOrderStatusSymbol(self.extend(request, params))
         #
@@ -810,7 +815,7 @@ class bitbns(Exchange, ImplicitAPI):
         request = {
             'symbol': market['uppercaseId'],
             'page': 0,
-            'side': (quoteSide + 'StopOrders') if isTrigger else (quoteSide + 'Orders'),
+            'side': (quoteSide + 'StopOrders') if (isTrigger is True) else (quoteSide + 'Orders'),
         }
         response = self.v2PostGetordersnew(self.extend(request, params))
         #
@@ -1211,10 +1216,10 @@ class bitbns(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         nonce = str(self.nonce())
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif method == 'POST':
-            if query:
+            if len(query) > 0:
                 body = self.json(query)
             else:
                 body = '{}'

@@ -6,7 +6,7 @@
 
 async function testSignIn(exchange, skippedProperties) {
     const method = 'signIn';
-    if (exchange.has[method]) {
+    if (exchange.has[method] !== undefined && exchange.has[method] !== false) {
         await exchange.signIn();
     }
     return true;

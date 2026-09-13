@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestBalance(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"free":  map[string]any{},
 		"used":  map[string]any{},
 		"total": map[string]any{},
@@ -15,17 +15,17 @@ func TestBalance(exchange ccxt.ICoreExchange, skippedProperties any, method any,
 	AssertStructure(exchange, skippedProperties, method, entry, format)
 	var logText any = LogTemplate(exchange, method, entry)
 	//
-	var codesTotal any = ObjectKeys(GetValue(entry, "total"))
-	var codesFree any = ObjectKeys(GetValue(entry, "free"))
-	var codesUsed any = ObjectKeys(GetValue(entry, "used"))
+	var codesTotal []string = ObjectKeys(GetValue(entry, "total"))
+	var codesFree []string = ObjectKeys(GetValue(entry, "free"))
+	var codesUsed []string = ObjectKeys(GetValue(entry, "used"))
 	AssertNonEmtpyArray(exchange, skippedProperties, method, codesTotal, "total")
 	AssertNonEmtpyArray(exchange, skippedProperties, method, codesFree, "free")
 	AssertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, "used")
 	var allCodes any = exchange.ArrayConcat(codesTotal, codesFree)
 	allCodes = exchange.ArrayConcat(allCodes, codesUsed)
-	var codesLength any = GetArrayLength(codesTotal)
-	var freeLength any = GetArrayLength(codesFree)
-	var usedLength any = GetArrayLength(codesUsed)
+	var codesLength int = GetArrayLength(codesTotal)
+	var freeLength int = GetArrayLength(codesFree)
+	var usedLength int = GetArrayLength(codesUsed)
 	Assert(IsTrue((IsEqual(codesLength, freeLength))) || IsTrue((IsEqual(codesLength, usedLength))), Add("free and total and used codes have different lengths", logText))
 	for i := 0; IsLessThan(i, GetArrayLength(allCodes)); i++ {
 		var code any = GetValue(allCodes, i)

@@ -12,13 +12,13 @@ func TestTradingFee(exchange ccxt.ICoreExchange, skippedProperties any, method a
 			"symbol": true,
 		}, skippedProperties)
 	}
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":   map[string]any{},
 		"symbol": "ETH/BTC",
 		"maker":  exchange.ParseNumber("0.002"),
 		"taker":  exchange.ParseNumber("0.003"),
 	}
-	var emptyAllowedFor any = []any{"tierBased", "percentage", "symbol"}
+	var emptyAllowedFor []any = []any{"tierBased", "percentage", "symbol"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol)
 }

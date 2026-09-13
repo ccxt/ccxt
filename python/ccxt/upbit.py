@@ -158,6 +158,11 @@ class upbit(Exchange, ImplicitAPI):
                         'travel_rule/vasps': {'cost': 0.67},
                         'status/wallet': {'cost': 0.67},
                         'api_keys': {'cost': 0.67},  # Upbit KR only
+                        'pockets': {'cost': 0.67},
+                        'pockets/api_keys': {'cost': 0.67},
+                        'pockets/assets': {'cost': 0.67},
+                        'pockets/universal_transfers': {'cost': 0.67},
+                        'pockets/transfers': {'cost': 0.67},
                     },
                     'post': {
                         'orders': {'cost': 2.5},  # RPS: 8
@@ -169,6 +174,8 @@ class upbit(Exchange, ImplicitAPI):
                         'deposits/generate_coin_address': {'cost': 0.67},
                         'travel_rule/deposit/uuid': {'cost': 0.67},  # RPS: 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid': {'cost': 0.67},  # RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'pockets/universal_transfers': {'cost': 0.67},
+                        'pockets/transfers': {'cost': 0.67},
                     },
                     'delete': {
                         'order': {'cost': 0.67},
@@ -348,13 +355,13 @@ class upbit(Exchange, ImplicitAPI):
         walletLocked = self.safe_value(memberInfo, 'wallet_locked')
         locked = self.safe_value(memberInfo, 'locked')
         active = True
-        if (canWithdraw is not None) and not canWithdraw:
+        if (canWithdraw is not None) and (canWithdraw is not True):
             active = False
         elif walletState != 'working':
             active = False
-        elif (walletLocked is not None) and walletLocked:
+        elif (walletLocked is not None) and (walletLocked is True):
             active = False
-        elif (locked is not None) and locked:
+        elif (locked is not None) and (locked is True):
             active = False
         maxOnetimeWithdrawal = self.safe_string(withdrawLimits, 'onetime')
         maxDailyWithdrawal = self.safe_string(withdrawLimits, 'daily', maxOnetimeWithdrawal)
@@ -769,22 +776,47 @@ class upbit(Exchange, ImplicitAPI):
 
         https://docs.upbit.com/kr/reference/list-tickers
         https://global-docs.upbit.com/reference/list-tickers
+        https://docs.upbit.com/kr/reference/tickers_by_quote
+        https://global-docs.upbit.com/reference/tickers_by_quote
 
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.quote_currencies]: comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is None
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
             self.load_markets()
         symbols = self.market_symbols(symbols)
-        ids = self.market_ids(symbols) if (symbols is not None) else self.ids
-        promises = []
-        queries = self.ids_query_strings(ids, 6400)  # seems upbit server limitations
-        for i in range(0, len(queries)):
-            idsQuery = queries[i]
-            promises.append(self.publicGetTicker({'markets': idsQuery}))
-        responses = promises
+        tickers = []
+        if symbols is None:
+            # ticker/all returns every market of the requested quote currencies with a single request
+            quoteIds = []
+            marketSymbols = self.symbols
+            for i in range(0, len(marketSymbols)):
+                market = self.market(marketSymbols[i])
+                quoteId = market['quoteId']
+                if not self.in_array(quoteId, quoteIds):
+                    quoteIds.append(quoteId)
+            sortedQuoteIds = self.sort(quoteIds)  # market iteration order differs per language
+            quoteCurrencies = ''
+            for i in range(0, len(sortedQuoteIds)):
+                if quoteCurrencies != '':
+                    quoteCurrencies = quoteCurrencies + ','
+                quoteCurrencies = quoteCurrencies + sortedQuoteIds[i]
+            request = {
+                'quote_currencies': quoteCurrencies,
+            }
+            tickers = self.publicGetTickerAll(self.extend(request, params))
+        else:
+            ids = self.market_ids(symbols)
+            promises = []
+            queries = self.ids_query_strings(ids, 4000)  # the url is limited to about 8000 characters once the commas are percent-encoded
+            for i in range(0, len(queries)):
+                idsQuery = queries[i]
+                promises.append(self.publicGetTicker(self.extend({'markets': idsQuery}, params)))
+            responses = promises
+            tickers = self.arrays_concat(responses)
         #
         #     [{               market: "BTC-ETH",
         #                    "trade_date": "20181122",
@@ -813,8 +845,7 @@ class upbit(Exchange, ImplicitAPI):
         #           "lowest_52_week_date": "2017-12-08",
         #                     "timestamp":  1542883543813  }]
         #
-        concated = self.arrays_concat(responses)
-        return self.parse_tickers(concated, symbols)
+        return self.parse_tickers(tickers, symbols)
 
     def ids_query_strings(self, ids: Strings, maxQueryLength: float):
         if ids is None:
@@ -1089,7 +1120,7 @@ class upbit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1152,7 +1183,7 @@ class upbit(Exchange, ImplicitAPI):
         cost = self.safe_string(params, 'cost')
         if cost is not None:
             quoteAmount = self.cost_to_precision(symbol, cost)
-        elif createMarketBuyOrderRequiresPrice:
+        elif createMarketBuyOrderRequiresPrice is True:
             if price is None or amount is None:
                 raise InvalidOrder(self.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
             amountString = self.number_to_string(amount)
@@ -1182,7 +1213,7 @@ class upbit(Exchange, ImplicitAPI):
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
         :param str [params.ordType]: self field can be used to place a ‘best’ type order
         :param str [params.timeInForce]: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. self field is required when the order type is 'best'.
         :param str [params.selfTradePrevention]: 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
@@ -1253,7 +1284,7 @@ class upbit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createOrder() requires a timeInForce parameter for best type orders')
         response: dict
         params = self.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test'])
-        if test:
+        if test is True:
             response = self.privatePostOrdersTest(self.extend(request, params))
         else:
             response = self.privatePostOrders(self.extend(request, params))
@@ -1324,16 +1355,16 @@ class upbit(Exchange, ImplicitAPI):
         https://docs.upbit.com/kr/reference/cancel-and-new-order
         https://global-docs.upbit.com/reference/cancel-and-new-order
 
-        canceled existing order and create new order. It's only generated same side and symbol canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+        canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
         :param str id: the uuid of the previous order you want to edit.
-        :param str symbol: the symbol of the new order. it must be the same symbol of the previous order.
+        :param str symbol: the symbol of the new order. it must be the same as the symbol of the previous order.
         :param str type: the type of the new order. only limit or market is accepted. if params.newOrdType is set to best, a best-type order will be created regardless of the value of type.
-        :param str side: the side of the new order. it must be the same side of the previous order.
+        :param str side: the side of the new order. it must be the same as the side of the previous order.
         :param number amount: the amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in params.
         :param number price: the price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in params.
         :param dict [params]: extra parameters specific to the exchange API endpoint.
         :param str [params.clientOrderId]: to identify the previous order, either the id or self field is hasattr(self, required) method.
-        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used alternative for the amount.
+        :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
         :param str [params.newTimeInForce]: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. self field is required when the order type is 'best'.
         :param str [params.newClientOrderId]: the order ID that the user can define.
         :param str [params.newOrdType]: self field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use self field.
@@ -1473,7 +1504,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_deposit(self, id: str, code: Str = None, params={}):
+    def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch information on a deposit
 
@@ -1557,7 +1588,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1759,10 +1790,10 @@ class upbit(Exchange, ImplicitAPI):
         #        new_order_identifier: '22'
         #      }
         id = self.safe_string(order, 'uuid')
-        side = self.safe_string(order, 'side')
+        side = self.safe_string_lower(order, 'side')
         if side == 'bid':
             side = 'buy'
-        else:
+        elif side == 'ask':
             side = 'sell'
         identifier = self.safe_string(order, 'identifier')
         type = self.safe_string(order, 'ord_type')
@@ -1783,7 +1814,7 @@ class upbit(Exchange, ImplicitAPI):
         feeCost = self.safe_string(order, 'paid_fee')
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
-        trades = self.safe_value(order, 'trades', [])
+        trades = self.safe_list(order, 'trades', [])
         trades = self.parse_trades(trades, market, None, None, {
             'order': id,
             'type': type,
@@ -2087,7 +2118,7 @@ class upbit(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_deposit_addresses(response, codes)
+        return self.parse_deposit_addresses(response, codes, False)
 
     def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
@@ -2248,7 +2279,7 @@ class upbit(Exchange, ImplicitAPI):
         url += '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method != 'POST':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
@@ -2258,12 +2289,12 @@ class upbit(Exchange, ImplicitAPI):
                 'access_key': self.apiKey,
                 'nonce': nonce,
             }
-            hasQuery = query
+            hasQuery = len(query)
             auth = None
             if (method != 'GET') and (method != 'DELETE'):
                 body = self.json(params)
                 headers['Content-Type'] = 'application/json'
-            if hasQuery:
+            if (hasQuery is not None) and (hasQuery != 0):
                 auth = self.rawencode(query)
             if auth is not None:
                 hash = self.hash(self.encode(auth), 'sha512')

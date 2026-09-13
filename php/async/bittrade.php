@@ -188,6 +188,7 @@ class bittrade extends Exchange {
                         'common/timestamp' => array( 'cost' => 1 ), // 查询系统当前时间
                         'common/exchange' => array( 'cost' => 1 ), // order limits
                         'settings/currencys' => array( 'cost' => 1 ), // ?language=en-US
+                        'retail/maintain/time' => array( 'cost' => 1 ), // 零售维护时间
                     ),
                 ),
                 'private' => array(
@@ -218,6 +219,7 @@ class bittrade extends Exchange {
                         'subuser/aggregate-balance' => array( 'cost' => 10 ),
                         'stable-coin/exchange_rate' => array( 'cost' => 1 ),
                         'stable-coin/quote' => array( 'cost' => 1 ),
+                        'retail/order/list' => array( 'cost' => 1 ), // 零售订单历史
                     ),
                     'post' => array(
                         'account/transfer' => array( 'cost' => 1 ), // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
@@ -245,6 +247,7 @@ class bittrade extends Exchange {
                         'cross-margin/orders/{id}/repay' => array( 'cost' => 1 ), // 归还借币
                         'stable-coin/exchange' => array( 'cost' => 1 ),
                         'subuser/transfer' => array( 'cost' => 10 ),
+                        'retail/order/place' => array( 'cost' => 1 ), // 零售下单
                     ),
                 ),
             ),
@@ -575,7 +578,7 @@ class bittrade extends Exchange {
         //         )
         //    }
         //
-        $markets = $this->safe_value($response, 'data', array());
+        $markets = $this->safe_list($response, 'data', array());
         $numMarkets = count($markets);
         if ($numMarkets < 1) {
             throw new NetworkError($this->id . ' fetchMarkets() returned empty $response => ' . $this->json($markets));
@@ -784,7 +787,7 @@ class bittrade extends Exchange {
         //     }
         //
         if (is_array($response) && array_key_exists('tick' ?? '', $response)) {
-            if (!$response['tick']) {
+            if (($response['tick'] === null) || ($response['tick'] === null)) {
                 throw new BadSymbol($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json($response));
             }
             $tick = $this->safe_value($response, 'tick');
@@ -859,7 +862,7 @@ class bittrade extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $response = Async\await($this->marketGetTickers($params));
-        $tickers = $this->safe_value($response, 'data', array());
+        $tickers = $this->safe_list($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
@@ -1064,10 +1067,10 @@ class bittrade extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $trades = $this->safe_value($data[$i], 'data', array());
+            $trades = $this->safe_list($data[$i], 'data', array());
             for ($j = 0; $j < count($trades); $j++) {
                 $trade = $this->parse_trade($trades[$j], $market);
                 $result[] = $trade;
@@ -1112,7 +1115,7 @@ class bittrade extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1225,7 +1228,7 @@ class bittrade extends Exchange {
         $countryDisabled = $this->safe_value($currency, 'country-disabled');
         $visible = $this->safe_bool($currency, 'visible', false);
         $state = $this->safe_string($currency, 'state');
-        $active = $visible && $depositEnabled && $withdrawEnabled && ($state === 'online') && !$countryDisabled;
+        $active = ($visible === true) && ($depositEnabled === true) && ($withdrawEnabled === true) && ($state === 'online') && ($countryDisabled !== true);
         $name = $this->safe_string($currency, 'display-name');
         $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdraw-precision')));
         return $this->safe_currency_structure(array(
@@ -1261,7 +1264,7 @@ class bittrade extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $balances = $this->safe_value($response['data'], 'list', array());
+        $balances = $this->safe_list($response['data'], 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
@@ -1319,7 +1322,7 @@ class bittrade extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_states(...))($states, $symbol, $since, $limit, $params);
     }
 
@@ -1448,7 +1451,7 @@ class bittrade extends Exchange {
         return Async\await($this->fetch_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params));
     }
 
-    public function fetch_open_orders_v2(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_orders_v2(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_orders_v2(...))($symbol, $since, $limit, $params);
     }
 
@@ -1618,7 +1621,7 @@ class bittrade extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
@@ -2213,7 +2216,7 @@ class bittrade extends Exchange {
                 );
             }
         } else {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         }

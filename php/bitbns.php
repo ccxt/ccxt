@@ -108,14 +108,19 @@ class bitbns extends Exchange {
                         'withdrawHistory/{symbol}' => array( 'cost' => 1 ),
                         'withdrawHistoryAll/{symbol}' => array( 'cost' => 1 ),
                         'depositHistoryAll/{symbol}' => array( 'cost' => 1 ),
+                        'userHistoryNew' => array( 'cost' => 1 ),
                         'listOpenOrders/{symbol}' => array( 'cost' => 1 ),
+                        'listOpenOrdersOther/{symbol}' => array( 'cost' => 1 ),
                         'listOpenStopOrders/{symbol}' => array( 'cost' => 1 ),
                         'getCoinAddress/{symbol}' => array( 'cost' => 1 ),
                         'placeSellOrder/{symbol}' => array( 'cost' => 1 ),
+                        'placeSellOrderOther/{symbol}' => array( 'cost' => 1 ),
                         'placeBuyOrder/{symbol}' => array( 'cost' => 1 ),
+                        'placeBuyOrderOther/{symbol}' => array( 'cost' => 1 ),
                         'buyStopLoss/{symbol}' => array( 'cost' => 1 ),
                         'sellStopLoss/{symbol}' => array( 'cost' => 1 ),
                         'cancelOrder/{symbol}' => array( 'cost' => 1 ),
+                        'cancelOrderOther/{symbol}' => array( 'cost' => 1 ),
                         'cancelStopLossOrder/{symbol}' => array( 'cost' => 1 ),
                         'listExecutedOrders/{symbol}' => array( 'cost' => 1 ),
                         'placeMarketOrder/{symbol}' => array( 'cost' => 1 ),
@@ -745,7 +750,7 @@ class bitbns extends Exchange {
             'symbol' => $market['uppercaseId'],
         );
         $response = null;
-        $tail = $isTrigger ? 'StopLossOrder' : 'Order';
+        $tail = ($isTrigger === true) ? 'StopLossOrder' : 'Order';
         $quoteSide = ($market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
         $quoteSide .= $tail;
         $request['side'] = $quoteSide;
@@ -777,7 +782,7 @@ class bitbns extends Exchange {
             'entry_id' => $id,
         );
         $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        if ($trigger) {
+        if ($trigger === true) {
             throw new BadRequest($this->id . ' fetchOrder cannot fetch stop orders');
         }
         $response = $this->v1PostOrderStatusSymbol($this->extend($request, $params));
@@ -838,7 +843,7 @@ class bitbns extends Exchange {
         $request = array(
             'symbol' => $market['uppercaseId'],
             'page' => 0,
-            'side' => $isTrigger ? ($quoteSide . 'StopOrders') : ($quoteSide . 'Orders'),
+            'side' => ($isTrigger === true) ? ($quoteSide . 'StopOrders') : ($quoteSide . 'Orders'),
         );
         $response = $this->v2PostGetordersnew($this->extend($request, $params));
         //
@@ -1268,11 +1273,11 @@ class bitbns extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($method === 'POST') {
-            if ($query) {
+            if (count($query) > 0) {
                 $body = $this->json($query);
             } else {
                 $body = '{}';

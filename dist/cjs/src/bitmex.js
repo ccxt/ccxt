@@ -188,34 +188,48 @@ class bitmex extends bitmex$1["default"] {
                         'trade': { 'cost': 5 },
                         'trade/bucketed': { 'cost': 5 },
                         'wallet/assets': { 'cost': 5 },
+                        'wallet/currencies': { 'cost': 5 },
+                        'wallet/haircuts': { 'cost': 5 },
                         'wallet/networks': { 'cost': 5 },
                     },
                 },
                 'private': {
                     'get': {
                         'address': { 'cost': 5 },
+                        'addressConfig': { 'cost': 5 },
                         'apiKey': { 'cost': 5 },
+                        'apiKey/self': { 'cost': 5 },
                         'execution': { 'cost': 5 },
                         'execution/tradeHistory': { 'cost': 5 },
                         'globalNotification': { 'cost': 5 },
                         'leaderboard/name': { 'cost': 5 },
+                        'leagueoftrader/myRankings': { 'cost': 5 },
+                        'managedSubAccountBinding/investor': { 'cost': 5 },
+                        'managedSubAccountBinding/tradingTeam': { 'cost': 5 },
                         'order': { 'cost': 5 },
                         'porl/snapshots': { 'cost': 5 },
                         'position': { 'cost': 5 },
+                        'referralCode': { 'cost': 5 },
+                        'referralCode/check/{code}': { 'cost': 5 },
+                        'referralCode/code/{code}': { 'cost': 5 },
+                        'referralCode/{id}': { 'cost': 5 },
                         'user': { 'cost': 5 },
                         'user/affiliateStatus': { 'cost': 5 },
                         'user/checkReferralCode': { 'cost': 5 },
                         'user/commission': { 'cost': 5 },
                         'user/csa': { 'cost': 5 },
                         'user/depositAddress': { 'cost': 5 },
+                        'user/depositAddressInformation': { 'cost': 5 },
                         'user/executionHistory': { 'cost': 5 },
                         'user/getWalletTransferAccounts': { 'cost': 5 },
                         'user/margin': { 'cost': 5 },
+                        'user/marginingMode': { 'cost': 5 },
                         'user/quoteFillRatio': { 'cost': 5 },
                         'user/quoteValueRatio': { 'cost': 5 },
                         'user/staking': { 'cost': 5 },
                         'user/staking/instruments': { 'cost': 5 },
                         'user/staking/tiers': { 'cost': 5 },
+                        'user/tradingSettings': { 'cost': 5 },
                         'user/tradingVolume': { 'cost': 5 },
                         'user/unstakingRequests': { 'cost': 5 },
                         'user/wallet': { 'cost': 5 },
@@ -223,6 +237,8 @@ class bitmex extends bitmex$1["default"] {
                         'user/walletSummary': { 'cost': 5 },
                         'userAffiliates': { 'cost': 5 },
                         'userEvent': { 'cost': 5 },
+                        'userPriceAlert': { 'cost': 5 },
+                        'userStats/volumeRank': { 'cost': 5 },
                     },
                     'post': {
                         'address': { 'cost': 5 },
@@ -233,33 +249,52 @@ class bitmex extends bitmex$1["default"] {
                         'guild/kick': { 'cost': 5 },
                         'guild/leave': { 'cost': 5 },
                         'guild/sharesTrades': { 'cost': 5 },
+                        'managedSubAccountBinding/approve': { 'cost': 5 },
+                        'managedSubAccountBinding/cancel': { 'cost': 5 },
+                        'managedSubAccountBinding/createMSA': { 'cost': 5 },
+                        'managedSubAccountBinding/reject': { 'cost': 5 },
+                        'managedSubAccountBinding/toggleTradeHistory': { 'cost': 5 },
+                        'managedSubAccountBinding/unbind': { 'cost': 5 },
                         'order': { 'cost': 1 },
                         'order/cancelAllAfter': { 'cost': 5 },
                         'order/closePosition': { 'cost': 5 },
+                        'position/crossLeverage': { 'cost': 5 },
                         'position/isolate': { 'cost': 1 },
                         'position/leverage': { 'cost': 1 },
                         'position/riskLimit': { 'cost': 5 },
                         'position/transferMargin': { 'cost': 1 },
+                        'referralCode': { 'cost': 5 },
                         'user/addSubaccount': { 'cost': 5 },
                         'user/cancelWithdrawal': { 'cost': 5 },
                         'user/communicationToken': { 'cost': 5 },
                         'user/confirmEmail': { 'cost': 5 },
                         'user/confirmWithdrawal': { 'cost': 5 },
+                        'user/createIndependentSubaccount': { 'cost': 5 },
                         'user/logout': { 'cost': 5 },
+                        'user/marginingMode': { 'cost': 5 },
+                        'user/positionMode': { 'cost': 5 },
                         'user/preferences': { 'cost': 5 },
                         'user/requestWithdrawal': { 'cost': 5 },
                         'user/unstakingRequests': { 'cost': 5 },
                         'user/updateSubaccount': { 'cost': 5 },
                         'user/walletTransfer': { 'cost': 5 },
+                        'userPriceAlert': { 'cost': 5 },
                     },
                     'put': {
+                        'address': { 'cost': 5 },
                         'guild': { 'cost': 5 },
                         'order': { 'cost': 1 },
+                        'referralCode/{id}': { 'cost': 5 },
+                        'userPriceAlert/{id}': { 'cost': 5 },
                     },
                     'delete': {
                         'order': { 'cost': 1 },
                         'order/all': { 'cost': 1 },
+                        'referralCode/{id}': { 'cost': 5 },
                         'user/unstakingRequests': { 'cost': 5 },
+                        'user/withdrawal': { 'cost': 5 },
+                        'userPriceAlert': { 'cost': 5 },
+                        'userPriceAlert/{id}': { 'cost': 5 },
                     },
                 },
             },
@@ -474,7 +509,7 @@ class bitmex extends bitmex$1["default"] {
         const code = this.safeCurrencyCode(asset);
         const id = this.safeString(currency, 'currency');
         const name = this.safeString(currency, 'name');
-        const chains = this.safeValue(currency, 'networks', []);
+        const chains = this.safeList(currency, 'networks', []);
         let depositEnabled = false;
         let withdrawEnabled = false;
         const networks = {};
@@ -489,11 +524,11 @@ class bitmex extends bitmex$1["default"] {
             const withdrawalFee = this.parseNumber(Precise["default"].stringMul(withdrawalFeeRaw, precisionString));
             const isDepositEnabled = this.safeBool(chain, 'depositEnabled', false);
             const isWithdrawEnabled = this.safeBool(chain, 'withdrawalEnabled', false);
-            const active = (isDepositEnabled && isWithdrawEnabled);
-            if (isDepositEnabled) {
+            const active = ((isDepositEnabled === true) && (isWithdrawEnabled === true));
+            if (isDepositEnabled === true) {
                 depositEnabled = true;
             }
-            if (isWithdrawEnabled) {
+            if (isWithdrawEnabled === true) {
                 withdrawEnabled = true;
             }
             if (network !== undefined) {
@@ -520,7 +555,7 @@ class bitmex extends bitmex$1["default"] {
             }
         }
         const currencyEnabled = this.safeValue(currency, 'enabled');
-        const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
+        const currencyActive = (currencyEnabled === true) || (depositEnabled || withdrawEnabled);
         const minWithdrawalString = this.safeString(currency, 'minWithdrawalAmount');
         const minWithdrawal = this.parseNumber(Precise["default"].stringMul(minWithdrawalString, precisionString));
         const maxWithdrawalString = this.safeString(currency, 'maxWithdrawalAmount');
@@ -578,13 +613,13 @@ class bitmex extends bitmex$1["default"] {
         symbol = this.safeSymbol(symbol);
         const market = this.market(symbol);
         const oldPrecision = this.safeValue(this.options, 'oldPrecision');
-        if (market['spot'] && !oldPrecision) {
+        if ((market['spot'] === true) && (oldPrecision !== true)) {
             amount = this.convertFromRealAmount(market['base'], amount);
         }
         return super.amountToPrecision(symbol, amount);
     }
     convertFromRawQuantity(symbol, rawQuantity, currencySide = 'base') {
-        if (this.safeValue(this.options, 'oldPrecision')) {
+        if (this.safeValue(this.options, 'oldPrecision') === true) {
             return this.parseNumber(rawQuantity);
         }
         symbol = this.safeSymbol(symbol);
@@ -593,7 +628,7 @@ class bitmex extends bitmex$1["default"] {
             return this.parseNumber(rawQuantity);
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return this.parseNumber(this.convertToRealAmount(this.safeString(market, currencySide), rawQuantity));
         }
         return this.parseNumber(rawQuantity);
@@ -834,7 +869,7 @@ class bitmex extends bitmex$1["default"] {
         let contractSize = undefined;
         let isInverse = this.safeValue(market, 'isInverse'); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         let isQuanto = this.safeValue(market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        let linear = contract ? (!isInverse && !isQuanto) : undefined;
+        let linear = contract ? ((isInverse !== true) && (isQuanto !== true)) : undefined;
         const status = this.safeString(market, 'state');
         const active = status === 'Open'; // Open, Settled, Unlisted
         let expiry = undefined;
@@ -845,7 +880,7 @@ class bitmex extends bitmex$1["default"] {
         }
         else if (contract) {
             symbol = base + '/' + quote + ':' + settle;
-            if (linear) {
+            if (linear === true) {
                 const multiplierString = this.safeString2(market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier');
                 contractSize = Precise["default"].stringAbs(Precise["default"].stringDiv('1', multiplierString));
             }
@@ -1983,7 +2018,7 @@ class bitmex extends bitmex$1["default"] {
             isInverse = (defaultSubType === 'inverse');
         }
         else {
-            isInverse = this.safeBool(market, 'inverse', false) === true;
+            isInverse = this.safeBool(market, 'inverse', false);
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity(symbol, qty);
@@ -2131,7 +2166,7 @@ class bitmex extends bitmex$1["default"] {
         const capitalizeOrderType = orderType;
         const reduceOnly = this.safeValue(params, 'reduceOnly');
         if (reduceOnly !== undefined) {
-            if ((!market['swap']) && (!market['future'])) {
+            if ((market['swap'] !== true) && (market['future'] !== true)) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
@@ -2789,7 +2824,7 @@ class bitmex extends bitmex$1["default"] {
             const marketId = this.safeString(item, 'symbol');
             const market = this.safeMarket(marketId);
             const swap = this.safeBool(market, 'swap', false);
-            if (swap) {
+            if (swap === true) {
                 filteredResponse.push(item);
             }
         }
@@ -3041,7 +3076,7 @@ class bitmex extends bitmex$1["default"] {
         //        ]
         //    }
         //
-        const networks = this.safeValue(fee, 'networks', []);
+        const networks = this.safeList(fee, 'networks', []);
         const networksLength = networks.length;
         const result = {
             'info': fee,
@@ -3699,7 +3734,7 @@ class bitmex extends bitmex$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api/' + this.version + '/' + path;
         if (method === 'GET') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 query += '?' + this.urlencode(params);
             }
         }
@@ -3729,7 +3764,7 @@ class bitmex extends bitmex$1["default"] {
             auth += stringExpires;
             headers['api-expires'] = stringExpires;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-                if (Object.keys(params).length) {
+                if (Object.keys(params).length > 0) {
                     body = this.json(params);
                     auth += body;
                 }

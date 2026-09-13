@@ -74,9 +74,9 @@ class bitfinex extends \ccxt\async\bitfinex {
         );
         $result = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, array( 'checksum' => false )));
         $checksum = $this->safe_bool($this->options, 'checksum', true);
-        if ($checksum && ($channel === 'book')) {
+        if (($checksum === true) && ($channel === 'book')) {
             $sub = $client->subscriptions[$messageHash];
-            if ($sub && !$sub['checksum']) {
+            if (($sub !== null) && ($sub['checksum'] !== true)) {
                 $client->subscriptions[$messageHash]['checksum'] = true;
                 Async\await($client->send(array(
                     'event' => 'conf',
@@ -144,7 +144,7 @@ class bitfinex extends \ccxt\async\bitfinex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -826,7 +826,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             unset($client->subscriptions[$messageHash]);
             unset($this->orderbooks[$symbol]);
             $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
-            if ($checksum) {
+            if ($checksum === true) {
                 $error = new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                 $client->reject($error, $messageHash);
             }
@@ -930,7 +930,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->parse_ws_balance($rawBalance);
             $balanceType = $this->safe_string($rawBalance, 0);
-            $oldBalance = $this->safe_value($this->balance, $balanceType, array());
+            $oldBalance = $this->safe_dict($this->balance, $balanceType, array());
             if ($code !== null) {
                 $oldBalance[$code] = $balance;
             }
@@ -980,7 +980,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         return $message;
     }
 
-    public function handle_unsubscription_status(Client $client, mixed $message) {
+    public function handle_unsubscription_status(Client $client, mixed $message): bool {
         //
         // {
         //     "event" => "unsubscribed",
@@ -1164,7 +1164,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //        )
         //    )
         //
-        $data = $this->safe_value($message, 2, array());
+        $data = $this->safe_list($message, 2, array());
         $messageType = $this->safe_string($message, 1);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);

@@ -196,6 +196,8 @@ class extended extends Exchange {
                             'info/{market}/funding' => array( 'cost' => 1 ),
                             'info/{market}/open-interests' => array( 'cost' => 1 ),
                             'info/builder/dashboard' => array( 'cost' => 1 ),
+                            'interest/info/rate-curves' => array( 'cost' => 1 ),
+                            'interest/info/latest-rate-curves' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
@@ -226,12 +228,28 @@ class extended extends Exchange {
                             'user/rewards/leaderboard/stats' => array( 'cost' => 1 ),
                             'portfolio/charts/equities' => array( 'cost' => 1 ),
                             'portfolio/charts/pnl' => array( 'cost' => 1 ),
+                            'portfolio/charts/pnl/percentage' => array( 'cost' => 1 ),
+                            'portfolio/charts/pnl/cumulative' => array( 'cost' => 1 ),
+                            'portfolio/charts/pnl/cumulative/percentage' => array( 'cost' => 1 ),
+                            'portfolio/charts/vault-equities' => array( 'cost' => 1 ),
+                            'portfolio/charts/max-drawdown' => array( 'cost' => 1 ),
+                            'portfolio/charts/funding' => array( 'cost' => 1 ),
+                            'portfolio/accounts/summary' => array( 'cost' => 1 ),
+                            'portfolio/accounts/health' => array( 'cost' => 1 ),
+                            'portfolio/accounts/performance' => array( 'cost' => 1 ),
+                            'portfolio/funding/stats' => array( 'cost' => 1 ),
+                            'portfolio/funding/history' => array( 'cost' => 1 ),
                             'vault/public/performance' => array( 'cost' => 1 ),
                             'vault/public/summary' => array( 'cost' => 1 ),
                             'builder/trades' => array( 'cost' => 1 ),
+                            'interest/key-metrics' => array( 'cost' => 1 ),
+                            'interest/daily-metrics' => array( 'cost' => 1 ),
+                            'interest/payment-chart' => array( 'cost' => 1 ),
+                            'interest/payments' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'user/order' => array( 'cost' => 1 ),
+                            'user/order/rfq' => array( 'cost' => 1 ),
                             'user/order/massCancel' => array( 'cost' => 1 ),
                             'user/deadmanswitch' => array( 'cost' => 1 ),
                             'user/bridge/quote' => array( 'cost' => 1 ),
@@ -304,7 +322,7 @@ class extended extends Exchange {
                     '1135' => '\\ccxt\\InvalidOrder', // Order expiration date must be within 90 days for the Mainnet, 28 days for the Testnet.
                     '1136' => '\\ccxt\\InvalidOrder', // Reduce-only order size exceeds open position size.
                     '1137' => '\\ccxt\\InvalidOrder', // Position is missing for a reduce-only order.
-                    '1138' => '\\ccxt\\InvalidOrder', // Position is the same side reduce-only order.
+                    '1138' => '\\ccxt\\InvalidOrder', // Position is the same side as a reduce-only order.
                     '1139' => '\\ccxt\\InvalidOrder', // Market order must have time in force IOC.
                     '1140' => '\\ccxt\\InsufficientFunds', // New order cost exceeds available balance.
                     '1141' => '\\ccxt\\InvalidOrder', // Invalid price value.
@@ -1266,7 +1284,7 @@ class extended extends Exchange {
          * @param {string} [$params->candleType] candle type => 'trades' (default), 'mark-prices', or 'index-prices'
          * @param {string} [$params->price] *ignored if $params->candleType is set* 'mark' or 'index' for mark $price and index $price candles
          * @param {int} [$params->until] end timestamp in ms for the requested period
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -1444,7 +1462,7 @@ class extended extends Exchange {
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {string} $timeframe '1h' or '1d'
-         * @param {int} [$since] the time(ms) of the earliest record to retrieve unix timestamp
+         * @param {int} [$since] the time(ms) of the earliest record to retrieve as a unix timestamp
          * @param {int} [$limit] the maximum amount of open interest structures to retrieve
          * @param {array} [$params] exchange specific parameters
          * @param {int} [$params->until] timestamp in ms of the latest open interest record to fetch
@@ -2746,7 +2764,7 @@ class extended extends Exchange {
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         $uppercaseSide = strtoupper($side);
-        if ($market['spot'] && $uppercaseType !== 'LIMIT') {
+        if (($market['spot'] === true) && $uppercaseType !== 'LIMIT') {
             throw new BadRequest($this->id . ' createOrder() supports limit orders for spot markets only');
         }
         if (!$this->in_array($uppercaseType, array( 'LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL' ))) {
@@ -2948,7 +2966,7 @@ class extended extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, required for all order types
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->clientOrderId] client order id, sent exchange order id
+         * @param {string} [$params->clientOrderId] client order id, sent as the exchange order id
          * @param {string} [$params->cancelId] previous external order id to replace
          * @param {string} [$params->timeInForce] 'GTT' or 'IOC'
          * @param {boolean} [$params->postOnly] true if the order should only make liquidity
@@ -3714,7 +3732,7 @@ class extended extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null; // fallback to default $error handler
         }
         //
@@ -3753,7 +3771,7 @@ class extended extends Exchange {
             }
         }
         $url = $url . '/api/' . $version . $endpoint;
-        if (($method === 'GET' || $method === 'DELETE' || $queryPost) && $query) {
+        if (($method === 'GET' || $method === 'DELETE' || $queryPost) && (count($query) > 0)) {
             $url .= '?' . $this->urlencode_with_array_repeat($query);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

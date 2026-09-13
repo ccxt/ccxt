@@ -1,0 +1,360 @@
+<title>CCXT fetchOrderBook — cross-language trace explorer</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --panel: #ffffff; --panel-2: #fbfbfc; --line: #e4e6ea;
+    --ink: #14181f; --ink-2: #55606f; --ink-3: #8a94a3;
+    --accent: #0ea5a3;
+    --net: #2a78d6; --json: #eb6834; --parse: #6a4bd0; --fetch: #64748b; --root: #94a3b8;
+    --grid: #eceef1; --playhead: #0ea5a3;
+    --shadow: 0 1px 2px rgba(20,24,31,.06), 0 8px 24px rgba(20,24,31,.06);
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --labelw: 300px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c0f14; --panel: #12161d; --panel-2: #0f131a; --line: #222834;
+      --ink: #e9edf3; --ink-2: #9aa6b6; --ink-3: #64717f;
+      --accent: #2dd4bf;
+      --net: #4a90e6; --json: #f0813f; --parse: #9a86e8; --fetch: #7c8aa0; --root: #5b6676;
+      --grid: #1a212b; --playhead: #2dd4bf;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f5f7; --panel: #ffffff; --panel-2: #fbfbfc; --line: #e4e6ea;
+    --ink: #14181f; --ink-2: #55606f; --ink-3: #8a94a3; --accent: #0ea5a3;
+    --net: #2a78d6; --json: #eb6834; --parse: #6a4bd0; --fetch: #64748b; --root: #94a3b8;
+    --grid: #eceef1; --playhead: #0ea5a3; --shadow: 0 1px 2px rgba(20,24,31,.06), 0 8px 24px rgba(20,24,31,.06);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c0f14; --panel: #12161d; --panel-2: #0f131a; --line: #222834;
+    --ink: #e9edf3; --ink-2: #9aa6b6; --ink-3: #64717f; --accent: #2dd4bf;
+    --net: #4a90e6; --json: #f0813f; --parse: #9a86e8; --fetch: #7c8aa0; --root: #5b6676;
+    --grid: #1a212b; --playhead: #2dd4bf; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.4);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 32px 20px 56px; }
+  .eyebrow {
+    font: 600 11px/1.4 var(--mono); letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 8px;
+  }
+  h1 { font-size: clamp(22px, 3.4vw, 30px); font-weight: 700; letter-spacing: -.02em; margin: 0 0 6px; text-wrap: balance; }
+  .lede { color: var(--ink-2); margin: 0 0 22px; max-width: 62ch; font-size: 15px; }
+  .lede code { font-family: var(--mono); font-size: .9em; background: var(--panel); padding: 1px 5px; border-radius: 5px; border: 1px solid var(--line); }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .tab {
+    display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+    padding: 9px 14px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--panel); color: var(--ink-2); cursor: pointer; font-family: var(--sans);
+    transition: border-color .15s, color .15s, background .15s, transform .1s;
+  }
+  .tab:hover { transform: translateY(-1px); }
+  .tab .name { font-weight: 650; font-size: 13.5px; color: var(--ink); }
+  .tab .tot { font: 600 12px/1 var(--mono); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .tab[aria-selected="true"] { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 10%, var(--panel)); }
+  .tab[aria-selected="true"] .tot { color: var(--accent); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; border-radius: 9px;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); cursor: pointer;
+    font: 600 13px var(--sans); transition: border-color .15s, background .15s;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn svg { width: 14px; height: 14px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .seg button { border: 0; background: var(--panel-2); color: var(--ink-2); padding: 7px 12px; cursor: pointer; font: 600 12.5px var(--sans); }
+  .seg button[aria-pressed="true"] { background: color-mix(in oklab, var(--accent) 16%, var(--panel)); color: var(--ink); }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .spacer { flex: 1 1 auto; }
+  .hdr-meta { font: 500 12px var(--mono); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+  .traceview { padding: 8px 14px 16px; }
+  .axis { position: relative; height: 22px; margin-left: var(--labelw); border-bottom: 1px solid var(--line); }
+  .tick { position: absolute; top: 0; bottom: 0; transform: translateX(-.5px); }
+  .tick i { position: absolute; top: 14px; bottom: 0; left: 0; width: 1px; background: var(--grid); }
+  .tick span { position: absolute; top: 0; left: 3px; font: 500 10px var(--mono); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+  .rows { position: relative; }
+  .playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--playhead); left: 0; z-index: 5; pointer-events: none; box-shadow: 0 0 8px color-mix(in oklab, var(--playhead) 60%, transparent); }
+  .playhead::after { content: ""; position: absolute; top: -4px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--playhead); }
+
+  .row { display: grid; grid-template-columns: var(--labelw) 1fr; align-items: center; height: 34px; }
+  .row:hover { background: color-mix(in oklab, var(--accent) 6%, transparent); }
+  .lbl { display: flex; align-items: center; gap: 7px; padding-right: 12px; min-width: 0; }
+  .dot { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+  .lbl .nm { font: 500 12.5px var(--mono); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lbl .op { color: var(--ink-3); }
+  .track { position: relative; height: 100%; }
+  .bar { position: absolute; top: 50%; transform: translateY(-50%); height: 15px; border-radius: 4px; min-width: 2px; cursor: pointer; transition: filter .12s; }
+  .bar:hover { filter: brightness(1.12) saturate(1.1); }
+  .bar .d { position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: 7px; font: 600 11px var(--mono); color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .bar .d.inside { left: auto; right: 7px; margin: 0; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.28); }
+  .bar.rootbar { opacity: .38; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; padding: 12px 14px; border-top: 1px solid var(--line); font: 500 12px var(--sans); color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend i { width: 11px; height: 11px; border-radius: 3px; }
+
+  .tip {
+    position: fixed; z-index: 20; pointer-events: none; opacity: 0; transform: translateY(4px);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow);
+    padding: 9px 11px; font: 500 12px var(--sans); color: var(--ink); max-width: 260px; transition: opacity .12s;
+  }
+  .tip.on { opacity: 1; transform: translateY(0); }
+  .tip .t { font: 600 12px var(--mono); margin-bottom: 4px; }
+  .tip .g { display: grid; grid-template-columns: auto auto; gap: 2px 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .tip .g b { color: var(--ink); font-weight: 650; justify-self: end; font-family: var(--mono); }
+
+  .note { margin-top: 16px; color: var(--ink-3); font-size: 12.5px; max-width: 66ch; }
+  .note b { color: var(--ink-2); font-weight: 600; }
+  @media (max-width: 560px) { :root { --labelw: 150px; } }
+  @media (prefers-reduced-motion: reduce) { .bar, .playhead { transition: none; } }
+  body.embed .wrap { padding: 14px; }
+  body.embed .eyebrow, body.embed h1, body.embed .lede, body.embed .note { display: none; }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">CCXT · distributed-trace view</p>
+  <h1>One <code style="font-family:var(--mono)">fetchOrderBook</code> call, traced across four languages</h1>
+  <p class="lede">The same request to Coinbase (<code>BTC/USD</code>), instrumented at the base <code>fetch()</code> and <code>parseJson()</code> methods. Pick a language, hit replay, and watch where the time goes. Values are the p50 of 60 calls × 3 runs.</p>
+
+  <div class="tabs" id="tabs" role="tablist" aria-label="Language"></div>
+
+  <div class="panel">
+    <div class="toolbar">
+      <button class="btn" id="play" aria-label="Replay trace"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 3.5v9l7-4.5-7-4.5Z"/></svg><span id="playlabel">Replay</span></button>
+      <div class="seg" role="group" aria-label="Time scale">
+        <button id="sc-lin" aria-pressed="true">Linear</button>
+        <button id="sc-log" aria-pressed="false">Log</button>
+      </div>
+      <div class="spacer"></div>
+      <div class="hdr-meta" id="meta"></div>
+    </div>
+
+    <div class="traceview">
+      <div class="axis" id="axis"></div>
+      <div class="rows" id="rows"></div>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:var(--net)"></i>network round-trip</span>
+      <span><i style="background:var(--json)"></i>JSON decode</span>
+      <span><i style="background:var(--parse)"></i>unified parse + build</span>
+      <span><i style="background:var(--fetch)"></i>fetch (HTTP layer)</span>
+    </div>
+  </div>
+
+  <p class="note"><b>How to read it.</b> The blue span is the network — it dwarfs everything CCXT does. Toggle <b>Log</b> to stretch the sub-millisecond spans so the JSON-decode and parse work becomes legible, or hover any span for its exact duration and share of the trace. PHP's total is ~4.5× the others, but its parse tail (~3.4 ms) is the same size as everyone else's: the gap is its HTTP client, not the library.</p>
+</div>
+
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+  // p50 phase timings (ms) from examples/benchmarks/results.json
+  const RAW = {
+    JavaScript: { runtime: "Node 22", net: 45.65, json: 1.19, parse: 0.80 },
+    Python:     { runtime: "CPython 3.11", net: 43.67, json: 0.68, parse: 1.83 },
+    PHP:        { runtime: "PHP 8.4 · ReactPHP", net: 210.14, json: 0.78, parse: 2.57 },
+    Go:         { runtime: "Go 1.25", net: 39.81, json: 1.72, parse: 4.65 },
+  };
+  const KIND = { net: "var(--net)", json: "var(--json)", parse: "var(--parse)", fetch: "var(--fetch)", root: "var(--root)" };
+
+  function buildSpans(d) {
+    const fetch = d.net + d.json, total = fetch + d.parse;
+    return {
+      total,
+      spans: [
+        { name: "fetchOrderBook", op: "unified method", depth: 0, start: 0, dur: total, kind: "root" },
+        { name: "fetch", op: "HTTP layer", depth: 1, start: 0, dur: fetch, kind: "fetch" },
+        { name: "HTTP round-trip", op: "network", depth: 2, start: 0, dur: d.net, kind: "net" },
+        { name: "parseJson", op: "decode", depth: 2, start: d.net, dur: d.json, kind: "json" },
+        { name: "parseOrderBook", op: "build", depth: 1, start: fetch, dur: d.parse, kind: "parse" },
+      ],
+    };
+  }
+
+  const LANGS = Object.keys(RAW);
+  const DATA = Object.fromEntries(LANGS.map((k) => [k, buildSpans(RAW[k])]));
+  const PARAMS = new URLSearchParams(location.search);
+  if (PARAMS.get("theme") === "dark" || PARAMS.get("theme") === "light") document.documentElement.dataset.theme = PARAMS.get("theme");
+  if (PARAMS.get("embed")) document.body.classList.add("embed");
+  let current = LANGS.includes(PARAMS.get("lang")) ? PARAMS.get("lang") : "JavaScript";
+  let logScale = PARAMS.get("scale") === "log";
+
+  const tabsEl = document.getElementById("tabs");
+  const axisEl = document.getElementById("axis");
+  const rowsEl = document.getElementById("rows");
+  const metaEl = document.getElementById("meta");
+  const tip = document.getElementById("tip");
+
+  LANGS.forEach((lang) => {
+    const t = document.createElement("button");
+    t.className = "tab"; t.role = "tab"; t.dataset.lang = lang;
+    t.innerHTML = `<span class="name">${lang}</span><span class="tot">${DATA[lang].total.toFixed(1)} ms</span>`;
+    t.addEventListener("click", () => select(lang));
+    tabsEl.appendChild(t);
+  });
+
+  function xfun(total) {
+    const W = 0.9; // cap usable track width, leaving a right margin for duration labels
+    if (!logScale) return (t) => (t / total) * W;
+    const L = Math.log1p(total);
+    return (t) => (Math.log1p(t) / L) * W;
+  }
+
+  function niceTicks(total) {
+    const targets = [1, 2, 5, 10, 20, 25, 50, 100];
+    let step = 50;
+    for (const s of targets) { if (total / s <= 6) { step = s; break; } }
+    const out = [];
+    for (let t = 0; t <= total + 0.001; t += step) out.push(+t.toFixed(2));
+    return out;
+  }
+
+  function renderAxis() {
+    const { total } = DATA[current];
+    const x = xfun(total);
+    axisEl.innerHTML = "";
+    let ticks;
+    if (logScale) {
+      ticks = [0, 1, 2, 5, 10, 20, 50, 100, 200].filter((t) => t <= total);
+      if (ticks[ticks.length - 1] !== +total.toFixed(0)) ticks.push(+total.toFixed(1));
+    } else {
+      ticks = niceTicks(total);
+    }
+    ticks.forEach((t) => {
+      const el = document.createElement("div");
+      el.className = "tick"; el.style.left = (x(t) * 100) + "%";
+      el.innerHTML = `<i></i><span>${t}${t === ticks[ticks.length - 1] ? " ms" : ""}</span>`;
+      axisEl.appendChild(el);
+    });
+  }
+
+  let bars = [];
+  function renderRows() {
+    const { spans, total } = DATA[current];
+    const x = xfun(total);
+    rowsEl.innerHTML = "";
+    bars = [];
+    const ph = document.createElement("div");
+    ph.className = "playhead"; ph.id = "ph"; ph.style.left = "0%";
+    // playhead lives over the track region; approximate by absolute within rows (label offset handled via CSS var)
+    rowsEl.appendChild(ph);
+    spans.forEach((s) => {
+      const row = document.createElement("div"); row.className = "row";
+      const lbl = document.createElement("div"); lbl.className = "lbl";
+      lbl.style.paddingLeft = (s.depth * 18) + "px";
+      lbl.innerHTML = `<i class="dot" style="background:${KIND[s.kind]}"></i><span class="nm">${s.name} <span class="op">· ${s.op}</span></span>`;
+      const track = document.createElement("div"); track.className = "track";
+      const bar = document.createElement("div");
+      bar.className = "bar" + (s.kind === "root" ? " rootbar" : "");
+      bar.style.background = KIND[s.kind];
+      const x0 = x(s.start), x1 = x(s.start + s.dur);
+      bar.dataset.x0 = x0; bar.dataset.x1 = x1;
+      bar.style.left = (x0 * 100) + "%";
+      bar.style.width = Math.max(0, (x1 - x0) * 100) + "%";
+      const d = document.createElement("span"); d.className = "d";
+      d.textContent = s.dur.toFixed(2) + " ms";
+      if ((x1 - x0) > 0.62) d.classList.add("inside");   // wide bar → label inside so it never clips
+      if (s.kind === "root") d.style.display = "none";
+      bar.appendChild(d);
+      const pct = (s.dur / total) * 100;
+      bar.addEventListener("mousemove", (e) => showTip(e, s, total, pct));
+      bar.addEventListener("mouseleave", hideTip);
+      track.appendChild(bar);
+      row.appendChild(lbl); row.appendChild(track);
+      rowsEl.appendChild(row);
+      bars.push({ el: bar, x0, x1, dlabel: d, dur: s.dur });
+    });
+    // position playhead track offset: rows use grid with label col; playhead must start at track origin
+    const labelw = getComputedStyle(document.documentElement).getPropertyValue("--labelw").trim();
+    ph.style.left = labelw;
+    ph.style.marginLeft = "0";
+    ph.dataset.base = labelw;
+  }
+
+  function showTip(e, s, total, pct) {
+    tip.innerHTML = `<div class="t">${s.name}</div><div class="g">`
+      + `<span>operation</span><b>${s.op}</b>`
+      + `<span>duration</span><b>${s.dur.toFixed(2)} ms</b>`
+      + `<span>start&nbsp;offset</span><b>${s.start.toFixed(2)} ms</b>`
+      + `<span>share</span><b>${pct.toFixed(1)}%</b></div>`;
+    tip.classList.add("on");
+    const pad = 14;
+    let left = e.clientX + pad, top = e.clientY + pad;
+    const r = tip.getBoundingClientRect();
+    if (left + r.width > innerWidth - 8) left = e.clientX - r.width - pad;
+    if (top + r.height > innerHeight - 8) top = e.clientY - r.height - pad;
+    tip.style.left = left + "px"; tip.style.top = top + "px";
+  }
+  function hideTip() { tip.classList.remove("on"); }
+
+  // ---- replay animation: playhead sweeps, bars grow to meet it ----
+  let raf = null;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches || PARAMS.get("motion") === "off";
+  function animate() {
+    cancelAnimationFrame(raf);
+    const { total } = DATA[current];
+    const x = xfun(total);
+    const trackWidthPct = () => 1; // bars are % of track; playhead uses px offset + % via calc
+    const durMs = reduce ? 0 : Math.min(2600, 900 + total * 6);
+    const ph = document.getElementById("ph");
+    const base = ph.dataset.base;
+    // reset
+    bars.forEach((b) => { b.el.style.width = "0%"; b.dlabel.style.opacity = "0"; });
+    if (reduce || durMs === 0) { finish(); return; }
+    let t0 = null;
+    function frame(ts) {
+      if (t0 === null) t0 = ts;
+      const p = Math.min(1, (ts - t0) / durMs);
+      const headT = p * total;              // time reached
+      const headX = x(headT);               // 0..1 within track
+      ph.style.left = `calc(${base} + (100% - ${base}) * ${headX})`;
+      bars.forEach((b) => {
+        const vis = Math.max(0, Math.min(b.x1, headX) - b.x0);
+        b.el.style.width = (vis * 100) + "%";
+        b.dlabel.style.opacity = (headX >= b.x1 - 1e-4) ? "1" : "0";
+      });
+      if (p < 1) { raf = requestAnimationFrame(frame); } else { finish(); }
+    }
+    function finish() {
+      bars.forEach((b) => { b.el.style.width = ((b.x1 - b.x0) * 100) + "%"; b.dlabel.style.opacity = "1"; });
+      ph.style.left = `calc(${base} + (100% - ${base}) * 1)`;
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function select(lang) {
+    current = lang;
+    [...tabsEl.children].forEach((t) => t.setAttribute("aria-selected", String(t.dataset.lang === lang)));
+    const d = RAW[lang];
+    metaEl.textContent = `${d.runtime}  ·  total ${DATA[lang].total.toFixed(2)} ms`;
+    renderAxis(); renderRows(); animate();
+  }
+
+  document.getElementById("play").addEventListener("click", animate);
+  document.getElementById("sc-lin").addEventListener("click", () => setScale(false));
+  document.getElementById("sc-log").addEventListener("click", () => setScale(true));
+  function setScale(log) {
+    logScale = log;
+    document.getElementById("sc-lin").setAttribute("aria-pressed", String(!log));
+    document.getElementById("sc-log").setAttribute("aria-pressed", String(log));
+    renderAxis(); renderRows(); animate();
+  }
+
+  document.getElementById("sc-lin").setAttribute("aria-pressed", String(!logScale));
+  document.getElementById("sc-log").setAttribute("aria-pressed", String(logScale));
+  select(current);
+</script>

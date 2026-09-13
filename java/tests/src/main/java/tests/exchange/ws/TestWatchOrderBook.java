@@ -11,25 +11,25 @@ import tests.exchange.*;
 
 
 public class TestWatchOrderBook extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testWatchOrderBook(Exchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testWatchOrderBook(Exchange exchange, Object skippedProperties, String symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "watchOrderBook";
+        String method = "watchOrderBook";
         // `watchOrderBook` only resolves when the exchange pushes an update, and a
         // pending subscription can not be cancelled from here, so every extra
         // iteration risks blocking until the test-runner kills the whole exchange.
         // a validated book is already a pass, so keep sampling only while updates
         // keep arriving quickly and stop once the book goes quiet.
-        Object maxIdleTime = 5000;
+        Integer maxIdleTime = 5000;
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        Object idle = false;
+        Boolean idle = false;
         while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = null;
-            Object success = true;
+            Boolean success = true;
             Object startTime = exchange.milliseconds();
             try
             {

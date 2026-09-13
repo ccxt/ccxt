@@ -80,7 +80,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
     public Object requestId(Object url)
     {
         Object options = this.safeDict(this.options, "requestId", new java.util.HashMap<String, Object>() {{}});
-        Object previousValue = this.safeInteger(options, url, 0);
+        Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
         Helpers.addElementToObject(Helpers.GetValue(this.options, "requestId"), url, newValue);
         return newValue;
@@ -99,10 +99,10 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             }
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), "/"), id);
             Object requestId = this.requestId(url);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object request = this.extend(subscribe, message);
+            java.util.Map<String, Object> request = this.extend(subscribe, message);
             return (this.watch(url, messageHash, request, messageHash, subscribe)).join();
         });
 
@@ -111,14 +111,14 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
     /**
      * @method
      * @name modetrade#watchOrderBook
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/orderbook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -129,10 +129,10 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "orderbook";
-            Object market = this.market(symbol);
+            String name = "orderbook";
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object topic = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -167,16 +167,16 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(data, "symbol");
-        Object market = this.safeMarket(marketId);
+        String marketId = this.safeString(data, "symbol");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object topic = this.safeString(message, "topic");
+        String topic = this.safeString(message, "topic");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-        Object timestamp = this.safeInteger(message, "ts");
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        Long timestamp = this.safeInteger(message, "ts");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         client.resolve(orderbook, topic);
@@ -185,13 +185,13 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
     /**
      * @method
      * @name modetrade#watchTicker
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-ticker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTicker(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -201,11 +201,11 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "ticker";
-            Object market = this.market(symbol);
+            String name = "ticker";
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object topic = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -273,10 +273,10 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object topic = this.safeString(message, "topic");
-        Object marketId = this.safeString(data, "symbol");
-        Object market = this.safeMarket(marketId);
-        Object timestamp = this.safeInteger(message, "ts");
+        String topic = this.safeString(message, "topic");
+        String marketId = this.safeString(data, "symbol");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(data, "date", timestamp);
         Object ticker = this.parseWsTicker(data, market);
         Helpers.addElementToObject(ticker, "symbol", Helpers.GetValue(market, "symbol"));
@@ -288,7 +288,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
     /**
      * @method
      * @name modetrade#watchTickers
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-tickers
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-tickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -306,9 +306,9 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object name = "tickers";
+            String name = "tickers";
             Object topic = name;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -340,14 +340,14 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //         ]
         //     }
         //
-        Object topic = this.safeString(message, "topic");
+        String topic = this.safeString(message, "topic");
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object timestamp = this.safeInteger(message, "ts");
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Long timestamp = this.safeInteger(message, "ts");
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
-            Object market = this.safeMarket(marketId);
+            String marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object ticker = this.parseWsTicker(this.extend(Helpers.GetValue(data, i), new java.util.HashMap<String, Object>() {{
                 put( "date", timestamp );
             }}), market);
@@ -360,7 +360,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
     /**
      * @method
      * @name modetrade#watchBidsAsks
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/bbos
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -378,9 +378,9 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object name = "bbos";
+            String name = "bbos";
             Object topic = name;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -408,10 +408,10 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //       ]
         //     }
         //
-        Object topic = this.safeString(message, "topic");
+        String topic = this.safeString(message, "topic");
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object timestamp = this.safeInteger(message, "ts");
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Long timestamp = this.safeInteger(message, "ts");
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object ticker = this.parseWsBidAsk(this.extend(Helpers.GetValue(data, i), new java.util.HashMap<String, Object>() {{
@@ -430,10 +430,10 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
     public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "symbol");
+        String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = this.safeString(market, "symbol");
-        Object timestamp = this.safeInteger(ticker, "ts");
+        String symbol = this.safeString(market, "symbol");
+        Long timestamp = this.safeInteger(ticker, "ts");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -450,7 +450,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
      * @method
      * @name modetrade#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/k-line
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -458,7 +458,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -473,13 +473,13 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeframe, "1m"))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "5m")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "15m")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "30m")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1h")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1d")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1w")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1M")))))
             {
-                throw new NotSupported((String)Helpers.add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
+                throw new NotSupported(Helpers.add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
             }
-            Object market = this.market(symbol);
-            Object interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object name = "kline";
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            String interval = this.safeString(this.timeframes, timeframe, timeframe);
+            String name = "kline";
             Object topic = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name), "_"), interval);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -515,22 +515,22 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object topic = this.safeString(message, "topic");
-        Object marketId = this.safeString(data, "symbol");
-        Object market = this.safeMarket(marketId);
+        String topic = this.safeString(message, "topic");
+        String marketId = this.safeString(data, "symbol");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object interval = this.safeString(data, "type");
+        String interval = this.safeString(data, "type");
         Object timeframe = this.findTimeframe(interval);
         if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
         {
             return;
         }
-        Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(data, "startTime"), this.safeNumber(data, "open"), this.safeNumber(data, "high"), this.safeNumber(data, "low"), this.safeNumber(data, "close"), this.safeNumber(data, "volume")));
+        java.util.List<Object> parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(data, "startTime"), this.safeNumber(data, "open"), this.safeNumber(data, "high"), this.safeNumber(data, "low"), this.safeNumber(data, "close"), this.safeNumber(data, "volume")));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
         }
@@ -543,14 +543,14 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
      * @method
      * @name modetrade#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/trade
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> watchTrades(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -562,10 +562,10 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object topic = Helpers.add(Helpers.GetValue(market, "id"), "@trade");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -594,22 +594,22 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //     }
         // }
         //
-        Object topic = this.safeString(message, "topic");
-        Object timestamp = this.safeInteger(message, "ts");
+        String topic = this.safeString(message, "topic");
+        Long timestamp = this.safeInteger(message, "ts");
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(data, "symbol");
-        Object market = this.safeMarket(marketId);
+        String marketId = this.safeString(data, "symbol");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object trade = this.parseWsTrade(this.extend(data, new java.util.HashMap<String, Object>() {{
             put( "timestamp", timestamp );
         }}), market);
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object trades = Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         Helpers.callDynamically(trades, "append", new Object[]{trade});
         Helpers.addElementToObject(this.trades, symbol, trades);
         client.resolve(trades, topic);
@@ -654,22 +654,22 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(trade, "symbol");
+        String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object price = this.safeString2(trade, "executedPrice", "price");
-        Object amount = this.safeString2(trade, "executedQuantity", "size");
-        Object cost = Precise.stringMul(price, amount);
-        Object side = this.safeStringLower(trade, "side");
-        Object timestamp = this.safeInteger(trade, "timestamp");
-        Object takerOrMaker = null;
+        String price = this.safeString2(trade, "executedPrice", "price");
+        String amount = this.safeString2(trade, "executedQuantity", "size");
+        String cost = Precise.stringMul(price, amount);
+        String side = this.safeStringLower(trade, "side");
+        Long timestamp = this.safeInteger(trade, "timestamp");
+        String takerOrMaker = null;
         Object maker = this.safeBool(trade, "maker");
         if (Helpers.isTrue(!Helpers.isEqual(maker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(maker))) ? "maker" : "taker";
         }
-        Object fee = new java.util.HashMap<String, Object>() {{}};
-        Object feeValue = this.safeString(trade, "fee");
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{}};
+        String feeValue = this.safeString(trade, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeValue, null)))
         {
             final Object finalFeeValue = feeValue;
@@ -706,9 +706,9 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //         "ts": 1657463158812
         //     }
         //
-        Object messageHash = "authenticated";
+        String messageHash = "authenticated";
         Object success = this.safeValue(message, "success");
-        if (Helpers.isTrue(success))
+        if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
             // client.resolve (message, messageHash);
             Object future = this.safeValue(client.futures, "authenticated");
@@ -720,7 +720,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             // allows further authentication attempts
             if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                ((java.util.Map<String,Object>)client.subscriptions).remove((String)"authenticated");
+                ((java.util.Map<String,Object>)client.subscriptions).remove("authenticated");
             }
         }
     }
@@ -734,9 +734,9 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             this.checkRequiredCredentials();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
             Client client = this.client(url);
-            Object messageHash = "authenticated";
-            Object eventVar = "auth";
-            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            String messageHash = "authenticated";
+            String eventVar = "auth";
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -749,7 +749,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                     secret = Helpers.GetValue(parts, 1);
                 }
                 Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "event", eventVar );
                     put( "params", new java.util.HashMap<String, Object>() {{
                         put( "orderly_key", ModetradeCore.this.apiKey );
@@ -757,7 +757,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                         put( "timestamp", ts );
                     }} );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
@@ -774,10 +774,10 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             (this.authenticate(parameters)).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
             Object requestId = this.requestId(url);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object request = this.extend(subscribe, message);
+            java.util.Map<String, Object> request = this.extend(subscribe, message);
             return (this.watch(url, messageHash, request, messageHash, subscribe)).join();
         });
 
@@ -792,10 +792,10 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             (this.authenticate(parameters)).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
             Object requestId = this.requestId(url);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object request = this.extend(subscribe, message);
+            java.util.Map<String, Object> request = this.extend(subscribe, message);
             return (this.watchMultiple(url, messageHashes, request, messageHashes, subscribe)).join();
         });
 
@@ -805,8 +805,8 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
      * @method
      * @name modetrade#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -828,16 +828,16 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 (this.loadMarkets()).join();
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object topic = ((Helpers.isTrue((trigger)))) ? "algoexecutionreport" : "executionreport";
+            String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreport" : "executionreport";
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object messageHash = topic;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -856,8 +856,8 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
      * @method
      * @name modetrade#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -879,16 +879,16 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 (this.loadMarkets()).join();
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object topic = ((Helpers.isTrue((trigger)))) ? "algoexecutionreport" : "executionreport";
+            String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreport" : "executionreport";
             parameters = this.omit(parameters, "stop");
-            Object messageHash = "myTrades";
+            String messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -971,37 +971,37 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object orderId = this.safeString(order, "orderId");
-        Object marketId = this.safeString(order, "symbol");
+        String orderId = this.safeString(order, "orderId");
+        String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(order, "timestamp");
-        Object fee = new java.util.HashMap<String, Object>() {{
+        Long timestamp = this.safeInteger(order, "timestamp");
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "cost", ModetradeCore.this.safeString(order, "totalFee") );
             put( "currency", ModetradeCore.this.safeString(order, "feeAsset") );
         }};
-        Object priceString = this.safeString(order, "price");
+        String priceString = this.safeString(order, "price");
         Object price = this.safeNumber(order, "price");
-        Object avgPrice = this.safeNumber(order, "avgPrice");
+        Double avgPrice = this.safeNumber(order, "avgPrice");
         if (Helpers.isTrue(Helpers.isTrue(Precise.stringEq(priceString, "0")) && Helpers.isTrue((!Helpers.isEqual(avgPrice, null)))))
         {
             price = avgPrice;
         }
-        Object amount = this.safeString(order, "quantity");
-        Object side = this.safeStringLower(order, "side");
-        Object type = this.safeStringLower(order, "type");
-        Object filled = this.safeNumber(order, "totalExecutedQuantity");
-        Object totalExecQuantity = this.safeString(order, "totalExecutedQuantity");
-        Object remaining = amount;
+        String amount = this.safeString(order, "quantity");
+        String side = this.safeStringLower(order, "side");
+        String type = this.safeStringLower(order, "type");
+        Double filled = this.safeNumber(order, "totalExecutedQuantity");
+        String totalExecQuantity = this.safeString(order, "totalExecutedQuantity");
+        String remaining = amount;
         if (Helpers.isTrue(Precise.stringGe(amount, totalExecQuantity)))
         {
             remaining = Precise.stringSub(remaining, totalExecQuantity);
         }
-        Object rawStatus = this.safeString(order, "status");
-        Object status = this.parseOrderStatus(rawStatus);
+        String rawStatus = this.safeString(order, "status");
+        String status = this.parseOrderStatus(rawStatus);
         Object trades = null;
-        Object clientOrderId = this.safeString(order, "clientOrderId");
-        Object triggerPrice = this.safeNumber(order, "triggerPrice");
+        String clientOrderId = this.safeString(order, "clientOrderId");
+        Double triggerPrice = this.safeNumber(order, "triggerPrice");
         final Object finalPrice = price;
         final Object finalRemaining = remaining;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -1060,7 +1060,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //         }
         //     }
         //
-        Object topic = this.safeString(message, "topic");
+        String topic = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data");
         if (Helpers.isTrue(Helpers.isArray(data)))
         {
@@ -1068,7 +1068,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object order = Helpers.GetValue(data, i);
-                Object tradeIdStr = this.safeString(data, "tradeId");
+                String tradeIdStr = this.safeString(data, "tradeId");
                 Object tradeId = ((Helpers.isTrue((Helpers.isEqual(tradeIdStr, null))))) ? null : this.omitZero(tradeIdStr);
                 if (Helpers.isTrue(!Helpers.isEqual(tradeId, null)))
                 {
@@ -1079,7 +1079,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         } else
         {
             // executionreport
-            Object tradeIdStr = this.safeString(data, "tradeId");
+            String tradeIdStr = this.safeString(data, "tradeId");
             Object tradeId = ((Helpers.isTrue((Helpers.isEqual(tradeIdStr, null))))) ? null : this.omitZero(tradeIdStr);
             if (Helpers.isTrue(!Helpers.isEqual(tradeId, null)))
             {
@@ -1092,13 +1092,13 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
     public void handleOrder(Client client, Object message, Object topic)
     {
         Object parsed = this.parseWsOrder(message);
-        Object symbol = this.safeString(parsed, "symbol");
-        Object orderId = this.safeString(parsed, "id");
+        String symbol = this.safeString(parsed, "symbol");
+        String orderId = this.safeString(parsed, "id");
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
             {
-                Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+                Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object cachedOrders = this.orders;
@@ -1157,15 +1157,15 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //     maker: false
         // }
         //
-        Object messageHash = "myTrades";
-        Object marketId = this.safeString(message, "symbol");
-        Object market = this.safeMarket(marketId);
+        String messageHash = "myTrades";
+        String marketId = this.safeString(message, "symbol");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object trade = this.parseWsTrade(message, market);
         Object trades = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(trades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             trades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = trades;
         }
@@ -1178,7 +1178,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
     /**
      * @method
      * @name modetrade#watchPositions
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/position-push
      * @description watch all open positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
@@ -1217,7 +1217,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             this.setPositionsCache(client, symbols);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot)) && Helpers.isTrue(Helpers.isEqual(this.positions, null))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchPositionsSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitPositionsSnapshot, true)))) && Helpers.isTrue((Helpers.isEqual(this.positions, null)))))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -1240,12 +1240,12 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
-            Object messageHash = "fetchPositionsSnapshot";
+            String messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
@@ -1265,7 +1265,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object position = Helpers.GetValue(positions, i);
-                Object contracts = this.safeString(position, "contracts", "0");
+                String contracts = this.safeString(position, "contracts", "0");
                 if (Helpers.isTrue(Precise.stringGt(contracts, "0")))
                 {
                     Helpers.callDynamically(cache, "append", new Object[]{position});
@@ -1324,16 +1324,16 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object marketId = this.safeString(rawPosition, "symbol");
-            Object market = this.safeMarket(marketId);
+            String marketId = this.safeString(rawPosition, "symbol");
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object position = this.parseWsPosition(rawPosition, market);
             ((java.util.List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
-            Object messageHash = Helpers.add("positions::", Helpers.GetValue(market, "symbol"));
+            String messageHash = Helpers.add("positions::", Helpers.GetValue(market, "symbol"));
             client.resolve(position, messageHash);
         }
         client.resolve(newPositions, "positions");
@@ -1366,10 +1366,10 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object contract = this.safeString(position, "symbol");
+        String contract = this.safeString(position, "symbol");
         market = this.safeMarket(contract, market);
-        Object size = this.safeString(position, "positionQty");
-        Object side = null;
+        String size = this.safeString(position, "positionQty");
+        String side = null;
         if (Helpers.isTrue(Precise.stringGt(size, "0")))
         {
             side = "long";
@@ -1377,13 +1377,13 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         {
             side = "short";
         }
-        Object contractSize = this.safeString(market, "contractSize");
-        Object markPrice = this.safeString(position, "markPrice");
-        Object timestamp = this.safeInteger(position, "timestamp");
-        Object entryPrice = this.safeString(position, "averageOpenPrice");
-        Object unrealisedPnl = this.safeString(position, "unsettledPnl");
+        String contractSize = this.safeString(market, "contractSize");
+        String markPrice = this.safeString(position, "markPrice");
+        Long timestamp = this.safeInteger(position, "timestamp");
+        String entryPrice = this.safeString(position, "averageOpenPrice");
+        String unrealisedPnl = this.safeString(position, "unsettledPnl");
         size = Precise.stringAbs(size);
-        Object notional = Precise.stringMul(size, markPrice);
+        String notional = Precise.stringMul(size, markPrice);
         final Object finalMarket = market;
         final Object finalSize = size;
         final Object finalSide = side;
@@ -1423,7 +1423,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
      * @method
      * @name modetrade#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1437,9 +1437,9 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             {
                 (this.loadMarkets()).join();
             }
-            Object topic = "balance";
+            String topic = "balance";
             Object messageHash = topic;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -1481,7 +1481,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object balances = this.safeDict(data, "balances", new java.util.HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(balances);
-        Object ts = this.safeInteger(message, "ts");
+        Long ts = this.safeInteger(message, "ts");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", ts);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(ts));
@@ -1489,14 +1489,14 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(balances, key);
-            Object code = this.safeCurrencyCode(key);
+            String code = this.safeCurrencyCode(key);
             Object account = this.account();
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
             {
                 account = Helpers.GetValue(this.balance, code);
             }
-            Object total = this.safeString(value, "holding");
-            Object used = this.safeString(value, "frozen");
+            String total = this.safeString(value, "holding");
+            String used = this.safeString(value, "frozen");
             Helpers.addElementToObject(account, "total", total);
             Helpers.addElementToObject(account, "used", used);
             Helpers.addElementToObject(account, "free", Precise.stringSub(total, used));
@@ -1519,11 +1519,11 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             return false;
         }
         Object success = this.safeBool(message, "success");
-        if (Helpers.isTrue(success))
+        if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
             return false;
         }
-        Object errorMessage = this.safeString(message, "errorMsg");
+        String errorMessage = this.safeString(message, "errorMsg");
         try
         {
             if (Helpers.isTrue(!Helpers.isEqual(errorMessage, null)))
@@ -1536,11 +1536,11 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         {
             if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
             {
-                Object messageHash = "authenticated";
+                String messageHash = "authenticated";
                 client.reject(error, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
-                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    ((java.util.Map<String,Object>)client.subscriptions).remove(messageHash);
                 }
             } else
             {
@@ -1552,11 +1552,11 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "ping", "handlePing");
             put( "pong", "handlePong");
             put( "subscribe", "handleSubscribe");
@@ -1572,14 +1572,14 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             put( "balance", "handleBalance");
             put( "bbos", "handleBidAsk");
         }};
-        Object eventVar = this.safeString(message, "event");
+        String eventVar = this.safeString(message, "event");
         Object method = ((Helpers.isTrue((Helpers.isEqual(eventVar, null))))) ? null : this.safeValue(methods, eventVar);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
             return;
         }
-        Object topic = this.safeString(message, "topic");
+        String topic = this.safeString(message, "topic");
         if (Helpers.isTrue(!Helpers.isEqual(topic, null)))
         {
             method = this.safeValue(methods, topic);
@@ -1592,7 +1592,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             Object splitLength = Helpers.getArrayLength(splitTopic);
             if (Helpers.isTrue(Helpers.isEqual(splitLength, 2)))
             {
-                Object name = this.safeString(splitTopic, 1);
+                String name = this.safeString(splitTopic, 1);
                 if (Helpers.isTrue(Helpers.isEqual(name, null)))
                 {
                     return;
@@ -1607,7 +1607,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 Object splitNameLength = Helpers.getArrayLength(splitTopic);
                 if (Helpers.isTrue(Helpers.isEqual(splitNameLength, 2)))
                 {
-                    Object splitNameFirst = this.safeString(splitName, 0);
+                    String splitNameFirst = this.safeString(splitName, 0);
                     method = ((Helpers.isTrue((Helpers.isEqual(splitNameFirst, null))))) ? null : this.safeValue(methods, splitNameFirst);
                     if (Helpers.isTrue(!Helpers.isEqual(method, null)))
                     {

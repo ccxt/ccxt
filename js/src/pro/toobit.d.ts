@@ -180,7 +180,7 @@ export default class toobit extends toobitRest {
     loadPositionsSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
     handlePositions(client: any, message: any): void;
     parseWsPosition(position: any, market?: Market): Position;
-    authenticate(params?: {}): Promise<any>;
+    authenticate(params?: {}): Promise<void>;
     keepAliveListenKey(params?: {}): Promise<void>;
     getUserStreamUrl(): string;
     handleErrorMessage(client: Client, message: any): Bool;

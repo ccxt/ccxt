@@ -226,6 +226,12 @@ export default class bydfi extends Exchange {
                         'v1/fapi/trade/history_trade': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/trade/position_history': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/trade/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/open_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/plan_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/history_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/history_trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/position_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/positions': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/account/balance': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/user_data/assets_margin': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/user_data/position_side/dual': { 'cost': 1 } as Endpoint<Dict>,
@@ -248,6 +254,13 @@ export default class bydfi extends Exchange {
                         'v1/fapi/trade/cancel_all_order': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/trade/leverage': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/trade/batch_leverage_margin': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v2/fapi/trade/place_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/batch_place_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/edit_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/batch_edit_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/batch_cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/cancel_all_order': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/user_data/margin_type': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/user_data/position_side/dual': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/agent/internal_withdrawal': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#internal-withdrawal
@@ -521,7 +534,7 @@ export default class bydfi extends Exchange {
             'option': false,
             'active': status === 'NORMAL',
             'contract': true,
-            'linear': !inverse,
+            'linear': inverse !== true,
             'inverse': inverse,
             'taker': taker,
             'maker': maker,
@@ -694,7 +707,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 500;
             params = this.omit (params, 'paginate');
             params = this.extend (params, { 'paginationDirection': 'backward' });
@@ -851,7 +864,7 @@ export default class bydfi extends Exchange {
             'interval': interval,
         };
         let startTime = since;
-        const numberOfCandles = limit ? limit : maxLimit;
+        const numberOfCandles = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
         let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
         const now = this.milliseconds ();
@@ -1315,13 +1328,13 @@ export default class bydfi extends Exchange {
         if (hedged) {
             params = this.omit (params, 'reduceOnly');
             if (side === 'buy') {
-                request['positionSide'] = reduceOnly ? 'SHORT' : 'LONG';
+                request['positionSide'] = (reduceOnly === true) ? 'SHORT' : 'LONG';
             } else if (side === 'sell') {
-                request['positionSide'] = reduceOnly ? 'LONG' : 'SHORT';
+                request['positionSide'] = (reduceOnly === true) ? 'LONG' : 'SHORT';
             }
         }
         const closePosition = this.safeBool (params, 'closePosition', false);
-        if (!closePosition) {
+        if (closePosition !== true) {
             params = this.omit (params, 'closePosition');
             request['quantity'] = this.amountToPrecision (symbol, amount);
         } else if ((type !== 'STOP_MARKET') && (type !== 'TAKE_PROFIT_MARKET')) {
@@ -1689,7 +1702,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 500;
             params = this.omit (params, 'paginate');
             params = this.extend (params, { 'paginationDirection': 'backward' });
@@ -2651,7 +2664,7 @@ export default class bydfi extends Exchange {
         const transfer = this.parseTransfer (response, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             const timestamp = this.milliseconds ();
             transfer['timestamp'] = timestamp;
             transfer['datetime'] = this.iso8601 (timestamp);
@@ -2684,7 +2697,7 @@ export default class bydfi extends Exchange {
         }
         const currency = this.currency (code);
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 50;
             params = this.omit (params, 'paginate');
             params = this.extend (params, { 'paginationDirection': 'backward' });
@@ -2822,7 +2835,7 @@ export default class bydfi extends Exchange {
         }
         const currency = this.currency (code);
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 50;
             params = this.omit (params, 'paginate');
             params = this.extend (params, { 'paginationDirection': 'backward' });

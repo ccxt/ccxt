@@ -5,6 +5,7 @@ interface Exchange {
     gatewayPublicGetQuery(params?: {}): Promise<Dict>;
     gatewayPublicGetEdgeQuery(params?: {}): Promise<Dict>;
     gatewayPublicPostQuery(params?: {}): Promise<Dict>;
+    gatewayPublicPostEdgeQuery(params?: {}): Promise<Dict>;
     gatewayPrivatePostExecute(params?: {}): Promise<Dict>;
     gatewayV2PublicGetAssets(params?: {}): Promise<List>;
     gatewayV2PublicGetPairs(params?: {}): Promise<List>;
@@ -13,6 +14,7 @@ interface Exchange {
     archiveV2PublicGetTickers(params?: {}): Promise<Dict>;
     archiveV2PublicGetContracts(params?: {}): Promise<Dict>;
     archiveV2PublicGetTrades(params?: {}): Promise<List>;
+    archiveV2PublicGetSymbols(params?: {}): Promise<Dict>;
     triggerPrivatePostExecute(params?: {}): Promise<Dict>;
     triggerPrivatePostQuery(params?: {}): Promise<Dict>;
 }

@@ -41,6 +41,8 @@ interface Exchange {
     privateDeleteOrders(params?: {}): Promise<Dict>;
     privateDeleteOrdersOid(params?: {}): Promise<Dict>;
     privateDeleteOrdersAll(params?: {}): Promise<Dict>;
+    privatePatchOrders(params?: {}): Promise<Dict>;
+    privatePatchOrdersOid(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

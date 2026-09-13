@@ -82,7 +82,7 @@ class hashkey(ccxt.async_support.hashkey):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.binary]: True or False - default False
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -433,7 +433,7 @@ class hashkey(ccxt.async_support.hashkey):
         timeInForce = self.safe_string(order, 'f')
         postOnly = None
         type, timeInForce, postOnly = self.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce)
-        if market['contract']:  # swap orders are always have type 'LIMIT', thus we can not define the correct type
+        if market['contract'] is True:  # swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = None
         return self.safe_order({
             'id': self.safe_string(order, 'i'),
@@ -706,7 +706,7 @@ class hashkey(ccxt.async_support.hashkey):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         snapshot = self.safe_bool(options, 'fetchBalanceSnapshot', True)
-        if snapshot:
+        if snapshot is True:
             messageHash = type + ':' + 'fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)

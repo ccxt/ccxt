@@ -62,7 +62,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         }
     }
     if ('skipNonActiveMarkets' in skippedProperties) {
-        if (market === undefined || !market['active']) {
+        if (market === undefined || (market['active'] !== true)) {
             return;
         }
     }
@@ -107,7 +107,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         // far above baseVolume * high), so the spot-derived invariant does not hold there,
         // see https://github.com/ccxt/ccxt/pull/29563
         const isInverse = exchange.safeBool (market, 'inverse', false);
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined) && !isInverse) {
+        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined) && (isInverse !== true)) {
             let baseLow = Precise.stringMul (baseVolume, low);
             let baseHigh = Precise.stringMul (baseVolume, high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -202,7 +202,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         if (percentage !== undefined) {
         // - should be above -100 and (for non-options) below MAX
             assert (Precise.stringGe (percentage, '-100'), 'percentage should be above -100% ' + logText);
-            if (!isOptionMarket) {
+            if (isOptionMarket !== true) {
                 assert (Precise.stringLe (percentage, Precise.stringMul ('+100', maxIncrease)), 'percentage should be below ' + maxIncrease + '00% ' + logText);
             }
         }
@@ -213,7 +213,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         if (change !== undefined) {
             // - should be above -price and (for non-options) below +price*maxIncrease
             assert (Precise.stringGe (change, Precise.stringNeg (approxValue)), 'change should be above -price ' + logText);
-            if (!isOptionMarket) {
+            if (isOptionMarket !== true) {
                 assert (Precise.stringLe (change, Precise.stringMul (approxValue, maxIncrease)), 'change should be below ' + maxIncrease + 'x price ' + logText);
             }
         }

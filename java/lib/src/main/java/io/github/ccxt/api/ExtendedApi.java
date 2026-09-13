@@ -130,6 +130,28 @@ public class ExtendedApi extends Exchange
     }
 
     /**
+     * Calls the v1PublicGetInterestInfoRateCurves endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetInterestInfoRateCurves (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PublicGetInterestInfoRateCurves", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PublicGetInterestInfoLatestRateCurves endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetInterestInfoLatestRateCurves (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PublicGetInterestInfoLatestRateCurves", optionalArgs);
+    }
+
+    /**
      * Calls the v1PrivateGetUserAccounts endpoint.
      *
      * @param optionalArgs the request parameters
@@ -416,6 +438,127 @@ public class ExtendedApi extends Exchange
     }
 
     /**
+     * Calls the v1PrivateGetPortfolioChartsPnlPercentage endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfolioChartsPnlPercentage (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfolioChartsPnlPercentage", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfolioChartsPnlCumulative endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfolioChartsPnlCumulative (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfolioChartsPnlCumulative", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfolioChartsPnlCumulativePercentage endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfolioChartsPnlCumulativePercentage (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfolioChartsPnlCumulativePercentage", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfolioChartsVaultEquities endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfolioChartsVaultEquities (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfolioChartsVaultEquities", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfolioChartsMaxDrawdown endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfolioChartsMaxDrawdown (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfolioChartsMaxDrawdown", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfolioChartsFunding endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfolioChartsFunding (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfolioChartsFunding", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfolioAccountsSummary endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfolioAccountsSummary (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfolioAccountsSummary", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfolioAccountsHealth endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfolioAccountsHealth (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfolioAccountsHealth", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfolioAccountsPerformance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfolioAccountsPerformance (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfolioAccountsPerformance", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfolioFundingStats endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfolioFundingStats (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfolioFundingStats", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfolioFundingHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfolioFundingHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfolioFundingHistory", optionalArgs);
+    }
+
+    /**
      * Calls the v1PrivateGetVaultPublicPerformance endpoint.
      *
      * @param optionalArgs the request parameters
@@ -449,6 +592,50 @@ public class ExtendedApi extends Exchange
     }
 
     /**
+     * Calls the v1PrivateGetInterestKeyMetrics endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetInterestKeyMetrics (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetInterestKeyMetrics", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetInterestDailyMetrics endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetInterestDailyMetrics (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetInterestDailyMetrics", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetInterestPaymentChart endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetInterestPaymentChart (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetInterestPaymentChart", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetInterestPayments endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetInterestPayments (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetInterestPayments", optionalArgs);
+    }
+
+    /**
      * Calls the v1PrivatePostUserOrder endpoint.
      *
      * @param optionalArgs the request parameters
@@ -457,6 +644,17 @@ public class ExtendedApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostUserOrder (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostUserOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostUserOrderRfq endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostUserOrderRfq (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostUserOrderRfq", optionalArgs);
     }
 
     /**

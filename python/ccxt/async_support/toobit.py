@@ -179,6 +179,16 @@ class toobit(Exchange, ImplicitAPI):
                         'api/v1/agent/user/export': {'cost': 1},
                         'api/v1/agent/export-list': {'cost': 1},
                         'api/v1/agent/export-url': {'cost': 1},
+                        # v2
+                        'api/v2/account/balance-flow': {'cost': 5},
+                        'api/v2/futures/order': {'cost': 1 * 1.67},
+                        'api/v2/futures/open-orders': {'cost': 1 * 1.67},
+                        'api/v2/futures/history-orders': {'cost': 5 * 1.67},
+                        'api/v2/futures/user-trades': {'cost': 5 * 1.67},
+                        'api/v2/futures/algo-order': {'cost': 1 * 1.67},
+                        'api/v2/futures/open-algo-orders': {'cost': 1 * 1.67},
+                        'api/v2/futures/history-algo-orders': {'cost': 5 * 1.67},
+                        'api/v2/futures/voucher/list': {'cost': 5},
                     },
                     'post': {
                         'api/v1/spot/orderTest': {'cost': 1 * 1.67},
@@ -988,7 +998,7 @@ class toobit(Exchange, ImplicitAPI):
             'option': False,
             'active': active,
             'contract': isContract,
-            'linear': not inverse if isContract else None,
+            'linear': (inverse is not True) if isContract else None,
             'inverse': inverse if isContract else None,
             'contractSize': self.safe_number(market, 'contractMultiplier'),
             'expiry': None,
@@ -1164,7 +1174,7 @@ class toobit(Exchange, ImplicitAPI):
             else:
                 side = 'buy'
         else:
-            if isBuyer:
+            if isBuyer is True:
                 side = 'buy'
             else:
                 side = 'sell'
@@ -1212,7 +1222,7 @@ class toobit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1368,7 +1378,7 @@ class toobit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(ticker, 't')
         last = self.safe_string(ticker, 'c')
         baseVolume = self.safe_string(ticker, 'v')
-        if market['contract'] and (market['contractSize'] is not None):
+        if (market['contract'] is True) and (market['contractSize'] is not None):
             # 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.string_mul(baseVolume, self.number_to_string(market['contractSize']))
         return self.safe_ticker({
@@ -1482,9 +1492,15 @@ class toobit(Exchange, ImplicitAPI):
         return self.filter_by_array(results, 'symbol', symbols)
 
     def parse_bid_ask_custom(self, ticker: object):
+        # 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
+        # reads through safeMarket and safeInteger. The caller filters on a unified symbol.
+        marketId = self.safe_string(ticker, 's')
+        market = self.safe_market(marketId)
+        timestamp = self.safe_integer(ticker, 't')
         return {
-            'timestamp': self.safe_string(ticker, 't'),
-            'symbol': self.safe_string(ticker, 's'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
             'bid': self.safe_number(ticker, 'b'),
             'bidVolume': self.safe_number(ticker, 'bq'),
             'ask': self.safe_number(ticker, 'a'),
@@ -1678,7 +1694,7 @@ class toobit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1686,7 +1702,7 @@ class toobit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {}
         response = {}
-        if market['spot']:
+        if market['spot'] is True:
             request, params = self.create_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostApiV1SpotOrder(self.extend(request, params))
         else:
@@ -1740,7 +1756,7 @@ class toobit(Exchange, ImplicitAPI):
             request['quantity'] = self.amount_to_precision(symbol, amount)
         isPostOnly = None
         isPostOnly, params = self.handle_post_only(type == 'market', False, params)
-        if isPostOnly:
+        if isPostOnly is True:
             request['type'] = 'LIMIT_MAKER'
         else:
             request['type'] = type.upper()
@@ -1759,9 +1775,9 @@ class toobit(Exchange, ImplicitAPI):
         reduceOnly = None
         reduceOnly, params = self.handle_param_bool(params, 'reduceOnly')
         if side == 'buy':
-            side = 'BUY_CLOSE' if reduceOnly else 'BUY_OPEN'
+            side = 'BUY_CLOSE' if (reduceOnly is True) else 'BUY_OPEN'
         elif side == 'sell':
-            side = 'SELL_CLOSE' if reduceOnly else 'SELL_OPEN'
+            side = 'SELL_CLOSE' if (reduceOnly is True) else 'SELL_OPEN'
         request['side'] = side
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
@@ -1773,7 +1789,7 @@ class toobit(Exchange, ImplicitAPI):
             request['priceType'] = 'MARKET'
         isPostOnly = None
         isPostOnly, params = self.handle_post_only(type == 'market', False, params)
-        if isPostOnly:
+        if isPostOnly is True:
             request['timeInForce'] = 'LIMIT_MAKER'
         values = self.handle_trigger_prices_and_params(symbol, params)
         triggerPrice = values[0]
@@ -1970,7 +1986,7 @@ class toobit(Exchange, ImplicitAPI):
             response = await self.privateDeleteApiV1SpotOrder(self.extend(request, params))
         else:
             response = await self.privateDeleteApiV1FuturesOrder(self.extend(request, params))
-        # response same `createOrder`
+        # response same as in `createOrder`
         status = self.parse_order_status(self.safe_string(response, 'status'))
         if status != 'open':
             raise OrderNotFound(self.id + ' order ' + id + ' can not be canceled, ' + self.json(response))
@@ -2088,7 +2104,7 @@ class toobit(Exchange, ImplicitAPI):
         }
         market = self.market(symbol)
         response = {}
-        if market['spot']:
+        if market['spot'] is True:
             response = await self.privateGetApiV1SpotOrder(self.extend(request, params))
         else:
             response = await self.privateGetApiV1FuturesOrder(self.extend(request, params))
@@ -2607,7 +2623,7 @@ class toobit(Exchange, ImplicitAPI):
         """
         return await self.fetch_deposits_or_withdrawals_helper('withdrawals', code, since, limit, params)
 
-    async def fetch_deposits_or_withdrawals_helper(self, type: object, code: object, since: object, limit: object, params={}):
+    async def fetch_deposits_or_withdrawals_helper(self, type: object, code: object, since: object, limit: object, params={}) -> list[Transaction]:
         if self.markets is None:
             await self.load_markets()
         currency = None
@@ -3010,12 +3026,12 @@ class toobit(Exchange, ImplicitAPI):
             'info': position,
             'id': self.safe_string(position, 'id'),
             'symbol': market['symbol'],
-            'entryPrice': self.safe_string(position, 'avgPrice'),
-            'markPrice': self.safe_string(position, 'markPrice'),
-            'lastPrice': self.safe_string(position, 'lastPrice'),
-            'notional': self.safe_string(position, 'positionValue'),
+            'entryPrice': self.safe_number(position, 'avgPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'lastPrice': self.safe_number(position, 'lastPrice'),
+            'notional': self.safe_number(position, 'positionValue'),
             'collateral': None,
-            'unrealizedPnl': self.safe_string(position, 'unrealizedPnL'),
+            'unrealizedPnl': self.safe_number(position, 'unrealizedPnL'),
             'side': side,
             'contracts': self.parse_number(quantity),
             'contractSize': None,
@@ -3024,7 +3040,7 @@ class toobit(Exchange, ImplicitAPI):
             'hedged': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'initialMargin': self.safe_string(position, 'margin'),
+            'initialMargin': self.safe_number(position, 'margin'),
             'initialMarginPercentage': None,
             'leverage': leverage,
             'liquidationPrice': None,
@@ -3042,7 +3058,7 @@ class toobit(Exchange, ImplicitAPI):
         if api != 'private':
             # Public endpoints
             if not isPost:
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -3083,7 +3099,7 @@ class toobit(Exchange, ImplicitAPI):
             return None
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        if errorCode and errorCode != '200' and errorCode != '0':
+        if (errorCode is not None and errorCode != '') and errorCode != '200' and errorCode != '0':
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

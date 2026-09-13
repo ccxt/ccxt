@@ -269,6 +269,13 @@ class aster extends aster$1["default"] {
                         // builder
                         'v3/agent': { 'cost': 1 },
                         'v3/builder': { 'cost': 1 },
+                        'v3/builder/userTrades': { 'cost': 5 },
+                        'v3/builder/approvedUserList': { 'cost': 5 },
+                        'v3/stpMode': { 'cost': 30 },
+                        'v3/asset/migrateUser/history': { 'cost': 50 },
+                        // strategy
+                        'v3/strategyOpenOrder': { 'cost': 5 },
+                        'v3/strategyHistoryOrder': { 'cost': 5 },
                     },
                     'post': {
                         'v1/positionSide/dual': { 'cost': 1 },
@@ -302,6 +309,13 @@ class aster extends aster$1["default"] {
                         'v3/updateAgent': { 'cost': 1 },
                         'v3/approveBuilder': { 'cost': 1 },
                         'v3/updateBuilder': { 'cost': 1 },
+                        'v3/registerAndApproveAgent': { 'cost': 50 },
+                        'v3/asset/migrateUser': { 'cost': 50 },
+                        'v3/chase': { 'cost': 1 },
+                        'v3/stpMode': { 'cost': 1 },
+                        // strategy
+                        'v3/placeStrategyOrder': { 'cost': 50 },
+                        'v3/updateStrategyOrder': { 'cost': 50 },
                     },
                     'put': {
                         'v1/listenKey': { 'cost': 1 },
@@ -314,6 +328,8 @@ class aster extends aster$1["default"] {
                         'v3/allOpenOrders': { 'cost': 1 },
                         'v1/batchOrders': { 'cost': 1 },
                         'v3/batchOrders': { 'cost': 1 },
+                        'v3/guardedCancelOrder': { 'cost': 1 },
+                        'v3/guardedBatchOrders': { 'cost': 1 },
                         'v3/mmp': { 'cost': 1 },
                         'v1/listenKey': { 'cost': 1 },
                         'v3/listenKey': { 'cost': 1 },
@@ -954,7 +970,7 @@ class aster extends aster$1["default"] {
         for (let i = 0; i < fapiRows.length; i++) {
             const market = fapiRows[i];
             // tmp skip some markets with base = undefined
-            if (this.safeString(market, 'baseAsset')) {
+            if (this.safeString(market, 'baseAsset') !== undefined) {
                 fapiRowsFiltered.push(market);
             }
         }
@@ -1166,7 +1182,7 @@ class aster extends aster$1["default"] {
         }
         else {
             request['symbol'] = market['id'];
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 response = await this.fapiPublicGetV3Klines(this.extend(request, params));
             }
             else {
@@ -1326,7 +1342,7 @@ class aster extends aster$1["default"] {
         }
         // use historical endpoint for targeted requests
         if ('startTime' in request) {
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 response = await this.fapiPublicGetV3AggTrades(this.extend(request, params));
             }
             else {
@@ -1349,7 +1365,7 @@ class aster extends aster$1["default"] {
             //
         }
         else {
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 response = await this.fapiPublicGetV3Trades(this.extend(request, params));
             }
             else {
@@ -1457,7 +1473,7 @@ class aster extends aster$1["default"] {
         if (limit !== undefined) {
             request['limit'] = this.findNearestCeiling([5, 10, 20, 50, 100, 500, 1000], limit);
         }
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPublicGetV3Depth(this.extend(request, params));
         }
         else {
@@ -1592,7 +1608,7 @@ class aster extends aster$1["default"] {
             'symbol': market['id'],
         };
         let response;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPublicGetV3Ticker24hr(this.extend(request, params));
         }
         else {
@@ -2181,7 +2197,7 @@ class aster extends aster$1["default"] {
             'symbol': market['id'],
         };
         let response;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivateGetV3CommissionRate(this.extend(request, params));
         }
         else {
@@ -2341,7 +2357,7 @@ class aster extends aster$1["default"] {
             request['orderId'] = id;
         }
         let response;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivateGetV3Order(this.extend(request, params));
         }
         else {
@@ -2407,7 +2423,7 @@ class aster extends aster$1["default"] {
             request['orderId'] = id;
         }
         let response;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.sapiPrivateGetV3OpenOrder(this.extend(request, params));
         }
         else {
@@ -2474,7 +2490,7 @@ class aster extends aster$1["default"] {
         }
         [request, params] = this.handleUntilOption('endTime', request, params);
         let response;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivateGetV3AllOrders(this.extend(request, params));
         }
         else {
@@ -2536,7 +2552,7 @@ class aster extends aster$1["default"] {
             request['symbol'] = market['id'];
         }
         if (symbol === undefined) {
-            if (this.options['fetchOpenOrders']['warnIfNoSymbol']) {
+            if (this.options['fetchOpenOrders']['warnIfNoSymbol'] === true) {
                 throw new errors.ExchangeError(this.id + ' fetchOpenOrders(): WARNING - this method without providing "symbol" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnIfNoSymbol"] = false to suppress this warning message.');
             }
         }
@@ -2614,7 +2630,7 @@ class aster extends aster$1["default"] {
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivatePostV3Order(request);
         }
         else {
@@ -2683,7 +2699,7 @@ class aster extends aster$1["default"] {
         }
         orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(orderSymbols[0]);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new errors.NotSupported(this.id + ' createOrders() does not support ' + market['type'] + ' orders');
         }
         const request = {
@@ -2766,7 +2782,7 @@ class aster extends aster$1["default"] {
         let uppercaseType = initialUppercaseType;
         let stopPrice = undefined;
         if (isTrailingPercentOrder) {
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 uppercaseType = 'TRAILING_STOP_MARKET';
                 request['callbackRate'] = trailingPercent;
                 if (trailingTriggerPrice !== undefined) {
@@ -2796,20 +2812,11 @@ class aster extends aster$1["default"] {
         if (postOnly) {
             request['timeInForce'] = 'GTX';
         }
-        //
-        // spot
-        // LIMIT timeInForce, quantity, price
-        // MARKET quantity or quoteOrderQty
-        // STOP and TAKE_PROFIT quantity, price, stopPrice
-        // STOP_MARKET and TAKE_PROFIT_MARKET quantity, stopPrice
-        // future
-        // LIMIT timeInForce, quantity, price
-        // MARKET quantity
-        // STOP/TAKE_PROFIT quantity, price, stopPrice
-        // STOP_MARKET/TAKE_PROFIT_MARKET stopPrice
-        // TRAILING_STOP_MARKET callbackRate
-        //
-        // additional required fields depending on the order type
+        // additional required fields per order type
+        // spot: LIMIT timeInForce, quantity, price; MARKET quantity or quoteOrderQty;
+        //       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
+        // future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice;
+        //       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
         const closePosition = this.safeBool(params, 'closePosition', false);
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
@@ -2817,9 +2824,9 @@ class aster extends aster$1["default"] {
         let quantityIsRequired = false;
         request['type'] = uppercaseType;
         if (uppercaseType === 'MARKET') {
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 const quoteOrderQty = this.handleOption('createOrder', 'quoteOrderQty', true);
-                if (quoteOrderQty) {
+                if (quoteOrderQty === true) {
                     const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
                     if (quoteOrderQtyNew !== undefined) {
@@ -2854,7 +2861,7 @@ class aster extends aster$1["default"] {
             triggerPriceIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            if (!closePosition) {
+            if (closePosition !== true) {
                 quantityIsRequired = true;
             }
             triggerPriceIsRequired = true;
@@ -2902,7 +2909,7 @@ class aster extends aster$1["default"] {
             request['timeInForce'] = tif;
         }
         const requestParams = this.omit(params, ['newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice']);
-        if (this.safeBool(this.options, 'builderFee') && market['swap']) {
+        if ((this.safeBool(this.options, 'builderFee') === true) && (market['swap'] === true)) {
             request['builder'] = this.safeString(this.options, 'builder');
             request['feeRate'] = this.safeString(this.options, 'builderRate');
         }
@@ -2928,7 +2935,7 @@ class aster extends aster$1["default"] {
             'symbol': market['id'],
         };
         let response;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, params));
         }
         else {
@@ -2977,7 +2984,7 @@ class aster extends aster$1["default"] {
         }
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivateDeleteV3Order(this.extend(request, params));
         }
         else {
@@ -3017,7 +3024,7 @@ class aster extends aster$1["default"] {
             request['orderIdList'] = ids;
         }
         let response;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivateDeleteV3BatchOrders(this.extend(request, params));
             //
             //    [
@@ -3817,7 +3824,7 @@ class aster extends aster$1["default"] {
             const position = positions[i];
             const marketId = this.safeString(position, 'symbol');
             const market = this.safeMarket(marketId, undefined, undefined, 'contract');
-            const code = market['linear'] ? market['quote'] : market['base'];
+            const code = (market['linear'] === true) ? market['quote'] : market['base'];
             const maintenanceMargin = this.safeString(position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             const isPositionOpen = (maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000');
@@ -4284,7 +4291,7 @@ class aster extends aster$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'fapiPublic' || api === 'sapiPublic') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.rawencode(params);
             }
         }
@@ -4411,11 +4418,11 @@ class aster extends aster$1["default"] {
     }
     async initializeClient(params = {}) {
         const builderFee = this.safeBool(params, 'builderFee', this.safeBool(this.options, 'builderFee', true)); // we shouldn't omit here
-        if (!builderFee) {
+        if (builderFee !== true) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
+        if (approvedBuilderFee === true) {
             return true; // skip if builder fee is already approved
         }
         const result = await this.fapiPrivateGetV3Builder();

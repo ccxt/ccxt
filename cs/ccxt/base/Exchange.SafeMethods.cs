@@ -35,12 +35,9 @@ public partial class BaseExchange
     }
     // falsy and truthy methods wrappers
 
-    // tmp safe number
-    public static object SafeNumberN(object obj, List<object> keys, object defaultValue = null) => SafeFloatN(obj, keys, defaultValue);
-    public object safeNumberN(object obj, List<object> keys, object defaultValue = null) => safeFloatN(obj, keys, defaultValue);
-    // public static object safeNumberN(object obj, List<object> keys, object defaultValue = null) => safeFloatN(obj, keys, defaultValue);
-    // public float safeNumber(object obj, object key, float defaultValue = -1) => safeFloatN(obj, new List<object> { key }, defaultValue);
-    // public float safeNumber2(object obj, object key1, object key2, float defaultValue = -1) => safeFloatN(obj, new List<object> { key1, key2 }, defaultValue);
+    // delegates to SafeFloatN, whose return type is already double? — the `object`
+    // signature only erased the type the forwarded value already had
+    public double? safeNumberN(object obj, List<object> keys, object defaultValue = null) => safeFloatN(obj, keys, defaultValue);
 
     ////////////////////////////////////////////////////////
 
@@ -82,7 +79,7 @@ public partial class BaseExchange
         return res == null ? null : res;
     }
 
-    public object safeInteger2(object obj, object key1, object key2, object defaultValue = null) => safeIntegerN(obj, new List<object> { key1, key2 }, defaultValue);
+    public Int64? safeInteger2(object obj, object key1, object key2, object defaultValue = null) => SafeIntegerN(obj, new List<object> { key1, key2 }, defaultValue);
 
     public double? safeFloat(object obj, object key, object defaultValue = null) => safeFloatN(obj, new List<object> { key }, defaultValue);
     public static double? SafeFloat(object obj, object key, object defaultValue = null)
@@ -225,7 +222,7 @@ public partial class BaseExchange
         return parsedValue == null ? defaultValue : parsedValue;
     }
 
-    public object safeIntegerN(object obj, List<object> keys, object defaultValue = null) => SafeIntegerN(obj, keys, defaultValue);
+    public Int64? safeIntegerN(object obj, List<object> keys, object defaultValue = null) => SafeIntegerN(obj, keys, defaultValue);
     public static Int64? SafeIntegerN(object obj, List<object> keys, object defaultValue = null)
     {
         var result = SafeValueN(obj, keys, defaultValue);

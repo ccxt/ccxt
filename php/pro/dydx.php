@@ -300,7 +300,7 @@ class dydx extends \ccxt\async\dydx {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -335,7 +335,7 @@ class dydx extends \ccxt\async\dydx {
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -427,7 +427,7 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, mixed $message): bool {
         //
         // {
         //     "type" => "error",

@@ -287,6 +287,33 @@ public class ToobitCore extends ToobitApi
                         put( "api/v1/agent/export-url", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "api/v2/account/balance-flow", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v2/futures/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v2/futures/open-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v2/futures/history-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v2/futures/user-trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v2/futures/algo-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v2/futures/open-algo-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v2/futures/history-algo-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v2/futures/voucher/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "api/v1/spot/orderTest", new java.util.HashMap<String, Object>() {{
@@ -732,7 +759,7 @@ public class ToobitCore extends ToobitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.commonGetApiV1Ping(parameters)).join();
+            java.util.Map<String, Object> response = (this.commonGetApiV1Ping(parameters)).join();
             return new java.util.HashMap<String, Object>() {{
                 put( "status", "ok" );
                 put( "updated", null );
@@ -758,7 +785,7 @@ public class ToobitCore extends ToobitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.commonGetApiV1Time(parameters)).join();
+            java.util.Map<String, Object> response = (this.commonGetApiV1Time(parameters)).join();
             //
             //     {
             //         "serverTime": 1699827319559
@@ -783,7 +810,7 @@ public class ToobitCore extends ToobitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.commonGetApiV1ExchangeInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.commonGetApiV1ExchangeInfo(parameters)).join();
             Helpers.addElementToObject(this.options, "exchangeInfo", response); // we store it in options for later use in fetchMarkets
             //
             //    {
@@ -914,7 +941,7 @@ public class ToobitCore extends ToobitApi
             //          ...
             //
             Object coins = this.safeList(response, "coins", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(coins)); i++)
             {
                 Object coin = Helpers.GetValue(coins, i);
@@ -932,14 +959,14 @@ public class ToobitCore extends ToobitApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object id = this.safeString(rawCurrency, "coinId");
-        Object code = this.safeCurrencyCode(id);
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        String id = this.safeString(rawCurrency, "coinId");
+        String code = this.safeCurrencyCode(id);
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object rawNetworks = this.safeList(rawCurrency, "chainTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(rawNetworks)); j++)
         {
             Object rawNetwork = Helpers.GetValue(rawNetworks, j);
-            Object networkId = this.safeString(rawNetwork, "chainType");
+            String networkId = this.safeString(rawNetwork, "chainType");
             Object networkCode = this.networkIdToCode(networkId, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -1145,8 +1172,8 @@ public class ToobitCore extends ToobitApi
             //
             Object symbols = this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object contracts = this.safeList(response, "contracts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object all = this.arrayConcat(symbols, contracts);
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> all = (java.util.List<Object>) this.arrayConcat(symbols, contracts);
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(all)); i++)
             {
                 Object market = Helpers.GetValue(all, i);
@@ -1163,24 +1190,24 @@ public class ToobitCore extends ToobitApi
 
     public Object parseMarket(Object market)
     {
-        Object id = this.safeString(market, "symbol");
-        Object baseId = this.safeString(market, "baseAsset", "");
-        Object quoteId = this.safeString(market, "quoteAsset");
+        String id = this.safeString(market, "symbol");
+        String baseId = this.safeString(market, "baseAsset", "");
+        String quoteId = this.safeString(market, "quoteAsset");
         Object baseParts = Helpers.split(baseId, "-");
-        Object baseIdClean = Helpers.GetValue(baseParts, 0);
-        Object base = this.safeCurrencyCode(baseIdClean);
-        Object quote = this.safeCurrencyCode(quoteId);
-        Object settleId = this.safeString(market, "marginToken");
-        Object settle = this.safeCurrencyCode(settleId);
-        Object status = this.safeString(market, "status");
-        Object active = (Helpers.isEqual(status, "TRADING"));
+        String baseIdClean = (String) Helpers.GetValue(baseParts, 0);
+        String base = this.safeCurrencyCode(baseIdClean);
+        String quote = this.safeCurrencyCode(quoteId);
+        String settleId = this.safeString(market, "marginToken");
+        String settle = this.safeCurrencyCode(settleId);
+        String status = this.safeString(market, "status");
+        Boolean active = (Helpers.isEqual(status, "TRADING"));
         Object filters = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object filtersByType = this.indexBy(filters, "filterType");
+        java.util.Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
         Object priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
         Object lotSizeFilter = this.safeDict(filtersByType, "LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
         Object minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new java.util.HashMap<String, Object>() {{}});
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object isContract = (Helpers.inOp(market, "contractMultiplier"));
+        Boolean isContract = (Helpers.inOp(market, "contractMultiplier"));
         Object inverse = this.safeBool2(market, "isInverse", "inverse");
         if (Helpers.isTrue(isContract))
         {
@@ -1188,6 +1215,7 @@ public class ToobitCore extends ToobitApi
         }
         final Object finalSymbol = symbol;
         final Object finalBase = base;
+        final Object finalInverse = inverse;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
@@ -1205,8 +1233,8 @@ public class ToobitCore extends ToobitApi
             put( "option", false );
             put( "active", active );
             put( "contract", isContract );
-            put( "linear", ((Helpers.isTrue(isContract))) ? !Helpers.isTrue(inverse) : null );
-            put( "inverse", ((Helpers.isTrue(isContract))) ? inverse : null );
+            put( "linear", ((Helpers.isTrue(isContract))) ? (!Helpers.isEqual(finalInverse, true)) : null );
+            put( "inverse", ((Helpers.isTrue(isContract))) ? finalInverse : null );
             put( "contractSize", ToobitCore.this.safeNumber(market, "contractMultiplier") );
             put( "expiry", null );
             put( "expiryDatetime", null );
@@ -1261,15 +1289,15 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.commonGetQuoteV1Depth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.commonGetQuoteV1Depth(this.extend(request, parameters))).join();
             //
             //    {
             //        "t": "1755593995237",
@@ -1297,7 +1325,7 @@ public class ToobitCore extends ToobitApi
             //        ]
             //    }
             //
-            Object timestamp = this.safeInteger(response, "t");
+            Long timestamp = this.safeInteger(response, "t");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "b", "a");
         });
 
@@ -1315,7 +1343,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1327,15 +1355,15 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.commonGetQuoteV1Trades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.commonGetQuoteV1Trades(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -1395,11 +1423,11 @@ public class ToobitCore extends ToobitApi
         //        },
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger2(trade, "t", "time");
-        Object priceString = this.safeString2(trade, "p", "price");
-        Object amountString = this.safeString2(trade, "q", "qty");
+        Long timestamp = (Long) this.safeInteger2(trade, "t", "time");
+        String priceString = this.safeString2(trade, "p", "price");
+        String amountString = this.safeString2(trade, "q", "qty");
         Object isBuyer = this.safeBool(trade, "isBuyer");
-        Object side = null;
+        String side = null;
         Object isBuyerMaker = this.safeBool(trade, "ibm");
         if (Helpers.isTrue(Helpers.isEqual(isBuyerMaker, null)))
         {
@@ -1420,7 +1448,7 @@ public class ToobitCore extends ToobitApi
             }
         } else
         {
-            if (Helpers.isTrue(isBuyer))
+            if (Helpers.isTrue(Helpers.isEqual(isBuyer, true)))
             {
                 side = "buy";
             } else
@@ -1428,8 +1456,8 @@ public class ToobitCore extends ToobitApi
                 side = "sell";
             }
         }
-        Object feeCurrencyId = this.safeString(trade, "feeCoinId");
-        Object feeAmount = this.safeString(trade, "feeAmount");
+        String feeCurrencyId = this.safeString(trade, "feeCoinId");
+        String feeAmount = this.safeString(trade, "feeAmount");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
@@ -1440,7 +1468,7 @@ public class ToobitCore extends ToobitApi
             }};
         }
         Object isMaker = this.safeBool(trade, "isMaker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
@@ -1495,8 +1523,8 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", ToobitCore.this.safeString(ToobitCore.this.timeframes, timeframe, timeframe) );
             }};
@@ -1504,7 +1532,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -1516,7 +1544,7 @@ public class ToobitCore extends ToobitApi
             }
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object endpoint = null;
-            var endpointparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "price");
+            java.util.List<Object> endpointparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "price");
             endpoint = ((java.util.List<Object>) endpointparametersVariable).get(0);
             parameters = ((java.util.List<Object>) endpointparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(endpoint, "index")))
@@ -1569,10 +1597,10 @@ public class ToobitCore extends ToobitApi
             symbols = this.marketSymbols(symbols);
             Object type = null;
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbol = this.safeString(symbols, 0);
+                String symbol = this.safeString(symbols, 0);
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
                     market = this.market(symbol);
@@ -1583,7 +1611,7 @@ public class ToobitCore extends ToobitApi
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object response = null;
@@ -1618,12 +1646,12 @@ public class ToobitCore extends ToobitApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "s");
+        String marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(ticker, "t");
-        Object last = this.safeString(ticker, "c");
-        Object baseVolume = this.safeString(ticker, "v");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "contract")) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "contractSize"), null)))))
+        Long timestamp = this.safeInteger(ticker, "t");
+        String last = this.safeString(ticker, "c");
+        String baseVolume = this.safeString(ticker, "v");
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "contractSize"), null)))))
         {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(Helpers.GetValue(market, "contractSize")));
@@ -1676,17 +1704,17 @@ public class ToobitCore extends ToobitApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
-                    Object market = this.market(Helpers.GetValue(symbols, 0));
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            Object response = (this.commonGetQuoteV1TickerPrice(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.commonGetQuoteV1TickerPrice(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -1703,7 +1731,7 @@ public class ToobitCore extends ToobitApi
     public Object parseLastPrice(Object entry, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(entry, "s");
+        String marketId = this.safeString(entry, "s");
         market = this.safeMarket(marketId, market);
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
@@ -1738,17 +1766,17 @@ public class ToobitCore extends ToobitApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
-                    Object market = this.market(Helpers.GetValue(symbols, 0));
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            Object response = (this.commonGetQuoteV1TickerBookTicker(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.commonGetQuoteV1TickerBookTicker(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -1769,11 +1797,11 @@ public class ToobitCore extends ToobitApi
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
         {
             Object parsedTicker = this.parseBidAskCustom(Helpers.GetValue(tickers, i));
-            Object ticker = this.extend(parsedTicker, parameters);
+            java.util.Map<String, Object> ticker = this.extend(parsedTicker, parameters);
             ((java.util.List<Object>)results).add(ticker);
         }
         symbols = this.marketSymbols(symbols);
@@ -1782,9 +1810,15 @@ public class ToobitCore extends ToobitApi
 
     public Object parseBidAskCustom(Object ticker)
     {
+        // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
+        // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
+        String marketId = this.safeString(ticker, "s");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Long timestamp = this.safeInteger(ticker, "t");
         return new java.util.HashMap<String, Object>() {{
-            put( "timestamp", ToobitCore.this.safeString(ticker, "t") );
-            put( "symbol", ToobitCore.this.safeString(ticker, "s") );
+            put( "timestamp", timestamp );
+            put( "datetime", ToobitCore.this.iso8601(timestamp) );
+            put( "symbol", Helpers.GetValue(market, "symbol") );
             put( "bid", ToobitCore.this.safeNumber(ticker, "b") );
             put( "bidVolume", ToobitCore.this.safeNumber(ticker, "bq") );
             put( "ask", ToobitCore.this.safeNumber(ticker, "a") );
@@ -1814,17 +1848,17 @@ public class ToobitCore extends ToobitApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
-                    Object market = this.market(Helpers.GetValue(symbols, 0));
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            Object response = (this.commonGetApiV1FuturesFundingRate(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.commonGetApiV1FuturesFundingRate(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -1841,10 +1875,10 @@ public class ToobitCore extends ToobitApi
     public Object parseFundingRate(Object contract, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(contract, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
-        Object nextFundingRate = this.safeNumber(contract, "rate");
-        Object nextFundingRateTimestamp = this.safeInteger(contract, "nextFundingTime");
+        String marketId = this.safeString(contract, "symbol");
+        String symbol = this.safeSymbol(marketId, market);
+        Double nextFundingRate = this.safeNumber(contract, "rate");
+        Long nextFundingRateTimestamp = this.safeInteger(contract, "nextFundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -1894,7 +1928,7 @@ public class ToobitCore extends ToobitApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1903,17 +1937,17 @@ public class ToobitCore extends ToobitApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.commonGetApiV1FuturesHistoryFundingRate(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.commonGetApiV1FuturesHistoryFundingRate(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -1931,8 +1965,8 @@ public class ToobitCore extends ToobitApi
     public Object parseFundingRateHistory(Object contract, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(contract, "settleTime");
-        Object marketId = this.safeString(contract, "symbol");
+        Long timestamp = this.safeInteger(contract, "settleTime");
+        String marketId = this.safeString(contract, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", ToobitCore.this.safeSymbol(marketId, market) );
@@ -1963,7 +1997,7 @@ public class ToobitCore extends ToobitApi
             }
             Object response = null;
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(this.inArray(marketType, new java.util.ArrayList<Object>(java.util.Arrays.asList("swap", "future")))))
@@ -1980,7 +2014,7 @@ public class ToobitCore extends ToobitApi
 
     public Object parseBalance(Object response)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
@@ -1989,7 +2023,7 @@ public class ToobitCore extends ToobitApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
-            Object code = this.safeCurrencyCode(this.safeString(balance, "asset"));
+            String code = this.safeCurrencyCode(this.safeString(balance, "asset"));
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString2(balance, "free", "availableBalance"));
             Helpers.addElementToObject(account, "total", this.safeString2(balance, "total", "balance"));
@@ -2028,10 +2062,10 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = new java.util.HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 var requestparametersVariable = this.createOrderRequest(symbol, type, side, amount, price, parameters);
                 request = ((java.util.List<Object>) requestparametersVariable).get(0);
@@ -2078,16 +2112,16 @@ public class ToobitCore extends ToobitApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
         }
         Object id = Helpers.GetValue(market, "id");
         final Object finalSide = side;
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", id );
             put( "side", ((String)finalSide).toUpperCase() );
         }};
@@ -2095,26 +2129,26 @@ public class ToobitCore extends ToobitApi
         {
             Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
         }
-        Object cost = null;
-        var costparametersVariable = this.handleParamString(parameters, "cost");
-        cost = ((java.util.List<Object>) costparametersVariable).get(0);
+        String cost = null;
+        java.util.List<Object> costparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "cost");
+        cost = (String) ((java.util.List<Object>) costparametersVariable).get(0);
         parameters = ((java.util.List<Object>) costparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "market")) && Helpers.isTrue(Helpers.isEqual(side, "buy"))))
         {
             if (Helpers.isTrue(Helpers.isEqual(cost, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires params[\"cost\"] for market buy order")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires params[\"cost\"] for market buy order")) ;
             }
             Helpers.addElementToObject(request, "quantity", this.costToPrecision(symbol, cost));
         } else
         {
             Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
         }
-        Object isPostOnly = null;
-        var isPostOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
-        isPostOnly = ((java.util.List<Object>) isPostOnlyparametersVariable).get(0);
+        Boolean isPostOnly = null;
+        java.util.List<Object> isPostOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
+        isPostOnly = (Boolean) ((java.util.List<Object>) isPostOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) isPostOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(isPostOnly))
+        if (Helpers.isTrue(Helpers.isEqual(isPostOnly, true)))
         {
             Helpers.addElementToObject(request, "type", "LIMIT_MAKER");
         } else
@@ -2130,27 +2164,27 @@ public class ToobitCore extends ToobitApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
-        Object market = this.market(symbol);
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "quantity", ToobitCore.this.amountToPrecision(symbol, amount) );
         }};
-        Object reduceOnly = null;
-        var reduceOnlyparametersVariable = this.handleParamBool(parameters, "reduceOnly");
-        reduceOnly = ((java.util.List<Object>) reduceOnlyparametersVariable).get(0);
+        Boolean reduceOnly = null;
+        java.util.List<Object> reduceOnlyparametersVariable = (java.util.List<Object>) this.handleParamBool(parameters, "reduceOnly");
+        reduceOnly = (Boolean) ((java.util.List<Object>) reduceOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) reduceOnlyparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
         {
-            side = ((Helpers.isTrue(reduceOnly))) ? "BUY_CLOSE" : "BUY_OPEN";
+            side = ((Helpers.isTrue((Helpers.isEqual(reduceOnly, true))))) ? "BUY_CLOSE" : "BUY_OPEN";
         } else if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
         {
-            side = ((Helpers.isTrue(reduceOnly))) ? "SELL_CLOSE" : "SELL_OPEN";
+            side = ((Helpers.isTrue((Helpers.isEqual(reduceOnly, true))))) ? "SELL_CLOSE" : "SELL_OPEN";
         }
         Helpers.addElementToObject(request, "side", side);
         if (Helpers.isTrue(!Helpers.isEqual(price, null)))
@@ -2166,11 +2200,11 @@ public class ToobitCore extends ToobitApi
             Helpers.addElementToObject(request, "type", "LIMIT"); // weird, but exchange works this way
             Helpers.addElementToObject(request, "priceType", "MARKET");
         }
-        Object isPostOnly = null;
-        var isPostOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
-        isPostOnly = ((java.util.List<Object>) isPostOnlyparametersVariable).get(0);
+        Boolean isPostOnly = null;
+        java.util.List<Object> isPostOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
+        isPostOnly = (Boolean) ((java.util.List<Object>) isPostOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) isPostOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(isPostOnly))
+        if (Helpers.isTrue(Helpers.isEqual(isPostOnly, true)))
         {
             Helpers.addElementToObject(request, "timeInForce", "LIMIT_MAKER");
         }
@@ -2183,9 +2217,9 @@ public class ToobitCore extends ToobitApi
         }
         Object stopLoss = this.safeDict(parameters, "stopLoss");
         Object takeProfit = this.safeDict(parameters, "takeProfit");
-        Object hasStopLoss = (!Helpers.isEqual(stopLoss, null));
-        Object hasTakeProfit = (!Helpers.isEqual(takeProfit, null));
-        Object triggerPriceTypes = new java.util.HashMap<String, Object>() {{
+        Boolean hasStopLoss = (!Helpers.isEqual(stopLoss, null));
+        Boolean hasTakeProfit = (!Helpers.isEqual(takeProfit, null));
+        java.util.Map<String, Object> triggerPriceTypes = new java.util.HashMap<String, Object>() {{
             put( "mark", "MARK_PRICE" );
             put( "last", "CONTRACT_PRICE" );
         }};
@@ -2198,7 +2232,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "slOrderType", "LIMIT");
                 Helpers.addElementToObject(request, "slLimitPrice", this.priceToPrecision(symbol, limitPrice));
             }
-            Object triggerPriceType = this.safeString(stopLoss, "triggerPriceType");
+            String triggerPriceType = this.safeString(stopLoss, "triggerPriceType");
             if (Helpers.isTrue(!Helpers.isEqual(triggerPriceType, null)))
             {
                 Helpers.addElementToObject(request, "slTriggerBy", this.safeString(triggerPriceTypes, triggerPriceType, triggerPriceType));
@@ -2214,7 +2248,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "tpOrderType", "LIMIT");
                 Helpers.addElementToObject(request, "tpLimitPrice", this.priceToPrecision(symbol, limitPrice));
             }
-            Object triggerPriceType = this.safeString(takeProfit, "triggerPriceType");
+            String triggerPriceType = this.safeString(takeProfit, "triggerPriceType");
             if (Helpers.isTrue(!Helpers.isEqual(triggerPriceType, null)))
             {
                 Helpers.addElementToObject(request, "tpTriggerBy", this.safeString(triggerPriceTypes, triggerPriceType, triggerPriceType));
@@ -2289,11 +2323,11 @@ public class ToobitCore extends ToobitApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger2(order, "transactTime", "time");
-        Object marketId = this.safeString(order, "symbol");
+        Long timestamp = (Long) this.safeInteger2(order, "transactTime", "time");
+        String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        Object rawType = this.safeString(order, "type");
-        Object rawSideLower = this.safeStringLower(order, "side");
+        String rawType = this.safeString(order, "type");
+        String rawSideLower = this.safeStringLower(order, "side");
         Object reduceOnly = null;
         if (Helpers.isTrue(!Helpers.isEqual(rawSideLower, null)))
         {
@@ -2301,7 +2335,7 @@ public class ToobitCore extends ToobitApi
             // the suffix is the only signal that carries reduceOnly, so read
             // it before discarding it (spot sides have no suffix: undefined)
             Object sideParts = Helpers.split(rawSideLower, "_");
-            Object sideSuffix = this.safeString(sideParts, 1);
+            String sideSuffix = this.safeString(sideParts, 1);
             if (Helpers.isTrue(!Helpers.isEqual(sideSuffix, null)))
             {
                 reduceOnly = (Helpers.isEqual(sideSuffix, "close"));
@@ -2348,9 +2382,9 @@ public class ToobitCore extends ToobitApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "PENDING_NEW", "open" );
             put( "NEW", "open" );
             put( "PARTIALLY_FILLED", "open" );
@@ -2366,9 +2400,9 @@ public class ToobitCore extends ToobitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderType(Object status)
+    public String parseOrderType(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "MARKET", "market" );
             put( "LIMIT", "limit" );
             put( "LIMIT_MAKER", "limit" );
@@ -2398,7 +2432,7 @@ public class ToobitCore extends ToobitApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(this.safeString(parameters, "clientOrderId"), null)))
             {
                 Helpers.addElementToObject(request, "orderId", id);
@@ -2410,14 +2444,14 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, "none");
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters, "none");
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "none")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
             }
-            Object response = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateDeleteApiV1SpotOrder(this.extend(request, parameters))).join();
@@ -2426,10 +2460,10 @@ public class ToobitCore extends ToobitApi
                 response = (this.privateDeleteApiV1FuturesOrder(this.extend(request, parameters))).join();
             }
             // response same as in `createOrder`
-            Object status = this.parseOrderStatus(this.safeString(response, "status"));
+            String status = this.parseOrderStatus(this.safeString(response, "status"));
             if (Helpers.isTrue(!Helpers.isEqual(status, "open")))
             {
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " order "), id), " can not be canceled, "), this.json(response))) ;
+                throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " order "), id), " can not be canceled, "), this.json(response))) ;
             }
             return this.parseOrder(response, market);
         });
@@ -2457,7 +2491,7 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2465,12 +2499,12 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, "none");
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, "none");
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "none")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -2510,8 +2544,8 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object idsString = String.join((String)",", (java.util.List<String>)ids);
-            Object request = new java.util.HashMap<String, Object>() {{
+            Object idsString = String.join(",", (java.util.List<String>)ids);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ids", idsString );
             }};
             Object market = null;
@@ -2520,12 +2554,12 @@ public class ToobitCore extends ToobitApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters, "none");
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters, "none");
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "none")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -2561,18 +2595,18 @@ public class ToobitCore extends ToobitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            Object market = this.market(symbol);
-            Object response = new java.util.HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.privateGetApiV1SpotOrder(this.extend(request, parameters))).join();
             } else
@@ -2637,7 +2671,7 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2649,7 +2683,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2698,7 +2732,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object market = null;
@@ -2708,7 +2742,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2717,7 +2751,7 @@ public class ToobitCore extends ToobitApi
                 response = (this.privateGetApiV1SpotTradeOrders(request)).join();
             } else
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
             }
             return this.parseOrders(response, market, since, limit);
         });
@@ -2760,22 +2794,22 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
             } else
             {
                 response = (this.privateGetApiV1FuturesHistoryOrders(request)).join();
             }
-            Object ordersList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
@@ -2818,7 +2852,7 @@ public class ToobitCore extends ToobitApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -2833,13 +2867,13 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2867,7 +2901,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2877,17 +2911,17 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
-            Object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-            Object toId = this.safeString(accountsByType, toAccount, toAccount);
-            Object request = new java.util.HashMap<String, Object>() {{
+            String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
+            String toId = this.safeString(accountsByType, toAccount, toAccount);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "quantity", ToobitCore.this.currencyToPrecision(code, amount) );
                 put( "fromAccountType", fromId );
                 put( "toAccountType", toId );
             }};
-            Object response = (this.privatePostApiV1SubAccountTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1SubAccountTransfer(this.extend(request, parameters))).join();
             //
             //    {
             //     "code": 200, // 200 = success
@@ -2958,7 +2992,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2966,7 +3000,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -3003,14 +3037,14 @@ public class ToobitCore extends ToobitApi
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(item, "coinId");
+        String currencyId = this.safeString(item, "coinId");
         currency = this.safeCurrency(currencyId, currency);
-        Object timestamp = this.safeInteger(item, "created");
-        Object after = this.safeNumber(item, "total");
-        Object amountRaw = this.safeString(item, "change", "");
+        Long timestamp = this.safeInteger(item, "created");
+        Double after = this.safeNumber(item, "total");
+        String amountRaw = this.safeString(item, "change", "");
         Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
-        Object direction = "in";
-        if (Helpers.isTrue(((String)amountRaw).startsWith(((String)"-"))))
+        String direction = "in";
+        if (Helpers.isTrue(amountRaw.startsWith(((String)"-"))))
         {
             direction = "out";
         }
@@ -3035,9 +3069,9 @@ public class ToobitCore extends ToobitApi
         }}, currency);
     }
 
-    public Object parseLedgerType(Object type)
+    public String parseLedgerType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "USER_ACCOUNT_TRANSFER", "transfer" );
             put( "AIRDROP", "rebate" );
         }};
@@ -3065,25 +3099,25 @@ public class ToobitCore extends ToobitApi
             Object response = null;
             Object marketType = null;
             Object market = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradingFees(): does not support "), marketType), " markets")) ;
+                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradingFees(): does not support "), marketType), " markets")) ;
             } else if (Helpers.isTrue(this.inArray(marketType, new java.util.ArrayList<Object>(java.util.Arrays.asList("swap", "future")))))
             {
-                Object symbol = null;
-                var symbolparametersVariable = this.handleParamString(parameters, "symbol");
-                symbol = ((java.util.List<Object>) symbolparametersVariable).get(0);
+                String symbol = null;
+                java.util.List<Object> symbolparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "symbol");
+                symbol = (String) ((java.util.List<Object>) symbolparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) symbolparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchTradingFees requires a params[\"symbol\"]")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchTradingFees requires a params[\"symbol\"]")) ;
                 }
                 market = this.market(symbol);
                 final Object finalMarket = market;
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(finalMarket, "id") );
                 }};
                 response = (this.privateGetApiV1FuturesCommissionRate(this.extend(request, parameters))).join();
@@ -3096,9 +3130,9 @@ public class ToobitCore extends ToobitApi
             //     "closeTakerFee": "0.0004" // The trade fee rate for closing a taker order
             // }
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object entry = response;
-            Object marketId = this.safeString(entry, "symbol");
+            String marketId = this.safeString(entry, "symbol");
             market = this.safeMarket(marketId, market);
             Object fee = this.parseTradingFee(entry, market);
             Helpers.addElementToObject(result, Helpers.GetValue(market, "symbol"), fee);
@@ -3110,7 +3144,7 @@ public class ToobitCore extends ToobitApi
     public Object parseTradingFee(Object data, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(data, "symbol");
+        String marketId = this.safeString(data, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
             put( "symbol", ToobitCore.this.safeSymbol(marketId, market) );
@@ -3198,7 +3232,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -3261,11 +3295,11 @@ public class ToobitCore extends ToobitApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(transaction, "time");
-        Object currencyId = this.safeString2(transaction, "coin", "coinId");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object feeString = this.safeString(transaction, "fee");
-        Object feeCoin = this.safeString(transaction, "feeCoinName");
+        Long timestamp = this.safeInteger(transaction, "time");
+        String currencyId = this.safeString2(transaction, "coin", "coinId");
+        String code = this.safeCurrencyCode(currencyId, currency);
+        String feeString = this.safeString(transaction, "fee");
+        String feeCoin = this.safeString(transaction, "feeCoinName");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeString, null)))
         {
@@ -3275,12 +3309,12 @@ public class ToobitCore extends ToobitApi
                 put( "currency", ToobitCore.this.safeCurrencyCode(feeCoin) );
             }};
         }
-        Object tagTo = this.safeString2(transaction, "addressTag", "addressExt");
-        Object tagFrom = this.safeString(transaction, "fromAddressTag");
-        Object addressTo = this.safeString(transaction, "address");
-        Object addressFrom = this.safeString(transaction, "fromAddress");
-        Object isWithdraw = (Helpers.inOp(transaction, "arriveQuantity"));
-        Object type = ((Helpers.isTrue(isWithdraw))) ? "withdrawal" : "deposit";
+        String tagTo = this.safeString2(transaction, "addressTag", "addressExt");
+        String tagFrom = this.safeString(transaction, "fromAddressTag");
+        String addressTo = this.safeString(transaction, "address");
+        String addressFrom = this.safeString(transaction, "fromAddress");
+        Boolean isWithdraw = (Helpers.inOp(transaction, "arriveQuantity"));
+        String type = ((Helpers.isTrue(isWithdraw))) ? "withdrawal" : "deposit";
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3306,9 +3340,9 @@ public class ToobitCore extends ToobitApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "2", "pending" );
             put( "12", "pending" );
             put( "11", "failed" );
@@ -3330,7 +3364,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3340,19 +3374,19 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
             }};
-            var networkCodeparamsOmittedVariable = this.handleNetworkCodeAndParams(this.extend(request, parameters));
-            var networkCode = ((java.util.List<Object>) networkCodeparamsOmittedVariable).get(0);
+            java.util.List<Object> networkCodeparamsOmittedVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(this.extend(request, parameters));
+            String networkCode = (String) ((java.util.List<Object>) networkCodeparamsOmittedVariable).get(0);
             var paramsOmitted = ((java.util.List<Object>) networkCodeparamsOmittedVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() : param[\"network\"] is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() : param[\"network\"] is required")) ;
             }
             Helpers.addElementToObject(request, "chainType", this.networkCodeToId(networkCode, code));
-            Object response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsOmitted))).join();
+            java.util.Map<String, Object> response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "canDeposit":false,//Is it possible to recharge
@@ -3372,7 +3406,7 @@ public class ToobitCore extends ToobitApi
     public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
+        String address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
@@ -3396,7 +3430,7 @@ public class ToobitCore extends ToobitApi
      * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3404,21 +3438,21 @@ public class ToobitCore extends ToobitApi
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             this.checkAddress(address);
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() : param[\"network\"] is required")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " withdraw() : param[\"network\"] is required")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             final Object finalNetworkCode = networkCode;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "address", address );
                 put( "quantity", ToobitCore.this.currencyToPrecision(Helpers.GetValue(currency, "code"), amount) );
@@ -3429,7 +3463,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "addressExt", tag);
             }
-            Object response = (this.privatePostApiV1AccountWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1AccountWithdraw(this.extend(request, parameters))).join();
             //
             // {
             //     "status": 0,
@@ -3463,24 +3497,24 @@ public class ToobitCore extends ToobitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")))
             {
-                throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
+                throw new BadSymbol(Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
             }
             marginMode = ((String)marginMode).toUpperCase();
             final Object finalMarginMode = marginMode;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "marginType", finalMarginMode );
             }};
-            Object response = (this.privatePostApiV1FuturesMarginType(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1FuturesMarginType(this.extend(request, parameters))).join();
             //
             // {"code":200,"symbolId":"BTC-SWAP-USDT","marginType":"ISOLATED"}
             //
@@ -3508,18 +3542,18 @@ public class ToobitCore extends ToobitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "leverage", leverage );
             }};
-            Object response = (this.privatePostApiV1FuturesLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1FuturesLeverage(this.extend(request, parameters))).join();
             //
             // {"code":200,"symbolId":"BTC-SWAP-USDT","leverage":"19"}
             //
@@ -3537,7 +3571,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3547,11 +3581,11 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetApiV1FuturesAccountLeverage(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV1FuturesAccountLeverage(this.extend(request, parameters))).join();
             //
             // [
             //     {
@@ -3570,10 +3604,10 @@ public class ToobitCore extends ToobitApi
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString2(leverage, "symbolId", "symbol");
-        Object leverageValue = this.safeInteger(leverage, "leverage");
-        Object marginType = this.safeStringLower(leverage, "marginType");
-        Object marginMode = ((Helpers.isTrue((Helpers.isEqual(marginType, "cross"))))) ? "cross" : "isolated";
+        String marketId = this.safeString2(leverage, "symbolId", "symbol");
+        Long leverageValue = this.safeInteger(leverage, "leverage");
+        String marginType = this.safeStringLower(leverage, "marginType");
+        String marginMode = ((Helpers.isTrue((Helpers.isEqual(marginType, "cross"))))) ? "cross" : "isolated";
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", ToobitCore.this.safeSymbol(marketId, market) );
@@ -3603,23 +3637,23 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
                 {
-                    throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;
+                    throw new BadRequest(Helpers.add(this.id, " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;
                 }
-                Object firstSymbol = this.safeString(symbols, 0);
+                String firstSymbol = this.safeString(symbols, 0);
                 if (Helpers.isTrue(!Helpers.isEqual(firstSymbol, null)))
                 {
                     market = this.market(firstSymbol);
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            Object response = (this.privateGetApiV1FuturesPositions(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV1FuturesPositions(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -3651,22 +3685,22 @@ public class ToobitCore extends ToobitApi
     public Object parsePosition(Object position, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(position, "symbol");
+        String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        Object side = this.safeStringLower(position, "side");
-        Object quantity = this.safeString(position, "position");
-        Object leverage = this.safeInteger(position, "leverage");
+        String side = this.safeStringLower(position, "side");
+        String quantity = this.safeString(position, "position");
+        Long leverage = this.safeInteger(position, "leverage");
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", ToobitCore.this.safeString(position, "id") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "entryPrice", ToobitCore.this.safeString(position, "avgPrice") );
-            put( "markPrice", ToobitCore.this.safeString(position, "markPrice") );
-            put( "lastPrice", ToobitCore.this.safeString(position, "lastPrice") );
-            put( "notional", ToobitCore.this.safeString(position, "positionValue") );
+            put( "entryPrice", ToobitCore.this.safeNumber(position, "avgPrice") );
+            put( "markPrice", ToobitCore.this.safeNumber(position, "markPrice") );
+            put( "lastPrice", ToobitCore.this.safeNumber(position, "lastPrice") );
+            put( "notional", ToobitCore.this.safeNumber(position, "positionValue") );
             put( "collateral", null );
-            put( "unrealizedPnl", ToobitCore.this.safeString(position, "unrealizedPnL") );
+            put( "unrealizedPnl", ToobitCore.this.safeNumber(position, "unrealizedPnL") );
             put( "side", side );
             put( "contracts", ToobitCore.this.parseNumber(quantity) );
             put( "contractSize", null );
@@ -3675,7 +3709,7 @@ public class ToobitCore extends ToobitApi
             put( "hedged", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", ToobitCore.this.safeString(position, "margin") );
+            put( "initialMargin", ToobitCore.this.safeNumber(position, "margin") );
             put( "initialMarginPercentage", null );
             put( "leverage", leverage );
             put( "liquidationPrice", null );
@@ -3693,16 +3727,16 @@ public class ToobitCore extends ToobitApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), this.implodeParams(path, parameters));
-        Object isPost = Helpers.isEqual(method, "POST");
-        Object isDelete = Helpers.isEqual(method, "DELETE");
-        Object extraQuery = new java.util.HashMap<String, Object>() {{}};
+        Boolean isPost = Helpers.isEqual(method, "POST");
+        Boolean isDelete = Helpers.isEqual(method, "DELETE");
+        java.util.Map<String, Object> extraQuery = new java.util.HashMap<String, Object>() {{}};
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(!Helpers.isEqual(api, "private")))
         {
             // Public endpoints
             if (!Helpers.isTrue(isPost))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }
@@ -3710,11 +3744,11 @@ public class ToobitCore extends ToobitApi
         } else
         {
             this.checkRequiredCredentials();
-            Object timestamp = this.milliseconds();
+            Long timestamp = this.milliseconds();
             // Add timestamp to parameters for signed endpoints
             Helpers.addElementToObject(extraQuery, "recvWindow", this.safeString(this.options, "recvWindow", "5000"));
             Helpers.addElementToObject(extraQuery, "timestamp", String.valueOf(timestamp));
-            Object queryExtended = this.extend(query, extraQuery);
+            java.util.Map<String, Object> queryExtended = this.extend(query, extraQuery);
             Object queryString = "";
             if (Helpers.isTrue(Helpers.isTrue(isPost) || Helpers.isTrue(isDelete)))
             {
@@ -3770,9 +3804,9 @@ public class ToobitCore extends ToobitApi
         {
             return null;
         }
-        Object errorCode = this.safeString(response, "code");
-        Object message = this.safeString(response, "msg");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(errorCode) && Helpers.isTrue(!Helpers.isEqual(errorCode, "200"))) && Helpers.isTrue(!Helpers.isEqual(errorCode, "0"))))
+        String errorCode = this.safeString(response, "code");
+        String message = this.safeString(response, "msg");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(errorCode, null)) && Helpers.isTrue(!Helpers.isEqual(errorCode, "")))) && Helpers.isTrue(!Helpers.isEqual(errorCode, "200"))) && Helpers.isTrue(!Helpers.isEqual(errorCode, "0"))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);

@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestMarginModification extends BaseTest {
     public static void testMarginModification(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "type", "add" );
             put( "amount", exchange.parseNumber("0.1") );
@@ -22,7 +22,7 @@ public class TestMarginModification extends BaseTest {
             put( "symbol", "ADA/USDT:USDT" );
             put( "status", "ok" );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "symbol", "code", "total", "amount"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "symbol", "code", "total", "amount"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "code"));
         //

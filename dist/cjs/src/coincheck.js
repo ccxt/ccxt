@@ -986,7 +986,7 @@ class coincheck extends coincheck$1["default"] {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -995,12 +995,12 @@ class coincheck extends coincheck$1["default"] {
             const nonce = this.nonce().toString();
             let queryString = '';
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(this.keysort(query));
                 }
             }
             else {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.urlencode(this.keysort(query));
                     queryString = body;
                 }
@@ -1024,7 +1024,7 @@ class coincheck extends coincheck$1["default"] {
         //     {"success":false,"error":"invalid authentication"}
         //
         const success = this.safeBool(response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             const error = this.safeString(response, 'error');
             const feedback = this.id + ' ' + this.json(response);
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);

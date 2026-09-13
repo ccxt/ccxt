@@ -424,6 +424,42 @@ abstract class aster extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function fapiprivate_get_v3_builder_usertrades($params = array()) {
+        return $this->request('v3/builder/userTrades', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiprivate_get_v3_builder_approveduserlist($params = array()) {
+        return $this->request('v3/builder/approvedUserList', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiprivate_get_v3_stpmode($params = array()) {
+        return $this->request('v3/stpMode', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiprivate_get_v3_asset_migrateuser_history($params = array()) {
+        return $this->request('v3/asset/migrateUser/history', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiprivate_get_v3_strategyopenorder($params = array()) {
+        return $this->request('v3/strategyOpenOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiprivate_get_v3_strategyhistoryorder($params = array()) {
+        return $this->request('v3/strategyHistoryOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function fapiprivate_post_v1_positionside_dual($params = array()) {
         return $this->request('v1/positionSide/dual', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -598,6 +634,42 @@ abstract class aster extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function fapiprivate_post_v3_registerandapproveagent($params = array()) {
+        return $this->request('v3/registerAndApproveAgent', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiprivate_post_v3_asset_migrateuser($params = array()) {
+        return $this->request('v3/asset/migrateUser', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiprivate_post_v3_chase($params = array()) {
+        return $this->request('v3/chase', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiprivate_post_v3_stpmode($params = array()) {
+        return $this->request('v3/stpMode', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiprivate_post_v3_placestrategyorder($params = array()) {
+        return $this->request('v3/placeStrategyOrder', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function fapiprivate_post_v3_updatestrategyorder($params = array()) {
+        return $this->request('v3/updateStrategyOrder', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function fapiprivate_put_v1_listenkey($params = array()) {
         return $this->request('v1/listenKey', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -642,6 +714,18 @@ abstract class aster extends \ccxt\Exchange {
      */
     public function fapiprivate_delete_v3_batchorders($params = array()) {
         return $this->request('v3/batchOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiprivate_delete_v3_guardedcancelorder($params = array()) {
+        return $this->request('v3/guardedCancelOrder', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function fapiprivate_delete_v3_guardedbatchorders($params = array()) {
+        return $this->request('v3/guardedBatchOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -1414,6 +1498,42 @@ abstract class aster extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function fapiPrivateGetV3BuilderUserTrades($params = array()) {
+        return $this->request('v3/builder/userTrades', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiPrivateGetV3BuilderApprovedUserList($params = array()) {
+        return $this->request('v3/builder/approvedUserList', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiPrivateGetV3StpMode($params = array()) {
+        return $this->request('v3/stpMode', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiPrivateGetV3AssetMigrateUserHistory($params = array()) {
+        return $this->request('v3/asset/migrateUser/history', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiPrivateGetV3StrategyOpenOrder($params = array()) {
+        return $this->request('v3/strategyOpenOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiPrivateGetV3StrategyHistoryOrder($params = array()) {
+        return $this->request('v3/strategyHistoryOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function fapiPrivatePostV1PositionSideDual($params = array()) {
         return $this->request('v1/positionSide/dual', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1588,6 +1708,42 @@ abstract class aster extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function fapiPrivatePostV3RegisterAndApproveAgent($params = array()) {
+        return $this->request('v3/registerAndApproveAgent', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiPrivatePostV3AssetMigrateUser($params = array()) {
+        return $this->request('v3/asset/migrateUser', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiPrivatePostV3Chase($params = array()) {
+        return $this->request('v3/chase', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiPrivatePostV3StpMode($params = array()) {
+        return $this->request('v3/stpMode', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiPrivatePostV3PlaceStrategyOrder($params = array()) {
+        return $this->request('v3/placeStrategyOrder', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function fapiPrivatePostV3UpdateStrategyOrder($params = array()) {
+        return $this->request('v3/updateStrategyOrder', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function fapiPrivatePutV1ListenKey($params = array()) {
         return $this->request('v1/listenKey', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -1632,6 +1788,18 @@ abstract class aster extends \ccxt\Exchange {
      */
     public function fapiPrivateDeleteV3BatchOrders($params = array()) {
         return $this->request('v3/batchOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function fapiPrivateDeleteV3GuardedCancelOrder($params = array()) {
+        return $this->request('v3/guardedCancelOrder', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function fapiPrivateDeleteV3GuardedBatchOrders($params = array()) {
+        return $this->request('v3/guardedBatchOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>

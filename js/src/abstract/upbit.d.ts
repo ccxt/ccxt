@@ -20,7 +20,7 @@ interface Exchange {
     publicGetCandlesYears(params?: {}): Promise<List>;
     publicGetTradesTicks(params?: {}): Promise<List>;
     publicGetTicker(params?: {}): Promise<List>;
-    publicGetTickerAll(params?: {}): Promise<Dict>;
+    publicGetTickerAll(params?: {}): Promise<List>;
     publicGetOrderbook(params?: {}): Promise<List>;
     publicGetOrderbookInstruments(params?: {}): Promise<List>;
     privateGetAccounts(params?: {}): Promise<Dict>;
@@ -41,6 +41,11 @@ interface Exchange {
     privateGetTravelRuleVasps(params?: {}): Promise<List>;
     privateGetStatusWallet(params?: {}): Promise<List>;
     privateGetApiKeys(params?: {}): Promise<List>;
+    privateGetPockets(params?: {}): Promise<List>;
+    privateGetPocketsApiKeys(params?: {}): Promise<List>;
+    privateGetPocketsAssets(params?: {}): Promise<List>;
+    privateGetPocketsUniversalTransfers(params?: {}): Promise<List>;
+    privateGetPocketsTransfers(params?: {}): Promise<List>;
     privatePostOrders(params?: {}): Promise<Dict>;
     privatePostOrdersTest(params?: {}): Promise<Dict>;
     privatePostOrdersCancelAndNew(params?: {}): Promise<Dict>;
@@ -50,6 +55,8 @@ interface Exchange {
     privatePostDepositsGenerateCoinAddress(params?: {}): Promise<Dict>;
     privatePostTravelRuleDepositUuid(params?: {}): Promise<Dict>;
     privatePostTravelRuleDepositTxid(params?: {}): Promise<Dict>;
+    privatePostPocketsUniversalTransfers(params?: {}): Promise<Dict>;
+    privatePostPocketsTransfers(params?: {}): Promise<Dict>;
     privateDeleteOrder(params?: {}): Promise<Dict>;
     privateDeleteOrdersOpen(params?: {}): Promise<Dict>;
     privateDeleteOrdersUuids(params?: {}): Promise<Dict>;
