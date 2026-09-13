@@ -2406,7 +2406,8 @@
     "deepcoin": {
         "skipMethods": {
             "loadMarkets": {
-                "limits": "some market limits have min>max "
+                "limits": "some market limits have min>max ",
+                "currencyIdAndCode": "baseId 'xAAOI' of spot market xAAOI-USDT does not match currencies['XAAOI'].id ('XAAOI'); the venue lists both XAAOI-USDT and xAAOI-USDT and safeCurrencyCode maps both to code XAAOI, so setMarkets keeps a single currency per code, https://github.com/ccxt/ccxt/actions/runs/34638612027/job/103394255361?pr=30381"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing, https://github.com/ccxt/ccxt/actions/runs/18630110901/job/53113603278?pr=27030",
