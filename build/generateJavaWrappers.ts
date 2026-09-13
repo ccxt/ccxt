@@ -19,6 +19,7 @@ import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBag
 import { JAVA_STRING_PARAM_POSITIONS } from './java-local-types.js';
 import { typedReturnTable } from './javaTypedCore.js';
 import type { JavaTier } from './javaTypedCore.js';
+import { applyJavaUtilImports } from './javaUtilImports.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const BASE_PKG = './java/lib/src/main/java/io/github/ccxt/';
@@ -471,7 +472,8 @@ function genAbstractDecl(m: MethodInfo, coreType: string): string {
 function eraseParams(paramList: string): string {
     return paramList.split(',').map(p => p.trim().replace(/\.\.\./, '[]').replace(/\s+\w+$/, '')).filter(Boolean).join(', ');
 }
-// Cores spell the return type fully qualified (`java.util.List<io.github.ccxt.types.Trade>`).
+// Cores spell the return with the payload types qualified (`CompletableFuture<List<io.github.ccxt.types.Trade>>`);
+// the java.util prefix is accepted too so the check does not depend on the import collapse.
 function eraseReturn(t: string): string {
     return t.replace(/\bjava\.util\./g, '').replace(/\bio\.github\.ccxt\.types\./g, '');
 }
@@ -484,7 +486,7 @@ function assertErasureMatches(methods: MethodInfo[], table: Map<string, MethodIn
         const d = genAbstractDecl(m, coreReturnType(m, table)).match(/CompletableFuture<(.+)> (\w+)\((.*)\);$/)!;
         expected.set(d[2], `<${d[1]}> (${eraseParams(d[3])})`);
     }
-    const declRe = /^\s*public java\.util\.concurrent\.CompletableFuture<(.+)> (\w+)\((.*)\)\s*\{?\s*$/;
+    const declRe = /^\s*public (?:java\.util\.concurrent\.)?CompletableFuture<(.+)> (\w+)\((.*)\)\s*\{?\s*$/;
     const out: string[] = [];
     for (const file of files) {
         const lines = fs.readFileSync(file, 'utf-8').split('\n');
@@ -683,10 +685,10 @@ function main() {
     const predictionExclude = predictionTierExcludeNames();
     const predictionRestMethods = toPredictionMethods(restMethods.filter(m => !predictionExclude.has(m.name))).concat(predictionBaseOnlyMethods);
     const wsMethods = methods.filter(m => m.isWatch || isWsApi(m));
-    fs.writeFileSync(BASE_PKG + 'TypedSurface.java', generateTypedSurfaceInterface('TypedSurface', restMethods.concat(wsMethods), 'rest'), 'utf-8');
+    fs.writeFileSync(BASE_PKG + 'TypedSurface.java', applyJavaUtilImports(generateTypedSurfaceInterface('TypedSurface', restMethods.concat(wsMethods), 'rest')), 'utf-8');
     const predictionExtra = Object.values(PREDICTION_EXCHANGE_METHODS).flat();
     const predictionMethods = predictionRestMethods.concat(predictionExtra);
-    fs.writeFileSync(BASE_PKG + 'PredictionTypedSurface.java', generateTypedSurfaceInterface('PredictionTypedSurface', predictionMethods, 'prediction'), 'utf-8');
+    fs.writeFileSync(BASE_PKG + 'PredictionTypedSurface.java', applyJavaUtilImports(generateTypedSurfaceInterface('PredictionTypedSurface', predictionMethods, 'prediction')), 'utf-8');
     console.log(`Generated TypedSurface (${restMethods.length} REST + ${wsMethods.length} WS methods) and PredictionTypedSurface (${predictionMethods.length} methods)`);
 
     const exchangesDir = BASE_PKG + 'exchanges/';

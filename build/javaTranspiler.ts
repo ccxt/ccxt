@@ -22,6 +22,7 @@ import { unCamelCase } from "../js/src/base/functions.js";
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable } from "./javaTypedCore.js";
+import { applyJavaUtilImports, shortenJavaUtilReferences, ensureJavaImports } from "./javaUtilImports.js";
 
 ansi.nice
 
@@ -42,6 +43,13 @@ function overwriteFileAndFolder(path: string, content: string) {
     }
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
+    //
+    // Every Java compilation unit this transpiler emits (exchange cores, WS cores, tests,
+    // errors) goes through here: collapse the `java.util.*` spelling last, so every regex
+    // pass above still matches on the fully-qualified form.
+    if (path.endsWith('.java')) {
+        content = applyJavaUtilImports(content);
+    }
     overwriteFile(path, content);
 }
 
@@ -2314,7 +2322,7 @@ class NewTranspiler {
             baseMethods = baseMethods.replace(/\n\s*(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{[\s\S]*$/, '\n');
             baseMethods = typeCoreReturns(baseMethods, typedReturnTable('rest'));
             log.magenta('→', (javaExchangeBase as any).yellow)
-            replaceInFile(javaExchangeBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + baseMethods.trim() + '\n')
+            this.spliceTranspiledJavaBody(javaExchangeBase, javaDelimiter, restOfFile, baseMethods.trim() + '\n', false);
         }
 
         // Inject the Exchange-tier (62 trading methods) into Exchange.java below its delimiter.
@@ -2328,7 +2336,26 @@ class NewTranspiler {
             exchangeBody = this.redirectToAsyncOnJoin(exchangeBody);
             exchangeBody = typeCoreReturns(exchangeBody, typedReturnTable('rest'));
             log.magenta('→', (EXCHANGE_METHODS_FILE as any).yellow)
-            this.replaceInFileLiteral(EXCHANGE_METHODS_FILE, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + exchangeBody.trim() + '\n}\n');
+            this.spliceTranspiledJavaBody(EXCHANGE_METHODS_FILE, javaDelimiter, restOfFile, exchangeBody.trim() + '\n}\n', true);
+        }
+    }
+
+    // Replace everything below the transpile delimiter of a half hand-written base file
+    // (BaseExchange.java / Exchange.java / PredictionExchange.java) with `body`, shortened to
+    // simple `java.util.*` names; the hand-written header only gains the imports the body needs.
+    spliceTranspiledJavaBody(filename: string, javaDelimiter: string, restOfFile: string, body: string, literal: boolean) {
+        const pattern = new RegExp(javaDelimiter + restOfFile);
+        const shortened = shortenJavaUtilReferences(body);
+        const replacement = javaDelimiter + '\n' + shortened.source;
+        if (literal) {
+            this.replaceInFileLiteral(filename, pattern, replacement);
+        } else {
+            replaceInFile(filename, pattern, replacement);
+        }
+        const contents = fs.readFileSync(filename, 'utf8');
+        const withImports = ensureJavaImports(contents, shortened.imports);
+        if (withImports !== contents) {
+            fs.writeFileSync(filename, withImports);
         }
     }
 
@@ -2401,7 +2428,7 @@ class NewTranspiler {
             merged = this.redirectToAsyncOnJoin(merged, true);
             merged = typeCoreReturns(merged, typedReturnTable('prediction'));
             log.magenta('→', (javaPredictionBase as any).yellow)
-            this.replaceInFileLiteral(javaPredictionBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + merged);
+            this.spliceTranspiledJavaBody(javaPredictionBase, javaDelimiter, restOfFile, merged, true);
         }
     }
 
