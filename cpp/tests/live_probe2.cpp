@@ -11,11 +11,11 @@ int main (int argc, char** argv) {
     try {
         ccxt::dict config;
         auto exchange = ccxt::factory::createExchange (argv[1], config);
-        const std::any raw = ccxt::awaitValue (exchange->fetch (
+        const ccxt::any raw = ccxt::awaitValue (exchange->fetch (
             std::string ("https://api.binance.com/api/v3/time"), std::string ("GET"),
-            std::any {}, std::any {}));
+            ccxt::any {}, ccxt::any {}));
         std::cout << "raw: " << str (exchange->json (raw)).substr (0, 200) << std::endl;
-        const std::any parsed = exchange->parseJson (raw);
+        const ccxt::any parsed = exchange->parseJson (raw);
         std::cout << "parsed: " << str (exchange->json (parsed)).substr (0, 200) << std::endl;
         return 0;
     } catch (const std::exception& e) {

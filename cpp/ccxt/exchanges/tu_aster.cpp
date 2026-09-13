@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_aster(std::any config) {
+std::shared_ptr<ExchangeBase> create_aster(ccxt::any config) {
   return newExchange<aster>(config);
 }
 

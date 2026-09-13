@@ -3,65 +3,65 @@
 
 // Included inside the body of class ccxt::Exchange - see Exchange.h.
 
-virtual std::shared_future<std::any>
-closePosition(std::any symbol, std::any side = std::any{},
-              std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+closePosition(ccxt::any symbol, ccxt::any side = ccxt::any{},
+              ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" closePosition() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-closeAllPositions(std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+closeAllPositions(ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" closeAllPositions() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-editOrders(std::any orders, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+editOrders(ccxt::any orders, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" editOrders() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any> fetchCanceledAndClosedOrders(
-    std::any symbol = std::any{}, std::any since = std::any{},
-    std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchCanceledAndClosedOrders(
+    ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+    ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id, std::string(" fetchCanceledAndClosedOrders("
                                                 ") is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPositionHistory(std::any symbol, std::any since = std::any{},
-                     std::any limit = std::any{},
-                     std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPositionHistory(ccxt::any symbol, ccxt::any since = ccxt::any{},
+                     ccxt::any limit = ccxt::any{},
+                     ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name exchange#fetchPositionHistory
@@ -79,12 +79,12 @@ fetchPositionHistory(std::any symbol, std::any since = std::any{},
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchPositionsHistory")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchPositionsHistory")),
                               false)))) {
-                 std::any positions = awaitValue(this->fetchPositionsHistory(
+                 ccxt::any positions = awaitValue(this->fetchPositionsHistory(
                      ccxt::list{symbol}, since, limit, params));
                  return positions;
                } else {
@@ -93,147 +93,147 @@ fetchPositionHistory(std::any symbol, std::any since = std::any{},
                      std::string(
                          " fetchPositionHistory () is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPositionsHistory(std::any symbols = std::any{},
-                      std::any since = std::any{}, std::any limit = std::any{},
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchPositionsHistory(
+    ccxt::any symbols = ccxt::any{}, ccxt::any since = ccxt::any{},
+    ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " fetchPositionsHistory () is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPositionsRisk(std::any symbols = std::any{},
-                   std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPositionsRisk(ccxt::any symbols = ccxt::any{},
+                   ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchPositionsRisk() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPositionsForSymbol(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPositionsForSymbol(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " fetchPositionsForSymbol() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPositionsForSymbolWs(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPositionsForSymbolWs(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " fetchPositionsForSymbol() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchPosition(std::any symbol = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchPosition(ccxt::any symbol = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" watchPosition() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchMyTradesForSymbols(std::any symbols, std::any since = std::any{},
-                        std::any limit = std::any{},
-                        std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchMyTradesForSymbols(ccxt::any symbols, ccxt::any since = ccxt::any{},
+                        ccxt::any limit = ccxt::any{},
+                        ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " watchMyTradesForSymbols() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchTradesForSymbols(std::any symbols, std::any since = std::any{},
-                      std::any limit = std::any{},
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchTradesForSymbols(ccxt::any symbols, ccxt::any since = ccxt::any{},
+                      ccxt::any limit = ccxt::any{},
+                      ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " watchTradesForSymbols() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchBidsAsks(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchBidsAsks(ccxt::any symbols = ccxt::any{},
+              ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchBidsAsks() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchMarkPrice(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchMarkPrice(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchMarkPrices")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchMarkPrices")),
                               false)))) {
                  awaitValue(this->loadMarkets());
-                 std::any market = this->market(symbol);
+                 ccxt::any market = this->market(symbol);
                  symbol = ::getValue(market, std::string("symbol"));
-                 std::any tickers = awaitValue(
+                 ccxt::any tickers = awaitValue(
                      this->fetchMarkPrices(ccxt::list{symbol}, params));
-                 std::any ticker = this->safeDict(tickers, symbol);
-                 if (isTrue(isEqual(ticker, std::any{}))) {
+                 ccxt::any ticker = this->safeDict(tickers, symbol);
+                 if (isTrue(isEqual(ticker, ccxt::any{}))) {
                    throw NullResponse(toString(
                        add(add(this->id, std::string(" fetchMarkPrices() could "
                                                      "not find a ticker for ")),
@@ -246,155 +246,158 @@ fetchMarkPrice(std::any symbol, std::any params = ccxt::dict{}) {
                      this->id,
                      std::string(" fetchMarkPrices() is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchMarkPrices(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchMarkPrices(ccxt::any symbols = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchMarkPrices() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchBidsAsks(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchBidsAsks(ccxt::any symbols = ccxt::any{},
+              ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" watchBidsAsks() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchMarkPrice(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchMarkPrice(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" watchMarkPrice () is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchMarkPrices(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchMarkPrices(ccxt::any symbols = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" watchMarkPrices () is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchL3OrderBook(std::any symbol, std::any limit = std::any{},
-                 std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchL3OrderBook(ccxt::any symbol, ccxt::any limit = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw BadRequest(toString(add(
                    this->id,
                    std::string(" fetchL3OrderBook() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchOrderBookForSymbols(std::any symbols, std::any limit = std::any{},
-                         std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchOrderBookForSymbols(ccxt::any symbols, ccxt::any limit = ccxt::any{},
+                         ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(
                        " watchOrderBookForSymbols() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchOrdersForSymbols(std::any symbols, std::any since = std::any{},
-                      std::any limit = std::any{},
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchOrdersForSymbols(ccxt::any symbols, ccxt::any since = ccxt::any{},
+                      ccxt::any limit = ccxt::any{},
+                      ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(
                            " watchOrdersForSymbols() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelAllOrdersWs(std::any symbol = std::any{},
-                  std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelAllOrdersWs(ccxt::any symbol = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" cancelAllOrdersWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelOrderWs(std::any id, std::any symbol = std::any{},
-              std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelOrderWs(ccxt::any id, ccxt::any symbol = ccxt::any{},
+              ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" cancelOrderWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelOrdersWs(std::any ids, std::any symbol = std::any{},
-               std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelOrdersWs(ccxt::any ids, ccxt::any symbol = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" cancelOrdersWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createLimitBuyOrderWs(std::any symbol, std::any amount, std::any price,
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createLimitBuyOrderWs(ccxt::any symbol, ccxt::any amount, ccxt::any price,
+                      ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->createOrderWs(
                           symbol, std::string("limit"), std::string("buy"),
                           amount, price, params));
@@ -402,11 +405,11 @@ createLimitBuyOrderWs(std::any symbol, std::any amount, std::any price,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createLimitOrderWs(std::any symbol, std::any side, std::any amount,
-                   std::any price, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createLimitOrderWs(ccxt::any symbol, ccxt::any side, ccxt::any amount,
+                   ccxt::any price, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(
                           this->createOrderWs(symbol, std::string("limit"),
                                               side, amount, price, params));
@@ -414,11 +417,11 @@ createLimitOrderWs(std::any symbol, std::any side, std::any amount,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createLimitSellOrderWs(std::any symbol, std::any amount, std::any price,
-                       std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createLimitSellOrderWs(ccxt::any symbol, ccxt::any amount, ccxt::any price,
+                       ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->createOrderWs(
                           symbol, std::string("limit"), std::string("sell"),
                           amount, price, params));
@@ -426,24 +429,24 @@ createLimitSellOrderWs(std::any symbol, std::any amount, std::any price,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createMarketBuyOrderWs(std::any symbol, std::any amount,
-                       std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createMarketBuyOrderWs(ccxt::any symbol, ccxt::any amount,
+                       ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->createOrderWs(
                           symbol, std::string("market"), std::string("buy"),
-                          amount, std::any{}, params));
+                          amount, ccxt::any{}, params));
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createMarketOrderWithCostWs(std::any symbol, std::any side, std::any cost,
-                            std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createMarketOrderWithCostWs(ccxt::any symbol, ccxt::any side, ccxt::any cost,
+                            ccxt::any params = ccxt::dict{}) {
   return std::
       async(std::launch::deferred,
-            [=]() mutable -> std::any {
+            [=]() mutable -> ccxt::any {
               /**
                * @method
                * @name createMarketOrderWithCostWs
@@ -465,7 +468,7 @@ createMarketOrderWithCostWs(std::any symbol, std::any side, std::any cost,
                                ::getValue(
                                    this->has,
                                    std::string("createMarketOrderWithCostWs")),
-                               std::any{})) &&
+                               ccxt::any{})) &&
                            isTrue(!isEqual(
                                ::getValue(
                                    this->has,
@@ -478,7 +481,7 @@ createMarketOrderWithCostWs(std::any symbol, std::any side, std::any cost,
                                         this->has,
                                         std::string(
                                             "createMarketBuyOrderWithCostWs")),
-                                    std::any{})) &&
+                                    ccxt::any{})) &&
                                 isTrue(!isEqual(
                                     ::getValue(
                                         this->has,
@@ -491,7 +494,7 @@ createMarketOrderWithCostWs(std::any symbol, std::any side, std::any cost,
                                         this->has,
                                         std::string(
                                             "createMarketSellOrderWithCostWs")),
-                                    std::any{})) &&
+                                    ccxt::any{})) &&
                                 isTrue(!isEqual(
                                     ::getValue(
                                         this->has,
@@ -505,17 +508,17 @@ createMarketOrderWithCostWs(std::any symbol, std::any side, std::any cost,
                   this->id,
                   std::string(
                       " createMarketOrderWithCostWs() is not supported yet"))));
-              return std::any{};
+              return ccxt::any{};
             })
           .share();
 }
 
-virtual std::shared_future<std::any>
-createMarketOrderWs(std::any symbol, std::any side, std::any amount,
-                    std::any price = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createMarketOrderWs(ccxt::any symbol, ccxt::any side, ccxt::any amount,
+                    ccxt::any price = ccxt::any{},
+                    ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(
                           this->createOrderWs(symbol, std::string("market"),
                                               side, amount, price, params));
@@ -523,25 +526,25 @@ createMarketOrderWs(std::any symbol, std::any side, std::any amount,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createMarketSellOrderWs(std::any symbol, std::any amount,
-                        std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createMarketSellOrderWs(ccxt::any symbol, ccxt::any amount,
+                        ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->createOrderWs(
                           symbol, std::string("market"), std::string("sell"),
-                          amount, std::any{}, params));
+                          amount, ccxt::any{}, params));
                     })
       .share();
 }
 
-virtual std::shared_future<std::any> createOrderWithTakeProfitAndStopLossWs(
-    std::any symbol, std::any type, std::any side, std::any amount,
-    std::any price = std::any{}, std::any takeProfit = std::any{},
-    std::any stopLoss = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> createOrderWithTakeProfitAndStopLossWs(
+    ccxt::any symbol, ccxt::any type, ccxt::any side, ccxt::any amount,
+    ccxt::any price = ccxt::any{}, ccxt::any takeProfit = ccxt::any{},
+    ccxt::any stopLoss = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createOrderWithTakeProfitAndStopLossWs
@@ -589,7 +592,7 @@ virtual std::shared_future<std::any> createOrderWithTakeProfitAndStopLossWs(
                                this->has,
                                std::string(
                                    "createOrderWithTakeProfitAndStopLossWs")),
-                           std::any{})) &&
+                           ccxt::any{})) &&
                        isTrue(!isEqual(
                            ::getValue(
                                this->has,
@@ -602,49 +605,50 @@ virtual std::shared_future<std::any> createOrderWithTakeProfitAndStopLossWs(
                throw NotSupported(toString(add(
                    this->id, std::string(" createOrderWithTakeProfitAndStopLoss"
                                          "Ws() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createOrderWs(std::any symbol, std::any type, std::any side, std::any amount,
-              std::any price = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
+              ccxt::any amount, ccxt::any price = ccxt::any{},
+              ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" createOrderWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createOrdersWs(std::any orders, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createOrdersWs(ccxt::any orders, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" createOrdersWs () is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createPostOnlyOrderWs(std::any symbol, std::any type, std::any side,
-                      std::any amount, std::any price = std::any{},
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createPostOnlyOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                      ccxt::any amount, ccxt::any price = ccxt::any{},
+                      ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createPostOnlyOrderWs")),
-                              std::any{})) ||
+                              ccxt::any{})) ||
                           isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createPostOnlyOrderWs")),
@@ -654,7 +658,7 @@ createPostOnlyOrderWs(std::any symbol, std::any type, std::any side,
                      std::string(
                          " createPostOnlyOrderWs() is not supported yet"))));
                }
-               std::any query =
+               ccxt::any query =
                    this->extend(params, ccxt::dict{
                                             {std::string("postOnly"), true},
                                         });
@@ -664,18 +668,18 @@ createPostOnlyOrderWs(std::any symbol, std::any type, std::any side,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createReduceOnlyOrderWs(std::any symbol, std::any type, std::any side,
-                        std::any amount, std::any price = std::any{},
-                        std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createReduceOnlyOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                        ccxt::any amount, ccxt::any price = ccxt::any{},
+                        ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(
                        isTrue(isEqual(
                            ::getValue(this->has,
                                       std::string("createReduceOnlyOrderWs")),
-                           std::any{})) ||
+                           ccxt::any{})) ||
                        isTrue(isEqual(
                            ::getValue(this->has,
                                       std::string("createReduceOnlyOrderWs")),
@@ -685,7 +689,7 @@ createReduceOnlyOrderWs(std::any symbol, std::any type, std::any side,
                      std::string(
                          " createReduceOnlyOrderWs() is not supported yet"))));
                }
-               std::any query =
+               ccxt::any query =
                    this->extend(params, ccxt::dict{
                                             {std::string("reduceOnly"), true},
                                         });
@@ -695,17 +699,17 @@ createReduceOnlyOrderWs(std::any symbol, std::any type, std::any side,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createStopLimitOrderWs(std::any symbol, std::any side, std::any amount,
-                       std::any price, std::any triggerPrice,
-                       std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createStopLimitOrderWs(ccxt::any symbol, ccxt::any side, ccxt::any amount,
+                       ccxt::any price, ccxt::any triggerPrice,
+                       ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createStopLimitOrderWs")),
-                              std::any{})) ||
+                              ccxt::any{})) ||
                           isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createStopLimitOrderWs")),
@@ -715,7 +719,7 @@ createStopLimitOrderWs(std::any symbol, std::any side, std::any amount,
                      std::string(
                          " createStopLimitOrderWs() is not supported yet"))));
                }
-               std::any query = this->extend(
+               ccxt::any query = this->extend(
                    params, ccxt::dict{
                                {std::string("stopPrice"), triggerPrice},
                            });
@@ -725,14 +729,14 @@ createStopLimitOrderWs(std::any symbol, std::any side, std::any amount,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createStopLossOrderWs(std::any symbol, std::any type, std::any side,
-                      std::any amount, std::any price = std::any{},
-                      std::any stopLossPrice = std::any{},
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createStopLossOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                      ccxt::any amount, ccxt::any price = ccxt::any{},
+                      ccxt::any stopLossPrice = ccxt::any{},
+                      ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createStopLossOrderWs
@@ -752,7 +756,7 @@ createStopLossOrderWs(std::any symbol, std::any type, std::any side,
                 * @returns {object} an [order structure]{@link
                 * https://docs.ccxt.com/?id=order-structure}
                 */
-               if (isTrue(isEqual(stopLossPrice, std::any{}))) {
+               if (isTrue(isEqual(stopLossPrice, ccxt::any{}))) {
                  throw ArgumentsRequired(toString(add(
                      this->id, std::string(" createStopLossOrderWs() requires "
                                            "a stopLossPrice argument"))));
@@ -764,7 +768,7 @@ createStopLossOrderWs(std::any symbol, std::any type, std::any side,
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("createStopLossOrderWs")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("createStopLossOrderWs")),
@@ -776,22 +780,23 @@ createStopLossOrderWs(std::any symbol, std::any type, std::any side,
                    add(this->id,
                        std::string(
                            " createStopLossOrderWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createStopMarketOrderWs(std::any symbol, std::any side, std::any amount,
-                        std::any triggerPrice, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createStopMarketOrderWs(ccxt::any symbol, ccxt::any side, ccxt::any amount,
+                        ccxt::any triggerPrice,
+                        ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(
                        isTrue(isEqual(
                            ::getValue(this->has,
                                       std::string("createStopMarketOrderWs")),
-                           std::any{})) ||
+                           ccxt::any{})) ||
                        isTrue(isEqual(
                            ::getValue(this->has,
                                       std::string("createStopMarketOrderWs")),
@@ -801,29 +806,29 @@ createStopMarketOrderWs(std::any symbol, std::any side, std::any amount,
                      std::string(
                          " createStopMarketOrderWs() is not supported yet"))));
                }
-               std::any query = this->extend(
+               ccxt::any query = this->extend(
                    params, ccxt::dict{
                                {std::string("stopPrice"), triggerPrice},
                            });
                return awaitValue(
                    this->createOrderWs(symbol, std::string("market"), side,
-                                       amount, std::any{}, query));
+                                       amount, ccxt::any{}, query));
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createStopOrderWs(std::any symbol, std::any type, std::any side,
-                  std::any amount, std::any price = std::any{},
-                  std::any triggerPrice = std::any{},
-                  std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createStopOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                  ccxt::any amount, ccxt::any price = ccxt::any{},
+                  ccxt::any triggerPrice = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createStopOrderWs")),
-                              std::any{})) ||
+                              ccxt::any{})) ||
                           isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createStopOrderWs")),
@@ -833,12 +838,12 @@ createStopOrderWs(std::any symbol, std::any type, std::any side,
                          std::string(
                              " createStopOrderWs() is not supported yet"))));
                }
-               if (isTrue(isEqual(triggerPrice, std::any{}))) {
+               if (isTrue(isEqual(triggerPrice, ccxt::any{}))) {
                  throw ArgumentsRequired(toString(
                      add(this->id, std::string(" createStopOrderWs() requires "
                                                "a stopPrice argument"))));
                }
-               std::any query = this->extend(
+               ccxt::any query = this->extend(
                    params, ccxt::dict{
                                {std::string("stopPrice"), triggerPrice},
                            });
@@ -848,14 +853,14 @@ createStopOrderWs(std::any symbol, std::any type, std::any side,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createTakeProfitOrderWs(std::any symbol, std::any type, std::any side,
-                        std::any amount, std::any price = std::any{},
-                        std::any takeProfitPrice = std::any{},
-                        std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createTakeProfitOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                        ccxt::any amount, ccxt::any price = ccxt::any{},
+                        ccxt::any takeProfitPrice = ccxt::any{},
+                        ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createTakeProfitOrderWs
@@ -875,7 +880,7 @@ createTakeProfitOrderWs(std::any symbol, std::any type, std::any side,
                 * @returns {object} an [order structure]{@link
                 * https://docs.ccxt.com/?id=order-structure}
                 */
-               if (isTrue(isEqual(takeProfitPrice, std::any{}))) {
+               if (isTrue(isEqual(takeProfitPrice, ccxt::any{}))) {
                  throw ArgumentsRequired(toString(
                      add(this->id,
                          std::string(" createTakeProfitOrderWs() requires a "
@@ -890,7 +895,7 @@ createTakeProfitOrderWs(std::any symbol, std::any type, std::any side,
                        isTrue(!isEqual(
                            ::getValue(this->has,
                                       std::string("createTakeProfitOrderWs")),
-                           std::any{})) &&
+                           ccxt::any{})) &&
                        isTrue(!isEqual(
                            ::getValue(this->has,
                                       std::string("createTakeProfitOrderWs")),
@@ -902,20 +907,20 @@ createTakeProfitOrderWs(std::any symbol, std::any type, std::any side,
                    this->id,
                    std::string(
                        " createTakeProfitOrderWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createTrailingAmountOrderWs(std::any symbol, std::any type, std::any side,
-                            std::any amount, std::any price = std::any{},
-                            std::any trailingAmount = std::any{},
-                            std::any trailingTriggerPrice = std::any{},
-                            std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createTrailingAmountOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                            ccxt::any amount, ccxt::any price = ccxt::any{},
+                            ccxt::any trailingAmount = ccxt::any{},
+                            ccxt::any trailingTriggerPrice = ccxt::any{},
+                            ccxt::any params = ccxt::dict{}) {
   return std::
       async(std::launch::deferred,
-            [=]() mutable -> std::any {
+            [=]() mutable -> ccxt::any {
               /**
                * @method
                * @name createTrailingAmountOrderWs
@@ -938,14 +943,14 @@ createTrailingAmountOrderWs(std::any symbol, std::any type, std::any side,
                * @returns {object} an [order structure]{@link
                * https://docs.ccxt.com/?id=order-structure}
                */
-              if (isTrue(isEqual(trailingAmount, std::any{}))) {
+              if (isTrue(isEqual(trailingAmount, ccxt::any{}))) {
                 throw ArgumentsRequired(toString(
                     add(this->id,
                         std::string(" createTrailingAmountOrderWs() requires a "
                                     "trailingAmount argument"))));
               }
               ::setValue(params, std::string("trailingAmount"), trailingAmount);
-              if (isTrue(!isEqual(trailingTriggerPrice, std::any{}))) {
+              if (isTrue(!isEqual(trailingTriggerPrice, ccxt::any{}))) {
                 ::setValue(params, std::string("trailingTriggerPrice"),
                            trailingTriggerPrice);
               }
@@ -953,7 +958,7 @@ createTrailingAmountOrderWs(std::any symbol, std::any type, std::any side,
                              ::getValue(
                                  this->has,
                                  std::string("createTrailingAmountOrderWs")),
-                             std::any{})) &&
+                             ccxt::any{})) &&
                          isTrue(!isEqual(
                              ::getValue(
                                  this->has,
@@ -966,20 +971,20 @@ createTrailingAmountOrderWs(std::any symbol, std::any type, std::any side,
                   this->id,
                   std::string(
                       " createTrailingAmountOrderWs() is not supported yet"))));
-              return std::any{};
+              return ccxt::any{};
             })
           .share();
 }
 
-virtual std::shared_future<std::any>
-createTrailingPercentOrderWs(std::any symbol, std::any type, std::any side,
-                             std::any amount, std::any price = std::any{},
-                             std::any trailingPercent = std::any{},
-                             std::any trailingTriggerPrice = std::any{},
-                             std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createTrailingPercentOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                             ccxt::any amount, ccxt::any price = ccxt::any{},
+                             ccxt::any trailingPercent = ccxt::any{},
+                             ccxt::any trailingTriggerPrice = ccxt::any{},
+                             ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createTrailingPercentOrderWs
@@ -1002,7 +1007,7 @@ createTrailingPercentOrderWs(std::any symbol, std::any type, std::any side,
                 * @returns {object} an [order structure]{@link
                 * https://docs.ccxt.com/?id=order-structure}
                 */
-               if (isTrue(isEqual(trailingPercent, std::any{}))) {
+               if (isTrue(isEqual(trailingPercent, ccxt::any{}))) {
                  throw ArgumentsRequired(toString(
                      add(this->id,
                          std::string(" createTrailingPercentOrderWs() requires "
@@ -1010,7 +1015,7 @@ createTrailingPercentOrderWs(std::any symbol, std::any type, std::any side,
                }
                ::setValue(params, std::string("trailingPercent"),
                           trailingPercent);
-               if (isTrue(!isEqual(trailingTriggerPrice, std::any{}))) {
+               if (isTrue(!isEqual(trailingTriggerPrice, ccxt::any{}))) {
                  ::setValue(params, std::string("trailingTriggerPrice"),
                             trailingTriggerPrice);
                }
@@ -1018,7 +1023,7 @@ createTrailingPercentOrderWs(std::any symbol, std::any type, std::any side,
                               ::getValue(
                                   this->has,
                                   std::string("createTrailingPercentOrderWs")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(
                                   this->has,
@@ -1030,19 +1035,19 @@ createTrailingPercentOrderWs(std::any symbol, std::any type, std::any side,
                throw NotSupported(toString(
                    add(this->id, std::string(" createTrailingPercentOrderWs() "
                                              "is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createTriggerOrderWs(std::any symbol, std::any type, std::any side,
-                     std::any amount, std::any price = std::any{},
-                     std::any triggerPrice = std::any{},
-                     std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createTriggerOrderWs(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                     ccxt::any amount, ccxt::any price = ccxt::any{},
+                     ccxt::any triggerPrice = ccxt::any{},
+                     ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createTriggerOrderWs
@@ -1062,7 +1067,7 @@ createTriggerOrderWs(std::any symbol, std::any type, std::any side,
                 * @returns {object} an [order structure]{@link
                 * https://docs.ccxt.com/?id=order-structure}
                 */
-               if (isTrue(isEqual(triggerPrice, std::any{}))) {
+               if (isTrue(isEqual(triggerPrice, ccxt::any{}))) {
                  throw ArgumentsRequired(toString(add(
                      this->id, std::string(" createTriggerOrderWs() requires a "
                                            "triggerPrice argument"))));
@@ -1074,7 +1079,7 @@ createTriggerOrderWs(std::any symbol, std::any type, std::any side,
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("createTriggerOrderWs")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("createTriggerOrderWs")),
@@ -1086,17 +1091,17 @@ createTriggerOrderWs(std::any symbol, std::any type, std::any side,
                    add(this->id,
                        std::string(
                            " createTriggerOrderWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-editOrderWs(std::any id, std::any symbol, std::any type, std::any side,
-            std::any amount = std::any{}, std::any price = std::any{},
-            std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+editOrderWs(ccxt::any id, ccxt::any symbol, ccxt::any type, ccxt::any side,
+            ccxt::any amount = ccxt::any{}, ccxt::any price = ccxt::any{},
+            ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       awaitValue(this->cancelOrderWs(id, symbol));
                       return awaitValue(this->createOrderWs(
                           symbol, type, side, amount, price, params));
@@ -1104,21 +1109,20 @@ editOrderWs(std::any id, std::any symbol, std::any type, std::any side,
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchClosedOrdersWs(std::any symbol = std::any{}, std::any since = std::any{},
-                    std::any limit = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchClosedOrdersWs(
+    ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+    ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(
                        isTrue(!isEqual(
                            ::getValue(this->has, std::string("fetchOrdersWs")),
-                           std::any{})) &&
+                           ccxt::any{})) &&
                        isTrue(!isEqual(
                            ::getValue(this->has, std::string("fetchOrdersWs")),
                            false)))) {
-                 std::any orders = awaitValue(
+                 ccxt::any orders = awaitValue(
                      this->fetchOrdersWs(symbol, since, limit, params));
                  return this->filterBy(orders, std::string("status"),
                                        std::string("closed"));
@@ -1127,39 +1131,41 @@ fetchClosedOrdersWs(std::any symbol = std::any{}, std::any since = std::any{},
                    add(this->id,
                        std::string(
                            " fetchClosedOrdersWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchMyTradesWs(std::any symbol = std::any{}, std::any since = std::any{},
-                std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchMyTradesWs(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+                ccxt::any limit = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchMyTradesWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOpenOrdersWs(std::any symbol = std::any{}, std::any since = std::any{},
-                  std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOpenOrdersWs(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+                  ccxt::any limit = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(
                        isTrue(!isEqual(
                            ::getValue(this->has, std::string("fetchOrdersWs")),
-                           std::any{})) &&
+                           ccxt::any{})) &&
                        isTrue(!isEqual(
                            ::getValue(this->has, std::string("fetchOrdersWs")),
                            false)))) {
-                 std::any orders = awaitValue(
+                 ccxt::any orders = awaitValue(
                      this->fetchOrdersWs(symbol, since, limit, params));
                  return this->filterBy(orders, std::string("status"),
                                        std::string("open"));
@@ -1167,99 +1173,99 @@ fetchOpenOrdersWs(std::any symbol = std::any{}, std::any since = std::any{},
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchOpenOrdersWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOrderBookWs(std::any symbol, std::any limit = std::any{},
-                 std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOrderBookWs(ccxt::any symbol, ccxt::any limit = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchOrderBookWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOrderWs(std::any id, std::any symbol = std::any{},
-             std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOrderWs(ccxt::any id, ccxt::any symbol = ccxt::any{},
+             ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchOrderWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOrdersWs(std::any symbol = std::any{}, std::any since = std::any{},
-              std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOrdersWs(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+              ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchOrdersWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPositionWs(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPositionWs(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchPositionWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPositionsWs(std::any symbols = std::any{},
-                 std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPositionsWs(ccxt::any symbols = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchPositions() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTickerWs(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTickerWs(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::
       async(std::launch::deferred,
-            [=]() mutable -> std::any {
+            [=]() mutable -> ccxt::any {
               if (isTrue(
                       isTrue(!isEqual(
                           ::getValue(this->has, std::string("fetchTickersWs")),
-                          std::any{})) &&
+                          ccxt::any{})) &&
                       isTrue(!isEqual(
                           ::getValue(this->has, std::string("fetchTickersWs")),
                           false)))) {
                 awaitValue(this->loadMarkets());
-                std::any market = this->market(symbol);
+                ccxt::any market = this->market(symbol);
                 symbol = ::getValue(market, std::string("symbol"));
-                std::any tickers = awaitValue(
+                ccxt::any tickers = awaitValue(
                     this->fetchTickersWs(ccxt::list{symbol}, params));
-                std::any ticker = this->safeDict(tickers, symbol);
-                if (isTrue(isEqual(ticker, std::any{}))) {
+                ccxt::any ticker = this->safeDict(tickers, symbol);
+                if (isTrue(isEqual(ticker, ccxt::any{}))) {
                   throw NullResponse(toString(add(
                       add(this->id,
                           std::string(
@@ -1273,44 +1279,45 @@ fetchTickerWs(std::any symbol, std::any params = ccxt::dict{}) {
                     add(this->id,
                         std::string(" fetchTickerWs() is not supported yet"))));
               }
-              return std::any{};
+              return ccxt::any{};
             })
           .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTickersWs(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTickersWs(ccxt::any symbols = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchTickersWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTradesWs(std::any symbol, std::any since = std::any{},
-              std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTradesWs(ccxt::any symbol, ccxt::any since = ccxt::any{},
+              ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchTradesWs() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-loadOrderBook(std::any client, std::any messageHash, std::any symbol,
-              std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+loadOrderBook(ccxt::any client, ccxt::any messageHash, ccxt::any symbol,
+              ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::
       async(std::launch::deferred,
-            [=]() mutable -> std::any {
+            [=]() mutable -> ccxt::any {
               if (!isTrue((inOp(this->orderbooks, symbol)))) {
                 this->reject(
                     ExchangeError(add(
@@ -1318,27 +1325,28 @@ loadOrderBook(std::any client, std::any messageHash, std::any symbol,
                         std::string(
                             " loadOrderBook() orderbook is not initiated"))),
                     messageHash);
-                return std::any{};
+                return ccxt::any{};
               }
-              std::any maxRetries =
+              ccxt::any maxRetries =
                   this->handleOption(std::string("watchOrderBook"),
                                      std::string("snapshotMaxRetries"), 3);
-              std::any tries = 0;
-              std::any error = std::any{};
+              ccxt::any tries = 0;
+              ccxt::any error = ccxt::any{};
               try {
-                std::any stored = ::getValue(this->orderbooks, symbol);
+                ccxt::any stored = ::getValue(this->orderbooks, symbol);
                 while (isLessThan(tries, maxRetries)) {
-                  std::any cache = ::getValue(stored, std::string("cache"));
-                  std::any orderBook = awaitValue(
+                  ccxt::any cache = ::getValue(stored, std::string("cache"));
+                  ccxt::any orderBook = awaitValue(
                       this->fetchRestOrderBookSafe(symbol, limit, params));
-                  std::any index = this->getCacheIndex(orderBook, cache);
+                  ccxt::any index = this->getCacheIndex(orderBook, cache);
                   if (isTrue(isGreaterThanOrEqual(index, 0))) {
                     ::resetOrderBook(stored, orderBook);
-                    this->handleDeltas(stored, slice(cache, index, std::any{}));
+                    this->handleDeltas(stored,
+                                       slice(cache, index, ccxt::any{}));
                     getArrayLength(::getValue(stored, std::string("cache"))) =
                         0;
                     this->resolve(stored, messageHash);
-                    return std::any{};
+                    return ccxt::any{};
                   }
                   postFixIncrement(tries);
                 }
@@ -1365,63 +1373,63 @@ loadOrderBook(std::any client, std::any messageHash, std::any symbol,
                   this->orderBook()); // clear the orderbook and its cache -
                                       // issue
                                       // https://github.com/ccxt/ccxt/issues/26753
-              return std::any{};
+              return ccxt::any{};
             })
           .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTrades(std::any symbol, std::any since = std::any{},
-            std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTrades(ccxt::any symbol, ccxt::any since = ccxt::any{},
+            ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" fetchTrades() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchTrades(std::any symbol, std::any since = std::any{},
-            std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchTrades(ccxt::any symbol, ccxt::any since = ccxt::any{},
+            ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" watchTrades() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOrderBook(std::any symbol, std::any limit = std::any{},
-               std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOrderBook(ccxt::any symbol, ccxt::any limit = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchOrderBook() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchRestOrderBookSafe(std::any symbol, std::any limit = std::any{},
-                       std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchRestOrderBookSafe(ccxt::any symbol, ccxt::any limit = ccxt::any{},
+                       ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any fetchSnapshotMaxRetries = this->handleOption(
+             [=]() mutable -> ccxt::any {
+               ccxt::any fetchSnapshotMaxRetries = this->handleOption(
                    std::string("watchOrderBook"), std::string("maxRetries"), 3);
-               for (std::any i = 0; isLessThan(i, fetchSnapshotMaxRetries);
+               for (ccxt::any i = 0; isLessThan(i, fetchSnapshotMaxRetries);
                     postFixIncrement(i)) {
                  try {
-                   std::any orderBook =
+                   ccxt::any orderBook =
                        awaitValue(this->fetchOrderBook(symbol, limit, params));
                    return orderBook;
                  } catch (const std::exception &e) {
@@ -1430,39 +1438,39 @@ fetchRestOrderBookSafe(std::any symbol, std::any limit = std::any{},
                    }
                  }
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchOrderBook(std::any symbol, std::any limit = std::any{},
-               std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchOrderBook(ccxt::any symbol, ccxt::any limit = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" watchOrderBook() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOpenInterest(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOpenInterest(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchOpenInterests")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("fetchOpenInterests")),
                               false)))) {
-                 std::any openInterests = awaitValue(
+                 ccxt::any openInterests = awaitValue(
                      this->fetchOpenInterests(ccxt::list{symbol}, params));
                  return this->safeDict(openInterests, symbol);
                } else {
@@ -1471,18 +1479,18 @@ fetchOpenInterest(std::any symbol, std::any params = ccxt::dict{}) {
                          std::string(
                              " fetchOpenInterest() is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchL2OrderBook(std::any symbol, std::any limit = std::any{},
-                 std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchL2OrderBook(ccxt::any symbol, ccxt::any limit = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any orderbook =
+             [=]() mutable -> ccxt::any {
+               ccxt::any orderbook =
                    awaitValue(this->fetchOrderBook(symbol, limit, params));
                return this->extend(
                    orderbook,
@@ -1500,11 +1508,12 @@ fetchL2OrderBook(std::any symbol, std::any limit = std::any{},
       .share();
 }
 
-virtual std::shared_future<std::any>
-editLimitBuyOrder(std::any id, std::any symbol, std::any amount,
-                  std::any price = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+editLimitBuyOrder(ccxt::any id, ccxt::any symbol, ccxt::any amount,
+                  ccxt::any price = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(
                           this->editLimitOrder(id, symbol, std::string("buy"),
                                                amount, price, params));
@@ -1512,12 +1521,12 @@ editLimitBuyOrder(std::any id, std::any symbol, std::any amount,
       .share();
 }
 
-virtual std::shared_future<std::any>
-editLimitSellOrder(std::any id, std::any symbol, std::any amount,
-                   std::any price = std::any{},
-                   std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+editLimitSellOrder(ccxt::any id, ccxt::any symbol, ccxt::any amount,
+                   ccxt::any price = ccxt::any{},
+                   ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(
                           this->editLimitOrder(id, symbol, std::string("sell"),
                                                amount, price, params));
@@ -1525,11 +1534,11 @@ editLimitSellOrder(std::any id, std::any symbol, std::any amount,
       .share();
 }
 
-virtual std::shared_future<std::any>
-editLimitOrder(std::any id, std::any symbol, std::any side, std::any amount,
-               std::any price = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+editLimitOrder(ccxt::any id, ccxt::any symbol, ccxt::any side, ccxt::any amount,
+               ccxt::any price = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(
                           this->editOrder(id, symbol, std::string("limit"),
                                           side, amount, price, params));
@@ -1537,13 +1546,12 @@ editLimitOrder(std::any id, std::any symbol, std::any side, std::any amount,
       .share();
 }
 
-virtual std::shared_future<std::any> editOrder(std::any id, std::any symbol,
-                                               std::any type, std::any side,
-                                               std::any amount = std::any{},
-                                               std::any price = std::any{},
-                                               std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+editOrder(ccxt::any id, ccxt::any symbol, ccxt::any type, ccxt::any side,
+          ccxt::any amount = ccxt::any{}, ccxt::any price = ccxt::any{},
+          ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       awaitValue(this->cancelOrder(id, symbol));
                       return awaitValue(this->createOrder(
                           symbol, type, side, amount, price, params));
@@ -1551,13 +1559,13 @@ virtual std::shared_future<std::any> editOrder(std::any id, std::any symbol,
       .share();
 }
 
-virtual std::shared_future<std::any> editOrderWithClientOrderId(
-    std::any clientOrderId, std::any symbol, std::any type, std::any side,
-    std::any amount = std::any{}, std::any price = std::any{},
-    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> editOrderWithClientOrderId(
+    ccxt::any clientOrderId, ccxt::any symbol, ccxt::any type, ccxt::any side,
+    ccxt::any amount = ccxt::any{}, ccxt::any price = ccxt::any{},
+    ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
-                      std::any extendedParams = this->extend(
+                    [=]() mutable -> ccxt::any {
+                      ccxt::any extendedParams = this->extend(
                           params,
                           ccxt::dict{
                               {std::string("clientOrderId"), clientOrderId},
@@ -1569,76 +1577,77 @@ virtual std::shared_future<std::any> editOrderWithClientOrderId(
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPosition(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPosition(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchPosition() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchPositions(std::any symbols = std::any{}, std::any since = std::any{},
-               std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchPositions(ccxt::any symbols = ccxt::any{}, ccxt::any since = ccxt::any{},
+               ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" watchPositions() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any> watchPositionForSymbols(
-    std::any symbols = std::any{}, std::any since = std::any{},
-    std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> watchPositionForSymbols(
+    ccxt::any symbols = ccxt::any{}, ccxt::any since = ccxt::any{},
+    ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(
                           this->watchPositions(symbols, since, limit, params));
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchPositions(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchPositions(ccxt::any symbols = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchPositions() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTicker(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTicker(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(
                        isTrue(!isEqual(
                            ::getValue(this->has, std::string("fetchTickers")),
-                           std::any{})) &&
+                           ccxt::any{})) &&
                        isTrue(!isEqual(
                            ::getValue(this->has, std::string("fetchTickers")),
                            false)))) {
                  awaitValue(this->loadMarkets());
-                 std::any market = this->market(symbol);
+                 ccxt::any market = this->market(symbol);
                  symbol = ::getValue(market, std::string("symbol"));
-                 std::any tickers =
+                 ccxt::any tickers =
                      awaitValue(this->fetchTickers(ccxt::list{symbol}, params));
-                 std::any ticker = this->safeDict(tickers, symbol);
-                 if (isTrue(isEqual(ticker, std::any{}))) {
+                 ccxt::any ticker = this->safeDict(tickers, symbol);
+                 if (isTrue(isEqual(ticker, ccxt::any{}))) {
                    throw NullResponse(toString(add(
                        add(this->id,
                            std::string(
@@ -1652,58 +1661,58 @@ fetchTicker(std::any symbol, std::any params = ccxt::dict{}) {
                      add(this->id,
                          std::string(" fetchTicker() is not supported yet"))));
                }
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchTicker(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchTicker(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" watchTicker() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTickers(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTickers(ccxt::any symbols = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchTickers() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchTickers(std::any symbols = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchTickers(ccxt::any symbols = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" watchTickers() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOrder(std::any id, std::any symbol = std::any{},
-           std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOrder(ccxt::any id, ccxt::any symbol = ccxt::any{},
+           ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" fetchOrder() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
@@ -1719,14 +1728,14 @@ fetchOrder(std::any id, std::any symbol = std::any{},
  * @returns {object} an [order structure]{@link
  * https://docs.ccxt.com/?id=order-structure}
  */
-virtual std::shared_future<std::any>
-fetchOrderWithClientOrderId(std::any clientOrderId,
-                            std::any symbol = std::any{},
-                            std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOrderWithClientOrderId(ccxt::any clientOrderId,
+                            ccxt::any symbol = ccxt::any{},
+                            ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any extendedParams = this->extend(
+             [=]() mutable -> ccxt::any {
+               ccxt::any extendedParams = this->extend(
                    params, ccxt::dict{
                                {std::string("clientOrderId"), clientOrderId},
                            });
@@ -1736,24 +1745,24 @@ fetchOrderWithClientOrderId(std::any clientOrderId,
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOrderStatus(std::any id, std::any symbol = std::any{},
-                 std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOrderStatus(ccxt::any id, ccxt::any symbol = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       // TODO: TypeScript: change method signature by replacing
                       // Promise<string> with Promise<Order['status']>.
-                      std::any order =
+                      ccxt::any order =
                           awaitValue(this->fetchOrder(id, symbol, params));
                       return ::getValue(order, std::string("status"));
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchUnifiedOrder(std::any order, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchUnifiedOrder(ccxt::any order, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->fetchOrder(
                           this->safeString(order, std::string("id")),
                           this->safeString(order, std::string("symbol")),
@@ -1762,28 +1771,28 @@ fetchUnifiedOrder(std::any order, std::any params = ccxt::dict{}) {
       .share();
 }
 
-virtual std::shared_future<std::any>
-createOrder(std::any symbol, std::any type, std::any side, std::any amount,
-            std::any price = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createOrder(ccxt::any symbol, ccxt::any type, ccxt::any side, ccxt::any amount,
+            ccxt::any price = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" createOrder() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createTrailingAmountOrder(std::any symbol, std::any type, std::any side,
-                          std::any amount, std::any price = std::any{},
-                          std::any trailingAmount = std::any{},
-                          std::any trailingTriggerPrice = std::any{},
-                          std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createTrailingAmountOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                          ccxt::any amount, ccxt::any price = ccxt::any{},
+                          ccxt::any trailingAmount = ccxt::any{},
+                          ccxt::any trailingTriggerPrice = ccxt::any{},
+                          ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createTrailingAmountOrder
@@ -1806,7 +1815,7 @@ createTrailingAmountOrder(std::any symbol, std::any type, std::any side,
                 * @returns {object} an [order structure]{@link
                 * https://docs.ccxt.com/?id=order-structure}
                 */
-               if (isTrue(isEqual(trailingAmount, std::any{}))) {
+               if (isTrue(isEqual(trailingAmount, ccxt::any{}))) {
                  throw ArgumentsRequired(toString(
                      add(this->id,
                          std::string(" createTrailingAmountOrder() requires a "
@@ -1814,7 +1823,7 @@ createTrailingAmountOrder(std::any symbol, std::any type, std::any side,
                }
                ::setValue(params, std::string("trailingAmount"),
                           trailingAmount);
-               if (isTrue(!isEqual(trailingTriggerPrice, std::any{}))) {
+               if (isTrue(!isEqual(trailingTriggerPrice, ccxt::any{}))) {
                  ::setValue(params, std::string("trailingTriggerPrice"),
                             trailingTriggerPrice);
                }
@@ -1822,7 +1831,7 @@ createTrailingAmountOrder(std::any symbol, std::any type, std::any side,
                        isTrue(!isEqual(
                            ::getValue(this->has,
                                       std::string("createTrailingAmountOrder")),
-                           std::any{})) &&
+                           ccxt::any{})) &&
                        isTrue(!isEqual(
                            ::getValue(this->has,
                                       std::string("createTrailingAmountOrder")),
@@ -1834,20 +1843,20 @@ createTrailingAmountOrder(std::any symbol, std::any type, std::any side,
                    this->id,
                    std::string(
                        " createTrailingAmountOrder() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createTrailingPercentOrder(std::any symbol, std::any type, std::any side,
-                           std::any amount, std::any price = std::any{},
-                           std::any trailingPercent = std::any{},
-                           std::any trailingTriggerPrice = std::any{},
-                           std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createTrailingPercentOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                           ccxt::any amount, ccxt::any price = ccxt::any{},
+                           ccxt::any trailingPercent = ccxt::any{},
+                           ccxt::any trailingTriggerPrice = ccxt::any{},
+                           ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createTrailingPercentOrder
@@ -1870,7 +1879,7 @@ createTrailingPercentOrder(std::any symbol, std::any type, std::any side,
                 * @returns {object} an [order structure]{@link
                 * https://docs.ccxt.com/?id=order-structure}
                 */
-               if (isTrue(isEqual(trailingPercent, std::any{}))) {
+               if (isTrue(isEqual(trailingPercent, ccxt::any{}))) {
                  throw ArgumentsRequired(toString(
                      add(this->id,
                          std::string(" createTrailingPercentOrder() requires a "
@@ -1878,7 +1887,7 @@ createTrailingPercentOrder(std::any symbol, std::any type, std::any side,
                }
                ::setValue(params, std::string("trailingPercent"),
                           trailingPercent);
-               if (isTrue(!isEqual(trailingTriggerPrice, std::any{}))) {
+               if (isTrue(!isEqual(trailingTriggerPrice, ccxt::any{}))) {
                  ::setValue(params, std::string("trailingTriggerPrice"),
                             trailingTriggerPrice);
                }
@@ -1886,7 +1895,7 @@ createTrailingPercentOrder(std::any symbol, std::any type, std::any side,
                               ::getValue(
                                   this->has,
                                   std::string("createTrailingPercentOrder")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(
                                   this->has,
@@ -1899,17 +1908,17 @@ createTrailingPercentOrder(std::any symbol, std::any type, std::any side,
                    this->id,
                    std::string(
                        " createTrailingPercentOrder() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createMarketOrderWithCost(std::any symbol, std::any side, std::any cost,
-                          std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createMarketOrderWithCost(ccxt::any symbol, ccxt::any side, ccxt::any cost,
+                          ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createMarketOrderWithCost
@@ -1930,7 +1939,7 @@ createMarketOrderWithCost(std::any symbol, std::any side, std::any cost,
                                    ::getValue(this->has,
                                               std::string(
                                                   "createMarketOrderWithCost")),
-                                   std::any{})) &&
+                                   ccxt::any{})) &&
                                isTrue(!isEqual(
                                    ::getValue(this->has,
                                               std::string(
@@ -1942,7 +1951,7 @@ createMarketOrderWithCost(std::any symbol, std::any side, std::any cost,
                                            this->has,
                                            std::string(
                                                "createMarketBuyOrderWithCost")),
-                                       std::any{})) &&
+                                       ccxt::any{})) &&
                                    isTrue(!isEqual(
                                        ::getValue(
                                            this->has,
@@ -1955,7 +1964,7 @@ createMarketOrderWithCost(std::any symbol, std::any side, std::any cost,
                                         this->has,
                                         std::string(
                                             "createMarketSellOrderWithCost")),
-                                    std::any{})) &&
+                                    ccxt::any{})) &&
                                 isTrue(!isEqual(
                                     ::getValue(
                                         this->has,
@@ -1969,17 +1978,17 @@ createMarketOrderWithCost(std::any symbol, std::any side, std::any cost,
                    this->id,
                    std::string(
                        " createMarketOrderWithCost() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createMarketBuyOrderWithCost(std::any symbol, std::any cost,
-                             std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createMarketBuyOrderWithCost(ccxt::any symbol, ccxt::any cost,
+                             ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createMarketBuyOrderWithCost
@@ -2005,7 +2014,7 @@ createMarketBuyOrderWithCost(std::any symbol, std::any cost,
                                ::getValue(
                                    this->has,
                                    std::string("createMarketBuyOrderWithCost")),
-                               std::any{})) &&
+                               ccxt::any{})) &&
                            isTrue(!isEqual(
                                ::getValue(
                                    this->has,
@@ -2018,17 +2027,17 @@ createMarketBuyOrderWithCost(std::any symbol, std::any cost,
                throw NotSupported(toString(
                    add(this->id, std::string(" createMarketBuyOrderWithCost() "
                                              "is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createMarketSellOrderWithCost(std::any symbol, std::any cost,
-                              std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createMarketSellOrderWithCost(ccxt::any symbol, ccxt::any cost,
+                              ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createMarketSellOrderWithCost
@@ -2055,7 +2064,7 @@ createMarketSellOrderWithCost(std::any symbol, std::any cost,
                                ::getValue(this->has,
                                           std::string(
                                               "createMarketSellOrderWithCost")),
-                               std::any{})) &&
+                               ccxt::any{})) &&
                            isTrue(!isEqual(
                                ::getValue(this->has,
                                           std::string(
@@ -2068,19 +2077,19 @@ createMarketSellOrderWithCost(std::any symbol, std::any cost,
                throw NotSupported(toString(
                    add(this->id, std::string(" createMarketSellOrderWithCost() "
                                              "is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createTriggerOrder(std::any symbol, std::any type, std::any side,
-                   std::any amount, std::any price = std::any{},
-                   std::any triggerPrice = std::any{},
-                   std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createTriggerOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                   ccxt::any amount, ccxt::any price = ccxt::any{},
+                   ccxt::any triggerPrice = ccxt::any{},
+                   ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createTriggerOrder
@@ -2100,7 +2109,7 @@ createTriggerOrder(std::any symbol, std::any type, std::any side,
                 * @returns {object} an [order structure]{@link
                 * https://docs.ccxt.com/?id=order-structure}
                 */
-               if (isTrue(isEqual(triggerPrice, std::any{}))) {
+               if (isTrue(isEqual(triggerPrice, ccxt::any{}))) {
                  throw ArgumentsRequired(toString(
                      add(this->id, std::string(" createTriggerOrder() requires "
                                                "a triggerPrice argument"))));
@@ -2112,7 +2121,7 @@ createTriggerOrder(std::any symbol, std::any type, std::any side,
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("createTriggerOrder")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("createTriggerOrder")),
@@ -2123,19 +2132,19 @@ createTriggerOrder(std::any symbol, std::any type, std::any side,
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" createTriggerOrder() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createStopLossOrder(std::any symbol, std::any type, std::any side,
-                    std::any amount, std::any price = std::any{},
-                    std::any stopLossPrice = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createStopLossOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                    ccxt::any amount, ccxt::any price = ccxt::any{},
+                    ccxt::any stopLossPrice = ccxt::any{},
+                    ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createStopLossOrder
@@ -2155,7 +2164,7 @@ createStopLossOrder(std::any symbol, std::any type, std::any side,
                 * @returns {object} an [order structure]{@link
                 * https://docs.ccxt.com/?id=order-structure}
                 */
-               if (isTrue(isEqual(stopLossPrice, std::any{}))) {
+               if (isTrue(isEqual(stopLossPrice, ccxt::any{}))) {
                  throw ArgumentsRequired(toString(add(
                      this->id, std::string(" createStopLossOrder() requires a "
                                            "stopLossPrice argument"))));
@@ -2167,7 +2176,7 @@ createStopLossOrder(std::any symbol, std::any type, std::any side,
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("createStopLossOrder")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("createStopLossOrder")),
@@ -2179,19 +2188,19 @@ createStopLossOrder(std::any symbol, std::any type, std::any side,
                    add(this->id,
                        std::string(
                            " createStopLossOrder() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createTakeProfitOrder(std::any symbol, std::any type, std::any side,
-                      std::any amount, std::any price = std::any{},
-                      std::any takeProfitPrice = std::any{},
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createTakeProfitOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                      ccxt::any amount, ccxt::any price = ccxt::any{},
+                      ccxt::any takeProfitPrice = ccxt::any{},
+                      ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createTakeProfitOrder
@@ -2211,7 +2220,7 @@ createTakeProfitOrder(std::any symbol, std::any type, std::any side,
                 * @returns {object} an [order structure]{@link
                 * https://docs.ccxt.com/?id=order-structure}
                 */
-               if (isTrue(isEqual(takeProfitPrice, std::any{}))) {
+               if (isTrue(isEqual(takeProfitPrice, ccxt::any{}))) {
                  throw ArgumentsRequired(toString(add(
                      this->id, std::string(" createTakeProfitOrder() requires "
                                            "a takeProfitPrice argument"))));
@@ -2224,7 +2233,7 @@ createTakeProfitOrder(std::any symbol, std::any type, std::any side,
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("createTakeProfitOrder")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has,
                                          std::string("createTakeProfitOrder")),
@@ -2236,18 +2245,18 @@ createTakeProfitOrder(std::any symbol, std::any type, std::any side,
                    add(this->id,
                        std::string(
                            " createTakeProfitOrder() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any> createOrderWithTakeProfitAndStopLoss(
-    std::any symbol, std::any type, std::any side, std::any amount,
-    std::any price = std::any{}, std::any takeProfit = std::any{},
-    std::any stopLoss = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> createOrderWithTakeProfitAndStopLoss(
+    ccxt::any symbol, ccxt::any type, ccxt::any side, ccxt::any amount,
+    ccxt::any price = ccxt::any{}, ccxt::any takeProfit = ccxt::any{},
+    ccxt::any stopLoss = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                /**
                 * @method
                 * @name createOrderWithTakeProfitAndStopLoss
@@ -2294,7 +2303,7 @@ virtual std::shared_future<std::any> createOrderWithTakeProfitAndStopLoss(
                                   this->has,
                                   std::string(
                                       "createOrderWithTakeProfitAndStopLoss")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(
                                   this->has,
@@ -2307,33 +2316,33 @@ virtual std::shared_future<std::any> createOrderWithTakeProfitAndStopLoss(
                throw NotSupported(toString(
                    add(this->id, std::string(" createOrderWithTakeProfitAndStop"
                                              "Loss() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createOrders(std::any orders, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createOrders(ccxt::any orders, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" createOrders() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelOrder(std::any id, std::any symbol = std::any{},
-            std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelOrder(ccxt::any id, ccxt::any symbol = ccxt::any{},
+            ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" cancelOrder() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
@@ -2349,14 +2358,14 @@ cancelOrder(std::any id, std::any symbol = std::any{},
  * @returns {object} an [order structure]{@link
  * https://docs.ccxt.com/?id=order-structure}
  */
-virtual std::shared_future<std::any>
-cancelOrderWithClientOrderId(std::any clientOrderId,
-                             std::any symbol = std::any{},
-                             std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelOrderWithClientOrderId(ccxt::any clientOrderId,
+                             ccxt::any symbol = ccxt::any{},
+                             ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
-               std::any extendedParams = this->extend(
+             [=]() mutable -> ccxt::any {
+               ccxt::any extendedParams = this->extend(
                    params, ccxt::dict{
                                {std::string("clientOrderId"), clientOrderId},
                            });
@@ -2366,16 +2375,16 @@ cancelOrderWithClientOrderId(std::any clientOrderId,
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelOrders(std::any ids, std::any symbol = std::any{},
-             std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelOrders(ccxt::any ids, ccxt::any symbol = ccxt::any{},
+             ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" cancelOrders() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
@@ -2391,13 +2400,13 @@ cancelOrders(std::any ids, std::any symbol = std::any{},
  * @returns {object} an [order structure]{@link
  * https://docs.ccxt.com/?id=order-structure}
  */
-virtual std::shared_future<std::any>
-cancelOrdersWithClientOrderIds(std::any clientOrderIds,
-                               std::any symbol = std::any{},
-                               std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelOrdersWithClientOrderIds(ccxt::any clientOrderIds,
+                               ccxt::any symbol = ccxt::any{},
+                               ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
-                      std::any extendedParams = this->extend(
+                    [=]() mutable -> ccxt::any {
+                      ccxt::any extendedParams = this->extend(
                           params,
                           ccxt::dict{
                               {std::string("clientOrderIds"), clientOrderIds},
@@ -2408,23 +2417,24 @@ cancelOrdersWithClientOrderIds(std::any clientOrderIds,
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelAllOrders(std::any symbol = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelAllOrders(ccxt::any symbol = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" cancelAllOrders() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-cancelUnifiedOrder(std::any order, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+cancelUnifiedOrder(ccxt::any order, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return this->cancelOrder(
                           this->safeString(order, std::string("id")),
                           this->safeString(order, std::string("symbol")),
@@ -2433,17 +2443,17 @@ cancelUnifiedOrder(std::any order, std::any params = ccxt::dict{}) {
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOrders(std::any symbol = std::any{}, std::any since = std::any{},
-            std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOrders(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+            ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::
       async(std::launch::deferred,
-            [=]() mutable -> std::any {
+            [=]() mutable -> ccxt::any {
               if (isTrue(
                       isTrue((isTrue(!isEqual(
                                   ::getValue(this->has,
                                              std::string("fetchOpenOrders")),
-                                  std::any{})) &&
+                                  ccxt::any{})) &&
                               isTrue(!isEqual(
                                   ::getValue(this->has,
                                              std::string("fetchOpenOrders")),
@@ -2451,7 +2461,7 @@ fetchOrders(std::any symbol = std::any{}, std::any since = std::any{},
                       isTrue((isTrue(!isEqual(
                                   ::getValue(this->has,
                                              std::string("fetchClosedOrders")),
-                                  std::any{})) &&
+                                  ccxt::any{})) &&
                               isTrue(!isEqual(
                                   ::getValue(this->has,
                                              std::string("fetchClosedOrders")),
@@ -2465,52 +2475,53 @@ fetchOrders(std::any symbol = std::any{}, std::any since = std::any{},
               throw NotSupported(toString(
                   add(this->id,
                       std::string(" fetchOrders() is not supported yet"))));
-              return std::any{};
+              return ccxt::any{};
             })
           .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOrderTrades(std::any id, std::any symbol = std::any{},
-                 std::any since = std::any{}, std::any limit = std::any{},
-                 std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOrderTrades(ccxt::any id, ccxt::any symbol = ccxt::any{},
+                 ccxt::any since = ccxt::any{}, ccxt::any limit = ccxt::any{},
+                 ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchOrderTrades() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchOrders(std::any symbol = std::any{}, std::any since = std::any{},
-            std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchOrders(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+            ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(" watchOrders() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchOpenOrders(std::any symbol = std::any{}, std::any since = std::any{},
-                std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchOpenOrders(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+                ccxt::any limit = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has, std::string("fetchOrders")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has, std::string("fetchOrders")),
                               false)))) {
-                 std::any orders = awaitValue(
+                 ccxt::any orders = awaitValue(
                      this->fetchOrders(symbol, since, limit, params));
                  return this->filterBy(orders, std::string("status"),
                                        std::string("open"));
@@ -2518,24 +2529,25 @@ fetchOpenOrders(std::any symbol = std::any{}, std::any since = std::any{},
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchOpenOrders() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchClosedOrders(std::any symbol = std::any{}, std::any since = std::any{},
-                  std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchClosedOrders(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+                  ccxt::any limit = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(!isEqual(
                               ::getValue(this->has, std::string("fetchOrders")),
-                              std::any{})) &&
+                              ccxt::any{})) &&
                           isTrue(!isEqual(
                               ::getValue(this->has, std::string("fetchOrders")),
                               false)))) {
-                 std::any orders = awaitValue(
+                 ccxt::any orders = awaitValue(
                      this->fetchOrders(symbol, since, limit, params));
                  return this->filterBy(orders, std::string("status"),
                                        std::string("closed"));
@@ -2543,59 +2555,58 @@ fetchClosedOrders(std::any symbol = std::any{}, std::any since = std::any{},
                throw NotSupported(toString(add(
                    this->id,
                    std::string(" fetchClosedOrders() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchCanceledOrders(std::any symbol = std::any{}, std::any since = std::any{},
-                    std::any limit = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any> fetchCanceledOrders(
+    ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+    ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(
                           this->id,
                           std::string(
                               " fetchCanceledOrders() is not supported yet"))));
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchMyTrades(std::any symbol = std::any{}, std::any since = std::any{},
-              std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchMyTrades(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+              ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" fetchMyTrades() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-watchMyTrades(std::any symbol = std::any{}, std::any since = std::any{},
-              std::any limit = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+watchMyTrades(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+              ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                throw NotSupported(toString(
                    add(this->id,
                        std::string(" watchMyTrades() is not supported yet"))));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createLimitOrder(std::any symbol, std::any side, std::any amount,
-                 std::any price, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createLimitOrder(ccxt::any symbol, ccxt::any side, ccxt::any amount,
+                 ccxt::any price, ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(
                           this->createOrder(symbol, std::string("limit"), side,
                                             amount, price, params));
@@ -2603,11 +2614,12 @@ createLimitOrder(std::any symbol, std::any side, std::any amount,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createMarketOrder(std::any symbol, std::any side, std::any amount,
-                  std::any price = std::any{}, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createMarketOrder(ccxt::any symbol, ccxt::any side, ccxt::any amount,
+                  ccxt::any price = ccxt::any{},
+                  ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(
                           this->createOrder(symbol, std::string("market"), side,
                                             amount, price, params));
@@ -2615,11 +2627,11 @@ createMarketOrder(std::any symbol, std::any side, std::any amount,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createLimitBuyOrder(std::any symbol, std::any amount, std::any price,
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createLimitBuyOrder(ccxt::any symbol, ccxt::any amount, ccxt::any price,
+                    ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->createOrder(
                           symbol, std::string("limit"), std::string("buy"),
                           amount, price, params));
@@ -2627,11 +2639,11 @@ createLimitBuyOrder(std::any symbol, std::any amount, std::any price,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createLimitSellOrder(std::any symbol, std::any amount, std::any price,
-                     std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createLimitSellOrder(ccxt::any symbol, ccxt::any amount, ccxt::any price,
+                     ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->createOrder(
                           symbol, std::string("limit"), std::string("sell"),
                           amount, price, params));
@@ -2639,41 +2651,41 @@ createLimitSellOrder(std::any symbol, std::any amount, std::any price,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createMarketBuyOrder(std::any symbol, std::any amount,
-                     std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createMarketBuyOrder(ccxt::any symbol, ccxt::any amount,
+                     ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->createOrder(
                           symbol, std::string("market"), std::string("buy"),
-                          amount, std::any{}, params));
+                          amount, ccxt::any{}, params));
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createMarketSellOrder(std::any symbol, std::any amount,
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createMarketSellOrder(ccxt::any symbol, ccxt::any amount,
+                      ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       return awaitValue(this->createOrder(
                           symbol, std::string("market"), std::string("sell"),
-                          amount, std::any{}, params));
+                          amount, ccxt::any{}, params));
                     })
       .share();
 }
 
-virtual std::shared_future<std::any>
-createPostOnlyOrder(std::any symbol, std::any type, std::any side,
-                    std::any amount, std::any price = std::any{},
-                    std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createPostOnlyOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                    ccxt::any amount, ccxt::any price = ccxt::any{},
+                    ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createPostOnlyOrder")),
-                              std::any{})) ||
+                              ccxt::any{})) ||
                           isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createPostOnlyOrder")),
@@ -2683,7 +2695,7 @@ createPostOnlyOrder(std::any symbol, std::any type, std::any side,
                          std::string(
                              " createPostOnlyOrder() is not supported yet"))));
                }
-               std::any query =
+               ccxt::any query =
                    this->extend(params, ccxt::dict{
                                             {std::string("postOnly"), true},
                                         });
@@ -2693,17 +2705,17 @@ createPostOnlyOrder(std::any symbol, std::any type, std::any side,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createReduceOnlyOrder(std::any symbol, std::any type, std::any side,
-                      std::any amount, std::any price = std::any{},
-                      std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createReduceOnlyOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                      ccxt::any amount, ccxt::any price = ccxt::any{},
+                      ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createReduceOnlyOrder")),
-                              std::any{})) ||
+                              ccxt::any{})) ||
                           isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createReduceOnlyOrder")),
@@ -2713,7 +2725,7 @@ createReduceOnlyOrder(std::any symbol, std::any type, std::any side,
                      std::string(
                          " createReduceOnlyOrder() is not supported yet"))));
                }
-               std::any query =
+               ccxt::any query =
                    this->extend(params, ccxt::dict{
                                             {std::string("reduceOnly"), true},
                                         });
@@ -2723,17 +2735,18 @@ createReduceOnlyOrder(std::any symbol, std::any type, std::any side,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createStopOrder(std::any symbol, std::any type, std::any side, std::any amount,
-                std::any price = std::any{}, std::any triggerPrice = std::any{},
-                std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createStopOrder(ccxt::any symbol, ccxt::any type, ccxt::any side,
+                ccxt::any amount, ccxt::any price = ccxt::any{},
+                ccxt::any triggerPrice = ccxt::any{},
+                ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createStopOrder")),
-                              std::any{})) ||
+                              ccxt::any{})) ||
                           isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createStopOrder")),
@@ -2742,12 +2755,12 @@ createStopOrder(std::any symbol, std::any type, std::any side, std::any amount,
                      this->id,
                      std::string(" createStopOrder() is not supported yet"))));
                }
-               if (isTrue(isEqual(triggerPrice, std::any{}))) {
+               if (isTrue(isEqual(triggerPrice, ccxt::any{}))) {
                  throw ArgumentsRequired(toString(
                      add(this->id, std::string(" create_stop_order() requires "
                                                "a stopPrice argument"))));
                }
-               std::any query = this->extend(
+               ccxt::any query = this->extend(
                    params, ccxt::dict{
                                {std::string("stopPrice"), triggerPrice},
                            });
@@ -2757,17 +2770,17 @@ createStopOrder(std::any symbol, std::any type, std::any side, std::any amount,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createStopLimitOrder(std::any symbol, std::any side, std::any amount,
-                     std::any price, std::any triggerPrice,
-                     std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createStopLimitOrder(ccxt::any symbol, ccxt::any side, ccxt::any amount,
+                     ccxt::any price, ccxt::any triggerPrice,
+                     ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createStopLimitOrder")),
-                              std::any{})) ||
+                              ccxt::any{})) ||
                           isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createStopLimitOrder")),
@@ -2777,7 +2790,7 @@ createStopLimitOrder(std::any symbol, std::any side, std::any amount,
                          std::string(
                              " createStopLimitOrder() is not supported yet"))));
                }
-               std::any query = this->extend(
+               ccxt::any query = this->extend(
                    params, ccxt::dict{
                                {std::string("stopPrice"), triggerPrice},
                            });
@@ -2787,16 +2800,16 @@ createStopLimitOrder(std::any symbol, std::any side, std::any amount,
       .share();
 }
 
-virtual std::shared_future<std::any>
-createStopMarketOrder(std::any symbol, std::any side, std::any amount,
-                      std::any triggerPrice, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+createStopMarketOrder(ccxt::any symbol, ccxt::any side, ccxt::any amount,
+                      ccxt::any triggerPrice, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createStopMarketOrder")),
-                              std::any{})) ||
+                              ccxt::any{})) ||
                           isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("createStopMarketOrder")),
@@ -2806,26 +2819,26 @@ createStopMarketOrder(std::any symbol, std::any side, std::any amount,
                      std::string(
                          " createStopMarketOrder() is not supported yet"))));
                }
-               std::any query = this->extend(
+               ccxt::any query = this->extend(
                    params, ccxt::dict{
                                {std::string("stopPrice"), triggerPrice},
                            });
                return awaitValue(this->createOrder(symbol,
                                                    std::string("market"), side,
-                                                   amount, std::any{}, query));
+                                                   amount, ccxt::any{}, query));
              })
       .share();
 }
 
-virtual std::shared_future<std::any>
-fetchTradingFee(std::any symbol, std::any params = ccxt::dict{}) {
+virtual std::shared_future<ccxt::any>
+fetchTradingFee(ccxt::any symbol, ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                if (isTrue(isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("fetchTradingFees")),
-                              std::any{})) ||
+                              ccxt::any{})) ||
                           isTrue(isEqual(
                               ::getValue(this->has,
                                          std::string("fetchTradingFees")),
@@ -2834,7 +2847,7 @@ fetchTradingFee(std::any symbol, std::any params = ccxt::dict{}) {
                      this->id,
                      std::string(" fetchTradingFee() is not supported yet"))));
                }
-               std::any fees = awaitValue(this->fetchTradingFees(params));
+               ccxt::any fees = awaitValue(this->fetchTradingFees(params));
                return this->safeDict(fees, symbol);
              })
       .share();

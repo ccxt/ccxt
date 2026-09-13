@@ -5,11 +5,11 @@
 int main () {
     try {
         ccxt::ExchangeBase parser;
-        const std::any v = parser.parseJson (std::string ("{\"serverTime\":1788834211451}"));
+        const ccxt::any v = parser.parseJson (std::string ("{\"serverTime\":1788834211451}"));
         std::cout << "small int ok: " << str (parser.json (v)) << std::endl;
-        const std::any v2 = parser.parseJson (std::string ("{\"id\":2880534893454904000}"));
+        const ccxt::any v2 = parser.parseJson (std::string ("{\"id\":2880534893454904000}"));
         std::cout << "big int ok: " << str (parser.json (v2)) << std::endl;
-        const std::any v3 = parser.parseJson (std::string ("{\"a\":1.5,\"b\":[1,2],\"s\":\"x\"}"));
+        const ccxt::any v3 = parser.parseJson (std::string ("{\"a\":1.5,\"b\":[1,2],\"s\":\"x\"}"));
         std::cout << "mixed ok: " << str (parser.json (v3)) << std::endl;
         return 0;
     } catch (const std::exception& e) {

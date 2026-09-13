@@ -9,7 +9,7 @@ namespace pro {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_binance(std::any config) {
+std::shared_ptr<ExchangeBase> create_binance(ccxt::any config) {
   return newExchange<ccxt::pro::binance>(config);
 }
 

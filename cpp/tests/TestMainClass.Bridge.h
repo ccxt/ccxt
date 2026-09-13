@@ -12,7 +12,7 @@
 // tests.ts itself must resolve to a member here: dump, getCliArgValue, initExchange,
 // callExchangeMethodDynamically, callMethod, getTestFiles(Sync), ioFileRead/Exists,
 // exitScript, get/setExchangeProp, the WS stubs, and the exchange/… property
-// plumbing (getProperty/setProperty/callDynamically over a std::any holding a
+// plumbing (getProperty/setProperty/callDynamically over a ccxt::any holding a
 // std::shared_ptr<ExchangeBase>).
 
 #include "BaseTest.Bridge.h"
@@ -53,32 +53,32 @@ public:
         return false;
     }
 
-    static std::any getLang () { return std::string ("C++"); }
-    static std::any getExt () { return std::string ("cpp"); }
-    static std::any getEnvVars () { return ccxt::dict {}; }
-    static std::any getRootDir () { return ccxt::testutils::rootDir (); }
+    static ccxt::any getLang () { return std::string ("C++"); }
+    static ccxt::any getExt () { return std::string ("cpp"); }
+    static ccxt::any getEnvVars () { return ccxt::dict {}; }
+    static ccxt::any getRootDir () { return ccxt::testutils::rootDir (); }
     static bool isWindows () { return false; }
     static bool isLinux () { return true; }
     static bool isAmd64 () { return true; }
-    static std::any isNullValue (std::any value) { return !value.has_value (); }
-    static std::any close (std::any exchange) {
+    static ccxt::any isNullValue (ccxt::any value) { return !value.has_value (); }
+    static ccxt::any close (ccxt::any exchange) {
         // reject pending ws futures + drop the clients, then await the close
-        return awaitValue (unwrapExchange (exchange)->close (std::any {}));
+        return awaitValue (unwrapExchange (exchange)->close (ccxt::any {}));
     }
 
-    // Called inside catch blocks: `std::any e = getRootException (ex)`. The call
+    // Called inside catch blocks: `ccxt::any e = getRootException (ex)`. The call
     // itself would slice `ex` down to std::exception (losing the concrete ccxt
     // error type), so ignore the argument and capture the in-flight exception —
     // std::current_exception() is still valid here. isInstanceOf/exceptionMessage
     // understand the exception_ptr payload.
-    static std::any getRootException (std::any exc) {
+    static ccxt::any getRootException (ccxt::any exc) {
         if (auto p = std::current_exception ()) {
-            return std::any (p);
+            return ccxt::any (p);
         }
         return exc;
     }
 
-    static void exitScript (std::any code = std::any (0)) {
+    static void exitScript (ccxt::any code = ccxt::any (0)) {
         // The transpiled initInner calls exitScript(0) on success. Terminating here
         // would kill the C++ test binary mid-teardown; run-tests.js reads the
         // process exit code from main() instead.
@@ -88,11 +88,11 @@ public:
     template <typename... Args>
     static void dump (const Args&... args) {
         std::ostringstream stream;
-        ((stream << str (std::any (args)) << ' '), ...);
+        ((stream << str (ccxt::any (args)) << ' '), ...);
         std::cout << stream.str () << std::endl;
     }
 
-    static std::any ioFileRead (std::any path, std::any decode = std::any (true)) {
+    static ccxt::any ioFileRead (ccxt::any path, ccxt::any decode = ccxt::any (true)) {
         const std::string content = ccxt::testutils::readFile (str (path));
         if (decode.has_value () && isTrue (decode)) {
             ccxt::ExchangeBase parser;
@@ -101,20 +101,20 @@ public:
         return content;
     }
 
-    static std::any ioDirRead (std::any path) {
+    static ccxt::any ioDirRead (ccxt::any path) {
         ccxt::list out;
         const std::string dir = str (path);
         for (const auto& entry : std::filesystem::directory_iterator (dir)) {
-            out.push (std::any (entry.path ().filename ().string ()));
+            out.push (ccxt::any (entry.path ().filename ().string ()));
         }
         return out;
     }
 
-    static bool ioFileExists (std::any path) {
+    static bool ioFileExists (ccxt::any path) {
         return ccxt::testutils::fileExists (str (path));
     }
 
-    static std::any getExchangeProp (std::any exchange, std::any prop, std::any defaultValue = std::any {}) {
+    static ccxt::any getExchangeProp (ccxt::any exchange, ccxt::any prop, ccxt::any defaultValue = ccxt::any {}) {
         try {
             return getProperty (exchange, str (prop));
         } catch (const std::exception&) {
@@ -122,7 +122,7 @@ public:
         }
     }
 
-    static std::any setExchangeProp (std::any exchange, std::any prop, std::any value) {
+    static ccxt::any setExchangeProp (ccxt::any exchange, ccxt::any prop, ccxt::any value) {
         return setProperty (exchange, str (prop), value);
     }
 
@@ -130,44 +130,44 @@ public:
     // WS mocks — the pro layer is a non-goal; fail loudly if reached
     // -------------------------------------------------------------------------
 
-    static std::any setupWsMockTransport (std::any, std::any, std::any, std::any, std::any) {
-        return std::any {};
+    static ccxt::any setupWsMockTransport (ccxt::any, ccxt::any, ccxt::any, ccxt::any, ccxt::any) {
+        return ccxt::any {};
     }
-    static std::any setupWsMockTransport (std::any exchange, std::any url) {
+    static ccxt::any setupWsMockTransport (ccxt::any exchange, ccxt::any url) {
         // the static ws tests never dial: mark the client as connected so watch()
         // proceeds straight to subscription + future registration
         auto ex = unwrapExchange (exchange);
-        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        ccxt::ws::Client client = ccxt::any_cast<ccxt::ws::Client> (ex->client (url));
         client.mockConnect ();
-        return std::any (client);
+        return ccxt::any (client);
     }
-    static std::any injectWsMessage (std::any exchange, std::any url, std::any message) {
+    static ccxt::any injectWsMessage (ccxt::any exchange, ccxt::any url, ccxt::any message) {
         auto ex = unwrapExchange (exchange);
-        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        ccxt::ws::Client client = ccxt::any_cast<ccxt::ws::Client> (ex->client (url));
         // frames arrive as JSON strings; handleMessage parses the inner payload itself
-        std::any parsed = message;
+        ccxt::any parsed = message;
         if (message.has_value () && message.type () == typeid (std::string)) {
             ccxt::ExchangeBase parser;
-            parsed = parser.parseJson (std::any_cast<std::string> (message));
+            parsed = parser.parseJson (ccxt::any_cast<std::string> (message));
         }
-        ex->callDynamically ("handleMessage", ccxt::list { std::any (client), parsed });
-        return std::any {};
+        ex->callDynamically ("handleMessage", ccxt::list { ccxt::any (client), parsed });
+        return ccxt::any {};
     }
-    static std::any rejectPendingWsFutures (std::any exchange, std::any url) {
+    static ccxt::any rejectPendingWsFutures (ccxt::any exchange, ccxt::any url) {
         auto ex = unwrapExchange (exchange);
-        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        ccxt::ws::Client client = ccxt::any_cast<ccxt::ws::Client> (ex->client (url));
         if (std::getenv ("CCXT_WS_URL_TRACE")) {
             std::fprintf (stderr, "[ws-reject] url=%s pending=%d\n", client.url ().c_str (),
                           static_cast<int> (client.pendingFuturesCount ()));
         }
-        client.reject (std::any (std::string ("ExchangeError")),
+        client.reject (ccxt::any (std::string ("ExchangeError")),
                        "" /* every pending future */);
-        return std::any {};
+        return ccxt::any {};
     }
-    static std::any wsClientHasPendingFutures (std::any) { return false; }
-    static std::any wsClientHasPendingFutures (std::any exchange, std::any url) {
+    static ccxt::any wsClientHasPendingFutures (ccxt::any) { return false; }
+    static ccxt::any wsClientHasPendingFutures (ccxt::any exchange, ccxt::any url) {
         auto ex = unwrapExchange (exchange);
-        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        ccxt::ws::Client client = ccxt::any_cast<ccxt::ws::Client> (ex->client (url));
         bool pending = client.hasPendingFutures ();
         if (std::getenv ("CCXT_WS_URL_TRACE")) {
             std::fprintf (stderr, "[ws-pending] url=%s pending=%d\n", client.url ().c_str (),
@@ -175,42 +175,42 @@ public:
         }
         return pending;
     }
-    static std::any markWsTestCompleted (std::any exchange, std::any url) {
+    static ccxt::any markWsTestCompleted (ccxt::any exchange, ccxt::any url) {
         auto ex = unwrapExchange (exchange);
-        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        ccxt::ws::Client client = ccxt::any_cast<ccxt::ws::Client> (ex->client (url));
         if (std::getenv ("CCXT_WS_URL_TRACE")) {
             std::fprintf (stderr, "[ws-completed] url=%s\n", client.url ().c_str ());
         }
         client.markWsTestCompleted ();
-        return std::any {};
+        return ccxt::any {};
     }
-    static std::any isWsTestCompleted (std::any) { return false; }
-    static std::any isWsTestCompleted (std::any exchange, std::any url) {
+    static ccxt::any isWsTestCompleted (ccxt::any) { return false; }
+    static ccxt::any isWsTestCompleted (ccxt::any exchange, ccxt::any url) {
         auto ex = unwrapExchange (exchange);
-        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        ccxt::ws::Client client = ccxt::any_cast<ccxt::ws::Client> (ex->client (url));
         return client.isWsTestCompleted ();
     }
-    static std::any getWsSentMessages (std::any) { return ccxt::list {}; }
-    static std::any getWsSentMessages (std::any exchange, std::any url) {
+    static ccxt::any getWsSentMessages (ccxt::any) { return ccxt::list {}; }
+    static ccxt::any getWsSentMessages (ccxt::any exchange, ccxt::any url) {
         auto ex = unwrapExchange (exchange);
-        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
-        return std::any (client.sentMessagesView ());
+        ccxt::ws::Client client = ccxt::any_cast<ccxt::ws::Client> (ex->client (url));
+        return ccxt::any (client.sentMessagesView ());
     }
 
     // -------------------------------------------------------------------------
-    // exchange plumbing over std::any-held shared_ptr<ExchangeBase>
+    // exchange plumbing over ccxt::any-held shared_ptr<ExchangeBase>
     // -------------------------------------------------------------------------
 
-    static std::shared_ptr<ccxt::ExchangeBase> unwrapExchange (std::any exchange) {
+    static std::shared_ptr<ccxt::ExchangeBase> unwrapExchange (ccxt::any exchange) {
         if (!exchange.has_value ()) {
             throw ccxt::ArgumentsRequired ("exchange is undefined");
         }
         try {
-            return std::any_cast<std::shared_ptr<ccxt::ExchangeBase>> (exchange);
+            return ccxt::any_cast<std::shared_ptr<ccxt::ExchangeBase>> (exchange);
         } catch (const std::bad_any_cast&) {
             // maybe it was stored as a raw pointer by some path
             try {
-                auto* raw = std::any_cast<ccxt::ExchangeBase*> (exchange);
+                auto* raw = ccxt::any_cast<ccxt::ExchangeBase*> (exchange);
                 return std::shared_ptr<ccxt::ExchangeBase> (raw);
             } catch (const std::bad_any_cast&) {
                 throw ccxt::ArgumentsRequired ("not an exchange instance");
@@ -218,48 +218,48 @@ public:
         }
     }
 
-    static std::any getProperty (std::any exchange, std::any name) {
+    static ccxt::any getProperty (ccxt::any exchange, ccxt::any name) {
         return unwrapExchange (exchange)->getProperty (str (name));
     }
 
-    static std::any setProperty (std::any exchange, std::any name, std::any value) {
+    static ccxt::any setProperty (ccxt::any exchange, ccxt::any name, ccxt::any value) {
         return unwrapExchange (exchange)->setProperty (str (name), value);
     }
 
-    static std::any callDynamically (std::any exchange, std::any name, std::any args) {
+    static ccxt::any callDynamically (ccxt::any exchange, ccxt::any name, ccxt::any args) {
         return unwrapExchange (exchange)->callDynamically (str (name), args);
     }
 
-    static std::any callExchangeMethodDynamically (std::any exchange, std::any methodName, std::any args) {
+    static ccxt::any callExchangeMethodDynamically (ccxt::any exchange, ccxt::any methodName, ccxt::any args) {
         return unwrapExchange (exchange)->callDynamically (str (methodName), args);
     }
 
-    static std::any callExchangeMethodDynamicallySync (std::any, std::any, std::any) {
+    static ccxt::any callExchangeMethodDynamicallySync (ccxt::any, ccxt::any, ccxt::any) {
         throw ccxt::NotSupported ("only async methods apply in the test framework");
     }
 
-    static std::any callOverridenMethod (std::any exchange, std::any methodName, std::any args) {
+    static ccxt::any callOverridenMethod (ccxt::any exchange, ccxt::any methodName, ccxt::any args) {
         return callExchangeMethodDynamically (exchange, methodName, args);
     }
 
-    static std::any callMethodSync (std::any, std::any, std::any, std::any, std::any) {
+    static ccxt::any callMethodSync (ccxt::any, ccxt::any, ccxt::any, ccxt::any, ccxt::any) {
         return ccxt::dict {};
     }
 
-    static std::any isSync () {
+    static ccxt::any isSync () {
         return getCliArgValue ("--sync");
     }
 
-    static std::any jsonParse (std::any elem) {
+    static ccxt::any jsonParse (ccxt::any elem) {
         ccxt::ExchangeBase parser;   // reuse the runtime's JSON parser
         return parser.parseJson (str (elem));
     }
 
-    static std::any jsonStringify (std::any elem) {
+    static ccxt::any jsonStringify (ccxt::any elem) {
         return ::jsonStringify (elem);
     }
 
-    static std::any convertAscii (std::any input) {
+    static ccxt::any convertAscii (ccxt::any input) {
         return input;   // stub, exactly like the C# bridge
     }
 
@@ -267,32 +267,32 @@ public:
         return std::string ("[std::exception] ") + e.what ();
     }
 
-    static std::string exceptionMessage (const std::any& e) {
+    static std::string exceptionMessage (const ccxt::any& e) {
         // getRootException wraps the in-flight exception_ptr; unwrap for the message
         if (e.type () == typeid (std::exception_ptr)) {
             try {
-                std::rethrow_exception (std::any_cast<std::exception_ptr> (e));
+                std::rethrow_exception (ccxt::any_cast<std::exception_ptr> (e));
             } catch (const std::exception& real) {
                 return std::string ("[") + typeid (real).name () + "] " + real.what ();
             } catch (...) {
                 return "[unknown exception]";
             }
         }
-        return std::string ("[std::any] ") + str (e);
+        return std::string ("[ccxt::any] ") + str (e);
     }
 
     // tests.helpers.ts: swap the transport for a canned response and hand the
     // (still fully functional) exchange back — the C++ counterpart of
     // exchange.fetch = setFetchResponse
-    static std::any setFetchResponse (std::any exchange, std::any response) {
+    static ccxt::any setFetchResponse (ccxt::any exchange, ccxt::any response) {
         auto ex = unwrapExchange (exchange);
-        ex->fetchImpl = [response] (std::any, std::any, std::any, std::any) -> std::any {
+        ex->fetchImpl = [response] (ccxt::any, ccxt::any, ccxt::any, ccxt::any) -> ccxt::any {
             return response;
         };
-        return std::any (std::shared_ptr<ccxt::ExchangeBase> (ex));
+        return ccxt::any (std::shared_ptr<ccxt::ExchangeBase> (ex));
     }
 
-    static std::any setFetchResponseSync (std::any exchange, std::any response) {
+    static ccxt::any setFetchResponseSync (ccxt::any exchange, ccxt::any response) {
         return setFetchResponse (exchange, response);
     }
 
@@ -300,39 +300,39 @@ public:
     // exchange construction + test file registry
     // -------------------------------------------------------------------------
 
-    static std::any initExchange (std::any exchangeIdAny, std::any exchangeArgs, std::any isWs = std::any (false)) {
+    static ccxt::any initExchange (ccxt::any exchangeIdAny, ccxt::any exchangeArgs, ccxt::any isWs = ccxt::any (false)) {
         const std::string id = str (exchangeIdAny);
         const bool ws = isTrue (isWs);   // ws static tests construct ccxt.pro instances
-        std::any config = exchangeArgs.has_value () ? exchangeArgs : std::any (ccxt::dict {});
+        ccxt::any config = exchangeArgs.has_value () ? exchangeArgs : ccxt::any (ccxt::dict {});
         // merge credentials from keys.json when present
         const std::string keysPath = ccxt::testutils::rootDir () + "keys.json";
         if (ccxt::testutils::fileExists (keysPath)) {
             ccxt::ExchangeBase parser;   // reuse the runtime's JSON parser
-            const std::any keys = parser.parseJson (ccxt::testutils::readFile (keysPath));
-            const std::any mine = getValue (keys, std::string (id));
+            const ccxt::any keys = parser.parseJson (ccxt::testutils::readFile (keysPath));
+            const ccxt::any mine = getValue (keys, std::string (id));
             if (ccxt::isDict (mine) && ccxt::isDict (config)) {
-                for (const auto& kv : std::any_cast<ccxt::dict> (mine).entries ()) {
-                    std::any_cast<ccxt::dict> (config).set (kv.first, kv.second);
+                for (const auto& kv : ccxt::any_cast<ccxt::dict> (mine).entries ()) {
+                    ccxt::any_cast<ccxt::dict> (config).set (kv.first, kv.second);
                 }
             }
         }
         // stored as shared_ptr<ExchangeBase> so unwrapExchange can cast it back;
         // the per-exchange factories live in the generated tu_*.cpp units
         if (ws) {
-            return std::any (ccxt::pro::factory::createProExchange (id, config));
+            return ccxt::any (ccxt::pro::factory::createProExchange (id, config));
         }
-        return std::any (ccxt::factory::createExchange (id, config));
+        return ccxt::any (ccxt::factory::createExchange (id, config));
     }
 
-    std::any getTestFilesSync (std::any properties, std::any ws = std::any (false)) {
+    ccxt::any getTestFilesSync (ccxt::any properties, ccxt::any ws = ccxt::any (false)) {
         (void) ws;
         ccxt::dict out;
         if (ccxt::isList (properties)) {
             // C# appends "features" to the property list (BaseTest.Helpers.cs) because
             // exchange.has does not carry it, yet test.features.ts exists for every venue.
             // ccxt::list is reference-semantic, so build a detached copy before appending.
-            ccxt::list props (std::any_cast<ccxt::list> (properties).items ());
-            props.push (std::any (std::string ("features")));
+            ccxt::list props (ccxt::any_cast<ccxt::list> (properties).items ());
+            props.push (ccxt::any (std::string ("features")));
             for (const auto& keyAny : props.items ()) {
                 const std::string key = str (keyAny);
                 if (testRegistry ().count (key)) {
@@ -343,12 +343,12 @@ public:
         return out;
     }
 
-    std::any getTestFiles (std::any properties, std::any ws = std::any (false)) {
+    ccxt::any getTestFiles (ccxt::any properties, ccxt::any ws = ccxt::any (false)) {
         return getTestFilesSync (properties, ws);
     }
 
-    std::any callMethod (std::any testFiles, std::any methodName, std::any exchange,
-                         std::any skippedProperties, std::any args) {
+    ccxt::any callMethod (ccxt::any testFiles, ccxt::any methodName, ccxt::any exchange,
+                         ccxt::any skippedProperties, ccxt::any args) {
         (void) testFiles;
         const std::string name = str (methodName);
         const auto& registry = testRegistry ();
@@ -369,8 +369,8 @@ public:
     // never report a green exit.
     long totalTestFailures () const {
         long failures = 0;
-        const auto flag = [] (const std::any& v) {
-            return v.has_value () && std::any_cast<bool> (v);
+        const auto flag = [] (const ccxt::any& v) {
+            return v.has_value () && ccxt::any_cast<bool> (v);
         };
         if (flag (requestTestsFailed)) failures++;
         if (flag (responseTestsFailed)) failures++;

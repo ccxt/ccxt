@@ -13,18 +13,18 @@ int main () {
         std::ifstream f ("/tmp/toobit-hr.json");
         std::stringstream buf;
         buf << f.rdbuf ();
-        const std::any parsed = ex->parseJson (buf.str ());
+        const ccxt::any parsed = ex->parseJson (buf.str ());
         std::cout << "httpResponse parsed: " << (parsed.has_value () ? "yes" : "NO") << std::endl;
-        const std::any symbols = ex->safeList (parsed, std::string ("symbols"), ccxt::list {});
+        const ccxt::any symbols = ex->safeList (parsed, std::string ("symbols"), ccxt::list {});
         std::cout << "symbols len: " << ccxt::toLong (getArrayLength (symbols)) << std::endl;
         // safeDict on options
-        const std::any info = ex->safeDict (ex->getProperty ("options"), std::string ("exchangeInfo"));
+        const ccxt::any info = ex->safeDict (ex->getProperty ("options"), std::string ("exchangeInfo"));
         std::cout << "options.exchangeInfo set: " << (info.has_value () ? "yes" : "no") << std::endl;
         // simulate the harness: set the mock response then call fetchMarkets
-        ex->fetchImpl = [parsed] (std::any, std::any, std::any, std::any) -> std::any {
+        ex->fetchImpl = [parsed] (ccxt::any, ccxt::any, ccxt::any, ccxt::any) -> ccxt::any {
             return parsed;
         };
-        const std::any mk = ccxt::awaitValue (ex->callDynamically (std::string ("fetchMarkets"), ccxt::list {}));
+        const ccxt::any mk = ccxt::awaitValue (ex->callDynamically (std::string ("fetchMarkets"), ccxt::list {}));
         std::cout << "fetchMarkets len: " << ccxt::toLong (getArrayLength (mk)) << std::endl;
         // replicate the harness: markets/currencies from fixture files in the config
         ccxt::ExchangeBase loader;
@@ -36,10 +36,10 @@ int main () {
         config.set ("markets", loader.parseJson (mbuf.str ()));
         config.set ("currencies", loader.parseJson (cbuf.str ()));
         auto ex2 = ccxt::factory::createExchange (std::string ("toobit"), config);
-        ex2->fetchImpl = [parsed] (std::any, std::any, std::any, std::any) -> std::any {
+        ex2->fetchImpl = [parsed] (ccxt::any, ccxt::any, ccxt::any, ccxt::any) -> ccxt::any {
             return parsed;
         };
-        const std::any mk2 = ccxt::awaitValue (ex2->callDynamically (std::string ("fetchMarkets"), ccxt::list {}));
+        const ccxt::any mk2 = ccxt::awaitValue (ex2->callDynamically (std::string ("fetchMarkets"), ccxt::list {}));
         std::cout << "fetchMarkets (with fixture markets) len: " << ccxt::toLong (getArrayLength (mk2)) << std::endl;
     } catch (const std::exception& e) {
         std::cout << "[ERROR] " << e.what () << std::endl;

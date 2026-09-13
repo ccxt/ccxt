@@ -192,13 +192,13 @@ std::string encodeShortStringHex (const std::string& text) {
 }
 
 // a typed-data leaf value -> felt (BigInt-ish parse with shortstring fallback)
-void feltOf (const std::any& value, BIGNUM* out) {
+void feltOf (const ccxt::any& value, BIGNUM* out) {
     if (!value.has_value ()) {
         BN_zero (out);
         return;
     }
     if (value.type () == typeid (bool)) {
-        if (std::any_cast<bool> (value)) BN_one (out); else BN_zero (out);
+        if (ccxt::any_cast<bool> (value)) BN_one (out); else BN_zero (out);
         return;
     }
     if (isStr (value)) {
@@ -390,10 +390,10 @@ std::string encodeTypeLegacy (const std::map<std::string, Fields>& types, const 
 }
 
 void structHashLegacy (const std::map<std::string, Fields>& types, const std::string& name,
-                       const std::any& data, BIGNUM* out);
+                       const ccxt::any& data, BIGNUM* out);
 
 void encodeLeafOrStruct (const std::map<std::string, Fields>& types, const std::string& type,
-                         const std::any& value, BIGNUM* out) {
+                         const ccxt::any& value, BIGNUM* out) {
     if (types.count (type)) {
         structHashLegacy (types, type, value, out);
         return;
@@ -402,7 +402,7 @@ void encodeLeafOrStruct (const std::map<std::string, Fields>& types, const std::
 }
 
 void structHashLegacy (const std::map<std::string, Fields>& types, const std::string& name,
-                       const std::any& data, BIGNUM* out) {
+                       const ccxt::any& data, BIGNUM* out) {
     const auto it = types.find (name);
     if (it == types.end ()) {
         throw NotSupported ("starknet typed data: unknown struct '" + name + "'");
@@ -414,14 +414,14 @@ void structHashLegacy (const std::map<std::string, Fields>& types, const std::st
     starknetKeccakNum (encodeTypeLegacy (types, name), owned.back ().get ());
     elements.push_back (owned.back ().get ());
     for (const auto& field : it->second) {
-        std::any value = isDict (data) ? std::any_cast<dict> (data).get (field.first) : std::any {};
+        ccxt::any value = isDict (data) ? ccxt::any_cast<dict> (data).get (field.first) : ccxt::any {};
         if (!field.second.empty () && field.second.back () == '*') {
             // array: hashOnElements over the element encodings
             const std::string base = field.second.substr (0, field.second.size () - 1);
             std::vector<BnPtr> elemOwned;
             std::vector<BIGNUM*> elemHashes;
             if (isList (value)) {
-                for (const auto& item : std::any_cast<list> (value).items ()) {
+                for (const auto& item : ccxt::any_cast<list> (value).items ()) {
                     elemOwned.push_back (makeBn ());
                     encodeLeafOrStruct (types, base, item, elemOwned.back ().get ());
                     elemHashes.push_back (elemOwned.back ().get ());
@@ -439,16 +439,16 @@ void structHashLegacy (const std::map<std::string, Fields>& types, const std::st
     hashOnElements (elements, out);
 }
 
-Fields parseFieldList (const std::any& fieldsAny) {
+Fields parseFieldList (const ccxt::any& fieldsAny) {
     if (!isList (fieldsAny)) {
         throw NotSupported ("starknet typed data: struct fields must be an array");
     }
     Fields fields;
-    for (const auto& item : std::any_cast<list> (fieldsAny).items ()) {
+    for (const auto& item : ccxt::any_cast<list> (fieldsAny).items ()) {
         if (!isDict (item)) {
             throw NotSupported ("starknet typed data: field descriptor must be an object");
         }
-        const dict field = std::any_cast<dict> (item);
+        const dict field = ccxt::any_cast<dict> (item);
         fields.push_back ({::str (field.get ("name")), ::str (field.get ("type"))});
     }
     return fields;
@@ -694,9 +694,9 @@ std::string messageHashLegacy (const ccxt::dict& messageTypes,
     }
     types["StarkNetDomain"] = {{"name", "felt"}, {"chainId", "felt"}, {"version", "felt"}};
     BnPtr domainHash = makeBn ();
-    structHashLegacy (types, "StarkNetDomain", std::any (domain), domainHash.get ());
+    structHashLegacy (types, "StarkNetDomain", ccxt::any (domain), domainHash.get ());
     BnPtr primaryHash = makeBn ();
-    structHashLegacy (types, primaryType, std::any (message), primaryHash.get ());
+    structHashLegacy (types, primaryType, ccxt::any (message), primaryHash.get ());
     BnPtr starknetMessage = makeBn ();
     BIGNUM* rawMsg = starknetMessage.get ();
     BN_hex2bn (&rawMsg, encodeShortStringHex ("StarkNet Message").substr (2).c_str ());

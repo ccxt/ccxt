@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_cex(std::any config) {
+std::shared_ptr<ExchangeBase> create_cex(ccxt::any config) {
   return newExchange<cex>(config);
 }
 

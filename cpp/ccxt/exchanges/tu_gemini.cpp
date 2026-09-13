@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_gemini(std::any config) {
+std::shared_ptr<ExchangeBase> create_gemini(ccxt::any config) {
   return newExchange<gemini>(config);
 }
 

@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_backpack(std::any config) {
+std::shared_ptr<ExchangeBase> create_backpack(ccxt::any config) {
   return newExchange<backpack>(config);
 }
 

@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bullish(std::any config) {
+std::shared_ptr<ExchangeBase> create_bullish(ccxt::any config) {
   return newExchange<bullish>(config);
 }
 

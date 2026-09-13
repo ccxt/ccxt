@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_hibachi(std::any config) {
+std::shared_ptr<ExchangeBase> create_hibachi(ccxt::any config) {
   return newExchange<hibachi>(config);
 }
 

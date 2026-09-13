@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_zaif(std::any config) {
+std::shared_ptr<ExchangeBase> create_zaif(ccxt::any config) {
   return newExchange<zaif>(config);
 }
 

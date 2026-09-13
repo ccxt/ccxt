@@ -12,23 +12,23 @@ void testIo() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleex")},
   });
-  std::any ms = exchange.milliseconds();
-  std::any fileName = add(add(std::string("ccxt-test-io-"), toString(ms)),
-                          std::string(".ccxtfile"));
+  ccxt::any ms = exchange.milliseconds();
+  ccxt::any fileName = add(add(std::string("ccxt-test-io-"), toString(ms)),
+                           std::string(".ccxtfile"));
   // upper tmp dir
-  std::any tempDir = exchange.getTempDir();
-  assertTrue(isTrue(!isEqual(tempDir, std::any{})) &&
+  ccxt::any tempDir = exchange.getTempDir();
+  assertTrue(isTrue(!isEqual(tempDir, ccxt::any{})) &&
                  isTrue(!isEqual(tempDir, std::string(""))),
              std::string("temp dir should not be empty"));
-  std::any filePath =
+  ccxt::any filePath =
       add(tempDir,
           fileName); // '../../../../../../../../../../../../tmp/' + fileName;
-  std::any fileContent = std::string("hello world");
+  ccxt::any fileContent = std::string("hello world");
   assertTrue(exchange.writeFile(filePath, fileContent),
              add(std::string("can not write file "), filePath));
   assertTrue(exchange.existsFile(filePath),
              add(std::string("file does not exist: "), filePath));
-  std::any readContent = exchange.readFile(filePath);
+  ccxt::any readContent = exchange.readFile(filePath);
   assertTrue(isEqual(readContent, fileContent),
              add(add(add(std::string("file content mismatch. Expected: "),
                          fileContent),

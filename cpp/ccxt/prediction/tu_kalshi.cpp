@@ -9,7 +9,7 @@ namespace prediction {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_kalshi(std::any config) {
+std::shared_ptr<ExchangeBase> create_kalshi(ccxt::any config) {
   return newExchange<ccxt::prediction::kalshi>(config);
 }
 

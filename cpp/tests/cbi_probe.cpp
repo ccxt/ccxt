@@ -13,14 +13,14 @@ int main () {
         std::ifstream f ("/tmp/cbi.json");
         std::stringstream buf;
         buf << f.rdbuf ();
-        const std::any parsed = ex->parseJson (buf.str ());
+        const ccxt::any parsed = ex->parseJson (buf.str ());
         std::cout << "parsed type: " << ::str (std::string (parsed.type ().name ())) << " len: " << ::str (::toString (getArrayLength (parsed))) << std::endl;
         if (ccxt::toLong (getArrayLength (parsed)) > 0) {
-            const std::any first = ::getValue (parsed, 0);
+            const ccxt::any first = ::getValue (parsed, 0);
             std::cout << "first symbol: " << ::str (ex->json (::getValue (first, std::string ("symbol")))) << std::endl;
         }
         // 2) fetchMarkets live
-        const std::any mk = ccxt::awaitValue (ex->callDynamically (std::string ("fetchMarkets"), ccxt::list {}));
+        const ccxt::any mk = ccxt::awaitValue (ex->callDynamically (std::string ("fetchMarkets"), ccxt::list {}));
         std::cout << "fetchMarkets count: " << ::str (::toString (getArrayLength (mk))) << std::endl;
     } catch (const std::exception& e) {
         std::cout << "[ERROR] " << e.what () << std::endl;

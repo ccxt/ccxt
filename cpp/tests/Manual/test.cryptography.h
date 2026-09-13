@@ -71,13 +71,13 @@ inline void testCryptography () {
     // generated from the repo's pinned ethers fork (typed-data.ts getEncoder).
     {
         ccxt::ExchangeBase ex;
-        const std::any domain = ccxt::dict {
+        const ccxt::any domain = ccxt::dict {
             { std::string ("name"), std::string ("Test") },
             { std::string ("version"), std::string ("1") },
             { std::string ("chainId"), 1 },
             { std::string ("verifyingContract"), std::string ("0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC") },
         };
-        const std::any types = ccxt::dict {
+        const ccxt::any types = ccxt::dict {
             { std::string ("Order"), ccxt::list {
                 ccxt::dict { { std::string ("name"), std::string ("legs") },
                              { std::string ("type"), std::string ("Leg[]") } } } },
@@ -87,13 +87,13 @@ inline void testCryptography () {
                 ccxt::dict { { std::string ("name"), std::string ("side") },
                              { std::string ("type"), std::string ("uint8") } } } },
         };
-        const std::any message = ccxt::dict {
+        const ccxt::any message = ccxt::dict {
             { std::string ("legs"), ccxt::list {
                 ccxt::dict { { std::string ("price"), std::string ("100") }, { std::string ("side"), 1 } },
                 ccxt::dict { { std::string ("price"), std::string ("200") }, { std::string ("side"), 0 } } } },
         };
-        const std::any encoded = ex.ethEncodeStructuredData (domain, types, message);
-        assertTrue (isEqual (toBase16 (std::any_cast<bytes> (encoded)),
+        const ccxt::any encoded = ex.ethEncodeStructuredData (domain, types, message);
+        assertTrue (isEqual (toBase16 (ccxt::any_cast<bytes> (encoded)),
             std::string ("1901"
                 "9a8af9fa0e0b9cc754673d55fcc039a94f1fa62a8ea41c8a977869f73d86b933"
                 "1287d85fcfc3713a33bd8724f32131f49ca37833681c7219bc2e7190471e0d23")));

@@ -6,13 +6,13 @@
 #include "../../BaseTest.Bridge.h"
 
 // forward declarations - TS hoists function declarations, C++ does not
-std::shared_future<std::any> testFetchHistoryBase();
-std::shared_future<std::any> testFetchHistory();
+std::shared_future<ccxt::any> testFetchHistoryBase();
+std::shared_future<ccxt::any> testFetchHistory();
 
-std::shared_future<std::any> testFetchHistoryBase() {
+std::shared_future<ccxt::any> testFetchHistoryBase() {
   return std::async(
              std::launch::deferred,
-             [=]() mutable -> std::any {
+             [=]() mutable -> ccxt::any {
                ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
                    {std::string("id"), std::string("sampleexchange")},
                    {std::string("fetchHistoryCacheSize"), 2},
@@ -22,8 +22,8 @@ std::shared_future<std::any> testFetchHistoryBase() {
                                         std::string("fetchHistoryCacheSize")),
                            2),
                    std::string("fetchHistoryCacheSize should be 2"));
-               std::any trueAssertion =
-                   isEqual(exchange.parseNumber(std::any{}), std::any{});
+               ccxt::any trueAssertion =
+                   isEqual(exchange.parseNumber(ccxt::any{}), ccxt::any{});
                try {
                  awaitValue(exchange.fetch2(std::string("sample1")));
                } catch (const std::exception &error) {
@@ -53,7 +53,7 @@ std::shared_future<std::any> testFetchHistoryBase() {
                        "fetchHistoryCache should be an array with 2 elements"));
                assertTrue(isLessThan(add(1, 1), 3),
                           std::string("sample assertion"));
-               return std::any{};
+               return ccxt::any{};
              })
       .share();
 }
@@ -88,11 +88,11 @@ std::shared_future<std::any> testFetchHistoryBase() {
 //     'The second element in fetchHistoryCache is : ' +
 //     finalCache[1]['request']['url']); assert (1 + 1 < 3, 'sample assertion');
 // }
-std::shared_future<std::any> testFetchHistory() {
+std::shared_future<ccxt::any> testFetchHistory() {
   return std::async(std::launch::deferred,
-                    [=]() mutable -> std::any {
+                    [=]() mutable -> ccxt::any {
                       awaitValue(testFetchHistoryBase());
-                      return std::any{};
+                      return ccxt::any{};
                     })
       .share();
 }

@@ -9,7 +9,7 @@ namespace prediction {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_hyperliquid(std::any config) {
+std::shared_ptr<ExchangeBase> create_hyperliquid(ccxt::any config) {
   return newExchange<ccxt::prediction::hyperliquid>(config);
 }
 

@@ -14,9 +14,9 @@ void testEncode() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any input = std::string("encode-test");
-  std::any encoded = exchange.encode(input);
-  std::any decoded = exchange.decode(encoded);
+  ccxt::any input = std::string("encode-test");
+  ccxt::any encoded = exchange.encode(input);
+  ccxt::any decoded = exchange.decode(encoded);
   assertTrue(isEqual(decoded, input),
              add(add(add(std::string("decoded should be equal to input, got "),
                          decoded),
@@ -27,9 +27,9 @@ void testDecode() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any input = std::string("decode-test");
-  std::any encoded = exchange.encode(input);
-  std::any decoded = exchange.decode(encoded);
+  ccxt::any input = std::string("decode-test");
+  ccxt::any encoded = exchange.encode(input);
+  ccxt::any decoded = exchange.decode(encoded);
   assertTrue(isEqual(decoded, input),
              add(add(add(std::string("decoded should be equal to input, got "),
                          decoded),

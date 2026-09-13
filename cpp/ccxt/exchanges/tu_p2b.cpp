@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_p2b(std::any config) {
+std::shared_ptr<ExchangeBase> create_p2b(ccxt::any config) {
   return newExchange<p2b>(config);
 }
 

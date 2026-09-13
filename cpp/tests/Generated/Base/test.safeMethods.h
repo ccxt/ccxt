@@ -6,7 +6,7 @@
 #include "../../BaseTest.Bridge.h"
 
 // forward declarations - TS hoists function declarations, C++ does not
-std::any helperDefaultInputDict();
+ccxt::any helperDefaultInputDict();
 void testSafeString();
 void testSafeValue();
 void testSafeDict();
@@ -19,7 +19,7 @@ void testSafeBool();
 void testCacheSafeCalls();
 void testSafeMethods();
 
-std::any helperDefaultInputDict() {
+ccxt::any helperDefaultInputDict() {
   return ccxt::dict{
       {std::string("i"), 1},
       {std::string("f"), 0.123},
@@ -36,7 +36,7 @@ std::any helperDefaultInputDict() {
       {std::string("strNumber"), std::string("3")},
       {std::string("zeroNumeric"), 0},
       {std::string("zeroString"), std::string("0")},
-      {std::string("undefined"), std::any{}},
+      {std::string("undefined"), ccxt::any{}},
       {std::string("emptyString"), std::string("")},
       {std::string("randomList"), ccxt::list{std::string("Hi"), 4}},
       {std::string("floatNumeric"), 0.123},
@@ -48,8 +48,8 @@ void testSafeString() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleex")},
   });
-  std::any inputDict = helperDefaultInputDict();
-  std::any inputList = ccxt::list{std::string("Hi"), 2};
+  ccxt::any inputDict = helperDefaultInputDict();
+  ccxt::any inputList = ccxt::list{std::string("Hi"), 2};
   // safeString
   assertTrue(isEqual(exchange.safeString(inputDict, std::string("i")),
                      std::string("1")),
@@ -58,13 +58,13 @@ void testSafeString() {
                      std::string("0.123")),
              std::string("safeString failed for float"));
   assertTrue(
-      isEqual(exchange.safeString(inputDict, std::string("bool")), std::any{}),
+      isEqual(exchange.safeString(inputDict, std::string("bool")), ccxt::any{}),
       std::string("safeString failed for boolean"));
   assertTrue(
-      isEqual(exchange.safeString(inputDict, std::string("list")), std::any{}),
+      isEqual(exchange.safeString(inputDict, std::string("list")), ccxt::any{}),
       std::string("safeString failed for list"));
   assertTrue(
-      isEqual(exchange.safeString(inputDict, std::string("dict")), std::any{}),
+      isEqual(exchange.safeString(inputDict, std::string("dict")), ccxt::any{}),
       std::string("safeString failed for dict"));
   assertTrue(isEqual(exchange.safeString(inputDict, std::string("str")),
                      std::string("heLlo")),
@@ -79,10 +79,10 @@ void testSafeString() {
                      std::string("0")),
              std::string("safeString failed for zero string"));
   assertTrue(isEqual(exchange.safeString(inputDict, std::string("undefined")),
-                     std::any{}),
+                     ccxt::any{}),
              std::string("safeString failed for undefined"));
   assertTrue(isEqual(exchange.safeString(inputDict, std::string("emptyString")),
-                     std::any{}),
+                     ccxt::any{}),
              std::string("safeString failed for empty string"));
   assertTrue(isEqual(exchange.safeString(inputList, 0), std::string("Hi")),
              std::string("safeString failed for list element"));
@@ -126,7 +126,7 @@ void testSafeString() {
   assertTrue(isEqual(exchange.safeString2(inputList, 2, 0), std::string("Hi")));
   assertTrue(
       isEqual(exchange.safeString2(inputList, 2, std::string("emptyString")),
-              std::any{}));
+              ccxt::any{}));
   // safeStringN
   assertTrue(
       isEqual(exchange.safeStringN(inputDict, ccxt::list{std::string("a"),
@@ -152,7 +152,7 @@ void testSafeString() {
       isEqual(exchange.safeStringN(
                   inputDict, ccxt::list{std::string("a"), std::string("b"),
                                         std::string("emptyString")}),
-              std::any{}));
+              ccxt::any{}));
   assertTrue(isEqual(exchange.safeStringN(inputList, ccxt::list{3, 2, 0}),
                      std::string("Hi")));
   // With defaults
@@ -174,7 +174,7 @@ void testSafeString() {
               std::string("3")));
   assertTrue(
       isEqual(exchange.safeStringLower(inputDict, std::string("emptyString")),
-              std::any{}));
+              ccxt::any{}));
   assertTrue(
       isEqual(exchange.safeStringLower(inputList, 0), std::string("hi")));
   // With defaults
@@ -197,7 +197,7 @@ void testSafeString() {
                      std::string("3")));
   assertTrue(isEqual(exchange.safeStringLower2(inputDict, std::string("a"),
                                                std::string("emptyString")),
-                     std::any{}));
+                     ccxt::any{}));
   assertTrue(
       isEqual(exchange.safeStringLower2(inputList, 2, 0), std::string("hi")));
   // With defaults
@@ -225,7 +225,7 @@ void testSafeString() {
       isEqual(exchange.safeStringLowerN(
                   inputDict, ccxt::list{std::string("a"), std::string("b"),
                                         std::string("emptyString")}),
-              std::any{}));
+              ccxt::any{}));
   assertTrue(
       isEqual(exchange.safeStringLowerN(
                   inputDict, ccxt::list{std::string("a"), std::string("b"),
@@ -252,7 +252,7 @@ void testSafeString() {
               std::string("3")));
   assertTrue(
       isEqual(exchange.safeStringUpper(inputDict, std::string("emptyString")),
-              std::any{}));
+              ccxt::any{}));
   assertTrue(
       isEqual(exchange.safeStringUpper(inputList, 0), std::string("HI")));
   // With defaults
@@ -272,7 +272,7 @@ void testSafeString() {
                      std::string("HELLO")));
   assertTrue(isEqual(exchange.safeStringUpper2(inputDict, std::string("a"),
                                                std::string("emptyString")),
-                     std::any{}));
+                     ccxt::any{}));
   assertTrue(isEqual(exchange.safeStringUpper2(inputDict, std::string("a"),
                                                std::string("strNumber")),
                      std::string("3")));
@@ -303,7 +303,7 @@ void testSafeString() {
       isEqual(exchange.safeStringUpperN(
                   inputDict, ccxt::list{std::string("a"), std::string("b"),
                                         std::string("emptyString")}),
-              std::any{}));
+              ccxt::any{}));
   assertTrue(
       isEqual(exchange.safeStringUpperN(
                   inputDict, ccxt::list{std::string("a"), std::string("b"),
@@ -323,19 +323,19 @@ void testSafeValue() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleex")},
   });
-  std::any inputDict = helperDefaultInputDict();
-  std::any inputList = ccxt::list{std::string("Hi"), 2};
-  std::any compareDict = ccxt::dict{
+  ccxt::any inputDict = helperDefaultInputDict();
+  ccxt::any inputList = ccxt::list{std::string("Hi"), 2};
+  ccxt::any compareDict = ccxt::dict{
       {std::string("a"), 1},
   };
-  std::any compareList = ccxt::list{1, 2, 3};
+  ccxt::any compareList = ccxt::list{1, 2, 3};
   // safeValue
   assertTrue(isEqual(exchange.safeValue(inputDict, std::string("i")), 1));
   assertTrue(isEqual(exchange.safeValue(inputDict, std::string("f")), 0.123));
   assertTrue(isEqual(exchange.safeValue(inputDict, std::string("bool")), true));
   assertTrue(
       equals(exchange.safeValue(inputDict, std::string("list")), compareList));
-  std::any dictObject = exchange.safeValue(inputDict, std::string("dict"));
+  ccxt::any dictObject = exchange.safeValue(inputDict, std::string("dict"));
   assertTrue(equals(dictObject, compareDict));
   assertTrue(isEqual(exchange.safeValue(inputDict, std::string("str")),
                      std::string("heLlo")));
@@ -406,26 +406,26 @@ void testSafeDict() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleex")},
   });
-  std::any inputDict = helperDefaultInputDict();
-  std::any inputList = ccxt::list{std::string("Hi"), 2};
-  std::any compareDict = ccxt::dict{
+  ccxt::any inputDict = helperDefaultInputDict();
+  ccxt::any inputList = ccxt::list{std::string("Hi"), 2};
+  ccxt::any compareDict = ccxt::dict{
       {std::string("a"), 1},
   };
   // safeDict
-  std::any dictObject = exchange.safeDict(inputDict, std::string("dict"));
+  ccxt::any dictObject = exchange.safeDict(inputDict, std::string("dict"));
   assertTrue(equals(dictObject, compareDict));
-  std::any listObject = exchange.safeDict(inputDict, std::string("list"));
-  assertTrue(isEqual(listObject, std::any{}));
-  assertTrue(isEqual(exchange.safeDict(inputList, 1), std::any{}));
+  ccxt::any listObject = exchange.safeDict(inputDict, std::string("list"));
+  assertTrue(isEqual(listObject, ccxt::any{}));
+  assertTrue(isEqual(exchange.safeDict(inputList, 1), ccxt::any{}));
   // safeDict2
   dictObject =
       exchange.safeDict2(inputDict, std::string("a"), std::string("dict"));
   assertTrue(equals(dictObject, compareDict));
   listObject =
       exchange.safeDict2(inputDict, std::string("a"), std::string("list"));
-  assertTrue(isEqual(listObject, std::any{}));
+  assertTrue(isEqual(listObject, ccxt::any{}));
   // @ts-expect-error
-  assertTrue(isEqual(exchange.safeDict2(inputList, 2, 1), std::any{}));
+  assertTrue(isEqual(exchange.safeDict2(inputList, 2, 1), ccxt::any{}));
   // safeDictN
   dictObject = exchange.safeDictN(
       inputDict,
@@ -434,21 +434,21 @@ void testSafeDict() {
   listObject = exchange.safeDictN(
       inputDict,
       ccxt::list{std::string("a"), std::string("b"), std::string("list")});
-  assertTrue(isEqual(listObject, std::any{}));
+  assertTrue(isEqual(listObject, ccxt::any{}));
   assertTrue(
-      isEqual(exchange.safeDictN(inputList, ccxt::list{3, 2, 1}), std::any{}));
+      isEqual(exchange.safeDictN(inputList, ccxt::list{3, 2, 1}), ccxt::any{}));
 }
 void testSafeList() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleex")},
   });
-  std::any inputDict = helperDefaultInputDict();
-  std::any inputList = ccxt::list{std::string("Hi"), 2};
+  ccxt::any inputDict = helperDefaultInputDict();
+  ccxt::any inputList = ccxt::list{std::string("Hi"), 2};
   // safeList
   assertTrue(
-      isEqual(exchange.safeList(inputDict, std::string("dict")), std::any{}));
-  assertTrue(isEqual(exchange.safeList(inputList, 1), std::any{}));
-  std::any arrayOfDicts =
+      isEqual(exchange.safeList(inputDict, std::string("dict")), ccxt::any{}));
+  assertTrue(isEqual(exchange.safeList(inputList, 1), ccxt::any{}));
+  ccxt::any arrayOfDicts =
       exchange.safeList(inputDict, std::string("listOfDicts"));
   assertTrue(equals(::getValue(arrayOfDicts, 0), ccxt::dict{
                                                      {std::string("a"), 1},
@@ -456,26 +456,26 @@ void testSafeList() {
   // safeList2
   assertTrue(isEqual(
       exchange.safeList2(inputDict, std::string("a"), std::string("dict")),
-      std::any{}));
+      ccxt::any{}));
   // @ts-expect-error
-  assertTrue(isEqual(exchange.safeList2(inputList, 2, 1), std::any{}));
+  assertTrue(isEqual(exchange.safeList2(inputList, 2, 1), ccxt::any{}));
   // safeListN
   assertTrue(
       isEqual(exchange.safeListN(inputDict,
                                  ccxt::list{std::string("a"), std::string("b"),
                                             std::string("dict")}),
-              std::any{}));
+              ccxt::any{}));
   assertTrue(
-      isEqual(exchange.safeListN(inputList, ccxt::list{3, 2, 1}), std::any{}));
+      isEqual(exchange.safeListN(inputList, ccxt::list{3, 2, 1}), ccxt::any{}));
 }
 void testSafeInteger() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleex")},
   });
   // safeInteger
-  std::any inputDict = helperDefaultInputDict();
-  std::any inputList = ccxt::list{std::string("Hi"), 2};
-  std::any factor = 10;
+  ccxt::any inputDict = helperDefaultInputDict();
+  ccxt::any inputList = ccxt::list{std::string("Hi"), 2};
+  ccxt::any factor = 10;
   assertTrue(isEqual(exchange.safeInteger(inputDict, std::string("i")), 1));
   assertTrue(isEqual(exchange.safeInteger(inputDict, std::string("f")), 0));
   assertTrue(
@@ -511,7 +511,7 @@ void testSafeInteger() {
   assertTrue(
       isEqual(exchange.safeIntegerOmitZero(inputDict, std::string("i")), 1));
   assertTrue(isEqual(exchange.safeIntegerOmitZero(inputDict, std::string("f")),
-                     std::any{}));
+                     ccxt::any{}));
   assertTrue(isEqual(
       exchange.safeIntegerOmitZero(inputDict, std::string("strNumber")), 3));
   assertTrue(isEqual(exchange.safeIntegerOmitZero(inputList, 1), 2));
@@ -572,8 +572,8 @@ void testSafeTimestamp() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleex")},
   });
-  std::any inputDict = helperDefaultInputDict();
-  std::any inputList = ccxt::list{std::string("Hi"), 2};
+  ccxt::any inputDict = helperDefaultInputDict();
+  ccxt::any inputList = ccxt::list{std::string("Hi"), 2};
   // safeTimestamp
   assertTrue(
       isEqual(exchange.safeTimestamp(inputDict, std::string("i")), 1000));
@@ -615,8 +615,8 @@ void testSafeFloat() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleex")},
   });
-  std::any inputDict = helperDefaultInputDict();
-  std::any inputList = ccxt::list{std::string("Hi"), 2};
+  ccxt::any inputDict = helperDefaultInputDict();
+  ccxt::any inputList = ccxt::list{std::string("Hi"), 2};
   // safeFloat
   // @ts-expect-error
   assertTrue(
@@ -667,8 +667,8 @@ void testSafeNumber() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleex")},
   });
-  std::any inputDict = helperDefaultInputDict();
-  std::any inputList = ccxt::list{std::string("Hi"), 2};
+  ccxt::any inputDict = helperDefaultInputDict();
+  ccxt::any inputList = ccxt::list{std::string("Hi"), 2};
   // safeNumber
   assertTrue(isEqual(exchange.safeNumber(inputDict, std::string("i")),
                      exchange.parseNumber(1)));
@@ -678,14 +678,14 @@ void testSafeNumber() {
                      exchange.parseNumber(3)));
   assertTrue(
       isEqual(exchange.safeNumber(inputList, 1), exchange.parseNumber(2)));
+  assertTrue(isEqual(exchange.safeNumber(inputList, std::string("bool")),
+                     ccxt::any{}));
+  assertTrue(isEqual(exchange.safeNumber(inputList, std::string("list")),
+                     ccxt::any{}));
+  assertTrue(isEqual(exchange.safeNumber(inputList, std::string("dict")),
+                     ccxt::any{}));
   assertTrue(
-      isEqual(exchange.safeNumber(inputList, std::string("bool")), std::any{}));
-  assertTrue(
-      isEqual(exchange.safeNumber(inputList, std::string("list")), std::any{}));
-  assertTrue(
-      isEqual(exchange.safeNumber(inputList, std::string("dict")), std::any{}));
-  assertTrue(
-      isEqual(exchange.safeNumber(inputList, std::string("str")), std::any{}));
+      isEqual(exchange.safeNumber(inputList, std::string("str")), ccxt::any{}));
   // safeNumber2
   assertTrue(isEqual(
       exchange.safeNumber2(inputDict, std::string("a"), std::string("i")),
@@ -719,37 +719,37 @@ void testSafeNumber() {
   // safeNumberOmitZero
   assertTrue(isEqual(
       exchange.safeNumberOmitZero(inputDict, std::string("zeroNumeric")),
-      std::any{}));
+      ccxt::any{}));
   assertTrue(
       isEqual(exchange.safeNumberOmitZero(inputDict, std::string("zeroString")),
-              std::any{}));
+              ccxt::any{}));
   assertTrue(
       isEqual(exchange.safeNumberOmitZero(inputDict, std::string("undefined")),
-              std::any{}));
+              ccxt::any{}));
   assertTrue(isEqual(
       exchange.safeNumberOmitZero(inputDict, std::string("emptyString")),
-      std::any{}));
+      ccxt::any{}));
   assertTrue(!isEqual(
       exchange.safeNumberOmitZero(inputDict, std::string("floatNumeric")),
-      std::any{}));
+      ccxt::any{}));
   assertTrue(!isEqual(
       exchange.safeNumberOmitZero(inputDict, std::string("floatString")),
-      std::any{}));
+      ccxt::any{}));
 }
 void testSafeBool() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleex")},
   });
-  std::any inputDict = helperDefaultInputDict();
-  std::any inputList = ccxt::list{std::string("Hi"), 2};
+  ccxt::any inputDict = helperDefaultInputDict();
+  ccxt::any inputList = ccxt::list{std::string("Hi"), 2};
   // safeBool
   assertTrue(isEqual(exchange.safeBool(inputDict, std::string("bool")), true));
-  assertTrue(isEqual(exchange.safeBool(inputList, 1), std::any{}));
+  assertTrue(isEqual(exchange.safeBool(inputList, 1), ccxt::any{}));
   // safeBool2
   assertTrue(isEqual(
       exchange.safeBool2(inputDict, std::string("a"), std::string("bool")),
       true));
-  assertTrue(isEqual(exchange.safeBool2(inputList, 2, 1), std::any{}));
+  assertTrue(isEqual(exchange.safeBool2(inputList, 2, 1), ccxt::any{}));
   // safeBoolN
   assertTrue(
       isEqual(exchange.safeBoolN(inputDict,
@@ -757,7 +757,7 @@ void testSafeBool() {
                                             std::string("bool")}),
               true));
   assertTrue(
-      isEqual(exchange.safeBoolN(inputList, ccxt::list{3, 2, 1}), std::any{}));
+      isEqual(exchange.safeBoolN(inputList, ccxt::list{3, 2, 1}), ccxt::any{}));
 }
 void testCacheSafeCalls() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
@@ -776,12 +776,12 @@ void testCacheSafeCalls() {
   ccxt::ws::ArrayCacheByTimestamp arrayCacheByTimestamp =
       ccxt::ws::ArrayCacheByTimestamp(100);
   ::wsAppend(arrayCacheByTimestamp, ccxt::list{1000, 50000, 1, 2, 3});
-  std::any arrayCacheByTimestampData =
+  ccxt::any arrayCacheByTimestampData =
       exchange.safeValue(arrayCacheByTimestamp, std::string("Data"));
-  std::any cacheByTimestampData =
-      (isTrue(!isEqual(arrayCacheByTimestampData, std::any{}))
-           ? std::any(arrayCacheByTimestampData)
-           : std::any(arrayCacheByTimestamp));
+  ccxt::any cacheByTimestampData =
+      (isTrue(!isEqual(arrayCacheByTimestampData, ccxt::any{}))
+           ? ccxt::any(arrayCacheByTimestampData)
+           : ccxt::any(arrayCacheByTimestamp));
   assertTrue(isGreaterThan(getArrayLength(cacheByTimestampData), 0));
   // Test cache types - ArrayCacheBySymbolById
   ccxt::ws::ArrayCacheBySymbolById arrayCacheBySymbolById =
@@ -793,21 +793,21 @@ void testCacheSafeCalls() {
                  {std::string("price"), 3000},
              });
   // Use direct property access for object attributes
-  std::any arrayCacheBySymbolByIdHashmap =
+  ccxt::any arrayCacheBySymbolByIdHashmap =
       ::getValue(arrayCacheBySymbolById, std::string("hashmap"));
   assertTrue(!isEqual(
       ::getValue(arrayCacheBySymbolByIdHashmap, std::string("ETH/USDT")),
-      std::any{}));
+      ccxt::any{}));
   assertTrue(!isEqual(::getValue(::getValue(arrayCacheBySymbolByIdHashmap,
                                             std::string("ETH/USDT")),
                                  std::string("order2")),
-                      std::any{}));
-  std::any arrayCacheBySymbolByIdData =
+                      ccxt::any{}));
+  ccxt::any arrayCacheBySymbolByIdData =
       exchange.safeValue(arrayCacheBySymbolById, std::string("Data"));
-  std::any cacheBySymbolByIdData =
-      (isTrue(!isEqual(arrayCacheBySymbolByIdData, std::any{}))
-           ? std::any(arrayCacheBySymbolByIdData)
-           : std::any(arrayCacheBySymbolById));
+  ccxt::any cacheBySymbolByIdData =
+      (isTrue(!isEqual(arrayCacheBySymbolByIdData, ccxt::any{}))
+           ? ccxt::any(arrayCacheBySymbolByIdData)
+           : ccxt::any(arrayCacheBySymbolById));
   assertTrue(isGreaterThan(getArrayLength(cacheBySymbolByIdData), 0));
   // Test cache types - ArrayCacheBySymbolBySide
   ccxt::ws::ArrayCacheBySymbolBySide arrayCacheBySymbolBySide =
@@ -819,75 +819,75 @@ void testCacheSafeCalls() {
                  {std::string("price"), 400},
              });
   // Use direct property access for object attributes
-  std::any arrayCacheBySymbolBySideHashmap =
+  ccxt::any arrayCacheBySymbolBySideHashmap =
       ::getValue(arrayCacheBySymbolBySide, std::string("hashmap"));
   assertTrue(!isEqual(
       ::getValue(arrayCacheBySymbolBySideHashmap, std::string("BNB/USDT")),
-      std::any{}));
-  std::any arrayCacheBySymbolBySideData =
+      ccxt::any{}));
+  ccxt::any arrayCacheBySymbolBySideData =
       exchange.safeValue(arrayCacheBySymbolBySide, std::string("Data"));
-  std::any cacheBySymbolBySideData =
-      (isTrue(!isEqual(arrayCacheBySymbolBySideData, std::any{}))
-           ? std::any(arrayCacheBySymbolBySideData)
-           : std::any(arrayCacheBySymbolBySide));
+  ccxt::any cacheBySymbolBySideData =
+      (isTrue(!isEqual(arrayCacheBySymbolBySideData, ccxt::any{}))
+           ? ccxt::any(arrayCacheBySymbolBySideData)
+           : ccxt::any(arrayCacheBySymbolBySide));
   assertTrue(isGreaterThan(getArrayLength(cacheBySymbolBySideData), 0));
   // Test map[string]map[string]interface{} (::getValue(ArrayCache,
   // std::string("hashmap"))) Use direct property access for object attributes
-  std::any arrayCacheHashmapDirect =
+  ccxt::any arrayCacheHashmapDirect =
       ::getValue(arrayCache, std::string("hashmap"));
-  std::any nestedMap = arrayCacheHashmapDirect;
+  ccxt::any nestedMap = arrayCacheHashmapDirect;
   assertTrue(isEqual(exchange.safeValue(nestedMap, std::string("NONEXISTENT")),
-                     std::any{}));
+                     ccxt::any{}));
   // Test map[string]*ArrayCache (Trades structure)
-  std::any tradesMap = ccxt::dict{
+  ccxt::any tradesMap = ccxt::dict{
       {std::string("BTC/USDT"), arrayCache},
       {std::string("ETH/USDT"), arrayCacheBySymbolById},
   };
-  std::any stored = exchange.safeValue(tradesMap, std::string("BTC/USDT"));
-  assertTrue(!isEqual(stored, std::any{}));
+  ccxt::any stored = exchange.safeValue(tradesMap, std::string("BTC/USDT"));
+  assertTrue(!isEqual(stored, ccxt::any{}));
   // Use direct property access for hashmap (object attribute)
-  std::any retrievedArrayCacheHashmap =
+  ccxt::any retrievedArrayCacheHashmap =
       ::getValue(stored, std::string("hashmap"));
-  assertTrue(!isEqual(retrievedArrayCacheHashmap, std::any{}));
-  std::any retrievedArrayCacheBySymbolById =
+  assertTrue(!isEqual(retrievedArrayCacheHashmap, ccxt::any{}));
+  ccxt::any retrievedArrayCacheBySymbolById =
       exchange.safeValue(tradesMap, std::string("ETH/USDT"));
-  assertTrue(!isEqual(retrievedArrayCacheBySymbolById, std::any{}));
+  assertTrue(!isEqual(retrievedArrayCacheBySymbolById, ccxt::any{}));
   // Use direct property access for hashmap (object attribute)
-  std::any retrievedArrayCacheBySymbolByIdHashmap =
+  ccxt::any retrievedArrayCacheBySymbolByIdHashmap =
       ::getValue(retrievedArrayCacheBySymbolById, std::string("hashmap"));
-  assertTrue(!isEqual(retrievedArrayCacheBySymbolByIdHashmap, std::any{}));
+  assertTrue(!isEqual(retrievedArrayCacheBySymbolByIdHashmap, ccxt::any{}));
   assertTrue(isEqual(exchange.safeValue(tradesMap, std::string("NONEXISTENT")),
-                     std::any{}));
+                     ccxt::any{}));
   // Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
-  std::any ohlcvInnerMap = ccxt::dict{
+  ccxt::any ohlcvInnerMap = ccxt::dict{
       {std::string("1m"), arrayCacheByTimestamp},
       {std::string("5m"), ccxt::ws::ArrayCacheByTimestamp(100)},
   };
-  std::any retrievedArrayCacheByTimestamp =
+  ccxt::any retrievedArrayCacheByTimestamp =
       exchange.safeValue(ohlcvInnerMap, std::string("1m"));
-  assertTrue(!isEqual(retrievedArrayCacheByTimestamp, std::any{}));
+  assertTrue(!isEqual(retrievedArrayCacheByTimestamp, ccxt::any{}));
   // Use direct property access for object attributes
-  std::any retrievedArrayCacheByTimestampHashmap =
+  ccxt::any retrievedArrayCacheByTimestampHashmap =
       ::getValue(retrievedArrayCacheByTimestamp, std::string("hashmap"));
-  assertTrue(!isEqual(retrievedArrayCacheByTimestampHashmap, std::any{}));
+  assertTrue(!isEqual(retrievedArrayCacheByTimestampHashmap, ccxt::any{}));
   assertTrue(!isEqual(exchange.safeValue(ohlcvInnerMap, std::string("5m")),
-                      std::any{}));
+                      ccxt::any{}));
   assertTrue(
       isEqual(exchange.safeValue(ohlcvInnerMap, std::string("NONEXISTENT")),
-              std::any{}));
+              ccxt::any{}));
   // Test map[string]*ArrayCacheBySymbolBySide
-  std::any cacheBySideMap = ccxt::dict{
+  ccxt::any cacheBySideMap = ccxt::dict{
       {std::string("BTC/USDT"), arrayCacheBySymbolBySide},
   };
-  std::any retrievedArrayCacheBySymbolBySide =
+  ccxt::any retrievedArrayCacheBySymbolBySide =
       exchange.safeValue(cacheBySideMap, std::string("BTC/USDT"));
-  assertTrue(!isEqual(retrievedArrayCacheBySymbolBySide, std::any{}));
-  std::any retrievedArrayCacheBySymbolBySideHashmap =
+  assertTrue(!isEqual(retrievedArrayCacheBySymbolBySide, ccxt::any{}));
+  ccxt::any retrievedArrayCacheBySymbolBySideHashmap =
       ::getValue(retrievedArrayCacheBySymbolBySide, std::string("hashmap"));
-  assertTrue(!isEqual(retrievedArrayCacheBySymbolBySideHashmap, std::any{}));
+  assertTrue(!isEqual(retrievedArrayCacheBySymbolBySideHashmap, ccxt::any{}));
   assertTrue(
       isEqual(exchange.safeValue(cacheBySideMap, std::string("NONEXISTENT")),
-              std::any{}));
+              ccxt::any{}));
 }
 void testSafeMethods() {
   testSafeString();

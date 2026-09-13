@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bitflyer(std::any config) {
+std::shared_ptr<ExchangeBase> create_bitflyer(ccxt::any config) {
   return newExchange<bitflyer>(config);
 }
 

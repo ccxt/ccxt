@@ -13,15 +13,15 @@ int main () {
         std::ifstream mf ("ts/src/test/static/markets/weex.json");
         std::stringstream mbuf;
         mbuf << mf.rdbuf ();
-        const std::any markets = ex->parseJson (mbuf.str ());
+        const ccxt::any markets = ex->parseJson (mbuf.str ());
         ex->setMarkets (markets);
         std::ifstream cf ("ts/src/test/static/currencies/weex.json");
         std::stringstream cbuf;
         cbuf << cf.rdbuf ();
-        const std::any currencies = ex->parseJson (cbuf.str ());
+        const ccxt::any currencies = ex->parseJson (cbuf.str ());
         ex->setProperty (std::string ("currencies"), currencies);
         // full harness credential/config surface (mirror the harness's silent setProperty)
-        const auto setSilent = [&] (const std::string& k, const std::any& v) {
+        const auto setSilent = [&] (const std::string& k, const ccxt::any& v) {
             try { ex->setProperty (k, v); } catch (const std::exception&) {}
         };
         setSilent ("apiKey", std::string ("key"));
@@ -39,32 +39,32 @@ int main () {
         std::ifstream f ("ts/src/test/static/response/weex.json");
         std::stringstream buf;
         buf << f.rdbuf ();
-        const std::any fixture = ex->parseJson (buf.str ());
+        const ccxt::any fixture = ex->parseJson (buf.str ());
         std::cout << "fixture type: " << ::str (std::string (fixture.type ().name ())) << std::endl;
-        const std::any methods = ::getValue (fixture, std::string ("methods"));
-        const std::any fos = ::getValue (methods, std::string ("fetchOpenOrders"));
+        const ccxt::any methods = ::getValue (fixture, std::string ("methods"));
+        const ccxt::any fos = ::getValue (methods, std::string ("fetchOpenOrders"));
         std::cout << "fetchOpenOrders len: " << ccxt::toLong (getArrayLength (fos)) << std::endl;
-        std::any target;
+        ccxt::any target;
         for (std::size_t i = 0; i < ccxt::toLong (getArrayLength (fos)); i++) {
-            const std::any entry = ::getValue (fos, static_cast<long long> (i));
-            const std::any desc = ::getValue (entry, std::string ("description"));
+            const ccxt::any entry = ::getValue (fos, static_cast<long long> (i));
+            const ccxt::any desc = ::getValue (entry, std::string ("description"));
             if (::str (desc).find ("preset tp sl") != std::string::npos) {
                 target = entry;
             }
         }
-        const std::any httpResponse = ::getValue (target, std::string ("httpResponse"));
+        const ccxt::any httpResponse = ::getValue (target, std::string ("httpResponse"));
         std::cout << "httpResponse len: " << ccxt::toLong (getArrayLength (httpResponse)) << std::endl;
-        const std::any first = ::getValue (httpResponse, static_cast<long long> (0));
-        const std::any algoIdRaw = ::getValue (first, std::string ("algoId"));
+        const ccxt::any first = ::getValue (httpResponse, static_cast<long long> (0));
+        const ccxt::any algoIdRaw = ::getValue (first, std::string ("algoId"));
         std::cout << "algoIdRaw type: " << ::str (std::string (algoIdRaw.type ().name ()))
                   << " str: '" << ::str (algoIdRaw) << "'" << std::endl;
-        ex->fetchImpl = [httpResponse] (std::any, std::any, std::any, std::any) -> std::any {
+        ex->fetchImpl = [httpResponse] (ccxt::any, ccxt::any, ccxt::any, ccxt::any) -> ccxt::any {
             return httpResponse;
         };
-        const std::any orders = ccxt::awaitValue (ex->callDynamically (std::string ("fetchOpenOrders"), ccxt::list {std::string ("BTC/USDT:USDT")}));
+        const ccxt::any orders = ccxt::awaitValue (ex->callDynamically (std::string ("fetchOpenOrders"), ccxt::list {std::string ("BTC/USDT:USDT")}));
         std::cout << "orders len: " << ccxt::toLong (getArrayLength (orders)) << std::endl;
         if (ccxt::toLong (getArrayLength (orders)) > 0) {
-            const std::any o0 = ::getValue (orders, static_cast<long long> (0));
+            const ccxt::any o0 = ::getValue (orders, static_cast<long long> (0));
             std::cout << "order id: " << ::str (::getValue (o0, std::string ("id"))) << std::endl;
         }
     } catch (const std::exception& e) {

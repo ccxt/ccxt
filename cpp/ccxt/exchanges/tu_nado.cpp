@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_nado(std::any config) {
+std::shared_ptr<ExchangeBase> create_nado(ccxt::any config) {
   return newExchange<nado>(config);
 }
 

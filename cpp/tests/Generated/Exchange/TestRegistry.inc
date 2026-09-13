@@ -8,296 +8,297 @@
 // the testFiles dict + callMethod; C# resolves them by reflection, C++ by this
 // table.
 struct TestEntry {
-  std::function<std::any(testMainClass *, std::any, std::any, std::any)> thunk;
+  std::function<ccxt::any(testMainClass *, ccxt::any, ccxt::any, ccxt::any)>
+      thunk;
 };
 
 inline const std::unordered_map<std::string, TestEntry> &testRegistry() {
   static const std::unordered_map<std::string, TestEntry> registry = {
       {std::string("afterConstruct"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testAfterConstruct(exchange, skippedProperties);
        }}},
       {std::string("createOrder"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testCreateOrder(exchange, skippedProperties, a0);
        }}},
       {std::string("features"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testFeatures(exchange, skippedProperties);
        }}},
       {std::string("fetchAccounts"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testFetchAccounts(exchange, skippedProperties);
        }}},
       {std::string("fetchBalance"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testFetchBalance(exchange, skippedProperties);
        }}},
       {std::string("fetchBorrowInterest"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
-         const std::any a1 = argv.size() > 1 ? argv[1] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
+         const ccxt::any a1 = argv.size() > 1 ? argv[1] : ccxt::any{};
          return self->testFetchBorrowInterest(exchange, skippedProperties, a0,
                                               a1);
        }}},
       {std::string("fetchClosedOrders"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchClosedOrders(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchCurrencies"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testFetchCurrencies(exchange, skippedProperties);
        }}},
       {std::string("fetchDepositWithdrawals"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchDepositWithdrawals(exchange, skippedProperties,
                                                   a0);
        }}},
       {std::string("fetchDeposits"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchDeposits(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchFundingRateHistory"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchFundingRateHistory(exchange, skippedProperties,
                                                   a0);
        }}},
       {std::string("fetchL2OrderBook"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchL2OrderBook(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchLastPrices"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchLastPrices(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchLedger"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchLedger(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchLedgerEntry"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchLedgerEntry(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchLeverageTiers"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchLeverageTiers(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchLiquidations"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchLiquidations(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchMarginMode"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchMarginMode(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchMarginModes"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchMarginModes(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchMarketLeverageTiers"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchMarketLeverageTiers(exchange, skippedProperties,
                                                    a0);
        }}},
       {std::string("fetchMarkets"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testFetchMarkets(exchange, skippedProperties);
        }}},
       {std::string("fetchMyLiquidations"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchMyLiquidations(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchMyTrades"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchMyTrades(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchOHLCV"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchOHLCV(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchOpenInterestHistory"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchOpenInterestHistory(exchange, skippedProperties,
                                                    a0);
        }}},
       {std::string("fetchOpenOrders"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchOpenOrders(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchOrderBook"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchOrderBook(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchOrderBooks"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testFetchOrderBooks(exchange, skippedProperties);
        }}},
       {std::string("fetchOrders"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchOrders(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchPositions"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchPositions(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchStatus"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testFetchStatus(exchange, skippedProperties);
        }}},
       {std::string("fetchTicker"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchTicker(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchTickers"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchTickers(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchTrades"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchTrades(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchTradingFee"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchTradingFee(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchTradingFees"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testFetchTradingFees(exchange, skippedProperties);
        }}},
       {std::string("fetchTransactionFees"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testFetchTransactionFees(exchange, skippedProperties);
        }}},
       {std::string("fetchTransfers"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchTransfers(exchange, skippedProperties, a0);
        }}},
       {std::string("fetchWithdrawals"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
-         const std::any a0 = argv.size() > 0 ? argv[0] : std::any{};
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
+         const ccxt::any a0 = argv.size() > 0 ? argv[0] : ccxt::any{};
          return self->testFetchWithdrawals(exchange, skippedProperties, a0);
        }}},
       {std::string("loadMarkets"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testLoadMarkets(exchange, skippedProperties);
        }}},
       {std::string("proxies"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testProxies(exchange, skippedProperties);
        }}},
       {std::string("signIn"),
-       TestEntry{[](testMainClass *self, std::any exchange,
-                    std::any skippedProperties, std::any args) -> std::any {
-         const auto &argv = std::any_cast<ccxt::list>(args).items();
+       TestEntry{[](testMainClass *self, ccxt::any exchange,
+                    ccxt::any skippedProperties, ccxt::any args) -> ccxt::any {
+         const auto &argv = ccxt::any_cast<ccxt::list>(args).items();
          return self->testSignIn(exchange, skippedProperties);
        }}},
   };

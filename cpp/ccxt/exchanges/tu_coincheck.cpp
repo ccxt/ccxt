@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_coincheck(std::any config) {
+std::shared_ptr<ExchangeBase> create_coincheck(ccxt::any config) {
   return newExchange<coincheck>(config);
 }
 

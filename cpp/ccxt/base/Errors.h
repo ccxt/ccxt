@@ -18,9 +18,9 @@ public:
   explicit BaseError(const std::string &message)
       : std::runtime_error(message) {}
   explicit BaseError(const char *message) : std::runtime_error(message) {}
-  // transpiled throw sites pass std::any (the result of toString)
-  explicit BaseError(const std::any &message)
-      : std::runtime_error(std::any_cast<std::string>(::toString(message))) {}
+  // transpiled throw sites pass ccxt::any (the result of toString)
+  explicit BaseError(const ccxt::any &message)
+      : std::runtime_error(ccxt::any_cast<std::string>(::toString(message))) {}
 };
 
 class ExchangeError : public BaseError {

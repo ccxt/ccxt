@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_digifinex(std::any config) {
+std::shared_ptr<ExchangeBase> create_digifinex(ccxt::any config) {
   return newExchange<digifinex>(config);
 }
 

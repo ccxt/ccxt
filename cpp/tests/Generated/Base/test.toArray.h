@@ -12,17 +12,17 @@ void testToArray() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("sampleexchange")},
   });
-  std::any obj1 = ccxt::dict{
+  ccxt::any obj1 = ccxt::dict{
       {std::string("a"), 1},
       {std::string("b"), 3},
       {std::string("c"), 2},
   };
-  std::any obj2 = ccxt::dict{
+  ccxt::any obj2 = ccxt::dict{
       {std::string("a"), std::string("x")},
       {std::string("b"), 2},
   };
-  std::any result1 = exchange.toArray(obj1);
-  std::any result2 = exchange.toArray(obj2);
+  ccxt::any result1 = exchange.toArray(obj1);
+  ccxt::any result2 = exchange.toArray(obj2);
   // we can't guarantee order of values in GO lang
   // assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray
   // (obj1), [ 1, 3, 2 ]); assertDeepEqual (exchange, undefined, 'testToArray',

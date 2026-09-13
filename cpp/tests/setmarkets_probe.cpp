@@ -27,14 +27,14 @@ int main (int argc, char** argv) {
     const auto exchange = ccxt::factory::createExchange ("binance", ccxt::dict {});
     ccxt::ExchangeBase parser;
     auto t0 = std::chrono::steady_clock::now ();
-    const std::any parsed = parser.parseJson (buf.str ());
+    const ccxt::any parsed = parser.parseJson (buf.str ());
     auto t1 = std::chrono::steady_clock::now ();
-    exchange->setMarkets (parsed, std::any {});
+    exchange->setMarkets (parsed, ccxt::any {});
     auto t2 = std::chrono::steady_clock::now ();
     // warm-up done; now the timed repetitions
     for (int i = 0; i < 3; i++) {
         auto s0 = std::chrono::steady_clock::now ();
-        exchange->setMarkets (parsed, std::any {});
+        exchange->setMarkets (parsed, ccxt::any {});
         auto s1 = std::chrono::steady_clock::now ();
         std::cerr << "setMarkets #" << i + 1 << ": "
                   << std::chrono::duration_cast<std::chrono::milliseconds> (s1 - s0).count () << "ms" << std::endl;

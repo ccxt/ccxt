@@ -9,7 +9,7 @@
 //   * race(): the first-arriving settlement wins; losers detach
 //
 // The Future is copyable and reference-semantic (shared Impl), so it can travel
-// through generated code inside a std::any, like the ws caches and orderbooks.
+// through generated code inside a ccxt::any, like the ws caches and orderbooks.
 
 #include <any>
 #include <condition_variable>
@@ -29,18 +29,18 @@ public:
         std::condition_variable cv;
         bool settled = false;
         bool rejected = false;
-        std::any value;
+        ccxt::any value;
         std::exception_ptr error;
         // settlement subscribers, invoked OUTSIDE the lock so a subscriber can
         // settle another future without deadlocking (Future.race does exactly that)
-        std::vector<std::pair<std::function<void (const std::any&)>,
+        std::vector<std::pair<std::function<void (const ccxt::any&)>,
                               std::function<void (const std::exception_ptr&)>>> listeners;
     };
 
     Future () : impl (std::make_shared<Impl> ()) {}
 
-    void resolve (const std::any& v) {
-        std::vector<std::pair<std::function<void (const std::any&)>,
+    void resolve (const ccxt::any& v) {
+        std::vector<std::pair<std::function<void (const ccxt::any&)>,
                               std::function<void (const std::exception_ptr&)>>> fires;
         {
             std::lock_guard<std::mutex> lock (impl->mutex);
@@ -64,7 +64,7 @@ public:
     }
 
     void reject (const std::exception_ptr& e) {
-        std::vector<std::pair<std::function<void (const std::any&)>,
+        std::vector<std::pair<std::function<void (const ccxt::any&)>,
                               std::function<void (const std::exception_ptr&)>>> fires;
         {
             std::lock_guard<std::mutex> lock (impl->mutex);
@@ -87,7 +87,7 @@ public:
     }
 
     // blocks until settled; returns the value or rethrows the stored error
-    std::any get () const {
+    ccxt::any get () const {
         std::unique_lock<std::mutex> lock (impl->mutex);
         impl->cv.wait (lock, [&] { return impl->settled; });
         if (impl->rejected) {
@@ -103,11 +103,11 @@ public:
 
     // synchronous settlement subscription: fires immediately if already settled,
     // else when resolve/reject lands (possibly from another thread)
-    void subscribe (const std::function<void (const std::any&)>& onFulfil,
+    void subscribe (const std::function<void (const ccxt::any&)>& onFulfil,
                     const std::function<void (const std::exception_ptr&)>& onReject) const {
         bool alreadySettled = false;
         bool alreadyRejected = false;
-        std::any v;
+        ccxt::any v;
         std::exception_ptr e;
         {
             std::lock_guard<std::mutex> lock (impl->mutex);
@@ -130,7 +130,7 @@ public:
         }
     }
 
-    static Future resolved (const std::any& v = std::any {}) {
+    static Future resolved (const ccxt::any& v = ccxt::any {}) {
         Future f;
         f.resolve (v);
         return f;
@@ -145,7 +145,7 @@ inline Future race (const std::vector<Future>& futures) {
     Future out;
     for (const auto& f : futures) {
         f.subscribe (
-            [=] (const std::any& v) mutable { out.resolve (v); },
+            [=] (const ccxt::any& v) mutable { out.resolve (v); },
             [=] (const std::exception_ptr& e) mutable { out.reject (e); });
     }
     return out;

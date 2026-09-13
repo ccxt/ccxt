@@ -7,20 +7,20 @@
 
 // forward declarations - TS hoists function declarations, C++ does not
 void testExtend();
-void tbfeCheckExtended(std::any extended, std::any hasSub);
+void tbfeCheckExtended(ccxt::any extended, ccxt::any hasSub);
 
 void testExtend() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
       {std::string("id"), std::string("regirock")},
   });
-  std::any obj1 = ccxt::dict{
+  ccxt::any obj1 = ccxt::dict{
       {std::string("a"), 1},
       {std::string("b"), ccxt::list{1, 2}},
       {std::string("c"), ccxt::list{ccxt::dict{
                              {std::string("test1"), 1},
                              {std::string("test2"), 1},
                          }}},
-      {std::string("d"), std::any{}},
+      {std::string("d"), ccxt::any{}},
       {std::string("e"), std::string("not_undefined")},
       {std::string("sub"),
        ccxt::dict{
@@ -30,13 +30,13 @@ void testExtend() {
                                   {std::string("test1"), 1},
                                   {std::string("test2"), 2},
                               }}},
-           {std::string("d"), std::any{}},
+           {std::string("d"), ccxt::any{}},
            {std::string("e"), std::string("not_undefined")},
            {std::string("other1"), std::string("x")},
        }},
       {std::string("other1"), std::string("x")},
   };
-  std::any obj2 = ccxt::dict{
+  ccxt::any obj2 = ccxt::dict{
       {std::string("a"), 2},
       {std::string("b"), ccxt::list{3, 4}},
       {std::string("c"), ccxt::list{ccxt::dict{
@@ -44,7 +44,7 @@ void testExtend() {
                              {std::string("test3"), 3},
                          }}},
       {std::string("d"), std::string("not_undefined")},
-      {std::string("e"), std::any{}},
+      {std::string("e"), ccxt::any{}},
       {std::string("sub"),
        ccxt::dict{
            {std::string("a"), 2},
@@ -54,20 +54,20 @@ void testExtend() {
                                   {std::string("test3"), 3},
                               }}},
            {std::string("d"), std::string("not_undefined")},
-           {std::string("e"), std::any{}},
+           {std::string("e"), ccxt::any{}},
            {std::string("other2"), std::string("y")},
        }},
       {std::string("other2"), std::string("y")},
   };
   // snapshot originals for mutation checks
-  std::any obj1SnapshotA = ::getValue(obj1, std::string("a"));
-  std::any obj1SnapshotB0 = ::getValue(::getValue(obj1, std::string("b")), 0);
-  std::any obj1SnapshotOther1 = ::getValue(obj1, std::string("other1"));
-  std::any obj2SnapshotA = ::getValue(obj2, std::string("a"));
-  std::any obj2SnapshotB0 = ::getValue(::getValue(obj2, std::string("b")), 0);
-  std::any obj2SnapshotOther2 = ::getValue(obj2, std::string("other2"));
+  ccxt::any obj1SnapshotA = ::getValue(obj1, std::string("a"));
+  ccxt::any obj1SnapshotB0 = ::getValue(::getValue(obj1, std::string("b")), 0);
+  ccxt::any obj1SnapshotOther1 = ::getValue(obj1, std::string("other1"));
+  ccxt::any obj2SnapshotA = ::getValue(obj2, std::string("a"));
+  ccxt::any obj2SnapshotB0 = ::getValue(::getValue(obj2, std::string("b")), 0);
+  ccxt::any obj2SnapshotOther2 = ::getValue(obj2, std::string("other2"));
   // --- test 1: basic extend ---
-  std::any extended = exchange.extend(obj1, obj2);
+  ccxt::any extended = exchange.extend(obj1, obj2);
   tbfeCheckExtended(extended, true);
   // --- mutation check: obj1 must NOT be mutated ---
   assertTrue(isEqual(::getValue(obj1, std::string("a")), obj1SnapshotA),
@@ -89,7 +89,7 @@ void testExtend() {
       std::string("obj2['other2'] was mutated after extend"));
   // --- test 2: multi-step extend – apply a third patch on top of the first
   // result ---
-  std::any obj3 = ccxt::dict{
+  ccxt::any obj3 = ccxt::dict{
       {std::string("a"), 3},
       {std::string("b"), ccxt::list{5, 6}},
       {std::string("c"), ccxt::list{ccxt::dict{
@@ -100,7 +100,7 @@ void testExtend() {
       {std::string("e"), std::string("back_to_string")},
       {std::string("other3"), std::string("z")},
   };
-  std::any extended2 = exchange.extend(extended, obj3);
+  ccxt::any extended2 = exchange.extend(extended, obj3);
   assertTrue(isEqual(::getValue(extended2, std::string("a")), 3),
              std::string("step2: a"));
   assertTrue(isEqual(::getValue(::getValue(extended2, std::string("b")), 0), 5),
@@ -149,25 +149,25 @@ void testExtend() {
       !isTrue((inOp(extended, std::string("other3")))),
       std::string("extended['other3'] should not exist after second extend"));
   // --- test 3: four-step chained extend on same base object ---
-  std::any base = ccxt::dict{
+  ccxt::any base = ccxt::dict{
       {std::string("x"), 0},
       {std::string("keep"), std::string("yes")},
   };
-  std::any patch1 = ccxt::dict{
+  ccxt::any patch1 = ccxt::dict{
       {std::string("x"), 1},
       {std::string("p1"), true},
   };
-  std::any patch2 = ccxt::dict{
+  ccxt::any patch2 = ccxt::dict{
       {std::string("x"), 2},
       {std::string("p2"), true},
   };
-  std::any patch3 = ccxt::dict{
+  ccxt::any patch3 = ccxt::dict{
       {std::string("x"), 3},
       {std::string("p3"), true},
   };
-  std::any r1 = exchange.extend(base, patch1);
-  std::any r2 = exchange.extend(r1, patch2);
-  std::any r3 = exchange.extend(r2, patch3);
+  ccxt::any r1 = exchange.extend(base, patch1);
+  ccxt::any r2 = exchange.extend(r1, patch2);
+  ccxt::any r3 = exchange.extend(r2, patch3);
   assertTrue(isEqual(::getValue(r3, std::string("x")), 3),
              std::string("chain: r3['x'] should be 3 after 3 patches"));
   assertTrue(isEqual(::getValue(r3, std::string("keep")), std::string("yes")),
@@ -191,21 +191,21 @@ void testExtend() {
              std::string("base['p2'] leaked into base"));
   // --- test 4: extend with undefined values does NOT overwrite existing keys
   // ---
-  std::any withValues = ccxt::dict{
+  ccxt::any withValues = ccxt::dict{
       {std::string("keep1"), std::string("A")},
       {std::string("keep2"), std::string("B")},
   };
-  std::any withUndefs = ccxt::dict{
-      {std::string("keep1"), std::any{}},
-      {std::string("keep2"), std::any{}},
+  ccxt::any withUndefs = ccxt::dict{
+      {std::string("keep1"), ccxt::any{}},
+      {std::string("keep2"), ccxt::any{}},
       {std::string("newKey"), std::string("C")},
   };
-  std::any extUndef = exchange.extend(withValues, withUndefs);
+  ccxt::any extUndef = exchange.extend(withValues, withUndefs);
   // extend() merges ALL keys (including undefined ones), so undefined wins over
   // previous value
-  assertTrue(isEqual(::getValue(extUndef, std::string("keep1")), std::any{}),
+  assertTrue(isEqual(::getValue(extUndef, std::string("keep1")), ccxt::any{}),
              std::string("extend: extUndef['keep1'] should be undefined"));
-  assertTrue(isEqual(::getValue(extUndef, std::string("keep2")), std::any{}),
+  assertTrue(isEqual(::getValue(extUndef, std::string("keep2")), ccxt::any{}),
              std::string("extend: extUndef['keep2'] should be undefined"));
   assertTrue(
       isEqual(::getValue(extUndef, std::string("newKey")), std::string("C")),
@@ -218,7 +218,7 @@ void testExtend() {
       isEqual(::getValue(withValues, std::string("keep2")), std::string("B")),
       std::string("withValues['keep2'] was mutated"));
 }
-void tbfeCheckExtended(std::any extended, std::any hasSub) {
+void tbfeCheckExtended(ccxt::any extended, ccxt::any hasSub) {
   assertTrue(isEqual(::getValue(extended, std::string("a")), 2));
   assertTrue(isEqual(::getValue(::getValue(extended, std::string("b")), 0), 3));
   assertTrue(isEqual(::getValue(::getValue(extended, std::string("b")), 1), 4));
@@ -235,7 +235,7 @@ void tbfeCheckExtended(std::any extended, std::any hasSub) {
               3));
   assertTrue(isEqual(::getValue(extended, std::string("d")),
                      std::string("not_undefined")));
-  assertTrue(isEqual(::getValue(extended, std::string("e")), std::any{}));
+  assertTrue(isEqual(::getValue(extended, std::string("e")), ccxt::any{}));
   assertTrue(
       isEqual(::getValue(extended, std::string("other1")), std::string("x")));
   assertTrue(

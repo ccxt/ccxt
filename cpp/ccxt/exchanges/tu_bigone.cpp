@@ -8,7 +8,7 @@ namespace ccxt {
 namespace factory {
 namespace {
 
-std::shared_ptr<ExchangeBase> create_bigone(std::any config) {
+std::shared_ptr<ExchangeBase> create_bigone(ccxt::any config) {
   return newExchange<bigone>(config);
 }
 
