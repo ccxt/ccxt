@@ -1592,7 +1592,7 @@ export default class alpaca extends Exchange {
 
     parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
-            'day': 'Day',
+            'day': 'Day', // equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
             'gtc': 'GTC',
             'ioc': 'IOC',
             'fok': 'FOK',
